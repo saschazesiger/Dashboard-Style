@@ -1,0 +1,32 @@
+{
+  "name": "duration",
+  "group": "forms",
+  "order": 470,
+  "docsOrder": 238,
+  "need": "Type a length of time as people write it (1h 30m, 90 min) and keep it as ISO 8601",
+  "tier": 2,
+  "status": "beta",
+  "classes": [
+    "ds-duration"
+  ],
+  "attributes": [],
+  "requires": [
+    "form"
+  ],
+  "context": [],
+  "hooks": {},
+  "keyframes": [],
+  "js": [
+    "duration",
+    "format"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.duration.create": "a text field: its border and ring are the field's, nothing moves",
+    "DS.duration.parse": "reads text: no DOM, no motion",
+    "DS.duration.iso": "writes text: no DOM, no motion",
+    "DS.duration.format": "text from Intl: no DOM, no motion"
+  }
+}
