@@ -36,6 +36,7 @@
   },
   "keyframes": [
     "ds-drop-out",
+    "ds-fade-out",
     "ds-lift-in"
   ],
   "js": [
@@ -49,9 +50,9 @@
     "DS.bottomsheet.parseDetents": "a pure function: no motion",
     "DS.bottomsheet.settleDetent": "a pure function: no motion"
   },
-  "motionExceptions": {
-    "exitUnpaired": {
-      ".ds-bottomsheet.ds-sheet--closing:not([data-state]) .ds-bottomsheet__panel": "the opaque bottom sheet drops its full height off the screen, as the side sheet slides its width (D16)"
+  "exceptions": {
+    "ripple": {
+      ".ds-bottomsheet__handle": "a drag handle: the panel follows the finger from it, which is the press; a ripple would stay behind while the panel moves"
     }
   }
 }

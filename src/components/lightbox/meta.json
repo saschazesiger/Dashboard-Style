@@ -72,5 +72,11 @@
     "DS.lightbox.show": "the same viewer as DS.lightbox.open, shown in the entry lightbox-open",
     "DS.lightbox.nextZoom": "a pure function: no motion",
     "DS.lightbox.clampPan": "a pure function: no motion"
+  },
+  "exceptions": {
+    "ripple": {
+      ".ds-lightbox__item": "an image that opens the viewer: the state layer over the picture is the press; a ripple would wash over the photo it opens",
+      ".ds-lightbox__thumb": "a thumbnail of the viewer: it shows the press by opacity and the current one by its ring; a ripple would cover the picture it picks"
+    }
   }
 }

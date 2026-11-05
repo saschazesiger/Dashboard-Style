@@ -1,6 +1,4 @@
 /** Types of DS.bottomsheet (js/bottomsheet.js). */
-import type { OpenOptions } from '../../types/js/overlay.js';
-
 /** Where a bottom sheet is. */
 export interface BottomSheetState {
   open: boolean;
@@ -29,6 +27,13 @@ export declare function settleDetent(detents: number[], shown: number, velocity:
 /** The controller of a bottom sheet, the one [data-ds-bottomsheet] makes. */
 export declare function create(element: Element): BottomSheetController;
 /** Opens a bottom sheet at `detent` (default the smallest): DS.overlay.open(). */
-export declare function open(element: Element, options?: Pick<OpenOptions, 'opener' | 'returnTo'> & { detent?: number }): Promise<void>;
+export declare function open(element: Element, options?: {
+  /** The element focus returns to (DS.overlay.open's opener). */
+  opener?: Element | null;
+  /** Where focus goes on close when the opener is gone. */
+  returnTo?: () => Element | null | undefined;
+  /** The detent index to open at; default the smallest. */
+  detent?: number;
+}): Promise<void>;
 /** Closes a bottom sheet: DS.overlay.close(). */
 export declare function close(element: Element, options?: { reason?: string }): Promise<void>;

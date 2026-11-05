@@ -112,7 +112,9 @@
 
   .ds-bottomsheet.ds-sheet--closing:not([data-state]) .ds-bottomsheet__panel {
     --ds-motion-distance: var(--ds-distance-sheet);
-    animation: ds-drop-out var(--ds-dur-base) var(--ds-ease-exit) forwards;
+    animation:
+      ds-drop-out var(--ds-dur-base) var(--ds-ease-exit) forwards,
+      ds-fade-out var(--ds-dur-base) var(--ds-ease-in-out) forwards;
   }
 
   /* The handle: a pill at the top, a target as tall as the touch target. */
