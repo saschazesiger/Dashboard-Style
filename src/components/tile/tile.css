@@ -6,7 +6,7 @@
  *   <div class="ds-tiles">
  *     <div class="ds-tile">
  *       <p class="ds-tile__label">[icon] <span>Open items</span></p>
- *       <p class="ds-tile__value">128</p>
+ *       <p class="ds-tile__value">128<span class="ds-tile__unit">GB</span></p>
  *       <p class="ds-tile__delta ds-tone-success">[icon arrowUp 16]<span>12% more</span></p>
  *       <p class="ds-tile__note">Target 140</p>
  *       <div class="ds-tile__trend">[a sparkline: .ds-columns--mini, or the project's own]</div>
@@ -43,6 +43,16 @@
  * A value that does not fit ends in an ellipsis (the last resort: shorten
  * figures, the full value in data-tip). .ds-tile__value--empty: a value
  * that is missing ("No data"), in --ds-text-2 with the display font.
+ *
+ * The unit (.ds-tile__unit, inside the value): a short unit after the
+ * figure ("GB", "ms", "%"), in the subtitle type and --ds-text-2, so the
+ * figure stays the thing to read; it shrinks with a narrow tile's value.
+ *
+ * The target (.ds-tile__target): a .ds-meter (with a .ds-meter__threshold
+ * at the target's share, meter.css) and one line of words under it,
+ * .ds-tile__target-text ("92% of the target of 140"). The meter has its own
+ * name and value text; the words say whether the target is met, never the
+ * mark or the colour alone.
  *
  * The delta (.ds-tile__delta): how the figure moved, always an arrow and a
  * word. Without a tone it stays quiet; a .ds-tone-* on the delta itself
@@ -266,6 +276,31 @@
     border-radius: calc(var(--ds-radius-chip) * var(--ds-shape, 1));
     background: var(--ds-tone-container);
     color: var(--ds-on-tone-container);
+  }
+
+  /* A unit after the figure: quieter, and as large as it can be beside a
+     figure that shrinks with its tile. */
+  .ds-tile__unit {
+    margin-inline-start: var(--ds-space-1);
+    color: var(--ds-text-2);
+    font: var(--ds-font-subtitle);
+    /* Half the figure, which may have shrunk with its tile. */
+    font-size: 0.5em;
+    letter-spacing: 0;
+  }
+
+  /* The target: a meter and its words, under the figure. */
+  .ds-tile__target {
+    display: grid;
+    gap: var(--ds-space-1);
+    margin-top: var(--ds-space-2);
+  }
+
+  .ds-tile__target-text {
+    margin: 0;
+    color: var(--ds-text-2);
+    font: var(--ds-font-meta);
+    font-variant-numeric: tabular-nums;
   }
 
   /* A meter under the figure: how far it is to its target. */

@@ -261,3 +261,22 @@ test('forced colours: a selected tile is Highlight with its delta and sparkline;
   expect(await page.locator('#plain svg').count()).toBe(1);
   await expect(page.locator('#plain')).toHaveText('Up');
 });
+
+test('KPI stat: a unit half the figure, quieter; the target is a named meter with its words', async ({ page }) => {
+  await open(page);
+  const kpi = page.locator('#fx-component [data-demo="kpi"] .ds-tile').first();
+  const [unit, figure, ink, text2] = await kpi.evaluate((el) => {
+    const value = el.querySelector('.ds-tile__value');
+    const unitEl = value.querySelector('.ds-tile__unit');
+    return [parseFloat(getComputedStyle(unitEl).fontSize), parseFloat(getComputedStyle(value).fontSize), getComputedStyle(unitEl).color, getComputedStyle(el.querySelector('.ds-tile__target-text')).color];
+  });
+  expect(unit).toBe(figure / 2);
+  expect(ink).toBe(await role(page, '--ds-text-2', 'color'));
+  expect(text2).toBe(ink);
+  await expect(kpi.getByRole('meter', { name: 'Storage used' })).toHaveAttribute('aria-valuetext', /target/);
+  const [meterTop, textTop] = await kpi.evaluate((el) => [el.querySelector('.ds-tile__target .ds-meter').getBoundingClientRect().bottom, el.querySelector('.ds-tile__target-text').getBoundingClientRect().top]);
+  expect(textTop).toBeGreaterThanOrEqual(meterTop);
+  // The threshold mark sits across the meter at the target's share.
+  const mark = await kpi.evaluate((el) => { const m = el.querySelector('.ds-meter'); const t = el.querySelector('.ds-meter__threshold'); return (t.getBoundingClientRect().left + 1 - m.getBoundingClientRect().left) / m.getBoundingClientRect().width; });
+  expect(mark).toBeCloseTo(0.8, 2);
+});
