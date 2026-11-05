@@ -1,0 +1,89 @@
+{
+  "name": "command",
+  "group": "overlays",
+  "order": 5020,
+  "docsOrder": 257,
+  "need": "Find and run any command of the app from one search field (Ctrl+K)",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-command",
+    "ds-command__back",
+    "ds-command__chevron",
+    "ds-command__close",
+    "ds-command__content",
+    "ds-command__description",
+    "ds-command__empty",
+    "ds-command__foot",
+    "ds-command__group",
+    "ds-command__heading",
+    "ds-command__icon",
+    "ds-command__input",
+    "ds-command__item",
+    "ds-command__label",
+    "ds-command__list",
+    "ds-command__match",
+    "ds-command__search",
+    "ds-command__shortcut",
+    "ds-command__status"
+  ],
+  "attributes": [
+    "data-active"
+  ],
+  "requires": [
+    "button",
+    "dialog",
+    "spinner",
+    "utilities"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-command-width": {
+      "default": "640px",
+      "description": "the command palette's box"
+    },
+    "--ds-command-top": {
+      "default": "min(12vh, 96px)",
+      "description": "the room above the command palette's box"
+    },
+    "--ds-command-height": {
+      "default": "480px",
+      "description": "the command palette's box at most"
+    },
+    "--ds-command-search-height": {
+      "default": "56px",
+      "description": "the command palette's search row at md and the comfortable density"
+    },
+    "--ds-command-item-height": {
+      "default": "48px",
+      "description": "a command palette option at md and the comfortable density"
+    },
+    "--ds-command-item-radius": {
+      "default": "`--ds-radius-sm`",
+      "description": "a command palette option's radius at the default shape"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "command",
+    "dialog",
+    "hotkeys",
+    "overlay",
+    "store"
+  ],
+  "module": true,
+  "progressive": [
+    "scrollbar-color"
+  ],
+  "ripple": false,
+  "labExempt": {
+    "DS.command.fuzzy": "a score and ranges: no motion",
+    "DS.command.rank": "a sorted list: no motion"
+  },
+  "exceptions": {
+    "ripple": {
+      ".ds-command__item": "an option of the listbox: focus stays in the field, the active layer is the feedback (as the combobox option)",
+      ".ds-command__back": "the page's label before the field, out of the tab order: Backspace and Escape are its keys, a click its pointer path"
+    }
+  }
+}
