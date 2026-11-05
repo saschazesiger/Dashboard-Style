@@ -397,6 +397,21 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} at position {position} of {total}.` | what `DS.dnd.create()` announces on a drop (the system's string `dragDropped`) | `DS.core.config({ strings: { dragDropped } })` |
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
+| `Resize the panel` | the name of a side sheet's separator without one of its own (`DS.sheet`; the system's string `resizePanel`) | `DS.core.config({ strings: { resizePanel } })` |
+| `Step {step} of {total}: {label}` | a tearsheet's progress line and what it says on a step change (`DS.tearsheet`; the system's string `stepOf`) | `DS.core.config({ strings: { stepOf } })` |
+| `, done` | the hidden word after a done step of a tearsheet's rail (the system's string `stepDone`) | `DS.core.config({ strings: { stepDone } })` |
+| `, needs attention` | the hidden word after a step that failed its check (the system's string `stepError`) | `DS.core.config({ strings: { stepError } })` |
+| `Discard your changes?` | the title of the question before a tearsheet with unsaved changes closes (the system's string `discardTitle`; or `DS.tearsheet.create(el, { discard: { title } })`) | `DS.core.config({ strings: { discardTitle } })` |
+| `What you entered is lost.` | its text (the system's string `discardText`; or `discard: { text }`) | `DS.core.config({ strings: { discardText } })` |
+| `Discard` | its destructive button (the system's string `discard`; or `discard: { confirmLabel }`) | `DS.core.config({ strings: { discard } })` |
+| `Keep editing` | its cancel button (the system's string `keepEditing`; or `discard: { cancelLabel }`) | `DS.core.config({ strings: { keepEditing } })` |
+| `Image {index} of {total}` | a lightbox's counter and what it says on a change (`DS.lightbox`; the system's string `imageOf`) | `DS.core.config({ strings: { imageOf } })` |
+| `Images` | the name of a lightbox's row of thumbnails (the system's string `images`) | `DS.core.config({ strings: { images } })` |
+| `Zoom in` | a lightbox's zoom-in button (the system's string `zoomIn`) | `DS.core.config({ strings: { zoomIn } })` |
+| `Zoom out` | its zoom-out button (the system's string `zoomOut`) | `DS.core.config({ strings: { zoomOut } })` |
+| `The image could not be loaded.` | a lightbox image that failed (the system's string `imageFailed`) | `DS.core.config({ strings: { imageFailed } })` |
+| `Resize the sheet` | the name of a bottom sheet's drag handle without one of its own (`DS.bottomsheet`; the system's string `resizeSheet`) | `DS.core.config({ strings: { resizeSheet } })` |
+| `Sheet at {percent} percent of the screen` | what a bottom sheet says when it stops at another height (the system's string `sheetDetent`) | `DS.core.config({ strings: { sheetDetent } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

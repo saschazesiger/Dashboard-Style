@@ -151,6 +151,21 @@ const DEFAULT_STRINGS = Object.freeze({
   dragDropped: 'Dropped {label} at position {position} of {total}.',
   dragDroppedZone: 'Dropped {label} in {zone}, position {position} of {total}.',
   dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
+  resizePanel: 'Resize the panel',
+  stepOf: 'Step {step} of {total}: {label}',
+  stepDone: ', done',
+  stepError: ', needs attention',
+  discardTitle: 'Discard your changes?',
+  discardText: 'What you entered is lost.',
+  discard: 'Discard',
+  keepEditing: 'Keep editing',
+  imageOf: 'Image {index} of {total}',
+  images: 'Images',
+  zoomIn: 'Zoom in',
+  zoomOut: 'Zoom out',
+  imageFailed: 'The image could not be loaded.',
+  resizeSheet: 'Resize the sheet',
+  sheetDetent: 'Sheet at {percent} percent of the screen',
 });
 
 /**
