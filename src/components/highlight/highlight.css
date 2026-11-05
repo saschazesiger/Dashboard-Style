@@ -1,0 +1,48 @@
+/*
+ * Highlight: the hits of a search in a text, each a
+ * <mark class="ds-mark"> written by DS.highlight (data-ds-highlight on the
+ * container), or by the page itself (a server that marks its results).
+ *
+ *   <ul data-ds-highlight="toner">
+ *     <li>Replace the <mark class="ds-mark" data-ds-mark>toner</mark> on floor 2</li>
+ *
+ *   .ds-mark   the hit: the warning container behind the text, its ink,
+ *              rounded corners that hug the letters (times --ds-shape)
+ *
+ * Options: shape only (the corners); the mark takes the type of its text.
+ * A mark is not a status: it says "this matched", and the search field
+ * above says what was searched. Forced colours: the system's Mark and
+ * MarkText. Printed, the background stays.
+ *
+ * Hooks: --ds-mark-bg (--ds-warning-container), --ds-mark-color
+ * (--ds-on-warning-container).
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.highlight {
+  .ds-mark {
+    padding: 0 1px;
+    margin: 0 -1px;
+    border-radius: calc(var(--ds-radius-xs) * var(--ds-shape, 1));
+    background: var(--ds-mark-bg, var(--ds-warning-container));
+    color: var(--ds-mark-color, var(--ds-on-warning-container));
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
+  @media (forced-colors: active) {
+    .ds-mark {
+      forced-color-adjust: none;
+      background: Mark;
+      color: MarkText;
+    }
+  }
+
+  @media print {
+    .ds-mark {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
+}
