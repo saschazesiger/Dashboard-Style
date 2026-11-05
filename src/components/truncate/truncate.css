@@ -1,0 +1,54 @@
+/*
+ * Truncate: a text too long for its place, cut at its end, its start or
+ * its middle with an ellipsis, whole in a tooltip while it is cut and
+ * always whole for a screen reader (DS.truncate, data-ds-truncate).
+ *
+ *   <span class="ds-truncate" data-ds-truncate="end">Replace the toner of every printer on floor 2</span>
+ *   <span class="ds-truncate" data-ds-truncate="middle">inventory-export-2026-11-04-final.csv</span>
+ *   <a class="ds-truncate" data-ds-truncate="start" href="...">/devices/north/floor-2/printer-7</a>
+ *
+ *   .ds-truncate          one line, at most as wide as its container; the
+ *                         end is cut by text-overflow, the start and the
+ *                         middle by the module (.ds-truncate__shown, with
+ *                         the whole text in a .ds-sr beside it)
+ *   .ds-truncate--lines   up to --ds-truncate-lines lines (2), then the
+ *                         end is cut: CSS alone, no tooltip (use
+ *                         expandable text where all of it matters)
+ *
+ * In a flex row the element itself shrinks (min-width: 0); give the row's
+ * other parts flex: none. A link or a button may be the .ds-truncate
+ * itself: its name stays whole, and focusing it shows the tooltip.
+ *
+ * Options: none read; it takes the type of where it stands. Forced
+ * colours: nothing of its own. No motion.
+ *
+ * Hooks: --ds-truncate-lines (2).
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.truncate {
+  .ds-truncate {
+    display: inline-block;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    vertical-align: bottom;
+  }
+
+  /* The module's cut: spaces kept as typed, never a wrap. */
+  .ds-truncate__shown {
+    white-space: pre;
+  }
+
+  .ds-truncate--lines {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: var(--ds-truncate-lines, 2);
+    line-clamp: var(--ds-truncate-lines, 2);
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}

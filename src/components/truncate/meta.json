@@ -1,0 +1,38 @@
+{
+  "name": "truncate",
+  "group": "content",
+  "order": 870,
+  "docsOrder": 206,
+  "need": "Cut a long text at its end, start or middle with an ellipsis and show it whole in a tooltip",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-truncate",
+    "ds-truncate--lines",
+    "ds-truncate__shown"
+  ],
+  "attributes": [],
+  "requires": [
+    "tooltip",
+    "utilities"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-truncate-lines": {
+      "default": "2",
+      "description": "`.ds-truncate--lines`: how many lines before the end is cut"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "truncate"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.truncate.create": "cuts the text at once: no motion",
+    "DS.truncate.cut": "a pure function: no motion",
+    "DS.truncate.fit": "a pure function: no motion"
+  }
+}
