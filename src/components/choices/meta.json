@@ -1,0 +1,58 @@
+{
+  "name": "choices",
+  "group": "forms",
+  "order": 306,
+  "docsOrder": 233,
+  "need": "Check several of a set of options: \"select all\", a count, a filter and columns for long sets",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-choices",
+    "ds-choices--columns",
+    "ds-choices--scroll",
+    "ds-choices__count",
+    "ds-choices__empty",
+    "ds-choices__list",
+    "ds-choices__match",
+    "ds-choices__search",
+    "ds-choices__tools"
+  ],
+  "attributes": [
+    "data-ds-edges",
+    "data-ds-overflow-end",
+    "data-ds-overflow-start"
+  ],
+  "requires": [
+    "form"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-choices-column-width": {
+      "default": "180px",
+      "description": "choice list in columns: the least width of a column"
+    },
+    "--ds-choices-columns": {
+      "default": "4",
+      "description": "choice list in columns: the most columns"
+    },
+    "--ds-choices-max-height": {
+      "default": "264px",
+      "description": "the scrolling choice list's height before it scrolls (about six rows)"
+    },
+    "--ds-scroll-fade": {
+      "owner": "scroller"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "choices"
+  ],
+  "module": true,
+  "progressive": [
+    "scrollbar-color"
+  ],
+  "ripple": false,
+  "labExempt": {
+    "DS.choices.summary": "a state only, no motion"
+  }
+}
