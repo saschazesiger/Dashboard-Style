@@ -1,0 +1,38 @@
+{
+  "name": "toggletip",
+  "group": "overlays",
+  "order": 410,
+  "docsOrder": 285,
+  "need": "Explain a field or a figure in a help card that opens on a click or tap of an info button",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-toggletip"
+  ],
+  "attributes": [],
+  "requires": [
+    "popover"
+  ],
+  "context": [
+    "form"
+  ],
+  "hooks": {
+    "--ds-toggletip-size": {
+      "default": "24px",
+      "description": "the info button at size md (an icon-only control: it steps with size only)"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "popover",
+    "toggletip"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "exceptions": {
+    "ripple": {
+      ".ds-toggletip": "a 24px glyph next to a label: a ripple would be smaller than the finger that starts it; the state layer shows the press"
+    }
+  }
+}
