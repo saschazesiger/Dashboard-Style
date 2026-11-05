@@ -334,8 +334,8 @@ export function create(element, options = {}) {
 
   /* Markup source. */
   function scan() {
-    const options = [...element.querySelectorAll('[role="option"]')];
-    entries = options.map((el, index) => {
+    const optionEls = [...element.querySelectorAll('[role="option"]')];
+    entries = optionEls.map((el, index) => {
       if (!el.id) el.id = `${baseId}-o${index}`;
       const name = el.querySelector(`.${part('name')}`);
       const label = (name ?? el).textContent.trim();

@@ -1,7 +1,7 @@
 {
   "name": "selectpanel",
   "group": "forms",
-  "order": 314,
+  "order": 630,
   "docsOrder": 234,
   "need": "Pick several values in a popover with a filter and an apply foot: labels, assignees, filters",
   "tier": 1,
@@ -14,7 +14,8 @@
     "ds-selectpanel__panel",
     "ds-selectpanel__search",
     "ds-selectpanel__status",
-    "ds-selectpanel__summary"
+    "ds-selectpanel__summary",
+    "ds-selectpanel__trigger"
   ],
   "attributes": [
     "data-anchored",
@@ -52,7 +53,8 @@
   ],
   "module": true,
   "progressive": [
-    "anchor positioning"
+    "anchor positioning",
+    "scrollbar-color"
   ],
   "ripple": false,
   "labExempt": {

@@ -1,7 +1,7 @@
 {
   "name": "orderedchoice",
   "group": "forms",
-  "order": 316,
+  "order": 640,
   "docsOrder": 235,
   "need": "Choose several options and put them in order: table columns, fallbacks, priorities; by drag and by keys",
   "tier": 1,

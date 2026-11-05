@@ -35,6 +35,9 @@ role.move(['restart']);             // as the add button: announced, ds:change; 
 role.on('change', ({ value }) => save(value));
 ```
 
+`DS.transfer.create(el, options)` returns the controller that `data-ds-transfer` makes (`DS.get(el)` finds it):
+`get()`, `set(value)`, `move(values, toTarget)`, `on('change', fn)` and `destroy()`.
+
 - **Marking** is each list's own choice (`DS.listbox`: Space, Shift with an arrow, Ctrl+A, a press, a Shift-press).
 - **Moving.** `data-ds-transfer-add` moves the source's marked options to the end of the target, `data-ds-transfer-remove`
   the target's back to the source, in their first order. Enter in a list moves its marked options, else the active one,

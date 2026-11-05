@@ -29,6 +29,9 @@ columns.move('status', 0);                      // as a drop: announced, ds:chan
 columns.on('change', ({ value, order }) => save(value));
 ```
 
+`DS.orderedchoice.create(list, options)` returns the controller that `data-ds-orderedchoice` makes (`DS.get(list)`
+finds it): `get()`, `order()`, `set(value)`, `move(value, index)`, `on('change', fn)` and `destroy()`.
+
 - **Moving.** The grip drags its row (`DS.dnd`): by the pointer, or Space or Enter to lift, the arrows to move, Space to
   drop and Escape to cancel, each step announced ("Moved Status to position 1 of 6."). Alt+ArrowUp and Alt+ArrowDown on
   a row's checkbox or grip move it one place at once, Alt+Home and Alt+End to the ends; the focus stays. The rows glide

@@ -1,7 +1,7 @@
 {
   "name": "choices",
   "group": "forms",
-  "order": 306,
+  "order": 610,
   "docsOrder": 233,
   "need": "Check several of a set of options: \"select all\", a count, a filter and columns for long sets",
   "tier": 1,

@@ -55,6 +55,8 @@
  * (320px), --ds-selectpanel-radius (--ds-radius-xs).
  *
  * Progressive:
+ * - scrollbar-color and scrollbar-width (a thin, quiet scrollbar in the
+ *   list): without them the platform scrollbar shows.
  * - CSS anchor positioning (position-anchor, position-area and
  *   position-try-fallbacks on the panel, behind @supports; DS.selectpanel
  *   then opens it in the top layer with data-anchored, so no scrolling box
@@ -70,6 +72,12 @@
     display: inline-block;
     max-width: 100%;
     vertical-align: middle;
+  }
+
+  /* The button never outgrows the select panel's box: a long summary
+     truncates instead of pushing the row. */
+  .ds-selectpanel__trigger {
+    max-width: 100%;
   }
 
   /* The summary of the choice, quieter than the name. */
@@ -182,6 +190,8 @@
 
   /* The list scrolls inside the panel; head, status and foot stay. */
   .ds-selectpanel__list {
+    /* Positioned, so scrollIntoView() and absolute content stay inside. */
+    position: relative;
     flex: 0 1 auto;
     min-height: 0;
     max-height: var(--ds-selectpanel-list-max-height, 320px);

@@ -33,9 +33,10 @@
  * Events on the .ds-selectpanel: ds:change ({ value }) when the choice was
  * applied; ds:open and ds:close come from DS.overlay on the panel.
  *
- * Progressive: anchor positioning and the top layer (DS.position
- * anchorPopup()), feature-detected; elsewhere DS.position place() writes
- * the side and the cap of the absolute panel.
+ * Progressive:
+ * - anchor positioning and the top layer (DS.position anchorPopup()),
+ *   feature-detected: elsewhere DS.position place() writes the side and the
+ *   cap of the absolute panel.
  */
 import { define, emit, t } from '../../js/core.js';
 import { open as openOverlay, close as closeOverlay } from '../../js/overlay.js';
