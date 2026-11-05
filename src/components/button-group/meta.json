@@ -1,0 +1,53 @@
+{
+  "name": "button-group",
+  "group": "actions",
+  "order": 530,
+  "docsOrder": 53,
+  "need": "Join related actions or toggles into one pill outline",
+  "tier": 1,
+  "status": "stable",
+  "classes": [
+    "ds-btn-group",
+    "ds-btn-group--block"
+  ],
+  "attributes": [],
+  "requires": [
+    "button"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-btn-group-radius": {
+      "default": "`--ds-radius-action`",
+      "description": "button group: the outer corners (at most half the height, times `--ds-shape`); the inner corners are square"
+    },
+    "--ds-btn-group-divider": {
+      "default": "the buttons' border; filled or tonal: the label colour at 40% in the fill",
+      "description": "button group: the line between two buttons"
+    },
+    "--ds-btn-height": {
+      "owner": "button"
+    },
+    "--ds-btn-height-exact": {
+      "owner": "button"
+    },
+    "--ds-btn-icon-size": {
+      "owner": "button"
+    },
+    "--ds-btn-radius-pressed": {
+      "owner": "button"
+    },
+    "--ds-btn-border": {
+      "owner": "button"
+    },
+    "--ds-btn-color": {
+      "owner": "button"
+    },
+    "--ds-btn-bg": {
+      "owner": "button"
+    }
+  },
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}
