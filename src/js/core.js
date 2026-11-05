@@ -183,6 +183,21 @@ const DEFAULT_STRINGS = Object.freeze({
   facetNoMatch: 'No match for “{query}”',
   facetMatchesOne: '{count} match',
   facetMatchesOther: '{count} matches',
+  viewEdited: 'Edited',
+  viewDefault: 'Default',
+  viewApplied: 'View: {name}',
+  viewSaved: 'Saved {name}',
+  viewDeleted: 'Deleted {name}',
+  viewDefaultSet: '{name} is the default view',
+  viewLinkCopied: 'Link copied',
+  viewNameLabel: 'Name',
+  viewNewTitle: 'Save as a new view',
+  viewRenameTitle: 'Rename view',
+  viewSave: 'Save',
+  viewLinkTitle: 'Link to this view',
+  viewDeleteTitle: 'Delete “{name}”?',
+  viewDeleteText: 'The view goes from this browser. The list and its data stay as they are.',
+  viewDeleteConfirm: 'Delete view',
 });
 
 /**

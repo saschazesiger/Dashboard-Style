@@ -429,6 +429,21 @@ strings a script adds have an option, so a page in another language passes its o
 | `No match for “{query}”` | the line, and the announcement, of a facet search in `DS.facets` that matches no option (the system's string `facetNoMatch`) | `DS.core.config({ strings: { facetNoMatch } })` |
 | `{count} match` | what `DS.facets` announces once typing in a facet search pauses, one (the system's string `facetMatchesOne`) | `DS.core.config({ strings: { facetMatchesOne } })` |
 | `{count} matches` | the same, other numbers (the system's string `facetMatchesOther`) | `DS.core.config({ strings: { facetMatchesOther } })` |
+| `Edited` | the word on the trigger of `DS.views` while the page's state differs from the current view (the system's string `viewEdited`) | `DS.core.config({ strings: { viewEdited } })` |
+| `Default` | the word on the default view in the menu of `DS.views` (the system's string `viewDefault`) | `DS.core.config({ strings: { viewDefault } })` |
+| `View: {name}` | what `DS.views` announces after a view was picked (the system's string `viewApplied`) | `DS.core.config({ strings: { viewApplied } })` |
+| `Saved {name}` | the snackbar and announcement of `DS.views` after a view was saved or renamed (the system's string `viewSaved`) | `DS.core.config({ strings: { viewSaved } })` |
+| `Deleted {name}` | what `DS.views` announces after a view was deleted (the system's string `viewDeleted`) | `DS.core.config({ strings: { viewDeleted } })` |
+| `{name} is the default view` | what `DS.views` announces after Make default (the system's string `viewDefaultSet`) | `DS.core.config({ strings: { viewDefaultSet } })` |
+| `Link copied` | the snackbar of `DS.views` after the link to a view was copied (the system's string `viewLinkCopied`) | `DS.core.config({ strings: { viewLinkCopied } })` |
+| `Name` | the label of the name field in the dialogs of `DS.views` (the system's string `viewNameLabel`) | `DS.core.config({ strings: { viewNameLabel } })` |
+| `Save as a new view` | the title of the dialog of `DS.views` that names a new view (the system's string `viewNewTitle`) | `DS.core.config({ strings: { viewNewTitle } })` |
+| `Rename view` | the title of the dialog of `DS.views` that renames a view (the system's string `viewRenameTitle`) | `DS.core.config({ strings: { viewRenameTitle } })` |
+| `Save` | the confirm button of those two dialogs (the system's string `viewSave`) | `DS.core.config({ strings: { viewSave } })` |
+| `Link to this view` | the title and field label of the dialog of `DS.views` that shows the link when the clipboard is refused (the system's string `viewLinkTitle`) | `DS.core.config({ strings: { viewLinkTitle } })` |
+| `Delete “{name}”?` | the title of the dialog of `DS.views` that asks before deleting a view (the system's string `viewDeleteTitle`) | `DS.core.config({ strings: { viewDeleteTitle } })` |
+| `The view goes from this browser. The list and its data stay as they are.` | the text of that dialog (the system's string `viewDeleteText`) | `DS.core.config({ strings: { viewDeleteText } })` |
+| `Delete view` | its confirm button, in the error tone (D10) (the system's string `viewDeleteConfirm`) | `DS.core.config({ strings: { viewDeleteConfirm } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow
