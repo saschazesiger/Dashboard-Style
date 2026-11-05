@@ -230,6 +230,11 @@ test('the demo: a failed save shows its reason, every state renders, 360px fits,
   page.on('pageerror', (error) => errors.push(String(error)));
   await open(page);
   await expect(page.locator('[data-demo="editing"]')).toHaveAttribute('data-state', 'edit');
+  // The saving state: busy, the field read-only, the save button busy.
+  const saving = page.locator('[data-demo="saving"]');
+  await expect(saving).toHaveAttribute('aria-busy', 'true');
+  await expect(saving.locator('input')).toHaveAttribute('readonly', '');
+  await expect(saving.locator('.ds-inlineedit__save')).toHaveAttribute('aria-busy', 'true');
   const fail = page.locator('[data-demo="fail"]');
   await fail.locator('.ds-inlineedit__edit').click();
   await fail.locator('input').fill('Grace Hopper');

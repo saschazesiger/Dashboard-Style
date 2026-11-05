@@ -39,6 +39,7 @@ SG.demo('inlineedit', {
       h.section('States', '<dl class="ds-facts" data-demo="states">' +
         inlineEdit(h, { label: 'Asset tag', value: 'AT-1042', demo: 'editing' }) +
         inlineEdit(h, { label: 'Serial number', value: 'SN-0042', demo: 'error' }) +
+        inlineEdit(h, { label: 'Hostname', value: 'printer-floor-1', demo: 'saving' }) +
         inlineEdit(h, { label: 'Cost centre', value: '', demo: 'empty' }) +
         '</dl>') +
 
@@ -54,14 +55,16 @@ SG.demo('inlineedit', {
     root.addEventListener('ds:save', function (event) {
       var host = event.target.closest('[data-demo]');
       if (!host) return;
-      if (host.getAttribute('data-demo') === 'fail') event.detail.wait(later(false, 'The directory did not answer. Try again in a minute.'));
+      // The saving state waits for an answer that never comes, so it stays busy.
+      if (host.getAttribute('data-demo') === 'saving') event.detail.wait(new Promise(function () {}));
+      else if (host.getAttribute('data-demo') === 'fail') event.detail.wait(later(false, 'The directory did not answer. Try again in a minute.'));
       else event.detail.wait(later(true));
     });
     root.addEventListener('ds:save', function (event) {
       var host = event.target.closest('[data-demo]');
-      if (host && host.getAttribute('data-demo') !== 'fail') setTimeout(function () { h.toast('Saved (demo).', 'success'); }, h.slow(950));
+      if (host && !/^(fail|saving)$/.test(host.getAttribute('data-demo'))) setTimeout(function () { h.toast('Saved (demo).', 'success'); }, h.slow(950));
     });
-    // The states: one open, one with an error.
+    // The states: one open, one with an error, one saving.
     Promise.resolve().then(function () {
       var get = function (name) { var el = h.$('[data-demo="' + name + '"]', root); return el && DS.core.get(el, 'inlineedit'); };
       var editing = get('editing');
@@ -77,6 +80,13 @@ SG.demo('inlineedit', {
         input.setAttribute('aria-describedby', message.id);
         message.innerHTML = h.icon('alertCircle', 16) + 'Use letters, digits and dashes only.';
         message.hidden = false;
+      }
+      var saving = get('saving');
+      if (saving) {
+        saving.edit();
+        // A changed value, or the save would only close the field.
+        h.$('input', h.$('[data-demo="saving"]', root)).value = 'printer-floor-2';
+        saving.save();
       }
       if (document.activeElement && root.contains(document.activeElement)) document.activeElement.blur();
     });

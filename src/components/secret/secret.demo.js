@@ -74,6 +74,7 @@ SG.demo('secret', {
         show();
       });
     }
-    show();
+    // After DS.init's observer attached the controllers, which fill the hidden inputs.
+    Promise.resolve().then(show);
   },
 });

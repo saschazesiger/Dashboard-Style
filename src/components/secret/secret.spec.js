@@ -159,6 +159,8 @@ test('the demo: every state, the narrow width, no console errors', async ({ page
   await open(page);
   const states = await page.locator('[data-demo="states"] .ds-secret').evaluateAll((els) => els.map((el) => el.getAttribute('data-state')));
   expect(states).toEqual(['set', 'replace', 'clear', 'empty']);
+  // The line under the buttons shows what a submit would post, from the first frame.
+  await expect(page.locator('[data-demo="actions"]')).toHaveText('The server would get: api_key_action=keep, smtp_password_action=keep');
   await page.setViewportSize({ width: 360, height: 800 });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(0);
