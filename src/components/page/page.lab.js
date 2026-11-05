@@ -1,8 +1,8 @@
 /*
  * Motion Lab: the page head. A sticky head condenses once its box is
- * scrolled: the folded parts leave in one frame while the scroll moves by as
- * much, and the hairline under it fades in with the scroll (or over
- * --ds-dur-fast where scroll timelines are missing).
+ * scrolled: the folded parts leave in one frame and keep their room, and
+ * the hairline under it fades in with the scroll (or over --ds-dur-fast
+ * where scroll timelines are missing).
  */
 function pageHeadMarkup() {
   var cards = '';
@@ -19,7 +19,7 @@ SG_LAB.add({
   id: 'page-head-condense',
   group: 'navigation',
   title: 'Page head: condenses on scroll',
-  note: 'Scrolled past what folds, the head takes <code>data-scrolled</code>: the back link, the lead and the key facts fold away in one frame while the scroll moves by as much, so the cards stay in place. The hairline fades in with the scroll (<code>ds-scroll-fade</code>), or over <code>--ds-dur-fast</code>.',
+  note: 'Scrolled past what folds, the head takes <code>data-scrolled</code>: the back link, the lead and the key facts fold away in one frame and keep their room as a margin, so the cards stay in place. The hairline fades in with the scroll (<code>ds-scroll-fade</code>), or over <code>--ds-dur-fast</code>.',
   shows: ['DS.page.create', '.ds-page-head--sticky', 'ds-scroll-fade', '--ds-dur-fast'],
   html: pageHeadMarkup(),
   height: 280,

@@ -53,9 +53,10 @@
  * under it. With page.js (data-ds-page-head) it condenses once the reader
  * has scrolled past what folds: data-scrolled (written by the module) hides
  * the back link or breadcrumbs, the lead, the status and the key facts, the
- * title takes --ds-font-title and the actions centre on it; the module
- * moves the scroll by what the head lost, so the content stays where it
- * was. The actions fold into a More menu by width: the module writes
+ * title takes --ds-font-title on one line (an ellipsis when short of room)
+ * and the actions sit at its end, also on a narrow page; what folded
+ * keeps its room as a bottom margin (--ds-page-head-fold, written by the
+ * module), so the content stays where it was. The actions fold into a More menu by width: the module writes
  * .ds-page-head__more (a quiet icon button) and its .ds-menu after them,
  * hides the actions that do not fit the row (the filled one last) and
  * lists them in the menu.
@@ -321,23 +322,42 @@
 
   /* Condensed (data-scrolled, written by page.js on a sticky head): the way
      back, the lead, the status and the key facts fold away, the title takes
-     the title role and the actions sit on its centre line. The module keeps
-     the content where it was while the head changes height. */
+     the title role and the actions sit on its centre line. The module writes
+     the height that folded as --ds-page-head-fold, which the head keeps as a
+     bottom margin, so the content stays where it was. */
   .ds-page-head--sticky[data-scrolled] > :is(.ds-page-head__back, .ds-breadcrumbs, .ds-page-head__details),
   .ds-page-head--sticky[data-scrolled] .ds-page-head__text > :is(.ds-page-head__lead, .ds-page-head__status) {
     display: none;
   }
 
+  /* What folded keeps its room in the flow: the content stays put. */
+  .ds-page-head--sticky[data-scrolled] {
+    margin-bottom: calc(var(--ds-space-1) + var(--ds-page-head-fold, 0px));
+  }
+
+  /* One line: the title (ellipsis when short of room) and the actions at
+     its end, also on a narrow page, where the whole head stacks them. */
   .ds-page-head--sticky[data-scrolled] .ds-page-head__title {
+    overflow: hidden;
     font: var(--ds-font-title);
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .ds-page-head--sticky[data-scrolled] .ds-page-head__row {
+    flex-wrap: nowrap;
     align-items: center;
   }
 
+  .ds-page-head--sticky[data-scrolled] .ds-page-head__text {
+    flex: 1 1 0;
+  }
+
   .ds-page-head--sticky[data-scrolled] .ds-page-head__actions {
+    flex: 0 1 auto;
+    justify-content: flex-end;
     margin-block: 0;
+    margin-inline-start: auto;
   }
 
   .ds-page-head--sticky[data-scrolled] .ds-page-head__tabs {

@@ -86,16 +86,17 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
   `--ds-dur-fast`. Print puts it back in the flow.
 - **Condensing** (`data-ds-page-head` on a sticky head; `data-ds-page-head-condense="off"` keeps it whole): once the
   reader has scrolled past what folds, the module writes `data-scrolled` on the head and the back link or breadcrumbs,
-  the lead, the status and the key facts fold away; the title takes `--ds-font-title`, the actions centre on it, the
-  tabs stay. The module moves the scroll by what the head lost (or gained, back at the top), so the content under it
-  stays where it was; nothing jumps and the head never flickers at the line. The scroller is the nearest scrolling
-  ancestor of the head, else the page.
+  the lead, the status and the key facts fold away; the title takes `--ds-font-title` on one line (an ellipsis when
+  short of room) with the actions at its end, also on a narrow page; the tabs stay. What folded keeps its room in the
+  flow (a bottom margin as tall, `--ds-page-head-fold`, a runtime property the module writes), so the content under it
+  stays where it was, a running scroll goes on, and the state follows the scroll position alone: nothing jumps,
+  nothing flickers. The scroller is the nearest scrolling ancestor of the head, else the page.
 - **Folding actions** (`data-ds-page-head` on any head): the module writes `.ds-page-head__more` (a quiet icon button
   named "More actions", the string `moreActions`) and its `.ds-menu` after the actions. Actions that do not fit the
-  title row (on its own line under the title as well) hide, the first ones first and a filled one last, and the menu
-  lists them with their icon and label; an item presses its action (a link item follows the link), a blocked action
-  stays blocked in the menu. The row's width decides (a `ResizeObserver`), so a narrow content panel folds as a phone
-  does.
+  title row (on its own line under the title as well; half of it beside the title of a condensed head) hide, the first
+  ones first and a filled one last, and the menu lists them with their icon and label; an item presses its action (a
+  link item follows the link), a blocked action stays blocked in the menu. The row's width decides (a
+  `ResizeObserver`), so a narrow content panel folds as a phone does.
 - `ds:change` on the head: `{ condensed }`.
 
 | Attribute | Option | What |
@@ -108,8 +109,8 @@ condensed), `set(condensed)` (until the next scroll decides), `on('change', fn)`
 again) and `destroy()`. `DS.page.fold(widths, { room, gap, more, order })` is the folding rule alone: the indices of the
 actions that fold.
 
-What the module writes is owned state (`DS.dom.morphHtml` keeps it): `data-scrolled` on the head and `hidden` on the
-folded actions; the More button and its menu are the system's own (`data-ds-keep`).
+What the module writes is owned state (`DS.dom.morphHtml` keeps it): `data-scrolled` and its `style` (the fold) on the
+head and `hidden` on the folded actions; the More button and its menu are the system's own (`data-ds-keep`).
 
 - Keyboard and names: the More button is a tab stop after the actions that stay; Enter, Space or Down opens its menu
   (`DS.menu`: arrow keys, Escape returns the focus to More). A condensed head keeps every action reachable. The title
@@ -118,7 +119,7 @@ folded actions; the More button and its menu are the system's own (`data-ds-keep
   button and menu are the button's and the menu's.
 
 **Motion:** the hairline under a sticky head fades in with the scroll (or over `--ds-dur-fast`); the head condenses in
-one frame while the scroll moves by the same amount, so the reader sees the folded parts leave in place, not a jump.
+one frame once its folding parts have scrolled under it, so the reader sees no jump.
 The More menu opens and closes as every menu does.
 
 ### Breadcrumbs

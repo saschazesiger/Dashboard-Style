@@ -215,14 +215,11 @@ test('a sticky head condenses once its fold has scrolled past, keeps the content
   await page.waitForTimeout(100);
   const after = await card.evaluate((el) => el.getBoundingClientRect().top);
   expect(Math.round(after - before)).toBe(10);
-  // Back at the top: whole again, and the first card under it where it started.
+  // Back at the top: whole again; the scroll stays where the reader put it.
   await box.evaluate((el) => { el.scrollTop = 0; });
   await expect(head).not.toHaveAttribute('data-scrolled');
   await page.waitForTimeout(100);
-  expect(await box.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
-  await box.evaluate((el) => { el.scrollTop = 0; });
-  await page.waitForTimeout(100);
-  await expect(head).not.toHaveAttribute('data-scrolled');
+  expect(await box.evaluate((el) => el.scrollTop)).toBe(0);
   expect(await page.evaluate(() => window.__condensed)).toEqual([true, false]);
 });
 

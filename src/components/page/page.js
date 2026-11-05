@@ -10,24 +10,24 @@
  * keeps it whole): the scroller is the nearest scrolling ancestor of the
  * head, else the page. Once the reader has scrolled past what folds (the
  * back link or breadcrumbs, the lead, the status, the key facts), the head
- * takes data-scrolled and the stylesheet folds those parts away; back at the
- * top it gives it up. While the head changes height the module moves the
- * scroll by as much, so the content under it stays where it was and nothing
- * jumps; a change that would leave the scroll at the top again is undone,
- * so the head never flickers. One passive scroll listener on the scroller,
- * throttled to a frame.
+ * takes data-scrolled and the stylesheet folds those parts away; scrolled
+ * back above that it gives it up. The head keeps its room in the flow (a
+ * bottom margin as tall as what folded, --ds-page-head-fold, a runtime
+ * property), so the content under it never moves, a running smooth scroll
+ * goes on, and the state follows the scroll position alone (no flicker).
+ * One passive scroll listener on the scroller, throttled to a frame.
  *
  * Folding actions (any head with .ds-page-head__actions): the module writes
  * a More button (.ds-page-head__more, a quiet icon button named by the
  * string moreActions) and its .ds-menu after the actions. The actions that
- * do not fit the title row hide (owned `hidden`), first to last with the
- * filled ones last, and the menu lists them: its items press the action
+ * do not fit the title row (half of it in a condensed head, beside the
+ * title) hide (owned `hidden`), first to last with the filled ones last, and the menu lists them: its items press the action
  * (a click on the hidden button, or the link's address), with its icon,
  * label and blocked state. A ResizeObserver on the row and a
  * MutationObserver on the actions lay them out again.
  *
- * Owned state (DS.dom.morphHtml keeps it): data-scrolled on the head, hidden
- * on the folded actions. The More button and its menu are the system's own
+ * Owned state (DS.dom.morphHtml keeps it): data-scrolled and the style (the
+ * fold) on the head, hidden on the folded actions. The More button and its menu are the system's own
  * (data-ds-keep). Events: ds:change ({ condensed }) on the head.
  *
  * ES2022. Progressive: none (ResizeObserver and MutationObserver are at the
@@ -120,38 +120,79 @@ function controller(head, options, signal) {
   let condensed = head.hasAttribute('data-scrolled');
   /** How much the head lost the last time it condensed: no trial before the reader has scrolled that far. */
   let foldHeight = 0;
-  if (sticky) take(head, 'data-scrolled');
+  if (sticky) {
+    take(head, 'data-scrolled');
+    take(head, 'style');
+  }
 
-  /** What follows the head in the flow: its place on screen is what must not move. */
-  const anchor = () => head.nextElementSibling ?? head.parentElement;
+  /**
+   * Runs `fn` with scroll anchoring off on the scroller: measuring the
+   * condensed head changes its height for a moment, and the browser would
+   * move the scroll to keep the content in place, and not move it back.
+   */
+  const quiet = (fn) => {
+    const target = scroller ?? doc.documentElement;
+    const before = target.style.overflowAnchor;
+    target.style.overflowAnchor = 'none';
+    try {
+      fn();
+    } finally {
+      target.style.overflowAnchor = before;
+    }
+  };
 
-  const apply = (on) => {
-    if (on) head.setAttribute('data-scrolled', '');
-    else head.removeAttribute('data-scrolled');
+  const apply = (on, fold = 0) => {
+    if (on) {
+      head.setAttribute('data-scrolled', '');
+      head.style.setProperty('--ds-page-head-fold', `${fold}px`);
+    } else {
+      head.removeAttribute('data-scrolled');
+      head.style.removeProperty('--ds-page-head-fold');
+    }
   };
 
   /**
-   * Condenses (true) or unfolds (false) the head, keeping the content in
-   * place; returns whether the state changed.
+   * Measures what folds: the head condensed for a moment, then whole again,
+   * before anything paints. A browser that anchors the scroll may move it
+   * meanwhile; it goes back to where the reader had it.
    */
-  const condense = (on) => {
-    if (on === condensed) return false;
-    const ref = anchor();
-    const before = ref?.getBoundingClientRect().top ?? 0;
+  const measureFold = () => {
+    if (!sticky || condensed) return;
     const start = box().scrollTop;
-    const tall = head.getBoundingClientRect().height;
-    apply(on);
-    const after = ref?.getBoundingClientRect().top ?? 0;
-    if (on) foldHeight = Math.max(0, tall - head.getBoundingClientRect().height);
-    // The browser may have kept the content in place itself (scroll anchoring): move only by what is left.
-    if (Math.abs(after - before) >= 0.5) (scroller ?? view).scrollBy({ top: after - before, behavior: 'instant' });
-    // Condensed but back at the top: the fold was all there was to scroll. Undo it, or the head would flicker.
-    if (on && box().scrollTop <= TOP && start > TOP) {
+    quiet(() => {
+      const tall = head.getBoundingClientRect().height;
+      apply(true);
+      foldHeight = Math.max(0, Math.round(tall - head.getBoundingClientRect().height));
       apply(false);
-      (scroller ?? view).scrollTo({ top: start, behavior: 'instant' });
-      return false;
-    }
+    });
+    if (box().scrollTop !== start) box().scrollTop = start;
+  };
+
+  /**
+   * Condenses (true) or unfolds (false) the head; returns whether the state
+   * changed. The head keeps its room in the flow (a bottom margin as tall as
+   * what folded, --ds-page-head-fold), so nothing under it moves and a
+   * running scroll goes on undisturbed. It condenses only once the reader
+   * has scrolled past what folds: the content then already lies under the
+   * condensed head.
+   */
+  const condense = (on, force = false) => {
+    if (on === condensed) return false;
+    if (on) {
+      if (!force && box().scrollTop <= foldHeight + TOP) return false;
+      quiet(() => {
+        const tall = head.getBoundingClientRect().height;
+        apply(true, foldHeight);
+        // The fold as it is now (a width change may have moved it): the margin follows at once.
+        const fold = Math.max(0, Math.round(tall - head.getBoundingClientRect().height));
+        if (fold !== foldHeight) {
+          foldHeight = fold;
+          apply(true, fold);
+        }
+      });
+    } else quiet(() => apply(false));
     condensed = on;
+    layout();
     const detail = { condensed: on };
     emit(head, 'change', detail);
     for (const fn of listeners) fn(detail);
@@ -164,7 +205,7 @@ function controller(head, options, signal) {
     if (!sticky) return;
     const top = box().scrollTop;
     if (!condensed && top > TOP + foldHeight) condense(true);
-    else if (condensed && top <= TOP) condense(false);
+    else if (condensed && top <= foldHeight) condense(false);
   };
   const later = () => {
     if (frame) return;
@@ -172,6 +213,14 @@ function controller(head, options, signal) {
     if (!frame) update();
   };
   if (sticky) (scroller ?? view).addEventListener('scroll', later, { passive: true, signal: abort.signal });
+  // What folds changes with the head's width and content: measured again while the head is whole.
+  let folds = 0;
+  const heads = sticky && typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(() => {
+    if (condensed || folds) return;
+    folds = typeof view.requestAnimationFrame === 'function' ? view.requestAnimationFrame(() => { folds = 0; measureFold(); update(); }) : 0;
+  }) : null;
+  heads?.observe(head);
+  measureFold();
 
   /* ── Folding actions ────────────────────────── */
 
@@ -270,7 +319,8 @@ function controller(head, options, signal) {
     more.hidden = true;
     // The first ones fold first; a filled action, the page's main one, last.
     const order = all.map((_, index) => index).sort((a, b) => Number(all[a].classList.contains('ds-btn--filled')) - Number(all[b].classList.contains('ds-btn--filled')) || a - b);
-    const out = fold(widths, { room: row.clientWidth, gap, more: moreWidth, order });
+    // Condensed, the actions share one line with the title: they keep half of it at most.
+    const out = fold(widths, { room: condensed ? row.clientWidth / 2 : row.clientWidth, gap, more: moreWidth, order });
     if (!out.length) {
       fillMenu([]);
       if (more.getAttribute('aria-expanded') === 'true') closeMenu(menu);
@@ -313,7 +363,7 @@ function controller(head, options, signal) {
     },
     /** Condenses (true) or unfolds (false) a sticky head, until the next scroll decides again. */
     set(value) {
-      if (sticky) condense(Boolean(value));
+      if (sticky) condense(Boolean(value), true);
     },
     on(type, fn) {
       if (type !== 'change') return () => {};
@@ -332,6 +382,8 @@ function controller(head, options, signal) {
       listeners.clear();
       resize?.disconnect();
       changes?.disconnect();
+      heads?.disconnect();
+      if (folds) view.cancelAnimationFrame?.(folds);
       if (frame) view.cancelAnimationFrame?.(frame);
       if (layoutFrame) view.cancelAnimationFrame?.(layoutFrame);
       for (const action of folded) action.hidden = false;
