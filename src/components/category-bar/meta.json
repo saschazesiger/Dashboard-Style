@@ -1,0 +1,42 @@
+{
+  "name": "category-bar",
+  "group": "data",
+  "order": 166,
+  "docsOrder": 325,
+  "need": "Show the parts of a whole on one bar, each named with its figure in a legend",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-category-bar",
+    "ds-category-bar--rest",
+    "ds-category-bar__head",
+    "ds-category-bar__label",
+    "ds-category-bar__marker",
+    "ds-category-bar__part",
+    "ds-category-bar__part--s2",
+    "ds-category-bar__part--s3",
+    "ds-category-bar__part--s4",
+    "ds-category-bar__total",
+    "ds-category-bar__track",
+    "ds-category-bar__value"
+  ],
+  "attributes": [],
+  "requires": [
+    "chart"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-category-bar-height": {
+      "default": "8px",
+      "description": "`.ds-category-bar__track` at md (2px per size step)"
+    },
+    "--ds-category-bar-gap": {
+      "default": "2px",
+      "description": "the gap between two parts of a category bar"
+    }
+  },
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}
