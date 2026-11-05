@@ -1,7 +1,7 @@
 {
   "name": "result",
   "group": "feedback",
-  "order": 215,
+  "order": 840,
   "docsOrder": 131,
   "need": "Fill a page with how a request ended: done, 403, 404, 500, maintenance or offline, and the way out",
   "tier": 1,

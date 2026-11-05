@@ -101,6 +101,12 @@
     text-decoration: none;
   }
 
+  /* A link's inset ring rests on the edge; only its offset moves. */
+  a.ds-bar-list__label {
+    outline-offset: 0;
+    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
   /* The bar: behind the label, clipped at the share, so its end keeps its
      corners as it glides. */
   .ds-bar-list__label::before {

@@ -1,7 +1,7 @@
 {
   "name": "category-bar",
   "group": "data",
-  "order": 166,
+  "order": 820,
   "docsOrder": 325,
   "need": "Show the parts of a whole on one bar, each named with its figure in a legend",
   "tier": 1,

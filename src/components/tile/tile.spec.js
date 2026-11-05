@@ -262,7 +262,7 @@ test('forced colours: a selected tile is Highlight with its delta and sparkline;
   await expect(page.locator('#plain')).toHaveText('Up');
 });
 
-test('KPI stat: a unit half the figure, quieter; the target is a named meter with its words', async ({ page }) => {
+test('KPI stat: a unit in the subtitle type, quieter; the target is a named meter with its words', async ({ page }) => {
   await open(page);
   const kpi = page.locator('#fx-component [data-demo="kpi"] .ds-tile').first();
   const [unit, figure, ink, text2] = await kpi.evaluate((el) => {
@@ -270,7 +270,8 @@ test('KPI stat: a unit half the figure, quieter; the target is a named meter wit
     const unitEl = value.querySelector('.ds-tile__unit');
     return [parseFloat(getComputedStyle(unitEl).fontSize), parseFloat(getComputedStyle(value).fontSize), getComputedStyle(unitEl).color, getComputedStyle(el.querySelector('.ds-tile__target-text')).color];
   });
-  expect(unit).toBe(figure / 2);
+  expect(unit).toBeLessThan(figure / 2 + 1);
+  expect(unit).toBe(await kpi.evaluate(() => { const p = document.createElement('span'); p.style.font = 'var(--ds-font-subtitle)'; document.querySelector('#fx-component').append(p); const size = parseFloat(getComputedStyle(p).fontSize); p.remove(); return size; }));
   expect(ink).toBe(await role(page, '--ds-text-2', 'color'));
   expect(text2).toBe(ink);
   await expect(kpi.getByRole('meter', { name: 'Storage used' })).toHaveAttribute('aria-valuetext', /target/);

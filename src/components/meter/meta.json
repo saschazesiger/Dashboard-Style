@@ -1,7 +1,7 @@
 {
   "name": "meter",
   "group": "data",
-  "order": 163,
+  "order": 800,
   "docsOrder": 323,
   "need": "Show a share of a known whole as a segmented bar, a ring, a gauge or a bar gauge, with thresholds",
   "tier": 1,
@@ -74,5 +74,12 @@
   "keyframes": [],
   "js": [],
   "progressive": [],
-  "ripple": false
+  "ripple": false,
+  "exceptions": {
+    "physical": {
+      ".ds-meter--segmented: mask-image": "the parts are cut left to right as the chart meter fills (.ds-meter clips its fill from the right in every direction)",
+      ".ds-bar-gauge__track: --_zones": "the zones lie along the fill, which grows left to right as the chart meter's",
+      ".ds-bar-gauge__track: mask-image": "the cells are cut left to right along the fill"
+    }
+  }
 }

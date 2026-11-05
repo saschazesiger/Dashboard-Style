@@ -106,7 +106,7 @@ On the tile, the row or any ancestor; each is computed in the component's own ru
 
 | Option | Classes | Applies to | Effect |
 |---|---|---|---|
-| Size | `.ds-xs` ... `.ds-xl` | `.ds-tile__value` (its unit half the figure) | an eighth of the display size per step (27 to 45px at the default scale), its line height with it (`--ds-tile-value-line`, 44px at the default scale); narrow tiles still shrink it; not the label, the note or the padding |
+| Size | `.ds-xs` ... `.ds-xl` | `.ds-tile__value` | an eighth of the display size per step (27 to 45px at the default scale), its line height with it (`--ds-tile-value-line`, 44px at the default scale); narrow tiles still shrink it; not the label, the note or the padding |
 | Density | `.ds-density-*` | `.ds-tile`, `.ds-tiles` | the padding 2px per step, the gap of the row 2px per step; not the type |
 | Shape | `.ds-shape-*` | `.ds-tile`, `.ds-tile__delta` | multiplies the rest and the pressed radius |
 | Touch | `.ds-touch` | a clickable tile | at least `--ds-touch-target` high |

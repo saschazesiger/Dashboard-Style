@@ -1,7 +1,7 @@
 {
   "name": "lozenge",
   "group": "feedback",
-  "order": 112,
+  "order": 830,
   "docsOrder": 141,
   "need": "Show where an item stands in its workflow (open, merged, closed, draft) as a bold label",
   "tier": 1,

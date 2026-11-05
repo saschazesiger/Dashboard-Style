@@ -46,7 +46,7 @@
  *
  * The unit (.ds-tile__unit, inside the value): a short unit after the
  * figure ("GB", "ms", "%"), in the subtitle type and --ds-text-2, so the
- * figure stays the thing to read; it shrinks with a narrow tile's value.
+ * figure stays the thing to read.
  *
  * The target (.ds-tile__target): a .ds-meter (with a .ds-meter__threshold
  * at the target's share, meter.css) and one line of words under it,
@@ -284,8 +284,6 @@
     margin-inline-start: var(--ds-space-1);
     color: var(--ds-text-2);
     font: var(--ds-font-subtitle);
-    /* Half the figure, which may have shrunk with its tile. */
-    font-size: 0.5em;
     letter-spacing: 0;
   }
 

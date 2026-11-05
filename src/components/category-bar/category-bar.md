@@ -33,7 +33,7 @@ of its part.
 | Bar | `.ds-category-bar` | a `<figure>`: the head, the track, the legend |
 | Head | `.ds-category-bar__head` | a `<figcaption>`: `.ds-category-bar__label` and `.ds-category-bar__total` on one line |
 | Track | `.ds-category-bar__track` | `role="img"` with a label that names every part and its figure |
-| Part | `.ds-category-bar__part` | a part of `--ds-share` of the whole; `--s2` ... `--s4` the series colours, or a `.ds-tone-*` on the part |
+| Part | `.ds-category-bar__part` | a part of `--ds-share` of the whole; `.ds-category-bar__part--s2`, `.ds-category-bar__part--s3`, `.ds-category-bar__part--s4` the series colours, or a `.ds-tone-*` on the part |
 | Marker | `.ds-category-bar__marker` | a mark across the bar at its own share: a target, a limit |
 | Figure | `.ds-category-bar__value` | a figure in a legend entry, tabular |
 | Rest | `.ds-category-bar--rest` | shares that add up to less than 1 leave the track showing: a budget not spent yet |

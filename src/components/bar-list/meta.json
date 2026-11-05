@@ -1,7 +1,7 @@
 {
   "name": "bar-list",
   "group": "data",
-  "order": 165,
+  "order": 810,
   "docsOrder": 324,
   "need": "Rank a few categories by a value, each row a label and a figure on a bar",
   "tier": 1,
@@ -33,5 +33,10 @@
   "keyframes": [],
   "js": [],
   "progressive": [],
-  "ripple": false
+  "ripple": false,
+  "exceptions": {
+    "ripple": {
+      ".ds-bar-list__label": "a text link in a row: inline text links take neither the ripple nor the morph (AGENTS.md)"
+    }
+  }
 }
