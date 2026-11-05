@@ -69,7 +69,7 @@ morphs to the new data. `DS.chart.parse(table)` gives the spec it reads.
 The module writes its parts after the caption, each `data-ds-keep` (so `DS.dom.morphHtml` of the figure keeps them):
 `.ds-chart__tools` with the table toggle, `.ds-chart__legend` of `.ds-chart__key` toggles (`.ds-chart__swatch` with
 `.ds-chart__swatch-line`, `.ds-chart__swatch-marker` or `.ds-chart__swatch-fill`, `.ds-chart__key-name`,
-`.ds-chart__key-value` for a slice's share), `.ds-chart__frame` (the tab stop) with `svg.ds-chart__svg` and its
+`.ds-chart__key-value` for a slice's share or a ring's value), `.ds-chart__frame` (the tab stop) with `svg.ds-chart__svg` and its
 layers, `.ds-chart__centre` (`.ds-chart__figure`, `.ds-chart__caption`), the tooltip `.ds-chart__tip`
 (`.ds-chart__tip-title`, `.ds-chart__tip-row`, `.ds-chart__tip-key`, `.ds-chart__tip-key-bar`, `.ds-chart__tip-gap`,
 `.ds-chart__tip-value`, `.ds-chart__tip-name`), the hidden `.ds-chart__hint` and `.ds-chart__probe` (the lengths the
@@ -110,7 +110,7 @@ draw a thin band outside the arc, colour the value arc by the zone it is in and 
 A bar gauge (`bargauge`) is one labelled meter per label, the zone's word next to the value.
 
 **Ring.** One ring per series (at most four), its first value of `max` (default 100), the first series' value in the
-middle. **Donut and pie** show one series, a slice per label, each slice's share in the legend.
+middle, each ring's value in the legend. **Donut and pie** show one series, a slice per label, each slice's share in the legend.
 
 ### Options
 

@@ -1341,7 +1341,7 @@ function controller(el, initial, signal) {
   tip.setAttribute('aria-hidden', 'true');
   const rowsBox = html(doc, 'ul', 'ds-chart__rows');
   frame.append(root, centre, tip, hint, probe, emptyNote);
-  const tableBox = keep(html(doc, 'div', 'ds-chart__table ds-table-wrap'));
+  const tableBox = keep(html(doc, 'div', 'ds-chart__table'));
 
   const mount = () => {
     // The page's caption first, then the tools, the legend, the frame, the table.
@@ -1422,7 +1422,7 @@ function controller(el, initial, signal) {
   const legendItems = () => {
     if (spec.kind === 'radial' && spec.type !== 'ring') return (current?.slices ?? []).map((slice) => ({ key: slice.key, name: slice.name, slot: slice.slot, tone: null, mark: 'column', visible: slice.visible, value: slice.value, share: slice.share }));
     // A ring's series are arcs: a filled key, as a slice's.
-    return spec.series.map((entry, index) => ({ key: String(index), name: entry.name, slot: entry.slot, tone: entry.tone, mark: spec.type === 'ring' ? 'column' : entry.mark, visible: entry.visible, index }));
+    return spec.series.map((entry, index) => ({ key: String(index), name: entry.name, slot: entry.slot, tone: entry.tone, mark: spec.type === 'ring' ? 'column' : entry.mark, visible: entry.visible, index, value: spec.type === 'ring' ? current?.slices?.[index]?.value : undefined }));
   };
 
   const swatch = (item) => {
@@ -1455,7 +1455,8 @@ function controller(el, initial, signal) {
       if (nameEl.textContent !== item.name) nameEl.textContent = item.name;
       const valueEl = button.querySelector('.ds-chart__key-value');
       if (valueEl) {
-        const text = item.visible ? formatValue(item.share, 'percent') : '';
+        // A slice says its share of the whole; a ring its own value against its max.
+        const text = !item.visible ? '' : spec.type === 'ring' ? formatValue(item.value, spec.format) : formatValue(item.share, 'percent');
         if (valueEl.textContent !== text) valueEl.textContent = text;
       }
     });
@@ -1563,7 +1564,9 @@ function controller(el, initial, signal) {
           : { x: plot.x, y: rule.from, width: plot.width, height: rule.to - rule.from };
         gBands.append(svg(doc, 'rect', Object.fromEntries(Object.entries(rect).map(([k, v]) => [k, round(v)])), `ds-chart__zone${cls}`));
         if (rule.label && !lay.spark) {
-          const at = valueAxisHorizontal ? { x: round(rule.from + 4), y: round(plot.y + 4), 'dominant-baseline': 'hanging' } : { x: round(right - 4), y: round(rule.from + 4), 'text-anchor': 'end', 'dominant-baseline': 'hanging' };
+          // Inside the band's start, pulled back where a narrow plot would push the word past its edge.
+          const wide = (current?.metrics?.measure ?? estimate)(rule.label);
+          const at = valueAxisHorizontal ? { x: round(Math.max(plot.x, Math.min(rule.from + 4, right - 4 - wide))), y: round(plot.y + 4), 'dominant-baseline': 'hanging' } : { x: round(right - 4), y: round(rule.from + 4), 'text-anchor': 'end', 'dominant-baseline': 'hanging' };
           textEl(gRules, at, rule.label, 'ds-chart__rule-label');
         }
         continue;
@@ -1831,6 +1834,13 @@ function controller(el, initial, signal) {
       }
       run.frame = view.requestAnimationFrame(tick);
     };
+    // The last frame lands with the clock, before anything that waits on it (DS.motion.settled) reads the chart.
+    clock.finished?.then(() => {
+      if (morph !== run) return;
+      view.cancelAnimationFrame?.(run.frame);
+      draw(1);
+      morph = null;
+    }, () => {});
     draw(progressOf(clock));
     run.frame = view.requestAnimationFrame(tick);
   };
@@ -2088,7 +2098,8 @@ function controller(el, initial, signal) {
   }, options);
   frame.addEventListener('pointerleave', (event) => {
     if (event.pointerType === 'touch') return;
-    if (doc.activeElement !== frame) {
+    // The keyboard's cursor stays when the pointer leaves; a click's focus does not hold it.
+    if (!frame.matches(':focus-visible')) {
       cursor.active = false;
       hideCursor();
     } else showCursor(false);

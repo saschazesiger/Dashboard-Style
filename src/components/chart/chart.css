@@ -19,7 +19,7 @@
  *   .ds-chart__legend  li > button.ds-chart__key (aria-pressed: the series
  *                      shows) with an svg .ds-chart__swatch (a line with
  *                      its marker, or a fill) and .ds-chart__key-name
- *                      (.ds-chart__key-value: a slice's share)
+ *                      (.ds-chart__key-value: a slice's share, a ring's value)
  *   .ds-chart__frame   the plot, one tab stop (role img, or meter for a
  *                      gauge): svg.ds-chart__svg with its layers
  *                      .ds-chart__grid (__gridline, __baseline),
@@ -559,7 +559,10 @@
     display: none;
   }
 
+  /* flex and clip-path as well: a wrapper of the page's (a .ds-table-wrap,
+     in a later layer) may keep its own position and overflow. */
   .ds-chart[data-state="chart"] > :not(figcaption, .ds-chart__tools, .ds-chart__legend, .ds-chart__frame) {
+    flex: none;
     position: absolute;
     width: 1px;
     height: 1px;
@@ -868,8 +871,11 @@
       order: 1;
     }
 
+    /* At most one and a half plots wide (the frame's height, computed as the frame does), so a
+       share stays next to its name in a wide card. */
     :is(.ds-chart--donut, .ds-chart--pie, .ds-chart--ring) > .ds-chart__legend {
-      flex: 1 1 0;
+      flex: 0 1 calc((var(--ds-chart-height, 240px) + var(--ds-size-step, 0) * 40px + var(--ds-density, 0) * 16px) * 1.5);
+      min-inline-size: 0;
       flex-direction: column;
       order: 2;
       margin-inline-start: var(--ds-space-6);
