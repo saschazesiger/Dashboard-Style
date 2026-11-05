@@ -76,8 +76,11 @@ SG_LAB.add({
     var menu = stage.querySelector('#sg-lab-menu-parent');
     var sub = stage.querySelector('#sg-lab-menu-sub');
     if (!on) return DS.menu.close(sub);
-    var opened = menu.getAttribute('data-state') === 'open' ? Promise.resolve() : DS.menu.open(menu, { opener: stage.querySelector('[data-lab-open]') });
-    return opened.then(function () { stage.querySelector('[data-lab-sub]').click(); return DS.motion.settled(sub); });
+    // The parent opens (if it is not open) and the submenu at once, so the
+    // submenu's own entrance is what a reversal turns back.
+    if (menu.getAttribute('data-state') !== 'open') DS.menu.open(menu, { opener: stage.querySelector('[data-lab-open]') });
+    stage.querySelector('[data-lab-sub]').click();
+    return DS.motion.settled(sub);
   },
 });
 
