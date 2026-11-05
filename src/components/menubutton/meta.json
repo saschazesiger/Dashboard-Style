@@ -1,0 +1,39 @@
+{
+  "name": "menubutton",
+  "group": "actions",
+  "order": 540,
+  "docsOrder": 54,
+  "need": "Open a menu of actions or choices from a button with a chevron, and show the choice",
+  "tier": 1,
+  "status": "stable",
+  "classes": [
+    "ds-menu-btn",
+    "ds-menu-btn__chevron",
+    "ds-menu-btn__value"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "menu"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-btn-padding-x": {
+      "owner": "button"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "menu",
+    "menubutton",
+    "overlay"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.menubutton.create": "events only: the menu's entrance is DS.menu's (Motion Lab, overlays), the chevron's turn .ds-chevron's",
+    "DS.menubutton.itemValue": "a pure function of the markup",
+    "DS.menubutton.menuOf": "a lookup, no motion"
+  }
+}
