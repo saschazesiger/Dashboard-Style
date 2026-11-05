@@ -151,6 +151,9 @@ const DEFAULT_STRINGS = Object.freeze({
   dragDropped: 'Dropped {label} at position {position} of {total}.',
   dragDroppedZone: 'Dropped {label} in {zone}, position {position} of {total}.',
   dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
+  moreOptionsFor: 'More options for {label}',
+  moreActions: 'More actions',
+  copyManual: 'Copying is blocked here. The text is selected: press {keys} to copy it.',
 });
 
 /**

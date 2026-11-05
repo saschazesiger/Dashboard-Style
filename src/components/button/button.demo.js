@@ -45,6 +45,16 @@ SG.demo('button', {
         '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-demo="copy"><span class="ds-icon-swap" data-swap="a"><span class="ds-icon-swap__a">' + h.icon('copy', 20) + '</span><span class="ds-icon-swap__b">' + h.icon('check', 20) + '</span></span></button>' +
         '</div><p class="ds-muted">The adaptive button folds to its icon in a panel of 600px or less: narrow the width in the options panel.</p>') +
 
+      h.section('Icon buttons', '<div class="sg-row" data-demo="icon-looks">' +
+        '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit (standard)" data-tip="Edit (standard)">' + h.icon('pencil', 20) + '</button>' +
+        '<button class="ds-btn ds-btn--filled ds-btn--icon" type="button" aria-label="Add device (filled)" data-tip="Add device (filled)">' + h.icon('plus', 20) + '</button>' +
+        '<button class="ds-btn ds-btn--tonal ds-btn--icon" type="button" aria-label="Restart (tonal)" data-tip="Restart (tonal)">' + h.icon('refresh', 20) + '</button>' +
+        '<button class="ds-btn ds-btn--outlined ds-btn--icon" type="button" aria-label="Lock (outlined)" data-tip="Lock (outlined)">' + h.icon('lock', 20) + '</button>' +
+        '</div><div class="sg-row" data-demo="icon-toggles">' + ['quiet', 'filled', 'tonal', 'outlined'].map(function (look) {
+          return '<button class="ds-btn ds-btn--' + look + ' ds-btn--icon" type="button" aria-pressed="false" aria-label="Pin (' + look + ')" data-tip="Pin (' + look + ')" data-ds-toggle>' + h.icon('pin', 20, 'ds-icon--fillable') + '</button>' +
+            '<button class="ds-btn ds-btn--' + look + ' ds-btn--icon" type="button" aria-pressed="true" aria-label="Star (' + look + ')" data-tip="Star (' + look + ')" data-ds-toggle>' + h.icon('star', 20, 'ds-icon--fillable') + '</button>';
+        }).join('') + '</div>', 'Standard (quiet), filled, tonal and outlined; below, each as a toggle, off and on. The label is required: an aria-label, shown as the tooltip.') +
+
       h.section('States', '<div class="sg-row" data-demo="states">' +
         '<button class="ds-btn ds-btn--filled" type="button" disabled>Disabled</button>' +
         '<button class="ds-btn ds-btn--filled" type="button" aria-disabled="true" aria-describedby="' + reason + '">Publish</button>' +
