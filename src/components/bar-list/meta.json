@@ -1,0 +1,37 @@
+{
+  "name": "bar-list",
+  "group": "data",
+  "order": 165,
+  "docsOrder": 324,
+  "need": "Rank a few categories by a value, each row a label and a figure on a bar",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-bar-list",
+    "ds-bar-list--plain",
+    "ds-bar-list__item",
+    "ds-bar-list__label",
+    "ds-bar-list__value"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [],
+  "hooks": {
+    "--ds-bar-list-height": {
+      "default": "32px",
+      "description": "a `.ds-bar-list` row at md, comfortable (8px per size step, 4px per density step)"
+    },
+    "--ds-bar-list-bar": {
+      "default": "`--ds-accent` (`--plain`: `--ds-chart-track`; a tone: its container)",
+      "description": "the bar behind a row's label"
+    },
+    "--ds-bar-list-ink": {
+      "default": "`--ds-text` (a tone: its on-container colour)",
+      "description": "a row's label on its bar"
+    }
+  },
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}
