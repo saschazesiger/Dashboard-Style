@@ -1,0 +1,100 @@
+{
+  "name": "jsonview",
+  "group": "data",
+  "order": 610,
+  "docsOrder": 96,
+  "need": "Read a JSON document: open its levels, search keys and values, copy a value or its path",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-jsonview",
+    "ds-jsonview__actions",
+    "ds-jsonview__bar",
+    "ds-jsonview__count",
+    "ds-jsonview__error",
+    "ds-jsonview__find",
+    "ds-jsonview__key",
+    "ds-jsonview__mark",
+    "ds-jsonview__punct",
+    "ds-jsonview__range",
+    "ds-jsonview__search",
+    "ds-jsonview__tree",
+    "ds-jsonview__value",
+    "ds-jsonview__value--array",
+    "ds-jsonview__value--boolean",
+    "ds-jsonview__value--null",
+    "ds-jsonview__value--number",
+    "ds-jsonview__value--object",
+    "ds-jsonview__value--string"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "form",
+    "tree",
+    "utilities"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-jsonview-row-height": {
+      "default": "32px",
+      "description": "a `.ds-jsonview` row: the base height (size md, comfortable density) of its tree rows"
+    },
+    "--ds-jsonview-indent": {
+      "default": "16px",
+      "description": "how far each level of a `.ds-jsonview` sits in, 4px per size step"
+    },
+    "--ds-jsonview-max-height": {
+      "default": "none",
+      "description": "the height past which the rows of a `.ds-jsonview` scroll inside it"
+    },
+    "--ds-jsonview-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "the corners of a `.ds-jsonview` (times `--ds-shape`)"
+    },
+    "--ds-jsonview-key": {
+      "default": "`--ds-text`",
+      "description": "a key of a `.ds-jsonview` row"
+    },
+    "--ds-jsonview-string": {
+      "default": "`--ds-on-success-container`",
+      "description": "a string value (in quotes)"
+    },
+    "--ds-jsonview-number": {
+      "default": "`--ds-on-info-container`",
+      "description": "a number value"
+    },
+    "--ds-jsonview-boolean": {
+      "default": "`--ds-on-warning-container`",
+      "description": "`true` and `false`"
+    },
+    "--ds-jsonview-null": {
+      "default": "`--ds-text-2`",
+      "description": "`null` (in italics)"
+    },
+    "--ds-jsonview-mark-bg": {
+      "default": "`--ds-warning-container`",
+      "description": "a search hit (`.ds-jsonview__mark`)"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "a11y",
+    "format",
+    "jsonview",
+    "tree"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.jsonview.create": "its motion is the tree view's: the tree-folder entry plays a folder opening and closing",
+    "DS.jsonview.parse": "a pure function: no motion",
+    "DS.jsonview.fromValue": "a pure function: no motion",
+    "DS.jsonview.toValue": "a pure function: no motion",
+    "DS.jsonview.stringify": "a pure function: no motion",
+    "DS.jsonview.pathOf": "a pure function: no motion",
+    "DS.jsonview.ranges": "a pure function: no motion",
+    "DS.jsonview.search": "a pure function: no motion"
+  }
+}

@@ -405,6 +405,21 @@ strings a script adds have an option, so a page in another language passes its o
 | `Loaded {label}.` | what `DS.tree` announces when lazy children arrive (the system's string `treeLoaded`) | `DS.core.config({ strings: { treeLoaded } })` |
 | `Could not load {label}.` | what `DS.tree` announces when lazy children fail (the system's string `treeLoadFailed`) | `DS.core.config({ strings: { treeLoadFailed } })` |
 | `Could not load` | the word in the row of a folder whose children failed (the system's string `treeError`) | `DS.core.config({ strings: { treeError } })` |
+| `JSON` | the name of a `.ds-jsonview` tree whose element has no `aria-label` (the system's string `jsonTree`) | `DS.core.config({ strings: { jsonTree } })` |
+| `Search keys and values` | the label and placeholder of the search field of `DS.jsonview` (the system's string `jsonSearch`) | `DS.core.config({ strings: { jsonSearch } })` |
+| `Previous match` | the button of `DS.jsonview` that goes to the match before (the system's string `jsonPrevious`) | `DS.core.config({ strings: { jsonPrevious } })` |
+| `Next match` | the button of `DS.jsonview` that goes to the next match (the system's string `jsonNext`) | `DS.core.config({ strings: { jsonNext } })` |
+| `{current} of {total}` | the count of matches of `DS.jsonview`, shown and announced (the system's string `jsonMatch`) | `DS.core.config({ strings: { jsonMatch } })` |
+| `Expand all` | the button of `DS.jsonview` that opens every level (the system's string `jsonExpandAll`) | `DS.core.config({ strings: { jsonExpandAll } })` |
+| `Collapse all` | the button of `DS.jsonview` that closes every level (the system's string `jsonCollapseAll`) | `DS.core.config({ strings: { jsonCollapseAll } })` |
+| `Copy the value of {label}` | the name of a row's copy button in `DS.jsonview` (the system's string `jsonCopyValue`) | `DS.core.config({ strings: { jsonCopyValue } })` |
+| `Copy the path of {label}` | the name of a row's path button in `DS.jsonview` (the system's string `jsonCopyPath`) | `DS.core.config({ strings: { jsonCopyPath } })` |
+| `{count} key` | the size of an object of one key in `DS.jsonview` (the system's string `jsonKey`) | `DS.core.config({ strings: { jsonKey } })` |
+| `{count} keys` | the size of an object in `DS.jsonview` (the system's string `jsonKeys`) | `DS.core.config({ strings: { jsonKeys } })` |
+| `{count} item` | the size of an array of one item in `DS.jsonview` (the system's string `jsonItem`) | `DS.core.config({ strings: { jsonItem } })` |
+| `{count} items` | the size of an array in `DS.jsonview` (the system's string `jsonItems`) | `DS.core.config({ strings: { jsonItems } })` |
+| `Not valid JSON: line {line}, column {column}.` | what `DS.jsonview` shows for text that is no JSON (the system's string `jsonInvalid`) | `DS.core.config({ strings: { jsonInvalid } })` |
+| `Search` | the placeholder of the search field of `DS.jsonview` (the system's string `jsonFind`) | `DS.core.config({ strings: { jsonFind } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

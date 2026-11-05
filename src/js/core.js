@@ -159,6 +159,21 @@ const DEFAULT_STRINGS = Object.freeze({
   treeLoaded: 'Loaded {label}.',
   treeLoadFailed: 'Could not load {label}.',
   treeError: 'Could not load',
+  jsonTree: 'JSON',
+  jsonSearch: 'Search keys and values',
+  jsonFind: 'Search',
+  jsonPrevious: 'Previous match',
+  jsonNext: 'Next match',
+  jsonMatch: '{current} of {total}',
+  jsonExpandAll: 'Expand all',
+  jsonCollapseAll: 'Collapse all',
+  jsonCopyValue: 'Copy the value of {label}',
+  jsonCopyPath: 'Copy the path of {label}',
+  jsonKey: '{count} key',
+  jsonKeys: '{count} keys',
+  jsonItem: '{count} item',
+  jsonItems: '{count} items',
+  jsonInvalid: 'Not valid JSON: line {line}, column {column}.',
 });
 
 /**
