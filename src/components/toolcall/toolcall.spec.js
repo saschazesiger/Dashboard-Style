@@ -107,6 +107,7 @@ test('keyboard: Tab reaches each summary, Enter and Space open it, its code take
   await done.locator('summary').focus();
   await page.keyboard.press('Enter');
   await expect(done).toHaveJSProperty('open', true);
+  await done.evaluate((el) => DS.motion.settled(el, { subtree: true }));
   await page.keyboard.press('Tab');
   await expect(done.locator('.ds-toolcall__code').first()).toBeFocused();
   await page.keyboard.press('Tab');

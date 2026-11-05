@@ -1,0 +1,43 @@
+{
+  "name": "reasoning",
+  "group": "content",
+  "order": 4340,
+  "docsOrder": 718,
+  "need": "Keep an assistant's thinking collapsed under one summary line, readable on demand",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-reasoning",
+    "ds-reasoning__body",
+    "ds-reasoning__icon",
+    "ds-reasoning__summary",
+    "ds-reasoning__text",
+    "ds-reasoning__time"
+  ],
+  "attributes": [],
+  "requires": [
+    "disclosure",
+    "shimmer"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-reasoning-max-height": {
+      "default": "320px",
+      "description": "`.ds-reasoning__text`: the height past which the thoughts scroll"
+    },
+    "--ds-reasoning-rail": {
+      "default": "`--ds-line`",
+      "description": "`.ds-reasoning__text`: the rail at the thoughts' start"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "reasoning"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.reasoning.summaryText": "a pure function: the summary's string, no motion"
+  }
+}
