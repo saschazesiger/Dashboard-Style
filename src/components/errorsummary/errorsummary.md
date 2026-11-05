@@ -45,8 +45,9 @@ is optional: where it is there and empty, the summary writes the message at the 
 - **On submit** (capture: a submit with problems never reaches the page's handler): the submit stops; every field with
   a problem gets `aria-invalid="true"` (the system's while the problem lasts) and, in an empty hidden error hint, the
   message with its icon, linked by `aria-describedby`; the title says "There are 2 problems" (`errorSummaryOne`,
-  `errorSummaryMany`); the list holds a link per problem; the summary shows and takes the focus (`tabindex="-1"`, the
-  focus ring). A link moves the focus into its field (the first control of a group) and brings it into view.
+  `errorSummaryMany`); the list holds a link per problem; the summary shows and takes the focus (`tabindex="-1"`; the
+  focus ring after a submit from the keyboard, and after a click where the engine honours
+  `focus({ focusVisible: true })`). A link moves the focus into its field (the first control of a group) and brings it into view.
 - **While fixing**: as a field is fixed (`input`, `change`) its problem leaves the list and its marks go; the summary
   hides once none is left. A form `reset` takes everything back.
 - `novalidate` on the form (set by the system) keeps the browser's own bubbles away: the summary replaces them.

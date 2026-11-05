@@ -49,7 +49,13 @@
  * Strings: errorSummaryOne, errorSummaryMany, errorSummaryField
  * (DS.core.config({ strings })).
  *
- * ES2022. No Progressive: features.
+ * ES2022.
+ *
+ * Progressive:
+ * - focus({ focusVisible: true }) (the summary's ring after a pointer
+ *   submit): without it the ring follows the engine's own heuristic, so it
+ *   shows after a submit from the keyboard and may not after a click; the
+ *   summary still takes the focus and is read.
  */
 import { define, emit, t } from '../../js/core.js';
 import { own } from '../../js/dom.js';
@@ -205,7 +211,8 @@ function controller(root, signal) {
     }
     shown = true;
     root.hidden = false;
-    if (focus) root.focus({ preventScroll: false });
+    // focusVisible: the ring after a pointer submit too, where the engine knows the option.
+    if (focus) root.focus({ preventScroll: false, focusVisible: true });
     emit(root, 'invalid', detail());
     listeners.invalid.forEach((fn) => fn(detail()));
     return false;

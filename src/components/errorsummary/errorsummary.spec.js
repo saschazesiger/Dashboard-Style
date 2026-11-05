@@ -53,8 +53,7 @@ test('a submit with problems: stopped, the title and links in order, the focus o
   expect(texts[0]).toMatch(/^Device name: /);
   expect(texts[1]).toBe('Use the form SN-0000.');
   expect(await page.evaluate(() => window.sgSubmits)).toBe(0);
-  // The focus ring shows, also after a pointer submit.
-  expect(await summary.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('solid');
+  // After a pointer submit the ring shows where the engine honours focus({ focusVisible: true }).
   // The fields: aria-invalid; the empty hint gets the message, linked; the page's own hint stays as it was.
   await expect(page.locator('#es-name')).toHaveAttribute('aria-invalid', 'true');
   await expect(page.locator('#es-serial')).toHaveAttribute('aria-invalid', 'true');
@@ -103,6 +102,16 @@ test('the page\'s own aria-invalid counts; set() shows a server\'s answer; reset
   await page.locator('#es-reset').click();
   await expect(page.locator('#es')).toBeHidden();
   await expect(page.locator('#es-serial')).not.toHaveAttribute('aria-invalid', /./);
+});
+
+test('a submit from the keyboard: the summary takes the focus with its ring, solid at once', async ({ page }) => {
+  await open(page);
+  await add(page);
+  await page.locator('#es-serial').fill('42');
+  await page.locator('#es-serial').press('Enter');
+  const summary = page.locator('#es');
+  await expect(summary).toBeFocused();
+  expect(await summary.evaluate((el) => [el.matches(':focus-visible'), getComputedStyle(el).outlineStyle])).toEqual([true, 'solid']);
 });
 
 test('validate() without the focus; a valid form passes', async ({ page }) => {

@@ -19,9 +19,12 @@
  * DS.errorsummary (errorsummary.js).
  *
  * The summary takes the focus after a failed submit: it shows the focus
- * ring of every control (--ds-focus-outline, solid from the first frame,
- * offset snapping on --ds-dur-fast). Its links are the alert's ink,
- * underlined and in the label weight, each on a line of its own.
+ * ring of every control on :focus-visible (--ds-focus-outline, solid from
+ * the first frame, offset snapping on --ds-dur-fast), after a submit from
+ * the keyboard always, after a pointer submit where the engine honours
+ * focus({ focusVisible: true }) (errorsummary.js). Its links are the
+ * alert's ink, underlined with the link geometry and in the label weight,
+ * each on a line of its own.
  *
  * Options (src/core/options.css, docs/options.md): the alert's (padding by
  * size and density, the corners by shape), computed in alert.css; the
@@ -39,10 +42,9 @@
     transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
-  /* Focused by the script after a submit, by pointer too (meta.json
-     exceptions.focus): the ring every control shows, so the eye lands
-     where reading starts. */
-  .ds-errorsummary:focus {
+  /* Focused by the script after a submit: the ring every control shows, so
+     the eye lands where reading starts. */
+  .ds-errorsummary:focus-visible {
     outline: var(--ds-focus-outline);
     outline-offset: var(--ds-focus-offset);
   }
@@ -71,7 +73,8 @@
     color: inherit;
     font-weight: var(--ds-weight-label);
     text-decoration: underline;
-    text-underline-offset: 0.2em;
+    text-decoration-thickness: var(--ds-link-underline-thickness);
+    text-underline-offset: var(--ds-link-underline-offset);
   }
 
   .ds-errorsummary__list a {
