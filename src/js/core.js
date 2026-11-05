@@ -157,7 +157,6 @@ const DEFAULT_STRINGS = Object.freeze({
   typeToSearch: 'Type to search',
   added: 'Added {label}',
   removed: 'Removed {label}',
-  apply: 'Apply',
   selectedCount: '{count} selected',
   tagDuplicate: '{label} is in the list already',
   tagInvalid: '{label} is not valid',
