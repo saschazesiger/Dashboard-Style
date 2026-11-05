@@ -119,7 +119,7 @@
  * docked), is a separator on its inner edge (DS.sheet writes its role,
  * values and the width, --ds-sheet-size, a runtime property): a hit strip
  * at least the touch target wide under .ds-touch, a pill that shows on
- * hover, focus and while it drags (data-resizing on the panel, which
+ * hover, focus and while it drags, always without hover (data-resizing on the panel, which
  * holds the docked width's transition). The modal sheet's separator sits on
  * its left edge (physical, like its slide); at 600px and below it has none.
  *
@@ -592,6 +592,13 @@
 
   @media (hover: hover) {
     .ds-sheet__resize:hover::before {
+      opacity: 1;
+    }
+  }
+
+  /* No hover to find it by: the pill stays, so a finger sees what to drag. */
+  @media (hover: none) {
+    .ds-sheet__resize::before {
       opacity: 1;
     }
   }

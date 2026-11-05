@@ -24,19 +24,28 @@ async function openAdd(page) {
 
 test('the box: wide, anchored to the bottom with the gap above; narrow; density and shape; the whole window on a phone', async ({ page }) => {
   await open(page);
-  const measure = (selector, around = '') => page.evaluate(async ({ selector, around }) => {
-    const sheet = document.querySelector(selector);
-    const holder = sheet.parentElement;
-    holder.className = `${holder.className} ${around}`.trim();
-    await DS.tearsheet.open(sheet);
-    const box = sheet.querySelector('.ds-dialog__box').getBoundingClientRect();
-    const style = getComputedStyle(sheet.querySelector('.ds-dialog__box'));
-    const body = getComputedStyle(sheet.querySelector('.ds-tearsheet__body'));
-    const out = { width: box.width, top: box.top, bottom: box.bottom, radius: parseFloat(style.borderTopLeftRadius), bottomRadius: parseFloat(style.borderBottomLeftRadius), pad: parseFloat(body.paddingLeft) };
-    await DS.tearsheet.close(sheet, { force: true });
-    holder.className = holder.className.replace(around, '').trim();
-    return out;
-  }, { selector, around });
+  // Opened, settled (the box rises from the bottom edge), then measured.
+  const measure = async (selector, around = '') => {
+    await page.evaluate(({ selector, around }) => {
+      const sheet = document.querySelector(selector);
+      const holder = sheet.parentElement;
+      holder.className = `${holder.className} ${around}`.trim();
+      return DS.tearsheet.open(sheet);
+    }, { selector, around });
+    await expect(page.locator(selector)).toHaveAttribute('data-state', 'open');
+    await settle(page);
+    return page.evaluate(async ({ selector, around }) => {
+      const sheet = document.querySelector(selector);
+      const holder = sheet.parentElement;
+      const box = sheet.querySelector('.ds-dialog__box').getBoundingClientRect();
+      const style = getComputedStyle(sheet.querySelector('.ds-dialog__box'));
+      const body = getComputedStyle(sheet.querySelector('.ds-tearsheet__body'));
+      const out = { width: box.width, top: box.top, bottom: box.bottom, radius: parseFloat(style.borderTopLeftRadius), bottomRadius: parseFloat(style.borderBottomLeftRadius), pad: parseFloat(body.paddingLeft) };
+      await DS.tearsheet.close(sheet, { force: true });
+      holder.className = holder.className.replace(around, '').trim();
+      return out;
+    }, { selector, around });
+  };
   const wide = await measure('[data-demo="add"]');
   expect(wide.width, 'the hook, 1200px').toBeCloseTo(1200, 0);
   expect(wide.top).toBeCloseTo(48, 0);

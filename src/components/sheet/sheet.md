@@ -172,8 +172,9 @@ docked panel itself), or call `DS.sheet.resizable(panel, { remember })`.
   `data-ds-sheet-max` (default: what leaves the page or the main column 280px), and is remembered through `DS.store`
   (namespace `sheet`) under `data-ds-sheet-remember`, so it comes back on the next visit. Without the attribute it
   holds until the page reloads. `ds:resize` (`{ width }`) follows a drag that ended and each key.
-- The separator shows a pill on hover, focus and while it drags (`--ds-primary`); at 600px and below the modal sheet
-  takes the whole width and has none. With `.ds-touch` its hit strip is the touch target wide.
+- The separator shows a pill on hover, focus and while it drags (`--ds-primary`), and always on a screen without
+  hover; at 600px and below the modal sheet takes the whole width and has none. With `.ds-touch` its hit strip is the
+  touch target wide.
 - Forced colours: the pill is `CanvasText`, `Highlight` while focused or dragged.
 
 ### Keyboard, names and forced colours
@@ -204,5 +205,5 @@ pointer.
   the list), non-modal layers of `DS.overlay`; resizing with `.ds-sheet__resize` (a separator: pointer and keys, the
   width remembered through `DS.store` under `data-ds-sheet-remember`, bounded by `data-ds-sheet-min` and `-max`,
   `ds:resize`), `DS.sheet.resizable()`, `clampWidth()`, `dragWidth()`, `MIN_WIDTH`; hooks `--ds-sheet-docked-width`
-  and `--ds-sheet-docked-border`; string `resizePanel`.
+  and `--ds-sheet-docked-border`; string `resizePanel`. The separator's pill stays shown on a screen without hover.
 -->

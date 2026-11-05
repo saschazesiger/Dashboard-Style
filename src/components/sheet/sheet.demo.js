@@ -64,7 +64,7 @@ SG.demo('sheet', {
 
       h.section('Push', '<div class="sg-row"><button class="ds-btn" type="button" data-ds-open="#' + push + '" aria-expanded="false" aria-controls="' + push + '">' + h.icon('filter', 18) + 'Filters</button></div>' +
         '<div class="ds-sheet__layout" style="block-size:320px;border:1px solid var(--ds-line);border-radius:var(--ds-radius-card);overflow:hidden" data-demo="push-layout">' +
-        '<div class="ds-sheet__main"><ul class="ds-list">' + DEVICES.map(function (device) {
+        '<div class="ds-sheet__main" style="padding:var(--ds-space-4)"><ul class="ds-list">' + DEVICES.map(function (device) {
           return '<li class="ds-list__item"><span class="ds-list__text"><span class="ds-list__title">' + device[1] + '</span><span class="ds-list__meta">' + h.esc(device[2]) + ', ' + h.esc(device[4]) + '</span></span></li>';
         }).join('') + '</ul></div>' +
         '<section class="ds-sheet__panel ds-sheet__panel--push" id="' + push + '" aria-labelledby="' + push + '-title" hidden>' +
@@ -76,7 +76,7 @@ SG.demo('sheet', {
         'The list narrows while the panel opens beside it; nothing is inert and focus moves into the panel. Escape closes it and focus goes back to the button.') +
 
       h.section('Inspector', '<div class="ds-sheet__layout" style="block-size:320px;border:1px solid var(--ds-line);border-radius:var(--ds-radius-card);overflow:hidden" data-demo="inspector-layout">' +
-        '<div class="ds-sheet__main"><ul class="ds-list ds-list--interactive" aria-label="Devices" data-demo="inspector-list">' + DEVICES.map(function (device) {
+        '<div class="ds-sheet__main" style="padding:var(--ds-space-4)"><ul class="ds-list ds-list--interactive" aria-label="Devices" data-demo="inspector-list">' + DEVICES.map(function (device) {
           return '<li class="ds-list__item" data-ds-key="' + device[0] + '"><span class="ds-list__text"><span class="ds-list__title">' +
             '<button class="ds-list__action" type="button" data-device="' + device[0] + '" aria-controls="' + inspector + '">' + device[1] + '</button></span>' +
             '<span class="ds-list__meta">' + h.esc(device[2]) + '</span></span></li>';
