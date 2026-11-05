@@ -79,12 +79,13 @@ test('a column scrolls down from --ds-scroll-max-height and fades at each end th
   // Progressive: an engine without it reports nothing and the scrollbar takes its room when it shows.
   if (await page.evaluate(() => CSS.supports('scrollbar-gutter', 'stable'))) expect(box.gutter).toBe('stable');
   expect(await edges(column)).toEqual([0, 1]);
+  // Polled: the fallback's scroll listener may set its attribute a frame after settle() found nothing running.
   await column.evaluate((el) => { el.scrollTop = el.scrollHeight / 2 - el.clientHeight / 2; });
   await settle(page);
-  expect(await edges(column)).toEqual([1, 1]);
+  await expect.poll(() => edges(column)).toEqual([1, 1]);
   await column.evaluate((el) => { el.scrollTop = el.scrollHeight; });
   await settle(page);
-  expect(await edges(column)).toEqual([1, 0]);
+  await expect.poll(() => edges(column)).toEqual([1, 0]);
   // The mask turned to the block axis, the scrollbar strip opaque at the end.
   const mask = await column.evaluate((el) => ({ image: getComputedStyle(el).maskImage, size: getComputedStyle(el).maskSize, position: getComputedStyle(el).maskPosition }));
   expect(mask.image).not.toContain('to right');

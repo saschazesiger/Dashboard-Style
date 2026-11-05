@@ -726,7 +726,10 @@ test('by the system: a source asked after the pause, with a spinner and aria-bus
   const input = sysInput(page, 'remote');
   await page.evaluate(() => {
     window.searches = [];
-    document.querySelector('[data-demo="sys-remote"]').addEventListener('ds:search', (event) => window.searches.push(event.detail.query));
+    const remote = document.querySelector('[data-demo="sys-remote"]');
+    // A pause no loaded engine's keystrokes outlast, so the word is one search (the attribute is read per change).
+    remote.setAttribute('data-ds-combobox-debounce', '1000');
+    remote.addEventListener('ds:search', (event) => window.searches.push(event.detail.query));
   });
   await input.click();
   await expect(sys(page, 'remote').locator('.ds-combo__status')).toHaveText('Type to search');
