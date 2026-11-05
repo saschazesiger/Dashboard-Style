@@ -3,7 +3,7 @@
   "group": "navigation",
   "order": 340,
   "docsOrder": 10,
-  "need": "Frame an app: top bar, navigation drawer, content panel, account and banners",
+  "need": "Frame an app: top bar with search, launcher and account menu, navigation drawer, content panel, breadcrumbs and banners",
   "tier": 1,
   "status": "stable",
   "classes": [
@@ -12,8 +12,11 @@
     "ds-account__avatar",
     "ds-account__divider",
     "ds-account__email",
+    "ds-account__head",
+    "ds-account__menu",
     "ds-account__name",
     "ds-account__text",
+    "ds-account__trigger",
     "ds-app",
     "ds-app--drawer",
     "ds-app--keyboard-hides-bar",
@@ -23,12 +26,14 @@
     "ds-banner",
     "ds-brand",
     "ds-brand__name",
+    "ds-breadcrumbs__more",
     "ds-drawer",
     "ds-drawer--instant",
     "ds-drawer__action",
     "ds-drawer__actions",
     "ds-drawer__back",
     "ds-drawer__count",
+    "ds-drawer__empty",
     "ds-drawer__foot",
     "ds-drawer__foot--pinned",
     "ds-drawer__foot--rail",
@@ -41,7 +46,12 @@
     "ds-drawer__list",
     "ds-drawer__list--overflow",
     "ds-drawer__row",
+    "ds-drawer__search",
     "ds-drawer__toggle",
+    "ds-launcher",
+    "ds-launcher__app",
+    "ds-launcher__icon",
+    "ds-launcher__label",
     "ds-panel",
     "ds-scrim",
     "ds-segmented",
@@ -51,7 +61,10 @@
     "ds-topbar",
     "ds-topbar__actions",
     "ds-topbar__menu",
+    "ds-topbar__results",
     "ds-topbar__search",
+    "ds-topbar__search-back",
+    "ds-topbar__search-open",
     "ds-topbar__title",
     "ds-view",
     "ds-view--fill",
@@ -62,14 +75,18 @@
     "data-drawer-collapsed",
     "data-drawer-hidden",
     "data-drawer-open",
+    "data-ds-breadcrumbs",
+    "data-ds-collapsed",
     "data-ds-edges",
+    "data-ds-filtered",
     "data-ds-keyboard",
     "data-ds-overflow-end",
     "data-ds-overflow-start",
     "data-ds-shown",
     "data-ds-vt",
     "data-label",
-    "data-scrolled"
+    "data-scrolled",
+    "data-state"
   ],
   "requires": [
     "button",
@@ -84,6 +101,7 @@
     "indicator",
     "list",
     "loading",
+    "menu",
     "table",
     "tile"
   ],
@@ -111,6 +129,30 @@
     "--ds-account-text-max": {
       "default": "240px",
       "description": "the name and email beside the avatar in `.ds-account--capsule`"
+    },
+    "--ds-account-menu-width": {
+      "default": "280px",
+      "description": "the account menu (`.ds-account__menu`), at most the window less `--ds-space-2` on each side"
+    },
+    "--ds-launcher-columns": {
+      "default": "3",
+      "description": "the apps in a row of the launcher (`.ds-launcher`)"
+    },
+    "--ds-launcher-app-width": {
+      "default": "96px",
+      "description": "one column of the launcher: its width is the columns times this, at most the window's"
+    },
+    "--ds-launcher-app-height": {
+      "default": "88px",
+      "description": "a launcher app at size md and comfortable (8px per size step, 4px per density step)"
+    },
+    "--ds-launcher-icon-size": {
+      "default": "40px",
+      "description": "the disc of a launcher app's icon at size md (8px per size step)"
+    },
+    "--ds-launcher-font": {
+      "default": "the size's role, `--ds-font-body`",
+      "description": "a launcher app's label (always at the regular weight; the current app takes the label weight)"
     },
     "--ds-avatar-size": {
       "default": "32px",
@@ -146,6 +188,9 @@
     },
     "--ds-badge-color": {
       "owner": "badge"
+    },
+    "--ds-badge-dot-size": {
+      "owner": "badge"
     }
   },
   "keyframes": [
@@ -157,8 +202,10 @@
   ],
   "js": [
     "indicator",
-    "overlay"
+    "overlay",
+    "shell"
   ],
+  "module": true,
   "progressive": [
     "View Transitions",
     "scroll-driven",
@@ -171,6 +218,16 @@
     ".ds-drawer__item",
     ".ds-drawer__toggle"
   ],
+  "labExempt": {
+    "DS.shell.create": "wires the menu button, the rail and the modal drawer, whose motion the lab.js entries 'rail' and 'modal-drawer' play",
+    "DS.shell.drawer": "remembered groups, the filter and the arrow keys: the groups open and close on .ds-collapsible ('drawer-group' in lab.js); a filtered item takes no room at once",
+    "DS.shell.searchSheet": "the phone breakpoint, inertness and focus around the sheet, whose motion the entry 'topbar-search-sheet' plays through DS.overlay",
+    "DS.shell.schemeSwitch": "a choice of colour scheme: the colours change at once, nothing moves",
+    "DS.shell.setScheme": "a choice of colour scheme: the colours change at once, nothing moves",
+    "DS.shell.breadcrumbs": "folds crumbs into a menu at once; the menu's motion is the menu's ('menu' in lab.js)",
+    "DS.shell.fitCrumbs": "a pure function: no motion",
+    "DS.shell.matchText": "a pure function: no motion"
+  },
   "exceptions": {
     "hover": {
       ".ds-drawer__list:hover": "shows the scrollbar of a scrolling drawer list, no choreography"

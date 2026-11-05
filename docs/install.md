@@ -46,6 +46,7 @@ and every `src/components/<name>/<name>.js`, as `manifest.json` `js` lists them)
 | `js/dialog.js` | `DS.dialog` | component (`src/components/dialog/`) | `core`, `icons`, `motion`, `overlay` | [components.md](components.md#dialog) |
 | `js/menu.js` | `DS.menu` | component (`src/components/menu/`) | `core`, `motion`, `overlay` | [components.md](components.md#menu) |
 | `js/sheet.js` | `DS.sheet` | component (`src/components/sheet/`) | `core`, `overlay` | [components.md](components.md#side-sheet) |
+| `js/shell.js` | `DS.shell` | component (`src/components/shell/`) | `a11y`, `core`, `dom`, `format`, `icons`, `indicator`, `menu`, `motion`, `overlay`, `store` | [components.md](components.md#app-frame) |
 | `js/toast.js` | `DS.toast` | component (`src/components/toast/`) | `core`, `icons`, `motion`, `overlay`, `position` | [components.md](components.md#snackbar) |
 | `js/tooltip.js` | `DS.tooltip` | component (`src/components/tooltip/`) | `core`, `motion`, `overlay`, `position` | [components.md](components.md#tooltip) |
 <!-- /generated: modules -->
@@ -397,6 +398,9 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} at position {position} of {total}.` | what `DS.dnd.create()` announces on a drop (the system's string `dragDropped`) | `DS.core.config({ strings: { dragDropped } })` |
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
+| `{count} match` | what the drawer's filter (`data-ds-drawer`) announces for one match (the system's string `filterMatch`; the plural rules of the locale pick it) | `DS.core.config({ strings: { filterMatch } })` |
+| `{count} matches` | the same for any other count (the system's string `filterMatches`) | `DS.core.config({ strings: { filterMatches } })` |
+| `Show {count} more` | the name and tooltip of the breadcrumbs' "more" button (`data-ds-breadcrumbs`; the system's string `breadcrumbsMore`) | `DS.core.config({ strings: { breadcrumbsMore } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

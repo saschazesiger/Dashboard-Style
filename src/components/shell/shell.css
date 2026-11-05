@@ -1660,6 +1660,15 @@
       justify-content: center;
     }
 
+    /* A drawer action whose label is a .ds-drawer__label turns into an
+       icon button of its own height on the rail (the label is hidden but
+       read, as on the items; its data-tip names it). */
+    .ds-app--drawer[data-drawer-collapsed] .ds-drawer__actions > .ds-btn:has(> .ds-drawer__label) {
+      width: var(--_box);
+      padding-inline: 0;
+      gap: 0;
+    }
+
     .ds-app--drawer[data-drawer-collapsed] .ds-drawer__back::after,
     .ds-app--drawer[data-drawer-collapsed] .ds-drawer__foot--pinned::before {
       margin-inline: var(--ds-space-2);
@@ -1985,6 +1994,311 @@
   }
 
   /*
+   * ── 3.0: the frame's behaviours (shell.js) ───────
+   *
+   * Drawer filter: a search field between the actions and the list
+   * (data-ds-drawer filters the list's items by their labels). Filtered
+   * items, rows and groups take no room (data-ds-filtered, written by the
+   * module, never by the page); .ds-drawer__empty says there is no match.
+   * The rail has no room for the field: it goes there.
+   */
+  .ds-drawer__search {
+    flex-shrink: 0;
+    padding: var(--ds-space-1) var(--ds-space-3) var(--ds-space-2);
+  }
+
+  .ds-drawer [data-ds-filtered] {
+    display: none;
+  }
+
+  .ds-drawer__empty {
+    margin: 0;
+    padding: var(--ds-space-3) var(--ds-space-4);
+    color: var(--ds-text-2);
+    font: var(--ds-font-meta);
+  }
+
+  /* A badge (badge.css) at the end of an item or a group toggle: the place
+     of a count, which it may replace when the count is news (unread). */
+  .ds-drawer__item > .ds-badge,
+  .ds-drawer__toggle > .ds-badge {
+    margin-inline-start: auto;
+  }
+
+  @media (min-width: 901px) {
+    .ds-app--drawer[data-drawer-collapsed] .ds-drawer__search {
+      display: none;
+    }
+
+    /* On the rail a badge shrinks to a dot on the icon's corner, inside the
+       square (a ripple host clips what lies outside it). Its figure stays
+       in the markup and is read with the label; the dot takes the primary
+       colour (a tone's full colour), which holds 3:1 on the backdrop. */
+    .ds-app--drawer[data-drawer-collapsed] .ds-drawer__item > .ds-badge {
+      position: absolute;
+      inset-block-start: var(--ds-space-2);
+      inset-inline-end: var(--ds-space-2);
+      min-width: 0;
+      width: var(--ds-badge-dot-size, var(--ds-space-2));
+      height: var(--ds-badge-dot-size, var(--ds-space-2));
+      padding: 0;
+      overflow: hidden;
+      border-radius: 50%;
+      background: var(--ds-primary);
+      color: transparent;
+    }
+
+    .ds-app--drawer[data-drawer-collapsed] .ds-drawer__item > .ds-badge:is(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
+      background: var(--ds-tone);
+    }
+  }
+
+  /*
+   * The notification slot: an icon button of .ds-topbar__actions (the
+   * notification centre opens from it) carries a .ds-badge--dot on its
+   * icon's corner, inside its box (a ripple host clips what lies outside
+   * it). The dot's word sits in its .ds-sr ("3 unread"), and the button's
+   * name says it too.
+   */
+  .ds-topbar__actions .ds-btn--icon > .ds-badge--dot {
+    position: absolute;
+    inset-block-start: calc(50% - 10px);
+    inset-inline-end: calc(50% - 10px);
+    pointer-events: none;
+  }
+
+  /*
+   * Account menu: the avatar in a quiet icon button (its state layer, ring,
+   * ripple and target) opens a .ds-menu with the name and email at its
+   * head (aria-hidden: the menu is named by them through aria-labelledby),
+   * the theme switch (data-ds-scheme-switch: light, dark, auto) and sign
+   * out. The trigger shows its disc at every width.
+   */
+  .ds-account__trigger .ds-account__avatar,
+  .ds-account__head .ds-account__avatar {
+    display: grid;
+  }
+
+  /* The trigger is a target of its own: it never shrinks. */
+  .ds-account:has(> .ds-account__trigger) {
+    flex: none;
+  }
+
+  /* A phone's bar full of actions: a brand of only a name ends in an
+     ellipsis rather than pushing the account out (a mark stays whole). */
+  @media (max-width: 600px) {
+    .ds-topbar:has(> .ds-topbar__actions) > .ds-brand:not(:has(> :not(.ds-brand__name))) {
+      flex-shrink: 1;
+    }
+
+    .ds-topbar:has(> .ds-topbar__actions) > .ds-brand:not(:has(> :not(.ds-brand__name))) > .ds-brand__name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .ds-account__menu {
+    width: min(var(--ds-account-menu-width, 280px), calc(100vw - 2 * var(--ds-space-2)));
+    max-width: none;
+  }
+
+  .ds-account__head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--ds-space-3);
+    padding: var(--ds-space-2) var(--ds-space-4) var(--ds-space-3);
+  }
+
+  .ds-account__head .ds-account__avatar {
+    grid-row: span 2;
+  }
+
+  .ds-account__head :is(.ds-account__name, .ds-account__email) {
+    text-align: start;
+  }
+
+  /*
+   * App launcher: a .ds-menu laid out as a grid of apps (data-ds-launcher
+   * adds the arrow keys of two dimensions). Each app is a menu item: an
+   * icon on a tonal disc over a label of up to two lines; the current app
+   * (aria-current="true") takes the tint on its disc and the label weight,
+   * never colour alone.
+   */
+  .ds-launcher {
+    display: grid;
+    grid-template-columns: repeat(var(--ds-launcher-columns, 3), minmax(0, 1fr));
+    gap: var(--ds-space-1);
+    width: min(calc(var(--ds-launcher-columns, 3) * var(--ds-launcher-app-width, 96px) + 2 * var(--ds-space-2)), calc(100vw - 2 * var(--ds-space-2)));
+    max-width: none;
+    padding: calc(var(--ds-space-2) + var(--ds-density, 0) * 2px) var(--ds-space-2);
+  }
+
+  /* The edge shades and the parts that are no app span a whole row. */
+  .ds-launcher::before,
+  .ds-launcher::after,
+  .ds-launcher > :not(.ds-menu__item) {
+    grid-column: 1 / -1;
+  }
+
+  .ds-launcher__app {
+    --_h: calc(var(--ds-launcher-app-height, 88px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px);
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--ds-space-1);
+    min-height: max(var(--ds-target-min, 0px), var(--_h));
+    padding: var(--ds-space-2) var(--ds-space-1);
+    border-radius: calc(var(--ds-radius-sm) * var(--ds-shape, 1));
+    font: var(--ds-launcher-font, var(--ds-size-font, var(--ds-font-body)));
+    font-weight: var(--ds-weight-regular);
+    text-align: center;
+  }
+
+  .ds-launcher__app::before {
+    border-radius: inherit;
+  }
+
+  .ds-launcher__icon {
+    --_size: calc(var(--ds-launcher-icon-size, 40px) + var(--ds-size-step, 0) * 8px);
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: var(--_size);
+    height: var(--_size);
+    border-radius: min(calc(min(var(--ds-radius-action), calc(var(--_size) / 2)) * var(--ds-shape, 1)), calc(var(--_size) / 2));
+    background: var(--ds-surface-high);
+    color: var(--ds-primary);
+  }
+
+  .ds-launcher__icon > svg {
+    color: inherit;
+  }
+
+  .ds-launcher__label {
+    display: -webkit-box;
+    max-width: 100%;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .ds-launcher__app[aria-current="true"] {
+    font-weight: var(--ds-weight-label);
+  }
+
+  .ds-launcher__app[aria-current="true"] .ds-launcher__icon {
+    background: var(--ds-accent);
+    color: var(--ds-on-accent);
+  }
+
+  /*
+   * Phone search: at 720px and below the bar's search is a sheet over the
+   * whole frame, opened by .ds-topbar__search-open (data-ds-search-sheet,
+   * DS.overlay). Its head is a back button and the field on the bar's
+   * height; .ds-topbar__results below holds what the page shows for the
+   * query and scrolls. It fades in while it slides down by
+   * --ds-distance-md on the spring (--ds-dur-medium) and fades out faster
+   * (--ds-dur-fast); data-state drives it, so a close mid-way turns back
+   * from where it is. The bar takes the dialog layer meanwhile, so nothing
+   * of the page paints over the sheet; the snackbars stay above.
+   */
+  .ds-topbar__search-open,
+  .ds-topbar__search-back,
+  .ds-topbar__results {
+    display: none;
+  }
+
+  @media (max-width: 720px) {
+    .ds-topbar__search-open {
+      display: inline-flex;
+    }
+  }
+
+  /* Open (DS.overlay writes data-state; the module opens it only at 720px
+     and below, and closes it when the window widens). */
+  .ds-topbar:has(> .ds-topbar__search[data-state]) {
+    z-index: var(--ds-z-dialog);
+  }
+
+  .ds-topbar__search[data-state] {
+    position: fixed;
+    inset: 0;
+    /* Above the bar's own positioned parts (its buttons), which follow it. */
+    z-index: var(--ds-z-raised);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: var(--ds-topbar-height) minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--ds-space-1);
+    max-width: none;
+    margin: 0;
+    padding-block: env(safe-area-inset-top) 0;
+    padding-inline: max(var(--ds-space-2), env(safe-area-inset-left)) max(var(--ds-space-4), env(safe-area-inset-right));
+    background: var(--ds-surface);
+    /* Invisible; forced colours paint it, so the sheet keeps an edge. */
+    outline: 1px solid transparent;
+    transition:
+      opacity var(--ds-dur-medium) var(--ds-ease-in-out),
+      translate var(--ds-dur-medium) var(--ds-ease-spatial);
+  }
+
+  .ds-topbar__search[data-state="closed"] {
+    opacity: 0;
+    translate: 0 calc(-1 * var(--ds-distance-md));
+    pointer-events: none;
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in),
+      translate var(--ds-dur-fast) var(--ds-ease-in);
+  }
+
+  .ds-topbar__search[data-state] .ds-topbar__search-back {
+    display: inline-flex;
+  }
+
+  .ds-topbar__search[data-state] .ds-topbar__results {
+    position: relative;
+    display: block;
+    grid-column: 1 / -1;
+    align-self: stretch;
+    min-height: 0;
+    overflow-y: auto;
+    padding-block: var(--ds-space-2) max(var(--ds-space-4), env(safe-area-inset-bottom));
+    scrollbar-width: thin;
+    scrollbar-color: var(--ds-line-2) transparent;
+  }
+
+  /*
+   * Breadcrumbs that fold (data-ds-breadcrumbs; page.css draws the trail):
+   * the crumbs that do not fit go into a menu behind .ds-breadcrumbs__more,
+   * a small quiet icon button after the first crumb (the middle first, then
+   * the first, then the parent; the current page never). The module marks
+   * them data-ds-collapsed; the chevron goes before the first crumb that
+   * shows. It replaces page.css's narrow rule (only the parent) with the
+   * measured fold.
+   */
+  .ds-breadcrumbs[data-ds-breadcrumbs] li:not([data-ds-collapsed]) {
+    display: flex;
+  }
+
+  .ds-breadcrumbs[data-ds-breadcrumbs] li[data-ds-collapsed] {
+    display: none;
+  }
+
+  .ds-breadcrumbs[data-ds-breadcrumbs] li::before {
+    content: none;
+  }
+
+  .ds-breadcrumbs[data-ds-breadcrumbs] li:not([data-ds-collapsed]) ~ li:not([data-ds-collapsed])::before {
+    content: '';
+  }
+
+  .ds-breadcrumbs__more {
+    flex: none;
+  }
+
+  /*
    * Forced colors (Windows contrast themes) drop the pill's fill: the
    * current destination and the selected option paint the selection
    * themselves, a choice in a set (SelectedItem, D8); the outline stays for
@@ -2036,6 +2350,33 @@
       forced-color-adjust: none;
       color: SelectedItemText;
       outline-color: CanvasText;
+    }
+
+    /* The current app is a choice in a set; a launcher's discs keep their
+       edges where fills are gone. */
+    .ds-launcher__app[aria-current="true"] {
+      forced-color-adjust: none;
+      background: SelectedItem;
+      color: SelectedItemText;
+    }
+
+    .ds-launcher__app[aria-current="true"] .ds-launcher__icon {
+      background: transparent;
+      color: inherit;
+    }
+
+    .ds-launcher__app[aria-current="true"]:focus-visible {
+      outline-color: CanvasText;
+    }
+
+    .ds-launcher__icon {
+      outline: 1px solid transparent;
+    }
+
+    /* A rail badge is a dot: the system's highlight. */
+    .ds-app--drawer[data-drawer-collapsed] .ds-drawer__item > .ds-badge {
+      forced-color-adjust: none;
+      background: Highlight;
     }
 
     /* The disc keeps its edge where its fill is gone. */

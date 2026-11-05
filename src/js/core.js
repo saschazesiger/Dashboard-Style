@@ -151,6 +151,9 @@ const DEFAULT_STRINGS = Object.freeze({
   dragDropped: 'Dropped {label} at position {position} of {total}.',
   dragDroppedZone: 'Dropped {label} in {zone}, position {position} of {total}.',
   dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
+  filterMatch: '{count} match',
+  filterMatches: '{count} matches',
+  breadcrumbsMore: 'Show {count} more',
 });
 
 /**
