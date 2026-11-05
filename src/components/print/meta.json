@@ -1,0 +1,42 @@
+{
+  "name": "print",
+  "group": "layout",
+  "order": 440,
+  "docsOrder": 362,
+  "need": "Decide what goes on paper and where sheets break, and lay out a printable report or invoice",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-print-avoid",
+    "ds-print-break-after",
+    "ds-print-break-before",
+    "ds-print-exact",
+    "ds-print-hide",
+    "ds-print-only",
+    "ds-print-page",
+    "ds-print-urls"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [],
+  "hooks": {
+    "--ds-print-page-width": {
+      "default": "`210mm`",
+      "description": "the width of the `.ds-print-page` sheet on screen (an A4 sheet)"
+    },
+    "--ds-print-page-pad": {
+      "default": "`--ds-space-10` (compact: `--ds-space-5`)",
+      "description": "the margin of the `.ds-print-page` sheet on screen (paper keeps the browser's page margins)"
+    }
+  },
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false,
+  "exceptions": {
+    "important": {
+      ".ds-print-only: display": "print-only content stays off screen whatever display a component or the page gives it, as the hidden attribute does",
+      ".ds-print-hide: display": "screen-only content stays off paper whatever display a component or the page gives it, as the hidden attribute does"
+    }
+  }
+}
