@@ -167,6 +167,17 @@ const DEFAULT_STRINGS = Object.freeze({
   loadMoreLoading: 'Loading more',
   loadMoreFailed: 'Could not load more.',
   tryAgain: 'Try again',
+  removeFilter: 'Remove filter',
+  filterRemoved: 'Removed {filter}',
+  filtersCleared: 'Filters cleared',
+  filtersApplied: '{count} applied',
+  filterChip: '{label}: {value}',
+  resultsOne: '{count} result',
+  resultsOther: '{count} results',
+  showResults: 'Show {results}',
+  rangeFrom: 'from {min}',
+  rangeTo: 'up to {max}',
+  rangeBetween: '{min} to {max}',
 });
 
 /**

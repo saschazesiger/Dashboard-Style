@@ -413,6 +413,17 @@ strings a script adds have an option, so a page in another language passes its o
 | `Loading more` | what `DS.loadmore` announces when its sentinel starts a load (the system's string `loadMoreLoading`) | `DS.core.config({ strings: { loadMoreLoading } })` |
 | `Could not load more.` | the status and announcement of a failed load in `DS.loadmore` (the system's string `loadMoreFailed`) | `DS.core.config({ strings: { loadMoreFailed } })` |
 | `Try again` | the label of the button of `DS.loadmore` after a failed load (the system's string `tryAgain`) | `DS.core.config({ strings: { tryAgain } })` |
+| `Remove filter` | the hidden start of an applied filter chip's name in `DS.filterbar` and `DS.facets` (the system's string `removeFilter`) | `DS.core.config({ strings: { removeFilter } })` |
+| `Removed {filter}` | what `DS.filterbar` and `DS.facets` announce when a chip removed its filter (the system's string `filterRemoved`) | `DS.core.config({ strings: { filterRemoved } })` |
+| `Filters cleared` | what `DS.filterbar` and `DS.facets` announce after Clear all (the system's string `filtersCleared`) | `DS.core.config({ strings: { filtersCleared } })` |
+| `{count} applied` | the hidden words after the badge of the Filters button of a folded `DS.filterbar` (the system's string `filtersApplied`) | `DS.core.config({ strings: { filtersApplied } })` |
+| `{label}: {value}` | the text of an applied filter chip in `DS.filterbar` and `DS.facets` (the system's string `filterChip`) | `DS.core.config({ strings: { filterChip } })` |
+| `{count} result` | the count `count()` of `DS.filterbar` writes, one (the system's string `resultsOne`) | `DS.core.config({ strings: { resultsOne } })` |
+| `{count} results` | the same, other numbers (the system's string `resultsOther`) | `DS.core.config({ strings: { resultsOther } })` |
+| `Show {results}` | the results button in the sheet of a folded `DS.filterbar` (the system's string `showResults`) | `DS.core.config({ strings: { showResults } })` |
+| `from {min}` | a range filter with only a lower bound, on its chip (the system's string `rangeFrom`) | `DS.core.config({ strings: { rangeFrom } })` |
+| `up to {max}` | a range filter with only an upper bound, on its chip (the system's string `rangeTo`) | `DS.core.config({ strings: { rangeTo } })` |
+| `{min} to {max}` | a range filter with both bounds, on its chip (the system's string `rangeBetween`) | `DS.core.config({ strings: { rangeBetween } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow
