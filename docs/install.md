@@ -419,6 +419,7 @@ strings a script adds have an option, so a page in another language passes its o
 | `Type {name} to confirm` | the label of a type-to-confirm field (`DS.typeconfirm`; the system's string `typeToConfirm`) | `DS.core.config({ strings: { typeToConfirm } })` |
 | `There is 1 problem` | the title of an error summary with one problem (`DS.errorsummary`; the system's string `errorSummaryOne`) | `DS.core.config({ strings: { errorSummaryOne } })` |
 | `There are {count} problems` | its title with more (the system's string `errorSummaryMany`) | `DS.core.config({ strings: { errorSummaryMany } })` |
+| `{label}: {message}` | an error summary's line for a field without an error message of the page's own: its label and the browser's validation message (the system's string `errorSummaryField`) | `DS.core.config({ strings: { errorSummaryField } })` |
 | `Digit {index} of {count}` | the name of a cell of a numeric code field without one of its own (`DS.otp`; the system's string `otpDigit`) | `DS.core.config({ strings: { otpDigit } })` |
 | `Character {index} of {count}` | the same on an alphanumeric code field (the system's string `otpCharacter`) | `DS.core.config({ strings: { otpCharacter } })` |
 | `{count} characters left` | what a field with a character counter says once it comes near its limit (`DS.form`, `data-ds-counter`; the system's string `charactersLeft`, the plural form `other`) | `DS.core.config({ strings: { charactersLeft } })` |

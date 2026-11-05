@@ -179,6 +179,7 @@ const DEFAULT_STRINGS = Object.freeze({
   charactersLeftOne: '1 character left',
   charactersOver: '{count} characters too many',
   charactersOverOne: '1 character too many',
+  errorSummaryField: '{label}: {message}',
 });
 
 /**
