@@ -99,7 +99,7 @@ test('a row of panels lines up whatever each shows; at 360px they stack and noth
   const fits = await page.$$eval('.ds-dashpanel', (els) => els.every((el) => el.scrollWidth <= el.clientWidth + 1 && el.getBoundingClientRect().right <= innerWidth + 1));
   expect(fits).toBe(true);
   // A long title ends in an ellipsis and keeps its name.
-  await page.$eval(`${panel('ready')} .ds-dashpanel__title`, (el) => { el.textContent = 'Tickets per day across every building and every floor of the campus'; });
+  await page.$eval(`${panel('ready')} .ds-dashpanel__title`, (el) => { el.textContent = 'Tickets per day across every building and every floor of the site'; });
   const title = await page.$eval(`${panel('ready')} .ds-dashpanel__title`, (el) => [el.scrollWidth > el.clientWidth, getComputedStyle(el).textOverflow]);
   expect(title).toEqual([true, 'ellipsis']);
 });
