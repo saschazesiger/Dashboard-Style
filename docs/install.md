@@ -397,6 +397,15 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} at position {position} of {total}.` | what `DS.dnd.create()` announces on a drop (the system's string `dragDropped`) | `DS.core.config({ strings: { dragDropped } })` |
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
+| `Ascending` | the order of a sort field without a type in `DS.sort` (the system's string `sortAscending`) | `DS.core.config({ strings: { sortAscending } })` |
+| `Descending` | the same, descending (the system's string `sortDescending`) | `DS.core.config({ strings: { sortDescending } })` |
+| `A to Z` | the ascending order of a text field (`data-ds-sort-type="text"`) in `DS.sort` (the system's string `sortAscendingText`) | `DS.core.config({ strings: { sortAscendingText } })` |
+| `Z to A` | the same, descending (the system's string `sortDescendingText`) | `DS.core.config({ strings: { sortDescendingText } })` |
+| `Lowest first` | the ascending order of a number field in `DS.sort` (the system's string `sortAscendingNumber`) | `DS.core.config({ strings: { sortAscendingNumber } })` |
+| `Highest first` | the same, descending (the system's string `sortDescendingNumber`) | `DS.core.config({ strings: { sortDescendingNumber } })` |
+| `Oldest first` | the ascending order of a date field in `DS.sort` (the system's string `sortAscendingDate`) | `DS.core.config({ strings: { sortAscendingDate } })` |
+| `Newest first` | the same, descending (the system's string `sortDescendingDate`) | `DS.core.config({ strings: { sortDescendingDate } })` |
+| `Sorted by {field}, {direction}` | what `DS.sort` announces after the user changed the sort (the system's string `sortAnnounce`) | `DS.core.config({ strings: { sortAnnounce } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

@@ -151,6 +151,15 @@ const DEFAULT_STRINGS = Object.freeze({
   dragDropped: 'Dropped {label} at position {position} of {total}.',
   dragDroppedZone: 'Dropped {label} in {zone}, position {position} of {total}.',
   dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
+  sortAscending: 'Ascending',
+  sortDescending: 'Descending',
+  sortAscendingText: 'A to Z',
+  sortDescendingText: 'Z to A',
+  sortAscendingNumber: 'Lowest first',
+  sortDescendingNumber: 'Highest first',
+  sortAscendingDate: 'Oldest first',
+  sortDescendingDate: 'Newest first',
+  sortAnnounce: 'Sorted by {field}, {direction}',
 });
 
 /**
