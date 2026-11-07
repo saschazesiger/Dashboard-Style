@@ -58,6 +58,23 @@ async function mount(page, text = TEXT, { attributes = {}, options = null, cls =
   return view;
 }
 
+
+/** The page in the light scheme, or with the shipped dark theme (the default palette is light only; dark.css is its dark). */
+async function useScheme(page, name) {
+  await page.evaluate(async (name) => {
+    let link = document.querySelector('#probe-dark');
+    if (name === 'light') return link?.remove();
+    if (link) return;
+    link = document.createElement('link');
+    link.id = 'probe-dark';
+    link.rel = 'stylesheet';
+    link.href = '/dist/themes/dark.css';
+    const loaded = new Promise((resolve) => { link.onload = resolve; });
+    document.head.append(link);
+    await loaded;
+  }, name);
+}
+
 test('renders the bar, the chips with counts and the lines with time, level and number; the source hides', async ({ page }) => {
   await open(page);
   const view = await mount(page);
@@ -306,7 +323,7 @@ test('the ANSI colours, the level words and the matches read at 4.5:1, light and
   await page.evaluate(() => window.probeLog.set({ query: 'sync' }));
   await page.locator('#probe').getByRole('searchbox').press('Enter');
   for (const scheme of ['light', 'dark']) {
-    await page.evaluate((scheme) => document.body.setAttribute('data-ds-scheme', scheme), scheme);
+    await useScheme(page, scheme);
     const selectors = ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'black'].map((colour) => `#probe .ds-logview__ansi[data-fg="${colour}"]`)
       .concat(['fatal', 'error', 'warn', 'info', 'debug'].map((level) => `#probe .ds-logview__line[data-level="${level}"] .ds-logview__word`))
       .concat(['#probe .ds-logview__line[data-level="error"] .ds-logview__text', '#probe .ds-logview__match', '#probe .ds-logview__match--current', '#probe .ds-logview__num']);

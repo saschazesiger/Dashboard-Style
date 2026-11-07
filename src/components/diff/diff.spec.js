@@ -57,6 +57,23 @@ async function mount(page, text = TEXT, { attributes = '', options = null, cls =
   return page.locator('#probe');
 }
 
+
+/** The page in the light scheme, or with the shipped dark theme (the default palette is light only; dark.css is its dark). */
+async function useScheme(page, name) {
+  await page.evaluate(async (name) => {
+    let link = document.querySelector('#probe-dark');
+    if (name === 'light') return link?.remove();
+    if (link) return;
+    link = document.createElement('link');
+    link.id = 'probe-dark';
+    link.rel = 'stylesheet';
+    link.href = '/dist/themes/dark.css';
+    const loaded = new Promise((resolve) => { link.onload = resolve; });
+    document.head.append(link);
+    await loaded;
+  }, name);
+}
+
 test('renders the files: header, counts, status, gutters, signs and words; the source hides', async ({ page }) => {
   await open(page);
   const view = await mount(page);
@@ -248,7 +265,7 @@ test('the code reads at 4.5:1 on every fill, light and dark', async ({ page }) =
   await open(page);
   await mount(page);
   for (const scheme of ['light', 'dark']) {
-    await page.evaluate((scheme) => document.body.setAttribute('data-ds-scheme', scheme), scheme);
+    await useScheme(page, scheme);
     for (const selector of ['#probe .ds-diff__code[data-kind="add"]', '#probe .ds-diff__code[data-kind="del"]', '#probe ins.ds-diff__word', '#probe del.ds-diff__word', '#probe .ds-diff__hunk > td', '#probe .ds-diff__num[data-kind="add"]', '#probe .ds-diff__num[data-kind="del"]']) {
       expect(await contrastOf(page, selector), `${scheme} ${selector}`).toBeGreaterThanOrEqual(4.5);
     }
