@@ -551,6 +551,44 @@ strings a script adds have an option, so a page in another language passes its o
 | `Save` | its confirm button (the system's string `querySaveConfirm`) | `DS.core.config({ strings: { querySaveConfirm } })` |
 | `Saved the query as {name}.` | what `DS.query` announces after a save (the system's string `querySavedAs`) | `DS.core.config({ strings: { querySavedAs } })` |
 | `Removed the saved query {name}.` | what `DS.query` announces after Delete on a saved query (the system's string `querySavedRemoved`) | `DS.core.config({ strings: { querySavedRemoved } })` |
+| `Select` | the hidden name of a data grid's selection column with single selection (`DS.datagrid`; the system's string `datagridSelect`) | `DS.core.config({ strings: { datagridSelect } })` |
+| `Select all rows` | the name of a data grid's select-all box in its header (the system's string `datagridSelectAll`) | `DS.core.config({ strings: { datagridSelectAll } })` |
+| `Select {label}` | the name of a row's checkbox in a data grid (the system's string `datagridSelectRow`) | `DS.core.config({ strings: { datagridSelectRow } })` |
+| `{count} selected` | the count a data grid writes into its selection bar (the system's string `datagridSelected`) | `DS.core.config({ strings: { datagridSelected } })` |
+| `Select all {total}` | the link in the selection bar that selects every row on every page (the system's string `datagridSelectEvery`) | `DS.core.config({ strings: { datagridSelectEvery } })` |
+| `All {total} selected` | the count and announcement once every row is selected (the system's string `datagridSelectedEvery`) | `DS.core.config({ strings: { datagridSelectedEvery } })` |
+| `Details` | the hidden name of a data grid's details column (the system's string `datagridDetails`) | `DS.core.config({ strings: { datagridDetails } })` |
+| `Details of {label}` | the name of a row's details toggle (the system's string `datagridDetailsOf`) | `DS.core.config({ strings: { datagridDetailsOf } })` |
+| `Actions` | the hidden name of a data grid's actions column (the system's string `datagridActions`) | `DS.core.config({ strings: { datagridActions } })` |
+| `Sorted by {column}, {direction}.` | what a data grid announces after a sort (the system's string `datagridSorted`) | `DS.core.config({ strings: { datagridSorted } })` |
+| `Sorting removed.` | what it announces when the sort is taken off (the system's string `datagridUnsorted`) | `DS.core.config({ strings: { datagridUnsorted } })` |
+| `, sort {rank}, {direction}` | the hidden words after a secondary sorted column's label (the system's string `datagridSortRank`) | `DS.core.config({ strings: { datagridSortRank } })` |
+| `ascending` | the direction in those words and announcements (the system's string `datagridAscending`) | `DS.core.config({ strings: { datagridAscending } })` |
+| `descending` | the other direction (the system's string `datagridDescending`) | `DS.core.config({ strings: { datagridDescending } })` |
+| `Resize {column}` | the name of a column's resize separator (the system's string `datagridResize`) | `DS.core.config({ strings: { datagridResize } })` |
+| `Move {column}` | the name of a column's grip (the system's string `datagridMove`) | `DS.core.config({ strings: { datagridMove } })` |
+| `Columns` | the heading of the column boxes in a data grid's chooser (the system's string `datagridColumns`) | `DS.core.config({ strings: { datagridColumns } })` |
+| `Views` | the heading of the presets in the chooser (the system's string `datagridPresets`) | `DS.core.config({ strings: { datagridPresets } })` |
+| `Default` | the preset of the default columns (the system's string `datagridPresetDefault`) | `DS.core.config({ strings: { datagridPresetDefault } })` |
+| `All columns` | the preset that shows every column (the system's string `datagridPresetAll`) | `DS.core.config({ strings: { datagridPresetAll } })` |
+| `{preset} shown.` | what a data grid announces when a preset applies (the system's string `datagridPresetApplied`) | `DS.core.config({ strings: { datagridPresetApplied } })` |
+| `{column} shown.` | what it announces when a column shows (the system's string `datagridColumnShown`) | `DS.core.config({ strings: { datagridColumnShown } })` |
+| `{column} hidden.` | what it announces when a column hides (the system's string `datagridColumnHidden`) | `DS.core.config({ strings: { datagridColumnHidden } })` |
+| `{count} row` | a count of one row: a group's count and the filter's announcement (the system's string `datagridRowsOne`, the plural form `one`) | `DS.core.config({ strings: { datagridRowsOne } })` |
+| `{count} rows` | a count of any other number of rows (the system's string `datagridRowsOther`, the form `other`) | `DS.core.config({ strings: { datagridRowsOther } })` |
+| `Page {page} of {pages}` | what a data grid announces on a new page (the system's string `datagridPage`) | `DS.core.config({ strings: { datagridPage } })` |
+| `{from}–{to} of {total}` | the range a data grid writes into its pager (the system's string `datagridRange`) | `DS.core.config({ strings: { datagridRange } })` |
+| `Total` | the label of a data grid's summary row (the system's string `datagridTotal`; the option `footLabel` per grid) | `DS.core.config({ strings: { datagridTotal } })` |
+| `No value` | the label of a row group whose value is empty (the system's string `datagridNoValue`) | `DS.core.config({ strings: { datagridNoValue } })` |
+| `Nothing here yet` | the title of a data grid with no rows (the system's string `datagridEmpty`; the option `emptyText` per grid) | `DS.core.config({ strings: { datagridEmpty } })` |
+| `Nothing matches the filter.` | the text under "No results" when a filter leaves no row (the system's string `datagridNoResultsText`) | `DS.core.config({ strings: { datagridNoResultsText } })` |
+| `The data did not load.` | the title of a data grid whose data did not load, also announced (the system's string `datagridError`; the option `errorText` per grid) | `DS.core.config({ strings: { datagridError } })` |
+| `Try again` | the button of that state (the system's string `datagridRetry`) | `DS.core.config({ strings: { datagridRetry } })` |
+| `Enter a number.` | what an inline edit of a number column says for a value that is no number (the system's string `datagridInvalidNumber`) | `DS.core.config({ strings: { datagridInvalidNumber } })` |
+| `{column} saved.` | what a data grid announces after an inline edit (the system's string `datagridEditSaved`) | `DS.core.config({ strings: { datagridEditSaved } })` |
+| `{column} not saved.` | what it announces when the page cancels `ds:edit` (the system's string `datagridEditRefused`) | `DS.core.config({ strings: { datagridEditRefused } })` |
+| `{count} row copied.` | what it announces after copying one row (the system's string `datagridCopiedOne`, the plural form `one`) | `DS.core.config({ strings: { datagridCopiedOne } })` |
+| `{count} rows copied.` | after copying any other number (the system's string `datagridCopiedOther`, the form `other`) | `DS.core.config({ strings: { datagridCopiedOther } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

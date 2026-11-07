@@ -301,6 +301,7 @@ const CONTINUITY = {
   'tabs-looks': { in: 'stage', sel: '.ds-tabs--contained .ds-indicator', props: ['--ds-indicator-x', '--ds-indicator-l'], sum: true },
   'drawer-nested': { in: 'stage', sel: '.ds-indicator', props: ['--ds-indicator-y', '--ds-indicator-t'], sum: true },
   'drawer-group': { in: 'stage', sel: '.ds-chevron', props: ['rotate'] },
+  'datagrid-tree': { in: 'stage', sel: 'tr[data-ds-datagrid-row="a"] .ds-datagrid__chevron', props: ['rotate'] },
   rail: { in: 'doc', sel: '#sg-nav .ds-drawer__label', props: ['opacity'] },
   dialog: { in: 'doc', sel: '#sg-lab-dialog .ds-dialog__box', props: ['opacity', 'scale.x'] },
   'dialog-div': { in: 'doc', sel: '#sg-lab-dialog-div .ds-dialog__box', props: ['opacity', 'scale.x'] },
