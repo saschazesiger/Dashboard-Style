@@ -336,11 +336,11 @@
   }
 
   ins.ds-diff__word {
-    background: var(--ds-diff-add-word, color-mix(in oklab, var(--ds-on-success-container) 16%, var(--ds-success-container)));
+    background: var(--ds-diff-add-word, var(--ds-success-container));
   }
 
   del.ds-diff__word {
-    background: var(--ds-diff-del-word, color-mix(in oklab, var(--ds-on-error-container) 16%, var(--ds-error-container)));
+    background: var(--ds-diff-del-word, var(--ds-error-container));
   }
 
   /* A line the fold opened keeps the focus until the next Tab; it shows a ring like any row. */

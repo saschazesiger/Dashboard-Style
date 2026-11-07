@@ -84,7 +84,7 @@ test('the bundle holds what the page uses, at a fraction of ds.css and ds.js', (
   const order = JSON.parse(readFileSync(join(ROOT, 'dist/manifest.json'), 'utf8')).order;
   const expected = ['utilities', 'button', 'spinner', 'card', 'status', 'alert', 'chip', 'dialog', 'ripple'].sort((a, b) => order.indexOf(a) - order.indexOf(b));
   expect(sizes.components.map((item) => item.name)).toEqual(expected);
-  expect(sizes.modules.map((item) => item.name)).toEqual(['core', 'motion', 'dom', 'ripple', 'icons', 'position', 'overlay', 'dialog']);
+  expect(sizes.modules.map((item) => item.name)).toEqual(['core', 'motion', 'dom', 'ripple', 'icons', 'position', 'overlay', 'a11y', 'dialog']);
   expect(sizes.icons.map((item) => item.name).sort()).toEqual(['alertCircle', 'check', 'wifiOff']);
   expect(sizes.files.css.gzip).toBeLessThan(40 * 1024);
 });
@@ -100,7 +100,7 @@ test('a partial bundle computes the same styles as ds.css, at rest and with the 
 
   await load(page, 'bundle');
   expect(await page.evaluate(() => [Object.keys(DS).sort(), document.styleSheets[1].href])).toEqual([
-    ['config', 'core', 'define', 'dialog', 'dom', 'get', 'icons', 'init', 'motion', 'overlay', 'position', 'ripple', 'version'],
+    ['a11y', 'config', 'core', 'define', 'dialog', 'dom', 'get', 'icons', 'init', 'motion', 'overlay', 'position', 'ripple', 'version'],
     expect.stringContaining('/ds.bundle.css'),
   ]);
   expect(differences(full, await styles(page))).toEqual([]);

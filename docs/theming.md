@@ -737,8 +737,8 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-diff-bg` | `--ds-code-bg` | the ground of a file's lines and of the source before the script runs |
 | `--ds-diff-add-bg` | `--ds-success-container` mixed 45% into the ground | an added line |
 | `--ds-diff-del-bg` | `--ds-error-container` mixed 45% into the ground | a removed line |
-| `--ds-diff-add-word` | `--ds-success-container` with 16% of `--ds-on-success-container` | a word that changed in an added line |
-| `--ds-diff-del-word` | `--ds-error-container` with 16% of `--ds-on-error-container` | a word that changed in a removed line |
+| `--ds-diff-add-word` | `--ds-success-container` | a word that changed in an added line |
+| `--ds-diff-del-word` | `--ds-error-container` | a word that changed in a removed line |
 | `--ds-diff-hunk-bg` | `--ds-info-container` mixed 45% into the ground | a hunk header row (`@@ -1,5 +1,6 @@`) |
 | `--ds-diff-radius` | `--ds-radius-card` | a file block's corners at the default shape |
 | `--ds-diff-font` | `--ds-font-code` | the lines and the file names |

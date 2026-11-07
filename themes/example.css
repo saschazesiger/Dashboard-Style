@@ -749,8 +749,8 @@
   --ds-diff-bg: var(--ds-code-bg);
   --ds-diff-add-bg: color-mix(in oklab, var(--ds-success-container) 45%, var(--_bg));
   --ds-diff-del-bg: color-mix(in oklab, var(--ds-error-container) 45%, var(--_bg));
-  --ds-diff-add-word: color-mix(in oklab, var(--ds-on-success-container) 16%, var(--ds-success-container));
-  --ds-diff-del-word: color-mix(in oklab, var(--ds-on-error-container) 16%, var(--ds-error-container));
+  --ds-diff-add-word: var(--ds-success-container);
+  --ds-diff-del-word: var(--ds-error-container);
   --ds-diff-hunk-bg: color-mix(in oklab, var(--ds-info-container) 45%, var(--_bg));
   --ds-diff-radius: var(--ds-radius-card);
   --ds-diff-font: var(--ds-font-code);

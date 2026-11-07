@@ -60,11 +60,11 @@
       "description": "a removed line"
     },
     "--ds-diff-add-word": {
-      "default": "`--ds-success-container` with 16% of `--ds-on-success-container`",
+      "default": "`--ds-success-container`",
       "description": "a word that changed in an added line"
     },
     "--ds-diff-del-word": {
-      "default": "`--ds-error-container` with 16% of `--ds-on-error-container`",
+      "default": "`--ds-error-container`",
       "description": "a word that changed in a removed line"
     },
     "--ds-diff-hunk-bg": {

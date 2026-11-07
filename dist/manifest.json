@@ -5990,8 +5990,8 @@
       "progressive": [
         "scrollbar-color"
       ],
-      "bytes": 9890,
-      "gzip": 2370
+      "bytes": 9778,
+      "gzip": 2355
     },
     "logview": {
       "css": "css/components/logview.css",

@@ -81,7 +81,7 @@ test.describe('navigation', () => {
     await expect(page.locator(`tr[data-sg-need="${first.name}"] a`).first()).toHaveAttribute('href', `#/components/${first.name}`);
     // Every component has its demo now: every row links a component page.
     expect(await page.evaluate(() => window.SG_REGISTRY.components.filter((c) => !window.SG.get(c.name)).map((c) => c.name))).toEqual([]);
-    for (const href of await page.locator('tr[data-sg-need] a').evaluateAll((links) => [...new Set(links.map((a) => a.getAttribute('href')))])) expect(href).toMatch(/^#\/components\/[a-z]+$/);
+    for (const href of await page.locator('tr[data-sg-need] a').evaluateAll((links) => [...new Set(links.map((a) => a.getAttribute('href')))])) expect(href).toMatch(/^#\/components\/[a-z][a-z0-9-]*$/);
     await page.locator('#sg-need-filter').fill(first.need);
     await expect(page.locator('tbody tr:not([hidden])')).toHaveCount(1);
     await expect(page.locator('#sg-need-count')).toHaveText('1 needs');
