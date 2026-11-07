@@ -1,7 +1,7 @@
 /**
  * The layout primitives on their demo and on probes of a fixed width: the
  * cluster wraps, pushes and spreads, its nowrap form lets a truncated title
- * shrink; the split sits side by side and stacks once main gets narrow;
+ * shrink while its actions keep their width; the split sits side by side and stacks once main gets narrow;
  * the switcher is one row or one column, never two above one; the measure
  * centres at the reading measure; the cover centres its main part; the
  * frame keeps its ratio and crops media, its radius times the shape; the
@@ -60,19 +60,34 @@ test('cluster: a row that wraps; .ds-push takes the free space; --between, --end
   expect(new Set(tops).size).toBe(2);
 });
 
-test('cluster: --nowrap keeps one line and a .ds-truncate title shrinks beside its action; --top and --baseline line up', async ({ page }) => {
+test('cluster: --nowrap keeps one line and only a .ds-truncate title shrinks; the actions keep their width; --top and --baseline line up', async ({ page }) => {
   await open(page);
+  const ICON = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 4h16v16H4z"/></svg>';
+  const actions = (id) => `<button class="ds-btn ds-push" type="button" id="${id}-text">Open ticket</button><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Edit ticket" id="${id}-icon">${ICON}</button>`;
   await add(page, `<div style="inline-size: 300px">
-    <div class="ds-cluster ds-cluster--nowrap" id="row"><span class="ds-truncate" id="title">${'A long ticket subject '.repeat(6)}</span><button class="ds-btn ds-push" type="button" id="action">Open</button></div>
+    <div class="ds-cluster" id="free"><span>Short</span>${actions('free')}</div>
+    <div class="ds-cluster ds-cluster--nowrap" id="row"><span class="ds-truncate" id="title">${'A long ticket subject '.repeat(6)}</span>${actions('row')}</div>
+    <div class="ds-cluster ds-cluster--nowrap" id="wrapped"><div><h3 class="ds-truncate" id="heading" style="margin: 0">${'A long ticket subject '.repeat(6)}</h3></div>${actions('wrapped')}</div>
     <div class="ds-cluster ds-cluster--top" id="top"><span id="tall" style="block-size: 60px">Tall</span><span id="short" style="block-size: 20px">Short</span></div>
   </div>`);
   const row = await rect(page, '#row');
   const title = await rect(page, '#title');
-  const action = await rect(page, '#action');
-  expect(Math.abs(title.y + title.height / 2 - (action.y + action.height / 2)), 'one line, centred across').toBeLessThanOrEqual(1);
-  expect(action.x + action.width, 'the action stays at the end, in the row').toBe(row.x + row.width);
-  expect(title.x + title.width).toBeLessThanOrEqual(action.x);
+  const text = await rect(page, '#row-text');
+  const icon = await rect(page, '#row-icon');
+  expect(Math.abs(title.y + title.height / 2 - (text.y + text.height / 2)), 'one line, centred across').toBeLessThanOrEqual(1);
+  expect(icon.x + icon.width, 'the actions stay at the end, in the row').toBe(row.x + row.width);
+  expect(title.x + title.width).toBeLessThanOrEqual(text.x);
   expect(await page.$eval('#title', (el) => el.scrollWidth > el.clientWidth), 'the title is cut').toBe(true);
+  // The actions keep the width they have in a row with room to spare, and nothing in them is cut.
+  for (const id of ['row', 'wrapped']) {
+    for (const part of ['text', 'icon']) {
+      expect((await rect(page, `#${id}-${part}`)).width, `${id}: the ${part} button keeps its width`).toBe((await rect(page, `#free-${part}`)).width);
+      expect(await page.$eval(`#${id}-${part}`, (el) => el.scrollWidth <= el.clientWidth), `${id}: the ${part} button is whole`).toBe(true);
+    }
+  }
+  // The item that holds a cut heading shrinks by itself: no min-width: 0 of the page's.
+  expect(await page.$eval('#heading', (el) => el.scrollWidth > el.clientWidth), 'the wrapped heading is cut').toBe(true);
+  expect((await rect(page, '#wrapped-icon')).x + (await rect(page, '#wrapped-icon')).width).toBe((await rect(page, '#wrapped')).x + 300);
   expect((await rect(page, '#short')).y, '--top: both start at the top').toBe((await rect(page, '#tall')).y);
   await page.$eval('#top', (el) => el.classList.replace('ds-cluster--top', 'ds-cluster--baseline'));
   expect(await page.$eval('#top', (el) => getComputedStyle(el).alignItems)).toBe('baseline');

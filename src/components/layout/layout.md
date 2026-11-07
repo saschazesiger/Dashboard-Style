@@ -35,7 +35,7 @@ The one-column stack is `.ds-stack` of [Page](#page); space any of them with the
 
 | Primitive | Classes | What it does |
 |---|---|---|
-| Cluster | `.ds-cluster`, `.ds-cluster--end`, `.ds-cluster--center`, `.ds-cluster--between`, `.ds-cluster--top`, `.ds-cluster--baseline`, `.ds-cluster--nowrap` | a row that wraps, items centred across; `--nowrap` keeps one line and lets the items shrink (a `.ds-truncate` title) |
+| Cluster | `.ds-cluster`, `.ds-cluster--end`, `.ds-cluster--center`, `.ds-cluster--between`, `.ds-cluster--top`, `.ds-cluster--baseline`, `.ds-cluster--nowrap` | a row that wraps, items centred across; `--nowrap` keeps one line: a `.ds-truncate` title (or the item that holds one, such as a heading around it) shrinks and is cut, every other item keeps its width, an icon button or an avatar too; without a `.ds-truncate` the items shrink to their longest word |
 | Push | `.ds-push` | an item of a cluster (or any flex row) that goes to the end of its line with everything after it |
 | Split | `.ds-split`, `.ds-split__side`, `.ds-split__main`, `.ds-split--stretch` | the side at `--ds-split-side` beside main; once main would be narrower than `--ds-split-min` of the row, both stack at full width. The side may come first or second in the markup; both start at the top unless `--stretch` |
 | Switcher | `.ds-switcher`, `.ds-switcher--top` | equal parts on one row while the switcher is at least `--ds-switcher-at` wide, else each on a row of its own (never two above one); five or more parts always stack |

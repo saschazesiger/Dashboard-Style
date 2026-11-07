@@ -25,7 +25,7 @@
  * Modifiers:
  *   .ds-cluster--end, --center, --between   where the row's items go
  *   .ds-cluster--top, --baseline            how they line up across (default: centred)
- *   .ds-cluster--nowrap                     one line, items shrink (a truncated title)
+ *   .ds-cluster--nowrap                     one line; a .ds-truncate title (or its wrapper) gives way, the rest keep their width
  *   .ds-split--stretch                      side and main as tall as the taller one (default: top)
  *   .ds-switcher--top                       parts keep their own height (default: as tall as the tallest)
  *   .ds-measure--wide                       --ds-content-max instead of the reading measure
@@ -37,7 +37,8 @@
  *
  * Options: density tightens the default gaps by 2px a step (the padding
  * of blocks, conventions section 3), never below 0; a .ds-gap-* class
- * (spacing) or a gap hook sets an exact gap. Shape multiplies the frame's
+ * (spacing) sets an exact gap; a gap hook sets the base that density
+ * steps from. Shape multiplies the frame's
  * radius. Size, tone and touch are the children's own: a primitive has no
  * height or meaning.
  *
@@ -87,13 +88,20 @@
     align-items: baseline;
   }
 
-  /* One line: the items shrink instead of wrapping (a .ds-truncate title
-     beside its actions). */
+  /* One line instead of wrapping. With a .ds-truncate title in it, only
+     the title (or the item that holds it) gives way: every other item
+     keeps its width, even one wider than its content (an icon button, an
+     avatar). Without one, the items shrink as flex items do, to their
+     longest word. */
   .ds-cluster--nowrap {
     flex-wrap: nowrap;
   }
 
-  .ds-cluster--nowrap > * {
+  .ds-cluster--nowrap:has(.ds-truncate) > :not(.ds-truncate, :has(.ds-truncate)) {
+    flex-shrink: 0;
+  }
+
+  .ds-cluster--nowrap > :has(.ds-truncate) {
     min-width: 0;
   }
 
