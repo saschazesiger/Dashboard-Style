@@ -397,6 +397,9 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} at position {position} of {total}.` | what `DS.dnd.create()` announces on a drop (the system's string `dragDropped`) | `DS.core.config({ strings: { dragDropped } })` |
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
+| `Resize` | the name of a split pane's divider without one of its own (`DS.splitpane`; the system's string `splitpaneResize`) | `DS.core.config({ strings: { splitpaneResize } })` |
+| `Collapsed` | the value a split pane's divider reads while its pane is collapsed (`aria-valuetext`; the system's string `splitpaneCollapsed`) | `DS.core.config({ strings: { splitpaneCollapsed } })` |
+| `Back` | the name of a list-detail layout's back button without one of its own (`DS.listdetail`; the system's string `back`) | `DS.core.config({ strings: { back } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

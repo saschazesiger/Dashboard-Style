@@ -1,0 +1,78 @@
+{
+  "name": "listdetail",
+  "group": "layout",
+  "order": 410,
+  "docsOrder": 64,
+  "need": "Show a list, the detail of what is picked and a sub-detail as columns that fold to one with a back button on phones",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-listdetail",
+    "ds-listdetail--outlined",
+    "ds-listdetail__back",
+    "ds-listdetail__body",
+    "ds-listdetail__close",
+    "ds-listdetail__detail",
+    "ds-listdetail__head",
+    "ds-listdetail__list",
+    "ds-listdetail__sub",
+    "ds-listdetail__title"
+  ],
+  "attributes": [
+    "data-columns",
+    "data-direction",
+    "data-ds-listdetail",
+    "data-shown",
+    "data-state"
+  ],
+  "requires": [],
+  "context": [
+    "list"
+  ],
+  "hooks": {
+    "--ds-listdetail-height": {
+      "default": "100%",
+      "description": "list-detail layout: its height (a length where the parent grows with its content)"
+    },
+    "--ds-listdetail-list-width": {
+      "default": "320px",
+      "description": "list-detail layout: the list column beside the detail"
+    },
+    "--ds-listdetail-detail-min": {
+      "default": "400px",
+      "description": "list-detail layout: the narrowest the detail gets beside another column; the list and the detail fold to one column below the list's width plus this"
+    },
+    "--ds-listdetail-sub-width": {
+      "default": "360px",
+      "description": "list-detail layout: the sub-detail column beside the detail"
+    },
+    "--ds-listdetail-line": {
+      "default": "`--ds-line`",
+      "description": "list-detail layout: the hairlines between the columns and under a head"
+    },
+    "--ds-listdetail-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "`.ds-listdetail--outlined`: the frame's radius, times `--ds-shape`"
+    },
+    "--ds-listdetail-head-height": {
+      "default": "56px",
+      "description": "`.ds-listdetail__head` at the comfortable density, 4px less per step (`.ds-touch`: at least the touch target)"
+    },
+    "--ds-listdetail-padding": {
+      "default": "`--ds-space-4`",
+      "description": "`.ds-listdetail__head` (its sides) and `.ds-listdetail__body`: the padding, 2px less per density step"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "listdetail"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.listdetail.arrange": "a pure function: no motion",
+    "DS.listdetail.level": "a pure function: no motion",
+    "DS.listdetail.parent": "a pure function: no motion"
+  }
+}
