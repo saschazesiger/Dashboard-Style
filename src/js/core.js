@@ -186,6 +186,7 @@ const DEFAULT_STRINGS = Object.freeze({
   auditlogEvent: '{count} event',
   auditlogEvents: '{count} events',
   auditlogFiltered: '{shown} of {total} events',
+  auditlogMore: 'Show {count} more',
 });
 
 /**

@@ -26,7 +26,7 @@ export interface AuditEntry {
   actor?: AuditActor;
   /** The verb and what follows it: "changed", "signed in to". */
   action?: string;
-  /** What it was done to: a text, or a link. */
+  /** What it was done to: a text, or a link (href: relative, #, http(s) or mailto; else text). */
   target?: string | { label: string; href?: string };
   /** Where it came from: "Web · 10.20.4.17". */
   source?: string;
@@ -70,6 +70,8 @@ export interface AuditlogOptions {
   order?: 'newest' | 'oldest';
   /** set() holds a reorder while the log is pointed at (default true). */
   live?: boolean;
+  /** How many matching entries draw before "Show more" (default 200; 0 for all). */
+  limit?: number;
 }
 
 export interface AuditlogController {

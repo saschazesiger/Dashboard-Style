@@ -71,18 +71,27 @@ and filters it in the browser.
 | `facets` | the values the filters compare (else the entry's own field; an object by its `id`, else its `name`) |
 
 Values are text as they come; numbers go through `Intl`, a list is joined, an object is JSON, and `format(value, path,
-entry)` (an option) writes them the page's way. Every text is escaped.
+entry)` (an option) writes them the page's way. Every text is escaped, and a target's `href` stays a link only when it
+is relative, a fragment (`#…`), `http:`, `https:` or `mailto:`; any other (`javascript:`, `data:`) leaves the label as
+text, so records that carry user input are safe to pass through.
+
+**Many entries.** The first `limit` matching entries draw (200; `0` draws all), in the order they show; past them a
+"Show 200 more" button (`.ds-auditlog__more`, an outlined `.ds-btn` the module writes under the list) draws as many
+again and takes the focus to the first new entry. A change of the filters starts from the limit again; the count
+always says how many match. The words the text filter reads are taken once per entry, until `set()`,
+`configure()` or `update()` brings others.
 
 **Filters.** Each control inside the log with `data-ds-auditlog-filter="<name>"` narrows the entries: a select, a text
 or date field, radios, or checkboxes that share the name (none checked: all). `text` finds every word in what an entry
 shows, without case or accents (typing waits `--ds-dur-fast`); `from` and `to` take a date (`YYYY-MM-DD`, whole days);
-any other name compares the entry's facet. A day without entries left goes with them. The count says "12 of 48 events"
+any other name compares the entry's facet. `filter(values)` keeps a name that no control holds (a facet the page sets
+from elsewhere) when the user changes another filter. A day without entries left goes with them. The count says "12 of 48 events"
 ("48 events" without a filter) and the announcer says it after each change ("No results" for none); with nothing to show
 the list hides and the page's `[data-ds-auditlog-empty]` shows. A `reset` of a form around the controls clears them.
 
 | Export | What |
 |---|---|
-| `create(el, options)` | a log from the page (`entries`, `fields`, `format`, `filters`, `locale`, `timeZone`, `now`, `order`: `'newest'` or `'oldest'`, `live`), or new options for one `DS.init()` made; the controller below |
+| `create(el, options)` | a log from the page (`entries`, `fields`, `format`, `filters`, `locale`, `timeZone`, `now`, `order`: `'newest'` or `'oldest'`, `live`, `limit`), or new options for one `DS.init()` made; the controller below |
 | `changes(before, after, options)` | the fields that differ between two versions of a record: `[{ path, field, before, after, kind }]`, `kind` `'added'`, `'removed'` or `'changed'`; nested objects open into `owner.name`, lists of objects into `ports[0].speed`; `options.fields` labels the paths, `options.ignore` leaves some out |
 | `group(entries, options)` | the entries by calendar day: `[{ key: '2026-10-12', label, entries }]` (`now`, `locale`, `timeZone`, `order`) |
 | `matches(entry, filters, options)` | whether an entry passes the filters (`{ text, from, to, <facet> }`) |
@@ -107,7 +116,7 @@ On the log or any ancestor; each is computed in the component's own rule ([optio
 
 ### Keyboard and names
 
-Nothing in the log is a target but its links and the filter controls, in reading order. Name the log (`aria-label`),
+Nothing in the log is a target but its links, the filter controls and "Show more", in reading order. Name the log (`aria-label`),
 the filter bar (`role="group"` with `aria-label`), each control and the list. A reader hears each change as "Owner,
 Before: Grace Hopper, After: Ada Lovelace": the words `.ds-sr` holds ("Before:", "After:") say which is which, the arrow
 is drawn and silent. Filtering announces the count.
@@ -131,4 +140,5 @@ a live log waits while it is pointed at or holds the focus). Filtering re-render
   with a live count, and the pure helpers `changes()`, `group()` and `matches()`. Hooks `--ds-auditlog-field-width`,
   `--ds-auditlog-old-bg`, `--ds-auditlog-new-bg`, `--ds-auditlog-diff-radius`. New strings `auditlogToday`,
   `auditlogYesterday`, `auditlogUndated`, `auditlogBefore`, `auditlogAfter`, `auditlogNotSet`, `auditlogEvent`,
-  `auditlogEvents`, `auditlogFiltered`.
+  `auditlogEvents`, `auditlogFiltered`, `auditlogMore`. A `limit` (200) with a "Show more" button
+  (`.ds-auditlog__more`) keeps a log of thousands of entries quick.

@@ -79,6 +79,21 @@ describe('DS.auditlog.group', () => {
   });
 });
 
+describe('DS.auditlog at scale', () => {
+  const entries = Array.from({ length: 5000 }, (_, index) => ({ id: `e${index}`, at: Date.UTC(2026, 9, 12, 12) - index * 600000, actor: 'Ada Lovelace', action: 'changed', changes: [{ field: 'Owner', before: 'Grace Hopper', after: 'Ada Lovelace' }] }));
+
+  it('groups 5000 entries by day and filters them by day quickly: one day formatter per time zone, not one per entry', () => {
+    const start = performance.now();
+    const days = group(entries, { now: Date.UTC(2026, 9, 12, 13), timeZone: 'UTC' });
+    const passed = entries.filter((entry) => matches(entry, { from: '2026-10-01', to: '2026-10-10' }, { timeZone: 'UTC' }));
+    const time = performance.now() - start;
+    assert.equal(days.reduce((sum, day) => sum + day.entries.length, 0), 5000);
+    assert.equal(days[0].key, '2026-10-12');
+    assert.equal(passed.length, 1440);
+    assert.ok(time < 1000, `${Math.round(time)}ms`);
+  });
+});
+
 describe('DS.auditlog.matches', () => {
   const entry = {
     at: '2026-10-12T14:05:00Z',

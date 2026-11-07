@@ -131,6 +131,112 @@ test('filter() from the page sets the controls; get() keeps every entry; count()
   await expect(workspace.locator('.ds-chip__input[value="change"]')).not.toBeChecked();
 });
 
+test('filter() keeps a facet no control holds when the user changes another filter', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(async () => {
+    const el = document.createElement('section');
+    el.className = 'ds-auditlog';
+    el.setAttribute('aria-label', 'Probe');
+    el.innerHTML = '<div class="ds-auditlog__filters"><input class="ds-input" type="search" aria-label="Search" data-ds-auditlog-filter="text"></div><ol class="ds-timeline ds-timeline--activity" role="list" aria-label="Events"></ol>';
+    document.querySelector('#fx-component').append(el);
+    const entries = [
+      { id: 'a1', at: '2026-10-12T10:00', actor: 'Ada Lovelace', action: 'signed in to', target: 'the console', facets: { kind: 'access' } },
+      { id: 'a2', at: '2026-10-12T11:00', actor: 'Ada Lovelace', action: 'changed', target: 'LAPTOP-0042', facets: { kind: 'change' } },
+    ];
+    const log = DS.auditlog.create(el, { entries, now: new Date('2026-10-12T12:00') });
+    log.filter({ kind: 'access' });
+    const before = log.count().shown;
+    const field = el.querySelector('input');
+    field.value = 'ada';
+    field.dispatchEvent(new Event('change', { bubbles: true }));
+    const after = { count: log.count().shown, filters: log.filter() };
+    log.destroy();
+    el.remove();
+    return { before, after };
+  });
+  expect(result.before).toBe(1);
+  expect(result.after.count).toBe(1);
+  expect(result.after.filters).toEqual(expect.objectContaining({ kind: 'access', text: 'ada' }));
+});
+
+test('a target link keeps only a safe href: relative, a fragment, http(s), mailto; javascript: and data: stay text', async ({ page }) => {
+  await open(page);
+  const links = await page.evaluate(() => {
+    const el = document.createElement('section');
+    el.className = 'ds-auditlog';
+    el.setAttribute('aria-label', 'Probe');
+    el.innerHTML = '<ol class="ds-timeline ds-timeline--activity" role="list" aria-label="Events"></ol>';
+    document.querySelector('#fx-component').append(el);
+    const hrefs = ['#devices/42', '/devices/42', 'devices/42', 'https://example.com/a', 'mailto:ada@example.com', 'javascript:alert(1)', '  JavaScript:alert(1)', 'java\tscript:alert(1)', 'data:text/html,<b>x</b>', 'vbscript:x'];
+    const entries = hrefs.map((href, index) => ({ id: `h${index}`, at: new Date(Date.UTC(2026, 9, 12, 10, 59 - index)), actor: 'Ada Lovelace', action: 'opened', target: { label: `T${index}`, href } }));
+    const log = DS.auditlog.create(el, { entries });
+    const out = hrefs.map((_, index) => el.querySelector(`[data-ds-key="h${index}"] .ds-timeline__title a`)?.getAttribute('href') ?? null);
+    const texts = hrefs.map((_, index) => el.querySelector(`[data-ds-key="h${index}"] .ds-timeline__title`).textContent);
+    log.destroy();
+    el.remove();
+    return { out, texts };
+  });
+  expect(links.out).toEqual(['#devices/42', '/devices/42', 'devices/42', 'https://example.com/a', 'mailto:ada@example.com', null, null, null, null, null]);
+  expect(links.texts[5]).toBe('Ada Lovelace opened T5');
+});
+
+test('many entries: the first 200 draw quickly, "Show 200 more" draws the next and takes the focus; filtering stays quick', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const el = document.createElement('section');
+    el.className = 'ds-auditlog';
+    el.setAttribute('aria-label', 'Big');
+    el.setAttribute('data-demo', 'big');
+    el.innerHTML = '<div class="ds-auditlog__filters"><input class="ds-input" type="search" aria-label="Search" data-ds-auditlog-filter="text"><p class="ds-auditlog__count"></p></div><ol class="ds-timeline ds-timeline--activity" role="list" aria-label="Events"></ol>';
+    document.querySelector('#fx-component').append(el);
+    const people = ['Ada Lovelace', 'Grace Hopper', 'Alan Turing'];
+    const entries = Array.from({ length: 5000 }, (_, index) => ({
+      id: `b${index}`,
+      at: new Date(Date.UTC(2026, 9, 12, 12) - index * 600000),
+      actor: people[index % 3],
+      action: 'changed',
+      target: `DEVICE-${index}`,
+      changes: [{ field: 'Owner', before: people[(index + 1) % 3], after: people[index % 3] }],
+    }));
+    const start = performance.now();
+    window.__big = DS.auditlog.create(el, { entries, now: new Date(Date.UTC(2026, 9, 12, 13)) });
+    window.__bigCreate = performance.now() - start;
+  });
+  const big = log(page, 'big');
+  expect(await page.evaluate(() => window.__bigCreate)).toBeLessThan(1500);
+  await expect(entries(big)).toHaveCount(200);
+  await expect(big.locator('.ds-auditlog__count')).toHaveText('5,000 events');
+  await expect(entries(big).first()).toHaveAttribute('data-ds-key', 'b0');
+  const more = big.locator('.ds-auditlog__more');
+  await expect(more).toHaveText('Show 200 more');
+  await expect(more).toHaveClass(/ds-btn/);
+  await focusByKeyboard(page, more);
+  await page.keyboard.press('Enter');
+  await expect(entries(big)).toHaveCount(400);
+  await expect(entries(big).nth(200)).toBeFocused();
+  await expect(entries(big).nth(200)).toHaveAttribute('data-ds-key', 'b200');
+  // A search over every entry: the words are read once, then each key is quick.
+  const times = await big.evaluate((el) => {
+    const controller = DS.auditlog.create(el);
+    const out = [];
+    for (const text of ['grace', 'grace hopper', '']) {
+      const start = performance.now();
+      controller.filter({ text });
+      out.push(performance.now() - start);
+    }
+    return { out, count: controller.count() };
+  });
+  expect(times.out[1], 'a second key').toBeLessThan(400);
+  expect(times.out[2], 'clearing').toBeLessThan(800);
+  expect(times.count).toEqual({ shown: 5000, total: 5000 });
+  // Clearing starts from the limit again.
+  await expect(entries(big)).toHaveCount(200);
+  // A search that matches less than the limit: no button.
+  await big.evaluate((el) => DS.auditlog.create(el).filter({ text: 'DEVICE-4999' }));
+  await expect(entries(big)).toHaveCount(1);
+  await expect(more).toHaveCount(0);
+});
+
 test('set(): a new event comes in at the top under Today, the rest keep their rows', async ({ page }) => {
   await open(page);
   const workspace = log(page, 'workspace');

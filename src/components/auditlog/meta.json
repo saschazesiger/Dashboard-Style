@@ -12,6 +12,7 @@
     "ds-auditlog__count",
     "ds-auditlog__diff",
     "ds-auditlog__filters",
+    "ds-auditlog__more",
     "ds-auditlog__new",
     "ds-auditlog__none",
     "ds-auditlog__old",
@@ -19,6 +20,7 @@
   ],
   "attributes": [],
   "requires": [
+    "button",
     "status",
     "timeline",
     "utilities"

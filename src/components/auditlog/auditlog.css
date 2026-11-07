@@ -41,7 +41,9 @@
  * an arrow between (drawn by the row, with no text for a reader); a value
  * that was not set is .ds-auditlog__none (in words: "Not set"). Never
  * colour alone: the strike, the underline and the .ds-sr words "Before:"
- * and "After:" say which is which. Under 520px of the log's width the
+ * and "After:" say which is which. Past `limit` entries (200) DS.auditlog
+ * writes a .ds-btn.ds-auditlog__more under the list that draws the next
+ * ones. Under 520px of the log's width the
  * field goes above its values, the old above the new. A hidden part (the
  * list with nothing to show, the empty state while there is) takes no
  * room, also without .ds-base.
@@ -210,6 +212,12 @@
     font-style: italic;
   }
 
+  /* The button that draws the next entries past the limit: under the
+     list, at the start of the timeline's column. */
+  .ds-auditlog__more {
+    justify-self: start;
+  }
+
   /* Narrow: the field above its values, the old above the new. */
   @container ds-auditlog (max-width: 520px) {
     .ds-auditlog__diff {
@@ -230,19 +238,7 @@
       display: none;
     }
 
-    /* The search takes the room the other filters leave. */
-  .ds-auditlog__filters > .ds-search {
-    flex: 1 1 14rem;
-  }
-
-  /* A select or a date field takes its own width, not the row's. */
-  .ds-auditlog__filters > .ds-input {
-    flex: 0 1 auto;
-    inline-size: auto;
-    min-inline-size: 0;
-  }
-
-  .ds-auditlog__count {
+    .ds-auditlog__count {
       flex-basis: 100%;
       margin-inline-start: 0;
     }

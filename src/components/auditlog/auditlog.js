@@ -35,6 +35,12 @@
  * or no box checked, lets everything through. .ds-auditlog__count shows
  * how many entries show, and a change of the filters announces it.
  *
+ * Limit: the first `limit` matching entries (200) draw; a "Show more"
+ * button (.ds-auditlog__more, written under the list) draws as many again
+ * and takes the focus to the first of them. A change of the filters starts
+ * from the limit again. A target's href is kept only when it is relative,
+ * a fragment, http(s) or mailto; else the target is text.
+ *
  * Events (bubbling, on the element; also through on(type, fn)):
  *   ds:filter  { filters, shown, total }   the filters changed
  *   ds:render  { shown, total }            the entries were drawn again
@@ -58,6 +64,23 @@ const ACTOR_GLYPHS = { sync, user, globe };
 const esc = (text) => String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const isPlain = (value) => value !== null && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date);
 const isUnset = (value) => value === undefined || value === null || value === '';
+/** How many entries draw at first, and how many more each "Show more" adds. */
+const LIMIT = 200;
+
+/**
+ * `href` when it is safe to put in a link: relative, a fragment, http(s) or
+ * mailto. Anything else (javascript:, data:, a scheme hidden by tabs or
+ * spaces, which the URL parser drops) is null: the label shows as text.
+ */
+const safeUrl = (href) => {
+  const text = String(href ?? '').trim();
+  if (!text || typeof URL !== 'function') return null;
+  try {
+    return ['http:', 'https:', 'mailto:'].includes(new URL(text, 'https://base.invalid/').protocol) ? text : null;
+  } catch {
+    return null;
+  }
+};
 
 /* ── Pure helpers: the diff, the days, the filters ─────────────── */
 
@@ -122,11 +145,32 @@ const toDate = (value) => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
+/** One day formatter per time zone, made once: a log of thousands of entries asks for thousands of days. */
+const dayFormats = new Map();
+
 /** The calendar day of `date` in `timeZone` (default: the page's): "2026-10-12". */
 function dayKey(date, timeZone) {
-  const parts = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone }).formatToParts(date);
+  const zone = timeZone ?? '';
+  let made = dayFormats.get(zone);
+  if (!made) {
+    made = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone });
+    if (dayFormats.size >= 32) dayFormats.clear();
+    dayFormats.set(zone, made);
+  }
+  const parts = made.formatToParts(date);
   const part = (type) => parts.find((item) => item.type === type)?.value;
   return `${part('year')}-${part('month')}-${part('day')}`;
+}
+
+/** The entries with their dates in the order they show: newest first (or oldest), the undated last. */
+function sorted(entries, order) {
+  const sign = order === 'oldest' ? 1 : -1;
+  const timed = (entries ?? []).map((entry, index) => ({ entry, index, date: toDate(entry?.at) }));
+  timed.sort((a, b) => {
+    if (!a.date || !b.date) return (a.date ? -1 : b.date ? 1 : 0) || a.index - b.index;
+    return sign * (a.date.getTime() - b.date.getTime()) || a.index - b.index;
+  });
+  return timed;
 }
 
 /**
@@ -144,12 +188,7 @@ export function group(entries, options = {}) {
   const now = toDate(options.now ?? Date.now());
   const today = dayKey(now, timeZone);
   const yesterday = dayKey(new Date(now.getTime() - DAY), timeZone);
-  const sign = options.order === 'oldest' ? 1 : -1;
-  const timed = (entries ?? []).map((entry, index) => ({ entry, index, date: toDate(entry?.at) }));
-  timed.sort((a, b) => {
-    if (!a.date || !b.date) return (a.date ? -1 : b.date ? 1 : 0) || a.index - b.index;
-    return sign * (a.date.getTime() - b.date.getTime()) || a.index - b.index;
-  });
+  const timed = sorted(entries, options.order);
   const days = [];
   for (const { entry, date } of timed) {
     const key = date ? dayKey(date, timeZone) : '';
@@ -197,27 +236,46 @@ function wordsOf(entry, format) {
  * @returns {boolean}
  */
 export function matches(entry, filters = {}, options = {}) {
+  return matcher(filters, options)(entry);
+}
+
+/**
+ * The test of matches() for many entries: the filters read once, the words
+ * of each entry kept in `words` (a WeakMap the controller holds until its
+ * entries or options change), so typing does not rebuild them per key.
+ */
+function matcher(filters, options = {}, words = null) {
+  const tests = [];
   for (const [name, wanted] of Object.entries(filters ?? {})) {
     const values = (Array.isArray(wanted) ? wanted : [wanted]).filter((value) => !isUnset(value)).map(String);
     if (!values.length) continue;
     if (name === 'text') {
-      const words = wordsOf(entry, options.format);
-      if (!values.every((value) => fold(value).split(/\s+/).filter(Boolean).every((word) => words.includes(word)))) return false;
+      const wantedWords = values.map((value) => fold(value).split(/\s+/).filter(Boolean));
+      tests.push((entry) => {
+        let text = words?.get(entry);
+        if (text === undefined) {
+          text = wordsOf(entry, options.format);
+          if (words && entry && typeof entry === 'object') words.set(entry, text);
+        }
+        return wantedWords.every((list) => list.every((word) => text.includes(word)));
+      });
       continue;
     }
     if (name === 'from' || name === 'to') {
-      const date = toDate(entry?.at);
-      if (!date) return false;
-      const day = dayKey(date, options.timeZone);
-      if (name === 'from' && day < values[0]) return false;
-      if (name === 'to' && day > values[0]) return false;
+      tests.push((entry) => {
+        const date = toDate(entry?.at);
+        if (!date) return false;
+        const day = dayKey(date, options.timeZone);
+        return name === 'from' ? day >= values[0] : day <= values[0];
+      });
       continue;
     }
-    const facet = facetOf(entry, name);
-    const has = Array.isArray(facet) ? facet.some((value) => values.includes(value)) : values.includes(facet);
-    if (!has) return false;
+    tests.push((entry) => {
+      const facet = facetOf(entry, name);
+      return Array.isArray(facet) ? facet.some((value) => values.includes(value)) : values.includes(facet);
+    });
   }
-  return true;
+  return (entry) => tests.every((test) => test(entry));
 }
 
 /* ── Rendering ─────────────────────────────────────────────────── */
@@ -271,7 +329,8 @@ function entryHtml(entry, settings) {
   const name = isPlain(actor) ? actor.name ?? '' : actor ?? '';
   const target = entry.target;
   const label = isPlain(target) ? target.label ?? '' : target ?? '';
-  const targetHtml = !label ? '' : isPlain(target) && target.href ? ` <a href="${esc(target.href)}">${esc(label)}</a>` : ` ${esc(label)}`;
+  const href = isPlain(target) ? safeUrl(target.href) : null;
+  const targetHtml = !label ? '' : href ? ` <a href="${esc(href)}">${esc(label)}</a>` : ` ${esc(label)}`;
   const time = date ? `<time class="ds-timeline__time" datetime="${esc(date.toISOString())}" title="${esc(absolute(date, { locale: settings.locale, timeZone: settings.timeZone, dateStyle: 'full', timeStyle: 'medium' }))}">${esc(absolute(date, { locale: settings.locale, timeZone: settings.timeZone, timeStyle: 'short' }))}</time>` : '';
   const list = entryChanges(entry);
   const diff = list.length
@@ -286,7 +345,7 @@ function entryHtml(entry, settings) {
     + `${source}${diff}${note}</li>`;
 }
 
-/** The timeline's markup of `entries`, by day: what create() draws. */
+/** The timeline's markup of `entries` (in the order they show), by day: what create() draws. */
 function logHtml(entries, settings) {
   return group(entries, settings).map((day) => `<li class="ds-timeline__group" role="presentation" data-ds-key="day-${esc(day.key)}"><h3 class="ds-timeline__day">${esc(day.label)}</h3></li>`
     + day.entries.map((entry) => entryHtml(entry, settings)).join('')).join('');
@@ -315,6 +374,14 @@ function controller(el, initial) {
   let settings = { ...initial };
   let entries = Array.isArray(initial.entries) ? initial.entries.slice() : sourceEntries(el);
   let shown = 0;
+  /** The words of each entry for the text filter, until the entries or the options change. */
+  let words = new WeakMap();
+  const limitOf = () => {
+    const value = Number(settings.limit ?? LIMIT);
+    return value > 0 ? Math.floor(value) : Infinity;
+  };
+  /** How many matching entries draw: the limit, a limit more per "Show more". */
+  let room = limitOf();
 
   const list = () => el.querySelector(':scope > .ds-timeline, :scope > * > .ds-timeline');
   const controls = () => Array.from(el.querySelectorAll(`[${FILTER}]`)).filter((control) => control.closest('.ds-auditlog') === el);
@@ -362,13 +429,33 @@ function controller(el, initial) {
     return t('auditlogFiltered', { shown: number(shown), total: number(total) });
   };
 
+  /** The "Show more" button under the list while matching entries wait past the limit; gone without. */
+  let button = null;
+  const more = (target, left) => {
+    if (left <= 0) {
+      button?.remove();
+      return;
+    }
+    if (!button) {
+      button = doc.createElement('button');
+      button.type = 'button';
+      button.className = 'ds-btn ds-btn--outlined ds-auditlog__more';
+      button.addEventListener('click', showMore, { signal });
+    }
+    if (button.previousElementSibling !== target) target.after(button);
+    button.textContent = t('auditlogMore', { count: number(Math.min(left, limitOf())) });
+  };
+
   const draw = (animate) => {
     const target = list();
     if (!target) return Promise.resolve();
-    const visible = entries.filter((entry) => matches(entry, filters, settings));
+    const visible = entries.filter(matcher(filters, settings, words));
     shown = visible.length;
-    const html = logHtml(visible, settings);
+    // Past the limit only the first entries in the order they show draw.
+    const drawn = visible.length > room ? sorted(visible, settings.order).slice(0, room).map((each) => each.entry) : visible;
+    const html = logHtml(drawn, settings);
     const done = animate ? flip(target, (options) => morphHtml(target, html, options), { live: settings.live !== false }) : (morphHtml(target, html), Promise.resolve());
+    more(target, shown - drawn.length);
     // Nothing to show: the list goes (an empty list is no list), the page's empty state shows.
     target.hidden = shown === 0;
     for (const empty of el.querySelectorAll('[data-ds-auditlog-empty]')) empty.hidden = shown !== 0;
@@ -377,10 +464,25 @@ function controller(el, initial) {
     return done;
   };
 
+  /** The next entries past the limit; the focus goes to the first of them, where reading goes on. */
+  function showMore() {
+    const target = list();
+    if (!target) return;
+    const before = target.querySelectorAll(':scope > .ds-timeline__item').length;
+    room += limitOf();
+    draw(false);
+    const first = target.querySelectorAll(':scope > .ds-timeline__item')[before];
+    if (first) {
+      first.tabIndex = -1;
+      first.focus();
+    }
+  }
+
   const refilter = () => {
     const next = read();
     if (JSON.stringify(next) === JSON.stringify(filters)) return;
     filters = next;
+    room = limitOf();
     draw(false);
     announce(shown === 0 ? t('noResults') : countText());
     emit(el, 'filter', { filters: { ...filters }, shown, total: entries.length });
@@ -416,13 +518,17 @@ function controller(el, initial) {
     /** New entries: what changed glides (DS.motion.flip; a live log holds while it is pointed at). */
     set(value) {
       entries = Array.isArray(value) ? value.slice() : [];
+      words = new WeakMap();
       return draw(true);
     },
     /** The filters now, or new ones (the controls follow); returns the filters. */
     filter(values) {
       if (values && typeof values === 'object') {
         write(values);
+        // Kept under the controls: a name no control holds stays set when the user changes another filter.
+        settings.filters = { ...settings.filters, ...values };
         filters = { ...read(), ...values };
+        room = limitOf();
         draw(false);
         emit(el, 'filter', { filters: { ...filters }, shown, total: entries.length });
       }
@@ -439,16 +545,19 @@ function controller(el, initial) {
       el.addEventListener(`ds:${type}`, listener, { signal });
       return () => el.removeEventListener(`ds:${type}`, listener);
     },
-    /** New options (fields, format, locale, timeZone, now, order, live); draws again. */
+    /** New options (fields, format, locale, timeZone, now, order, live, limit); draws again. */
     configure(next = {}) {
       settings = { ...settings, ...next };
       if (Array.isArray(next.entries)) entries = next.entries.slice();
+      words = new WeakMap();
+      room = limitOf();
       filters = read();
       draw(false);
     },
     /** Reads the controls and the JSON source again. */
     update() {
       if (!Array.isArray(settings.entries)) entries = sourceEntries(el);
+      words = new WeakMap();
       filters = read();
       draw(false);
     },
@@ -456,6 +565,7 @@ function controller(el, initial) {
       if (signal.aborted) return;
       abort.abort();
       doc.defaultView?.clearTimeout(typing);
+      button?.remove();
       if (logs.get(el) === handle) logs.delete(el);
     },
   };
@@ -476,10 +586,11 @@ define('auditlog', {
  * <script type="application/json"> inside the element), `fields` (labels
  * of the paths of before and after), `format(value, path, entry)`,
  * `filters` (the start, under what the controls hold), `locale`,
- * `timeZone`, `now`, `order` ('newest' or 'oldest') and `live` (default
- * true: set() holds a reorder while the log is pointed at).
+ * `timeZone`, `now`, `order` ('newest' or 'oldest'), `live` (default
+ * true: set() holds a reorder while the log is pointed at) and `limit`
+ * (default 200, 0 for all: how many entries draw before "Show more").
  * @param {Element} el
- * @param {{ entries?: object[], fields?: Record<string, string>, format?: (value: unknown, path: string, entry: object) => string|undefined, filters?: Record<string, string|string[]>, locale?: string, timeZone?: string, now?: Date|number, order?: 'newest'|'oldest', live?: boolean }} [options]
+ * @param {{ entries?: object[], fields?: Record<string, string>, format?: (value: unknown, path: string, entry: object) => string|undefined, filters?: Record<string, string|string[]>, locale?: string, timeZone?: string, now?: Date|number, order?: 'newest'|'oldest', live?: boolean, limit?: number }} [options]
  */
 export function create(el, options = {}) {
   if (!el?.ownerDocument) return { get: () => [], set: () => Promise.resolve(), filter: () => ({}), count: () => ({ shown: 0, total: 0 }), on: () => () => {}, configure() {}, update() {}, destroy() {} };

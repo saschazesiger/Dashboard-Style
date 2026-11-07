@@ -1,4 +1,4 @@
 {
-  "requires": ["status", "timeline", "utilities"],
+  "requires": ["button", "status", "timeline", "utilities"],
   "exportRequires": {}
 }
