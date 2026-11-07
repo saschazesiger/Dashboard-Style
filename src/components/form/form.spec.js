@@ -569,3 +569,80 @@ test('forced colours: focus an outline, a state keeps a word, cards and blocked 
   expect((await style(page, '#fdg')).borderTop).toBe(system.gray);
   for (const id of ['fdl', 'fcs', 'frs', 'fbs']) expect((await style(page, `#${id}`)).color, id).toBe(system.gray);
 });
+
+/* ── DS.form (3.0): the counter, the growing textarea, the customizable select ── */
+
+test('the counter: DS.form writes it, marks it over a soft limit, says the limit once, sends ds:change', async ({ page }) => {
+  await open(page);
+  await add(page, '<div class="ds-field"><label class="ds-field__label" for="cn">Note</label><textarea class="ds-input" id="cn" data-ds-counter data-ds-counter-max="20" data-ds-counter-warn="3"></textarea>' +
+    '<div class="ds-field__foot"><small class="ds-field__hint">Hint</small><span class="ds-field__counter" id="cn-c" aria-hidden="true"></span></div></div>' +
+    '<input class="ds-input" id="cn2" maxlength="5" data-ds-counter="cn2-c" aria-label="Code"><span id="cn2-c"></span>');
+  const counter = page.locator('#cn-c');
+  await expect(counter).toHaveText('0 / 20');
+  await expect(page.locator('#cn2-c')).toHaveText('0 / 5');
+  await page.evaluate(() => {
+    window.sgCounts = [];
+    document.getElementById('cn').addEventListener('ds:change', (event) => window.sgCounts.push(event.detail.remaining));
+  });
+  await page.locator('#cn').fill('Dock in room B');
+  await expect(counter).toHaveText('14 / 20');
+  await expect(counter).not.toHaveClass(/--over/);
+  await page.locator('#cn').fill('Dock in room B 2.1');
+  await page.waitForFunction(() => [...document.querySelectorAll('[aria-live]')].some((el) => el.textContent.includes('2 characters left')), null, { timeout: 3000 });
+  await page.locator('#cn').fill('Dock in room B 2.14, shelf 3');
+  await expect(counter).toHaveText('28 / 20');
+  await expect(counter).toHaveClass(/ds-field__counter--over/);
+  await page.waitForFunction(() => [...document.querySelectorAll('[aria-live]')].some((el) => el.textContent.includes('8 characters too many')), null, { timeout: 3000 });
+  expect(await page.evaluate(() => window.sgCounts)).toEqual([6, 2, -8]);
+  // A hard limit: maxlength stops the typing; the figure never passes it.
+  await page.locator('#cn2').fill('ABCDEFG');
+  await expect(page.locator('#cn2-c')).toHaveText(/^\d \/ 5$/);
+  // A changed limit counts again.
+  await page.evaluate(() => document.getElementById('cn').setAttribute('data-ds-counter-max', '40'));
+  await expect(counter).toHaveText('28 / 40');
+  await expect(counter).not.toHaveClass(/--over/);
+});
+
+test('the counter in the demo follows the text, past its soft limit too', async ({ page }) => {
+  await open(page);
+  const counted = page.locator('[data-demo="counted"]');
+  await expect(page.locator('[data-demo="counter"]')).toHaveText('19 / 40');
+  await counted.fill('A note that is longer than forty characters in all');
+  await expect(page.locator('[data-demo="counter"]')).toHaveText('50 / 40');
+  await expect(page.locator('[data-demo="counter"]')).toHaveClass(/ds-field__counter--over/);
+});
+
+test('a growing textarea grows with its text, natively or through DS.form', async ({ page }) => {
+  await open(page);
+  await add(page, '<textarea class="ds-input ds-input--grow" id="gr" rows="1" aria-label="Note"></textarea>');
+  const grow = page.locator('#gr');
+  const before = await grow.evaluate((el) => el.getBoundingClientRect().height);
+  await grow.fill('one\ntwo\nthree\nfour');
+  await expect.poll(() => grow.evaluate((el) => el.getBoundingClientRect().height)).toBeGreaterThan(before + 40);
+  const native = await page.evaluate(() => CSS.supports('field-sizing: content'));
+  // Where the engine grows it, the script writes no height.
+  expect(await grow.evaluate((el) => el.style.height !== '')).toBe(!native);
+});
+
+test('the customizable select: the native select where base-select is missing, the system\'s picker where it exists', async ({ page }) => {
+  await open(page);
+  const rich = page.locator('[data-demo="rich"]');
+  await expect(rich).toHaveAccessibleName('Device type');
+  await expect(rich).toHaveValue('monitor');
+  const supported = await page.evaluate(() => CSS.supports('appearance: base-select'));
+  if (!supported) {
+    // The native select keeps the triangle and the platform's list.
+    expect(await rich.evaluate((el) => getComputedStyle(el).backgroundImage)).toContain('gradient');
+    return;
+  }
+  expect(await rich.evaluate((el) => getComputedStyle(el).backgroundImage)).toBe('none');
+  await rich.click();
+  await expect.poll(() => rich.evaluate((el) => el.matches(':open'))).toBe(true);
+  const rows = await page.evaluate(() => [...document.querySelectorAll('[data-demo="rich"] option')].map((o) => Math.round(o.getBoundingClientRect().height)));
+  expect(new Set(rows)).toEqual(new Set([48]));
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await expect(rich).toHaveValue('printer');
+  await expect.poll(() => rich.evaluate((el) => el.matches(':open'))).toBe(false);
+  expect(await rich.evaluate((el) => el.querySelector('selectedcontent')?.textContent)).toBe('Printer');
+});

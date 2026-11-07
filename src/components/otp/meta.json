@@ -1,0 +1,47 @@
+{
+  "name": "otp",
+  "group": "forms",
+  "order": 630,
+  "docsOrder": 204,
+  "need": "Enter a one-time code or a PIN: one cell per character, paste and autofill the whole code",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-otp",
+    "ds-otp__cell",
+    "ds-otp__sep"
+  ],
+  "attributes": [],
+  "requires": [
+    "form"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-otp-cell-width": {
+      "default": "40px",
+      "description": "a code field's cell: its width at size md, 8px per size step, never under the touch minimum"
+    },
+    "--ds-otp-gap": {
+      "default": "8px",
+      "description": "a code field: the gap between its cells, 2px less per density step"
+    },
+    "--ds-otp-font": {
+      "default": "var(--ds-font-subtitle)",
+      "description": "a code field: the character in a cell (keep it at 16px or more: phones zoom into smaller field text)"
+    },
+    "--ds-input-focus-color": {
+      "owner": "form"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "otp"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.otp.create": "the focus moves from cell to cell at once and characters appear at once: typing shows no motion",
+    "DS.otp.clean": "a pure function: no motion"
+  }
+}

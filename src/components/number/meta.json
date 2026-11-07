@@ -1,0 +1,43 @@
+{
+  "name": "number",
+  "group": "forms",
+  "order": 600,
+  "docsOrder": 201,
+  "need": "Enter a number, an amount or a quantity with a unit: steppers, limits and the locale's way of writing it",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-number",
+    "ds-number--split",
+    "ds-number__down",
+    "ds-number__step",
+    "ds-number__steps",
+    "ds-number__up"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "form"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-number-step-size": {
+      "default": "32px",
+      "description": "a number input's stepper buttons: the base (size md, comfortable density), 8px per size step and 4px per density step, never under the touch minimum"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "number"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.number.create": "a value changes at once (no glide: a typed or stepped figure is no data change); the steppers press as buttons",
+    "DS.number.parse": "a pure function: no motion",
+    "DS.number.format": "a pure function: no motion",
+    "DS.number.clamp": "a pure function: no motion",
+    "DS.number.symbols": "a pure function: no motion"
+  }
+}

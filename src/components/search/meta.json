@@ -1,0 +1,40 @@
+{
+  "name": "search",
+  "group": "forms",
+  "order": 670,
+  "docsOrder": 205,
+  "need": "Search a page or a list: a shortcut to reach it, clear it, see how many results, come back to recent searches",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-search__clear",
+    "ds-search__count",
+    "ds-search__foot",
+    "ds-search__forget",
+    "ds-search__history",
+    "ds-search__popup"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "combobox",
+    "form"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-search-clear-size": {
+      "default": "32px",
+      "description": "a search field's clear button: the base (size md, comfortable density), 8px per size step and 4px per density step, never under the touch minimum"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "search"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.search.remember": "a pure function: no motion"
+  }
+}

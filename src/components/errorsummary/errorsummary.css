@@ -1,0 +1,95 @@
+/*
+ * Error summary: the problems of a form in an error alert at its top, each
+ * a link to its field. The box, the icon, the tone and the title are
+ * alert.css's (.ds-alert.ds-tone-error, .ds-alert__title); this file sets
+ * the list of links and the focus the summary takes.
+ *
+ *   <form class="ds-form" novalidate>
+ *     <div class="ds-alert ds-tone-error ds-errorsummary" data-ds-errorsummary tabindex="-1" hidden>
+ *       (alertCircle 20)
+ *       <div class="ds-alert__text">
+ *         <h2 class="ds-alert__title ds-errorsummary__title"></h2>       (written: "There are 2 problems")
+ *         <ul class="ds-errorsummary__list"></ul>                          (written: <li><a href="#name">...</a></li>)
+ *       </div>
+ *     </div>
+ *     (fields)
+ *   </form>
+ *
+ * Behaviour (which fields, the words, the focus, the live list) is
+ * DS.errorsummary (errorsummary.js).
+ *
+ * The summary takes the focus after a failed submit: it shows the focus
+ * ring of every control on :focus-visible (--ds-focus-outline, solid from
+ * the first frame, offset snapping on --ds-dur-fast), after a submit from
+ * the keyboard always, after a pointer submit where the engine honours
+ * focus({ focusVisible: true }) (errorsummary.js). Its links are the
+ * alert's ink, underlined with the link geometry and in the label weight,
+ * each on a line of its own.
+ *
+ * Options (src/core/options.css, docs/options.md): the alert's (padding by
+ * size and density, the corners by shape), computed in alert.css; the
+ * links take at least --ds-target-min high under .ds-touch. The tone is
+ * the error's, always with the icon and the words.
+ *
+ * Forced colours: the alert's edge (alert.css); the links are LinkText.
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.errorsummary {
+  .ds-errorsummary {
+    outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
+    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  /* Focused by the script after a submit: the ring every control shows, so
+     the eye lands where reading starts. */
+  .ds-errorsummary:focus-visible {
+    outline: var(--ds-focus-outline);
+    outline-offset: var(--ds-focus-offset);
+  }
+
+  .ds-errorsummary[hidden] {
+    display: none;
+  }
+
+  .ds-errorsummary__title {
+    margin: 0;
+  }
+
+  .ds-errorsummary__list {
+    display: grid;
+    gap: var(--ds-space-1);
+    margin: var(--ds-space-1) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ds-errorsummary__list a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--ds-target-min, 0px);
+    /* The alert's ink, which its tone keeps readable in every scheme. */
+    color: inherit;
+    font-weight: var(--ds-weight-label);
+    text-decoration: underline;
+    text-decoration-thickness: var(--ds-link-underline-thickness);
+    text-underline-offset: var(--ds-link-underline-offset);
+  }
+
+  .ds-errorsummary__list a {
+    outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
+    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  .ds-errorsummary__list a:focus-visible {
+    outline: var(--ds-focus-outline);
+    outline-offset: var(--ds-focus-offset);
+  }
+
+  @media (forced-colors: active) {
+    .ds-errorsummary__list a {
+      color: LinkText;
+    }
+  }
+}

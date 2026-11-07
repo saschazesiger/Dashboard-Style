@@ -57,14 +57,26 @@ function states(h) {
     '</div>';
 }
 
+function selects(h) {
+  var kinds = [['laptop', 'Laptop'], ['monitor', 'Monitor'], ['printer', 'Printer'], ['router', 'Router'], ['phone', 'Phone']];
+  var rich = '<select class="ds-input ds-select" %ATTRS% data-demo="rich"><button><selectedcontent></selectedcontent></button>' +
+    kinds.map(function (k, i) { return '<option value="' + k[0] + '"' + (i === 1 ? ' selected' : '') + '>' + h.icon(k[0], 20) + '<span>' + k[1] + '</span></option>'; }).join('') +
+    '<option value="other" disabled>' + h.icon('box', 20) + '<span>Other (ask the help desk)</span></option></select>';
+  return '<div class="ds-form-grid ds-form-grid--3">' +
+    field(h, 'ds-field', 'Device type', rich, '<small class="ds-field__hint" id="%ID%">Customizable where supported.</small>') +
+    field(h, 'ds-field', 'Warranty', '<select class="ds-input" %ATTRS%><option>2 years</option><option selected>3 years</option><option>4 years</option></select>', '<small class="ds-field__hint" id="%ID%">The native select.</small>') +
+    field(h, 'ds-field', 'Site (disabled)', '<select class="ds-input ds-select" %ATTRS% disabled><button><selectedcontent></selectedcontent></button><option>Building A</option></select>') +
+    '</div>';
+}
+
 function markers(h) {
   var note = h.uid('note');
   var noteHint = h.uid('note-hint');
   return '<div class="ds-form-grid ds-form-grid--2" data-demo="markers">' +
     field(h, 'ds-field', 'Owner', '<input class="ds-input" %ATTRS% required value="Ada Lovelace">', '', ' <span class="ds-field__required" aria-hidden="true">*</span>') +
     field(h, 'ds-field', 'Room', '<input class="ds-input" %ATTRS%>', '', ' <span class="ds-field__optional">(optional)</span>') +
-    '<div class="ds-field ds-field--changed" data-demo="changed"><label class="ds-field__label" for="' + note + '">Note <span class="ds-field__changed ds-sr">(changed)</span></label><textarea class="ds-input" id="' + note + '" maxlength="60" aria-describedby="' + noteHint + '" data-demo="counted">Dock in room B 2.14</textarea>' +
-    '<div class="ds-field__foot"><small class="ds-field__hint" id="' + noteHint + '">Shown to the next person.</small><span class="ds-field__counter" aria-hidden="true" data-demo="counter">19 / 40</span></div></div>' +
+    '<div class="ds-field ds-field--changed" data-demo="changed"><label class="ds-field__label" for="' + note + '">Note <span class="ds-field__changed ds-sr">(changed)</span></label><textarea class="ds-input" id="' + note + '" data-ds-counter data-ds-counter-max="40" aria-describedby="' + noteHint + '" data-demo="counted">Dock in room B 2.14</textarea>' +
+    '<div class="ds-field__foot"><small class="ds-field__hint" id="' + noteHint + '">Shown to the next person. 40 characters at most.</small><span class="ds-field__counter" aria-hidden="true" data-demo="counter"></span></div></div>' +
     '<div class="ds-field" role="group" aria-labelledby="' + note + '-value"><span class="ds-field__label" id="' + note + '-value">Serial number</span><span class="ds-field__value">SN-0042</span></div>' +
     '</div>';
 }
@@ -159,6 +171,7 @@ SG.demo('form', {
       h.section('Slots', slots(h), 'Leading and trailing hold an icon, a tag or a button; prefix and suffix text that belongs to the value.') +
       h.section('States', states(h), 'A warning and a success colour the control and say what they mean in words; aria-invalid stays the only error.') +
       h.section('Markers, counter, changed, read value', markers(h)) +
+      h.section('Select', selects(h), 'A customizable select shows its list on the menu\'s surface, with icons and a check, where the browser supports it; elsewhere it is the native select.') +
       h.section('Checkboxes and radios', checks(h)) +
       h.section('A form', deviceForm(h), 'A grid of fields (a full-width one for the notes), a quiet way to add a row, and the actions with what was saved last.') +
       h.section('Editing in rows', rows(h), 'Change a field: a dot and the word "(changed)" mark it until it is saved. A value set by another system reads as text.') +
@@ -184,12 +197,9 @@ SG.demo('form', {
       if (event.target.matches('[data-demo="all"]')) h.$$('.ds-check-group__children input', group).forEach(function (child) { child.checked = event.target.checked; });
       sync(group);
     });
-    var limit = 40;
+    // The counter is DS.form's (data-ds-counter); the page marks the field changed.
     root.addEventListener('input', function (event) {
       if (!event.target.matches('[data-demo="counted"]')) return;
-      var counter = h.$('[data-demo="counter"]', root);
-      counter.textContent = event.target.value.length + ' / ' + limit;
-      counter.classList.toggle('ds-field__counter--over', event.target.value.length > limit);
       event.target.closest('.ds-field').classList.add('ds-field--changed');
     });
     root.addEventListener('click', function (event) {

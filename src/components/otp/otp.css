@@ -1,0 +1,91 @@
+/*
+ * One-time code and PIN: a row of single-character cells. Each cell is a
+ * field of form.css (border, ring, invalid, disabled, the 16px text on
+ * phones); this file makes it a square-ish box with the character centred
+ * and lays the row out.
+ *
+ *   <div class="ds-field">
+ *     <span class="ds-field__label" id="code-l">Verification code</span>
+ *     <div class="ds-otp" role="group" aria-labelledby="code-l" data-ds-otp>   (data-ds-otp-mask: a PIN)
+ *       <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="one-time-code">
+ *       <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="off"> ...
+ *       <span class="ds-otp__sep" aria-hidden="true"></span>   (a gap between two groups: 3 + 3)
+ *       <input type="hidden" name="code">
+ *     </div>
+ *   </div>
+ *
+ * An invalid code: aria-invalid="true" on the group, which DS.otp copies to
+ * every cell (form.css draws a field's error look on each), with the
+ * field's error hint in words.
+ * disabled on the cells (or a disabled fieldset) quiets them.
+ *
+ * Behaviour (auto-advance, paste, the keys, naming the cells, the hidden
+ * value) is DS.otp (otp.js).
+ *
+ * Options (src/core/options.css, docs/options.md), on the row or any
+ * ancestor; computed here for the cells:
+ *   size      .ds-xs ... .ds-xl: the field's 8px of height per step, and
+ *             8px of width per step (in a narrow container a cell gives
+ *             up to 40% of its width; on a phone the gaps are 4px)
+ *   density   .ds-density-*: 4px of height per step, and 2px less gap
+ *   shape     .ds-shape-*: the cells' corners (the field's radius)
+ *   touch     .ds-touch: cells at least --ds-touch-target high and as wide
+ *             where there is room (60% of it in a narrow row, so eight
+ *             cells fit a phone)
+ * No tone: an error shows through aria-invalid and a hint in words.
+ *
+ * Hooks: --ds-otp-cell-width (40px at md), --ds-otp-gap (8px),
+ * --ds-otp-font (the character: --ds-font-subtitle; never under 16px).
+ *
+ * Forced colours: the cells are fields (form.css: the system's edge, a
+ * Highlight outline on focus); the separator is a CanvasText dash.
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.otp {
+  .ds-otp {
+    display: flex;
+    /* A long code in a narrow container: the cells give up to 40% of their
+       width (their height stays), so the code stays on one line. */
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: max(var(--ds-space-1), calc(var(--ds-otp-gap, var(--ds-space-2)) + var(--ds-density, 0) * 2px));
+    max-inline-size: 100%;
+  }
+
+  .ds-otp > input.ds-otp__cell {
+    --_w: max(var(--ds-target-min, 0px), calc(var(--ds-otp-cell-width, 40px) + var(--ds-size-step, 0) * 8px));
+    flex: 0 1 var(--_w);
+    /* The basis sizes the cell; a width of 0 keeps a grid or a flex row
+       around the code from reserving the full widths as its minimum. */
+    inline-size: 0;
+    min-inline-size: calc(var(--_w) * 0.6);
+    padding-inline: 0;
+    text-align: center;
+    font: var(--ds-otp-font, var(--ds-font-subtitle));
+    font-variant-numeric: tabular-nums;
+    caret-color: var(--ds-input-focus-color, var(--ds-primary));
+  }
+
+  /* On a phone the cells keep their width before the gaps do. */
+  @media (max-width: 600px) {
+    .ds-otp {
+      gap: var(--ds-space-1);
+    }
+  }
+
+  .ds-otp__sep {
+    flex: none;
+    inline-size: var(--ds-space-2);
+    block-size: 2px;
+    border-radius: calc(var(--ds-radius-xs) * var(--ds-shape, 1));
+    background: var(--ds-outline);
+  }
+
+  @media (forced-colors: active) {
+    .ds-otp__sep {
+      background: CanvasText;
+    }
+  }
+}

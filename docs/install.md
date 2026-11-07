@@ -400,6 +400,35 @@ strings a script adds have an option, so a page in another language passes its o
 | `Resize` | the name of a split pane's divider without one of its own (`DS.splitpane`; the system's string `splitpaneResize`) | `DS.core.config({ strings: { splitpaneResize } })` |
 | `Collapsed` | the value a split pane's divider reads while its pane is collapsed (`aria-valuetext`; the system's string `splitpaneCollapsed`) | `DS.core.config({ strings: { splitpaneCollapsed } })` |
 | `Back` | the name of a list-detail layout's back button without one of its own (`DS.listdetail`; the system's string `back`) | `DS.core.config({ strings: { back } })` |
+| `Decrease` | the name of a number input's minus stepper without one of its own (`DS.number`; the system's string `decrease`) | `DS.core.config({ strings: { decrease } })` |
+| `Increase` | the name of a number input's plus stepper without one of its own (the system's string `increase`) | `DS.core.config({ strings: { increase } })` |
+| `Show password` | the name of a password's reveal button without one of its own (`DS.password`; the system's string `showPassword`) | `DS.core.config({ strings: { showPassword } })` |
+| `Caps Lock is on.` | a password's caps-lock hint while it has no text of its own (the system's string `capsLock`) | `DS.core.config({ strings: { capsLock } })` |
+| `Weak` | the first level of a password's strength meter (the system's string `strengthWeak`) | `DS.core.config({ strings: { strengthWeak } })` |
+| `Fair` | the second level (the system's string `strengthFair`) | `DS.core.config({ strings: { strengthFair } })` |
+| `Good` | the third level (the system's string `strengthGood`) | `DS.core.config({ strings: { strengthGood } })` |
+| `Strong` | the fourth level (the system's string `strengthStrong`) | `DS.core.config({ strings: { strengthStrong } })` |
+| `Password strength: {level}` | what a password announces when its level changes (the system's string `passwordStrength`) | `DS.core.config({ strings: { passwordStrength } })` |
+| `Set` | a secret field's status while a value is stored (`DS.secret`; the system's string `secretSet`) | `DS.core.config({ strings: { secretSet } })` |
+| `Not set` | its status while none is (the system's string `secretNotSet`) | `DS.core.config({ strings: { secretNotSet } })` |
+| `Removed when you save` | its status once Clear was pressed (the system's string `secretCleared`) | `DS.core.config({ strings: { secretCleared } })` |
+| `Recent searches` | the name of a search field's list of recent searches (`DS.search`; the system's string `recentSearches`) | `DS.core.config({ strings: { recentSearches } })` |
+| `Clear recent searches` | the button under that list (the system's string `clearRecent`) | `DS.core.config({ strings: { clearRecent } })` |
+| `{count} result` | a search field's count of one result (the system's string `searchResultsOne`, the plural form `one`) | `DS.core.config({ strings: { searchResultsOne } })` |
+| `{count} results` | its count of any other number (the system's string `searchResultsMany`, the form `other`) | `DS.core.config({ strings: { searchResultsMany } })` |
+| `Edit` | the name of an inline edit's view button without one of its own (`DS.inlineedit`; the system's string `edit`) | `DS.core.config({ strings: { edit } })` |
+| `Save` | its save button without a name (the system's string `save`) | `DS.core.config({ strings: { save } })` |
+| `Saved` | what an inline edit announces after a save (the system's string `saved`) | `DS.core.config({ strings: { saved } })` |
+| `Type {name} to confirm` | the label of a type-to-confirm field (`DS.typeconfirm`; the system's string `typeToConfirm`) | `DS.core.config({ strings: { typeToConfirm } })` |
+| `There is 1 problem` | the title of an error summary with one problem (`DS.errorsummary`; the system's string `errorSummaryOne`) | `DS.core.config({ strings: { errorSummaryOne } })` |
+| `There are {count} problems` | its title with more (the system's string `errorSummaryMany`) | `DS.core.config({ strings: { errorSummaryMany } })` |
+| `{label}: {message}` | an error summary's line for a field without an error message of the page's own: its label and the browser's validation message (the system's string `errorSummaryField`) | `DS.core.config({ strings: { errorSummaryField } })` |
+| `Digit {index} of {count}` | the name of a cell of a numeric code field without one of its own (`DS.otp`; the system's string `otpDigit`) | `DS.core.config({ strings: { otpDigit } })` |
+| `Character {index} of {count}` | the same on an alphanumeric code field (the system's string `otpCharacter`) | `DS.core.config({ strings: { otpCharacter } })` |
+| `{count} characters left` | what a field with a character counter says once it comes near its limit (`DS.form`, `data-ds-counter`; the system's string `charactersLeft`, the plural form `other`) | `DS.core.config({ strings: { charactersLeft } })` |
+| `1 character left` | the same for one (the system's string `charactersLeftOne`, the form `one`) | `DS.core.config({ strings: { charactersLeftOne } })` |
+| `{count} characters too many` | what it says once the text goes past a soft limit (the system's string `charactersOver`) | `DS.core.config({ strings: { charactersOver } })` |
+| `1 character too many` | the same for one (the system's string `charactersOverOne`) | `DS.core.config({ strings: { charactersOverOne } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

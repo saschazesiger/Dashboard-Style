@@ -324,6 +324,8 @@ const CONTINUITY = {
   dropzone: { in: 'stage', sel: '.ds-dropzone__over', props: ['opacity'] },
   'field-changed': { in: 'stage', sel: '#sg-lab-changed .ds-field__label', pseudo: '::after', props: ['opacity'] },
   'search-key': { in: 'stage', sel: '.ds-search__key', props: ['opacity'] },
+  'search-recent': { in: 'stage', sel: '.ds-search__popup', props: ['opacity'] },
+  'password-meter': { in: 'stage', sel: '.ds-icon-swap__b', props: ['opacity'] },
   'radio-tiles': { in: 'stage', sel: '.ds-radio:nth-of-type(2) .ds-radio__mark svg', props: ['opacity', 'scale.x'] },
   charts: { in: 'stage', sel: '.ds-meter', props: ['--ds-share'] },
   'selection-bar': { in: 'stage', sel: '.ds-selection-bar', props: ['opacity'] },

@@ -1,0 +1,32 @@
+{
+  "name": "errorsummary",
+  "group": "forms",
+  "order": 660,
+  "docsOrder": 208,
+  "need": "Tell what is wrong with a form after a submit: every problem at the top, each a link to its field",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-errorsummary",
+    "ds-errorsummary__list",
+    "ds-errorsummary__title"
+  ],
+  "attributes": [],
+  "requires": [
+    "alert",
+    "form"
+  ],
+  "context": [],
+  "hooks": {},
+  "keyframes": [],
+  "js": [
+    "errorsummary"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.errorsummary.create": "the summary shows at once and takes the focus; its ring snaps as every focus ring",
+    "DS.errorsummary.title": "a pure function: no motion"
+  }
+}

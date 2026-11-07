@@ -161,7 +161,7 @@ and keyed to your root like the tokens. The list holds every element the documen
 stays out: icons keep their own attributes):
 
 ```css
-.ds-theme.my-widget :where(button, h1, h2, h3, h4, h5, h6, p, small, strong, code, pre, blockquote, hr, mark, img, ul, ol, li, dl, dt, dd, a, section, header, nav, main, fieldset, legend, details, summary, dialog, input, select, textarea, label, table, caption, th, td, kbd, output, figure, figcaption, time) {
+.ds-theme.my-widget :where(button, h1, h2, h3, h4, h5, h6, p, small, strong, code, pre, blockquote, hr, mark, img, ul, ol, li, dl, dt, dd, a, section, header, nav, main, fieldset, legend, details, summary, dialog, input, select, textarea, label, table, caption, th, td, kbd, output, figure, figcaption, time, selectedcontent) {
   all: revert-layer;
 }
 ```

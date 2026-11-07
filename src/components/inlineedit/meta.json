@@ -1,0 +1,49 @@
+{
+  "name": "inlineedit",
+  "group": "forms",
+  "order": 640,
+  "docsOrder": 206,
+  "need": "Change one value where it is shown: text that turns into a field, saved with Enter, left with Escape",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-inlineedit",
+    "ds-inlineedit__actions",
+    "ds-inlineedit__cancel",
+    "ds-inlineedit__edit",
+    "ds-inlineedit__error",
+    "ds-inlineedit__form",
+    "ds-inlineedit__input",
+    "ds-inlineedit__save",
+    "ds-inlineedit__value",
+    "ds-inlineedit__view"
+  ],
+  "attributes": [
+    "data-state"
+  ],
+  "requires": [
+    "button",
+    "form"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-input-height": {
+      "owner": "form"
+    },
+    "--ds-inlineedit-field-min": {
+      "default": "12rem",
+      "description": "an inline edit: the narrowest its field gets before Save and Cancel wrap under it"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "inlineedit"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.inlineedit.create": "the view and the field swap at once and the focus moves with them; the save button's busy face is DS.motion.busy's",
+    "DS.inlineedit.decide": "a pure function: no motion"
+  }
+}

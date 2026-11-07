@@ -1,0 +1,43 @@
+{
+  "name": "password",
+  "group": "forms",
+  "order": 610,
+  "docsOrder": 202,
+  "need": "Enter or choose a password: show it, see how strong it is, notice Caps Lock",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-password__bars",
+    "ds-password__caps",
+    "ds-password__meter",
+    "ds-password__strength"
+  ],
+  "attributes": [
+    "data-level"
+  ],
+  "requires": [
+    "button",
+    "form"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-password-meter-width": {
+      "default": "240px",
+      "description": "a password's strength meter: the widest its four bars grow"
+    },
+    "--ds-password-bar-height": {
+      "default": "4px",
+      "description": "a password's strength meter: the height of a bar"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "password"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.password.strength": "a pure function: no motion"
+  }
+}
