@@ -65,22 +65,28 @@ controller):
 - **Edit a section.** A `[data-ds-object-edit]` button in a section turns it into its form: the view hides, the form
   enters (`DS.motion.enter(form, 'swap')`), the focus goes to its first field, a screen reader hears "Editing General"
   (the string `editing`), and the section takes `data-editing`.
-- **Edit mode.** A `[data-ds-object-edit]` button outside the sections (in the head) turns every section into its form;
+- **Edit mode.** A `[data-ds-object-edit]` button outside the sections (in the head) turns every section that has a form
+  into it (a read-only section, such as a history without a `.ds-object__form`, stays as it is);
   the `.ds-object` takes `data-editing`, that button hides and the `[data-ds-object-save]` and `[data-ds-object-cancel]`
   buttons outside the sections show (the module owns their `hidden`; render them `hidden`).
 - **Save.** Submitting a section's form (its submit button, Enter in a field) sends `ds:save` on the section:
   `{ section, id, form, values }` (`values`: the form's entries, a repeated name as a list). Unless a listener cancels
   it, the view comes back, the focus goes to the section's edit action and a screen reader hears "General saved" (the
   string `saved`). A page that saves on a server cancels `ds:save`, shows the busy state on the submit button
-  (`DS.motion.busy()`), and calls `done(section)` once saved; an error stays in the form ([Form](#form)).
-  `[data-ds-object-save]` outside the sections submits every form that edits (each validates first).
+  (`DS.motion.busy()`), and calls `done(section)` once saved; an error stays in the form ([Form](#form)). A form
+  with `novalidate` (the system's error hints instead of the browser's) validates in that listener: it cancels
+  `ds:save`, marks the fields (`aria-invalid="true"` and a `.ds-field__hint--error`), focuses the first and does not
+  call `done()`.
+  `[data-ds-object-save]` outside the sections submits every form that edits (each validates first) as one batch: the
+  focus stays put while the sections save and goes to the head's edit once the last one is done (to the first field of
+  a section that is still open when one did not validate).
 - **Cancel.** `[data-ds-object-cancel]` in a section, or Escape in its form (unless a popup in it is open), sends
   `ds:cancel` (`{ section, id, form }`); unless cancelled (unsaved changes the page wants confirmed), the form resets
   and the view comes back. Outside the sections it cancels every section that edits.
 - `ds:edit` (cancelable) on the section before it turns; `ds:change` (`{ editing }`, the ids that edit) on the `.ds-object`.
 
 The controller (`DS.get(el, 'object')`, or what `create()` returns): `get()` (the ids of the sections that edit),
-`set(ids)` (`true` for all, `false` for none), `edit(section)`, `save(section)`, `cancel(section)` (no argument: every
+`set(ids)` (`true` for all that have a form, `false` for none), `edit(section)`, `save(section)`, `cancel(section)` (no argument: every
 section), `done(section)`, `on(type, fn)` and `destroy()`. `DS.object.values(entries)` is the mapping of a form's
 entries alone.
 

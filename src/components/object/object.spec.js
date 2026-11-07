@@ -1,8 +1,9 @@
 /**
  * The object page (DS.object) on its demo: a section turns into its form
  * and back (focus, names, the announcement, ds:save with the values, Escape
- * cancels), the edit mode of the head (every section, Save all and Cancel),
- * validation keeps a form open, the band (the bar sticks under the head, a
+ * cancels), the edit mode of the head (every section with a form, Save all
+ * and Cancel, a read-only section left alone, the focus after Save all), the
+ * page's validation keeps a form open, the band (the bar sticks under the head, a
  * jump lands below both), the anchors mark the section being read, a phone
  * width, forced colours. Runs in the `fallback` project too.
  */
@@ -76,21 +77,26 @@ test('Escape and Cancel give the form up: it resets, the view comes back, the fo
   await expect(owner).not.toHaveAttribute('data-editing');
 });
 
-test('a form that does not validate stays open; nothing is saved', async ({ page }) => {
+test('a form that does not validate stays open with its error; nothing is saved', async ({ page }) => {
   await open(page);
   const network = section(page, 'Network');
   await network.getByRole('button', { name: 'Edit' }).click();
-  await page.evaluate(() => {
-    window.__saves = 0;
-    document.addEventListener('ds:save', () => { window.__saves += 1; });
-  });
   const field = network.getByRole('textbox', { name: 'Network' });
   await field.fill('');
-  // The demo's forms are novalidate: the page validates. Without novalidate, requestSubmit() stops at the browser.
-  await network.locator('form').evaluate((form) => form.removeAttribute('novalidate'));
+  // The demo's forms are novalidate: the page validates in its ds:save listener, with the system's error hints.
   await network.getByRole('button', { name: 'Save' }).click();
-  expect(await page.evaluate(() => window.__saves)).toBe(0);
+  await expect(field).toHaveAttribute('aria-invalid', 'true');
+  await expect(field).toHaveAccessibleDescription('Enter a value.');
+  await expect(field).toBeFocused();
+  await page.waitForTimeout(600);
   await expect(network).toHaveAttribute('data-editing', '');
+  await expect(network.locator('[data-field="network"]')).toHaveText('Office');
+  // Filled again, the error goes; Save saves.
+  await field.fill('Lab');
+  await expect(field).not.toHaveAttribute('aria-invalid');
+  await network.getByRole('button', { name: 'Save' }).click();
+  await expect(network).not.toHaveAttribute('data-editing');
+  await expect(network.locator('[data-field="network"]')).toHaveText('Lab');
 });
 
 test('edit mode: Edit in the head turns every section into its form, Save all and Cancel take its place, Cancel brings all back', async ({ page }) => {
@@ -105,6 +111,9 @@ test('edit mode: Edit in the head turns every section into its form, Save all an
   await expect(article(page)).toHaveAttribute('data-editing', '');
   await expect(page.locator('[aria-live]').filter({ hasText: 'Editing LAPTOP-0042' })).toHaveCount(1);
   for (const name of ['General', 'Owner', 'Network']) await expect(section(page, name)).toHaveAttribute('data-editing', '');
+  // A read-only section has no form: it stays as it is, and the mode is on all the same.
+  await expect(section(page, 'History')).not.toHaveAttribute('data-editing');
+  await expect(section(page, 'History').locator('.ds-object__view')).toBeVisible();
   await expect(edit).toBeHidden();
   await expect(saveAll).toBeVisible();
   await expect(cancel).toBeVisible();
@@ -114,13 +123,25 @@ test('edit mode: Edit in the head turns every section into its form, Save all an
   for (const name of ['General', 'Owner', 'Network']) await expect(section(page, name)).not.toHaveAttribute('data-editing');
   await expect(edit).toBeVisible();
   await expect(edit).toBeFocused();
-  // Save all submits every form; the page saves each one.
+  // Save all submits every form; the page saves each one; the focus moves once, to the head's Edit.
   await edit.click();
   await section(page, 'Owner').getByRole('textbox', { name: 'Site' }).fill('Building C');
   await saveAll.click();
   await expect(article(page)).not.toHaveAttribute('data-editing');
   await expect(section(page, 'Owner').locator('[data-field="site"]')).toHaveText('Building C');
   await expect(edit).toBeVisible();
+  for (const name of ['General', 'Owner', 'Network']) await expect(section(page, name)).not.toHaveAttribute('data-editing');
+  await expect(edit).toBeFocused();
+  // A Save all with a field that does not validate: the others save, that one stays open with the focus in it.
+  await edit.click();
+  const network = section(page, 'Network').getByRole('textbox', { name: 'Network' });
+  await network.fill('');
+  await saveAll.click();
+  await expect(section(page, 'General')).not.toHaveAttribute('data-editing');
+  await expect(section(page, 'Owner')).not.toHaveAttribute('data-editing');
+  await expect(section(page, 'Network')).toHaveAttribute('data-editing', '');
+  await expect(network).toBeFocused();
+  await expect(network).toHaveAttribute('aria-invalid', 'true');
 });
 
 test('the band: the bar sticks right under the head, a jump lands with the title clear of both, the anchors follow', async ({ page }) => {
@@ -135,7 +156,7 @@ test('the band: the bar sticks right under the head, a jump lands with the title
   const geometry = await article(page).evaluate((el) => {
     const head = el.querySelector('.ds-page-head').getBoundingClientRect();
     const nav = el.querySelector('.ds-toc').getBoundingClientRect();
-    const title = el.querySelector('.ds-object__section:last-of-type .ds-object__title').getBoundingClientRect();
+    const title = [...el.querySelectorAll('.ds-object__title')].find((each) => each.textContent === 'Network').getBoundingClientRect();
     return { touching: Math.round(nav.top - head.bottom), clear: title.top >= nav.bottom - 0.5, head: el.style.getPropertyValue('--ds-object-head'), condensed: el.querySelector('.ds-page-head').hasAttribute('data-scrolled') };
   });
   expect(geometry.touching).toBe(0);

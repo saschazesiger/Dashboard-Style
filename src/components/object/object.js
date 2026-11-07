@@ -14,7 +14,8 @@
  *   form: the view hides, the form enters (DS.motion.enter(form, 'swap')),
  *   the focus goes to its first field and a screen reader hears "Editing
  *   <title>". One outside the sections (in the head) turns every section
- *   into its form (edit mode, data-editing on the .ds-object); then the
+ *   that has a form into it (edit mode, data-editing on the .ds-object; a
+ *   read-only section, without a form, stays as it is); then the
  *   [data-ds-object-save] and [data-ds-object-cancel] buttons outside the
  *   sections show and the edit button hides (owned `hidden`).
  * - Submitting a section's form (its submit button, Enter in a field)
@@ -23,7 +24,8 @@
  *   edit button, and a screen reader hears "<title> saved". A page that
  *   saves on a server cancels ds:save and calls done(section) once saved.
  *   [data-ds-object-save] outside the sections submits every form that
- *   edits (requestSubmit(), so each validates first).
+ *   edits (requestSubmit(), so each validates first) as one batch: the
+ *   focus moves once, to the head's edit when the last section is done.
  * - [data-ds-object-cancel] in a section, or Escape in its form (unless a
  *   popup in it is open), sends ds:cancel ({ section, id, form }); unless
  *   cancelled, the form resets and the view comes back. Outside the
@@ -102,6 +104,21 @@ function controller(article, signal) {
     return article.getAttribute('aria-label') || title?.textContent.trim() || '';
   };
   const editing = (section) => section.hasAttribute('data-editing');
+  /** The sections that can edit: those with a form (a read-only section, such as a history, has none). */
+  const editable = () => sections().filter((section) => faces(section).box);
+  /** Whether every section that can edit edits: the edit mode. */
+  const allEdit = () => {
+    const list = editable();
+    return list.length > 0 && list.every(editing);
+  };
+  /**
+   * Save all is one batch: the sections it submitted, until each is done. The
+   * per-section focus moves wait; when the last one is done the focus moves
+   * once (settleBatch). `savingAll` is true while Save all submits (the
+   * submit events fire synchronously from requestSubmit()).
+   */
+  const batch = new Set();
+  let savingAll = false;
   /** The controls outside the sections: the object-wide edit, save and cancel. */
   const outside = (selector) => [...article.querySelectorAll(selector)].filter((el) => !el.closest('.ds-object__section'));
 
@@ -111,10 +128,10 @@ function controller(article, signal) {
     return go;
   };
 
-  /** Shows the object-wide buttons of the mode: edit while any section views, save and cancel while all edit. */
+  /** Shows the object-wide buttons of the mode: edit while any section views, save and cancel while all that can edit do. */
   const syncMode = () => {
     const all = sections();
-    const every = all.length > 0 && all.every(editing);
+    const every = allEdit();
     for (const button of outside('[data-ds-object-edit]')) {
       take(button, 'hidden');
       button.hidden = every;
@@ -158,9 +175,9 @@ function controller(article, signal) {
     return target.closest?.('.ds-object__section') ?? null;
   };
 
-  /** Turns a section (an element or its id), or every section (null), into its form. */
+  /** Turns a section (an element or its id), or every section that has a form (null), into its form. */
   const edit = (target = null) => {
-    const list = target === null ? sections() : [resolve(target)].filter(Boolean);
+    const list = target === null ? editable() : [resolve(target)].filter(Boolean);
     let changed = false;
     list.forEach((section, index) => {
       if (editing(section)) return;
@@ -176,20 +193,38 @@ function controller(article, signal) {
   /** Leaves a section's form after the page saved it: its view comes back and a screen reader hears it. */
   const done = (target) => {
     const section = resolve(target);
-    if (!section || !face(section, false, section.contains(doc.activeElement) || doc.activeElement === doc.body)) return false;
+    if (!section || !editing(section)) return false;
+    const inBatch = batch.delete(section);
+    const focus = !inBatch && (section.contains(doc.activeElement) || doc.activeElement === doc.body);
+    if (!face(section, false, focus)) return false;
     announce(t('saved', { label: titleOf(section) }));
     syncMode();
+    if (inBatch && batch.size === 0) settleBatch();
     return true;
+  };
+
+  /**
+   * The end of a Save all, when the focus was lost on the way (Save all hides
+   * with the mode): the head's edit once no section edits, else the first
+   * field of a section that still edits (one that did not validate).
+   */
+  const settleBatch = () => {
+    const active = doc.activeElement;
+    if (active && active !== doc.body && active.isConnected && !active.closest?.('[hidden]')) return;
+    const open = sections().find(editing);
+    const target = open ? tabbables(faces(open).box)[0] : outside('[data-ds-object-edit]')[0];
+    target?.focus({ preventScroll: true });
   };
 
   /** Cancels a section (or every section that edits, null): the form resets and the view comes back. */
   const cancel = (target = null) => {
     const list = target === null ? sections().filter(editing) : [resolve(target)].filter((section) => section && editing(section));
-    const wasEvery = sections().every(editing);
+    const wasEvery = allEdit();
     let changed = false;
     for (const section of list) {
       const { form } = faces(section);
       if (!tell(section, 'cancel', { section, id: section.id || null, form }, true)) continue;
+      batch.delete(section);
       form?.reset?.();
       const focus = section.contains(doc.activeElement) || doc.activeElement === doc.body;
       if (face(section, false, target !== null && focus)) changed = true;
@@ -203,21 +238,32 @@ function controller(article, signal) {
   /** Saves a section (or every section that edits, null) as its submit button would: it validates first. */
   const save = (target = null) => {
     const list = target === null ? sections().filter(editing) : [resolve(target)].filter((section) => section && editing(section));
-    for (const section of list) {
-      const { form } = faces(section);
-      if (form?.requestSubmit) form.requestSubmit();
-      else if (form) submit(section, form);
+    savingAll = target === null;
+    try {
+      for (const section of list) {
+        const { form } = faces(section);
+        if (form?.requestSubmit) form.requestSubmit();
+        else if (form) submit(section, form);
+      }
+    } finally {
+      savingAll = false;
     }
+    // A Save all whose forms all stopped at validation: the focus is in the first that failed.
+    if (target === null && batch.size === 0) settleBatch();
     return list.length > 0;
   };
 
   /** A section's form was submitted: ds:save, then back to the view unless a listener cancelled it. */
   const submit = (section, form) => {
     const detail = { section, id: section.id || null, form, values: values(new view.FormData(form)) };
+    // Part of a Save all, or a save of its own (also of a section a Save all left open).
+    const inBatch = savingAll;
+    if (inBatch) batch.add(section);
+    else batch.delete(section);
     if (!tell(section, 'save', detail, true)) return;
-    const every = sections().every(editing);
+    const every = allEdit();
     done(section);
-    if (every && !sections().some(editing)) outside('[data-ds-object-edit]')[0]?.focus({ preventScroll: true });
+    if (!inBatch && every && !sections().some(editing)) outside('[data-ds-object-edit]')[0]?.focus({ preventScroll: true });
   };
 
   article.addEventListener('click', (event) => {
@@ -283,7 +329,7 @@ function controller(article, signal) {
     /** Edits exactly these sections (ids or elements; true: all, false or []: none); the others cancel. */
     set(value) {
       const all = sections();
-      const wanted = value === true ? all : value === false || value == null ? [] : (Array.isArray(value) ? value : [value]).map(resolve).filter(Boolean);
+      const wanted = value === true ? editable() : value === false || value == null ? [] : (Array.isArray(value) ? value : [value]).map(resolve).filter(Boolean);
       for (const section of all) if (editing(section) && !wanted.includes(section)) cancel(section);
       if (value === true) edit(null);
       else for (const section of wanted) edit(section);

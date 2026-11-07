@@ -399,6 +399,7 @@ strings a script adds have an option, so a page in another language passes its o
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
 | `More tabs` | the name of the More button and menu of a row of tabs that overflows (`data-ds-tabs-overflow`) (the system's string `moreTabs`) | `DS.core.config({ strings: { moreTabs } })` |
 | `{label} closed` | what `DS.tabs` announces when a tab closes (the system's string `tabClosed`) | `DS.core.config({ strings: { tabClosed } })` |
+| `Close {label}` | the named close action `DS.tabs` writes in the panel of a tab it adds (the system's string `closeTab`) | `DS.core.config({ strings: { closeTab } })` |
 | `More actions` | the name of the More button and menu that a page head's actions fold into (`data-ds-page-head`) (the system's string `moreActions`) | `DS.core.config({ strings: { moreActions } })` |
 | `Back to top` | the name of a back-to-top button that has no text of its own (`data-ds-backtop`) (the system's string `backToTop`) | `DS.core.config({ strings: { backToTop } })` |
 | `Editing {label}` | what `DS.object` announces when a section of an object page turns into its form (the system's string `editing`) | `DS.core.config({ strings: { editing } })` |
