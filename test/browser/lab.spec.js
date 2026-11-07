@@ -362,6 +362,15 @@ const CONTINUITY = {
   'plan-decide': { in: 'stage', sel: '.ds-plan__actions', props: ['opacity'] },
   'question-answer': { in: 'stage', sel: '.ds-question__actions', props: ['opacity'] },
   'toolcall-status': { in: 'stage', sel: '.ds-chevron', props: ['rotate'] },
+  'unsaved-change': { in: 'stage', sel: '.ds-savebar__bar', props: ['opacity'] },
+  'selectpanel-open': { in: 'stage', sel: '.ds-selectpanel__panel', props: ['opacity'] },
+  'combobox-system': { in: 'stage', sel: '.ds-combo__popup', props: ['opacity'] },
+  'backtop-show': { in: 'stage', sel: '.ds-backtop', props: ['opacity', 'scale.x'] },
+  'toc-jump': { in: 'stage', sel: '.ds-toc__indicator', props: ['--ds-indicator-y', '--ds-indicator-t'], sum: true },
+  'tabs-module': { in: 'stage', sel: '.ds-indicator', props: ['--ds-indicator-x', '--ds-indicator-l'], sum: true },
+  'tree-folder': { in: 'stage', sel: '.ds-tree__toggle > svg', props: ['rotate'] },
+  'code-fold': { in: 'stage', sel: '.ds-code-block', props: ['height'] },
+  'splitpane-collapse': { in: 'stage', sel: '.ds-splitpane__pane', props: ['width'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */
@@ -393,6 +402,22 @@ const CONTINUITY_EXEMPT = {
   'thinking-step': 'its step is a wheel line: a roll never turns back, a change during a turn rolls once to the last line (wheel.spec.js)',
   shimmer: 'a class on or off: the glint is a loop that starts or stops, no value turns back',
   'reasoning-auto': 'set({ done }) swaps the summary line (the shimmer for the total) and the auto mode opens or closes the body as a .ds-collapsible, whose continuity the disclosure demo checks',
+  'sticky-edges': 'scroll-driven: the edges follow the scroll position the demo sets, not time',
+  'page-head-condense': 'scroll-driven: the hairline follows the scroll position the demo sets, and the head condenses in one frame (no motion to turn back)',
+  'logview-latest': 'each toggle scrolls the log; the pill only toggles hidden (its fade is .ds-presence, timed in the presence demo)',
+  'wizard-step': 'panel swap: the panel that opens is another element each time (.ds-enter--swap), the one that goes hides at once',
+  'object-edit': 'face swap: the form and the view are two elements, each entering with .ds-enter--swap while the other hides at once',
+  'listdetail-level': 'each change of level slides in the other column (DS.motion.enter, slide) while the one that goes is gone at once: another element each time',
+  'chart-morph': 'the D14 morph writes the path\'s d from JS each frame: no computed style to sample (chart.spec.js checks that an interrupted morph continues from the frame it shows)',
+  'chart-arcs': 'the D14 morph writes the arcs\' d from JS each frame: no computed style to sample (the arcs share the line\'s morph, whose interruption chart.spec.js checks)',
+  'steps-path': 'a stage\'s fill and ink are colour transitions (--ds-dur-medium): no number to sample',
+  'choices-all': 'three boxes turn at once, each a colour transition with a check that wipes in (clip-path): no one number to sample',
+  'listbox-check': 'the box fills by a colour transition and its check wipes in (clip-path) while its opacity steps: no one number to sample',
+  'auditlog-arrive': 'each toggle adds or removes an entry and flip() glides the rows from where they are painted: another element each time, its translate from a new layout place (as sortable)',
+  'kveditor-rows': 'each toggle adds or removes a row through flip(): another element each time, not one value turning back (as composer-attachments)',
+  'taginput-tags': 'each toggle adds or removes a chip through flip(): another element each time, not one value turning back (as composer-attachments)',
+  'upload-rows': 'each toggle adds or removes a file row through flip(): another element each time, not one value turning back (as composer-attachments)',
+  'orderedchoice-move': 'each toggle moves the row in the DOM and flip() glides it from where it is painted, so its translate restarts from a new layout place (as sortable)',
 };
 
 /**
@@ -743,7 +768,8 @@ function overlayRows() {
  * element, its opener, `nested` when a parent dialog opens first), the
  * part whose tracks the row names, and a phone viewport where the row is
  * for phones. `drive` names the driver in layerStep() ('lab': the demo's
- * own toggle(), the way its component opens it; `after`: a layer the toggle
+ * own toggle(), the way its component opens it; `root`: the element that
+ * carries data-state, when it is not the part; `after`: a layer the toggle
  * opened too, closed once the row's layer closed).
  */
 const LAYERS = {
@@ -753,6 +779,9 @@ const LAYERS = {
   'Dialog on a phone': { drive: 'modal', phone: true, part: '.ds-dialog__box', variants: [['sg-lab-dialog', 'dialog'], ['sg-lab-dialog-div', 'dialog-div']] },
   'Full-screen dialog': { drive: 'modal', part: '.ds-dialog__box', variants: [['sg-lab-dialog-full', 'dialog-full']] },
   'Action sheet': { drive: 'modal', part: '.ds-dialog__box', variants: [['sg-lab-action-sheet', 'action-sheet']] },
+  // Through the demo's own toggle(), the way DS.tearsheet and DS.bottomsheet open them: the layer sits at the end of the .ds-theme.
+  Tearsheet: { drive: 'lab', part: '#sg-lab-tearsheet-device .ds-dialog__box', root: '#sg-lab-tearsheet-device', variants: [['sg-lab-tearsheet-device', 'tearsheet-open']] },
+  'Bottom sheet': { drive: 'lab', part: '#sg-lab-bottomsheet .ds-bottomsheet__panel', root: '#sg-lab-bottomsheet', variants: [['sg-lab-bottomsheet', 'bottomsheet-open']] },
   'Side sheet': { drive: 'modal', part: '.ds-sheet__panel', variants: [['sg-lab-sheet', 'sheet'], ['sg-lab-sheet-div', 'sheet-div']] },
   'Side sheet on a phone': { drive: 'modal', phone: true, part: '.ds-sheet__panel', variants: [['sg-lab-sheet', 'sheet'], ['sg-lab-sheet-div', 'sheet-div']] },
   'Modal drawer': { drive: 'drawer', part: '#drawer', variants: [['drawer', 'modal-drawer']] },
@@ -763,6 +792,7 @@ const LAYERS = {
   Menu: { drive: 'popup', part: '#sg-lab-menu', variants: [['sg-lab-menu', 'menu']] },
   Submenu: { drive: 'lab', part: '#sg-lab-menu-sub', after: '#sg-lab-menu-parent', variants: [['sg-lab-menu-sub', 'menu-submenu']] },
   'Context menu': { drive: 'lab', part: '#sg-lab-menu-context', variants: [['sg-lab-menu-context', 'menu-context']] },
+  'Select panel': { drive: 'lab', part: '.ds-selectpanel__panel', variants: [['sg-lab-selectpanel', 'selectpanel-open']] },
   Popover: { drive: 'lab', part: '#sg-lab-popover', variants: [['sg-lab-popover', 'popover-open']] },
   'Help card': { drive: 'lab', part: '#sg-lab-toggletip', variants: [['sg-lab-toggletip', 'toggletip-open']] },
   'Combobox list': { drive: 'popup', part: '.ds-combo__popup', variants: [['sg-lab-combo', 'combobox']] },
@@ -847,9 +877,11 @@ function layerStep(page, layer, step, variant, row) {
       part = root;
       done = act === 'open' ? () => root.getAttribute('data-state') === 'open' : () => root.hidden;
     } else if (spec.drive === 'lab') {
-      part = stage.querySelector(spec.part);
-      root = part;
+      // toggle() first: a demo may make its layer on the first open, outside the stage (`root`: the element of data-state).
       window.SG_LAB.find((entry) => entry.id === demo).toggle(stage, act === 'open', window.SG_LAB_HELPERS);
+      part = stage.querySelector(spec.part) || document.querySelector(spec.part);
+      root = spec.root ? document.querySelector(spec.root) : part;
+      done = act === 'open' ? () => root.getAttribute('data-state') === 'open' : () => !root.hasAttribute('data-state');
     } else if (spec.drive === 'cite') {
       // Through its marker's controller (the lab's setup made it), as a press would.
       part = document.getElementById(id);
