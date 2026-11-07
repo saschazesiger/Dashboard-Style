@@ -857,7 +857,7 @@ function componentFacts(list) {
  * "rippleHosts" lists a selector or RIPPLE_HOSTS starts one with one of
  * its classes) and progressive (the PROGRESSIVE_NAMES its header note
  * names). Known values: requires and context (other components, apart),
- * unique orders. "requires" is what a bundle resolves (the component needs
+ * unique orders, ripple's the highest. "requires" is what a bundle resolves (the component needs
  * the other one: its documented markup uses it, or a script of the system
  * writes it); "context" names the components whose classes the stylesheet
  * only styles where both meet (`.ds-card .ds-chip`), which a bundle never
@@ -908,6 +908,9 @@ export function verifyComponents(list = components()) {
     if (meta.stateClasses && [...meta.stateClasses].sort().join() !== meta.stateClasses.join()) problems.push(`${where}: "stateClasses" is not sorted`);
     if (orders.has(meta.order)) problems.push(`${where}: "order" ${meta.order} is also ${orders.get(meta.order)}'s`);
     else orders.set(meta.order, name);
+    // The ripple's box must beat every host's rules on its children: its sublayer is the last one.
+    const ripple = list.find((entry) => entry.name === 'ripple');
+    if (ripple && name !== 'ripple' && meta.order > ripple.meta.order) problems.push(`${where}: "order" ${meta.order} comes after ripple's (${ripple.meta.order}): ripple's sublayer is the last one (plans/3.0-conventions.md, "Ripple hosts")`);
     if (md === null && meta.docsOrder !== null) problems.push(`${where}: "docsOrder" is null without ${name}.md`);
     if (md !== null && meta.docsOrder === null) problems.push(`${where}: "docsOrder" is an integer (${name}.md has a place in docs/components.md)`);
     else if (md !== null && docOrders.has(meta.docsOrder)) problems.push(`${where}: "docsOrder" ${meta.docsOrder} is also ${docOrders.get(meta.docsOrder)}'s`);

@@ -25,8 +25,8 @@ scale (a 4px grid).
 - Space between parts is the container's gap: set it on the stack, cluster, grid or row, never as margins on the
   children. A margin is for what a container cannot give: one block set apart in flowing text, or an item pushed to
   the end of a column (`.ds-mt-auto`; across a row it is `.ds-push` of [Layout](#layout)).
-- They come after every component in the cascade, so they set the gap of a stack, a cluster, a card's rows or a
-  form row whatever the component gives it. Unlayered project CSS still wins over them.
+- They come after every component but the ripple in the cascade, so they set the gap of a stack, a cluster, a card's
+  rows or a form row whatever the component gives it. Unlayered project CSS still wins over them.
 - An exact step: density does not change it. The primitives' own default gaps follow density instead
   ([Layout](#layout)).
 - Options, forced colours, motion: none; these classes set space only.

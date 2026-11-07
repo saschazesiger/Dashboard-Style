@@ -14,9 +14,9 @@
  *   .ds-mt-0, -1, -2, -3, -4, -5, -6, -8, -10, -12    margin-block-start: --ds-space-<n>
  *   .ds-mt-auto                                       margin-block-start: auto
  *
- * They come after every component in the cascade, so they set the gap of
- * a stack, a cluster, a card's rows or a form row whatever the component
- * gives it. An exact step: density does not change it (the primitives'
+ * They come after every component but the ripple in the cascade, so
+ * they set the gap of a stack, a cluster, a card's rows or a form row
+ * whatever the component gives it. An exact step: density does not change it (the primitives'
  * own default gaps follow density, layout.css).
  *
  * Options: none read.
