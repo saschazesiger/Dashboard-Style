@@ -399,6 +399,7 @@ strings a script adds have an option, so a page in another language passes its o
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
 | `Previous month` | the name of the calendar's button to the month before (`DS.calendar`) (the system's string `previousMonth`) | `DS.core.config({ strings: { previousMonth } })` |
 | `Next month` | the name of the calendar's button to the month after (the system's string `nextMonth`) | `DS.core.config({ strings: { nextMonth } })` |
+| `selected` | what the name of a chosen day in the calendar ends on ("Wednesday, November 4, 2026, selected"; the system's string `selected`) | `DS.core.config({ strings: { selected } })` |
 | `Choose date` | the name of a date picker's calendar button and popover without one of their own (`DS.datepicker`) (the system's string `chooseDate`) | `DS.core.config({ strings: { chooseDate } })` |
 | `Choose dates` | the same for a date range picker (`DS.daterange`) (the system's string `chooseDates`) | `DS.core.config({ strings: { chooseDates } })` |
 | `Choose time` | the same for a time picker, and the name of its list (`DS.timepicker`) (the system's string `chooseTime`) | `DS.core.config({ strings: { chooseTime } })` |

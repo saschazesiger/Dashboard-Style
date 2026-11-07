@@ -19,9 +19,9 @@ SG.demo('timerange', {
         '<p class="ds-meta" data-demo="loaded" aria-live="polite">CPU of LAPTOP-0042: waiting for the first load.</p>' +
         '</div>', 'Open the range: a quick range applies at once, an absolute one with Apply. The refresh button sends ds:refresh, and so does every tick of the interval.') +
 
-      h.section('Absolute range in UTC, refreshing', '<div class="sg-row" data-demo="utc">' +
+      h.section('Today in UTC, refreshing', '<div class="sg-row" data-demo="utc">' +
         '<div class="ds-timerange" data-ds-timerange data-ds-timerange-from="now/d" data-ds-timerange-to="now/d" data-ds-timerange-refresh="1m" data-ds-timerange-zone="UTC" data-ds-timerange-quick="now-15m,now-1h,now-6h,now-24h,now/d,now-1d/d,now/w" data-ds-timerange-intervals="30s,1m,5m" data-ds-timerange-store="sg-utc"></div>' +
-        '</div>', 'Today, refreshed every minute; absolute times are typed and shown in UTC.') +
+        '</div>', 'Today in UTC (a relative range, rounded to the UTC day), refreshed every minute; absolute times are typed and shown in UTC.') +
 
       h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Enter</kbd> or <kbd class="ds-kbd">Space</kbd> on the range opens it; <kbd class="ds-kbd">Tab</kbd> moves through the quick ranges, the two fields, Apply and the recent ranges; <kbd class="ds-kbd">Enter</kbd> applies one, <kbd class="ds-kbd">Escape</kbd> closes without a change. The interval is a native select.</p>');
   },

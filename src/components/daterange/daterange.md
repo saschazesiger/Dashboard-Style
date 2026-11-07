@@ -43,7 +43,7 @@ preset stays the field's description and the current row of the list.
 | Value | `data-ds-value` (`value`) | `2026-11-01/2026-11-07`, or a preset |
 | Presets | `data-ds-daterange-presets` (`presets`) | the keys offered, comma separated; empty for none. Default `today, yesterday, last-7-days, last-30-days, this-month, last-month, this-year` |
 | Limits | `data-ds-daterange-min`, `data-ds-daterange-max` (`min`, `max`) | the first and last day of any range |
-| Blocked days | `data-ds-daterange-disabled` (`disabled`) | days that cannot start or end a range, as the calendar's |
+| Blocked days | `data-ds-daterange-disabled` (`disabled`) | days that cannot start or end a range, as the calendar's; typed or pasted as an end, the field is invalid |
 | Week numbers | `data-ds-daterange-weeks` (`weeks`) | the calendar's column of week numbers |
 | Form | `data-ds-daterange-name` (`name`) | a hidden input carries the range (`start/end`) |
 | Size, density, shape, touch | the option classes | those of the field, the calendar and the popover; the tag follows the field's type |

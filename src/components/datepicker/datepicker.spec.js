@@ -110,6 +110,26 @@ test('min, max and blocked days reach the calendar; Today is blocked when today 
   await expect(panel).toHaveAttribute('data-state', 'open');
 });
 
+test('a blocked day typed into the field is invalid, as the calendar would never pick it', async ({ page }) => {
+  await open(page);
+  const { root } = await mount(page, 'data-ds-value="2026-11-05" data-ds-datepicker-disabled="6,7"');
+  const field = root.locator('.ds-datefield');
+  await root.locator('.ds-datefield__segment[data-segment="day"]').focus();
+  // The 5th is a Thursday: up twice is Saturday the 7th.
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('ArrowUp');
+  expect((await events(page)).at(-1)).toEqual({ on: 'ds-picker', value: '2026-11-07', valid: false });
+  await expect(field).toHaveAttribute('aria-invalid', 'true');
+  // Typed digits too.
+  await page.keyboard.type('09');
+  expect((await events(page)).at(-1)).toEqual({ on: 'ds-picker', value: '2026-11-09', valid: true });
+  await expect(field).not.toHaveAttribute('aria-invalid', 'true');
+  await root.locator('.ds-datefield__segment[data-segment="day"]').focus();
+  await page.keyboard.type('08');
+  expect((await events(page)).at(-1)).toEqual({ on: 'ds-picker', value: '2026-11-08', valid: false });
+  await expect(field).toHaveAttribute('aria-invalid', 'true');
+});
+
 test('a date and time: the day goes in and the list takes focus, the time closes it; the zone at the field\'s end', async ({ page }) => {
   await open(page);
   const { root, toggle, panel } = await mount(page, 'data-ds-datepicker-type="datetime" data-ds-datepicker-zone="UTC" data-ds-datepicker-hour-cycle="h23" data-ds-value="2026-11-07T02:30"');

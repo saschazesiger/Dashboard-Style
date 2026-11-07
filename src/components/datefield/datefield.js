@@ -32,7 +32,9 @@
  *
  * ds:change ({ value, valid }) on the field whenever the value changes,
  * also to '' when a part is cleared; `valid` is false outside min and max,
- * for a range that ends before it starts, and for an unfinished value.
+ * on a day the `disabled` option blocks (the days a picker's calendar
+ * blocks: typed or pasted, they count as invalid too), for a range that
+ * ends before it starts, and for an unfinished value.
  * aria-invalid on the group follows. A name (data-ds-datefield-name) keeps
  * a hidden input with the value, for a form.
  *
@@ -47,7 +49,7 @@
  * ES2022; no progressive feature of its own.
  */
 import { config, define, emit, t } from '../../js/core.js';
-import { parse as parseDate, iso, daysIn, compare, today } from '../calendar/calendar.js';
+import { parse as parseDate, iso, daysIn, compare, today, available } from '../calendar/calendar.js';
 
 const DATE_PARTS = ['year', 'month', 'day'];
 const TIME_PARTS = ['hour', 'minute', 'second', 'dayPeriod'];
@@ -289,7 +291,9 @@ function readOptions(element) {
 /**
  * The field's controller, the one [data-ds-datefield] makes; once per
  * element. Options: `type` ('date', 'time', 'datetime', 'range'), `value`,
- * `min`, `max` (ISO text of the type), `name`, `seconds`, `hourCycle`
+ * `min`, `max` (ISO text of the type), `disabled` (blocked days, as in
+ * DS.calendar.available(): a date's, a datetime's day, a range's ends),
+ * `name`, `seconds`, `hourCycle`
  * ('h12', 'h23'), `zone`, `locale`, `invalid` (the page's own verdict:
  * aria-invalid holds whatever the value), `silent` (no ds: events on the
  * element, only on() listeners: a picker around it sends its own).
@@ -357,7 +361,7 @@ export function create(element, options = {}) {
     return start && end ? `${start}/${end}` : '';
   }
 
-  /** Whether the value is whole and within min and max (a range: in order). */
+  /** Whether the value is whole, within min and max and on no blocked day (a range: in order). */
   function validity(text) {
     if (!text) return !parts.some((part) => part.type !== 'literal' && state.values.get(keyOf(part)) !== null && state.values.get(keyOf(part)) !== undefined);
     const kind = type();
@@ -370,6 +374,8 @@ export function create(element, options = {}) {
       return (!min || order(item, min) >= 0) && (!max || order(item, max) <= 0);
     };
     if (!values.every(within)) return false;
+    // A day the calendar blocks is no better typed.
+    if (kind !== 'time' && state.options.disabled && !values.every((item) => available(parseDate(item), { disabled: state.options.disabled }))) return false;
     return kind !== 'range' || order(values[0], values[1]) <= 0;
   }
 
@@ -820,7 +826,7 @@ export function create(element, options = {}) {
       changed(notify);
       return value();
     },
-    /** Whether the value is whole and within min and max. */
+    /** Whether the value is whole, within min and max and on no blocked day. */
     valid() {
       return validity(value());
     },
@@ -841,7 +847,7 @@ export function create(element, options = {}) {
     update(next = {}) {
       const before = value();
       Object.assign(state.options, next);
-      if (Object.keys(next).every((key) => key === 'invalid')) {
+      if (Object.keys(next).every((key) => key === 'invalid' || key === 'disabled')) {
         paint();
         return;
       }
@@ -868,13 +874,16 @@ export function create(element, options = {}) {
 
 define('datefield', {
   attribute: 'data-ds-datefield',
-  attributes: ['data-ds-datefield-type', 'data-ds-datefield-min', 'data-ds-datefield-max', 'data-ds-datefield-seconds', 'data-ds-datefield-hour-cycle', 'data-ds-datefield-zone', 'data-ds-datefield-name'],
+  attributes: ['data-ds-value', 'data-ds-datefield-type', 'data-ds-datefield-min', 'data-ds-datefield-max', 'data-ds-datefield-seconds', 'data-ds-datefield-hour-cycle', 'data-ds-datefield-zone', 'data-ds-datefield-name'],
   init(element) {
     const controller = create(element);
     return {
       ...controller,
-      update() {
-        controller.update(readOptions(element));
+      // Another option keeps what the person typed or picked; only a changed data-ds-value replaces it.
+      update(names = []) {
+        const next = readOptions(element);
+        if (!names.includes('data-ds-value')) delete next.value;
+        controller.update(next);
       },
     };
   },

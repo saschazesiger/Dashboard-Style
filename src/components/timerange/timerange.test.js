@@ -49,6 +49,30 @@ describe('DS.timerange', () => {
     assert.equal(resolve({ from: 'nonsense' }, { now: NOW }), null);
   });
 
+  it('rounds and steps in the calendar of its zone, not the browser\'s', () => {
+    // A browser east of UTC: its midnight is 23:00 UTC the day before.
+    const before = process.env.TZ;
+    process.env.TZ = 'Europe/Zurich';
+    try {
+      const now = Date.UTC(2026, 10, 5, 10, 0);
+      assert.equal(new Date(now).getTimezoneOffset(), -60, 'the zone took');
+      const today = resolve({ from: 'now/d', to: 'now/d' }, { now, timeZone: 'UTC' });
+      assert.deepEqual([today.start.toISOString(), today.end.toISOString()], ['2026-11-05T00:00:00.000Z', '2026-11-05T23:59:59.999Z']);
+      const yesterday = resolve({ from: 'now-1d/d', to: 'now-1d/d' }, { now, timeZone: 'UTC' });
+      assert.equal(yesterday.start.toISOString(), '2026-11-04T00:00:00.000Z');
+      assert.equal(parse('now/w', { now, timeZone: 'UTC', firstDay: 1 }).toISOString(), '2026-11-02T00:00:00.000Z');
+      assert.equal(parse('now/M', { now, timeZone: 'UTC', roundUp: true }).toISOString(), '2026-11-30T23:59:59.999Z');
+      assert.equal(parse('now-1M/M', { now, timeZone: 'UTC' }).toISOString(), '2026-10-01T00:00:00.000Z');
+      // Local time without a zone, as before; a day with a change of clocks has its 25 hours.
+      assert.equal(parse('now/d', { now }).toISOString(), '2026-11-04T23:00:00.000Z');
+      const long = resolve({ from: 'now/d', to: 'now/d' }, { now: Date.UTC(2026, 10, 1, 12), timeZone: 'America/New_York' });
+      assert.deepEqual([long.start.toISOString(), long.end.toISOString()], ['2026-11-01T04:00:00.000Z', '2026-11-02T04:59:59.999Z']);
+    } finally {
+      if (before === undefined) delete process.env.TZ;
+      else process.env.TZ = before;
+    }
+  });
+
   it('reads spans of the refresh interval', () => {
     assert.equal(spanMs('5s'), 5000);
     assert.equal(spanMs('15m'), 900000);

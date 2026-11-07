@@ -130,6 +130,52 @@ test('min, max and blocked days: focusable and read, never picked; the month but
   await expect(day(calendar, '2026-12-21')).toHaveAttribute('aria-disabled', 'true');
 });
 
+test('the month buttons keep the focus while they turn the page; a blocked one hands it to the focused day', async ({ page, browserName }) => {
+  await open(page);
+  const calendar = await mount(page, 'data-ds-value="2026-11-04" data-ds-calendar-max="2027-01-20"');
+  const title = calendar.locator('.ds-calendar__title');
+  const active = () => page.evaluate(() => {
+    const el = document.activeElement;
+    return el?.getAttribute('data-step') ?? el?.getAttribute('data-date') ?? el?.tagName;
+  });
+  await calendar.locator('.ds-calendar__nav[data-step="1"]').focus();
+  await page.keyboard.press('Enter');
+  await expect(title).toHaveText('December 2026');
+  expect(await active()).toBe('1');
+  await page.keyboard.press('Enter');
+  await expect(title).toHaveText('January 2027');
+  // January is the last month max allows: the button is blocked, the focus goes to the tab stop day.
+  await expect(calendar.locator('.ds-calendar__nav[data-step="1"]')).toHaveAttribute('aria-disabled', 'true');
+  expect(await active()).toBe('2027-01-04');
+  // A click keeps it as well (WebKit focuses no button on a click).
+  await calendar.locator('.ds-calendar__nav[data-step="-1"]').click();
+  await expect(title).toHaveText('December 2026');
+  if (browserName !== 'webkit') expect(await active()).toBe('-1');
+  // Two months side by side turn the same way.
+  await page.evaluate(() => document.querySelector('#fx-mine').remove());
+  const two = await mount(page, 'data-ds-calendar-mode="range" data-ds-calendar-months="2" data-ds-value="2026-11-01/2026-11-07"');
+  await two.locator('.ds-calendar__nav[data-step="1"]').focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Enter');
+  await expect(two.locator('.ds-calendar__title').first()).toHaveText('January 2027');
+  expect(await active()).toBe('1');
+});
+
+test('a chosen day says so in its name, also the days of a range', async ({ page }) => {
+  await open(page);
+  const calendar = await mount(page, 'data-ds-value="2026-11-04"');
+  await expect(day(calendar, '2026-11-04')).toHaveAccessibleName('Wednesday, November 4, 2026, selected');
+  await expect(day(calendar, '2026-11-05')).toHaveAccessibleName('Thursday, November 5, 2026');
+  await day(calendar, '2026-11-05').click();
+  await expect(day(calendar, '2026-11-05')).toHaveAccessibleName('Thursday, November 5, 2026, selected');
+  await expect(day(calendar, '2026-11-04')).toHaveAccessibleName('Wednesday, November 4, 2026');
+  await page.evaluate(() => document.querySelector('#fx-mine').remove());
+  const range = await mount(page, 'data-ds-calendar-mode="range" data-ds-value="2026-11-01/2026-11-03"');
+  await expect(day(range, '2026-11-01')).toHaveAccessibleName('Sunday, November 1, 2026, selected');
+  await expect(day(range, '2026-11-02')).toHaveAccessibleName('Monday, November 2, 2026, selected');
+  await expect(day(range, '2026-11-04')).toHaveAccessibleName('Wednesday, November 4, 2026');
+});
+
 test('range: the first pick starts it, the pointer and the keys preview it, the second pick ends it in either order', async ({ page }) => {
   await open(page);
   const calendar = await mount(page, 'data-ds-calendar-mode="range" data-ds-calendar-months="2" data-ds-value="2026-11-01/2026-11-07"');

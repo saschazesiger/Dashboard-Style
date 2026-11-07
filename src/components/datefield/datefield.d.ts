@@ -1,4 +1,5 @@
 /** Types of DS.datefield (js/datefield.js): the segmented date, time, date-time and range field. */
+import type { DisabledRule } from '../calendar/calendar.js';
 
 export type FieldType = 'date' | 'time' | 'datetime' | 'range';
 
@@ -8,6 +9,8 @@ export interface DatefieldOptions {
   value?: string | null;
   min?: string;
   max?: string;
+  /** Blocked days, as DS.calendar.available() reads them (a function, or ISO dates, ranges and weekdays): such a day is invalid. */
+  disabled?: DisabledRule;
   /** The name of a hidden input that carries the value in a form. */
   name?: string;
   seconds?: boolean;

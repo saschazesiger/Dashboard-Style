@@ -95,7 +95,7 @@ export function create(root, options = {}) {
   const toggle = fieldEl.querySelector('.ds-datefield__toggle') ?? root.querySelector('.ds-datefield__toggle');
   if (toggle && !toggle.hasAttribute('aria-label')) toggle.setAttribute('aria-label', t('chooseDate'));
   const field = createField(fieldEl, {
-    type: datetime ? 'datetime' : 'date', value: settings.value, min: settings.min, max: settings.max,
+    type: datetime ? 'datetime' : 'date', value: settings.value, min: settings.min, max: settings.max, disabled: settings.disabled,
     zone: settings.zone, name: settings.name, hourCycle: settings.hourCycle, locale: settings.locale, silent: true,
   });
 

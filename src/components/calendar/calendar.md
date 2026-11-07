@@ -99,8 +99,11 @@ numbers, so no daylight saving change moves a day:
 
 The grid is a `table` with `role="grid"`, named by its month title; the weekday heads carry the full name in `abbr`;
 each day is a button named by its full date, with `aria-current="date"` for today and `aria-disabled` for a blocked day;
-a picked day's cell is `aria-selected="true"`. The month title is a polite live region, so a turned page is heard. The
-two month buttons are named by the strings `previousMonth` and `nextMonth` ([install.md](install.md#language-and-locale)).
+a picked day's cell is `aria-selected="true"`, and since the focus sits on the button, not on the cell, the button's
+name ends on the string `selected` as well ("Wednesday, November 4, 2026, selected"). The month title is a polite live
+region, so a turned page is heard; the month buttons keep the focus while they turn the page (a blocked one hands it to
+the focused day). The two month buttons are named by the strings `previousMonth` and `nextMonth`
+([install.md](install.md#language-and-locale)).
 Status is never colour alone: every state is an attribute, today has a ring, a picked day a fill.
 
 ### Forced colours

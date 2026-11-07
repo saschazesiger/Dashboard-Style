@@ -65,7 +65,7 @@ interval that sends `ds:refresh`. The values are short and readable, so the rang
 | Intervals | `data-ds-timerange-intervals` (`intervals`) | the choices of the select, default `5s,10s,30s,1m,5m,15m,30m,1h` |
 | Quick ranges | `data-ds-timerange-quick` (`quick`) | the "from" of each quick range (its "to" is `now`, or for a rounded one the same expression); default from `now-5m` to `now-90d`, today, yesterday, this week and this month |
 | Recent ranges | `data-ds-timerange-store` (`store`) | the key under which `DS.store` remembers the last five ranges that are not quick ones (per browser, namespace `timerange`); default `recent` |
-| Zone | `data-ds-timerange-zone` (`zone`) | the zone of absolute times: `local` (default) or an IANA name (`UTC`) |
+| Zone | `data-ds-timerange-zone` (`zone`) | the zone of absolute times: `local` (default) or an IANA name (`UTC`); relative days, weeks, months and years and every rounding follow its calendar (`now/d` in UTC is the UTC day) |
 | Size, density, shape, touch | the option classes | the trigger and the refresh button are buttons; the interval pill computes the same height (`--ds-btn-height`, 8px per size step, 4px per density step, at least `--ds-target-min`) and radius (the pill times `--ds-shape`) |
 
 `create()` also takes `locale` (else the page's). Tone: none.

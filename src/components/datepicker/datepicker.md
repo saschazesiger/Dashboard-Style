@@ -43,7 +43,7 @@ calendar.
 | Type | `data-ds-datepicker-type` (`type`) | `date` (default) or `datetime` |
 | Value | `data-ds-value` (`value`) | `2026-11-04`, or `2026-11-04T09:30` (a wall time) |
 | Limits | `data-ds-datepicker-min`, `data-ds-datepicker-max` (`min`, `max`) | ISO text of the type; the calendar stops there and the field is invalid outside |
-| Blocked days | `data-ds-datepicker-disabled` (`disabled`) | dates, ranges and weekdays, as the calendar's (`6,7` is the weekend) |
+| Blocked days | `data-ds-datepicker-disabled` (`disabled`) | dates, ranges and weekdays, as the calendar's (`6,7` is the weekend); the calendar never picks them, and typed or pasted the field is invalid |
 | Week numbers | `data-ds-datepicker-weeks` (`weeks`) | the calendar's column of week numbers |
 | Zone | `data-ds-datepicker-zone` (`zone`) | a date and time's zone, `local` or an IANA name: its offset at the field's end |
 | Step | `data-ds-datepicker-step` (`step`) | minutes between the listed times, default 30 |

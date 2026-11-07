@@ -382,13 +382,16 @@ export function create(element, options = {}) {
 
 define('duration', {
   attribute: 'data-ds-duration',
-  attributes: ['data-ds-duration-step', 'data-ds-duration-min', 'data-ds-duration-max', 'data-ds-duration-unit', 'data-ds-duration-smallest', 'data-ds-duration-name'],
+  attributes: ['data-ds-value', 'data-ds-duration-step', 'data-ds-duration-min', 'data-ds-duration-max', 'data-ds-duration-unit', 'data-ds-duration-smallest', 'data-ds-duration-name'],
   init(element) {
     const controller = create(/** @type {HTMLInputElement} */ (element));
     return {
       ...controller,
-      update() {
-        controller.update(readOptions(element));
+      // Another option keeps what the person typed or picked; only a changed data-ds-value replaces it.
+      update(names = []) {
+        const next = readOptions(element);
+        if (!names.includes('data-ds-value')) delete next.value;
+        controller.update(next);
       },
     };
   },

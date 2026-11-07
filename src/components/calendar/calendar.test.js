@@ -123,6 +123,6 @@ describe('DS.calendar grid', () => {
   it('names no timing and writes no UI text of its own but the two month buttons', () => {
     const source = read('src/components/calendar/calendar.js').replace(/\/\*[\s\S]*?\*\//g, '');
     assert.doesNotMatch(source, /\b\d+ms\b|setTimeout/);
-    assert.deepEqual([...source.matchAll(/\bt\('(\w+)'\)/g)].map((match) => match[1]).sort(), ['nextMonth', 'previousMonth']);
+    assert.deepEqual([...source.matchAll(/\bt\('(\w+)'\)/g)].map((match) => match[1]).sort(), ['nextMonth', 'previousMonth', 'selected']);
   });
 });

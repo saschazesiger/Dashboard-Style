@@ -158,6 +158,19 @@ test('validity: outside min, a range that ends before it starts and a half-typed
   await expect(range.locator('.ds-datefield__between')).toHaveAttribute('aria-hidden', 'true');
 });
 
+test('a changed option attribute keeps what was typed; a changed data-ds-value applies', async ({ page }) => {
+  await open(page);
+  const field = await mount(page, 'data-ds-value="2026-11-04"');
+  await field.evaluate((el) => window.DS.datefield.create(el).set('2026-12-25'));
+  // A min after it: the field turns invalid (the update ran) and keeps 2026-12-25, not the markup's 2026-11-04.
+  await field.evaluate((el) => el.setAttribute('data-ds-datefield-min', '2027-01-01'));
+  await expect(field).toHaveAttribute('aria-invalid', 'true');
+  expect(await value(field)).toBe('2026-12-25');
+  await field.evaluate((el) => el.setAttribute('data-ds-value', '2027-02-01'));
+  await expect.poll(() => value(field)).toBe('2027-02-01');
+  await expect(field).not.toHaveAttribute('aria-invalid', 'true');
+});
+
 test('time: the locale\'s hour cycle and its day period (a, p), or 24 hours; seconds', async ({ page }) => {
   await open(page);
   const field = await mount(page, 'data-ds-datefield-type="time" data-ds-value="21:45"');

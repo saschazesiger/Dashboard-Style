@@ -153,6 +153,7 @@ const DEFAULT_STRINGS = Object.freeze({
   dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
   previousMonth: 'Previous month',
   nextMonth: 'Next month',
+  selected: 'selected',
   chooseDate: 'Choose date',
   chooseDates: 'Choose dates',
   chooseTime: 'Choose time',

@@ -21,7 +21,8 @@
  *
  * Values are URL-friendly text. Relative: now, now-15m, now+1h, a unit
  * after a slash rounds (now/d the start of today; as a "to" the end of
- * it): s, m, h, d, w, M, y. Absolute: an ISO date or date-time (2026-11-04,
+ * it): s, m, h, d, w, M, y. Days, weeks, months, years and the rounding
+ * follow the calendar of the zone (now/d in UTC is the UTC day). Absolute: an ISO date or date-time (2026-11-04,
  * 2026-11-04T09:00, with or without its offset; without one it is a wall
  * time in the zone) or milliseconds since 1970. The refresh interval is
  * '' (off) or a span: 5s, 1m, 1h.
@@ -33,8 +34,8 @@
  * ISO instants, resolved at that moment.
  *
  * Keyboard: the trigger opens the popover (Alt+ArrowDown too); in it, Tab
- * cycles through the absolute fields, Apply, the recent and the quick
- * ranges; a range applies on Enter or a click and closes it; Escape closes
+ * cycles through the quick ranges, the from and to fields, Apply and the
+ * recent ranges; a range applies on Enter or a click and closes it; Escape closes
  * without a change. Apply refuses a "from" after the "to" and says so in
  * the popover (role="alert").
  *
@@ -62,29 +63,70 @@ const RECENT_MAX = 5;
 
 const RELATIVE = /^now((?:[+-]\d+[smhdwMy])*)(?:\/([smhdwMy]))?$/;
 
-/** A local date moved by a number of units (months and years by the calendar). */
-function shift(date, amount, unit) {
-  const out = new Date(date);
-  if (unit === 'M') out.setMonth(out.getMonth() + amount);
-  else if (unit === 'y') out.setFullYear(out.getFullYear() + amount);
-  else if (unit === 'd' || unit === 'w') out.setDate(out.getDate() + amount * (unit === 'w' ? 7 : 1));
-  else out.setTime(out.getTime() + amount * UNIT_MS[unit]);
-  return out;
+/** The zone a rounding or a calendar step works in: an IANA name the engine knows, else '' (local time). */
+function zoneOf(timeZone) {
+  if (!timeZone || timeZone === 'local') return '';
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone });
+    return timeZone;
+  } catch {
+    return '';
+  }
 }
 
-/** The start (or, `up`, the last millisecond) of the unit around a local date. */
-function round(date, unit, up, firstDay = 1) {
-  const out = new Date(date);
-  switch (unit) {
-    case 'y': out.setMonth(0, 1); out.setHours(0, 0, 0, 0); break;
-    case 'M': out.setDate(1); out.setHours(0, 0, 0, 0); break;
-    case 'w': out.setDate(out.getDate() - ((out.getDay() || 7) - firstDay + 7) % 7); out.setHours(0, 0, 0, 0); break;
-    case 'd': out.setHours(0, 0, 0, 0); break;
-    case 'h': out.setMinutes(0, 0, 0); break;
-    case 'm': out.setSeconds(0, 0); break;
-    default: out.setMilliseconds(0);
-  }
-  return up ? new Date(shift(out, 1, unit).getTime() - 1) : out;
+/** The wall time of an instant in a zone ('' local), as a Date whose UTC fields are that wall time. */
+function wallOf(date, zone) {
+  const ms = ((date.getTime() % 1000) + 1000) % 1000;
+  if (!zone) return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds(), ms));
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone: zone, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' }).formatToParts(date);
+  const get = (type) => Number(parts.find((part) => part.type === type)?.value);
+  return new Date(Date.UTC(get('year'), get('month') - 1, get('day'), get('hour') % 24, get('minute'), get('second'), ms));
+}
+
+/** The instant of a wall time (wallOf()) in a zone ('' local); a wall time a change of clocks skips moves forward. */
+function instantOf(wall, zone) {
+  if (!zone) return new Date(wall.getUTCFullYear(), wall.getUTCMonth(), wall.getUTCDate(), wall.getUTCHours(), wall.getUTCMinutes(), wall.getUTCSeconds(), wall.getUTCMilliseconds());
+  const instant = toInstant(wall.toISOString().slice(0, 19), zone);
+  return instant ? new Date(instant.getTime() + wall.getUTCMilliseconds()) : wall;
+}
+
+/**
+ * Runs `change(wall)` on the wall time of `date` in the zone (now/d in UTC
+ * is the UTC day), or in local time without one, and returns the instant
+ * of the result. The wall time is a Date read and set through its UTC
+ * fields, which no change of clocks moves.
+ */
+function onCalendar(date, timeZone, change) {
+  const zone = zoneOf(timeZone);
+  const wall = wallOf(date, zone);
+  change(wall);
+  return instantOf(wall, zone);
+}
+
+/** A date moved by a number of units (days, weeks, months and years by the calendar of the zone). */
+function shift(date, amount, unit, timeZone) {
+  if (unit === 's' || unit === 'm' || unit === 'h') return new Date(date.getTime() + amount * UNIT_MS[unit]);
+  return onCalendar(date, timeZone, (wall) => {
+    if (unit === 'M') wall.setUTCMonth(wall.getUTCMonth() + amount);
+    else if (unit === 'y') wall.setUTCFullYear(wall.getUTCFullYear() + amount);
+    else wall.setUTCDate(wall.getUTCDate() + amount * (unit === 'w' ? 7 : 1));
+  });
+}
+
+/** The start (or, `up`, the last millisecond) of the unit around a date, in the zone's calendar. */
+function round(date, unit, up, firstDay = 1, timeZone = '') {
+  const start = onCalendar(date, timeZone, (wall) => {
+    switch (unit) {
+      case 'y': wall.setUTCMonth(0, 1); wall.setUTCHours(0, 0, 0, 0); break;
+      case 'M': wall.setUTCDate(1); wall.setUTCHours(0, 0, 0, 0); break;
+      case 'w': wall.setUTCDate(wall.getUTCDate() - ((wall.getUTCDay() || 7) - firstDay + 7) % 7); wall.setUTCHours(0, 0, 0, 0); break;
+      case 'd': wall.setUTCHours(0, 0, 0, 0); break;
+      case 'h': wall.setUTCMinutes(0, 0, 0); break;
+      case 'm': wall.setUTCSeconds(0, 0); break;
+      default: wall.setUTCMilliseconds(0);
+    }
+  });
+  return up ? new Date(shift(start, 1, unit, timeZone).getTime() - 1) : start;
 }
 
 /**
@@ -100,8 +142,8 @@ export function parse(value, options = {}) {
   const relative = RELATIVE.exec(text);
   if (relative) {
     let date = now;
-    for (const [, sign, amount, unit] of relative[1].matchAll(/([+-])(\d+)([smhdwMy])/g)) date = shift(date, Number(amount) * (sign === '-' ? -1 : 1), unit);
-    return relative[2] ? round(date, relative[2], Boolean(options.roundUp), options.firstDay ?? weekInfo().firstDay) : date;
+    for (const [, sign, amount, unit] of relative[1].matchAll(/([+-])(\d+)([smhdwMy])/g)) date = shift(date, Number(amount) * (sign === '-' ? -1 : 1), unit, options.timeZone);
+    return relative[2] ? round(date, relative[2], Boolean(options.roundUp), options.firstDay ?? weekInfo().firstDay, options.timeZone) : date;
   }
   if (/^\d{9,}$/.test(text)) return new Date(Number(text));
   // With its offset: an instant as it stands.

@@ -50,13 +50,15 @@ A range has two `.ds-datefield__group` (`role="group"`, named by the strings `ra
 | Shape | `.ds-shape-*` | multiplies the box's radius and a part's |
 | Touch | `.ds-touch` | at least `--ds-touch-target` high |
 
-`create()` also takes `locale` (else the page's), `invalid` (the page's own verdict: `aria-invalid` holds whatever the
+`create()` also takes `locale` (else the page's), `disabled` (blocked days as `DS.calendar.available()` reads them:
+dates, ranges and weekdays; a date, a date and time's day or a range's end on such a day is invalid, so a day the
+picker's calendar blocks cannot be typed or pasted either; the pickers pass theirs), `invalid` (the page's own verdict: `aria-invalid` holds whatever the
 value, as for a range checked across two fields) and `silent` (no `ds:` events on the element; a picker around it
 sends its own). On a phone (600px or less) the type is `--ds-font-input` (16px), so iOS does not zoom.
 
 ### States
 
-- **Invalid**: outside `min` and `max`, a day the month does not have, a range that ends before it starts, or a value
+- **Invalid**: outside `min` and `max`, on a blocked day (`disabled`), a day the month does not have, a range that ends before it starts, or a value
   left half typed: the script sets `aria-invalid="true"` on the group and its parts, which draws the error border. Show
   the reason under the field (`.ds-field__hint.ds-field__hint--error` with its icon, linked by `aria-describedby`), so the colour is never alone.
 - **Disabled**: `aria-disabled="true"` on the group: the disabled look, no part takes focus.

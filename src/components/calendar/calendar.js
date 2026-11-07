@@ -20,7 +20,8 @@
  * the week and the week numbering (Intl.Locale weekInfo, else a table of
  * regions), the digits and the full date that names each day. The only
  * strings of its own are the names of the two month buttons
- * (previousMonth, nextMonth).
+ * (previousMonth, nextMonth) and the word a chosen day's name ends on
+ * (selected).
  *
  * The grid: one tab stop, the focused day (roving tabindex). Arrows move a
  * day or a week (left and right follow the writing direction), Home and End
@@ -28,7 +29,10 @@
  * Shift+PageUp and Shift+PageDown a year; Enter or Space picks the day.
  * Moving past the months on screen turns the page. A day outside min and
  * max, or one `disabled` names, is aria-disabled: focusable, read, never
- * picked. The month title is a polite live region, so a turned page is
+ * picked. The selected days say so in their names (the focus sits on the
+ * day's button, not on the gridcell that carries aria-selected). The month
+ * buttons keep the focus on a turned page (a blocked one hands it to the
+ * tab stop day). The month title is a polite live region, so a turned page is
  * heard. In range mode the first pick starts a range, the pointer or the
  * keys preview it (data-preview), the second pick ends it.
  *
@@ -491,7 +495,8 @@ export function create(element, options = {}) {
       const cells = days.map((date) => {
         if (date.month !== first.month) return '<td></td>';
         const key = iso(date);
-        const attrs = [`data-date="${key}"`, `aria-label="${escapeHtml(label(date, { locale: loc }))}"`, 'tabindex="-1"'];
+        const name = label(date, { locale: loc });
+        const attrs = [`data-date="${key}"`, `data-name="${escapeHtml(name)}"`, `aria-label="${escapeHtml(name)}"`, 'tabindex="-1"'];
         if (!compare(date, now)) attrs.push('aria-current="date"');
         if (!pickable(date)) attrs.push('aria-disabled="true"');
         return `<td><button class="ds-calendar__day" type="button" ${attrs.join(' ')}>${escapeHtml(dayDigits.format(atNoon(date)))}</button></td>`;
@@ -550,6 +555,10 @@ export function create(element, options = {}) {
       }
       if (selected) cell.setAttribute('aria-selected', 'true');
       else cell.removeAttribute('aria-selected');
+      // The focused button is what a screen reader names: the selection goes into its name.
+      const name = button.getAttribute('data-name') ?? '';
+      const spoken = selected ? `${name}, ${t('selected')}` : name;
+      if (button.getAttribute('aria-label') !== spoken) button.setAttribute('aria-label', spoken);
       if (place && !previewing) cell.setAttribute('data-range', place);
       else cell.removeAttribute('data-range');
       if (place && previewing) cell.setAttribute('data-preview', place);
@@ -573,11 +582,18 @@ export function create(element, options = {}) {
 
   function turnPage(step) {
     if (!canTurn(step)) return;
+    // The month buttons sit in the keyed months the morph replaces: the focus goes along.
+    const active = element.ownerDocument?.activeElement;
+    const hadFocus = Boolean(active?.classList?.contains('ds-calendar__nav') && element.contains(active));
     state.view = add(state.view, { months: step });
     // The focused day follows to the same place in the new month.
     state.focus = clampDay(add(state.focus, { months: step }));
     if (!visible(state.focus)) state.focus = clampDay(state.view);
     render(step);
+    if (!hadFocus) return;
+    const nav = element.querySelector(`.ds-calendar__nav[data-step="${step}"]`);
+    const target = nav && nav.getAttribute('aria-disabled') !== 'true' ? nav : element.querySelector('.ds-calendar__day[tabindex="0"]');
+    /** @type {HTMLElement|null} */ (target)?.focus({ preventScroll: true });
   }
 
   function fire(type, detail) {
@@ -753,8 +769,11 @@ define('calendar', {
     const controller = create(element);
     return {
       ...controller,
-      update() {
-        controller.update(readOptions(element));
+      // Another option keeps what the person typed or picked; only a changed data-ds-value replaces it.
+      update(names = []) {
+        const next = readOptions(element);
+        if (!names.includes('data-ds-value')) delete next.value;
+        controller.update(next);
       },
     };
   },

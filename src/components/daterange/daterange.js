@@ -177,7 +177,7 @@ export function create(root, options = {}) {
   const toggle = fieldEl.querySelector('.ds-datefield__toggle') ?? root.querySelector('.ds-datefield__toggle');
   if (toggle && !toggle.hasAttribute('aria-label')) toggle.setAttribute('aria-label', t('chooseDates'));
   if (resolve(settings.value)) preset = settings.value;
-  const field = createField(fieldEl, { type: 'range', value: rangeText(settings.value), min: settings.min, max: settings.max, name: settings.name, locale: settings.locale, silent: true });
+  const field = createField(fieldEl, { type: 'range', value: rangeText(settings.value), min: settings.min, max: settings.max, disabled: settings.disabled, name: settings.name, locale: settings.locale, silent: true });
 
   // The preset in force, named inside the field (and its description).
   const badge = doc.createElement('span');
