@@ -49,7 +49,8 @@ and its `.ds-transcript__unread` count ("3 new"), gone while empty.
   from the keyboard hands the focus to the transcript before it hides. Call `stick()` after the user sends.
 - **Load earlier**: a press on `[data-ds-transcript-earlier]` dispatches `ds:earlier` once and holds the button busy
   (`DS.motion.busy()`) until the page calls `loaded({ more })`; `data-ds-transcript-earlier="auto"` loads when the
-  button comes into view. The page puts the older messages at the top of the list; the message on screen stays exactly
+  button comes into view, and again after `loaded({ more: true })` while it is still in view (what loaded was too
+  short to push it out). The page puts the older messages at the top of the list; the message on screen stays exactly
   where it was in every engine (the transcript sets `overflow-anchor: none` and keeps it in place itself, since the
   engines' own anchoring stops at the very top). `loaded()` announces "Earlier messages loaded" (the string
   `earlierLoaded`); `more: false` hides `.ds-transcript__earlier` (focus on it moves to the transcript).

@@ -21,7 +21,8 @@
  * - Load earlier: a press on [data-ds-transcript-earlier] (or, with
  *   data-ds-transcript-earlier="auto", the button coming into view)
  *   dispatches ds:earlier once and holds the button busy (DS.motion.busy())
- *   until the page calls loaded({ more }). What the page puts above the
+ *   until the page calls loaded({ more }); with "auto" a button still in
+ *   view after loaded({ more: true }) loads again. What the page puts above the
  *   message on screen does not move it (the module keeps the first message
  *   in view where it was, in every engine), loaded() announces the string
  *   earlierLoaded, and more: false hides .ds-transcript__earlier.
@@ -170,16 +171,36 @@ function controller(el) {
   let anchor = null;
   let anchorTop = 0;
   const topOf = (node) => node.getBoundingClientRect().top - el.getBoundingClientRect().top;
+  /** The first rendered child at `from` or after it, before `to`; -1 when none. */
+  function rendered(children, from, to) {
+    for (let index = from; index < to; index += 1) if (children[index].getClientRects().length) return index;
+    return -1;
+  }
+
+  /**
+   * Remembers the first child on screen and where it sits. It runs on every
+   * scroll frame and every change, so it halves its way there (the children
+   * stack top to bottom) instead of measuring each one from the top: a long
+   * conversation read at its end costs a few measurements, not thousands.
+   */
   function record() {
     anchor = null;
     const top = el.getBoundingClientRect().top;
-    for (const child of Array.from(list.children)) {
-      if (child.getBoundingClientRect().bottom > top) {
-        anchor = child;
-        anchorTop = topOf(child);
-        return;
-      }
+    const children = list.children;
+    // Every rendered child before low ends above the top edge; every one at high or after does not.
+    let low = 0;
+    let high = children.length;
+    while (low < high) {
+      const middle = (low + high) >> 1;
+      const at = rendered(children, middle, high);
+      if (at < 0) high = middle;
+      else if (children[at].getBoundingClientRect().bottom > top) high = at;
+      else low = at + 1;
     }
+    const found = rendered(children, low, children.length);
+    if (found < 0) return;
+    anchor = children[found];
+    anchorTop = topOf(anchor);
   }
   function correct() {
     if (atEnd() || !anchor?.isConnected) {
@@ -314,6 +335,17 @@ function controller(el) {
       announce(t('earlierLoaded'));
     }
     showMore(more);
+    // The observer tells only a change: when what loaded left the button in
+    // view, it would never fire again until the reader scrolled it out and back.
+    if (more && watcher) {
+      view.requestAnimationFrame(() => {
+        const button = earlierButton();
+        if (signal.aborted || !button || button.closest('[hidden]')) return;
+        const box = button.getBoundingClientRect();
+        const port = el.getBoundingClientRect();
+        if (box.bottom > port.top && box.top < port.bottom) loadEarlier();
+      });
+    }
   }
 
   const onClick = (event) => {

@@ -92,6 +92,22 @@ test('partial and error write a note with an icon and a word; a page note wins; 
   await expect(message).toHaveAttribute('data-state', 'error');
 });
 
+test('a thumb in the footer bubbles its own ds:change through the message: event.target tells them apart', async ({ page }) => {
+  await open(page);
+  const message = page.locator('.ds-message:has(.ds-feedback)').first();
+  await message.evaluate((el) => {
+    window.__seen = [];
+    el.addEventListener('ds:change', (event) => window.__seen.push({ own: event.target === el, detail: JSON.parse(JSON.stringify(event.detail)) }));
+    window.__own = [];
+    DS.message.create(el).on('change', (detail) => window.__own.push(detail));
+  });
+  await message.getByRole('button', { name: 'Helpful', exact: true }).click();
+  await expect(message.getByRole('button', { name: 'Helpful', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  // Only the feedback's: the message did not change, and its controller heard nothing.
+  expect(await page.evaluate(() => window.__seen)).toEqual([{ own: false, detail: { value: 'up', previous: null } }]);
+  expect(await page.evaluate(() => window.__own)).toEqual([]);
+});
+
 test('copy writes the text, confirms on the button for a moment and announces; retry, edit and others send events', async ({ page, browserName }) => {
   await open(page);
   const message = await probe(page, REPLY);

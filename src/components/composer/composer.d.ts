@@ -58,8 +58,8 @@ export interface ComposerController {
   /** Removes an attachment by its id. */
   remove(id: string): void;
   focus(): void;
-  /** Reads the attributes again (the attribute path calls it). */
-  update(): void;
+  /** Reads the attributes again, those named or all (the attribute path calls it with the changed ones). */
+  update(names?: string[]): void;
   destroy(): void;
 }
 

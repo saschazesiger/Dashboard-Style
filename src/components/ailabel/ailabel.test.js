@@ -31,7 +31,7 @@ describe('ailabel.css', () => {
 });
 
 describe('DS.ailabel.create', () => {
-  it('is an export that makes one controller per element', () => {
+  it('is exported as a function (one controller per element: ailabel.spec.js)', () => {
     assert.equal(typeof create, 'function');
   });
 });

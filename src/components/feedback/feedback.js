@@ -9,7 +9,9 @@
  * - The buttons with data-ds-feedback-value ("up", "down", or any value)
  *   are toggles: a press turns its aria-pressed on and the others off; a
  *   press on the one that is on turns it off. Each change dispatches
- *   ds:change ({ value, previous }), value null when none is on.
+ *   ds:change ({ value, previous }), value null when none is on. It
+ *   bubbles through a message, whose own ds:change has { state, previous }:
+ *   a listener above both checks event.target.
  * - A value that is on is feedback: ds:feedback ({ value, reasons,
  *   comment }) follows, the string feedbackThanks is announced and written
  *   into .ds-feedback__status when there is one. With

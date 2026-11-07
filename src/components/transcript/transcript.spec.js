@@ -116,6 +116,39 @@ test('loading earlier messages keeps the message on screen in place, announces i
   await expect(log(page).locator('.ds-transcript__earlier')).toBeHidden();
 });
 
+test('auto: a button still in view after loaded({ more: true }) loads again, without a scroll', async ({ page }) => {
+  await open(page);
+  const calls = await page.evaluate(async () => {
+    const el = document.createElement('div');
+    el.className = 'ds-transcript';
+    el.id = 'auto-probe';
+    el.style.height = '320px';
+    el.innerHTML = '<div class="ds-transcript__earlier"><button class="ds-btn ds-btn--text" type="button" data-ds-transcript-earlier="auto">Load earlier messages</button></div>' +
+      '<div class="ds-transcript__list" role="log" aria-label="Messages"><article class="ds-message ds-message--assistant"><div class="ds-message__main"><div class="ds-message__content"><p>Last</p></div></div></article></div>';
+    document.querySelector('#fx-component').prepend(el);
+    let calls = 0;
+    const log = DS.transcript.create(el);
+    log.on('earlier', () => {
+      calls += 1;
+      // One short line each time: the button stays in view.
+      setTimeout(() => {
+        const article = document.createElement('article');
+        article.className = 'ds-message ds-message--assistant';
+        article.innerHTML = `<div class="ds-message__main"><div class="ds-message__content"><p>Earlier ${calls}</p></div></div>`;
+        el.querySelector('.ds-transcript__list').prepend(article);
+        log.loaded({ more: calls < 3 });
+      }, 50);
+    });
+    await new Promise((resolve) => {
+      const wait = () => (calls >= 3 && el.querySelector('.ds-transcript__earlier').hidden ? resolve() : setTimeout(wait, 50));
+      setTimeout(wait, 50);
+      setTimeout(resolve, 4000);
+    });
+    return calls;
+  });
+  expect(calls).toBe(3);
+});
+
 test('day separators read today and yesterday in the locale', async ({ page }) => {
   await open(page);
   await expect(log(page).locator('.ds-transcript__day')).toHaveText(['Yesterday', 'Today']);

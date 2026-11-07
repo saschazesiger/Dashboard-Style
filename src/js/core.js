@@ -156,6 +156,7 @@ const DEFAULT_STRINGS = Object.freeze({
   removeNamed: 'Remove {name}',
   filesAttached: 'Attached {names}',
   fileRemoved: 'Removed {name}',
+  resultCount: 'Results: {count}',
   latest: 'Latest',
   unreadCount: '{count} new',
   earlierLoaded: 'Earlier messages loaded',

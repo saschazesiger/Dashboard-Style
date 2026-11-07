@@ -61,17 +61,21 @@ attribute (no behaviour) or with it (Enter sends, the button blocks while empty)
 - **Commands and mentions**: a `.ds-composer__palette` (`role="listbox"`, `aria-label`, `popover="manual"`, `hidden`)
   per trigger character in `data-ds-composer-trigger`: `/` counts at the very start of the message, any other trigger
   (`@`, `#`) at the start or after a space. Typing it opens the palette at the caret, above it (below without room; `--ds-composer-palette-x` and
-  `--ds-composer-palette-y` are the script's coordinates, never set them);
+  `--ds-composer-palette-y` are the script's coordinates, never set them), and while it is open it stays next to the
+  caret as filtering changes its height, the page scrolls and the window or the on-screen keyboard resizes;
   the text after the trigger filters the `.ds-composer__option` rows by their label (`data-label`, else
   `.ds-composer__option-label`). `data-ds-composer-filter="off"` on a palette leaves filtering to the page, which
   renders the options on `ds:query` (`{ trigger, query }`, also sent while the module filters). `.ds-composer__empty`
   shows "No results" (written by the module when the palette has none). Choosing inserts `data-value` (else the
   label) and a space.
 - **Drafts**: `data-ds-composer-draft="<key>"` remembers the text through `DS.store` (namespace `composer`) while
-  typing, gives it back when the page opens with an empty field, and drops it on send. One key per conversation.
+  typing, gives it back when the page opens with an empty field, and drops it on send. One key per conversation: a
+  composer reused across conversations changes the attribute, and the text typed so far stays under the old key, the
+  field, the attachments and the chosen mentions are cleared, and the new key's draft comes back.
 
 **Behaviour and API.** `data-ds-composer` on the shell (a `<form>`, or any element: a submit button inside acts the
-same) attaches it on `DS.init()`; `data-ds-composer-busy`, `-draft` and `-enter` are read again when they change.
+same) attaches it on `DS.init()`; `data-ds-composer-busy`, `-draft` and `-enter` are read again when they change (only
+the one that changed: a busy state set through `set({ busy })` outlives a new draft key).
 
 ```js
 const composer = DS.composer.create(form, { draft: 'ticket-42', enter: 'send' });  // or DS.core.get(form, 'composer')
@@ -97,9 +101,11 @@ DS.composer.query('/sum', 4);          // { trigger: '/', query: 'sum', start: 0
 `destroy`), the one the attribute path makes; `on(type, fn)` takes the event names without `ds:`.
 `DS.composer.query(text, caret, triggers)` is the pure function that finds the word a palette serves.
 
-**Accessibility.** The textarea keeps its label (`aria-label` or a `<label>`). A palette follows the APG combobox with a
-listbox popup while focus stays in the field: `aria-autocomplete="list"`, `aria-controls` while it is open and
-`aria-activedescendant` on the active option (`aria-selected="true"`). Down and Up move the active option (round at the
+**Accessibility.** The textarea keeps its label (`aria-label` or a `<label>`). Focus stays in the field while a palette
+is open. A textarea cannot take `role="combobox"`, so the field is no full APG combobox: it exposes
+`aria-autocomplete="list"`, `aria-controls` while a palette is open and `aria-activedescendant` on the active option
+(`aria-selected="true"`), and the module announces the number of matches when the palette opens and whenever filtering
+changes it ("Results: 3", the string `resultCount`; "No results" for none). Down and Up move the active option (round at the
 ends), Enter or Tab inserts it, Escape closes the palette (`DS.overlay`, the top layer first) and it stays closed for
 that word; a press outside, leaving the field or moving the caret out of the word closes it. The active option shows
 the focus layer and a bar on its start edge, so it reads without colour. Attachments are a named list; adding and

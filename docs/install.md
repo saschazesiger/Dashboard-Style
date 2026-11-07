@@ -402,6 +402,7 @@ strings a script adds have an option, so a page in another language passes its o
 | `Remove {name}` | the name of the remove button of a composer's attachment chip (the system's string `removeNamed`) | `DS.core.config({ strings: { removeNamed } })` |
 | `Attached {names}` | what a composer announces when files are attached (the system's string `filesAttached`) | `DS.core.config({ strings: { filesAttached } })` |
 | `Removed {name}` | what a composer announces when an attachment is removed (the system's string `fileRemoved`) | `DS.core.config({ strings: { fileRemoved } })` |
+| `Results: {count}` | what a composer announces when a palette opens or filtering changes how many options match (none: the string `noResults`) (the system's string `resultCount`) | `DS.core.config({ strings: { resultCount } })` |
 | `Latest` | the label of the "Latest" pill a transcript writes when its markup has none (the system's string `latest`) | `DS.core.config({ strings: { latest } })` |
 | `{count} new` | the count of messages that arrived while the reader of a transcript scrolled up (the system's string `unreadCount`) | `DS.core.config({ strings: { unreadCount } })` |
 | `Earlier messages loaded` | what a transcript announces once earlier messages loaded (the system's string `earlierLoaded`) | `DS.core.config({ strings: { earlierLoaded } })` |

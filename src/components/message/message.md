@@ -96,7 +96,9 @@ DS.message.state('Partial');                     // 'partial': what a value mean
   other value `ds:action` (`{ action }`). A blocked or busy button does nothing. Regenerating, editing (put the text
   into the [composer](#composer), or swap the content for a field) and sending feedback are the page's.
 - `ds:change` (`{ state, previous }`) bubbles on every change of state; the [transcript](#transcript) announces a reply
-  once it is complete.
+  once it is complete. The [feedback](#feedback) pair in a footer dispatches a `ds:change` of its own (`{ value,
+  previous }`) that bubbles through the message too: a listener on the message takes only `event.target === message`
+  (or uses the controller's `on('change')`).
 - The clipboard is progressive: where `navigator.clipboard.writeText` is missing or refused, nothing changes and
   `copy()` resolves `false`.
 

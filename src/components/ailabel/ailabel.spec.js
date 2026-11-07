@@ -69,6 +69,15 @@ test('a press opens the explainer under the label with the focus in it; Escape c
   await expect(toggle(page)).toHaveAttribute('aria-expanded', 'false');
 });
 
+test('create() returns the controller the attribute path made, once per element', async ({ page }) => {
+  await open(page);
+  const same = await toggle(page).evaluate((button) => {
+    const made = DS.ailabel.create(button);
+    return { path: made === DS.core.get(button, 'ailabel'), again: made === DS.ailabel.create(button) };
+  });
+  expect(same).toEqual({ path: true, again: true });
+});
+
 test('a second press, a press outside or a focus that leaves closes it', async ({ page }) => {
   await open(page);
   const tip = await tipOf(page);

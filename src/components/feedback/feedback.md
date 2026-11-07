@@ -47,7 +47,9 @@ colour alone.
 
 - The buttons with `data-ds-feedback-value` (`up`, `down`, or any value) are toggles: a press turns its `aria-pressed`
   on and the others off; a press on the one that is on turns it off. Each change dispatches `ds:change`
-  (`{ value, previous }`, `value` `null` when none is on).
+  (`{ value, previous }`, `value` `null` when none is on) on the `.ds-feedback`. It bubbles, so in a message footer it
+  also reaches the [message](#message), whose own `ds:change` has `{ state, previous }`: a listener above both checks
+  `event.target` (or listens for `ds:feedback`, or uses the controller's `on('change')`).
 - A value that turns on is feedback: `ds:feedback` (`{ value, reasons, comment }`) follows, "Thanks for the feedback"
   (the string `feedbackThanks`) is announced and written into `.ds-feedback__status`. With `data-ds-feedback-lock`
   both buttons turn `aria-disabled` once it is given: a choice made once, the chosen one keeps its on look.

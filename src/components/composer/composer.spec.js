@@ -214,6 +214,67 @@ test('the draft is remembered through DS.store and dropped on send', async ({ pa
   expect(await page.evaluate(() => localStorage.getItem('ds:composer:styleguide-demo'))).toBeNull();
 });
 
+test('a new draft key keeps each conversation apart; a busy state set by script stays', async ({ page }) => {
+  await open(page);
+  await type(page, 'draft for A');
+  await page.evaluate(() => DS.core.get(document.querySelector('[data-demo="main"]'), 'composer').set({ busy: true }));
+  await main(page).evaluate((el) => el.setAttribute('data-ds-composer-draft', 'thread-B'));
+  await expect(field(page)).toHaveValue('');
+  await expect(main(page)).toHaveAttribute('data-state', 'busy');
+  expect(await page.evaluate(() => localStorage.getItem('ds:composer:styleguide-demo'))).toBe('"draft for A"');
+  await page.evaluate(() => DS.core.get(document.querySelector('[data-demo="main"]'), 'composer').set({ busy: false }));
+  await type(page, '!');
+  expect(await page.evaluate(() => localStorage.getItem('ds:composer:thread-B'))).toBe('"!"');
+  expect(await page.evaluate(() => localStorage.getItem('ds:composer:styleguide-demo'))).toBe('"draft for A"');
+  await main(page).evaluate((el) => el.setAttribute('data-ds-composer-draft', 'styleguide-demo'));
+  await expect(field(page)).toHaveValue('draft for A');
+  expect(await page.evaluate(() => localStorage.getItem('ds:composer:thread-B'))).toBe('"!"');
+});
+
+test('the palette stays against the caret as filtering shortens it and the page scrolls; the count is announced', async ({ page }) => {
+  await open(page);
+  // Low on a page taller than the window: the palette opens above the caret.
+  await main(page).evaluate((el) => {
+    el.style.marginBlock = `${window.innerHeight}px`;
+    el.scrollIntoView({ block: 'end' });
+    window.scrollBy(0, 160);
+  });
+  await type(page, '/');
+  const palette = main(page).locator('.ds-composer__palette[data-ds-composer-trigger="/"]');
+  await expect(palette).toHaveAttribute('data-state', 'open');
+  await expect(palette).not.toHaveAttribute('data-placement', 'bottom');
+  await expect(page.locator('.ds-sr[aria-live="polite"]')).toHaveText('Results: 4');
+  const settled = () => palette.evaluate((el) => Promise.all(el.getAnimations().map((animation) => animation.finished)));
+  // From the palette's bottom edge to the field's top edge.
+  const gap = () => palette.evaluate((el) => {
+    const field = el.closest('.ds-composer').querySelector('.ds-composer__input');
+    return Math.round(field.getBoundingClientRect().top - el.getBoundingClientRect().bottom);
+  });
+  await settled();
+  const start = await gap();
+  await page.keyboard.type('su');
+  await expect(palette.locator('[role="option"]').filter({ visible: true })).toHaveCount(1);
+  await expect(page.locator('.ds-sr[aria-live="polite"]')).toHaveText('Results: 1');
+  await settled();
+  await expect.poll(gap).toBeGreaterThanOrEqual(start - 1);
+  expect(await gap()).toBeLessThanOrEqual(start + 1);
+  const fieldTop = await field(page).evaluate((el) => el.getBoundingClientRect().top);
+  await page.evaluate(() => window.scrollBy(0, -120));
+  await expect.poll(() => field(page).evaluate((el) => el.getBoundingClientRect().top)).toBeGreaterThan(fieldTop + 100);
+  await expect(palette).toHaveAttribute('data-state', 'open');
+  await expect.poll(gap).toBeGreaterThanOrEqual(start - 1);
+  expect(await gap()).toBeLessThanOrEqual(start + 1);
+});
+
+test('destroy() lets go of the field: no autosize height, no palette listeners', async ({ page }) => {
+  await open(page);
+  await field(page).fill('one\ntwo\nthree\nfour');
+  await main(page).evaluate((el) => DS.core.destroy(el));
+  await expect(field(page)).not.toHaveAttribute('style', /height/);
+  await field(page).fill('one\ntwo\nthree\nfour\nfive\nsix');
+  await expect(field(page)).not.toHaveAttribute('style', /height/);
+});
+
 test('the field grows with its text up to its maximum, then scrolls', async ({ page }) => {
   await open(page);
   const start = (await field(page).boundingBox()).height;

@@ -25,7 +25,10 @@
  *   pressing it dispatches ds:stop. Enter keeps the text meanwhile.
  * - Drafts: with data-ds-composer-draft="<key>" the text is remembered
  *   through DS.store (namespace "composer") while typing, given back on the
- *   next visit when the field is empty, and dropped on send.
+ *   next visit when the field is empty, and dropped on send. A new key (one
+ *   composer for several conversations) keeps the text under the old one,
+ *   clears the field, the attachments and the chosen mentions, and gives
+ *   back the new key's draft.
  * - Attachments: the attach button ([data-ds-composer-attach]) opens the
  *   .ds-composer__picker file input; files dropped on the composer or
  *   pasted into it count too (DS.dom.dropzone()). Each becomes a chip in
@@ -38,10 +41,14 @@
  *   message, any other trigger ("@") at the start or after a space. Typing
  *   it opens the palette at the caret through DS.overlay (a popover in the
  *   top layer, placed by the script with DS.position's geometry above the
- *   caret, below it without room); the text after it filters the options
+ *   caret, below it without room, and placed again while it is open as the
+ *   page scrolls, the window or the on-screen keyboard resizes and
+ *   filtering changes its height); the text after it filters the options
  *   by their label (data-ds-composer-filter="off": the page renders them
- *   on ds:query, { trigger, query }). Focus stays in the field (the APG
- *   combobox with a listbox popup): the arrow keys move the active option
+ *   on ds:query, { trigger, query }). Focus stays in the field (a textarea
+ *   cannot be a combobox: aria-autocomplete, aria-controls and
+ *   aria-activedescendant, and the count of matches is announced, the
+ *   string resultCount, or noResults): the arrow keys move the active option
  *   (aria-activedescendant, aria-selected), Enter or Tab inserts it
  *   (data-value, else its label) with a space, Escape closes it (DS.overlay)
  *   and it stays closed for that word; a click on an option inserts it, a
@@ -63,7 +70,7 @@ import { close as closeGlyph, file as fileGlyph, fileImage, iconElement } from '
 import { computePlacement, pxOf, viewportBounds } from '../../js/position.js';
 import { open as openOverlay, close as closeOverlay } from '../../js/overlay.js';
 import { announce } from '../../js/a11y.js';
-import { bytes, list } from '../../js/format.js';
+import { bytes, list, number } from '../../js/format.js';
 import { open as openStore } from '../../js/store.js';
 
 /** The store namespace of the drafts. */
@@ -177,6 +184,8 @@ function controller(el, options, ctx) {
   let active = null;
   let token = null;
   let dismissed = -1;
+  let watching = null;
+  let heard = -1;
   const sizing = textarea ? autosize(textarea) : null;
 
   const fire = (type, detail, cancelable = false) => {
@@ -230,6 +239,26 @@ function controller(el, options, ctx) {
     else drafts.remove(draftKey);
   }
 
+  /**
+   * Another conversation in the same composer: what is in the field stays
+   * with the old key, the field, the attachments and the chosen mentions are
+   * cleared, and the new key's draft comes back.
+   */
+  function switchDraft(next) {
+    saveDraft();
+    draftKey = next;
+    for (const palette of palettes()) closePalette(palette);
+    token = null;
+    dismissed = -1;
+    chosen.length = 0;
+    clearAttachments();
+    if (textarea) {
+      textarea.value = '';
+      restoreDraft();
+      sizing?.update();
+    }
+  }
+
   function restoreDraft() {
     const drafts = draftStore();
     if (!drafts || !textarea || textarea.value) return;
@@ -265,10 +294,12 @@ function controller(el, options, ctx) {
     const own = palette.getAttribute('data-ds-composer-filter') !== 'off';
     let first = null;
     let current = null;
+    let count = 0;
     for (const option of optionsIn(palette)) {
       option.setAttribute('aria-selected', 'false');
       if (own) option.hidden = !labelOf(option).toLowerCase().replace(/^[/@#:]/, '').includes(needle.replace(/^[/@#:]/, ''));
       if (!usable(option)) continue;
+      count += 1;
       first ??= option;
       if (option === active) current = option;
     }
@@ -281,6 +312,59 @@ function controller(el, options, ctx) {
     }
     if (none) /** @type {HTMLElement} */ (none).hidden = Boolean(first);
     activate(current ?? first);
+    return count;
+  }
+
+  /**
+   * Says how many options match, when that changed: the textarea cannot
+   * carry role="combobox", so nothing else tells a screen reader that the
+   * list opened or what filtering left.
+   */
+  function sayCount(count) {
+    if (count === heard) return;
+    heard = count;
+    announce(count ? t('resultCount', { count: number(count) }) : t('noResults'));
+  }
+
+  /**
+   * While a palette is open: a press outside closes it, and scrolling, a
+   * resize, the on-screen keyboard and a change of its size (filtering,
+   * options the page renders) place it again, once per frame.
+   */
+  function watch(palette) {
+    watching?.abort();
+    const current = new AbortController();
+    watching = current;
+    const view = doc.defaultView;
+    const signal = current.signal;
+    doc.addEventListener('pointerdown', onDocDown, { capture: true, signal });
+    let frame = 0;
+    const again = () => {
+      if (frame) return;
+      frame = view.requestAnimationFrame(() => {
+        frame = 0;
+        if (watching === current && isOpen(palette)) place(palette);
+      });
+    };
+    const onScroll = (event) => {
+      if (event.target?.nodeType === 1 && palette.contains(event.target)) return;
+      again();
+    };
+    view.addEventListener('scroll', onScroll, { signal, capture: true, passive: true });
+    view.addEventListener('resize', again, { signal });
+    view.visualViewport?.addEventListener('resize', again, { signal });
+    view.visualViewport?.addEventListener('scroll', again, { signal });
+    const sizes = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(again) : null;
+    sizes?.observe(palette);
+    signal.addEventListener('abort', () => {
+      sizes?.disconnect();
+      if (frame) view.cancelAnimationFrame(frame);
+    }, { once: true });
+  }
+
+  function unwatch() {
+    watching?.abort();
+    watching = null;
   }
 
   /** Places the palette above the caret at the trigger (below it without room), in the viewport's terms. */
@@ -307,8 +391,13 @@ function controller(el, options, ctx) {
     if (!palette.id) palette.id = `ds-composer-palette-${sequence += 1}`;
     textarea.setAttribute('aria-controls', palette.id);
     const open = isOpen(palette);
-    filter(palette, token?.query ?? '');
-    if (open) return;
+    if (!open) heard = -1;
+    sayCount(filter(palette, token?.query ?? ''));
+    // Filtering changes its height: above the caret its top edge moves.
+    if (open) {
+      place(palette);
+      return;
+    }
     for (const other of palettes()) if (other !== palette && isOpen(other)) closePalette(other);
     palette.hidden = false;
     if (palette.hasAttribute('popover')) {
@@ -320,12 +409,14 @@ function controller(el, options, ctx) {
     }
     place(palette);
     openOverlay(palette, { opener: textarea });
+    watch(palette);
   }
 
   function closePalette(palette, reason) {
     if (!palette || palette.hidden) return;
     if (reason === 'escape' && token) dismissed = token.start;
     activate(null);
+    unwatch();
     textarea?.removeAttribute('aria-controls');
     if (palette.getAttribute('data-state') === 'closed') return;
     closeOverlay(palette).then(() => {
@@ -575,6 +666,7 @@ function controller(el, options, ctx) {
     if (!palette?.classList?.contains('ds-composer__palette')) return;
     if (event.detail?.reason === 'escape' && token) dismissed = token.start;
     activate(null);
+    unwatch();
     textarea?.removeAttribute('aria-controls');
   };
 
@@ -586,7 +678,6 @@ function controller(el, options, ctx) {
   el.addEventListener('mousedown', onDown, { signal });
   el.addEventListener('focusout', onBlur, { signal });
   el.addEventListener('ds:close', onClose, { signal });
-  doc.addEventListener('pointerdown', onDocDown, { capture: true, signal });
   const drops = dropzone(el, { onFiles: (files) => add(files), paste: true, input: picker() });
 
   if (textarea) textarea.setAttribute('aria-autocomplete', palettes().length ? 'list' : 'none');
@@ -627,16 +718,23 @@ function controller(el, options, ctx) {
     focus() {
       textarea?.focus();
     },
-    update() {
-      busy = el.hasAttribute('data-ds-composer-busy');
-      draftKey = el.getAttribute('data-ds-composer-draft') || null;
-      enterMode = el.getAttribute('data-ds-composer-enter');
+    update(names = ['data-ds-composer-busy', 'data-ds-composer-draft', 'data-ds-composer-enter']) {
+      const changed = new Set(names);
+      // Only what changed: a busy state set through set() outlives a new draft key.
+      if (changed.has('data-ds-composer-busy')) busy = el.hasAttribute('data-ds-composer-busy');
+      if (changed.has('data-ds-composer-enter')) enterMode = el.getAttribute('data-ds-composer-enter');
+      if (changed.has('data-ds-composer-draft')) {
+        const next = el.getAttribute('data-ds-composer-draft') || null;
+        if (next !== draftKey) switchDraft(next);
+      }
       syncButton();
     },
     destroy() {
       listeners.clear();
       for (const palette of palettes()) closePalette(palette);
+      unwatch();
       drops.destroy();
+      sizing?.destroy();
       store?.destroy();
       store = null;
     },
