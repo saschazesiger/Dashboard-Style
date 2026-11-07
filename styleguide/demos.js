@@ -12709,8 +12709,8 @@
   (function () {
     /*
      * The Reasoning disclosure demo: thoughts that stream in under "Thinking"
-     * and close to "Thought for ..." at the end (auto open and close), one done
-     * with the page's own summary, a long one that scrolls, and a narrow
+     * on "Think again" and close to "Thought for ..." at the end (auto open
+     * and close), one done with the page's own summary, a long one that scrolls, and a narrow
      * column. Registered through SG.demo() (styleguide/sg-core.js).
      */
     var THOUGHTS = [
@@ -12738,7 +12738,7 @@
       options: { sizes: true, density: true, shape: true, tones: false },
 
       render: function (h) {
-        return h.section('Streaming', reasoningMarkup(h, 'data-demo="live" data-ds-reasoning data-ds-reasoning-auto', '', [THOUGHTS[0]]) +
+        return h.section('Streaming', reasoningMarkup(h, 'data-demo="live" data-ds-reasoning data-ds-reasoning-auto data-ds-reasoning-since="0" data-ds-reasoning-done="4000"', '', THOUGHTS) +
             '<div class="sg-row">' +
             '<button class="ds-btn" type="button" data-demo="think">' + h.icon('play', 16) + 'Think again</button>' +
             '</div>', 'data-ds-reasoning-auto opens it while the thoughts come in and closes it at the end; a reader who toggles it keeps it as they left it.') +
@@ -12773,9 +12773,9 @@
           });
           timers.push(setTimeout(function () { thinking.set({ done: true }); }, h.slow(700 * (THOUGHTS.length + 1))));
         };
+        // It starts done, so the page settles (a running line ticks every second):
+        // "Think again" streams the thoughts in.
         h.$('[data-demo="think"]', root).addEventListener('click', run);
-        // DS.init() finds the new markup in a moment; then the first run starts.
-        timers.push(setTimeout(run, 0));
         return function () { timers.forEach(clearTimeout); };
       },
     });

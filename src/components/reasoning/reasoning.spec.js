@@ -50,7 +50,9 @@ test('while it runs: "Thinking" with the shimmer, the time ticking, open by itse
   await expect(line).not.toHaveClass(/ds-shimmer/);
   await expect(el.locator('.ds-reasoning__time')).toHaveText('');
   await expect(el).toHaveJSProperty('open', false);
-  // The demo's own run streams its thoughts in, then ends the same way.
+  // The demo starts done; "Think again" streams its thoughts in, then ends the same way.
+  await page.locator('[data-demo="think"]').click();
+  await expect(page.locator(LIVE)).toHaveAttribute('data-state', 'running');
   await expect(page.locator(`${LIVE} .ds-reasoning__text p`)).toHaveCount(4, { timeout: 6000 });
   await expect(page.locator(LIVE)).toHaveAttribute('data-state', 'done', { timeout: 3000 });
   await expect(page.locator(`${LIVE} .ds-reasoning__summary`)).toHaveText(/^Thought for \ds$/);
@@ -168,6 +170,8 @@ test('options: the summary steps with size and density, touch wins, shape square
 test('forced colours: the rail stays, the line keeps its words and the copy of the shimmer goes', async ({ page }) => {
   await page.emulateMedia({ forcedColors: 'active' });
   await open(page);
+  await page.locator('[data-demo="think"]').click();
+  await expect(page.locator(LIVE)).toHaveAttribute('data-state', 'running');
   const look = await page.locator(LIVE).evaluate((el) => ({
     rail: getComputedStyle(el.querySelector('.ds-reasoning__text')).borderInlineStartStyle,
     copy: getComputedStyle(el.querySelector('.ds-reasoning__summary'), '::after').content,
