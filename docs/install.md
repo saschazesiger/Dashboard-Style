@@ -737,6 +737,17 @@ strings a script adds have an option, so a page in another language passes its o
 | `Editing {label}` | what `DS.object` announces when a section of an object page turns into its form (the system's string `editing`) | `DS.core.config({ strings: { editing } })` |
 | `{label} saved` | what `DS.object` announces when a section's form is saved (the system's string `saved`) | `DS.core.config({ strings: { saved } })` |
 | `Step {position} of {total}: {label}` | what `DS.steps` announces when the current step changes (the system's string `stepOf`) | `DS.core.config({ strings: { stepOf } })` |
+| `Online` | the word of an online status: the label of an avatar's status dot, a group's menu item (the system's string `presenceOnline`) | `DS.core.config({ strings: { presenceOnline } })` |
+| `Away` | the same, away (the system's string `presenceAway`) | `DS.core.config({ strings: { presenceAway } })` |
+| `Busy` | the same, busy (the system's string `presenceBusy`) | `DS.core.config({ strings: { presenceBusy } })` |
+| `Offline` | the same, offline (the system's string `presenceOffline`) | `DS.core.config({ strings: { presenceOffline } })` |
+| `{name}, {status}` | the label of an avatar with a status, "Ada Lovelace, Online" (the system's string `avatarStatus`) | `DS.core.config({ strings: { avatarStatus } })` |
+| `{count} more` | the name of an avatar group's "+N" button and its menu (the system's string `avatarMore`) | `DS.core.config({ strings: { avatarMore } })` |
+| `+{count}` | the text of an avatar group's "+N" button (the system's string `avatarOverflow`) | `DS.core.config({ strings: { avatarOverflow } })` |
+| `{count} selected` | what a media grid announces after a selection from the keyboard (the system's string `mediaSelected`) | `DS.core.config({ strings: { mediaSelected } })` |
+| `Selection cleared` | what a media grid announces when nothing is selected any more (the system's string `mediaSelectionCleared`) | `DS.core.config({ strings: { mediaSelectionCleared } })` |
+| `{value} dB` | the value of a level meter in words, its `aria-valuetext` (the system's string `levelmeterValue`) | `DS.core.config({ strings: { levelmeterValue } })` |
+| `Too loud` | the note of a level meter while the level clips (the system's string `levelmeterLoud`) | `DS.core.config({ strings: { levelmeterLoud } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 | `Command` | the system's string `kbdCommand`: the spoken name of ⌘ in a key combo (`DS.kbd`) on Apple systems | `DS.core.config({ strings: { kbdCommand } })` |
 | `Option` | the system's string `kbdOption`: the spoken name of ⌥ in a key combo (`DS.kbd`) on Apple systems | `DS.core.config({ strings: { kbdOption } })` |

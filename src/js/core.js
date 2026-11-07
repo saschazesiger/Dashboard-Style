@@ -509,6 +509,17 @@ const DEFAULT_STRINGS = Object.freeze({
   editing: 'Editing {label}',
   saved: '{label} saved',
   stepOf: 'Step {position} of {total}: {label}',
+  presenceOnline: 'Online',
+  presenceAway: 'Away',
+  presenceBusy: 'Busy',
+  presenceOffline: 'Offline',
+  avatarStatus: '{name}, {status}',
+  avatarMore: '{count} more',
+  avatarOverflow: '+{count}',
+  mediaSelected: '{count} selected',
+  mediaSelectionCleared: 'Selection cleared',
+  levelmeterValue: '{value} dB',
+  levelmeterLoud: 'Too loud',
 });
 
 /**

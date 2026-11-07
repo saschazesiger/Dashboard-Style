@@ -1,0 +1,88 @@
+{
+  "name": "avatar",
+  "group": "data",
+  "order": 4820,
+  "docsOrder": 154,
+  "need": "Show a person or an entity as a picture, initials or an icon, alone or as a group with \"+N\"",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-avatar",
+    "ds-avatar--hue-1",
+    "ds-avatar--hue-2",
+    "ds-avatar--hue-3",
+    "ds-avatar--hue-4",
+    "ds-avatar--hue-5",
+    "ds-avatar--hue-6",
+    "ds-avatar--lg",
+    "ds-avatar--ring",
+    "ds-avatar--sm",
+    "ds-avatar--square",
+    "ds-avatar-group",
+    "ds-avatar-group--spread",
+    "ds-avatar-group__more"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [
+    "badge",
+    "presence"
+  ],
+  "hooks": {
+    "--ds-avatar-size": {
+      "default": "32px",
+      "description": "an avatar (and the account's avatar of the app frame) at size md, 8px more or less per size step"
+    },
+    "--ds-avatar-bg": {
+      "default": "`--ds-accent`, `--ds-on-accent` (`.ds-avatar-group__more`: `--ds-surface-high`, `--ds-text`)",
+      "description": "an avatar without a hue: its fill and its initials or icon"
+    },
+    "--ds-avatar-color": {
+      "default": "`--ds-accent`, `--ds-on-accent` (`.ds-avatar-group__more`: `--ds-surface-high`, `--ds-text`)",
+      "description": "an avatar without a hue: its fill and its initials or icon"
+    },
+    "--ds-avatar-font": {
+      "default": "`--ds-size-font` of the size class, else `--ds-font-label`",
+      "description": "the initials"
+    },
+    "--ds-avatar-square-radius": {
+      "default": "`--ds-radius-sm`",
+      "description": "`.ds-avatar--square` (at most a quarter of the side, times `--ds-shape`)"
+    },
+    "--ds-avatar-edge-color": {
+      "default": "`--ds-surface`",
+      "description": "the edge ring between stacked avatars, around a status dot, a badge and the activity ring: the ground the avatar lies on"
+    },
+    "--ds-avatar-ring-color": {
+      "default": "`--ds-primary` (a `.ds-tone-*` class on the avatar: the tone)",
+      "description": "the activity ring of `.ds-avatar--ring`"
+    },
+    "--ds-presence-dot-size": {
+      "owner": "presence"
+    },
+    "--ds-badge-size": {
+      "owner": "badge"
+    },
+    "--ds-badge-dot-size": {
+      "owner": "badge"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "avatar"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.avatar.initials": "a pure function of a name: no motion",
+    "DS.avatar.hue": "a pure function of a name: no motion",
+    "DS.avatar.create": "writes initials, a hue class and a label: no motion",
+    "DS.avatar.group": "hides avatars past the maximum and writes the menu of the rest: the menu opens through DS.overlay, whose entrance the menu's own entries play"
+  },
+  "exceptions": {
+    "ripple": {
+      ".ds-avatar": "a ripple host clips while a ripple is inside, which would cut the status dot and the badge on the corner; an interactive avatar presses through its state layer until each ripple clips itself (plans/after-2.0.md)"
+    }
+  }
+}

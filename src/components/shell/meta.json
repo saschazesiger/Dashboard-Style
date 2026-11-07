@@ -20,9 +20,6 @@
     "ds-app",
     "ds-app--drawer",
     "ds-app--keyboard-hides-bar",
-    "ds-avatar",
-    "ds-avatar--lg",
-    "ds-avatar--sm",
     "ds-banner",
     "ds-brand",
     "ds-brand__name",
@@ -156,8 +153,7 @@
       "description": "a launcher app's label (always at the regular weight; the current app takes the label weight)"
     },
     "--ds-avatar-size": {
-      "default": "32px",
-      "description": "`.ds-avatar` and the account's avatar at size md (8px per size step)"
+      "owner": "avatar"
     },
     "--ds-drawer-font": {
       "default": "the size's role, `--ds-font-body`",

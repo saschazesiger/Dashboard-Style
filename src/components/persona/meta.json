@@ -1,0 +1,41 @@
+{
+  "name": "persona",
+  "group": "data",
+  "order": 4830,
+  "docsOrder": 156,
+  "need": "Show a person in one block: avatar, name, role and status",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-persona",
+    "ds-persona--inline",
+    "ds-persona--stacked",
+    "ds-persona__name",
+    "ds-persona__role",
+    "ds-persona__status",
+    "ds-persona__text"
+  ],
+  "attributes": [],
+  "requires": [
+    "avatar"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-persona-gap": {
+      "default": "`--ds-space-3`",
+      "description": "between a persona's avatar and its lines at md, 2px more or less per size step"
+    },
+    "--ds-persona-name-font": {
+      "default": "the size's role, `--ds-font-label`",
+      "description": "a persona's name"
+    },
+    "--ds-persona-role-font": {
+      "default": "`--ds-font-meta`",
+      "description": "a persona's role and status lines"
+    }
+  },
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}

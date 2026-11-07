@@ -1,0 +1,50 @@
+{
+  "name": "presence",
+  "group": "feedback",
+  "order": 4810,
+  "docsOrder": 152,
+  "need": "Say whether a person is online, away, busy or offline, with a dot and a word",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-presence-dot",
+    "ds-presence-dot--away",
+    "ds-presence-dot--busy",
+    "ds-presence-dot--offline",
+    "ds-presence-dot--online",
+    "ds-presence-label"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [],
+  "hooks": {
+    "--ds-presence-dot-size": {
+      "default": "10px",
+      "description": "a presence dot at md, 2px more or less per size step"
+    },
+    "--ds-presence-ground": {
+      "default": "`--ds-surface`",
+      "description": "the hollow of the away, busy and offline dots: the ground they lie on"
+    },
+    "--ds-presence-online": {
+      "default": "`--ds-success`",
+      "description": "the online dot (a filled disc)"
+    },
+    "--ds-presence-away": {
+      "default": "`--ds-warning`",
+      "description": "the away dot (a ring, its lower half filled)"
+    },
+    "--ds-presence-busy": {
+      "default": "`--ds-error`",
+      "description": "the busy dot (a filled disc with a bar across)"
+    },
+    "--ds-presence-offline": {
+      "default": "`--ds-outline`",
+      "description": "the offline dot (an empty ring)"
+    }
+  },
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}

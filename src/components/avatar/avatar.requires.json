@@ -1,0 +1,6 @@
+{
+  "requires": ["presence"],
+  "exportRequires": {
+    "group": ["menu"]
+  }
+}
