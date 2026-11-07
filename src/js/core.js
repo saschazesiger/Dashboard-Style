@@ -156,6 +156,16 @@ const DEFAULT_STRINGS = Object.freeze({
   reasoningRunning: 'Thinking',
   reasoningDone: 'Thought for {time}',
   toolStatus: '{name}: {status}',
+  usageOf: '{used} of {budget}',
+  usageShare: '{percent} used',
+  usageNear: 'Near the budget',
+  usageOver: 'Over budget',
+  planWaiting: 'Waiting for approval',
+  planApproved: 'Approved',
+  planRejected: 'Rejected',
+  questionAnswered: 'Answered: {answer}',
+  questionSkipped: 'Skipped',
+  questionRequired: 'Choose an answer.',
 });
 
 /**

@@ -1,0 +1,52 @@
+{
+  "name": "usage",
+  "group": "data",
+  "order": 4380,
+  "docsOrder": 728,
+  "need": "Show the tokens and the cost an assistant or agent used against a budget, with a word when it comes near or goes over",
+  "tier": 2,
+  "status": "beta",
+  "classes": [
+    "ds-usage",
+    "ds-usage--inline",
+    "ds-usage__cost",
+    "ds-usage__figures",
+    "ds-usage__head",
+    "ds-usage__icon",
+    "ds-usage__meter",
+    "ds-usage__note",
+    "ds-usage__status",
+    "ds-usage__title",
+    "ds-usage__value"
+  ],
+  "attributes": [
+    "data-state"
+  ],
+  "requires": [
+    "chart"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-usage-gap": {
+      "default": "`--ds-space-2`",
+      "description": "`.ds-usage`: the room between its parts, the base the density applies to (2px per step)"
+    },
+    "--ds-usage-inline-meter": {
+      "default": "160px",
+      "description": "`.ds-usage--inline`: the meter's widest"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "usage"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.usage.shareOf": "a pure function: the share of the budget, no motion",
+    "DS.usage.stateOf": "a pure function: near or over the budget, no motion",
+    "DS.usage.usageText": "a pure function: formatting, no motion",
+    "DS.usage.costText": "a pure function: formatting, no motion"
+  }
+}

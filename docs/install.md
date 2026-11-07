@@ -402,6 +402,16 @@ strings a script adds have an option, so a page in another language passes its o
 | `Thinking` | the summary of a running `DS.reasoning` whose page wrote none (the system's string `reasoningRunning`) | `DS.core.config({ strings: { reasoningRunning } })` |
 | `Thought for {time}` | the summary of a finished `DS.reasoning` whose page wrote none, `{time}` narrow: `12s` (the system's string `reasoningDone`) | `DS.core.config({ strings: { reasoningDone } })` |
 | `{name}: {status}` | what `DS.toolcall` announces when a call ends, from the call's name and its status word (the system's string `toolStatus`) | `DS.core.config({ strings: { toolStatus } })` |
+| `{used} of {budget}` | the figures of `DS.usage` against a budget: `182.4K of 250K tokens`, `$3.12 of $5.00` (the system's string `usageOf`) | `DS.core.config({ strings: { usageOf } })` |
+| `{percent} used` | the `aria-valuetext` of the meter of `DS.usage` (the system's string `usageShare`) | `DS.core.config({ strings: { usageShare } })` |
+| `Near the budget` | the status word of `DS.usage` from its warn share on, also announced (the system's string `usageNear`) | `DS.core.config({ strings: { usageNear } })` |
+| `Over budget` | the status word of `DS.usage` past its budget, also announced (the system's string `usageOver`) | `DS.core.config({ strings: { usageOver } })` |
+| `Waiting for approval` | the state word of a `DS.plan` card before a decision (the system's string `planWaiting`) | `DS.core.config({ strings: { planWaiting } })` |
+| `Approved` | the state word of an approved `DS.plan` card, also announced (the system's string `planApproved`) | `DS.core.config({ strings: { planApproved } })` |
+| `Rejected` | the state word of a rejected `DS.plan` card, also announced (the system's string `planRejected`) | `DS.core.config({ strings: { planRejected } })` |
+| `Answered: {answer}` | the line of an answered `DS.question` card, `{answer}` the chosen labels as a list, also announced (the system's string `questionAnswered`) | `DS.core.config({ strings: { questionAnswered } })` |
+| `Skipped` | the line of a skipped `DS.question` card, also announced (the system's string `questionSkipped`) | `DS.core.config({ strings: { questionSkipped } })` |
+| `Choose an answer.` | the message of a `DS.question` card sent without an answer (the system's string `questionRequired`) | `DS.core.config({ strings: { questionRequired } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow
