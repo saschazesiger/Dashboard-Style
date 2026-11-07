@@ -49,12 +49,14 @@ test('an icon button copies its target\'s text, shows the check for --ds-hold-st
   await button.click();
   await expect.poll(() => copied(page)).toEqual([{ via: 'clipboard', text: 'ak_live_7f3a9c2e51b04d88a6' }]);
   await expect(button).toHaveAttribute('data-state', 'copied');
+  // A second press inside the hold (--ds-hold-status, 900ms) does nothing:
+  // pressed at once, before the slower checks below use the hold up.
+  await button.click();
+  expect(await copied(page)).toHaveLength(1);
   await expect(button.locator('.ds-icon-swap')).toHaveAttribute('data-swap', 'b');
   await expect.poll(() => spoken(page)).toContain('Copied');
   expect(await events(page)).toEqual([{ text: 'ak_live_7f3a9c2e51b04d88a6', ok: true, method: 'clipboard' }]);
-  // Back after --ds-hold-status; a second press inside the hold does nothing.
-  await button.click();
-  expect(await copied(page)).toHaveLength(1);
+  // Back after --ds-hold-status.
   const hold = await button.evaluate((el) => DS.motion.motionDuration(el, '--ds-hold-status'));
   expect(hold).toBeGreaterThan(0);
   await expect(button).not.toHaveAttribute('data-state', 'copied', { timeout: hold + 3000 });
@@ -81,6 +83,19 @@ test('what it copies: a field\'s value, the value beside it, data-ds-copy-value;
     return { before, after: control.get(), lookup: DS.copy.textOf(button) };
   });
   expect(text).toEqual({ before: 'T-4127', after: 'T-9999', lookup: 'T-4127' });
+});
+
+test('create() on a button the attribute set up: the same controller, one copy and one ds:copy a press', async ({ page }) => {
+  await open(page);
+  const same = await page.evaluate(() => {
+    const button = document.querySelector('[aria-label="Copy the serial number"]');
+    const made = DS.copy.create(button, { text: 'SN-1' });
+    return made === DS.get(button, 'copy') && made === DS.copy.create(button);
+  });
+  expect(same).toBe(true);
+  await page.getByRole('button', { name: 'Copy the serial number' }).click();
+  await expect.poll(() => copied(page)).toEqual([{ via: 'clipboard', text: 'SN-1' }]);
+  expect(await events(page)).toEqual([{ text: 'SN-1', ok: true, method: 'clipboard' }]);
 });
 
 test('a labelled button rolls to its done face with "Copied" from the strings; the keyboard copies too', async ({ page }) => {
@@ -148,6 +163,30 @@ test('both refused: the text is selected and the announcer says how to copy it b
   await expect(button).not.toHaveAttribute('data-state', 'copied');
   expect(await page.evaluate(() => String(getSelection()))).toBe('ak_live_7f3a9c2e51b04d88a6');
   await expect.poll(() => spoken(page)).toMatch(/Copying is blocked here\. The text is selected: press (Ctrl\+C|⌘C|Cmd\+C|.+) to copy it\./);
+});
+
+test('both refused on a value of the button\'s own: a read-only field shows it selected, Escape takes it away', async ({ page }) => {
+  await open(page, { api: 'refuse', command: false });
+  const button = page.getByRole('button', { name: 'Copy link' });
+  await button.click();
+  const field = page.locator('.ds-copy__manual');
+  await expect(field).toBeVisible();
+  await expect(field).toBeFocused();
+  await expect(field).toHaveValue('https://example.com/tickets/4127');
+  await expect(field).toHaveAttribute('readonly', '');
+  expect(await field.evaluate((el) => el.value.slice(el.selectionStart, el.selectionEnd))).toBe('https://example.com/tickets/4127');
+  await expect.poll(() => spoken(page)).toMatch(/The text is selected/);
+  await page.keyboard.press('Escape');
+  await expect(field).toHaveCount(0);
+  await expect(button).toBeFocused();
+  // A text from set() is what the field shows, not the source's.
+  await page.evaluate(() => DS.get(document.querySelector('[aria-label="Copy the ticket number"]'), 'copy').set('T-9999'));
+  await page.getByRole('button', { name: 'Copy the ticket number' }).click();
+  await expect(page.locator('.ds-copy__manual')).toHaveValue('T-9999');
+  await expect(page.locator('.ds-copy__manual')).toBeFocused();
+  // Blur takes it away.
+  await page.keyboard.press('Tab');
+  await expect(page.locator('.ds-copy__manual')).toHaveCount(0);
 });
 
 test('the field look: the field height at every size and density, the touch minimum, the shape, 360px', async ({ page }) => {

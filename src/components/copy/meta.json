@@ -10,6 +10,7 @@
     "ds-copy",
     "ds-copy--field",
     "ds-copy__done",
+    "ds-copy__manual",
     "ds-copy__value"
   ],
   "attributes": [],

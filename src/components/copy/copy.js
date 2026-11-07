@@ -24,8 +24,12 @@
  * How (copy()): the Clipboard API (navigator.clipboard.writeText) where it
  * exists and is allowed; else the older copy command on a hidden, read-only
  * textarea (focus goes back where it was); else nothing is copied: the
- * text of the target is selected and the announcer says how to copy it by
- * hand (the strings' copyManual, with the platform's keys).
+ * text is selected and the announcer says how to copy it by hand (the
+ * strings' copyManual, with the platform's keys). The selection is the
+ * source's text where the source shows what is copied; else (a
+ * data-ds-copy-value, a text from set()) a read-only .ds-copy__manual field
+ * after the button shows the text, focused and selected, and goes away on
+ * blur or Escape (focus back on the button).
  *
  * After a copy the button shows it for --ds-hold-status: data-state="copied",
  * an icon swap inside it shows its b icon (the check), a button with faces
@@ -33,7 +37,8 @@
  * blocked while it shows), and .ds-copy__done holds the strings' copied
  * ("Copied"). The announcer says it (polite). ds:copy ({ text, ok, method })
  * goes out on the button either way. A button without a name gets the
- * strings' copy as its aria-label.
+ * strings' copy as its aria-label. create() and the attribute share one
+ * controller per button.
  *
  * Progressive:
  * - Clipboard API (navigator.clipboard.writeText, secure contexts): without
@@ -135,6 +140,38 @@ export function copy(text, options = {}) {
   return writing.then(() => ({ ok: true, method: 'clipboard' }), fallback);
 }
 
+/**
+ * A read-only field after the button with the text, focused and selected,
+ * for a copy by hand when nothing on the page shows it. It goes on blur;
+ * Escape takes focus back to the button (and keeps an overlay around open).
+ */
+function showManual(button, text, signal) {
+  const doc = button.ownerDocument;
+  const field = doc.createElement('input');
+  field.className = 'ds-copy__value ds-copy__manual';
+  field.type = 'text';
+  field.readOnly = true;
+  field.value = text;
+  const name = button.getAttribute('aria-label') || (button.textContent ?? '').trim();
+  if (name) field.setAttribute('aria-label', name);
+  const gone = new AbortController();
+  const remove = () => {
+    gone.abort();
+    field.remove();
+  };
+  signal.addEventListener('abort', remove, { once: true, signal: gone.signal });
+  field.addEventListener('blur', remove, { signal: gone.signal });
+  field.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
+    if (event.key !== 'Escape') return;
+    event.preventDefault();
+    button.focus({ preventScroll: true });
+  }, { signal: gone.signal });
+  button.after(field);
+  field.focus({ preventScroll: true });
+  field.select();
+  return remove;
+}
+
 /** Selects the source's text, for a copy by hand. */
 function selectSource(source) {
   if (!source) return;
@@ -158,6 +195,7 @@ function controller(button, start, signal) {
   signal?.addEventListener('abort', () => local.abort(), { once: true });
   let own = start.text ?? null;
   let timer = 0;
+  let manual = null;
 
   // A button with no words and no name says what it does.
   const name = () => {
@@ -195,7 +233,13 @@ function controller(button, start, signal) {
       done();
       announce(t('copied'));
     } else {
-      selectSource(sourceOf(button));
+      manual?.();
+      manual = null;
+      // The source shows what was meant to be copied: select it there. Else
+      // (a value of the button's own, a text from set()) a field shows it.
+      const source = sourceOf(button);
+      if (source && !button.hasAttribute('data-ds-copy-value') && textIn(source) === text) selectSource(source);
+      else if (button.isConnected) manual = showManual(button, text, local.signal);
       announce(t('copyManual', { keys: formatKeys('mod+c').text }), { assertive: true });
     }
     const detail = { text, ...result };
@@ -209,7 +253,7 @@ function controller(button, start, signal) {
     run();
   }, { signal: local.signal });
 
-  return {
+  const api = {
     element: button,
     get: () => own ?? textOf(button),
     set(text) { own = text === null || text === undefined ? null : String(text); },
@@ -223,25 +267,44 @@ function controller(button, start, signal) {
     destroy() {
       listeners.clear();
       local.abort();
+      if (controllers.get(button) === api) controllers.delete(button);
       if (timer) {
         viewOf(button).clearTimeout(timer);
         rest();
       }
     },
   };
+  return api;
 }
 
+/** One controller per button, whichever of create() and the attribute came first. @type {WeakMap<Element, ReturnType<typeof controller>>} */
+const controllers = new WeakMap();
+
 /**
- * A copy button driven from the page; the controller data-ds-copy makes.
- * `text`: what it copies (else textOf(button)).
+ * A copy button driven from the page; the controller data-ds-copy makes
+ * (the same one, `text` applied through set(), when the attribute set it
+ * up). `text`: what it copies (else textOf(button)).
  * @param {Element} button
  * @param {{ text?: string|null }} [options]
  */
 export function create(button, options = {}) {
-  return controller(button, { text: options.text ?? null }, null);
+  const existing = controllers.get(button);
+  if (existing) {
+    if (options.text !== undefined) existing.set(options.text);
+    return existing;
+  }
+  const made = controller(button, { text: options.text ?? null }, null);
+  controllers.set(button, made);
+  return made;
 }
 
 define('copy', {
   attribute: 'data-ds-copy',
-  init: (button, ctx) => controller(button, {}, ctx.signal),
+  init(button, ctx) {
+    const existing = controllers.get(button);
+    if (existing) return existing;
+    const made = controller(button, {}, ctx.signal);
+    controllers.set(button, made);
+    return made;
+  },
 });

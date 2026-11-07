@@ -33,6 +33,7 @@ Clipboard API it falls back to the copy command, and without that it selects the
 | `.ds-copy` | a value and its copy button in one line (`--ds-space-1` apart) |
 | `.ds-copy--field` | the read-only field look: the field's height (`--ds-input-height` with its size and density steps, the touch minimum), the field radius times `--ds-shape`, `--ds-copy-field-bg`; the value fills it and the button sits at its end: an icon button 8px lower than the field at every size and density (32px at md), never below the touch minimum |
 | `.ds-copy__value` | the value: the code role (`--ds-copy-font`), one line with an ellipsis; a click selects all of it (`user-select: all`) |
+| `.ds-copy__manual` | written by `DS.copy` after the button when the browser refuses to copy and nothing on the page shows the text (a `data-ds-copy-value`, a text from `set()`): a read-only field (with `.ds-copy__value`) holding the text, focused and selected, to copy by hand; it goes on blur, Escape takes focus back to the button |
 | `.ds-copy__done` | the words of a done face: `DS.copy` writes the strings' `copied` ("Copied") into it |
 
 The button is a [Button](#button): an icon button with an icon swap (`.ds-icon-swap`, copy to check) or a labelled one
@@ -61,8 +62,9 @@ No tone: copying has no status beyond "Copied".
 A press copies through the Clipboard API (`navigator.clipboard.writeText`, secure pages), else through the copy command
 on a hidden, read-only textarea (focus goes back where it was). It worked: for `--ds-hold-status` the button carries
 `data-state="copied"`, an icon swap in it shows its check, a button with a done face shows it (`.ds-btn--done`, blocked
-while it shows), and the announcer says "Copied" (polite). It did not: the source's text is selected and the announcer
-says "Copying is blocked here. The text is selected: press Ctrl+C to copy it." (assertive; ⌘C on Apple systems; string
+while it shows), and the announcer says "Copied" (polite). It did not: the text is selected (in the source where it
+shows the text that was meant; else in a `.ds-copy__manual` field after the button, focused) and the announcer says
+"Copying is blocked here. The text is selected: press Ctrl+C to copy it." (assertive; ⌘C on Apple systems; string
 `copyManual`). Either way `ds:copy` (`{ text, ok, method }`, method `'clipboard'`, `'command'` or `'none'`) goes out
 on the button. A button without words and without a name gets the strings' `copy` ("Copy") as its `aria-label`.
 
@@ -80,7 +82,8 @@ share.done();                                      // only the copied feedback, 
 ```
 
 `DS.copy.copy(text, { doc })` is the copy alone (no feedback); `DS.copy.create(button, { text })` returns the controller
-(`get`, `set`, `copy`, `done`, `on('copy')`, `destroy`); `DS.copy.textOf(button)` reads the source as the module does.
+(`get`, `set`, `copy`, `done`, `on('copy')`, `destroy`), one per button: on a button the attribute set up it returns that
+controller (`text` through `set()`), so a press still copies once; `DS.copy.textOf(button)` reads the source as the module does.
 
 ### Accessibility
 
@@ -101,5 +104,5 @@ done check draws itself (`.ds-btn--done`); back after `--ds-hold-status`.
 
 <!-- changelog -->
 - Copy button (3.0): `DS.copy` (`data-ds-copy`, `data-ds-copy-value`, `copy`, `create`, `textOf`; the Clipboard API,
-  the copy command, then a selection and a hint), `.ds-copy`, `.ds-copy--field`, `.ds-copy__value`, `.ds-copy__done`,
-  hooks `--ds-copy-font` and `--ds-copy-field-bg`. String `copyManual`.
+  the copy command, then a selection and a hint), `.ds-copy`, `.ds-copy--field`, `.ds-copy__value`, `.ds-copy__manual`,
+  `.ds-copy__done`, hooks `--ds-copy-font` and `--ds-copy-field-bg`. String `copyManual`.

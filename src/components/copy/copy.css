@@ -32,6 +32,11 @@
  *                            an ellipsis, no box of its own; a click selects
  *                            all of it (user-select: all), so it can be
  *                            copied by hand as well
+ *   .ds-copy__manual         written by DS.copy after the button when the
+ *                            browser refuses to copy and nothing on the
+ *                            page shows the text: a read-only field (with
+ *                            .ds-copy__value) holding it, selected, to copy
+ *                            by hand; gone on blur or Escape
  *   .ds-copy__done           the words of a done face; DS.copy writes the
  *                            strings' "Copied" into it
  *   [data-state="copied"]    on the button, written by DS.copy for
@@ -50,8 +55,8 @@
  * Motion: the button's own: the icon swap crossfades with a small scale,
  * the faces roll and the check draws itself (button.css, motion.css).
  *
- * Forced colours: the field keeps its border (ButtonBorder); the value is
- * CanvasText.
+ * Forced colours: the field and the manual field keep their border
+ * (ButtonBorder); the value is CanvasText.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -115,10 +120,31 @@
 
   /* The icon button inside follows the field: 8px lower than it at every
      size and density (32px in the 40px field), never below the touch
-     minimum (the field grows around it then). */
+     minimum (the field grows around it then). Through the button's own
+     hook: the button adds its size step back, so its box is the field's
+     less 8px whatever size class it carries. */
   .ds-copy--field > .ds-btn--icon {
-    --_box: max(var(--ds-target-min, 0px), calc(var(--_field) - var(--ds-space-2)));
+    --ds-btn-icon-size: calc(var(--_field) - var(--ds-space-2) - var(--ds-size-step, 0) * 8px);
     flex-shrink: 0;
+  }
+
+  /* The manual fallback: the text in a small read-only field after the
+     button, focused and selected. Its ring rests one width further out and
+     snaps in, as every ring does. */
+  .ds-copy__manual {
+    inline-size: min(32ch, 100%);
+    padding-block: var(--ds-space-1);
+    padding-inline: var(--ds-space-2);
+    border: 1px solid var(--ds-line-2);
+    border-radius: calc(var(--ds-radius-field) * var(--ds-shape, 1));
+    background: var(--ds-copy-field-bg, var(--ds-surface-low));
+    outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
+    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  .ds-copy__manual:focus-visible {
+    outline: var(--ds-focus-outline);
+    outline-offset: var(--ds-focus-offset);
   }
 
   .ds-copy__done {
