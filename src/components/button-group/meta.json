@@ -21,7 +21,7 @@
       "description": "button group: the outer corners (at most half the height, times `--ds-shape`); the inner corners are square"
     },
     "--ds-btn-group-divider": {
-      "default": "the buttons' border; filled or tonal: the label colour at 40% in the fill",
+      "default": "the buttons' border; filled or tonal: the label colour at `--ds-state-disabled` (38%) in the fill",
       "description": "button group: the line between two buttons"
     },
     "--ds-btn-height": {

@@ -98,9 +98,10 @@
   }
 
   /* In a filled or tonal group the line is the label colour in the fill,
-     so the two targets read apart. */
+     so the two targets read apart: as strong as dimmed content
+     (--ds-state-disabled), so it reads as a seam, not as a label. */
   .ds-btn-group > :is(.ds-btn--filled, .ds-btn--primary, .ds-btn--tonal):not([aria-pressed="false"]) {
-    --_g-divider: color-mix(in srgb, var(--ds-btn-color, var(--ds-on-primary)) 40%, var(--ds-btn-bg, var(--ds-primary)));
+    --_g-divider: color-mix(in srgb, var(--ds-btn-color, var(--ds-on-primary)) calc(var(--ds-state-disabled) * 100%), var(--ds-btn-bg, var(--ds-primary)));
   }
 
   /* The press: the outer corners turn the pressed radius (times the shape,

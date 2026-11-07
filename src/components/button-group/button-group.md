@@ -25,8 +25,8 @@ a [split button](#split-button).
 
 The first and the last button make the ends of the pill (`--ds-btn-group-radius`, at most half the height, times
 `--ds-shape`, D11); the inner corners are square and neighbours share one border line. In a `--filled` or `--tonal` group
-a hairline in the label colour (40% into the fill) parts the buttons. Another element inside the group (the menu of a
-split button) does not count as an end. Toggles: put `.ds-btn-group` on a [toggle group](#toggle-button-and-toggle-group)
+a hairline in the label colour (`--ds-state-disabled`, 38%, into the fill) parts the buttons. Another element inside
+the group (the menu of a split button) does not count as an end. Toggles: put `.ds-btn-group` on a [toggle group](#toggle-button-and-toggle-group)
 (`data-ds-toggle-group`): the button that is on takes the tint inside the group's outline (an outlined toggle keeps the line colour, so the
 pill stays one line all round) and its border lies over its neighbours'.
 
@@ -46,8 +46,8 @@ No tone: a group of actions has no status.
 ### Accessibility
 
 - A `role="group"` with an `aria-label` that names what the buttons share ("Zoom"). Every button is a tab stop of its
-  own (a toolbar of many controls is a [priority action bar](#priority-action-bar) or a toggle group with roving
-  focus). Icon buttons need `aria-label` and a `data-tip` with the same words.
+  own (a toolbar of many controls is a [priority action bar](#priority-action-bar) or a toggle group in a
+  `role="toolbar"`, one tab stop). Icon buttons need `aria-label` and a `data-tip` with the same words.
 - Focus: the ring of the focused button lies over its neighbours (`--ds-z-pinned`); a hovered, pressed or pressed-on
   button raises its border (`--ds-z-raised`).
 - Forced colours: the system button colours; the shared lines stay `ButtonBorder`, a toggle that is on `Highlight` /
