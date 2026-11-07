@@ -106,7 +106,8 @@ DS.tree.create(document.querySelector('#files'), {
 `load(item, { key, signal })` returns, or resolves to, markup (a string of `.ds-tree__item` elements, morphed into the
 group), nodes, or data: `{ id, label, icon, meta, href, children, expanded, disabled, checked, selected }`, where
 `children: true` is another lazy folder and an array its children. Data is written through DOM APIs, so its text
-needs no escaping; `icon` names a glyph of `DS.icons` (a folder without one shows `folder` and `folderOpen`).
+needs no escaping; an `href` becomes a link only when it is relative, a fragment (`#…`), `http:`, `https:` or
+`mailto:` (a `javascript:` or `data:` one leaves the label as text, so loader data from users is safe); `icon` names a glyph of `DS.icons` (a folder without one shows `folder` and `folderOpen`).
 
 - While it loads the item is `aria-busy="true"`: a `.ds-spinner.ds-tree__spinner` takes the chevron's place after
   `--ds-delay-loader` (a fast load never flashes it). When the children arrive the folder opens and a polite

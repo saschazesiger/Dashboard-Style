@@ -340,3 +340,97 @@ test('forced colours: the chosen row is SelectedItem, a blocked row GrayText', a
   const blocked = await item(page, 'files', 'archive').locator(':scope > .ds-tree__row').evaluate((row) => getComputedStyle(row).color);
   expect(blocked).toBe(system.gray);
 });
+
+test('loader data: an href that is relative, a fragment, http(s) or mailto becomes a link; javascript: and data: stay text', async ({ page }) => {
+  await open(page);
+  const out = await page.evaluate(() => {
+    const el = document.createElement('ul');
+    el.className = 'ds-tree';
+    el.setAttribute('role', 'tree');
+    el.setAttribute('aria-label', 'Probe');
+    el.innerHTML = '<li class="ds-tree__item" role="treeitem" aria-expanded="false" data-ds-tree-lazy data-ds-key="root"><div class="ds-tree__row"><span class="ds-tree__toggle"></span><span class="ds-tree__label">Root</span></div></li>';
+    document.querySelector('#fx-component').append(el);
+    const hrefs = ['#a', '/files/a', 'https://example.com/a', 'mailto:ada@example.com', 'javascript:alert(1)', ' JAVASCRIPT:alert(1)', 'java\tscript:alert(1)', 'data:text/html,x'];
+    const files = DS.tree.create(el, { select: 'none', load: () => hrefs.map((href, index) => ({ id: `l${index}`, label: `Link ${index}`, href })) });
+    return files.expand('root').then(() => {
+      const result = hrefs.map((_, index) => {
+        const label = el.querySelector(`[data-ds-key="l${index}"] .ds-tree__label`);
+        return label.localName === 'a' ? label.getAttribute('href') : null;
+      });
+      files.destroy();
+      el.remove();
+      return result;
+    });
+  });
+  expect(out).toEqual(['#a', '/files/a', 'https://example.com/a', 'mailto:ada@example.com', null, null, null, null]);
+});
+
+test('large: an arrow key moves the tab stop without a pass over every row (2000 rows, 20 presses)', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(() => {
+    const el = document.createElement('ul');
+    el.className = 'ds-tree';
+    el.setAttribute('role', 'tree');
+    el.setAttribute('aria-label', 'Large');
+    el.innerHTML = Array.from({ length: 2000 }, (_, index) => `<li class="ds-tree__item" role="treeitem" tabindex="-1" data-ds-key="r${index}"><div class="ds-tree__row"><span class="ds-tree__label">Row ${index}</span><span class="ds-tree__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-xs" type="button" aria-label="Open row ${index}">o</button></span></div></li>`).join('');
+    document.querySelector('#fx-component').append(el);
+    const files = DS.tree.create(el);
+    el.querySelector('[role="treeitem"]').focus();
+    // The DOM queries the presses make: a pass over every row makes thousands each, a move of the tab stop a few.
+    // Counted, not timed, so a busy machine cannot fail it.
+    let queries = 0;
+    const originals = { one: Element.prototype.querySelector, all: Element.prototype.querySelectorAll };
+    Element.prototype.querySelector = function (...args) { queries += 1; return originals.one.apply(this, args); };
+    Element.prototype.querySelectorAll = function (...args) { queries += 1; return originals.all.apply(this, args); };
+    const start = performance.now();
+    try {
+      for (let step = 0; step < 20; step += 1) {
+        document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+      }
+    } finally {
+      Element.prototype.querySelector = originals.one;
+      Element.prototype.querySelectorAll = originals.all;
+    }
+    const time = performance.now() - start;
+    const focused = document.activeElement.getAttribute('data-ds-key');
+    const stops = [...el.querySelectorAll('[tabindex="0"]')].map((node) => node.getAttribute('data-ds-key') ?? node.closest('[role="treeitem"]').getAttribute('data-ds-key'));
+    files.destroy();
+    el.remove();
+    return { queries, time, focused, stops };
+  });
+  expect(result.focused).toBe('r20');
+  // The one tab stop moved with it: the row and its button, nothing left behind.
+  expect(result.stops).toEqual(['r20', 'r20']);
+  // A handful of queries a press (a full pass made over 15,000).
+  expect(result.queries, `${result.queries} queries in ${Math.round(result.time)}ms`).toBeLessThan(20 * 20);
+});
+
+test('rows a reload replaced are not kept alive by the tree', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'counts live objects through the Chrome DevTools Protocol');
+  await open(page);
+  await page.evaluate(async () => {
+    const el = document.createElement('ul');
+    el.className = 'ds-tree';
+    el.setAttribute('role', 'tree');
+    el.setAttribute('aria-label', 'Reloads');
+    el.innerHTML = '<li class="ds-tree__item" role="treeitem" aria-expanded="false" data-ds-tree-lazy data-ds-key="root"><div class="ds-tree__row"><span class="ds-tree__toggle"></span><span class="ds-tree__label">Root</span></div></li>';
+    document.querySelector('#fx-component').append(el);
+    let round = 0;
+    window.__reloads = DS.tree.create(el, { load: () => { round += 1; return Array.from({ length: 100 }, (_, index) => ({ id: `n${round}-${index}`, label: `Node ${index}` })); } });
+    await window.__reloads.expand('root');
+    for (let step = 0; step < 20; step += 1) {
+      await window.__reloads.reload('root');
+      // A microtask for the observer's pass over the new rows.
+      await new Promise((resolve) => setTimeout(resolve));
+    }
+  });
+  const client = await page.context().newCDPSession(page);
+  await client.send('HeapProfiler.collectGarbage');
+  const { result: proto } = await client.send('Runtime.evaluate', { expression: 'HTMLLIElement.prototype' });
+  const { objects } = await client.send('Runtime.queryObjects', { prototypeObjectId: proto.objectId });
+  const { result: count } = await client.send('Runtime.callFunctionOn', { objectId: objects.objectId, functionDeclaration: 'function () { return this.length; }', returnByValue: true });
+  const inDocument = await page.evaluate(() => document.querySelectorAll('li').length);
+  // 21 rounds of 100 rows were made; only about the last round's should live.
+  expect(count.value).toBeLessThan(inDocument + 150);
+  await page.evaluate(() => window.__reloads.destroy());
+});

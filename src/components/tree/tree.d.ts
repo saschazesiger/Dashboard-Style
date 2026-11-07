@@ -12,7 +12,7 @@ export interface TreeItemData {
   icon?: string;
   /** A short fact at the row's end (a count, a size). */
   meta?: string;
-  /** The label becomes a link. */
+  /** The label becomes a link: relative, #, http(s) or mailto (any other is dropped). */
   href?: string;
   /** Child items, or true: a lazy folder whose children load when it opens. */
   children?: TreeItemData[] | true;

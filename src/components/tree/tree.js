@@ -24,7 +24,8 @@
  * it opens, through `load(item, { key, signal })`, which returns (or
  * resolves to) markup, nodes, or data `{ id, label, icon, meta, href,
  * children: true | [...], expanded, disabled, checked, selected }`
- * (children: true is a lazy folder). A loader that returns at once (no
+ * (children: true is a lazy folder; an href other than relative, #, http(s)
+ * or mailto is dropped, the label stays text). A loader that returns at once (no
  * promise) renders in place, quietly. While a promise runs the item is
  * aria-busy (a spinner replaces the chevron after --ds-delay-loader); a
  * failure leaves it closed with data-state="error" and a word
@@ -93,6 +94,21 @@ const instances = new WeakMap();
 
 let labels = 0;
 
+/**
+ * `href` when it is safe to put in a link: relative, a fragment, http(s) or
+ * mailto. Anything else (javascript:, data:, a scheme hidden by tabs or
+ * spaces, which the URL parser drops) is null: the label shows as text.
+ */
+const safeUrl = (href) => {
+  const text = String(href ?? '').trim();
+  if (!text || typeof URL !== 'function') return null;
+  try {
+    return ['http:', 'https:', 'mailto:'].includes(new URL(text, 'https://base.invalid/').protocol) ? text : null;
+  } catch {
+    return null;
+  }
+};
+
 const modeOf = (value) => (MODES.includes(value) ? value : 'single');
 const flag = (value) => value !== null && value !== undefined && value !== 'false';
 
@@ -109,8 +125,12 @@ function controller(tree, initial) {
   let springTimer = 0;
   let springFolder = null;
   const pending = new Map();
-  /** Names this controller owns, per element: given back on destroy. @type {Map<Element, Set<string>>} */
-  const claims = new Map();
+  /**
+   * Names this controller owns, per element: given back on destroy. Weak, so
+   * rows a re-render, a reload or a morph took out go with their claims.
+   * @type {WeakMap<Element, Set<string>>}
+   */
+  const claims = new WeakMap();
 
   const claim = (element, name) => {
     let names = claims.get(element);
@@ -160,7 +180,15 @@ function controller(tree, initial) {
     for (let parent = parentOf(item); parent; parent = parentOf(parent)) if (!isOpen(parent) || parent.hidden) return false;
     return true;
   };
-  const visible = () => items().filter(showing);
+  /**
+   * The rows that show, in order, kept until the next structural change
+   * (sync() drops them): a focus move reads them without walking every item.
+   * A change the observer has not delivered yet is taken here first.
+   */
+  const visible = () => {
+    if (watcher?.takeRecords?.().length) sync();
+    return (shown ??= items().filter(showing));
+  };
   const find = (target) => {
     if (!target) return null;
     if (typeof target === 'string') return items().find((item) => keyOf(item) === target) ?? null;
@@ -180,7 +208,7 @@ function controller(tree, initial) {
       active = list.find((item) => item.getAttribute('aria-selected') === 'true') ?? list.find((item) => item.getAttribute('tabindex') === '0') ?? list[0] ?? null;
     }
     for (const item of all) {
-      write(item, 'tabindex', item === active ? '0' : '-1');
+      stop(item, item === active);
       // A name of its own: the label, not the text of every row below it.
       if (!item.hasAttribute('aria-label') && (!item.hasAttribute('aria-labelledby') || claims.get(item)?.has('aria-labelledby'))) {
         const label = labelElement(item);
@@ -193,10 +221,6 @@ function controller(tree, initial) {
         }
       }
       const row = rowOf(item);
-      for (const control of row.querySelectorAll(ROW_CONTROLS)) {
-        if (control.closest(ITEM) !== item) continue;
-        write(control, 'tabindex', item === active ? '0' : '-1');
-      }
       const link = row.querySelector('a.ds-tree__label');
       if (link) write(link, 'tabindex', '-1');
       if (mode === 'checkbox' && !item.hasAttribute('aria-checked')) {
@@ -228,6 +252,16 @@ function controller(tree, initial) {
     if (state && folder.getAttribute('aria-checked') !== state) folder.setAttribute('aria-checked', state);
   };
 
+  /** The tab stop on an item and the buttons of its row (on), or off both. */
+  const stop = (item, on) => {
+    const value = on ? '0' : '-1';
+    write(item, 'tabindex', value);
+    for (const control of rowOf(item).querySelectorAll(ROW_CONTROLS)) {
+      if (control.closest(ITEM) !== item || control.matches('.ds-tree__label, .ds-tree__check')) continue;
+      write(control, 'tabindex', value);
+    }
+  };
+
   let queued = false;
   const resync = () => {
     if (queued) return;
@@ -250,10 +284,18 @@ function controller(tree, initial) {
 
   /* ── Focus ─────────────────────────────────────────── */
 
+  /** Moves the tab stop: only the old and the new row change (the full pass is for structural changes). */
   const setActive = (item) => {
     if (!item || item === active) return;
+    if (!showing(item)) {
+      active = item;
+      sync();
+      return;
+    }
+    const before = active;
     active = item;
-    sync();
+    if (before && tree.contains(before)) stop(before, false);
+    stop(item, true);
   };
   const focusItem = (item) => {
     if (!item) return;
@@ -768,9 +810,10 @@ function controller(tree, initial) {
       else glyphs.append(iconElement(folderGlyph, 20, undefined, doc), iconElement(folderOpen, 20, undefined, doc));
       row.append(glyphs);
     }
-    const label = doc.createElement(entry.href ? 'a' : 'span');
+    const href = entry.href ? safeUrl(entry.href) : null;
+    const label = doc.createElement(href ? 'a' : 'span');
     label.className = 'ds-tree__label';
-    if (entry.href) label.setAttribute('href', String(entry.href));
+    if (href) label.setAttribute('href', href);
     label.textContent = String(entry.label ?? '');
     row.append(label);
     if (entry.meta !== undefined && entry.meta !== null && entry.meta !== '') {
@@ -799,8 +842,8 @@ function controller(tree, initial) {
   tree.addEventListener('ds:drag-move', onDragMove, { signal });
   tree.addEventListener('ds:drop', onDrop, { signal });
   tree.addEventListener('ds:drag-cancel', onDragEnd, { signal });
-  const letters = typeahead(tree, { items: visible, label: (item) => labelOf(item).toLowerCase(), onMatch: focusItem });
   const watcher = typeof view?.MutationObserver === 'function' ? new view.MutationObserver(resync) : null;
+  const letters = typeahead(tree, { items: visible, label: (item) => labelOf(item).toLowerCase(), onMatch: focusItem });
   watcher?.observe(tree, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-expanded', 'aria-disabled', 'aria-checked', 'hidden'] });
   sync();
   startDrag();
@@ -889,8 +932,12 @@ function controller(tree, initial) {
       watcher?.disconnect();
       letters.destroy();
       stopDrag();
-      for (const [element, names] of claims) for (const name of names) disown(element, 'attrs', name);
-      claims.clear();
+      for (const element of [tree, ...tree.querySelectorAll('*')]) {
+        const names = claims.get(element);
+        if (!names) continue;
+        for (const name of names) disown(element, 'attrs', name);
+        claims.delete(element);
+      }
       if (instances.get(tree) === handle) instances.delete(tree);
     },
   };
