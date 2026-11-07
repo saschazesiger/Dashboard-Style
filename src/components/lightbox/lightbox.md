@@ -39,7 +39,7 @@ The viewer `DS.lightbox` builds (DOM APIs, inside the gallery's `.ds-theme`):
         </div>
         <figcaption class="ds-lightbox__caption">The ports on the right side</figcaption>
       </figure>
-      <button class="ds-btn ds-btn--ghost ds-btn--icon ds-lightbox__nav ds-lightbox__nav--next" type="button" aria-label="Next">[icon chevronRight 20]</button>
+      <button class="ds-btn ds-btn--ghost ds-btn--icon ds-lightbox__nav ds-lightbox__nav--next" type="button" aria-label="Next" autofocus>[icon chevronRight 20]</button>
     </div>
     <div class="ds-lightbox__thumbs" role="group" aria-label="Images">
       <button class="ds-lightbox__thumb" type="button" aria-label="Image 1 of 6: The lid of LAPTOP-0042"><img alt=""></button>
@@ -67,8 +67,10 @@ buttons in that ink. At 600px and below the arrows lie over the image's sides an
 `data-ds-lightbox` on the gallery (`DS.init()`) or `DS.lightbox.create(gallery)`: a click on an item opens the viewer
 at that image (a click with Ctrl, Cmd or Shift keeps the link's own behaviour), with the item as the opener.
 
-- **Opening.** Through `DS.overlay.open()`: the page is inert, the scroll locked, focus on the first enabled button of the
-  bar, Escape on the stack, and focus back on the item when it closes. "Image 2 of 6" and the caption are said.
+- **Opening.** Through `DS.overlay.open()`: the page is inert, the scroll locked, focus on Next (with one image: Close),
+  Escape on the stack, and focus back on the item when it closes. "Image 2 of 6" and the caption are said. The viewer
+  sits at the `.ds-theme`, outside the gallery's containers, so each time it opens it takes the size, density, shape
+  and touch values of the gallery's region (inline on its dialog).
 - **Moving.** The arrows (wrapping round), a thumbnail, ArrowLeft and ArrowRight, Home and End. In the row of
   thumbnails the arrow keys move between them (one tab stop, `DS.a11y.roving()`) and show the image at once; the
   current one has `aria-current="true"`, its ring and the full opacity. A change says "Image 3 of 6" and the caption

@@ -132,7 +132,8 @@ app frame, or a row of a grid); in a taller page the panel sticks in view.
   `DS.a11y.announce()`. Closing it gives focus back to the row only when focus was inside the panel.
 - Both open and close through `DS.overlay.open(panel, { opener })` and `DS.overlay.close(panel)` (or `data-ds-open`,
   `data-ds-close`) as a non-modal layer: no trap, nothing inert, no scroll lock; Escape closes the top layer (a menu
-  inside it first), and `aria-expanded` on an opener that carries it follows. `DS.init()` installs the focus move of the
+  inside it first) when focus is in its `.ds-sheet__layout` (the panel, or the list beside an inspector), on its opener
+  or nowhere: Escape in a page field outside stays that field's. `aria-expanded` on an opener that carries it follows. `DS.init()` installs the focus move of the
   push panel and watches the body's scroll for the head's hairline (`data-scrolled`).
 - Short of room (the layout under 720px, a container query) the panel lies over the main column with the overlay
   elevation; under 480px it takes the layout's whole width, without a separator.

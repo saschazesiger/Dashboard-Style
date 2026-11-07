@@ -46,6 +46,26 @@ test('it opens modal at its smallest detent; the handle steps the detents and sa
   await expect(trigger).toBeFocused();
 });
 
+test('at the smallest detent the foot sits at the window\'s edge and the body scrolls within what shows', async ({ page }) => {
+  await open(page);
+  await page.getByRole('button', { name: 'Filters' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Filters' });
+  await settle(page);
+  const show = sheet.getByRole('button', { name: 'Show devices' });
+  await show.focus();
+  const seen = await page.evaluate(() => {
+    const panel = document.querySelector('[data-demo="filters"] .ds-bottomsheet__panel');
+    const button = [...panel.querySelectorAll('.ds-sheet__foot .ds-btn')].at(-1).getBoundingClientRect();
+    const body = panel.querySelector('.ds-sheet__body');
+    return { bottom: Math.round(button.bottom), body: Math.round(body.getBoundingClientRect().bottom), scrolls: body.scrollHeight > body.clientHeight };
+  });
+  expect(seen.bottom, 'the primary action is inside the window').toBeLessThanOrEqual(800);
+  expect(seen.body).toBeLessThanOrEqual(800);
+  expect(seen.scrolls, 'the body scrolls within what shows').toBe(true);
+  await page.keyboard.press('Escape');
+  await settle(page);
+});
+
 test('a drag from the handle follows the finger, settles at the nearest detent, and dismisses below half the smallest', async ({ page }) => {
   await open(page);
   await page.getByRole('button', { name: 'Filters' }).click();

@@ -47,7 +47,8 @@
  * it without a transition), data-loading while the image loads (a spinner
  * after --ds-delay-loader), data-failed when it did not load (an icon and
  * the words in .ds-lightbox__error), aria-current="true" on the current
- * thumbnail (a ring and the full opacity; the others are dimmed).
+ * thumbnail (a ring and the full opacity; the others are dimmed). A
+ * pressed item or thumbnail shows a currentColor state layer (::before).
  *
  * Options: shape multiplies the radius of the gallery's items and of the
  * thumbnails; density changes the gallery's gap and the bar's padding;
@@ -117,7 +118,7 @@
   }
 
   /* The state layer over the image: hover and press. */
-  .ds-lightbox__item::after {
+  .ds-lightbox__item::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -128,12 +129,12 @@
   }
 
   @media (hover: hover) {
-    .ds-lightbox__item:hover::after {
+    .ds-lightbox__item:hover::before {
       opacity: var(--ds-state-hover);
     }
   }
 
-  .ds-lightbox__item:active::after {
+  .ds-lightbox__item:active::before {
     opacity: var(--ds-state-pressed);
     transition-duration: var(--ds-dur-micro);
   }
@@ -333,10 +334,31 @@
     object-fit: cover;
   }
 
+  /* The press: a state layer over the picture, in --ds-dur-micro, and the full opacity. */
+  .ds-lightbox__thumb::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
   @media (hover: hover) {
     .ds-lightbox__thumb:hover {
       opacity: 1;
     }
+  }
+
+  .ds-lightbox__thumb:active {
+    opacity: 1;
+    transition-duration: var(--ds-dur-micro);
+  }
+
+  .ds-lightbox__thumb:active::before {
+    opacity: var(--ds-state-pressed);
+    transition-duration: var(--ds-dur-micro);
   }
 
   /* The current image: full opacity and a ring in the ink (not colour alone: aria-current). */

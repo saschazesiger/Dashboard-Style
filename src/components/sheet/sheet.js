@@ -246,12 +246,16 @@ export function resizable(element, options = {}) {
     width = Math.round(stored);
     paint();
   } else paint();
-  // The bounds follow the room: a narrower window keeps the width inside them.
+  // The bounds follow the room: a narrower window or layout keeps the width
+  // inside them. An observer of the room (the docked panel's layout, else
+  // the root element, as wide as the window), no listener on the window.
   const view = panel.ownerDocument.defaultView;
-  view?.addEventListener('resize', () => {
+  const room = panel.matches(DOCKED) ? panel.closest('.ds-sheet__layout') : panel.ownerDocument.documentElement;
+  const sizes = room && typeof view?.ResizeObserver === 'function' ? new view.ResizeObserver(() => {
     if (width != null) width = clampWidth(width, bounds());
     paint();
-  }, { signal });
+  }) : null;
+  sizes?.observe(room);
   // Its values once the entrance settled: a docked panel opens its width from 0.
   owner.addEventListener('ds:open', (event) => {
     if (event.target === panel || event.target === owner) settled(panel, { transitions: true }).then(paint);
@@ -272,6 +276,7 @@ export function resizable(element, options = {}) {
       if (resizers.get(panel) !== controller) return;
       resizers.delete(panel);
       abort.abort();
+      sizes?.disconnect();
       for (const off of listeners.splice(0)) off();
       store?.destroy();
     },

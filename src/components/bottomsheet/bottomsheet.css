@@ -23,7 +23,10 @@
  * Detents (data-ds-bottomsheet-detents, fractions of the panel's full
  * height, which is the window less --ds-bottomsheet-gap): the panel is
  * that tall and DS.bottomsheet moves it down by the runtime property
- * --ds-bottomsheet-offset, so a detent shows its share. Without detents the
+ * --ds-bottomsheet-offset, so a detent shows its share; the runtime
+ * property --ds-bottomsheet-rest (the offset of the detent it rests at)
+ * pads the panel's end, so the foot and the end of the body stay in the
+ * window at every detent. Without detents the
  * panel is as tall as its content (at most the full height) and rests fully
  * up.
  *
@@ -74,9 +77,13 @@
     border-radius: var(--_radius) var(--_radius) 0 0;
   }
 
-  /* With detents the panel is as tall as its largest one may show. */
+  /* With detents the panel is as tall as its largest one may show; the
+     part below the window at the resting detent is padding, so the foot
+     sits at the window's edge and the body scrolls within what shows (a
+     drag leaves it as it is: --ds-bottomsheet-rest changes only at rest). */
   .ds-bottomsheet[data-detents] .ds-bottomsheet__panel {
     height: var(--_full);
+    padding-bottom: var(--ds-bottomsheet-rest, 0px);
   }
 
   /* The bleed sits below the panel (the spring carries it up a little). */

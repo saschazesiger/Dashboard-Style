@@ -140,6 +140,49 @@ test('swipe on touch: past a fifth of the frame it goes on, a short one glides b
   await expect(box.locator('.ds-lightbox__count')).toHaveText('Image 1 of 6');
 });
 
+test('a pinch that loses a finger: the finger left goes on without an error', async ({ page, browserName }) => {
+  test.skip(browserName === 'firefox', 'touch pointers are not emulated in Firefox');
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await open(page);
+  await page.locator('[data-demo="gallery"] .ds-lightbox__item').first().click();
+  const box = viewer(page);
+  await settle(page);
+  await page.evaluate(() => {
+    const frame = document.querySelector('.ds-lightbox__frame');
+    const r = frame.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const at = (type, id, x) => frame.dispatchEvent(new PointerEvent(type, { pointerId: id, pointerType: 'touch', isPrimary: id === 11, bubbles: true, clientX: x, clientY: cy, button: 0 }));
+    at('pointerdown', 11, cx - 40);
+    at('pointerdown', 12, cx + 40);
+    for (let i = 1; i <= 5; i += 1) {
+      at('pointermove', 11, cx - 40 - i * 10);
+      at('pointermove', 12, cx + 40 + i * 10);
+    }
+    at('pointerup', 12, cx + 90);
+    for (let i = 1; i <= 5; i += 1) at('pointermove', 11, cx - 90 + i * 8);
+    at('pointerup', 11, cx - 50);
+  });
+  const zoom = await box.locator('.ds-lightbox__frame').evaluate((el) => Number(el.style.getPropertyValue('--ds-lightbox-zoom')));
+  expect(zoom, 'the pinch zoomed').toBeGreaterThan(1);
+  await expect(box.locator('.ds-lightbox__frame')).not.toHaveAttribute('data-dragging', '');
+  expect(errors).toEqual([]);
+  await page.keyboard.press('Escape');
+});
+
+test('one image: the first focus is Close, not the Zoom out a fit image disables', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    window.__lb = DS.lightbox.show([{ src: document.querySelector('[data-demo="gallery"] .ds-lightbox__item').getAttribute('href'), alt: 'The lid' }], { label: 'One photo', opener: document.querySelector('[data-demo="gallery"] .ds-lightbox__item') });
+  });
+  const box = page.getByRole('dialog', { name: 'One photo' });
+  await expect(box).toBeVisible();
+  await expect(box.getByRole('button', { name: 'Close' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await settle(page);
+});
+
 test('an image that fails shows an icon and words; the list without a gallery goes once it closed', async ({ page }) => {
   await open(page);
   await page.locator('[data-demo="failing"] .ds-lightbox__item').nth(1).click();
@@ -161,18 +204,20 @@ test('an image that fails shows an icon and words; the list without a gallery go
 
 test('the phone: the viewer fills the window, the arrows over the image, touch-sized thumbnails under .ds-touch', async ({ page }) => {
   await open(page, 390);
-  await page.evaluate(() => document.querySelector('#fx-component > div').classList.add('ds-touch'));
+  // On a container around the gallery: the viewer, at the .ds-theme, takes its options when it opens.
+  await page.evaluate(() => document.querySelector('[data-demo="gallery"]').parentElement.classList.add('ds-touch'));
   await page.locator('[data-demo="gallery"] .ds-lightbox__item').first().click();
   const box = viewer(page);
   await settle(page);
   const seen = await page.evaluate(() => {
     const dialog = document.querySelector('.ds-lightbox[open], .ds-lightbox:not([hidden])');
     const rect = (selector) => dialog.querySelector(selector).getBoundingClientRect();
-    return { box: rect('.ds-dialog__box').width, prev: rect('.ds-lightbox__nav--prev').left, frame: rect('.ds-lightbox__frame').left, thumb: rect('.ds-lightbox__thumb').width };
+    return { box: rect('.ds-dialog__box').width, prev: rect('.ds-lightbox__nav--prev').left, frame: rect('.ds-lightbox__frame').left, thumb: rect('.ds-lightbox__thumb').width, close: rect('[data-ds-close].ds-btn').height };
   });
   expect(seen.box).toBeCloseTo(390, 0);
   expect(seen.prev).toBeLessThan(seen.frame + 40);
   expect(seen.thumb).toBeGreaterThanOrEqual(48);
+  expect(seen.close, 'the container\'s .ds-touch reaches the viewer\'s buttons').toBeGreaterThanOrEqual(48);
   await page.keyboard.press('Escape');
 });
 

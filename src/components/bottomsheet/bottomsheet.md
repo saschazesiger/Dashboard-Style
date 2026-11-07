@@ -44,7 +44,9 @@ There is no tone.
 - **Modal.** Through `DS.overlay`: the page is inert, the scroll locked, focus moves in (the handle, unless a control
   has `autofocus`), Escape closes it, focus goes back to the opener.
 - **Detents.** The panel is as tall as its full height and rests lower by `--ds-bottomsheet-offset` (a runtime property
-  of the panel, never set it), so each detent shows its share; `data-detents` on the sheet says it has them. A change
+  of the panel, never set it), so each detent shows its share; the part below the window is padding
+  (`--ds-bottomsheet-rest`, runtime too), so the foot sits at the window's edge and the body scrolls within what shows
+  at every detent; `data-detents` on the sheet says it has them. A change
   springs there, says "Sheet at 50 percent of the screen" politely and sends `ds:detent` (`{ detent, index }`). A
   change of the attribute takes effect at once.
 - **Drag.** A pointer on the handle or on the head (not on a control in it) drags the panel: it follows the finger

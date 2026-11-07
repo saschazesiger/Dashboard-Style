@@ -170,6 +170,21 @@ test('inspector: a row shows its detail beside the list; focus stays on the row;
   await expect(inspector).toHaveAttribute('data-state', 'open');
   expect(await page.evaluate(() => document.querySelectorAll('[inert]').length)).toBe(0);
   await expect(page.locator('[data-ds-key="laptop-0043"]')).toHaveAttribute('aria-current', 'true');
+  // Escape in a page field outside the layout is the field's; from the list beside it, it closes the inspector.
+  await page.evaluate(() => {
+    const field = document.createElement('input');
+    field.className = 'ds-input';
+    field.setAttribute('aria-label', 'A page field');
+    document.querySelector('[data-sg-demo]').prepend(field);
+  });
+  await page.getByRole('textbox', { name: 'A page field' }).focus();
+  await page.keyboard.press('Escape');
+  await settle(page);
+  await expect(inspector, 'Escape in a page field leaves it open').toHaveAttribute('data-state', 'open');
+  await second.focus();
+  await page.keyboard.press('Escape');
+  await settle(page);
+  await expect(inspector).toBeHidden();
 });
 
 test('resizing: a separator with its values; the keys and a drag change the width; it is remembered; a double click resets', async ({ page }) => {
@@ -226,6 +241,8 @@ test('the modal sheet resizes from its left edge; no separator on a phone', asyn
   const panel = page.locator('dialog[open] .ds-sheet__panel');
   const handle = panel.getByRole('separator', { name: 'Resize the sheet' });
   await expect(handle).toHaveAttribute('aria-valuenow', '560');
+  await expect(handle, 'the first focus is the content, not the separator').not.toBeFocused();
+  expect(await page.evaluate(() => Boolean(document.activeElement?.closest('dialog[open] .ds-sheet__panel'))), 'focus inside the panel').toBe(true);
   await handle.focus();
   await page.keyboard.press('ArrowLeft');
   expect(Math.round((await panel.boundingBox()).width)).toBe(576);

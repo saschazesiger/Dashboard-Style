@@ -227,7 +227,9 @@ until it opens.
   scroll lock. `DS.init()` installs what moves focus into it once it opened (`autofocus`, else its first focusable
   control, else the box) and watches its body's scroll for the hairline.
 - Tab leaves it for the page and comes back as to any region. Escape closes it while it is the top layer (a menu
-  opened inside it closes first); `[data-ds-close]` closes it; focus goes back to the opener when it was inside.
+  opened inside it closes first) and focus is inside it, on its opener or nowhere: Escape in a page field stays that
+  field's (WAI-ARIA APG, non-modal dialog). `[data-ds-close]` closes it; focus goes back to the opener when it was
+  inside.
 - Motion: it fades and grows from `--ds-scale-enter` while it rises `--ds-distance-md` on the spring over
   `--ds-dur-slow`, from an origin towards its opener; it leaves the same way in `--ds-dur-base`, accelerating. At 600px
   and below it sits `--ds-space-2` from the edges and decelerates instead of springing.

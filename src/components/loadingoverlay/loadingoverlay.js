@@ -268,8 +268,27 @@ export function create(element) {
       controllers.delete(element);
       abort.abort();
       clearTimeout(state.timer);
+      // A pending hide() resolves without acting.
+      state.gen += 1;
       state.hold?.destroy();
       state.hold = null;
+      // Showing, or held before a pending hide: give the region back as a hide would, at once.
+      if ((state.shown || element.getAttribute('data-state') === 'open') && region) {
+        region.removeAttribute('aria-busy');
+        disown(region, 'attrs', 'aria-busy');
+      }
+      if (state.shown || element.hasAttribute('data-state')) {
+        /** @type {HTMLElement} */ (element).hidden = true;
+        element.removeAttribute('data-state');
+      }
+      state.shown = false;
+      state.returnTo = null;
+      if (state.positioned && region) {
+        /** @type {HTMLElement} */ (region).style.removeProperty('position');
+        disown(region, 'props', 'position');
+        state.positioned = false;
+      }
+      for (const [kind, name] of [['attrs', 'data-state'], ['attrs', 'hidden']]) disown(element, kind, name);
       for (const off of listeners.splice(0)) off();
     },
   };

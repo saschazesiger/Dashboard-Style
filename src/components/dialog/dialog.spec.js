@@ -463,7 +463,7 @@ test('forced colours: the box keeps its edge; the error tone becomes a system pa
   await page.keyboard.press('Escape');
 });
 
-test('non-modal: the box floats at the end, the page stays usable, focus moves in; Escape closes it and focus goes back', async ({ page }) => {
+test('non-modal: the box floats at the end, the page stays usable, focus moves in; Escape from inside closes it (not from a page field) and focus goes back', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await open(page);
   const trigger = page.getByRole('button', { name: 'Export devices' });
@@ -487,6 +487,17 @@ test('non-modal: the box floats at the end, the page stays usable, focus moves i
   await page.keyboard.press('Escape');
   await settle(page);
   await expect(box, 'the modal closed first, the non-modal stays').toHaveAttribute('data-state', 'open');
+  // Escape in a page field outside it is the field's (WAI-ARIA APG): the box stays.
+  await page.evaluate(() => {
+    const field = document.createElement('input');
+    field.className = 'ds-input';
+    field.setAttribute('aria-label', 'A page field');
+    document.querySelector('[data-sg-demo]').append(field);
+  });
+  await page.getByRole('textbox', { name: 'A page field' }).fill('LAPTOP');
+  await page.keyboard.press('Escape');
+  await settle(page);
+  await expect(box, 'Escape in a page field leaves the non-modal open').toHaveAttribute('data-state', 'open');
   await box.getByRole('button', { name: 'Close' }).focus();
   await page.keyboard.press('Escape');
   await settle(page);

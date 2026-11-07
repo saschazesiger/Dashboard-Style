@@ -136,8 +136,7 @@ function buildViewer(home, label) {
   const stage = make('div', 'ds-lightbox__stage');
   const prev = button('ds-lightbox__nav ds-lightbox__nav--prev', t('previous'), chevronLeft);
   const next = button('ds-lightbox__nav ds-lightbox__nav--next', t('next'), chevronRight);
-  // The first focus: Next (where the keys lead on); hidden with one image, the bar's first button.
-  next.setAttribute('autofocus', '');
+  // The first focus: Next (where the keys lead on); with one image Close (show() moves it).
   const figure = make('figure', 'ds-lightbox__figure');
   const frame = make('div', 'ds-lightbox__frame');
   const image = /** @type {HTMLImageElement} */ (make('img', 'ds-lightbox__image'));
@@ -159,7 +158,29 @@ function buildViewer(home, label) {
   const theme = home.closest('.ds-theme');
   const parent = !theme || theme === doc.documentElement ? doc.body : theme;
   parent.append(dialog);
-  return { dialog, box, count, zoomIn, zoomOut, prev, next, figure, frame, image, caption, thumbs };
+  return { dialog, box, count, zoomIn, zoomOut, closer, prev, next, figure, frame, image, caption, thumbs };
+}
+
+/** The properties of the option classes the viewer takes from the gallery's region; it has no tone. */
+const OPTIONS = ['--ds-size-step', '--ds-size-font', '--ds-density', '--ds-shape', '--ds-target-min'];
+
+/**
+ * The viewer sits at the .ds-theme, outside the containers of the gallery,
+ * so an option class on one of them (.ds-touch, .ds-density-*, .ds-sm ...)
+ * would not reach it: at each open it takes the values `home` has where
+ * they differ from those it inherits.
+ */
+function carryOptions(home, dialog) {
+  const view = dialog.ownerDocument.defaultView;
+  if (!view?.getComputedStyle || !home?.isConnected || !dialog.style) return;
+  for (const name of OPTIONS) dialog.style.removeProperty(name);
+  const there = view.getComputedStyle(dialog);
+  const inherited = OPTIONS.map((name) => there.getPropertyValue(name).trim());
+  const here = view.getComputedStyle(home);
+  OPTIONS.forEach((name, index) => {
+    const value = here.getPropertyValue(name).trim();
+    if (value && value !== inherited[index]) dialog.style.setProperty(name, value);
+  });
 }
 
 /** The controller of each gallery (or show() list). @type {WeakMap<object, any>} */
@@ -187,11 +208,11 @@ export function create(gallery, options = {}) {
   const list = () => (typeof options.images === 'function' ? options.images() : imagesOf(gallery));
   const state = { index: 0, zoom: 1, x: 0, y: 0, images: /** @type {any[]} */ ([]), viewer: /** @type {any} */ (null), rover: /** @type {any} */ (null), pointers: new Map(), gesture: /** @type {any} */ (null), lastTap: 0 };
 
+  const homeOf = () => options.home ?? (gallery.isConnected ? gallery : gallery.ownerDocument?.body ?? globalThis.document.body);
   const viewer = () => {
     if (state.viewer?.dialog.isConnected) return state.viewer;
     const label = options.label ?? gallery.getAttribute?.('aria-label') ?? t('images');
-    const home = options.home ?? (gallery.isConnected ? gallery : gallery.ownerDocument?.body ?? globalThis.document.body);
-    state.viewer = buildViewer(home, label);
+    state.viewer = buildViewer(homeOf(), label);
     wireViewer(state.viewer);
     return state.viewer;
   };
@@ -299,6 +320,9 @@ export function create(gallery, options = {}) {
     v.count.textContent = t('imageOf', { index: state.index + 1, total });
     v.prev.hidden = total < 2;
     v.next.hidden = total < 2;
+    // The first focus (DS.overlay takes [autofocus]): Next, else Close, never the Zoom out a fit image disables.
+    v.next.toggleAttribute('autofocus', total >= 2);
+    v.closer.toggleAttribute('autofocus', total < 2);
     paintThumbs();
     if (say) {
       enter(v.figure, 'swap');
@@ -373,9 +397,11 @@ export function create(gallery, options = {}) {
         // A pointer the engine no longer tracks: the gesture runs without capture.
       }
       state.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      // A third finger joins the pinch of the first two without a gesture of its own.
+      if (state.pointers.size > 2) return;
       if (state.pointers.size === 2) {
         const [a, b] = [...state.pointers.values()];
-        state.gesture = { kind: 'pinch', distance: Math.hypot(a.x - b.x, a.y - b.y), zoom: state.zoom };
+        state.gesture = { kind: 'pinch', distance: Math.hypot(a.x - b.x, a.y - b.y) || 1, zoom: state.zoom };
         return;
       }
       state.gesture = { kind: state.zoom > 1 ? 'pan' : 'swipe', start: { x: event.clientX, y: event.clientY }, from: { x: state.x, y: state.y }, touch: event.pointerType !== 'mouse', moved: false };
@@ -384,7 +410,8 @@ export function create(gallery, options = {}) {
       if (!state.pointers.has(event.pointerId) || !state.gesture) return;
       state.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
       const gesture = state.gesture;
-      if (gesture.kind === 'pinch' && state.pointers.size === 2) {
+      if (gesture.kind === 'pinch') {
+        if (state.pointers.size !== 2) return;
         const [a, b] = [...state.pointers.values()];
         frame.setAttribute('data-dragging', '');
         zoomTo(gesture.zoom * (Math.hypot(a.x - b.x, a.y - b.y) / gesture.distance));
@@ -410,7 +437,18 @@ export function create(gallery, options = {}) {
     const end = (/** @type {PointerEvent} */ event) => {
       if (!state.pointers.delete(event.pointerId)) return;
       const gesture = state.gesture;
-      if (state.pointers.size > 0) return;
+      if (state.pointers.size > 0) {
+        // A pinch that lost a finger: the finger left pans (zoomed) or swipes from where it is.
+        if (gesture?.kind === 'pinch' && state.pointers.size === 1) {
+          const [rest] = [...state.pointers.values()];
+          state.gesture = { kind: state.zoom > 1 ? 'pan' : 'swipe', start: { x: rest.x, y: rest.y }, from: { x: state.x, y: state.y }, touch: true, moved: true };
+        } else if (gesture?.kind === 'pinch' && state.pointers.size === 2) {
+          // Two of three fingers left: the pinch goes on from these two.
+          const [a, b] = [...state.pointers.values()];
+          state.gesture = { kind: 'pinch', distance: Math.hypot(a.x - b.x, a.y - b.y) || 1, zoom: state.zoom };
+        }
+        return;
+      }
       state.gesture = null;
       frame.removeAttribute('data-dragging');
       if (!gesture) return;
@@ -466,6 +504,7 @@ export function create(gallery, options = {}) {
       state.images = list();
       if (!state.images.length) return Promise.resolve();
       const v = viewer();
+      carryOptions(homeOf(), v.dialog);
       show(index, false);
       const opened = openOverlay(v.dialog, { opener });
       announce(`${t('imageOf', { index: state.index + 1, total: state.images.length })}. ${state.images[state.index].caption || state.images[state.index].alt || ''}`.trim());

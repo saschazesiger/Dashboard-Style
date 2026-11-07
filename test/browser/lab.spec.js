@@ -274,6 +274,8 @@ test.describe('coverage', () => {
  * restart from zero). `in`: the card's stage, the document or the stage's
  * frame; `text`: the first match whose text includes it; `sum`: the props
  * add up to one value (an indicator's painted edge is its box plus its inset);
+ * `top`: the painted top edge (getBoundingClientRect), for a translate of a
+ * percentage, which Firefox and WebKit give mid-transition as a calc();
  * `progressive`: the motion needs a feature the fallback project strips, and
  * the component's header names the instant toggle it falls back to (there
  * the reversal is only required to settle).
@@ -326,6 +328,10 @@ const CONTINUITY = {
   'radio-tiles': { in: 'stage', sel: '.ds-radio:nth-of-type(2) .ds-radio__mark svg', props: ['opacity', 'scale.x'] },
   charts: { in: 'stage', sel: '.ds-meter', props: ['--ds-share'] },
   'selection-bar': { in: 'stage', sel: '.ds-selection-bar', props: ['opacity'] },
+  'dialog-modeless': { in: 'doc', sel: '#sg-lab-dialog-modeless', props: ['opacity', 'scale.x'] },
+  'bottomsheet-open': { in: 'doc', sel: '#sg-lab-bottomsheet .ds-bottomsheet__panel', props: ['top'] },
+  'tearsheet-open': { in: 'doc', sel: '#sg-lab-tearsheet-device .ds-dialog__box', props: ['opacity', 'top'] },
+  'sheet-push': { in: 'stage', sel: '[data-lab-panel]', props: ['--ds-sheet-reveal'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */
@@ -348,6 +354,7 @@ const CONTINUITY_EXEMPT = {
   'scroll-reel': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
   'scroll-y': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
   'scroll-x': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
+  'loadingoverlay-show': 'the veil waits --ds-delay-loader before it fades in (a quick task never flashes it), so the reversal at half of delay plus fade comes before it shows; an overlay hidden before it showed goes at once, by design',
 };
 
 /**
@@ -372,6 +379,7 @@ const LONG_RUNS = {
   'live-check': { ms: 12000, reason: 'clears the field, then shows the error 200ms later and turns it into a confirmation 400ms after that' },
   views: { ms: 12000, reason: 'a View Transition in a frame: it plays on pseudo-elements whose duration the timeline cannot read' },
   wizard: { ms: 12000, reason: 'a View Transition in a frame: it plays on pseudo-elements whose duration the timeline cannot read' },
+  'lightbox-open': { ms: 12000, reason: 'opens the viewer, holds --ds-dur-glide after the entrance, the next image, the zoom and the zoom back (four timers), then closes it; the viewer sits outside the stage, so the timeline holds none of it' },
 };
 
 /**
@@ -514,6 +522,7 @@ function reverseTrace(page, id, spec) {
         else if (key === 'rotate') out[key] = cs.rotate === 'none' ? 0 : parseFloat(cs.rotate);
         else if (key === 'translateX') out[key] = new DOMMatrixReadOnly(cs.transform === 'none' ? undefined : cs.transform).m41;
         else if (key === 'width') out[key] = parseFloat(cs.width) || 0;
+        else if (key === 'top') out[key] = el.getBoundingClientRect().top;
         else out[key] = parseFloat(cs.getPropertyValue(key)) || 0;
       }
       return out;

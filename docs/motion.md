@@ -984,8 +984,9 @@ The constants are fallbacks only (outside a `.ds-theme`): JS timing comes from t
 6. sets `data-state="closed"` (already before step 5, so a native dialog never meets the rules for dialogs driven by
    hand), flushes style, writes the origin (`originFrom(opener, box)` for dialogs and popups) and
    sets `data-state="open"`: the entrance runs on the transitions keyed on `data-state` in every engine;
-7. moves focus: `[autofocus]` inside, else the first focusable element (a menu: its first enabled item; a combobox
-   keeps focus in its input; the modal drawer: its `[aria-current="page"]` item, 2.0, else the drawer);
+7. moves focus: `[autofocus]` inside, else the first focusable element that is not a separator (a sheet's resize
+   handle, 3.0; a menu: its first enabled item; a combobox keeps focus in its input; the modal drawer: its
+   `[aria-current="page"]` item, 2.0, else the drawer);
 8. popups set `aria-expanded="true"` on the opener; a dialog or side sheet does so only when the opener already has
    `aria-expanded` (opt-in by markup, 2.0), and `aria-expanded="false"` comes back as soon as the close starts.
 
@@ -1102,7 +1103,10 @@ overlay stays open, as with a plain `<dialog>`. The listener calls `preventDefau
 native dialog from its own `cancel`) but does not stop the event. A native dialog's `cancel` is turned into
 `close()`, so Escape plays its exit. When the topmost overlay is a `.ds-dialog--contained`, the key is its own only
 when pressed inside the container it covers (1.6.1): Escape in the host page around an embedded widget is left alone,
-so the host's own dialogs and search fields keep it. The stack is the page's, shared by every copy of `ds.js` on it
+so the host's own dialogs and search fields keep it. A non-modal top layer (`.ds-dialog__box--modeless`, a docked
+`.ds-sheet__panel--push` or `--inspector`) takes the key only when it comes from inside it (a docked panel: from its
+`.ds-sheet__layout`), from its opener or from `<body>` (3.0, WAI-ARIA APG): Escape in a page field outside is left to
+that field, and the layer under it, if any, may take it. The stack is the page's, shared by every copy of `ds.js` on it
 (1.6.1 and later): the topmost overlay closes whichever copy opened it. A click on `[data-ds-close]` inside an overlay closes it (ignored
 while it closes). A menu also closes on Tab (focus returns to its trigger and Tab moves on from there) and on a
 `pointerdown` outside the menu and its trigger.

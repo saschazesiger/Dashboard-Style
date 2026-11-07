@@ -67,7 +67,8 @@ No tone: waiting is no status. The overlay takes the region's radius (`border-ra
   options)` shows it until the promise settles and resolves or rejects with it.
 - `create(el)` returns the controller that `data-ds-loadingoverlay` makes: `get()` (`{ shown, message, detail }`),
   `set(true | false | { shown, message, detail, progress, done })`, `wait(promise, options)`, `on(type, fn)` (`show`,
-  `hide`, `cancel`) and `destroy()`.
+  `hide`, `cancel`) and `destroy()` (an overlay that shows goes at once: `hidden`, the region's `aria-busy`, its
+  inertness and the position it may have needed are given back, and a pending hide does nothing).
 - `holdMs(shownAt, now, { delay, minVisible })` is the arithmetic of the hold.
 
 ### Keyboard, names and forced colours

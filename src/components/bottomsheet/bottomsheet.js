@@ -13,8 +13,11 @@
  * Detents: data-ds-bottomsheet-detents, fractions (0 to 1) of the panel's
  * full height, smallest first after parsing; the panel rests at one of
  * them: --ds-bottomsheet-offset (a runtime property on the panel) moves it
- * down by the rest. data-detents on the sheet says it has them. Without
- * the attribute it rests fully up, as tall as its content.
+ * down by the rest, and --ds-bottomsheet-rest (that offset, written only
+ * at rest, so a drag does not lay it out on every move) pads its end, so
+ * the foot and the end of the body stay in the window. data-detents on
+ * the sheet says it has them. Without the attribute it rests fully up, as
+ * tall as its content.
  *
  * Drag: a pointer on the handle or the head (not on a control in it) drags
  * the panel; it follows the finger (data-dragging holds its transition),
@@ -95,6 +98,7 @@ export function create(element) {
   const listeners = [];
   const state = { index: 0, detents: [1], drag: /** @type {any} */ (null), wanted: /** @type {number|null} */ (null) };
   own(panel, 'props', '--ds-bottomsheet-offset');
+  own(panel, 'props', '--ds-bottomsheet-rest');
   own(panel, 'attrs', 'data-dragging');
   own(element, 'attrs', 'data-detents');
 
@@ -115,7 +119,10 @@ export function create(element) {
   /** Moves to detent `index`; `say` announces it. */
   const rest = (index, say = true) => {
     state.index = Math.min(state.detents.length - 1, Math.max(0, index));
-    paint(offsetFor(state.detents[state.index]));
+    const offset = offsetFor(state.detents[state.index]);
+    paint(offset);
+    // The part below the window is padding, so the foot and the body's end stay in view.
+    panel?.style.setProperty('--ds-bottomsheet-rest', `${Math.max(0, Math.round(offset))}px`);
     if (!say) return;
     announce(t('sheetDetent', { percent: Math.round(state.detents[state.index] * 100) }));
     emit(element, 'detent', { detent: state.detents[state.index], index: state.index });
@@ -199,10 +206,14 @@ export function create(element) {
   panel?.addEventListener('pointerup', end, { signal });
   panel?.addEventListener('pointercancel', end, { signal });
 
-  // The window's height changes the full height: the detent's offset follows.
-  element.ownerDocument.defaultView?.addEventListener('resize', () => {
-    if (isOpen(element)) rest(state.index, false);
-  }, { signal });
+  // The window's height changes the panel's full height: the detent's offset
+  // follows. An observer of the panel's border box (the rest's padding
+  // changes only its content box), no listener on the window.
+  const Observer = element.ownerDocument.defaultView?.ResizeObserver;
+  const sizes = panel && typeof Observer === 'function' ? new Observer(() => {
+    if (isOpen(element) && !state.drag) rest(state.index, false);
+  }) : null;
+  sizes?.observe(panel, { box: 'border-box' });
 
   const controller = {
     element,
@@ -226,6 +237,7 @@ export function create(element) {
       if (controllers.get(element) !== controller) return;
       controllers.delete(element);
       abort.abort();
+      sizes?.disconnect();
       for (const off of listeners.splice(0)) off();
     },
     /** The detent to open at (open() sets it). */

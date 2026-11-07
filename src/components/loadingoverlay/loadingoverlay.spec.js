@@ -117,6 +117,32 @@ test('a quick job shows nothing; show() builds an overlay in a region without on
   await expect(page.getByRole('button', { name: 'Inside' })).toBeFocused();
 });
 
+test('destroy() while it shows gives the region back at once, and a pending hide does nothing', async ({ page }) => {
+  await open(page);
+  const after = await page.evaluate(async () => {
+    const region = document.createElement('section');
+    region.className = 'ds-card';
+    region.setAttribute('aria-label', 'Destroyed');
+    region.innerHTML = '<button class="ds-btn" type="button">Inside</button>';
+    document.querySelector('#fx-component').prepend(region);
+    const veil = DS.loadingoverlay.show(region, { message: 'Loading ...' });
+    await new Promise((resolve) => setTimeout(resolve, DS.motion.motionDuration(region, '--ds-delay-loader') + 50));
+    const pending = veil.set(false);
+    veil.destroy();
+    await pending;
+    await new Promise((resolve) => setTimeout(resolve, DS.motion.motionDuration(region, '--ds-hold-loader') + 50));
+    const overlay = region.querySelector('.ds-loadingoverlay');
+    return {
+      busy: region.getAttribute('aria-busy'),
+      position: region.style.position,
+      hidden: overlay.hidden,
+      state: overlay.getAttribute('data-state'),
+      inert: region.querySelectorAll('[inert]').length,
+    };
+  });
+  expect(after).toEqual({ busy: null, position: '', hidden: true, state: null, inert: 0 });
+});
+
 test('the demo: progress, detail and cancel; the ring and its value follow', async ({ page }) => {
   await open(page);
   await page.getByRole('button', { name: 'Import devices' }).click();
