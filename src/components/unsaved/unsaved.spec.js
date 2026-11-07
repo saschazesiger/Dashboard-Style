@@ -201,6 +201,57 @@ test('navigate() and a guarded link ask first; Keep editing stays, Discard chang
   })).toBe(false);
 });
 
+test('navigate() into a route that keeps the form: the form is clean, the bar hides, the warning counts again', async ({ page }) => {
+  await open(page);
+  const form = await make(page);
+  const name = form.getByRole('textbox', { name: 'Device name' });
+  const bar = page.getByRole('region', { name: 'Unsaved changes' });
+  const asks = () => page.evaluate(() => {
+    const event = new Event('beforeunload', { cancelable: true });
+    window.dispatchEvent(event);
+    return event.defaultPrevented;
+  });
+  await name.fill('LAPTOP-0043');
+  await expect(bar).toBeVisible();
+  const went = page.evaluate(() => DS.unsaved.navigate(() => {}));
+  await page.getByRole('alertdialog', { name: 'Leave without saving?' }).getByRole('button', { name: 'Discard changes' }).click();
+  expect(await went).toBe(true);
+  expect(await page.evaluate(() => DS.unsaved.isDirty())).toBe(false);
+  await expect(name).toHaveValue('LAPTOP-0042');
+  await expect(bar).toBeHidden();
+  expect(await page.evaluate(() => window.events.map(([type]) => type))).toContain('discard');
+  await name.fill('LAPTOP-0044');
+  expect(await asks()).toBe(true);
+});
+
+test('a guarded form that leaves the page hides an app-level bar outside it', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const region = document.createElement('div');
+    region.setAttribute('data-test-app', '');
+    region.innerHTML = `<div class="ds-view" style="block-size: 360px; view-transition-name: none; scroll-timeline: none;"><div class="ds-content" data-test-route>
+      <form class="ds-form" data-ds-unsaved data-ds-unsaved-savebar="#app-bar" aria-label="Ticket">
+        <div class="ds-field"><label class="ds-field__label" for="a-title">Title</label><input class="ds-input" id="a-title" name="title" value="Printer jam"></div>
+      </form></div>
+      <div class="ds-savebar" id="app-bar"><div class="ds-savebar__bar ds-presence" role="region" aria-label="App changes" hidden>
+        <p class="ds-savebar__text ds-unsaved__count" data-ds-unsaved-count></p><div class="ds-savebar__actions">
+        <button class="ds-btn ds-btn--text" type="button" data-ds-unsaved-discard>Discard</button>
+        <button class="ds-btn ds-btn--filled" type="button" data-ds-unsaved-save>Save</button></div></div></div></div>`;
+    document.querySelector('#fx-component').prepend(region);
+  });
+  const form = page.locator('[data-test-app] form');
+  await page.waitForFunction(() => DS.get(document.querySelector('[data-test-app] form'), 'unsaved'));
+  const bar = page.getByRole('region', { name: 'App changes' });
+  await form.getByRole('textbox', { name: 'Title' }).fill('Paper jam');
+  await expect(bar).toBeVisible();
+  await expect(bar.locator('[data-ds-unsaved-count]')).toHaveText('1 unsaved change');
+  // The route swaps its content without asking: the guard goes with the form.
+  await page.evaluate(() => document.querySelector('[data-test-route]').replaceChildren());
+  await expect(bar).toBeHidden();
+  await expect(page.locator('#app-bar [data-ds-unsaved-count]')).toHaveText('');
+  expect(await page.evaluate(() => DS.unsaved.isDirty())).toBe(false);
+});
+
 test('options: data-ds-unsaved-marks="off" leaves the fields alone; hotkey off takes no key', async ({ page }) => {
   await open(page);
   const form = await make(page, { attributes: 'data-ds-unsaved-marks="off" data-ds-unsaved-hotkey="off"' });

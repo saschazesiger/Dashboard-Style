@@ -504,11 +504,9 @@ function controller(el, initial, signal) {
       entry.error = '';
       if (result.url && !entry.url) {
         entry.url = result.url;
-        const old = entry.row;
-        if (old) {
-          const next = build(entry);
-          old.replaceWith(next);
-        }
+        // Only the media turns into the preview: the row stays, and so does
+        // a focus on its buttons.
+        entry.row?.firstElementChild?.replaceWith(media(entry));
       }
       paint(entry);
       announce(t('uploadDoneAnnounce', { name: entry.name }));

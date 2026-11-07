@@ -213,6 +213,21 @@ test('a press on a token removes it; the clear button empties the query; Escape 
   await expect(el.getByRole('button', { name: 'Save this query' })).toHaveAttribute('aria-disabled', 'true');
 });
 
+test('remove() from the page leaves the focus where it is, unless it was on that token', async ({ page }) => {
+  await open(page);
+  const el = await make(page, { value: 'status:open priority:>=3 printer' });
+  const save = el.locator('.ds-query__save');
+  await save.focus();
+  await page.evaluate(() => DS.get(document.querySelector('[data-test-query]'), 'query').remove(0));
+  await expect(el.locator('.ds-query__token')).toHaveCount(2);
+  await expect(save).toBeFocused();
+  // The token that held the focus goes: the field takes it, not the page.
+  await el.locator('.ds-query__token').first().focus();
+  await page.evaluate(() => DS.get(document.querySelector('[data-test-query]'), 'query').remove(0));
+  await expect(el.locator('.ds-query__token')).toHaveCount(1);
+  await expect(el.getByRole('combobox', { name: 'Filter tickets' })).toBeFocused();
+});
+
 test('saved queries: Save asks for a name and keeps it in DS.store; the empty field lists them; Delete removes one', async ({ page }) => {
   await open(page);
   const el = await make(page, { value: 'status:open assignee:ada', attributes: 'data-ds-query-store="test-tickets"' });

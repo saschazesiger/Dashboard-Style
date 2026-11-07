@@ -22,7 +22,8 @@
  * the browser, then a cancelable ds:validate for the page's own rules):
  * each invalid field gets aria-invalid and an error hint in words, the
  * first one takes the focus, the step turns to error in the steps, and the
- * count is spoken. A valid step turns done and the next one shows; its
+ * count is spoken (the page's own aria-invalid fields included; a refusal
+ * that marks none says only "Needs attention"). A valid step turns done and the next one shows; its
  * title takes the focus and "Step 2 of 4: Problem" is spoken. Back never
  * checks. The submit button shows on the last step; a submit (Enter in a
  * field, too) before it moves on instead, and on the last step every step
@@ -242,10 +243,15 @@ function controller(form, signal) {
     status[at] = 'error';
     if (at !== index) show(at, 'back');
     else renderSteps();
-    const first = panels[at].querySelector('[aria-invalid="true"]');
-    first?.focus();
-    const count = panels[at].querySelectorAll('.ds-wizard__error').length;
-    announce(count === 1 ? t('wizardError') : t('wizardErrors', { count }), { assertive: true });
+    // The invalid controls, the page's own included (a refusal through
+    // ds:validate): a radio or checkbox group counts once, and so does a
+    // group marked invalid as a whole.
+    const marked = [...panels[at].querySelectorAll('[aria-invalid="true"]')];
+    const outer = marked.filter((node) => !marked.some((other) => other !== node && other.contains(node)));
+    const count = new Set(outer.map((node) => ((node.type === 'radio' || node.type === 'checkbox') && node.name ? `${node.type}:${node.name}` : node))).size;
+    outer[0]?.focus();
+    // A refusal that marks no field: the page says why; the step says it needs attention.
+    announce(count === 0 ? t('wizardFix') : count === 1 ? t('wizardError') : t('wizardErrors', { count }), { assertive: true });
   };
 
   const goTo = (to, direction) => {

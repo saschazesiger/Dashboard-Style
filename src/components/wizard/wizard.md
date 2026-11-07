@@ -39,7 +39,8 @@ const wizard = DS.get(form, 'wizard');        // or DS.wizard.create(form)
   `preventDefault()` and show the error yourself). Each invalid field gets `aria-invalid="true"` and an error hint in
   words (Form's `.ds-field__hint--error`, with the class `.ds-wizard__error`, named in its `aria-describedby`; a group of
   radios or checkboxes gets one, in its fieldset); the first one takes the focus, the step turns to error and "2 fields
-  need attention" is spoken. A field put right loses its error at once. A valid step turns done and the next one opens:
+  need attention" is spoken. The count takes in the fields the page marked `aria-invalid="true"` itself; a refusal
+  that marks none says only "Needs attention". A field put right loses its error at once. A valid step turns done and the next one opens:
   it plays `.ds-enter--swap`, its title takes the focus (`tabindex="-1"`, written once) and "Step 2 of 4: Problem" is
   spoken.
 - **Back** never checks. Back is hidden on the first step, Next on the last, where the submit button shows instead.

@@ -33,9 +33,11 @@ and a `.ds-kveditor__foot` with its `.ds-kveditor__add` button (made, "Add row",
   JSON, or KEY=value lines with `data-ds-kveditor-format="env"`, so a plain form submits it.
 - **Add and remove.** Add appends an empty row and focuses its key; Remove takes a row out on `DS.motion.flip()` (the
   others glide) and says so. Focus moves to the next row's Remove, else the one before, else Add.
-- **Paste.** Pasting text with `KEY=value` lines into a key, or several lines into a value, fills that row (when empty)
-  and adds the others after it, as `DS.kveditor.parse()` reads them: blank lines and `#` comments skipped, `export `
-  dropped, quotes and escapes read as a `.env` file has them. "Pasted 4 rows" is spoken.
+- **Paste.** Pasting text with `KEY=value` lines into a key, or several such lines into a value, fills that row (when
+  empty) and adds the others after it, as `DS.kveditor.parse()` reads them: blank lines and `#` comments skipped,
+  `export ` dropped, quotes and escapes read as a `.env` file has them. "Pasted 4 rows" is spoken. Into a value, text
+  whose lines do not all assign (a certificate, a JSON document) is not split: it stays that value, as the field takes
+  it.
 - **Duplicates.** A key that comes twice gives every row of it `data-status="warning"`: the key takes the warning edge
   and the hint says which rows share it, with an icon ("API_URL is also on row 3: the last one counts"), named in the
   key's `aria-describedby`. A value without a key warns too. Warnings never block: `toObject()` keeps the last row of a

@@ -82,10 +82,13 @@ test('progress, done and fail: the bar and its ARIA, the words and icons, Retry'
   await expect(row.getByRole('button', { name: 'Remove devices.csv' }), 'focus moves from the hidden Retry to Remove').toBeFocused();
   expect((await page.evaluate(() => window.events)).filter((event) => event.type === 'retry')[0].detail.entry.name).toBe('devices.csv');
 
-  await handle.evaluate((controller, id) => controller.done(id), id);
+  // done() with the server's url: the media turns into the preview, the row and its focus stay.
+  await handle.evaluate((controller, id) => controller.done(id, { url: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' }), id);
   await expect(row).toHaveAttribute('data-status', 'done');
   await expect(row.locator('.ds-upload__meta')).toContainText('Uploaded');
   await expect(row.locator('.ds-upload__bar')).toBeHidden();
+  await expect(row.locator('.ds-upload__thumb img')).toHaveCount(1);
+  await expect(row.getByRole('button', { name: 'Remove devices.csv' })).toBeFocused();
 });
 
 test('Remove takes a row out, sends ds:remove and moves focus to the next row, then to the zone', async ({ page }) => {

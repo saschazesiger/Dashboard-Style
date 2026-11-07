@@ -64,7 +64,8 @@ markup has none) and, with `data-ds-query-name`, a hidden input with the text fo
 
 **JS API.** `DS.get(el, 'query')` or `DS.query.create(el, options)` return the controller: `get()` (the query:
 `terms`, `filters`, `text`, `invalid`, `value`), `set(value)` (text or terms), `add(value)` (text, a term or terms;
-returns whether any came of it), `remove(index)`, `clear()`, `setKeys(keys)`, `saved()`, `save(label)`,
+returns whether any came of it), `remove(index)` (the focus stays where it is, unless it was on that token: then the
+field takes it), `clear()`, `setKeys(keys)`, `saved()`, `save(label)`,
 `on(type, fn)` (`change`, `submit`, `saved`) and `destroy()`. `data-ds-value` is the first query. The helpers:
 `DS.query.parse(text, keys)` (terms `{ key, op, values, invalid }`), `DS.query.stringify(terms)`,
 `DS.query.toQuery(terms)` (the structured query) and `DS.query.suggest(typed, keys)` (what the list would offer).

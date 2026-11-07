@@ -26,8 +26,9 @@
  * Keys: Enter in a key goes to its value; Enter in a value goes to the next
  * row's key, or adds a row after the last one. Remove moves focus to the
  * next row, else the one before, else Add. Pasting text with KEY=value
- * lines into a key (or several lines into a value) fills the row and adds
- * the rest after it.
+ * lines into a key (or several such lines into a value) fills the row and
+ * adds the rest after it; other text pasted into a value (a certificate,
+ * a JSON document) stays the value, as the field takes it.
  *
  * Strings: kv* keys of DS.core.config({ strings }) and remove.
  *
@@ -39,6 +40,19 @@ import { announce } from '../../js/a11y.js';
 import { iconElement, alert as alertGlyph, close, eye, eyeOff, plus } from '../../js/icons.js';
 
 let serial = 0;
+
+/** A line that assigns: `KEY=…` or `export KEY=…`. */
+const ASSIGNMENT = /^\s*(export\s+)?[A-Za-z_][\w.-]*\s*=/;
+
+/**
+ * Whether pasted text is KEY=value lines (every line that is not blank or
+ * a # comment assigns), not a value that happens to span lines (a PEM
+ * block, a JSON document).
+ */
+const assignments = (text) => {
+  const lines = text.split(/\r?\n/).filter((line) => line.trim() && !line.trim().startsWith('#'));
+  return lines.length > 0 && lines.every((line) => ASSIGNMENT.test(line));
+};
 
 /** A double-quoted value as dotenv reads it: \n, \", \\ and \t. */
 const unescape = (text) => text.replace(/\\([nrt"\\])/g, (match, char) => ({ n: '\n', r: '\r', t: '\t' })[char] ?? char);
@@ -397,7 +411,9 @@ function controller(el, options, signal) {
     if (!row || !field.classList.contains('ds-input')) return;
     const text = event.clipboardData?.getData('text/plain') ?? '';
     const isKey = field.classList.contains('ds-kveditor__key');
-    if (!(text.includes('\n') || (isKey && text.includes('=')))) return;
+    // Into a value only KEY=value lines spread over rows; other text (a
+    // certificate, say) is the value, pasted as the field takes it.
+    if (isKey ? !(text.includes('\n') || text.includes('=')) : !(text.includes('\n') && assignments(text))) return;
     const pairs = parse(text);
     if (!pairs.length) return;
     event.preventDefault();

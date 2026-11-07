@@ -60,14 +60,18 @@ const guard = DS.get(form, 'unsaved');                                  // or DS
   while something is unsaved, so the page keeps its back-forward cache otherwise). A native submit that goes through
   leaves without the question. `DS.unsaved.navigate(go, options)` asks in a dialog first (`DS.overlay.confirm()`:
   "Leave without saving?", "Discard changes" in the error tone (D10), "Keep editing" with the first focus) and runs
-  `go()` when the person agrees or nothing is unsaved; it resolves whether it went. A link inside
+  `go()` when the person agrees or nothing is unsaved; it resolves whether it went. Once `go()` resolved, the guards it
+  asked for drop their changes quietly (`ds:discard`, no focus move): a route that keeps the form shows it clean and
+  without the bar, and the next edit warns again before an unload. A link inside
   `[data-ds-unsaved-link]` does the same by itself (a plain click; a new tab, a download or another target goes as it
   is).
 
 **JS API.** `DS.get(form, 'unsaved')` or `DS.unsaved.create(form, { savebar, hotkey, marks, onSave })` return the
 controller: `get()` (`{ dirty, count, changed }`), `set(false)` (what the fields hold is saved, as `commit()`),
 `set(true)` (unsaved whatever the fields say, for a change the guard cannot see), `check()`, `commit()`, `discard()`,
-`save()` (resolves whether it saved), `on(type, fn)` (`change`, `save`, `saved`, `discard`, `error`) and `destroy()`.
+`save()` (resolves whether it saved), `on(type, fn)` (`change`, `save`, `saved`, `discard`, `error`) and `destroy()`
+(also when the form leaves the page: a bar outside the form hides, unless another guard that shares it holds
+changes).
 Events on the form: `ds:change` (`{ dirty, count, changed }`) when the changes change, `ds:save` (cancelable),
 `ds:saved`, `ds:discard` and `ds:error` (`{ error }`). `data-ds-dirty` on the form says that something is unsaved. The
 helpers: `DS.unsaved.isDirty(root)` (whether a guard in `root` holds changes), `DS.unsaved.navigate(go, options)`

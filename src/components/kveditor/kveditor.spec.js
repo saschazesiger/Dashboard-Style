@@ -98,6 +98,26 @@ test('paste: KEY=value lines in an empty key fill it and add the rest after it',
   await expect.poll(() => page.evaluate(() => document.body.textContent.includes('Pasted 3 rows.'))).toBe(true);
 });
 
+test('paste: a multi-line value that is not KEY=value lines stays the value; assignments into a value spread', async ({ page }) => {
+  await open(page);
+  const el = await make(page, [{ key: 'TLS_CERT', value: '' }]);
+  const paste = (text) => page.evaluate((text) => {
+    const value = document.querySelector('[data-test-kv] .ds-kveditor__input');
+    value.focus();
+    const data = new DataTransfer();
+    data.setData('text/plain', text);
+    const event = new ClipboardEvent('paste', { bubbles: true, cancelable: true });
+    Object.defineProperty(event, 'clipboardData', { value: data });
+    value.dispatchEvent(event);
+    return event.defaultPrevented;
+  }, text);
+  expect(await paste('-----BEGIN CERTIFICATE-----\nMIIBszCCAVmgAwIBAgIUQ==\n-----END CERTIFICATE-----')).toBe(false);
+  await expect(el.locator('.ds-kveditor__row')).toHaveCount(1);
+  // KEY=value lines pasted into a value still spread over rows.
+  expect(await paste('DB_HOST=db.local\nDB_PORT=5432')).toBe(true);
+  await expect(el.locator('.ds-kveditor__row')).toHaveCount(3);
+});
+
 test('a key that comes twice warns on both rows, in words, until it is unique again', async ({ page }) => {
   await open(page);
   const el = await make(page, [{ key: 'API_URL', value: 'a' }, { key: 'B', value: 'b' }, { key: 'API_URL', value: 'c' }]);

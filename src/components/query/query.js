@@ -44,7 +44,7 @@
  * (DS.overlay.prompt) and keeps the query; the list shows them while the
  * field is empty; Delete on one removes it.
  *
- * Strings: query* keys of DS.core.config({ strings }), and clear.
+ * Strings: query* keys of DS.core.config({ strings }).
  *
  * ES2022. No Progressive: features.
  */
@@ -392,15 +392,18 @@ function controller(el, options, signal) {
     all[Math.max(0, at)].focus();
   };
 
+  /** `focusNext`: 'next', 'previous', 'input', or 'none' (the page removes it from elsewhere: focus stays where it is). */
   const removeAt = (at, focusNext) => {
     const term = terms[at];
     if (!term) return;
+    // A token that held the focus goes: the focus must not fall to the page.
+    const held = tokens()[at]?.contains(doc.activeElement) ?? false;
     terms = terms.filter((_, index) => index !== at);
     changed();
     announce(t('queryRemoved', { label: nameOf(term, known) }));
     if (focusNext === 'next') focusToken(at);
     else if (focusNext === 'previous') focusToken(at - 1 < 0 ? tokens().length : at - 1);
-    else input.focus();
+    else if (focusNext !== 'none' || held) input.focus();
   };
 
   const editAt = (at) => {
@@ -754,7 +757,7 @@ function controller(el, options, signal) {
       return commit(Array.isArray(value) ? stringify(value) : typeof value === 'object' && value ? stringify([value]) : String(value ?? ''));
     },
     remove(index) {
-      if (index >= 0 && index < terms.length) removeAt(index, 'input');
+      if (index >= 0 && index < terms.length) removeAt(index, 'none');
     },
     clear() {
       terms = [];

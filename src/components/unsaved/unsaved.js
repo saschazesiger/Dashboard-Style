@@ -48,7 +48,11 @@
  * in the back-forward cache otherwise). navigate(go) asks in a dialog first
  * (DS.overlay.confirm: "Discard changes" in the error tone, "Keep
  * editing") and runs go() when the person agrees or nothing is unsaved;
- * a link inside [data-ds-unsaved-link] does the same by itself.
+ * once go() resolved, the guards it asked for discard their changes
+ * quietly (a route that keeps the form shows it clean, with no bar), and
+ * the next edit warns again. A link inside [data-ds-unsaved-link] does the
+ * same by itself. destroy() hides the bar it showed (one outside the form
+ * outlives it) unless another guard that shares it holds changes.
  *
  * Strings: unsaved* keys of DS.core.config({ strings }).
  *
@@ -160,6 +164,8 @@ function controller(form, options, signal) {
   let saving = null;
   let leaving = false;
   let unloadOn = false;
+  /** The .ds-field__changed words this guard added to labels that had none. */
+  const words = new Set();
   const marks = (options.marks ?? form.getAttribute('data-ds-unsaved-marks')) !== 'off' && options.marks !== false;
 
   const firstField = () => [...form.elements].find((field) => counts(field) && field.type !== 'hidden' && !field.disabled) ?? form;
@@ -217,6 +223,7 @@ function controller(form, options, signal) {
         word.className = 'ds-field__changed ds-sr';
         word.textContent = ` ${t('unsavedChangedWord')}`;
         label.append(word);
+        words.add(word);
       }
     }
     if (barApi) {
@@ -230,6 +237,9 @@ function controller(form, options, signal) {
   };
 
   const check = () => {
+    // An edit means the document is still here: a navigation or submit
+    // that let it go did not unload it, so the warning counts again.
+    leaving = false;
     const was = dirty();
     const before = changed.join('\n');
     changed = diff(baseline, snapshot(form));
@@ -246,7 +256,8 @@ function controller(form, options, signal) {
     notify('change', { dirty: false, count: 0, changed: [] });
   };
 
-  const discard = () => {
+  /** `quiet`: after navigate() went (the person chose to leave): no focus move, no announcement. */
+  const discard = ({ quiet = false } = {}) => {
     const was = [...changed];
     for (const [key, entry] of snapshot(form)) {
       const before = baseline.get(key);
@@ -256,8 +267,10 @@ function controller(form, options, signal) {
     changed = diff(baseline, snapshot(form));
     render();
     notify('discard', { changed: was });
-    if (form.contains(doc.activeElement) || !doc.activeElement || doc.activeElement === doc.body) firstField().focus?.();
-    announce(t('unsavedDiscarded'));
+    if (!quiet) {
+      if (form.contains(doc.activeElement) || !doc.activeElement || doc.activeElement === doc.body) firstField().focus?.();
+      announce(t('unsavedDiscarded'));
+    }
     notify('change', { dirty: dirty(), count: changed.length, changed: [...changed] });
   };
 
@@ -312,6 +325,10 @@ function controller(form, options, signal) {
     if (target.hasAttribute('data-ds-unsaved-save')) save();
     else discard();
   };
+  // Back from the back-forward cache: the page that let itself go is here again.
+  view.addEventListener('pageshow', () => {
+    leaving = false;
+  }, { signal });
   for (const root of scopeOf()) root.addEventListener('click', onClick, { signal });
 
   const combo = options.hotkey ?? form.getAttribute('data-ds-unsaved-hotkey') ?? 'mod+s';
@@ -331,7 +348,23 @@ function controller(form, options, signal) {
     })
     : null;
 
-  const entry = { form, dirty, leave: () => { leaving = true; }, stay: () => { leaving = false; } };
+  const entry = {
+    form,
+    bar,
+    dirty,
+    leave: () => {
+      leaving = true;
+    },
+    stay: () => {
+      leaving = false;
+    },
+    /** navigate() went and the document is still here (an in-app route): what the person gave up is gone. */
+    gone: () => {
+      if (signal?.aborted) return;
+      if (dirty()) discard({ quiet: true });
+      leaving = false;
+    },
+  };
   shared().guards.add(entry);
 
   render();
@@ -350,7 +383,7 @@ function controller(form, options, signal) {
     },
     check,
     commit,
-    discard,
+    discard: () => discard(),
     save,
     on(type, fn) {
       if (!listeners.has(type)) listeners.set(type, new Set());
@@ -365,7 +398,18 @@ function controller(form, options, signal) {
         node.classList.remove('ds-field--changed');
         node.removeAttribute('data-ds-unsaved-marked');
       }
+      for (const word of words) word.remove();
+      words.clear();
       form.removeAttribute('data-ds-dirty');
+      // A bar outside the form (one for the whole app) outlives it: it
+      // hides, and its count goes once the exit is over, unless another
+      // guard that shares it still holds changes.
+      if (barApi && ![...shared().guards].some((guard) => guard.bar === bar && guard.dirty())) {
+        barApi.hide();
+        barApi.update(() => {
+          for (const node of bar.querySelectorAll('[data-ds-unsaved-count]')) node.textContent = '';
+        });
+      }
       listeners.clear();
     },
   };
@@ -431,7 +475,12 @@ export function navigate(go, options = {}) {
   return ask.then((agreed) => {
     if (!agreed) return false;
     for (const guard of guards) guard.leave();
-    return Promise.resolve(typeof go === 'function' ? go() : undefined).then(() => true, (error) => {
+    return Promise.resolve(typeof go === 'function' ? go() : undefined).then(() => {
+      // The person chose to discard: a route that kept the page leaves
+      // clean forms and no bar behind, and the warning counts again.
+      for (const guard of guards) guard.gone();
+      return true;
+    }, (error) => {
       for (const guard of guards) guard.stay();
       throw error;
     });

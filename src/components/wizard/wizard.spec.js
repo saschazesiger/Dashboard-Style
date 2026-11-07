@@ -135,6 +135,19 @@ test('Enter in a field goes on; ds:validate can refuse a step', async ({ page })
   await el.getByRole('textbox', { name: 'Note' }).fill('taken');
   await page.keyboard.press('Enter');
   expect(await state(page)).toMatchObject({ index: 0 });
+  // A refusal that marks no field counts no fields.
+  await expect.poll(() => page.evaluate(() => document.body.textContent.includes('Needs attention'))).toBe(true);
+  expect(await page.evaluate(() => document.body.textContent.includes('0 fields need attention.'))).toBe(false);
+  // One that marks its field: that field is counted and takes the focus.
+  await page.evaluate(() => {
+    document.querySelector('[data-test-wizard]').addEventListener('ds:validate', (event) => {
+      if (event.defaultPrevented) event.detail.panel.querySelector('[name="note"]').setAttribute('aria-invalid', 'true');
+    });
+  });
+  await el.getByRole('button', { name: 'Next' }).click();
+  await expect(el.getByRole('textbox', { name: 'Note' })).toBeFocused();
+  await expect.poll(() => page.evaluate(() => document.body.textContent.includes('One field needs attention.'))).toBe(true);
+  await el.getByRole('textbox', { name: 'Note' }).evaluate((input) => input.removeAttribute('aria-invalid'));
   await el.getByRole('textbox', { name: 'Note' }).fill('free');
   await page.keyboard.press('Enter');
   expect(await state(page)).toMatchObject({ index: 1 });
