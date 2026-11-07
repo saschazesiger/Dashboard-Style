@@ -1,0 +1,54 @@
+{
+  "name": "sort",
+  "group": "data",
+  "order": 410,
+  "docsOrder": 183,
+  "need": "Sort a list or a set of cards by a field and a direction, outside a table",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-sort",
+    "ds-sort--menu",
+    "ds-sort__arrow",
+    "ds-sort__field",
+    "ds-sort__label",
+    "ds-sort__order",
+    "ds-sort__trigger",
+    "ds-sort__value",
+    "ds-sort__word",
+    "ds-sort__words"
+  ],
+  "attributes": [
+    "data-state"
+  ],
+  "requires": [
+    "button",
+    "form",
+    "menu"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-sort-field-width": {
+      "default": "160px",
+      "description": "the least width of the field select of an inline sort control"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "sort"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.sort.parse": "a pure function: no motion",
+    "DS.sort.stringify": "a pure function: no motion"
+  },
+  "motionExceptions": {
+    "transition": {
+      "rotate": {
+        ".ds-sort__arrow": "icon swaps: the one arrow turns 180deg between ascending and descending, as the table's sort arrow"
+      }
+    }
+  }
+}

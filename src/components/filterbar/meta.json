@@ -1,0 +1,70 @@
+{
+  "name": "filterbar",
+  "group": "data",
+  "order": 420,
+  "docsOrder": 185,
+  "need": "Filter a list from a bar of inline filters that fold into a sheet when narrow, with applied chips, Clear all and a count",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-filterbar",
+    "ds-filterbar__applied",
+    "ds-filterbar__badge",
+    "ds-filterbar__chips",
+    "ds-filterbar__clear",
+    "ds-filterbar__count",
+    "ds-filterbar__filters",
+    "ds-filterbar__more",
+    "ds-filterbar__range",
+    "ds-filterbar__results",
+    "ds-filterbar__row",
+    "ds-filterbar__search"
+  ],
+  "attributes": [
+    "data-folded"
+  ],
+  "requires": [
+    "badge",
+    "button",
+    "chip",
+    "form",
+    "sheet"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-filterbar-gap": {
+      "default": "`--ds-space-3`",
+      "description": "the gaps of a filter bar at size md and the comfortable density: 4px per size step, 2px per density step"
+    },
+    "--ds-filterbar-search-min": {
+      "default": "200px",
+      "description": "the least width of the bar's search; the filters fold when the row cannot hold it beside them"
+    },
+    "--ds-filterbar-field-width": {
+      "default": "160px",
+      "description": "the width of an inline filter field in the bar (full width in the sheet)"
+    },
+    "--ds-filterbar-range-width": {
+      "default": "96px",
+      "description": "the width of each of the two fields of a `.ds-filterbar__range` in the bar (they share the row in the sheet)"
+    },
+    "--ds-input-height": {
+      "owner": "form"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "filterbar"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.filterbar.create": "the bar folds and unfolds at once; its chips are input chips and its sheet the side sheet's motion",
+    "DS.filterbar.read": "a pure function of the controls: no motion",
+    "DS.filterbar.write": "sets controls: no motion",
+    "DS.filterbar.applied": "a pure function of the controls: no motion",
+    "DS.filterbar.fold": "the side sheet's own motion (DS.overlay.open), shown in the overlays of the Motion Lab",
+    "DS.filterbar.filters": "the engine of the chips and Clear all: no motion of its own"
+  }
+}

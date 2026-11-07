@@ -589,6 +589,53 @@ strings a script adds have an option, so a page in another language passes its o
 | `{column} not saved.` | what it announces when the page cancels `ds:edit` (the system's string `datagridEditRefused`) | `DS.core.config({ strings: { datagridEditRefused } })` |
 | `{count} row copied.` | what it announces after copying one row (the system's string `datagridCopiedOne`, the plural form `one`) | `DS.core.config({ strings: { datagridCopiedOne } })` |
 | `{count} rows copied.` | after copying any other number (the system's string `datagridCopiedOther`, the form `other`) | `DS.core.config({ strings: { datagridCopiedOther } })` |
+| `Ascending` | the order of a sort field without a type in `DS.sort` (the system's string `sortAscending`) | `DS.core.config({ strings: { sortAscending } })` |
+| `Descending` | the same, descending (the system's string `sortDescending`) | `DS.core.config({ strings: { sortDescending } })` |
+| `A to Z` | the ascending order of a text field (`data-ds-sort-type="text"`) in `DS.sort` (the system's string `sortAscendingText`) | `DS.core.config({ strings: { sortAscendingText } })` |
+| `Z to A` | the same, descending (the system's string `sortDescendingText`) | `DS.core.config({ strings: { sortDescendingText } })` |
+| `Lowest first` | the ascending order of a number field in `DS.sort` (the system's string `sortAscendingNumber`) | `DS.core.config({ strings: { sortAscendingNumber } })` |
+| `Highest first` | the same, descending (the system's string `sortDescendingNumber`) | `DS.core.config({ strings: { sortDescendingNumber } })` |
+| `Oldest first` | the ascending order of a date field in `DS.sort` (the system's string `sortAscendingDate`) | `DS.core.config({ strings: { sortAscendingDate } })` |
+| `Newest first` | the same, descending (the system's string `sortDescendingDate`) | `DS.core.config({ strings: { sortDescendingDate } })` |
+| `Sorted by {field}, {direction}` | what `DS.sort` announces after the user changed the sort (the system's string `sortAnnounce`) | `DS.core.config({ strings: { sortAnnounce } })` |
+| `Showing {loaded} of {total}` | the status of `DS.loadmore` (the system's string `loadMoreStatus`) | `DS.core.config({ strings: { loadMoreStatus } })` |
+| `Showing {loaded}` | the same, without a total (the system's string `loadMoreStatusOpen`) | `DS.core.config({ strings: { loadMoreStatusOpen } })` |
+| `All {total} shown` | the status of `DS.loadmore` once everything shows (the system's string `loadMoreDone`) | `DS.core.config({ strings: { loadMoreDone } })` |
+| `Loaded {count} more.` | what `DS.loadmore` announces after a load, before the status (the system's string `loadMoreLoaded`) | `DS.core.config({ strings: { loadMoreLoaded } })` |
+| `Loading more` | what `DS.loadmore` announces when its sentinel starts a load (the system's string `loadMoreLoading`) | `DS.core.config({ strings: { loadMoreLoading } })` |
+| `Could not load more.` | the status and announcement of a failed load in `DS.loadmore` (the system's string `loadMoreFailed`) | `DS.core.config({ strings: { loadMoreFailed } })` |
+| `Try again` | the label of the button of `DS.loadmore` after a failed load (the system's string `tryAgain`) | `DS.core.config({ strings: { tryAgain } })` |
+| `Remove filter` | the hidden start of an applied filter chip's name in `DS.filterbar` and `DS.facets` (the system's string `removeFilter`) | `DS.core.config({ strings: { removeFilter } })` |
+| `Removed {filter}` | what `DS.filterbar` and `DS.facets` announce when a chip removed its filter (the system's string `filterRemoved`) | `DS.core.config({ strings: { filterRemoved } })` |
+| `Filters cleared` | what `DS.filterbar` and `DS.facets` announce after Clear all (the system's string `filtersCleared`) | `DS.core.config({ strings: { filtersCleared } })` |
+| `{count} applied` | the hidden words after the badge of the Filters button of a folded `DS.filterbar` (the system's string `filtersApplied`) | `DS.core.config({ strings: { filtersApplied } })` |
+| `{label}: {value}` | the text of an applied filter chip in `DS.filterbar` and `DS.facets` (the system's string `filterChip`) | `DS.core.config({ strings: { filterChip } })` |
+| `{count} result` | the count `count()` of `DS.filterbar` writes, one (the system's string `resultsOne`) | `DS.core.config({ strings: { resultsOne } })` |
+| `{count} results` | the same, other numbers (the system's string `resultsOther`) | `DS.core.config({ strings: { resultsOther } })` |
+| `Show {results}` | the results button in the sheet of a folded `DS.filterbar` (the system's string `showResults`) | `DS.core.config({ strings: { showResults } })` |
+| `from {min}` | a range filter with only a lower bound, on its chip (the system's string `rangeFrom`) | `DS.core.config({ strings: { rangeFrom } })` |
+| `up to {max}` | a range filter with only an upper bound, on its chip (the system's string `rangeTo`) | `DS.core.config({ strings: { rangeTo } })` |
+| `{min} to {max}` | a range filter with both bounds, on its chip (the system's string `rangeBetween`) | `DS.core.config({ strings: { rangeBetween } })` |
+| `Show all {count}` | the button after the first options of a facet with a limit in `DS.facets` (the system's string `facetShowAll`) | `DS.core.config({ strings: { facetShowAll } })` |
+| `Show fewer` | the same button while every option shows (the system's string `facetShowFewer`) | `DS.core.config({ strings: { facetShowFewer } })` |
+| `No match for “{query}”` | the line, and the announcement, of a facet search in `DS.facets` that matches no option (the system's string `facetNoMatch`) | `DS.core.config({ strings: { facetNoMatch } })` |
+| `{count} match` | what `DS.facets` announces once typing in a facet search pauses, one (the system's string `facetMatchesOne`) | `DS.core.config({ strings: { facetMatchesOne } })` |
+| `{count} matches` | the same, other numbers (the system's string `facetMatchesOther`) | `DS.core.config({ strings: { facetMatchesOther } })` |
+| `Edited` | the word on the trigger of `DS.views` while the page's state differs from the current view (the system's string `viewEdited`) | `DS.core.config({ strings: { viewEdited } })` |
+| `Default` | the word on the default view in the menu of `DS.views` (the system's string `viewDefault`) | `DS.core.config({ strings: { viewDefault } })` |
+| `View: {name}` | what `DS.views` announces after a view was picked (the system's string `viewApplied`) | `DS.core.config({ strings: { viewApplied } })` |
+| `Saved {name}` | the snackbar and announcement of `DS.views` after a view was saved or renamed (the system's string `viewSaved`) | `DS.core.config({ strings: { viewSaved } })` |
+| `Deleted {name}` | what `DS.views` announces after a view was deleted (the system's string `viewDeleted`) | `DS.core.config({ strings: { viewDeleted } })` |
+| `{name} is the default view` | what `DS.views` announces after Make default (the system's string `viewDefaultSet`) | `DS.core.config({ strings: { viewDefaultSet } })` |
+| `Link copied` | the snackbar of `DS.views` after the link to a view was copied (the system's string `viewLinkCopied`) | `DS.core.config({ strings: { viewLinkCopied } })` |
+| `Name` | the label of the name field in the dialogs of `DS.views` (the system's string `viewNameLabel`) | `DS.core.config({ strings: { viewNameLabel } })` |
+| `Save as a new view` | the title of the dialog of `DS.views` that names a new view (the system's string `viewNewTitle`) | `DS.core.config({ strings: { viewNewTitle } })` |
+| `Rename view` | the title of the dialog of `DS.views` that renames a view (the system's string `viewRenameTitle`) | `DS.core.config({ strings: { viewRenameTitle } })` |
+| `Save` | the confirm button of those two dialogs (the system's string `viewSave`) | `DS.core.config({ strings: { viewSave } })` |
+| `Link to this view` | the title and field label of the dialog of `DS.views` that shows the link when the clipboard is refused (the system's string `viewLinkTitle`) | `DS.core.config({ strings: { viewLinkTitle } })` |
+| `Delete “{name}”?` | the title of the dialog of `DS.views` that asks before deleting a view (the system's string `viewDeleteTitle`) | `DS.core.config({ strings: { viewDeleteTitle } })` |
+| `The view goes from this browser. The list and its data stay as they are.` | the text of that dialog (the system's string `viewDeleteText`) | `DS.core.config({ strings: { viewDeleteText } })` |
+| `Delete view` | its confirm button, in the error tone (D10) (the system's string `viewDeleteConfirm`) | `DS.core.config({ strings: { viewDeleteConfirm } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

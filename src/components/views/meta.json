@@ -1,0 +1,51 @@
+{
+  "name": "views",
+  "group": "data",
+  "order": 440,
+  "docsOrder": 187,
+  "need": "Save and share a list's filters, sort and columns as named views, with a default and a link",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-views",
+    "ds-views__chevron",
+    "ds-views__default",
+    "ds-views__edited",
+    "ds-views__list",
+    "ds-views__name",
+    "ds-views__save",
+    "ds-views__trigger"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "dialog",
+    "menu",
+    "toast"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-views-name-max": {
+      "default": "240px",
+      "description": "the widest the name of the current view gets on its trigger before it ends in an ellipsis"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "views"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.views.toQuery": "a pure function: no motion",
+    "DS.views.fromQuery": "a pure function: no motion"
+  },
+  "motionExceptions": {
+    "transition": {
+      "rotate": {
+        ".ds-views__chevron": "disclosure chevrons: the trigger's chevron turns 180deg while its menu is open"
+      }
+    }
+  }
+}
