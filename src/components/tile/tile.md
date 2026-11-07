@@ -25,8 +25,29 @@ filter by its figure.
 - `.ds-tile__trend`: a slot at the foot of the tile for a sparkline ([`.ds-columns--mini`](#charts), or the project's
   own SVG in `currentColor`, `--ds-tile-trend-color`), so the sparklines of a row line up whatever stands above them.
   Inside a clickable tile the parts are `<span>`s, the sparkline's too: `<span class="ds-columns ds-columns--mini" role="img" aria-label="...">`.
-- A target: `.ds-tile__note` says it ("Target 95%"); a [`.ds-meter`](#charts) as a child of the tile, with its own
-  name, shows how far along the figure is.
+- `.ds-tile__unit`: a short unit after the figure, inside `.ds-tile__value`, in the subtitle type and `--ds-text-2`,
+  so the figure stays the thing to read. The figure then has an element of its own, `.ds-tile__figure`
+  (`<span class="ds-tile__figure">128</span><span class="ds-tile__unit">GB</span>`), and `DS.motion.countUp()` runs on
+  the figure: it writes `textContent`, which on the value would take the unit with it.
+- A target: `.ds-tile__target` holds a [`.ds-meter`](#charts) with its own name and value text, a
+  [`.ds-meter__threshold`](#meter-variants) at the target's share, and `.ds-tile__target-text` under it, which says in
+  words whether the target is met ("92% of the target of 140"), never the mark or the colour alone. A plain
+  `.ds-tile__note` ("Target 95%") or a bare `.ds-meter` as a child of the tile still work.
+
+```html
+<div class="ds-tile">
+  <p class="ds-tile__label"><span>Storage used</span></p>
+  <p class="ds-tile__value"><span class="ds-tile__figure">640</span><span class="ds-tile__unit">GB</span></p>
+  <p class="ds-tile__delta">[icon arrowUp 16]<span>40 GB more this month</span></p>
+  <div class="ds-tile__target">
+    <span class="ds-meter" role="meter" aria-label="Storage used" aria-valuemin="0" aria-valuemax="1000"
+          aria-valuenow="640" aria-valuetext="640 GB of 1,000, target below 800" style="--ds-share: .64">
+      <span class="ds-meter__threshold" style="--ds-share: .8" aria-hidden="true"></span></span>
+    <p class="ds-tile__target-text">Below the 800 GB target</p>
+  </div>
+  <div class="ds-tile__trend">...</div>
+</div>
+```
 
 The row fills its container, whatever it is (a page, a dialog, a side sheet, beside the drawer): as many tiles per row
 as fit at `--ds-tile-min-width` (176px), never more than `--ds-tiles-columns` (4), each row filled. `.ds-tiles--3`
@@ -42,7 +63,7 @@ The value never takes a colour and never wraps (it shrinks on narrow tiles; a va
 ellipsis, the last resort: shorten figures, put the full value in `data-tip`). A missing value takes
 `.ds-tile__value--empty` (`<p class="ds-tile__value ds-tile__value--empty">No data</p>`): `--ds-text-2` in the display
 font. Every new value goes through
-`DS.motion.countUp(el, next)`: it counts from the figure it shows (the last value it wrote, or one a re-render wrote since that reads back
+`DS.motion.countUp(el, next)` (`el` the `.ds-tile__value`, or its `.ds-tile__figure` when it has a unit): it counts from the figure it shows (the last value it wrote, or one a re-render wrote since that reads back
 through `format`; from 0 the first time) on `--ds-ease-value` over
 `--ds-dur-glide`, so a refresh counts on from the old value, a new value mid-count retargets from where the figure
 is, the same value changes nothing, and assistive technology gets the final value. A meter or progress bar set in
@@ -112,3 +133,8 @@ A selected tile is `Highlight` / `HighlightText`, its delta and sparkline with i
 `--ds-tile-value-line`, `--ds-tile-trend-color`, `--ds-tile-selected-bg`, `--ds-selected-ring`: see [theming.md](theming.md).
 
 **Motion:** the "Alert, tile, card" row of [Feedback](motion.md#feedback) (`countUp()`, the press morph) in motion.md.
+
+<!-- changelog -->
+- Tiles, KPI stat: `.ds-tile__unit` (a unit after the figure, which then sits in `.ds-tile__figure`, the element
+  `countUp()` writes) and `.ds-tile__target` with `.ds-tile__target-text`
+  (a meter with a threshold mark at the target and the words whether it is met).

@@ -1,0 +1,49 @@
+/*
+ * Formatted values and relative times: figures written by DS.formatted
+ * ([data-ds-format]: number, compact, percent, currency, bytes,
+ * duration) and times written by DS.format ([data-ds-time], "3 min ago")
+ * keep tabular figures and never break inside. One that rounds its value
+ * carries the exact value in a tooltip (data-tip, written by the
+ * behaviour): a dotted underline says so, as on <abbr>.
+ *
+ *   <span data-ds-format="bytes" data-ds-value="1536"></span>
+ *   <time data-ds-time datetime="2026-11-04T09:00:00Z">Nov 4, 09:00</time>
+ *
+ *   .ds-value--plain   no underline under a value with a tip (a table
+ *                      cell full of them: the tip still shows)
+ *
+ * Options: none read; the value takes the type of where it stands. Tone:
+ * never; a figure's meaning is in its words or its column.
+ * Forced colours: the underline is the text colour. Accessibility: the
+ * text is read; the exact value is the tooltip's description, shown on
+ * hover and on keyboard focus (give an element tabindex="0" where its
+ * exact value matters to a keyboard user).
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.formatted {
+  :where(.ds-theme) :is([data-ds-format], time[data-ds-time]) {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* :where() keeps this at one attribute (0,1,0), so .ds-value--plain wins. */
+  :where(.ds-theme) :where([data-ds-format], time[data-ds-time])[data-tip] {
+    text-decoration: underline dotted;
+    text-decoration-color: var(--ds-text-3);
+    text-underline-offset: var(--ds-link-underline-offset);
+    cursor: help;
+  }
+
+  .ds-value--plain[data-tip] {
+    text-decoration: none;
+    cursor: auto;
+  }
+
+  @media (forced-colors: active) {
+    :where(.ds-theme) :where([data-ds-format], time[data-ds-time])[data-tip] {
+      text-decoration-color: CanvasText;
+    }
+  }
+}

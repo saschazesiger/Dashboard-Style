@@ -1,0 +1,50 @@
+/*
+ * Expandable text: a long text shows its first --ds-expandable-lines (3)
+ * and a "Show more" button (DS.expandable, data-ds-expandable), which the
+ * module adds only while the text is longer than those lines.
+ *
+ *   <div class="ds-expandable" data-ds-expandable [data-state="closed | open"]>
+ *     <div class="ds-expandable__text" id="...">A description of many lines ...</div>
+ *     <button class="ds-link-btn ds-expandable__toggle" type="button" aria-expanded="false" aria-controls="...">Show more</button>
+ *   </div>
+ *
+ * data-state is the system's: "closed" clamps the text, "open" shows it
+ * whole, none (no script, or a text that fits) shows it whole without a
+ * toggle. The toggle is the inline text link of the button component.
+ *
+ * Options: none read; the text takes the type of where it stands, the
+ * lines are the hook. No motion: the text opens and closes at once (its
+ * height pushes the layout, and a clamp has no height to glide between).
+ * Forced colours: nothing of its own.
+ *
+ * Hooks: --ds-expandable-lines (3).
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.expandable {
+  .ds-expandable {
+    display: grid;
+    justify-items: start;
+    gap: var(--ds-space-1);
+    min-width: 0;
+  }
+
+  .ds-expandable__text {
+    justify-self: stretch;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .ds-expandable[data-state="closed"] > .ds-expandable__text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: var(--ds-expandable-lines, 3);
+    line-clamp: var(--ds-expandable-lines, 3);
+    overflow: hidden;
+  }
+
+  .ds-expandable__toggle {
+    font: var(--ds-font-label);
+  }
+}

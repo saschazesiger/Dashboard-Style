@@ -1,0 +1,50 @@
+{
+  "name": "tracker",
+  "group": "data",
+  "order": 900,
+  "docsOrder": 326,
+  "need": "Show a row of status cells (uptime by day, the last runs of a job), each state with its own shape and word, and a summary",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-tracker",
+    "ds-tracker__axis",
+    "ds-tracker__cell",
+    "ds-tracker__cell--empty",
+    "ds-tracker__cell--error",
+    "ds-tracker__cell--info",
+    "ds-tracker__cell--success",
+    "ds-tracker__cell--warning",
+    "ds-tracker__cells",
+    "ds-tracker__head",
+    "ds-tracker__label",
+    "ds-tracker__legend",
+    "ds-tracker__summary"
+  ],
+  "attributes": [],
+  "requires": [
+    "tooltip"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-tracker-height": {
+      "default": "32px",
+      "description": "the row of `.ds-tracker__cells` at md (4px per size step)"
+    },
+    "--ds-tracker-gap": {
+      "default": "2px",
+      "description": "the gap between two cells of a tracker (1px at most in a row under 480px)"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "tracker"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.tracker.create": "keys and names only: a cell takes its new state at once",
+    "DS.tracker.counts": "a pure function: no motion"
+  }
+}

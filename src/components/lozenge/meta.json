@@ -1,0 +1,30 @@
+{
+  "name": "lozenge",
+  "group": "feedback",
+  "order": 830,
+  "docsOrder": 141,
+  "need": "Show where an item stands in its workflow (open, merged, closed, draft) as a bold label",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-lozenge",
+    "ds-lozenge--subtle"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [],
+  "hooks": {
+    "--ds-lozenge-height": {
+      "default": "28px",
+      "description": "a state label (`.ds-lozenge`) at md (4px per size step)"
+    },
+    "--ds-lozenge-radius": {
+      "default": "`--ds-radius-action` (never above half the height)",
+      "description": "a state label's corners (times `--ds-shape`)"
+    }
+  },
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}

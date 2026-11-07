@@ -429,6 +429,12 @@ const DEFAULT_STRINGS = Object.freeze({
   auditlogEvents: '{count} events',
   auditlogFiltered: '{shown} of {total} events',
   auditlogMore: 'Show {count} more',
+  kbdCommand: 'Command',
+  kbdOption: 'Option',
+  kbdControl: 'Control',
+  kbdThen: 'then',
+  labelGroupMore: '+{count} more, show all {total}',
+  labelGroupAll: 'All labels',
 });
 
 /**

@@ -9,9 +9,13 @@
   "classes": [
     "ds-tile",
     "ds-tile__delta",
+    "ds-tile__figure",
     "ds-tile__label",
     "ds-tile__note",
+    "ds-tile__target",
+    "ds-tile__target-text",
     "ds-tile__trend",
+    "ds-tile__unit",
     "ds-tile__value",
     "ds-tile__value--empty",
     "ds-tiles",

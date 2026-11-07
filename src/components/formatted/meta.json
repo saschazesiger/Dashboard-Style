@@ -1,0 +1,32 @@
+{
+  "name": "formatted",
+  "group": "data",
+  "order": 850,
+  "docsOrder": 332,
+  "need": "Show a number, bytes, a duration, money, a percentage or a relative time in the page's locale",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-value--plain"
+  ],
+  "attributes": [
+    "data-ds-format",
+    "data-ds-time",
+    "data-tip"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": {},
+  "keyframes": [],
+  "js": [
+    "formatted"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.formatted.create": "writes text at once: no motion",
+    "DS.formatted.text": "a pure function: no motion",
+    "DS.formatted.exact": "a pure function: no motion"
+  }
+}

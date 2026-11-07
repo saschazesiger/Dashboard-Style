@@ -334,6 +334,11 @@ const CONTINUITY = {
   'selection-bar': { in: 'stage', sel: '.ds-selection-bar', props: ['opacity'] },
   'sort-order': { in: 'stage', sel: '.ds-sort__arrow', props: ['rotate'] },
   'views-chevron': { in: 'stage', sel: '.ds-views__chevron', props: ['rotate'] },
+  'bar-list-share': { in: 'stage', sel: '.ds-bar-list__item:nth-child(2)', props: ['--ds-share'] },
+  'category-bar-share': { in: 'stage', sel: '.ds-category-bar__part', props: ['--ds-share'] },
+  'meter-share': { in: 'stage', sel: '.ds-gauge', props: ['--ds-share'] },
+  'image-load': { in: 'stage', sel: '.ds-image__frame > img', props: ['opacity'] },
+  'labelgroup-popup': { in: 'stage', sel: '.ds-label-group__popup', props: ['opacity'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */

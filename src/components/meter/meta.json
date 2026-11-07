@@ -1,0 +1,87 @@
+{
+  "name": "meter",
+  "group": "data",
+  "order": 800,
+  "docsOrder": 323,
+  "need": "Show a share of a known whole as a segmented bar, a ring, a gauge or a bar gauge, with thresholds",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-bar-gauge",
+    "ds-bar-gauge__label",
+    "ds-bar-gauge__note",
+    "ds-bar-gauge__track",
+    "ds-bar-gauge__value",
+    "ds-gauge",
+    "ds-gauge--arc",
+    "ds-gauge__label",
+    "ds-gauge__threshold",
+    "ds-gauge__value",
+    "ds-meter--segmented",
+    "ds-meter__threshold"
+  ],
+  "attributes": [],
+  "requires": [
+    "chart"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-meter-segments": {
+      "default": "5",
+      "description": "`.ds-meter--segmented`: how many equal parts"
+    },
+    "--ds-meter-segment-gap": {
+      "default": "2px",
+      "description": "`.ds-meter--segmented`: the gap between two parts"
+    },
+    "--ds-meter-threshold": {
+      "default": "`--ds-text`",
+      "description": "a threshold mark across a meter or a gauge (`.ds-meter__threshold`, `.ds-gauge__threshold`)"
+    },
+    "--ds-gauge-size": {
+      "default": "96px",
+      "description": "`.ds-gauge`: the width and height at md, 16px per size step"
+    },
+    "--ds-gauge-thickness": {
+      "default": "8px",
+      "description": "`.ds-gauge`: the ring's width at md, 2px per size step"
+    },
+    "--ds-gauge-color": {
+      "default": "`--ds-chart-1` (tones: `--ds-tone`, or `--ds-chart-neutral`, `--ds-chart-warning`, `--ds-chart-error`)",
+      "description": "`.ds-gauge`: the fill"
+    },
+    "--ds-gauge-track": {
+      "default": "`--ds-chart-track`",
+      "description": "`.ds-gauge`: the ring behind the fill"
+    },
+    "--ds-bar-gauge-height": {
+      "default": "12px",
+      "description": "`.ds-bar-gauge__track` at md, 2px per size step"
+    },
+    "--ds-bar-gauge-cells": {
+      "default": "20",
+      "description": "`.ds-bar-gauge__track`: how many cells"
+    },
+    "--ds-bar-gauge-warning": {
+      "default": "none (1)",
+      "description": "`.ds-bar-gauge`: the share where the warning zone starts, set on the element with the data"
+    },
+    "--ds-bar-gauge-error": {
+      "default": "none (1)",
+      "description": "`.ds-bar-gauge`: the share where the error zone starts, set on the element with the data"
+    }
+  },
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false,
+  "exceptions": {
+    "physical": {
+      ".ds-meter--segmented: mask-image": "the parts are cut left to right as the chart meter fills (.ds-meter clips its fill from the right in every direction)",
+      ".ds-bar-gauge__track: --_zones": "the zones lie along the fill, which grows left to right as the chart meter's",
+      ".ds-bar-gauge__track: mask-image": "the cells are cut left to right along the fill",
+      ".ds-bar-gauge__track: background": "forced colours: each zone's hatch from its share to the right end, as the zones lie along the fill, which grows left to right",
+      ".ds-bar-gauge__track::before: background": "forced colours: the unlit cells' zone hatches from each share to the right end, as on the track"
+    }
+  }
+}

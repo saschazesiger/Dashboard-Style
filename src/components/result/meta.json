@@ -1,0 +1,50 @@
+{
+  "name": "result",
+  "group": "feedback",
+  "order": 840,
+  "docsOrder": 131,
+  "need": "Fill a page with how a request ended: done, 403, 404, 500, maintenance or offline, and the way out",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-result",
+    "ds-result--error",
+    "ds-result--forbidden",
+    "ds-result--maintenance",
+    "ds-result--not-found",
+    "ds-result--offline",
+    "ds-result--success",
+    "ds-result__actions",
+    "ds-result__code",
+    "ds-result__disc",
+    "ds-result__media",
+    "ds-result__meta",
+    "ds-result__text",
+    "ds-result__title"
+  ],
+  "attributes": [],
+  "requires": [
+    "button"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-result-disc-size": {
+      "default": "80px",
+      "description": "a result page's disc at md (8px per size step)"
+    },
+    "--ds-result-media-size": {
+      "default": "200px",
+      "description": "the height of a picture in a result page (`.ds-result__media`)"
+    },
+    "--ds-result-padding": {
+      "default": "`--ds-space-12`",
+      "description": "a result page's block padding at md, comfortable (8px per size step, 4px per density step)"
+    }
+  },
+  "keyframes": [],
+  "js": [],
+  "progressive": [
+    "text-wrap"
+  ],
+  "ripple": false
+}

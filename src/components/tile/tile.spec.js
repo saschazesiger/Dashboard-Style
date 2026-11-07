@@ -261,3 +261,45 @@ test('forced colours: a selected tile is Highlight with its delta and sparkline;
   expect(await page.locator('#plain svg').count()).toBe(1);
   await expect(page.locator('#plain')).toHaveText('Up');
 });
+
+test('KPI stat: a unit in the subtitle type, quieter; the target is a named meter with its words', async ({ page }) => {
+  await open(page);
+  const kpi = page.locator('#fx-component [data-demo="kpi"] .ds-tile').first();
+  const [unit, figure, ink, text2] = await kpi.evaluate((el) => {
+    const value = el.querySelector('.ds-tile__value');
+    const unitEl = value.querySelector('.ds-tile__unit');
+    return [parseFloat(getComputedStyle(unitEl).fontSize), parseFloat(getComputedStyle(value).fontSize), getComputedStyle(unitEl).color, getComputedStyle(el.querySelector('.ds-tile__target-text')).color];
+  });
+  expect(unit).toBeLessThan(figure / 2 + 1);
+  expect(unit).toBe(await kpi.evaluate(() => { const p = document.createElement('span'); p.style.font = 'var(--ds-font-subtitle)'; document.querySelector('#fx-component').append(p); const size = parseFloat(getComputedStyle(p).fontSize); p.remove(); return size; }));
+  expect(ink).toBe(await role(page, '--ds-text-2', 'color'));
+  expect(text2).toBe(ink);
+  await expect(kpi.getByRole('meter', { name: 'Storage used' })).toHaveAttribute('aria-valuetext', /target/);
+  const [meterTop, textTop] = await kpi.evaluate((el) => [el.querySelector('.ds-tile__target .ds-meter').getBoundingClientRect().bottom, el.querySelector('.ds-tile__target-text').getBoundingClientRect().top]);
+  expect(textTop).toBeGreaterThanOrEqual(meterTop);
+  // The threshold mark sits across the meter at the target's share.
+  const mark = await kpi.evaluate((el) => { const m = el.querySelector('.ds-meter'); const t = el.querySelector('.ds-meter__threshold'); return (t.getBoundingClientRect().left + 1 - m.getBoundingClientRect().left) / m.getBoundingClientRect().width; });
+  expect(mark).toBeCloseTo(0.8, 2);
+});
+
+test('KPI stat: countUp() on the figure counts on from what it shows and keeps the unit', async ({ page }) => {
+  await open(page);
+  const kpi = page.locator('#fx-component [data-demo="kpi"] .ds-tile').first();
+  const figure = kpi.locator('.ds-tile__figure');
+  await expect(figure).toHaveText('640');
+  const mid = await figure.evaluate(async (el) => {
+    window.DS.motion.countUp(el, 700, { duration: 400 });
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    return Number(el.textContent);
+  });
+  // It counts on from 640 (not from 0, not a jump), the unit beside it all along.
+  expect(mid).toBeGreaterThan(640);
+  expect(mid).toBeLessThan(700);
+  await expect(figure).toHaveText('700');
+  await expect(kpi.locator('.ds-tile__value')).toHaveText('700GB');
+  await expect(kpi.locator('.ds-tile__value > .ds-tile__unit')).toHaveText('GB');
+  // The demo's refresh counts it to the demo's own next value (640 + 8).
+  await page.locator('#fx-component [data-demo="refresh"]').click();
+  await expect(figure).toHaveText('648');
+  await expect(kpi.locator('.ds-tile__unit')).toHaveText('GB');
+});

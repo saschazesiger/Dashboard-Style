@@ -1,0 +1,33 @@
+{
+  "name": "kbd",
+  "group": "content",
+  "order": 860,
+  "docsOrder": 205,
+  "need": "Show a keyboard shortcut as the keys of the user's platform (\u2318 or Ctrl), read out in words",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-kbd-combo",
+    "ds-kbd-combo__combo",
+    "ds-kbd-combo__keys",
+    "ds-kbd-combo__plus",
+    "ds-kbd-combo__then"
+  ],
+  "attributes": [],
+  "requires": [
+    "utilities"
+  ],
+  "context": [],
+  "hooks": {},
+  "keyframes": [],
+  "js": [
+    "kbd"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.kbd.create": "writes its keys at once: no motion",
+    "DS.kbd.keys": "a pure function: no motion"
+  }
+}
