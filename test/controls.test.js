@@ -113,10 +113,10 @@ describe('utilities (2.0)', () => {
     assert.equal(kbd.font, 'var(--ds-font-code)');
     assert.equal(kbd.border, '1px solid var(--ds-kbd-border, var(--ds-line-2))');
     assert.equal(kbd.background, 'var(--ds-kbd-bg, var(--ds-surface))');
-    assert.equal(own(css, '.ds-divider')['border-top'], '1px solid var(--ds-line)');
+    assert.equal(own(css, '.ds-divider')['border-top'], '1px solid var(--ds-divider-color, var(--ds-line))');
     assert.equal(own(css, '.ds-divider--inset')['margin-inline-start'], 'var(--ds-space-4)');
-    assert.equal(own(css, '.ds-divider--vertical')['border-inline-start'], '1px solid var(--ds-line)');
-    assert.equal(own(css, '.ds-divider--label::before')['border-top'], '1px solid var(--ds-line)');
+    assert.equal(own(css, '.ds-divider--vertical')['border-inline-start'], '1px solid var(--ds-divider-color, var(--ds-line))');
+    assert.equal(own(css, '.ds-divider--label::before')['border-top'], '1px solid var(--ds-divider-color, var(--ds-line))');
     assert.equal(own(css, '.ds-muted').margin, '0');
     assert.match(read(U).match(/^\/\*[\s\S]*?\*\//)[0], /every component scroller is positioned/i);
   });

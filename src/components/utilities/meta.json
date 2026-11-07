@@ -9,8 +9,10 @@
   "classes": [
     "ds-center",
     "ds-divider",
+    "ds-divider--end",
     "ds-divider--inset",
     "ds-divider--label",
+    "ds-divider--start",
     "ds-divider--vertical",
     "ds-hover-actions",
     "ds-hover-host",
@@ -53,6 +55,10 @@
     "--ds-kbd-bg": {
       "default": "`--ds-line-2`, `--ds-surface`",
       "description": "`.ds-kbd`: the box of a key"
+    },
+    "--ds-divider-color": {
+      "default": "`--ds-line`",
+      "description": "the hairlines of `.ds-divider` (across, upright and around a caption)"
     }
   },
   "keyframes": [],

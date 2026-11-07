@@ -1,0 +1,53 @@
+{
+  "name": "sticky",
+  "group": "layout",
+  "order": 430,
+  "docsOrder": 360,
+  "need": "Keep a head, a foot or a side in view while its list scrolls, raised once content passes under it",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-sticky",
+    "ds-sticky--end",
+    "ds-sticky--flat",
+    "ds-sticky--foot",
+    "ds-sticky--head",
+    "ds-sticky--side",
+    "ds-sticky--start"
+  ],
+  "attributes": [
+    "data-ds-overflow-end",
+    "data-ds-overflow-start",
+    "data-scrolled"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": {
+    "--ds-sticky-offset": {
+      "default": "`0px`",
+      "description": "the distance of a `.ds-sticky` box from its scroller's edge (a top bar's height above a scrolling page)"
+    },
+    "--ds-sticky-bg": {
+      "default": "`--ds-surface`",
+      "description": "the opaque fill of a `.ds-sticky` box (`--side`: none)"
+    },
+    "--ds-sticky-line": {
+      "default": "`--ds-line`",
+      "description": "the hairline of the raised edge of a `.ds-sticky` box"
+    },
+    "--ds-sticky-shadow": {
+      "default": "`--ds-elev-1`",
+      "description": "the shadow of the raised edge of a `.ds-sticky` box"
+    }
+  },
+  "keyframes": [
+    "ds-scroll-fade"
+  ],
+  "js": [
+    "dom"
+  ],
+  "progressive": [
+    "scroll-driven"
+  ],
+  "ripple": false
+}

@@ -1,0 +1,132 @@
+/*
+ * Text utilities: how a run of text wraps, cuts and sets its figures.
+ *
+ *   <span class="ds-truncate">One line, cut with an ellipsis</span>
+ *   <p class="ds-clamp-2">At most two lines, then an ellipsis</p>
+ *   <p class="ds-clamp" style="--ds-clamp-lines: 7">At most seven</p>
+ *   <code class="ds-break">a-hash-or-url-that-breaks-anywhere</code>
+ *   <span class="ds-mono">SN 4C1-77Q</span>             the code family, the text's size
+ *   <span class="ds-tabular">1,284</span>               figures of one width
+ *   <h2 class="ds-balance">A heading in lines of even length</h2>
+ *   <p class="ds-pretty">A paragraph without a lone last word</p>
+ *
+ * .ds-nowrap (keep a value and its unit together) is one of the 2.x
+ * utilities and stays there.
+ *
+ * .ds-truncate and .ds-clamp-* cut what does not fit: put the full text
+ * where it can be read (a tooltip through data-tip, a details view, the
+ * title of the page it leads to). .ds-truncate is an inline block at most
+ * as wide as its container, so it cuts a span in running text, a link or
+ * a cell as well as a flex or grid item (min-width: 0 lets a flex item
+ * shrink); a heading or paragraph cut on a line of its own carries it on
+ * a span inside, so the block keeps its line. On paper both print in full.
+ *
+ * Options: none read; the text keeps the type role of where it stands
+ * (size changes type through the components, not here).
+ *
+ * Hooks: --ds-clamp-lines (2) for .ds-clamp.
+ *
+ * Progressive:
+ * - text-wrap (.ds-pretty: no lone last word): without it the paragraph
+ *   wraps as usual. (.ds-balance is at the floor.)
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.text {
+  /* An inline block: an inline span gets a width to cut at (at most its
+     container's), a flex or grid item is blockified anyway. Its baseline
+     would be its bottom edge (overflow: hidden), so it aligns by that. */
+  .ds-truncate {
+    display: inline-block;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+  }
+
+  /* A fixed number of lines, then an ellipsis: the prefixed box is the one
+     form every engine at the floor clamps with. */
+  .ds-clamp,
+  .ds-clamp-1,
+  .ds-clamp-2,
+  .ds-clamp-3,
+  .ds-clamp-4,
+  .ds-clamp-5 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: var(--ds-clamp-lines, 2);
+    /* A flex or grid row that stretches it would show the lines after
+       the ellipsis: it keeps its own height. */
+    align-self: start;
+    min-width: 0;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+
+  .ds-clamp-1 {
+    -webkit-line-clamp: 1;
+  }
+
+  .ds-clamp-2 {
+    -webkit-line-clamp: 2;
+  }
+
+  .ds-clamp-3 {
+    -webkit-line-clamp: 3;
+  }
+
+  .ds-clamp-4 {
+    -webkit-line-clamp: 4;
+  }
+
+  .ds-clamp-5 {
+    -webkit-line-clamp: 5;
+  }
+
+  /* Long tokens (hashes, URLs, serial numbers) break anywhere instead of
+     widening their column; words still break between them first. */
+  .ds-break {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* The code family at the size of the text around it; the figures and
+     letters keep their own width. */
+  .ds-mono {
+    font-family: var(--ds-font-mono);
+    font-variant-ligatures: none;
+  }
+
+  .ds-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ds-balance {
+    text-wrap: balance;
+  }
+
+  .ds-pretty {
+    text-wrap: pretty;
+  }
+
+  /* Paper is as wide as it is: cut text prints in full. */
+  @media print {
+    .ds-truncate {
+      overflow: visible;
+      white-space: normal;
+    }
+
+    .ds-clamp,
+    .ds-clamp-1,
+    .ds-clamp-2,
+    .ds-clamp-3,
+    .ds-clamp-4,
+    .ds-clamp-5 {
+      display: block;
+      overflow: visible;
+    }
+  }
+}

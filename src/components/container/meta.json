@@ -1,0 +1,36 @@
+{
+  "name": "container",
+  "group": "layout",
+  "order": 400,
+  "docsOrder": 354,
+  "need": "Let a region react to its own width: hide, show or stack parts at the compact, medium and expanded container sizes",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-container",
+    "ds-hide-compact",
+    "ds-hide-expanded",
+    "ds-hide-medium",
+    "ds-only-compact",
+    "ds-only-expanded",
+    "ds-only-medium",
+    "ds-stack-compact"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [
+    "layout"
+  ],
+  "hooks": {},
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false,
+  "exceptions": {
+    "important": {
+      ".ds-hide-compact, .ds-only-medium, .ds-only-expanded: display": "a visibility class hides whatever display a component or the page gives the element, as the hidden attribute does",
+      ".ds-hide-medium, .ds-only-compact, .ds-only-expanded: display": "a visibility class hides whatever display a component or the page gives the element, as the hidden attribute does",
+      ".ds-hide-expanded, .ds-only-compact, .ds-only-medium: display": "a visibility class hides whatever display a component or the page gives the element, as the hidden attribute does"
+    }
+  }
+}

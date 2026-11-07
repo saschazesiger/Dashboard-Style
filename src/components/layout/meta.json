@@ -1,0 +1,110 @@
+{
+  "name": "layout",
+  "group": "layout",
+  "order": 0,
+  "docsOrder": 352,
+  "need": "Arrange parts without page CSS: a row that wraps, a side and main column, equal parts, a centred column, a full-height cover, a media frame, an auto-fit grid",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-cluster",
+    "ds-cluster--baseline",
+    "ds-cluster--between",
+    "ds-cluster--center",
+    "ds-cluster--end",
+    "ds-cluster--nowrap",
+    "ds-cluster--top",
+    "ds-cover",
+    "ds-cover--screen",
+    "ds-cover__main",
+    "ds-frame",
+    "ds-frame--16-9",
+    "ds-frame--21-9",
+    "ds-frame--3-4",
+    "ds-frame--4-3",
+    "ds-frame--square",
+    "ds-grid",
+    "ds-grid--fill",
+    "ds-grid--max-2",
+    "ds-grid--max-3",
+    "ds-grid--max-4",
+    "ds-grid--max-6",
+    "ds-measure",
+    "ds-measure--intrinsic",
+    "ds-measure--wide",
+    "ds-push",
+    "ds-split",
+    "ds-split--stretch",
+    "ds-split__main",
+    "ds-split__side",
+    "ds-switcher",
+    "ds-switcher--top"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [
+    "text"
+  ],
+  "hooks": {
+    "--ds-cluster-gap": {
+      "default": "`--ds-space-2`",
+      "description": "the gap of `.ds-cluster`, 2px less per density step"
+    },
+    "--ds-split-gap": {
+      "default": "`--ds-space-4`",
+      "description": "the gaps of `.ds-split`, `.ds-switcher` and `.ds-grid`, 2px less per density step"
+    },
+    "--ds-switcher-gap": {
+      "default": "`--ds-space-4`",
+      "description": "the gaps of `.ds-split`, `.ds-switcher` and `.ds-grid`, 2px less per density step"
+    },
+    "--ds-grid-gap": {
+      "default": "`--ds-space-4`",
+      "description": "the gaps of `.ds-split`, `.ds-switcher` and `.ds-grid`, 2px less per density step"
+    },
+    "--ds-split-side": {
+      "default": "`18rem`",
+      "description": "the width of `.ds-split__side` while it sits beside the main column"
+    },
+    "--ds-split-min": {
+      "default": "`50%`",
+      "description": "the narrowest `.ds-split__main` beside the side; narrower, the two stack"
+    },
+    "--ds-switcher-at": {
+      "default": "`30rem`",
+      "description": "the width of `.ds-switcher` under which its parts stack"
+    },
+    "--ds-measure-max": {
+      "default": "`--ds-measure` (`--wide`: `--ds-content-max`)",
+      "description": "the widest `.ds-measure`"
+    },
+    "--ds-measure-pad": {
+      "default": "`0px`",
+      "description": "the side padding of `.ds-measure`, outside its width"
+    },
+    "--ds-cover-min": {
+      "default": "`100%`",
+      "description": "the least height of `.ds-cover` (`--screen`: `100dvh`)"
+    },
+    "--ds-cover-pad": {
+      "default": "`--ds-space-4`",
+      "description": "the padding of `.ds-cover`"
+    },
+    "--ds-frame-ratio": {
+      "default": "`16 / 9`",
+      "description": "the aspect ratio of `.ds-frame` without a ratio modifier"
+    },
+    "--ds-frame-radius": {
+      "default": "`--ds-radius-md`",
+      "description": "the corner radius of `.ds-frame`, times `--ds-shape`"
+    },
+    "--ds-grid-min": {
+      "default": "`16rem`",
+      "description": "the narrowest column of `.ds-grid` (never wider than the grid)"
+    }
+  },
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}
