@@ -15,8 +15,9 @@
  *
  * set(list) renders the cells from data, in place: [{ state, label }],
  * where state is success, info, warning, error or empty. The existing
- * cells are reused in order (their focus stays), extra ones go, new ones
- * come. The summary in words stays the page's: counts() gives the figures
+ * cells are reused in order (their focus stays), extra ones go (focus on
+ * one of them moves to the nearest cell that stays, with the tab stop),
+ * new ones come. The summary in words stays the page's: counts() gives the figures
  * it is made of.
  *
  * The controller: get() gives { cells: [{ state, label }], counts },
@@ -110,7 +111,18 @@ function controller(el) {
         cell.setAttribute('aria-label', item.label);
         cell.setAttribute('data-tip', item.label);
       });
-      for (const cell of present.slice(data.length)) cell.remove();
+      const gone = present.slice(data.length);
+      // Focus on a cell that goes (a live row dropping old days under a
+      // keyboard user): it and the tab stop move to the nearest cell that
+      // stays, before the cell goes, so focus never falls to the page.
+      const active = doc.activeElement;
+      const lost = gone.find((cell) => cell === active || cell.contains(active));
+      if (lost && data.length) {
+        const next = present[Math.min(present.indexOf(lost), data.length - 1)];
+        for (const cell of present.slice(0, data.length)) cell.setAttribute('tabindex', cell === next ? '0' : '-1');
+        next.focus({ preventScroll: true });
+      }
+      for (const cell of gone) cell.remove();
       prepare();
       const detail = { cells: data, counts: counts(data) };
       emit(el, 'change', detail);

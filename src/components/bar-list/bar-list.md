@@ -56,7 +56,8 @@ is a background and says nothing. A unit or a context the figure needs ("173 tic
 
 ### Forced colours
 
-Each bar becomes an outline of `CanvasText` at its share, the text `CanvasText`, so the lengths still compare.
+Each bar becomes an outline of `CanvasText` that ends, closed, at its share, the text `CanvasText`, so the lengths
+still compare.
 Printed, the bars keep their colours.
 
 ### Hooks

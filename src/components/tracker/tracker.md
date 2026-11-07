@@ -64,7 +64,8 @@ tip as its name, and `role="img"` when it has no role. A re-render with `DS.dom.
 
 - `DS.tracker.create(el)`: the controller the attribute path makes, on the row. `get()` gives
   `{ cells: [{ state, label }], counts }`; `set(list)` renders the cells from `[{ state, label }]` (state `success`,
-  `info`, `warning`, `error` or `empty`), reusing the cells in order so focus stays, and emits `ds:change` with
+  `info`, `warning`, `error` or `empty`), reusing the cells in order so focus stays (when the focused cell is one that
+  goes, focus and the tab stop move to the nearest cell that stays), and emits `ds:change` with
   `{ cells, counts }`; `on('change', fn)`; `update()` names the cells again; `destroy()` lets go of the keys.
 - `DS.tracker.counts(cells)`: how many of each state, and `total`, from states or `{ state }` objects: the figures of
   the summary, which stays the page's words.

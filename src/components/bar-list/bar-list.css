@@ -49,8 +49,8 @@
  *
  * Accessibility: an <ol> (ranked) or <ul> with a name; each row reads its
  * label and figure. The bar is a background and says nothing of its own.
- * Forced colours: the bar is an outline of CanvasText at its share, the
- * text CanvasText. Printed, the bars keep their colours.
+ * Forced colours: the bar is an outline of CanvasText that ends (closed)
+ * at its share, the text CanvasText. Printed, the bars keep their colours.
  *
  * Hooks: --ds-bar-list-height (32px), --ds-bar-list-bar (--ds-accent),
  * --ds-bar-list-ink (--ds-text).
@@ -163,11 +163,16 @@
     --_ink: var(--ds-on-tone-container);
   }
 
+  /* The outline closes at the share: the box ends there instead of a clip,
+     which would cut the outline's end away. */
   @media (forced-colors: active) {
-    .ds-bar-list__label::before {
+    .ds-bar-list__label::before,
+    .ds-bar-list__label:dir(rtl)::before {
+      inset-inline-end: calc((1 - var(--ds-share, 0)) * 100%);
       background: transparent;
       outline: 1px solid CanvasText;
       outline-offset: -1px;
+      clip-path: none;
     }
   }
 

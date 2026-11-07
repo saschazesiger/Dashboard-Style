@@ -119,4 +119,10 @@ test('forced colours: each bar is a CanvasText outline at its share', async ({ p
   expect(bar[0]).toBe('solid');
   expect(bar[1]).toBe(await colour(page, 'CanvasText'));
   expect(bar[2]).toMatch(/, 0\)$/);
+  // The box ends at the share, so the outline's end edge shows: no clip cuts it, in either direction.
+  for (const dir of ['ltr', 'rtl']) {
+    const [clip, share] = await probe(page, `<div dir="${dir}">${row()}</div>`, '(() => { const label = el.querySelector(".ds-bar-list__label"); const s = getComputedStyle(label, "::before"); return [s.clipPath, parseFloat(s.width) / label.clientWidth]; })()');
+    expect(clip, dir).toBe('none');
+    expect(share, dir).toBeCloseTo(0.5, 2);
+  }
 });

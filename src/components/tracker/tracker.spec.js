@@ -122,13 +122,21 @@ test('set() renders the cells from data in place, keeps focus and emits ds:chang
     return [detail.counts, document.activeElement === focused, focused.className, focused.getAttribute('data-tip'), window.DS.get(row, 'tracker').get().counts.total];
   });
   expect(result).toEqual([{ success: 29, info: 0, warning: 0, error: 1, empty: 0, total: 30 }, true, 'ds-tracker__cell ds-tracker__cell--error', 'Run 29', 30]);
-  // Fewer cells: the extra ones go.
+  // Fewer cells: the extra ones go. The focused one (the last) went with
+  // them: focus and the one tab stop are on the nearest cell that stays.
   const left = await page.evaluate(() => {
     const row = document.querySelector('[data-demo="runs"] .ds-tracker__cells');
     window.DS.get(row, 'tracker').set([{ state: 'warning', label: 'a' }, { state: 'bogus', label: 'b' }]);
-    return Array.from(row.children, (c) => c.className);
+    return {
+      classes: Array.from(row.children, (c) => c.className),
+      focused: Array.prototype.indexOf.call(row.children, document.activeElement),
+      stops: Array.from(row.children, (c) => c.getAttribute('tabindex')),
+    };
   });
-  expect(left).toEqual(['ds-tracker__cell ds-tracker__cell--warning', 'ds-tracker__cell ds-tracker__cell--empty']);
+  expect(left).toEqual({ classes: ['ds-tracker__cell ds-tracker__cell--warning', 'ds-tracker__cell ds-tracker__cell--empty'], focused: 1, stops: ['-1', '0'] });
+  // The arrows go on from there.
+  await page.keyboard.press('ArrowLeft');
+  await expect(cells.first()).toBeFocused();
 });
 
 test('narrow: 90 cells fit a 328px card, 1px apart', async ({ page }) => {
