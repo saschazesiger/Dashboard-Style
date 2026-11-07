@@ -26,7 +26,7 @@ off. These classes are for the page's own content.
 | `.ds-print-break-before`, `.ds-print-break-after` | – | a new sheet before or after it |
 | `.ds-print-avoid` | – | never split across two sheets (a figure, a card, a total with its last rows) |
 | `.ds-print-exact` | – | fills and colours print as shown; the browser drops backgrounds to save ink otherwise |
-| `.ds-print-urls` | – | every `http(s)` link inside prints its address after its text |
+| `.ds-print-urls` | – | every `http(s)` link inside prints its address after its text, inline, also where a component lays the link's `::after` out as a box (the stretched link of an interactive card) |
 | `.ds-print-page` | a sheet: `--ds-print-page-width` (210mm, A4) wide, centred, `--ds-print-page-pad` inside, the surface and a soft shadow | the paper's full width, no frame; the light scheme of the theme (its `light-dark()` roles); headings kept with what follows them, figures, images, code and quotes whole, no line alone at the top or foot of a sheet |
 
 - Hiding is `display: none !important`, like the `hidden` attribute, whatever `display` a component gives the

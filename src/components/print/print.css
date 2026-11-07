@@ -101,8 +101,16 @@
       print-color-adjust: exact;
     }
 
+    /* The address runs inline after the text, even where a component lays
+       the link's ::after out as a box (the stretched link of an
+       interactive card): paper has no click target to stretch. */
     .ds-print-urls a[href^="http"]::after {
       content: " (" attr(href) ")";
+      position: static;
+      inset: auto;
+      display: inline;
+      border-radius: 0;
+      background: none;
       overflow-wrap: anywhere;
     }
 

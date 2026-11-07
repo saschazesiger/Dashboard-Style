@@ -51,6 +51,28 @@ test('paper: the note shows, the actions go, breaks and fills apply, links print
   expect(await style(page, '#row', ['display']), 'hidden whatever display the cluster gives it').toEqual({ display: 'none' });
 });
 
+test('paper: an interactive card\'s stretched link prints its address inline after the title, not over the card', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    document.getElementById('fx-component').insertAdjacentHTML('afterbegin', '<div id="probe" class="ds-print-urls" style="inline-size: 320px"><article class="ds-card ds-card--interactive" id="card"><h3 class="ds-card__title"><a class="ds-card__action" href="https://example.com/devices/42" id="action">LAPTOP-0042</a></h3><p>Battery swelling reported.</p></article></div>');
+  });
+  const screen = await style(page, '#action', ['content', 'position'], '::after');
+  expect(screen.position, 'on screen the link still stretches over the card').toBe('absolute');
+  await page.emulateMedia({ media: 'print' });
+  const paper = await style(page, '#action', ['content', 'position', 'display'], '::after');
+  expect(paper.content).toContain('https://example.com/devices/42');
+  expect(paper).toMatchObject({ position: 'static', display: 'inline' });
+  // The address follows the title text: the link's box grows past its text instead of the address sitting at the card's corner.
+  const box = await page.evaluate(() => {
+    const link = document.getElementById('action').getBoundingClientRect();
+    const range = document.createRange();
+    range.selectNodeContents(document.getElementById('action').firstChild);
+    const text = range.getBoundingClientRect();
+    return { linkRight: link.right, linkBottom: link.bottom, textRight: text.right, textBottom: text.bottom };
+  });
+  expect(box.linkRight > box.textRight + 20 || box.linkBottom > box.textBottom + 4, 'the address takes room after the title').toBe(true);
+});
+
 test('the sheet: a sheet of --ds-print-page-width on screen, the paper\'s width in print', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await open(page);
