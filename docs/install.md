@@ -402,6 +402,9 @@ strings a script adds have an option, so a page in another language passes its o
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow
 the locale of `DS.core.config()` (`lang` on `<html>` by default): `DS.format` ([core.md](core.md#dsformat-numbers-dates-and-the-shared-clock))
 formats figures, sizes, durations, lists, plurals and relative time through `Intl`, and nothing else in the system
+| `More options for {label}` | the name of a split button's menu toggle without one of its own, `{label}` the action's name (the system's string `moreOptionsFor`) | `DS.core.config({ strings: { moreOptionsFor } })` |
+| `More actions` | the name and tooltip of the More button of a priority action bar (the system's string `moreActions`) | `DS.core.config({ strings: { moreActions } })` |
+| `Copying is blocked here. The text is selected: press {keys} to copy it.` | what `DS.copy` announces when the browser refuses both ways of copying, `{keys}` the platform's copy keys (the system's string `copyManual`) | `DS.core.config({ strings: { copyManual } })` |
 formats either by itself (`countUp(el, value, { format: DS.format.number })` for a figure that counts).
 
 **Direction.** The components are laid out for left-to-right scripts; `dir="rtl"` is not supported yet (a sheet
