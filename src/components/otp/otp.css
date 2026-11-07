@@ -84,14 +84,7 @@
   }
 
   @media (forced-colors: active) {
-    /* On a phone the cells keep their width before the gaps do. */
-  @media (max-width: 600px) {
-    .ds-otp {
-      gap: var(--ds-space-1);
-    }
-  }
-
-  .ds-otp__sep {
+    .ds-otp__sep {
       background: CanvasText;
     }
   }

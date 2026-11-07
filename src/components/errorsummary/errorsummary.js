@@ -24,7 +24,10 @@
  * Which fields: those of the form that fail their own constraints
  * (checkValidity(): required, type, pattern, min, max, maxlength ...) and
  * those the page marked aria-invalid="true" (a check of its own). In the
- * order of the form.
+ * order of the form. The radios of a name are one problem, named by their
+ * group (the radiogroup's aria-labelledby or aria-label, else the
+ * fieldset's legend), linked to the checked radio or the first, and marked
+ * together.
  *
  * Each problem's words: the field's visible error hint (.ds-field__hint--
  * error with text, the page's own message), else "<label>: <the browser's
@@ -40,7 +43,8 @@
  * (tabindex="-1"), so a reader starts there. A link focuses its field (and
  * brings it into view) instead of only scrolling. As each field is fixed
  * (input, change) its problem leaves the list; the summary hides once none
- * is left. novalidate on the form (set here) keeps the browser's own
+ * is left. A problem that was not in the list waits for the next submit,
+ * validate() or set(): nothing joins while a person types. novalidate on the form (set here) keeps the browser's own
  * bubbles away.
  *
  * Events on the summary: ds:invalid ({ errors }) when it shows after a
@@ -87,17 +91,41 @@ const idOf = (el, part) => {
   return el.id;
 };
 
-/** The words of a field's label: its label element, else aria-label, else its name. */
+/** The text of a label element without its markers ("(optional)", the asterisk, "(changed)"). */
+function textOf(label) {
+  const copy = /** @type {HTMLElement} */ (label.cloneNode(true));
+  copy.querySelectorAll('.ds-field__optional, .ds-field__required, .ds-field__changed, [aria-hidden="true"]').forEach((node) => node.remove());
+  return copy.textContent.trim();
+}
+
+/** The words of an element's aria-labelledby ('' without it). */
+function labelledBy(el) {
+  const doc = el.ownerDocument;
+  return (el.getAttribute('aria-labelledby') ?? '').split(/\s+/).filter(Boolean).map((id) => doc?.getElementById(id)?.textContent ?? '').join(' ').trim();
+}
+
+const isRadio = (field) => field.tagName === 'INPUT' && (/** @type {HTMLInputElement} */ (field)).type === 'radio';
+
+/**
+ * The words of a field's label: aria-labelledby, its label element, else
+ * aria-label, else its name. A radio is named by its group (the radiogroup's
+ * name, else its fieldset's legend), never by its option's label.
+ */
 function labelOf(field) {
-  const doc = field.ownerDocument;
-  const labelled = (field.getAttribute('aria-labelledby') ?? '').split(/\s+/).filter(Boolean).map((id) => doc?.getElementById(id)?.textContent ?? '').join(' ').trim();
+  if (isRadio(field)) {
+    for (const box of [field.closest('[role="radiogroup"]'), field.closest('fieldset')]) {
+      if (!box) continue;
+      const legend = box.tagName === 'FIELDSET' ? box.querySelector(':scope > legend') : null;
+      const text = labelledBy(box) || (box.getAttribute('aria-label') ?? '').trim() || (legend ? textOf(legend) : '');
+      if (text) return text;
+    }
+    return field.getAttribute('name') ?? '';
+  }
+  const labelled = labelledBy(field);
   if (labelled) return labelled;
   const label = field.labels?.[0];
-  // The label without its markers ("(optional)", the asterisk, "(changed)").
   if (label) {
-    const copy = /** @type {HTMLElement} */ (label.cloneNode(true));
-    copy.querySelectorAll('.ds-field__optional, .ds-field__required, .ds-field__changed, [aria-hidden="true"]').forEach((node) => node.remove());
-    const text = copy.textContent.trim();
+    const text = textOf(label);
     if (text) return text;
   }
   return field.getAttribute('aria-label') ?? field.getAttribute('name') ?? '';
@@ -116,7 +144,8 @@ function controller(root, signal) {
   /** Problems the page set (a server's answer), by field. */
   let custom = /** @type {Map<Element, string>} */ (new Map());
   let shown = false;
-  let errors = /** @type {{ field: Element, id: string, text: string }[]} */ ([]);
+  /** The problems shown: `fields` those that share it (a radio group's radios), `field` the one its link focuses. */
+  let errors = /** @type {{ fields: Element[], field: Element, id: string, text: string }[]} */ ([]);
 
   if (form) {
     own(form, 'attrs', 'novalidate');
@@ -131,13 +160,36 @@ function controller(root, signal) {
 
   const hintOf = (field) => /** @type {HTMLElement|null} */ (field.closest('.ds-field')?.querySelector('.ds-field__hint--error') ?? null);
 
-  /** The words of a field's problem, or '' when it has none. */
-  const problem = (field) => {
-    const own = custom.get(field);
+  /**
+   * What can have one problem, in the form's order: the radios of a name
+   * (one group, one problem, one line), every other control alone.
+   */
+  const units = () => {
+    const out = /** @type {Element[][]} */ ([]);
+    const groups = new Map();
+    for (const field of controls()) {
+      const name = isRadio(field) ? field.getAttribute('name') : '';
+      if (!name) {
+        out.push([field]);
+      } else if (groups.has(name)) {
+        groups.get(name).push(field);
+      } else {
+        const group = [field];
+        groups.set(name, group);
+        out.push(group);
+      }
+    }
+    return out;
+  };
+
+  const failing = (field) => typeof (/** @type {any} */ (field)).checkValidity === 'function' && !(/** @type {any} */ (field)).checkValidity();
+
+  /** The words of a unit's problem, or '' when it has none. */
+  const problem = (unit) => {
+    const own = unit.map((field) => custom.get(field)).find(Boolean);
     if (own) return own;
-    const failing = typeof (/** @type {any} */ (field)).checkValidity === 'function' && !(/** @type {any} */ (field)).checkValidity();
-    const flagged = field.getAttribute('aria-invalid') === 'true' && !marked.has(field);
-    if (!failing && !flagged) return '';
+    const field = unit.find(failing) ?? unit.find((each) => each.getAttribute('aria-invalid') === 'true' && !marked.has(each));
+    if (!field) return '';
     const hint = hintOf(field);
     if (hint && !wrote.has(hint) && !hint.hidden && hint.textContent.trim()) return hint.textContent.trim();
     const message = (/** @type {any} */ (field)).validationMessage || '';
@@ -178,7 +230,30 @@ function controller(root, signal) {
     }
   };
 
-  const collect = () => controls().map((field) => ({ field, id: idOf(field, 'field'), text: problem(field) })).filter((item) => item.text);
+  const collect = () => units().map((fields) => {
+    // A group's link goes to its checked radio (the one Tab reaches), else its first.
+    const field = fields.find((each) => (/** @type {any} */ (each)).checked) ?? fields[0];
+    return { fields, field, id: idOf(field, 'field'), text: problem(fields) };
+  }).filter((item) => item.text);
+
+  /** Marks every control of the form by the list: aria-invalid and the written hint while its problem is there. */
+  const markAll = (fields = controls()) => {
+    for (const field of fields) {
+      const text = errors.find((error) => error.fields.includes(field))?.text ?? '';
+      mark(field, Boolean(text));
+      writeHint(field, text);
+    }
+  };
+
+  /**
+   * The list after a change: the problems already there that still fail,
+   * with their words now. A new problem waits for the next submit,
+   * validate() or set(), so nothing joins while a person types.
+   */
+  const reconcile = () => {
+    const now = collect();
+    return errors.flatMap((error) => now.find((item) => item.fields.some((field) => error.fields.includes(field))) ?? []);
+  };
 
   const render = () => {
     if (titleEl) titleEl.textContent = title(errors.length);
@@ -199,11 +274,7 @@ function controller(root, signal) {
 
   const show = (focus) => {
     errors = collect();
-    for (const field of controls()) {
-      const text = errors.find((error) => error.field === field)?.text ?? '';
-      mark(field, Boolean(text));
-      writeHint(field, text);
-    }
+    markAll();
     render();
     if (!errors.length) {
       hide();
@@ -225,16 +296,17 @@ function controller(root, signal) {
     render();
   }
 
-  /** After a fix: the field's problem leaves the list; none left hides it. */
+  /** After a fix: the field's problem (its group's) leaves the list; none left hides it. */
   const refresh = (field) => {
     if (!shown) return;
-    if (custom.has(field)) custom.delete(field);
-    const text = problem(field);
-    mark(field, Boolean(text));
-    writeHint(field, text);
-    const before = errors.map((error) => error.text).join('\n');
-    errors = collect();
-    if (before === errors.map((error) => error.text).join('\n')) return;
+    const unit = units().find((each) => each.includes(field)) ?? [field];
+    for (const each of unit) custom.delete(each);
+    const before = errors;
+    errors = reconcile();
+    // Every field that had a problem: one fix can clear a whole group, and a field the list never named stays as it is.
+    markAll(before.flatMap((error) => error.fields));
+    const lines = (items) => items.map((error) => `${error.id} ${error.text}`).join('\n');
+    if (lines(before) === lines(errors)) return;
     if (!errors.length) {
       hide();
     } else {
@@ -269,7 +341,7 @@ function controller(root, signal) {
     target.scrollIntoView?.({ block: 'center' });
     (/** @type {HTMLElement} */ (target)).focus({ preventScroll: true });
   });
-  on(doc, 'ds:config', () => { if (shown) { errors = collect(); render(); } });
+  on(doc, 'ds:config', () => { if (shown) { errors = reconcile(); render(); } });
 
   return {
     get() { return detail(); },

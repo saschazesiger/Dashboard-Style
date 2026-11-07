@@ -59,10 +59,16 @@ test('Enter before the match marks the field and keeps the focus; typing the nam
   await open(page);
   await add(page);
   const input = page.locator('#tc-input');
+  await page.evaluate(() => {
+    window.sgSubmits = 0;
+    document.getElementById('tc-box').addEventListener('submit', () => { window.sgSubmits += 1; });
+  });
   await input.focus();
   await page.keyboard.type('LAPTOP');
   await page.keyboard.press('Enter');
   await expect(input).toHaveAttribute('aria-invalid', 'true');
+  // Capture: the page's own submit handler never hears a submit that does not match.
+  expect(await page.evaluate(() => window.sgSubmits)).toBe(0);
   await expect(input).toBeFocused();
   await expect(page.locator('#tc')).toBeVisible();
   await page.keyboard.type('-0042 ');

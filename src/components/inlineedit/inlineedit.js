@@ -26,7 +26,10 @@
  * stylesheet shows the view or the form. aria-busy="true" while a save
  * runs. The value is the text of .ds-inlineedit__value, or
  * data-ds-value on the root when the shown text differs (a formatted
- * figure); the field gets it on edit.
+ * figure); the field gets it on edit. With data-ds-value a save writes the
+ * new value there and the shown text only when given (a save's promise
+ * resolving to { text }, set(value, { text })); otherwise the page
+ * rewrites .ds-inlineedit__value.
  *
  * Keys: Enter or Space on the edit button (or a click on the value) opens
  * the field with its text selected; Enter in an input saves (in a textarea
@@ -172,9 +175,20 @@ function controller(root, signal) {
     tell('cancel', { value: value() });
   };
 
-  const commit = (next, focus) => {
-    if (root.hasAttribute('data-ds-value')) root.setAttribute('data-ds-value', next);
-    if (shown) shown.textContent = next;
+  /**
+   * Writes a new value: data-ds-value where the root has it, and the shown
+   * text (the given display text; else the value, unless data-ds-value says
+   * the shown text is formatted: then the page writes it).
+   */
+  const write = (next, text) => {
+    const formatted = root.hasAttribute('data-ds-value');
+    if (formatted) root.setAttribute('data-ds-value', next);
+    if (shown && typeof text === 'string') shown.textContent = text;
+    else if (shown && !formatted) shown.textContent = next;
+  };
+
+  const commit = (next, focus, text) => {
+    write(next, text);
     leave(focus);
     announce(t('saved'));
   };
@@ -209,10 +223,11 @@ function controller(root, signal) {
     paint();
     try {
       const work = saveButton ? busy(saveButton, () => pending, { done: false, failed: false }) : Promise.resolve(pending);
-      await work;
+      const result = /** @type {any} */ (await work);
       saving = false;
       if (signal?.aborted) return;
-      commit(decided.value, focus);
+      // A save that resolves to { text } gives the shown text (a formatted figure).
+      commit(decided.value, focus, result && typeof result === 'object' && typeof result.text === 'string' ? result.text : undefined);
     } catch (failure) {
       saving = false;
       if (signal?.aborted) return;
@@ -255,10 +270,9 @@ function controller(root, signal) {
 
   return {
     get() { return { value: value(), editing: state === 'edit', busy: saving }; },
-    set(next) {
+    set(next, options = {}) {
       const text = String(next ?? '');
-      if (root.hasAttribute('data-ds-value')) root.setAttribute('data-ds-value', text);
-      if (shown) shown.textContent = text;
+      write(text, typeof options?.text === 'string' ? options.text : undefined);
       if (state === 'edit' && input && !saving) input.value = text;
     },
     edit: enter,

@@ -34,7 +34,7 @@ their own, so the component can sit inside a page's form.
 
 | Option | Attribute or class | Where it applies | Effect |
 |---|---|---|---|
-| Value | `data-ds-value` | the root | the value the field gets, when the shown text differs (a formatted figure); the system keeps it after a save |
+| Value | `data-ds-value` | the root | the value the field gets, when the shown text differs (a formatted figure); the system keeps it after a save, and the shown text is the page's (below) |
 | Blur | `data-ds-inlineedit-blur="keep"` (default), `"save"`, `"cancel"` | the root | what happens when the focus leaves the whole component while the field is open |
 | Trim | `data-ds-inlineedit-trim` | the root | compares and saves without the outer spaces |
 | Size | `.ds-xs` ... `.ds-xl` | the component or any ancestor | the view as high as the field (8px per step); the field and buttons follow their own models |
@@ -56,6 +56,10 @@ written by the system; the view or the form shows by them (before the script run
   `saved`). Rejected: the field stays open with the error (the error's message, else the string `actionFailed`) in
   `.ds-inlineedit__error`, linked to the field (`aria-describedby`), announced at once, the field focused again;
   typing takes the error away. `preventDefault()` keeps the field open without an error (the page shows its own).
+- **Formatted values** (`data-ds-value`): a save writes the new value into `data-ds-value`, and the shown text only when
+  the page gives it: a save's promise that resolves to `{ text }` (`wait(api.save(v).then(() => ({ text: fmt(v) })))`)
+  or `set(value, { text })`. Without one the page rewrites `.ds-inlineedit__value` itself, so a formatted figure never
+  turns into the raw value. Without `data-ds-value` the shown text is the value.
 - **Cancel**: Escape in the field (a dialog around it stays open) or Cancel: the value stays, the focus returns to the
   edit button (`ds:cancel` with `{ value }`).
 - Names: an edit button without a name is called "Edit" (the string `edit`) and described by the value; a save button
@@ -67,6 +71,7 @@ written by the system; the view or the form shows by them (before the script run
 const name = DS.inlineedit.create(root);    // or DS.core.get(root, 'inlineedit')
 name.get();                                 // { value: 'LAPTOP-0042', editing: false, busy: false }
 name.set('LAPTOP-0043');                    // another value from the server
+price.set('1300', { text: '1,300.00 €' });  // with data-ds-value: the value and its shown text
 name.edit();  name.save();  name.cancel();
 name.on('save', ({ value }) => api.rename(device.id, value));   // a returned promise counts as wait()
 DS.inlineedit.decide(' Room B ', 'Room A', { trim: true });     // { action: 'save', value: 'Room B' }

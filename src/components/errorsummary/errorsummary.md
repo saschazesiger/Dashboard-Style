@@ -38,7 +38,9 @@ is optional: where it is there and empty, the summary writes the message at the 
 
 - **Which fields**: those of the form that fail their own constraints (`required`, `type`, `pattern`, `min`, `max`,
   `maxlength` ...: `checkValidity()`) and those the page marked `aria-invalid="true"` (a check of its own), in the
-  form's order. Disabled fields count for nothing.
+  form's order. Disabled fields count for nothing. The radios of a name are one problem: one line, named by the group
+  (the `role="radiogroup"`'s `aria-labelledby` or `aria-label`, else the fieldset's `<legend>`), linked to the checked
+  radio or the first, every radio marked and unmarked together.
 - **The words**: a field's visible error hint (`.ds-field__hint--error` with text: the page's message), else its label
   and the browser's validation message ("Device name: Please fill out this field.", the string `errorSummaryField`).
   Write your own messages for anything a person reads often: the browser's are generic and in the browser's language.
@@ -49,7 +51,8 @@ is optional: where it is there and empty, the summary writes the message at the 
   focus ring after a submit from the keyboard, and after a click where the engine honours
   `focus({ focusVisible: true })`). A link moves the focus into its field (the first control of a group) and brings it into view.
 - **While fixing**: as a field is fixed (`input`, `change`) its problem leaves the list and its marks go; the summary
-  hides once none is left. A form `reset` takes everything back.
+  hides once none is left. A field that had no problem in the list joins only on the next submit, `validate()` or
+  `set()`, never while someone types. A form `reset` takes everything back.
 - `novalidate` on the form (set by the system) keeps the browser's own bubbles away: the summary replaces them.
 - **Events** on the summary: `ds:invalid` with `{ errors }` when it shows, `ds:change` with `{ errors }` when the list
   changes (`errors`: `[{ id, text }]`).

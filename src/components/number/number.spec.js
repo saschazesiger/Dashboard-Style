@@ -164,6 +164,40 @@ test('a held stepper repeats until it is let go', async ({ page }) => {
   expect(Number(await field.inputValue())).toBe(held);
 });
 
+test.describe('touch', () => {
+  test.use({ hasTouch: true });
+
+  test('a tap steps once on its lift; a scroll that starts on a stepper changes nothing', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'a pan needs CDP touch events (Chromium)');
+    await open(page);
+    const field = await add(page, { attrs: 'data-ds-number-min="0" data-ds-number-max="500" data-ds-number-step="5"', value: '50' });
+    // Room to scroll below the field, the field low enough that a pan up scrolls the page.
+    await page.evaluate(() => {
+      document.getElementById('n-field').insertAdjacentHTML('beforebegin', '<div style="height: 60vh"></div>');
+      document.getElementById('n-field').insertAdjacentHTML('afterend', '<div style="height: 200vh"></div>');
+    });
+    const up = page.locator('#n-group .ds-number__up');
+    await up.scrollIntoViewIfNeeded();
+    await up.tap();
+    await expect(field).toHaveValue('55');
+    const box = await up.boundingBox();
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    const before = await page.evaluate(() => scrollY);
+    const cdp = await page.context().newCDPSession(page);
+    try {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+      for (let i = 1; i <= 10; i += 1) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - 20 * i }] });
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    } finally {
+      await cdp.detach();
+    }
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(before);
+    await page.waitForTimeout(800);
+    await expect(field).toHaveValue('55');
+  });
+});
+
 test('a click without a pointer (a screen reader) steps once; a step from a stepper is announced', async ({ page }) => {
   await open(page);
   const field = await add(page, { attrs: 'data-ds-number-unit="kilogram"', value: '4' });

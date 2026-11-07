@@ -7,7 +7,7 @@
 export type PasswordStrength = 0 | 1 | 2 | 3 | 4;
 
 export interface PasswordOptions {
-  /** Shorter than this scores 1 (default the input's minlength, else 8). */
+  /** Shorter than this scores 1, where the input has no minlength and the root no data-ds-password-min (default 8). */
   minLength?: number;
   /** A scoring of the page's own: 0 to 4 for the value (empty is always 0). */
   score?: (value: string) => number;

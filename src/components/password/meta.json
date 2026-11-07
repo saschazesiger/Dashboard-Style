@@ -15,7 +15,10 @@
   "attributes": [
     "data-level"
   ],
-  "requires": [],
+  "requires": [
+    "button",
+    "form"
+  ],
   "context": [],
   "hooks": {
     "--ds-password-meter-width": {

@@ -158,3 +158,43 @@ test('forced colours: the links are LinkText, the alert keeps an edge', async ({
   });
   expect(out).toEqual([true, true]);
 });
+
+test('a required radio group is one problem, named by its legend, marked and unmarked together', async ({ page }) => {
+  await open(page);
+  await add(page);
+  await page.evaluate(() => {
+    document.getElementById('es-room').closest('.ds-field').insertAdjacentHTML('afterend',
+      '<fieldset class="ds-field" id="es-kind"><legend class="ds-field__label">Device type</legend>' +
+      ['Laptop', 'Phone', 'Router'].map((label, i) => `<label class="ds-radio"><input class="ds-radio-input" type="radio" name="kind" id="es-kind-${i}" value="${i}"${i === 0 ? ' required' : ''}> ${label}</label>`).join('') +
+      '<small class="ds-field__hint ds-field__hint--error" hidden></small></fieldset>');
+  });
+  await page.locator('#es-name').fill('LAPTOP-0042');
+  await page.locator('#es-serial').fill('SN-0042');
+  await page.locator('#es-submit').click();
+  const texts = await links(page);
+  expect(texts).toHaveLength(1);
+  expect(texts[0]).toMatch(/^Device type: /);
+  await expect(page.locator('#es .ds-errorsummary__list a')).toHaveAttribute('href', '#es-kind-0');
+  for (const i of [0, 1, 2]) await expect(page.locator(`#es-kind-${i}`)).toHaveAttribute('aria-invalid', 'true');
+  await page.locator('#es-kind-1').check();
+  await expect(page.locator('#es')).toBeHidden();
+  for (const i of [0, 1, 2]) await expect(page.locator(`#es-kind-${i}`)).not.toHaveAttribute('aria-invalid', /./);
+  await expect(page.locator('#es-kind .ds-field__hint--error')).toBeHidden();
+});
+
+test('typing into a field the list did not name adds nothing until the next submit', async ({ page }) => {
+  await open(page);
+  await add(page);
+  await page.evaluate(() => { document.getElementById('es-room').type = 'email'; });
+  await page.locator('#es-submit').click();
+  expect(await links(page)).toHaveLength(2);
+  await page.locator('#es-room').fill('ada');
+  expect(await links(page)).toHaveLength(2);
+  await expect(page.locator('#es-room')).not.toHaveAttribute('aria-invalid', /./);
+  await expect(page.locator('#es-room ~ .ds-field__hint--error')).toBeHidden();
+  await page.locator('#es-name').fill('LAPTOP-0042');
+  await expect(page.locator('#es')).toHaveAccessibleName('There is 1 problem');
+  await page.locator('#es-submit').click();
+  expect(await links(page)).toHaveLength(2);
+  await expect(page.locator('#es-room')).toHaveAttribute('aria-invalid', 'true');
+});

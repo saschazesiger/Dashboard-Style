@@ -51,7 +51,8 @@ and takes the first focus.
   `.ds-typeconfirm__name` (monospace, a pointer selects it whole). A label with words of its own stays.
 - The confirm button is `aria-disabled="true"` (written by the system) until the field holds the name (exact but for
   the outer spaces): it stays in the tab order and the action guard of `DS.motion` blocks it. A submit before that
-  (Enter in the field) marks the field `aria-invalid` and keeps the focus there. Pasting is allowed.
+  (Enter in the field) marks the field `aria-invalid`, keeps the focus there and never reaches the page's own `submit`
+  handler. Pasting is allowed.
 - Confirm: `ds:confirm` goes out on the root, cancelable, with `{ name, wait(promise) }`. Without a promise, or once it
   resolves, the dialog closes (`DS.overlay.close(dialog, { reason: 'confirm' })`); while it runs the confirm button is
   busy (`DS.motion.busy`) and the field read-only. A rejection keeps the dialog open with the error's message (else

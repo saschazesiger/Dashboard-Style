@@ -68,7 +68,8 @@ There is no tone: the field shows its state through `aria-invalid="true"` and a 
   caret). A step goes on from the typed text; from a value off the step grid the first step lands on it (7 with a step
   of 5: 5 or 10).
 - **Steppers** step once per press and repeat while held (after `--ds-delay-tooltip`, then every `--ds-dur-instant`);
-  they keep the focus where it is, so a phone's keyboard does not open, and are `disabled` at their end and while the
+  a mouse or a pen steps on the press, a finger on its lift (or when the hold repeats), so a scroll that starts on a
+  stepper changes nothing; they keep the focus where it is, so a phone's keyboard does not open, and are `disabled` at their end and while the
   field is disabled or read-only. They are out of the tab order (`tabindex="-1"`): the keys do the same from the field.
   The value they reach is announced once they stop.
 - **Events**: every change dispatches `input` and `change` on the field (a page's dirty tracking hears a step as a

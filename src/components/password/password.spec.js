@@ -102,11 +102,16 @@ test('the meter: bars and words per level, data-level, ds:change once per level,
   await expect(input).toHaveAccessibleDescription('Password strength: Strong');
 });
 
-test('the minimum length: minlength on the input, else data-ds-password-min', async ({ page }) => {
+test('the minimum length: minlength on the input first, else data-ds-password-min', async ({ page }) => {
   await open(page);
   const input = await add(page, { attrs: 'data-ds-password-min="20"' });
   await input.fill('Tr0ub4dor&3');
   await expect(page.locator('#p-meter')).toHaveAttribute('data-level', '1');
+  // The input's minlength wins over the attribute (the engine enforces it).
+  await input.evaluate((el) => el.setAttribute('minlength', '8'));
+  await input.fill('');
+  await input.fill('Tr0ub4dor&3');
+  await expect(page.locator('#p-meter')).not.toHaveAttribute('data-level', '1');
 });
 
 test('caps lock: the hint shows while it is on, with its default text, and goes on blur', async ({ page, browserName }) => {

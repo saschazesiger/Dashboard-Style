@@ -54,6 +54,9 @@ After a save, render `data-ds-secret` again (a change applies at once) or call `
 - Replace shows the empty entry and moves the focus into it; Cancel or Escape in it goes back to `set` (Escape there
   never closes a dialog around it) and focuses Replace.
 - Clear strikes the mask through and focuses Undo; Undo goes back to `set` and focuses Replace.
+- A change from `set()`, `update()` or a form reset that hides the part holding the focus (the page calls `set('set')`
+  after saving what was typed) moves the focus the same way: to Replace in `set`, Undo in `clear`, the field in
+  `replace` and `empty`.
 - Every change of state but Replace is announced with the status words (`secretSet`, `secretNotSet`,
   `secretCleared`), and `ds:change` with `{ state, action }` goes out on the field. A form `reset` returns to the
   first state.

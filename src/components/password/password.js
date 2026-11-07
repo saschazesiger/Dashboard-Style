@@ -33,7 +33,8 @@
  * sees a password field.
  *
  * Strength: strength(value, { minLength }) scores 0 (empty) to 4: shorter
- * than minLength (the input's minlength, else data-ds-password-min, else 8)
+ * than the minimum length (the input's minlength, else data-ds-password-min,
+ * else create()'s minLength, else 8)
  * or a common password is 1; otherwise the length times the variety of
  * characters, less for repeats and runs ("aaaa", "1234", "qwerty"). The
  * meter fills that many of its four bars in the level's colour and writes
@@ -154,9 +155,13 @@ function controller(root, options, signal) {
     listeners[type].forEach((fn) => fn(detail));
   };
 
+  // The input's minlength first (the engine enforces it), then data-ds-password-min, then create()'s option.
   const minLength = () => {
-    const attribute = Number.parseInt(input.getAttribute('minlength') ?? '', 10);
-    return settings.minLength ?? (Number.isInteger(attribute) && attribute > 0 ? attribute : 8);
+    for (const raw of [input.getAttribute('minlength'), root.getAttribute('data-ds-password-min')]) {
+      const n = Number.parseInt(raw ?? '', 10);
+      if (Number.isInteger(n) && n > 0) return n;
+    }
+    return settings.minLength ?? 8;
   };
 
   const score = () => {
@@ -254,7 +259,6 @@ function controller(root, options, signal) {
       return () => listeners[type].delete(fn);
     },
     update() {
-      settings = { ...settings, ...readOptions(root) };
       level = -1;
       measure(false);
     },
@@ -269,17 +273,11 @@ function controller(root, options, signal) {
 /** Numbers the ids this module gives an input without one (aria-controls of the reveal button). */
 let seq = 0;
 
-/** The options of the attribute path. */
-function readOptions(root) {
-  const min = Number.parseInt(root.getAttribute('data-ds-password-min') ?? '', 10);
-  return Number.isInteger(min) && min > 0 ? { minLength: min } : {};
-}
-
 define('password', {
   attribute: 'data-ds-password',
   attributes: ['data-ds-password-min'],
   init(el, ctx) {
-    return controller(el, readOptions(el), ctx.signal);
+    return controller(el, {}, ctx.signal);
   },
 });
 
@@ -291,7 +289,7 @@ define('password', {
  */
 export function create(el, options = {}) {
   const abort = typeof AbortController === 'function' ? new AbortController() : null;
-  const made = controller(el, { ...readOptions(el), ...options }, abort?.signal ?? null);
+  const made = controller(el, options, abort?.signal ?? null);
   const destroy = made.destroy;
   made.destroy = () => {
     destroy();

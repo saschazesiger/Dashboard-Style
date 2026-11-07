@@ -113,6 +113,31 @@ test('an async save: busy and read-only until it settles, then the value', async
   await expect(page.locator('#ie-value')).toHaveText('LAPTOP-0099');
 });
 
+test('a formatted value (data-ds-value): the shown text is the page\'s, from { text } or set(value, { text })', async ({ page }) => {
+  await open(page);
+  const root = await add(page, { attrs: 'data-ds-value="1234.5"' });
+  await page.evaluate(() => {
+    document.getElementById('ie-value').textContent = '1,234.50 €';
+    window.sgFormat = (value) => `${Number(value).toLocaleString('en', { minimumFractionDigits: 2 })} €`;
+    document.getElementById('ie').addEventListener('ds:save', (event) => {
+      event.detail.wait(Promise.resolve({ text: window.sgFormat(event.detail.value) }));
+    });
+  });
+  await page.locator('#ie-edit').click();
+  await expect(page.locator('#ie-input')).toHaveValue('1234.5');
+  await page.locator('#ie-input').fill('1300');
+  await page.keyboard.press('Enter');
+  await expect(root).toHaveAttribute('data-state', 'view');
+  await expect(root).toHaveAttribute('data-ds-value', '1300');
+  await expect(page.locator('#ie-value')).toHaveText('1,300.00 €');
+  // set() without a text leaves the formatted text to the page; with one it writes it.
+  await page.evaluate(() => window.DS.core.get(document.getElementById('ie'), 'inlineedit').set('1400'));
+  await expect(root).toHaveAttribute('data-ds-value', '1400');
+  await expect(page.locator('#ie-value')).toHaveText('1,300.00 €');
+  await page.evaluate(() => window.DS.core.get(document.getElementById('ie'), 'inlineedit').set('1400', { text: '1,400.00 €' }));
+  await expect(page.locator('#ie-value')).toHaveText('1,400.00 €');
+});
+
 test('a failed save keeps the field with the reason in words, announced, focused', async ({ page }) => {
   await open(page);
   const root = await add(page);

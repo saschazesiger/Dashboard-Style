@@ -32,7 +32,9 @@
  *   replace  the entry, empty, with Cancel (Escape cancels too)
  *   clear    the mask struck through, "Removed when you save", Undo
  * Focus follows: Replace to the field, Cancel and Undo back to Replace,
- * Clear to Undo; a change of state is announced through the status words.
+ * Clear to Undo; a change from set() or a reset that hides the part with
+ * the focus moves it the same way (to Replace, Undo or the field); a change
+ * of state is announced through the status words.
  *
  * The hidden input [data-ds-secret-action] tells the server what to do on
  * save: "keep" (leave the stored value), "set" (store what the field holds:
@@ -105,8 +107,14 @@ function controller(root, start, signal) {
       if (input) input.value = '';
     }
     state = next;
+    const active = root.ownerDocument?.activeElement;
     paint();
-    if (focus) focus.focus();
+    if (focus) {
+      focus.focus();
+    } else if (active && active !== root && root.contains(active) && (active.disabled || !active.getClientRects?.().length)) {
+      // The part that held the focus is gone (set() from a submit while typing a new one): its counterpart takes it.
+      (next === 'set' ? buttons.replace : next === 'clear' ? buttons.undo : input)?.focus();
+    }
     if (speak && next !== 'replace') announce(words());
     if (!changed || signal?.aborted) return;
     const detail = { state, action: hidden?.value ?? action(state, input?.value) };

@@ -184,6 +184,7 @@ function controller(root, signal) {
     event.preventDefault();
     paint();
     if (!match) {
+      event.stopImmediatePropagation();
       if (input) {
         input.setAttribute('aria-invalid', 'true');
         input.focus();

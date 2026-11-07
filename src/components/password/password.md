@@ -37,7 +37,7 @@ field of [Form](#form), each where its markup is.
 | Option | Classes, attributes | Where it applies | Effect |
 |---|---|---|---|
 | Parts | the reveal button (`aria-pressed`), `.ds-password__meter`, `.ds-password__caps` | inside `[data-ds-password]` | each is optional: a sign-in field has no meter |
-| Minimum length | `minlength` on the input, else `data-ds-password-min` (default 8) | the input, the root | shorter scores Weak |
+| Minimum length | `minlength` on the input, else `data-ds-password-min`, else `create()`'s `minLength` (default 8) | the input, the root | shorter scores Weak |
 | Size, density, shape, touch | the option classes | the field or any ancestor | the field and the reveal button as in [Form](#form) and [Button](#button); the bars' corners times `--ds-shape`; the meter's type stays `--ds-font-meta` |
 | Tone | | | none: the level is the meaning, in words and in the number of bars |
 

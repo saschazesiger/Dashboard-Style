@@ -135,6 +135,27 @@ test('a form reset and the attribute bring the first state back; set() drives it
   await expect(root).toHaveAttribute('data-state', 'set');
 });
 
+test('set() while typing a new one (a save on Enter) moves the focus to Replace; clear from Replace to Undo', async ({ page }) => {
+  await open(page);
+  const root = await add(page, { form: true });
+  await page.evaluate(() => document.getElementById('s-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    window.DS.core.get(document.getElementById('s-root'), 'secret').set('set');
+  }));
+  await page.locator('#s-replace').click();
+  await expect(page.locator('#s')).toBeFocused();
+  await page.keyboard.type('abc123');
+  await page.keyboard.press('Enter');
+  await expect(root).toHaveAttribute('data-state', 'set');
+  await expect(page.locator('#s-replace')).toBeFocused();
+  await page.evaluate(() => window.DS.core.get(document.getElementById('s-root'), 'secret').set('clear'));
+  await expect(page.locator('#s-undo')).toBeFocused();
+  // Focus elsewhere stays where it is.
+  await page.locator('#s-reset').focus();
+  await page.evaluate(() => window.DS.core.get(document.getElementById('s-root'), 'secret').set('set'));
+  await expect(page.locator('#s-reset')).toBeFocused();
+});
+
 test('size and touch: the stored box steps like a field and takes the touch target', async ({ page }) => {
   await open(page);
   await add(page);

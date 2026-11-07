@@ -7,14 +7,20 @@
 export interface InlineEditSaveDetail {
   value: string;
   previous: string;
-  /** Hands the save's promise to the component: busy until it settles, the error if it rejects. */
+  /**
+   * Hands the save's promise to the component: busy until it settles, the error if it rejects. A promise that
+   * resolves to `{ text }` gives the shown text (with `data-ds-value`, a formatted figure).
+   */
   wait(promise: PromiseLike<unknown>): void;
 }
 
 export interface InlineEditController {
   get(): { value: string; editing: boolean; busy: boolean };
-  /** Sets the shown value (and the field's, while editing). */
-  set(value: string): void;
+  /**
+   * Sets the value (and the field's, while editing). The shown text is `options.text` when given, else the value;
+   * with `data-ds-value` on the root and no text, the page rewrites the shown text.
+   */
+  set(value: string, options?: { text?: string }): void;
   /** Opens the field. */
   edit(): void;
   /** Saves what the field holds. */

@@ -36,7 +36,9 @@
  * number goes back to the last value. The wheel never changes it (the field
  * is a text field). The steppers keep the focus where it is, step once per
  * press and repeat while held (after --ds-delay-tooltip, every
- * --ds-dur-instant); they are off at the ends. A step from a stepper is
+ * --ds-dur-instant); they are off at the ends. A mouse or a pen steps on
+ * press, a finger on its lift (or when the hold repeats), so a scroll that
+ * starts on a stepper steps nothing. A step from a stepper is
  * announced; a step from the keys is read by the screen reader itself.
  *
  * A change dispatches input and change on the field (so dirty tracking and
@@ -336,6 +338,9 @@ function controller(el, rawOptions, signal) {
   // The stepper under a pointer press: it is disabled at its end only once the press ends, since a disabled
   // button gets no mousedown, and the default of that mousedown would take the focus from the field.
   let pressing = null;
+  // The stepper of a touch press that has not stepped yet: a finger steps on its lift (or when the hold repeats),
+  // so a scroll that starts on a stepper (pointercancel) changes nothing.
+  let touched = null;
 
   if (!field) return idleController();
   for (const name of ['role', 'aria-valuenow', 'aria-valuemin', 'aria-valuemax', 'aria-valuetext']) own(field, 'attrs', name);
@@ -442,6 +447,7 @@ function controller(el, rawOptions, signal) {
   const stopHold = () => {
     clearTimeout(held);
     held = null;
+    touched = null;
     if (!pressing) return;
     pressing = null;
     paint();
@@ -451,6 +457,7 @@ function controller(el, rawOptions, signal) {
     clearTimeout(held);
     const end = () => (direction > 0 ? settings.max : settings.min);
     const repeat = () => {
+      touched = null;
       stepBy(direction, 'button');
       if (value != null && end() != null && (direction > 0 ? value >= end() : value <= end())) {
         clearTimeout(held);
@@ -494,8 +501,16 @@ function controller(el, rawOptions, signal) {
     on(button, 'pointerdown', (/** @type {PointerEvent} */ event) => {
       if (event.button !== 0 || button.disabled) return;
       pressing = button;
-      stepBy(direction, 'button');
+      if (event.pointerType === 'touch') {
+        touched = button;
+      } else {
+        stepBy(direction, 'button');
+      }
       startHold(direction);
+    });
+    // Before stopHold (registered next), which forgets the touch press.
+    on(button, 'pointerup', () => {
+      if (touched === button) stepBy(direction, 'button');
     });
     for (const type of ['pointerup', 'pointerleave', 'pointercancel', 'lostpointercapture']) on(button, type, stopHold);
     // A click without a pointer press (a screen reader's, or Enter on a focused stepper) has detail 0; a
