@@ -1,0 +1,35 @@
+/*
+ * Duration input: a text field that reads a length of time as people write
+ * it ("1h 30m", "90 min", "1:30", PT1H30M) and writes it back in the
+ * locale's short form once it is left. The box is the text field's
+ * (.ds-input, form.css: its hooks, states and options); this sheet adds the
+ * figures. DS.duration (duration.js) makes it a spinbutton and keeps the
+ * value.
+ *
+ *   <span class="ds-field__label" id="timeout-label">Timeout</span>
+ *   <input class="ds-input ds-duration" type="text" aria-labelledby="timeout-label" data-ds-duration
+ *          data-ds-value="PT1H30M" [data-ds-duration-step="15m"] [data-ds-duration-min="1m"] [data-ds-duration-max="7d"]>
+ *   (rendered: role="spinbutton", aria-valuenow in seconds, aria-valuetext "1 hour, 30 minutes";
+ *    with data-ds-duration-name a hidden input with the ISO value after it)
+ *
+ * States: those of the text field. aria-invalid="true" (unreadable, or
+ * outside min and max; the script sets it once the field is left) draws the
+ * error border; the page shows the reason under the field, so the colour is
+ * never alone. disabled and readonly as on any input.
+ *
+ * Options: the text field's (size, density, shape, touch), computed in
+ * form.css; this sheet adds none. Tone: none.
+ *
+ * Motion: none of its own (the field's border and ring).
+ *
+ * Forced colours: the text field's.
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.duration {
+  /* Figures of one width, so a stepped value does not jitter. */
+  .ds-duration {
+    font-variant-numeric: tabular-nums;
+  }
+}

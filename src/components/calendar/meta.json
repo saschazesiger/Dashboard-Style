@@ -1,0 +1,87 @@
+{
+  "name": "calendar",
+  "group": "forms",
+  "order": 400,
+  "docsOrder": 232,
+  "need": "Show a month and let someone pick a day or a range in it, in the page's locale",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-calendar",
+    "ds-calendar__caption",
+    "ds-calendar__day",
+    "ds-calendar__grid",
+    "ds-calendar__month",
+    "ds-calendar__months",
+    "ds-calendar__nav",
+    "ds-calendar__spacer",
+    "ds-calendar__title",
+    "ds-calendar__week"
+  ],
+  "attributes": [
+    "data-ds-ripple",
+    "data-preview",
+    "data-range",
+    "data-turn"
+  ],
+  "requires": [
+    "button"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-calendar-cell": {
+      "default": "40px",
+      "description": "a day of the calendar at size md and the comfortable density: 8px per size step, 4px per density step on top"
+    },
+    "--ds-calendar-font": {
+      "default": "`--ds-size-font`, else `--ds-font-body`",
+      "description": "the type of the days"
+    },
+    "--ds-calendar-today": {
+      "default": "`--ds-primary`",
+      "description": "the ring and ink of today"
+    },
+    "--ds-calendar-selected-bg": {
+      "default": "`--ds-primary`",
+      "description": "the fill of the chosen day and of the ends of a range"
+    },
+    "--ds-calendar-selected-color": {
+      "default": "`--ds-on-primary`",
+      "description": "the ink on that fill"
+    },
+    "--ds-calendar-range-bg": {
+      "default": "`--ds-accent`",
+      "description": "the band of a range (its preview mixes it at `--ds-state-pressed`)"
+    },
+    "--ds-btn-icon-size": {
+      "owner": "button"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "calendar",
+    "dom",
+    "icons",
+    "motion"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-calendar__day"
+  ],
+  "labExempt": {
+    "DS.calendar.daysIn": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.parse": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.iso": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.today": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.add": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.compare": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.weekInfo": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.weekNumber": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.grid": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.available": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.label": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.rangeLabel": "pure date math or text from Intl: no DOM, no motion"
+  }
+}

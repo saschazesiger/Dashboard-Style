@@ -194,6 +194,7 @@ components never set it (`test/tokens.test.js`).
    | combobox list | `--ds-dur-medium` | `--ds-dur-instant` |
    | menu | `--ds-dur-medium` | `--ds-dur-instant` |
    | select panel | `--ds-dur-medium` | `--ds-dur-instant` |
+   | picker popover | `--ds-dur-medium` | `--ds-dur-instant` |
 
    "Keyframes" is the markup without `data-state`, opened by the page's own classes (`--closing`); `DS.overlay`
    sets `data-state` and plays transitions. The overlays' full timelines are in the [Overlays](#overlays) table,

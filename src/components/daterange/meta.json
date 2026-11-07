@@ -1,0 +1,36 @@
+{
+  "name": "daterange",
+  "group": "forms",
+  "order": 450,
+  "docsOrder": 236,
+  "need": "Pick a range of dates, or a relative one such as the last 7 days, with presets and two months",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-daterange__preset",
+    "ds-daterange__summary"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "calendar",
+    "datefield",
+    "picker"
+  ],
+  "context": [],
+  "hooks": {},
+  "keyframes": [],
+  "js": [
+    "calendar",
+    "datefield",
+    "daterange",
+    "picker"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.daterange.resolve": "pure date math or text from Intl: no DOM, no motion",
+    "DS.daterange.presetLabel": "pure date math or text from Intl: no DOM, no motion"
+  }
+}

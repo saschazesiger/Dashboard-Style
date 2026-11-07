@@ -1,0 +1,48 @@
+{
+  "name": "timepicker",
+  "group": "forms",
+  "order": 430,
+  "docsOrder": 235,
+  "need": "Pick a time of day: type it or choose it from a list, in 12 or 24 hours as the locale has it",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-timepicker__list",
+    "ds-timepicker__option",
+    "ds-timepicker__popover"
+  ],
+  "attributes": [
+    "data-active"
+  ],
+  "requires": [
+    "button",
+    "datefield",
+    "picker"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-timepicker-option-height": {
+      "default": "40px",
+      "description": "a row of the list of times at size md and the comfortable density"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "a11y",
+    "datefield",
+    "picker",
+    "timepicker"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.timepicker.times": "pure date math or text from Intl: no DOM, no motion",
+    "DS.timepicker.list": "a listbox in place: its active row's layer is a state layer, nothing moves; the time picker demo plays it in its popover"
+  },
+  "exceptions": {
+    "ripple": {
+      ".ds-timepicker__option": "a click picks the time and closes the popover; the active row's layer is the feedback"
+    }
+  }
+}

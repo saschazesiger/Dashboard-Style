@@ -1,0 +1,70 @@
+{
+  "name": "timerange",
+  "group": "forms",
+  "order": 460,
+  "docsOrder": 237,
+  "need": "Choose the time range of a monitoring view, relative or absolute, and refresh it now or on an interval",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-timerange",
+    "ds-timerange__absolute",
+    "ds-timerange__apply",
+    "ds-timerange__chevron",
+    "ds-timerange__error",
+    "ds-timerange__field-label",
+    "ds-timerange__interval",
+    "ds-timerange__label",
+    "ds-timerange__quick",
+    "ds-timerange__range",
+    "ds-timerange__select",
+    "ds-timerange__trigger"
+  ],
+  "attributes": [
+    "data-on"
+  ],
+  "requires": [
+    "button",
+    "datefield",
+    "picker"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-btn-height": {
+      "owner": "button"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "a11y",
+    "calendar",
+    "datefield",
+    "format",
+    "icons",
+    "picker",
+    "store",
+    "timerange"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.timerange.parse": "values and text: no DOM, no motion",
+    "DS.timerange.resolve": "values and text: no DOM, no motion",
+    "DS.timerange.spanMs": "values and text: no DOM, no motion",
+    "DS.timerange.label": "values and text: no DOM, no motion",
+    "DS.timerange.query": "values and text: no DOM, no motion"
+  },
+  "exceptions": {
+    "ripple": {
+      ".ds-timerange__select": "a native select cannot hold a ripple; the platform's menu is its feedback"
+    }
+  },
+  "motionExceptions": {
+    "transition": {
+      "rotate": {
+        ".ds-timerange__chevron": "disclosure chevrons: the trigger's chevron turns 180deg with its popover (D25)"
+      }
+    }
+  }
+}

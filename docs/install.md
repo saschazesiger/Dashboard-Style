@@ -442,6 +442,28 @@ strings a script adds have an option, so a page in another language passes its o
 | `1 character left` | the same for one (the system's string `charactersLeftOne`, the form `one`) | `DS.core.config({ strings: { charactersLeftOne } })` |
 | `{count} characters too many` | what it says once the text goes past a soft limit (the system's string `charactersOver`) | `DS.core.config({ strings: { charactersOver } })` |
 | `1 character too many` | the same for one (the system's string `charactersOverOne`) | `DS.core.config({ strings: { charactersOverOne } })` |
+| `Previous month` | the name of the calendar's button to the month before (`DS.calendar`) (the system's string `previousMonth`) | `DS.core.config({ strings: { previousMonth } })` |
+| `Next month` | the name of the calendar's button to the month after (the system's string `nextMonth`) | `DS.core.config({ strings: { nextMonth } })` |
+| `selected` | what the name of a chosen day in the calendar ends on ("Wednesday, November 4, 2026, selected"; the system's string `selected`) | `DS.core.config({ strings: { selected } })` |
+| `Choose date` | the name of a date picker's calendar button and popover without one of their own (`DS.datepicker`) (the system's string `chooseDate`) | `DS.core.config({ strings: { chooseDate } })` |
+| `Choose dates` | the same for a date range picker (`DS.daterange`) (the system's string `chooseDates`) | `DS.core.config({ strings: { chooseDates } })` |
+| `Choose time` | the same for a time picker, and the name of its list (`DS.timepicker`) (the system's string `chooseTime`) | `DS.core.config({ strings: { chooseTime } })` |
+| `Empty` | what a date field's segment reads while it has no value (`aria-valuetext`, `DS.datefield`) (the system's string `empty`) | `DS.core.config({ strings: { empty } })` |
+| `Start` | the name of the first date of a range field (the system's string `rangeStart`) | `DS.core.config({ strings: { rangeStart } })` |
+| `End` | the name of the second date of a range field (the system's string `rangeEnd`) | `DS.core.config({ strings: { rangeEnd } })` |
+| `Presets` | the name of a date range picker's list of presets (the system's string `presets`) | `DS.core.config({ strings: { presets } })` |
+| `Last {span}` | a relative range up to now ("Last 7 days"; `{span}` the length in the locale's words) in the date range picker and the time range (the system's string `lastSpan`) | `DS.core.config({ strings: { lastSpan } })` |
+| `Time range` | the name of a time range without one of its own, and of its popover (`DS.timerange`) (the system's string `timeRange`) | `DS.core.config({ strings: { timeRange } })` |
+| `Absolute time range` | the heading of the time range's from and to fields (the system's string `absoluteRange`) | `DS.core.config({ strings: { absoluteRange } })` |
+| `From` | the label of the time range's start field (the system's string `rangeFrom`) | `DS.core.config({ strings: { rangeFrom } })` |
+| `To` | the label of the time range's end field (the system's string `rangeTo`) | `DS.core.config({ strings: { rangeTo } })` |
+| `Apply` | the button that applies the time range's absolute range (the system's string `apply`) | `DS.core.config({ strings: { apply } })` |
+| `Recently used` | the heading of the time range's remembered ranges (the system's string `recentRanges`) | `DS.core.config({ strings: { recentRanges } })` |
+| `Quick ranges` | the heading of the time range's relative ranges (the system's string `quickRanges`) | `DS.core.config({ strings: { quickRanges } })` |
+| `Refresh` | the name and tooltip of the time range's refresh button (the system's string `refresh`) | `DS.core.config({ strings: { refresh } })` |
+| `Auto refresh` | the name of the time range's interval select (the system's string `autoRefresh`) | `DS.core.config({ strings: { autoRefresh } })` |
+| `Off` | the first option of that select: no auto refresh (the system's string `off`) | `DS.core.config({ strings: { off } })` |
+| `The start must come before the end.` | the error of the time range's absolute range when its start is after its end (the system's string `rangeOrder`) | `DS.core.config({ strings: { rangeOrder } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

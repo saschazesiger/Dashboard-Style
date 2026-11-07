@@ -1,0 +1,71 @@
+{
+  "name": "picker",
+  "group": "overlays",
+  "order": 420,
+  "docsOrder": 284,
+  "need": "Open a panel of choices from a button: the popover of the date and time pickers",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-picker",
+    "ds-picker--block",
+    "ds-picker__foot",
+    "ds-picker__heading",
+    "ds-picker__meta",
+    "ds-picker__pane",
+    "ds-picker__pane--scroll",
+    "ds-picker__panes",
+    "ds-picker__popover",
+    "ds-picker__preset",
+    "ds-picker__presets",
+    "ds-picker__spacer"
+  ],
+  "attributes": [
+    "data-ds-ripple",
+    "data-placement",
+    "data-state"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": {
+    "--ds-picker-padding": {
+      "default": "`--ds-space-3`",
+      "description": "the picker popover's padding at the comfortable density (2px per density step)"
+    },
+    "--ds-picker-radius": {
+      "default": "`--ds-radius-lg`",
+      "description": "the picker popover's radius at the default shape"
+    },
+    "--ds-picker-pane-height": {
+      "default": "320px",
+      "description": "the height of a scrolling pane of a picker (a list of times)"
+    },
+    "--ds-picker-preset-height": {
+      "default": "40px",
+      "description": "a preset row of a picker at size md and the comfortable density"
+    }
+  },
+  "keyframes": [
+    "ds-clip-in",
+    "ds-fade-in"
+  ],
+  "js": [
+    "a11y",
+    "overlay",
+    "picker",
+    "position"
+  ],
+  "module": true,
+  "progressive": [
+    "scrollbar-color"
+  ],
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-picker__preset"
+  ],
+  "exceptions": {
+    "physical": {
+      ".ds-picker__popover: inset": "script coordinates: --ds-picker-x from the left"
+    }
+  }
+}

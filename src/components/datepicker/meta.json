@@ -1,0 +1,35 @@
+{
+  "name": "datepicker",
+  "group": "forms",
+  "order": 440,
+  "docsOrder": 234,
+  "need": "Pick one date, or a date and a time: type it or choose it in a calendar",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-datepicker__times"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "calendar",
+    "datefield",
+    "picker",
+    "timepicker"
+  ],
+  "context": [],
+  "hooks": {},
+  "keyframes": [],
+  "js": [
+    "calendar",
+    "datefield",
+    "datepicker",
+    "picker",
+    "timepicker"
+  ],
+  "module": true,
+  "progressive": [
+    "scrollbar-color"
+  ],
+  "ripple": false
+}
