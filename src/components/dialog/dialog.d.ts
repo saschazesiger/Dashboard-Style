@@ -1,7 +1,14 @@
 /** Types of DS.dialog (js/dialog.js). */
 import type { CloseReason, OpenOptions, OverlayController } from '../../types/js/overlay.js';
 
-export interface ConfirmOptions {
+/** What a built dialog's question is about, under its text. */
+export interface AboutOptions {
+  /** A list of the items it concerns (.ds-dialog__lines). */
+  lines?: string[];
+  /** Term and value pairs (.ds-dialog__facts). */
+  facts?: Array<[string, string]>;
+}
+export interface ConfirmOptions extends AboutOptions {
   title?: string;
   text?: string;
   confirmLabel?: string;
@@ -11,7 +18,7 @@ export interface ConfirmOptions {
   onConfirm?: () => unknown;
   errorText?: string;
 }
-export interface PromptOptions {
+export interface PromptOptions extends AboutOptions {
   title?: string;
   text?: string;
   label?: string;
@@ -44,7 +51,7 @@ export declare function close(element: Element, options?: { reason?: CloseReason
 /** A built confirm dialog; `destructive` fills its button in the error tone. Resolves true on confirm. */
 export declare function confirm(options?: ConfirmOptions): Promise<boolean>;
 /** A built alert dialog. */
-export declare function alert(options?: { title?: string; text?: string; closeLabel?: string; opener?: Element | null }): Promise<void>;
+export declare function alert(options?: AboutOptions & { title?: string; text?: string; closeLabel?: string; opener?: Element | null }): Promise<void>;
 /** A built prompt dialog; resolves with the value, or null when cancelled. */
 export declare function prompt(options?: PromptOptions): Promise<string | null>;
 /** Makes the dialog's box form run `onSubmit` before it closes. */

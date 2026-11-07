@@ -1,0 +1,78 @@
+{
+  "name": "tearsheet",
+  "group": "overlays",
+  "order": 1100,
+  "docsOrder": 255,
+  "need": "Create or edit something in a tall flow of steps over the page, with its own head and foot",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-tearsheet",
+    "ds-tearsheet--narrow",
+    "ds-tearsheet__body",
+    "ds-tearsheet__box",
+    "ds-tearsheet__description",
+    "ds-tearsheet__foot",
+    "ds-tearsheet__head",
+    "ds-tearsheet__heading",
+    "ds-tearsheet__label",
+    "ds-tearsheet__main",
+    "ds-tearsheet__progress",
+    "ds-tearsheet__step",
+    "ds-tearsheet__steps"
+  ],
+  "attributes": [
+    "data-stacked",
+    "data-state"
+  ],
+  "requires": [
+    "button",
+    "dialog"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-tearsheet-width": {
+      "default": "1200px",
+      "description": "tearsheet: the box, never wider than the window less `--ds-space-8` on each side"
+    },
+    "--ds-tearsheet-width-narrow": {
+      "default": "640px",
+      "description": "`.ds-tearsheet--narrow`"
+    },
+    "--ds-tearsheet-gap": {
+      "default": "`--ds-space-12`",
+      "description": "tearsheet: the room above the box (none at 600px and below)"
+    },
+    "--ds-tearsheet-padding": {
+      "default": "`--ds-space-6`",
+      "description": "tearsheet: the padding of head, rail, body and foot at the comfortable density"
+    },
+    "--ds-tearsheet-rail-width": {
+      "default": "256px",
+      "description": "tearsheet: the step rail at the start of the main area"
+    },
+    "--ds-tearsheet-radius": {
+      "default": "`--ds-radius-dialog`",
+      "description": "tearsheet: the box's top corners at the default shape"
+    }
+  },
+  "keyframes": [
+    "ds-drop-out",
+    "ds-fade-in",
+    "ds-fade-out",
+    "ds-lift-in"
+  ],
+  "js": [
+    "tearsheet"
+  ],
+  "module": true,
+  "progressive": [
+    "scrollbar-color"
+  ],
+  "ripple": false,
+  "labExempt": {
+    "DS.tearsheet.create": "events and steps: a step enters as DS.motion.enter's swap, shown in the entry tearsheet-open",
+    "DS.tearsheet.stepIndex": "a pure function: no motion",
+    "DS.tearsheet.statuses": "a pure function: no motion"
+  }
+}

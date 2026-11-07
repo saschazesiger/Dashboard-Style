@@ -1,0 +1,54 @@
+{
+  "name": "loadingoverlay",
+  "group": "feedback",
+  "order": 1110,
+  "docsOrder": 305,
+  "need": "Block one region while work on it runs, with a spinner and a message, and keep the rest of the page usable",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-loadingoverlay",
+    "ds-loadingoverlay--opaque",
+    "ds-loadingoverlay__box",
+    "ds-loadingoverlay__detail",
+    "ds-loadingoverlay__message"
+  ],
+  "attributes": [
+    "data-state"
+  ],
+  "requires": [
+    "spinner"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-loadingoverlay-veil": {
+      "default": "the surface at `--ds-state-stale`",
+      "description": "loading overlay: the veil over the region's content (`.ds-loadingoverlay--opaque`: the plain surface)"
+    },
+    "--ds-loadingoverlay-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "loading overlay: the box's radius at the default shape"
+    },
+    "--ds-loadingoverlay-padding": {
+      "default": "`--ds-space-5`",
+      "description": "loading overlay: the box's padding at the comfortable density"
+    },
+    "--ds-loadingoverlay-spinner-size": {
+      "default": "32px",
+      "description": "loading overlay: the spinner in the box at md (`--ds-spinner-size` there)"
+    }
+  },
+  "keyframes": [
+    "ds-fade-in"
+  ],
+  "js": [
+    "loadingoverlay"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.loadingoverlay.create": "events only: the overlay's fade is shown in the entry loadingoverlay-show",
+    "DS.loadingoverlay.holdMs": "a pure function: no motion"
+  }
+}

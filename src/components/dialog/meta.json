@@ -16,6 +16,7 @@
     "ds-dialog--hidden",
     "ds-dialog--lg",
     "ds-dialog--nested",
+    "ds-dialog--scroll-outside",
     "ds-dialog--sm",
     "ds-dialog--wide",
     "ds-dialog--xl",
@@ -23,7 +24,10 @@
     "ds-dialog__backdrop",
     "ds-dialog__body",
     "ds-dialog__box",
+    "ds-dialog__box--modeless",
+    "ds-dialog__facts",
     "ds-dialog__head",
+    "ds-dialog__lines",
     "ds-dialog__list",
     "ds-dialog__text",
     "ds-dialog__title"
@@ -91,6 +95,10 @@
     "--ds-dialog-full-radius": {
       "default": "0px",
       "description": "the box of a full-screen dialog (`.ds-dialog--full`, `--full-narrow`)"
+    },
+    "--ds-dialog-modeless-inset": {
+      "default": "`--ds-space-4` (`--ds-space-2` at 600px and below)",
+      "description": "the gap of a non-modal box (`.ds-dialog__box--modeless`) to the window's edges"
     }
   },
   "keyframes": [

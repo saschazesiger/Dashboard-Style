@@ -386,6 +386,9 @@ const RATIOS = [
   ['picker popover', [['src/components/picker/picker.css', '.ds-picker__popover[data-state]', ['transition']]], [['src/components/picker/picker.css', '.ds-picker__popover[data-state="closed"]', ['transition']]]],
   ['label group popup', [['src/components/labelgroup/labelgroup.css', '.ds-label-group__popup[data-state]', ['transition']]], [['src/components/labelgroup/labelgroup.css', '.ds-label-group__popup[data-state="closed"]', ['transition']]]],
   ['popover', [['src/components/popover/popover.css', '.ds-popover[data-state]', ['transition']]], [['src/components/popover/popover.css', '.ds-popover[data-state="closed"]', ['transition']]]],
+  ['tearsheet (DS.overlay)', [['src/components/tearsheet/tearsheet.css', '.ds-tearsheet[data-state] .ds-dialog__box', ['transition']]], [['src/components/tearsheet/tearsheet.css', '.ds-tearsheet[data-state="closed"] .ds-dialog__box', ['transition']]]],
+  ['loading overlay', [['src/components/loadingoverlay/loadingoverlay.css', '.ds-loadingoverlay[data-state="open"]', ['transition']]], [['src/components/loadingoverlay/loadingoverlay.css', '.ds-loadingoverlay[data-state]', ['transition']]]],
+  ['bottom sheet (DS.overlay)', [['src/components/bottomsheet/bottomsheet.css', '.ds-bottomsheet[data-state] .ds-bottomsheet__panel', ['transition']]], [['src/components/bottomsheet/bottomsheet.css', '.ds-bottomsheet[data-state="closed"] .ds-bottomsheet__panel', ['transition']]]],
 ];
 /**
  * Old/new pairs outside the ratio, each with its reason (the test checks

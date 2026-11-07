@@ -1,0 +1,82 @@
+{
+  "name": "lightbox",
+  "group": "overlays",
+  "order": 1120,
+  "docsOrder": 258,
+  "need": "Look at the images of a record one at a time over the whole window, with thumbnails, zoom and a caption",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-lightbox",
+    "ds-lightbox__bar",
+    "ds-lightbox__box",
+    "ds-lightbox__caption",
+    "ds-lightbox__count",
+    "ds-lightbox__error",
+    "ds-lightbox__figure",
+    "ds-lightbox__frame",
+    "ds-lightbox__gallery",
+    "ds-lightbox__image",
+    "ds-lightbox__item",
+    "ds-lightbox__nav",
+    "ds-lightbox__nav--next",
+    "ds-lightbox__nav--prev",
+    "ds-lightbox__stage",
+    "ds-lightbox__thumb",
+    "ds-lightbox__thumbs"
+  ],
+  "attributes": [
+    "data-dragging",
+    "data-failed",
+    "data-loading",
+    "data-zoomed"
+  ],
+  "requires": [
+    "dialog",
+    "spinner"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-lightbox-bg": {
+      "default": "`--ds-inverse` in the light scheme, `--ds-backdrop` in the dark one",
+      "description": "lightbox: the viewer's canvas (dark in both schemes)"
+    },
+    "--ds-lightbox-ink": {
+      "default": "`--ds-on-inverse` in the light scheme, `--ds-text` in the dark one",
+      "description": "lightbox: the viewer's text, icons and the current thumbnail's ring"
+    },
+    "--ds-lightbox-thumb-size": {
+      "default": "56px (48px at 600px and below)",
+      "description": "lightbox: a thumbnail in the viewer's row, at least the touch target under `.ds-touch`"
+    },
+    "--ds-lightbox-item-size": {
+      "default": "120px",
+      "description": "lightbox: the smallest column of the gallery (`.ds-lightbox__gallery`)"
+    },
+    "--ds-lightbox-radius": {
+      "default": "`--ds-radius-sm`",
+      "description": "lightbox: the gallery's items and the thumbnails at the default shape"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "lightbox"
+  ],
+  "module": true,
+  "progressive": [
+    "scrollbar-color"
+  ],
+  "ripple": false,
+  "labExempt": {
+    "DS.lightbox.create": "events only: the viewer opens as a dialog, shown in the entry lightbox-open",
+    "DS.lightbox.show": "the same viewer as DS.lightbox.open, shown in the entry lightbox-open",
+    "DS.lightbox.nextZoom": "a pure function: no motion",
+    "DS.lightbox.clampPan": "a pure function: no motion"
+  },
+  "exceptions": {
+    "ripple": {
+      ".ds-lightbox__item": "an image that opens the viewer: the state layer over the picture is the press; a ripple would wash over the photo it opens",
+      ".ds-lightbox__thumb": "a thumbnail of the viewer: it shows the press by a state layer over the picture and the full opacity, and the current one by its ring; a ripple would cover the picture it picks"
+    }
+  }
+}

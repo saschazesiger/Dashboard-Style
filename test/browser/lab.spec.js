@@ -274,6 +274,8 @@ test.describe('coverage', () => {
  * restart from zero). `in`: the card's stage, the document or the stage's
  * frame; `text`: the first match whose text includes it; `sum`: the props
  * add up to one value (an indicator's painted edge is its box plus its inset);
+ * `top`: the painted top edge (getBoundingClientRect), for a translate of a
+ * percentage, which Firefox and WebKit give mid-transition as a calc();
  * `progressive`: the motion needs a feature the fallback project strips, and
  * the component's header names the instant toggle it falls back to (there
  * the reversal is only required to settle).
@@ -346,6 +348,10 @@ const CONTINUITY = {
   'command-open': { in: 'doc', sel: '#sg-lab-command .ds-dialog__box', props: ['opacity', 'scale.x'] },
   'shortcuts-open': { in: 'doc', sel: '#sg-lab-shortcuts .ds-dialog__box', props: ['opacity', 'scale.x'] },
   'notifications-arrive': { in: 'doc', sel: '#sg-lab-notifications .ds-sheet__panel', props: ['translate.x'] },
+  'dialog-modeless': { in: 'doc', sel: '#sg-lab-dialog-modeless', props: ['opacity', 'scale.x'] },
+  'bottomsheet-open': { in: 'doc', sel: '#sg-lab-bottomsheet .ds-bottomsheet__panel', props: ['top'] },
+  'tearsheet-open': { in: 'doc', sel: '#sg-lab-tearsheet-device .ds-dialog__box', props: ['opacity', 'top'] },
+  'sheet-push': { in: 'stage', sel: '[data-lab-panel]', props: ['--ds-sheet-reveal'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */
@@ -370,6 +376,7 @@ const CONTINUITY_EXEMPT = {
   'scroll-x': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
   'banner-priority': 'each toggle shows or hides the waiting messages in the DOM and flip() glides the view from where it is painted, so its translate restarts from a new layout place (as sortable)',
   'toast-stack': 'each toggle sets data-expanded and flip() glides every message from where it is painted, so its translate restarts from a new layout place (as sortable)',
+  'loadingoverlay-show': 'the veil waits --ds-delay-loader before it fades in (a quick task never flashes it), so the reversal at half of delay plus fade comes before it shows; an overlay hidden before it showed goes at once, by design',
 };
 
 /**
@@ -395,6 +402,7 @@ const LONG_RUNS = {
   views: { ms: 12000, reason: 'a View Transition in a frame: it plays on pseudo-elements whose duration the timeline cannot read' },
   wizard: { ms: 12000, reason: 'a View Transition in a frame: it plays on pseudo-elements whose duration the timeline cannot read' },
   'toast-promise': { ms: 12000, reason: 'moves a progress bar twice 300-400ms apart, ends both messages about 1.2s in, holds the outcomes 600ms and closes them (each step a timer, the messages outside the stage)' },
+  'lightbox-open': { ms: 12000, reason: 'opens the viewer, holds --ds-dur-glide after the entrance, the next image, the zoom and the zoom back (four timers), then closes it; the viewer sits outside the stage, so the timeline holds none of it' },
 };
 
 /**
@@ -537,6 +545,7 @@ function reverseTrace(page, id, spec) {
         else if (key === 'rotate') out[key] = cs.rotate === 'none' ? 0 : parseFloat(cs.rotate);
         else if (key === 'translateX') out[key] = new DOMMatrixReadOnly(cs.transform === 'none' ? undefined : cs.transform).m41;
         else if (key === 'width') out[key] = parseFloat(cs.width) || 0;
+        else if (key === 'top') out[key] = el.getBoundingClientRect().top;
         else out[key] = parseFloat(cs.getPropertyValue(key)) || 0;
       }
       return out;

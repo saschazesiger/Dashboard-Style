@@ -711,6 +711,21 @@ strings a script adds have an option, so a page in another language passes its o
 | `No notifications` | the empty state of a `DS.notifications` centre (the system's string `notificationsEmpty`) | `DS.core.config({ strings: { notificationsEmpty } })` |
 | `{count} unread` | the unread count in the head of a `DS.notifications` centre (the system's string `notificationsUnreadCount`) | `DS.core.config({ strings: { notificationsUnreadCount } })` |
 | `Show {count} more` | the button that shows the banners of a `DS.banner` stack beyond the first (the system's string `bannerMore`) | `DS.core.config({ strings: { bannerMore } })` |
+| `Resize the panel` | the name of a side sheet's separator without one of its own (`DS.sheet`; the system's string `resizePanel`) | `DS.core.config({ strings: { resizePanel } })` |
+| `Step {step} of {total}: {label}` | a tearsheet's progress line and what it says on a step change (`DS.tearsheet`; the system's string `stepOf`) | `DS.core.config({ strings: { stepOf } })` |
+| `, done` | the hidden word after a done step of a tearsheet's rail (the system's string `stepDone`) | `DS.core.config({ strings: { stepDone } })` |
+| `, needs attention` | the hidden word after a step that failed its check (the system's string `stepError`) | `DS.core.config({ strings: { stepError } })` |
+| `Discard your changes?` | the title of the question before a tearsheet with unsaved changes closes (the system's string `discardTitle`; or `DS.tearsheet.create(el, { discard: { title } })`) | `DS.core.config({ strings: { discardTitle } })` |
+| `What you entered is lost.` | its text (the system's string `discardText`; or `discard: { text }`) | `DS.core.config({ strings: { discardText } })` |
+| `Discard` | its destructive button (the system's string `discard`; or `discard: { confirmLabel }`) | `DS.core.config({ strings: { discard } })` |
+| `Keep editing` | its cancel button (the system's string `keepEditing`; or `discard: { cancelLabel }`) | `DS.core.config({ strings: { keepEditing } })` |
+| `Image {index} of {total}` | a lightbox's counter and what it says on a change (`DS.lightbox`; the system's string `imageOf`) | `DS.core.config({ strings: { imageOf } })` |
+| `Images` | the name of a lightbox's row of thumbnails (the system's string `images`) | `DS.core.config({ strings: { images } })` |
+| `Zoom in` | a lightbox's zoom-in button (the system's string `zoomIn`) | `DS.core.config({ strings: { zoomIn } })` |
+| `Zoom out` | its zoom-out button (the system's string `zoomOut`) | `DS.core.config({ strings: { zoomOut } })` |
+| `The image could not be loaded.` | a lightbox image that failed (the system's string `imageFailed`) | `DS.core.config({ strings: { imageFailed } })` |
+| `Resize the sheet` | the name of a bottom sheet's drag handle without one of its own (`DS.bottomsheet`; the system's string `resizeSheet`) | `DS.core.config({ strings: { resizeSheet } })` |
+| `Sheet at {percent} percent of the screen` | what a bottom sheet says when it stops at another height (the system's string `sheetDetent`) | `DS.core.config({ strings: { sheetDetent } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 | `Command` | the system's string `kbdCommand`: the spoken name of ⌘ in a key combo (`DS.kbd`) on Apple systems | `DS.core.config({ strings: { kbdCommand } })` |
 | `Option` | the system's string `kbdOption`: the spoken name of ⌥ in a key combo (`DS.kbd`) on Apple systems | `DS.core.config({ strings: { kbdOption } })` |

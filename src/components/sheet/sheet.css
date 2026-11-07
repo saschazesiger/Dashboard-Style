@@ -92,16 +92,50 @@
  * panel ends above it (--ds-keyboard-inset, 0px without it) while the
  * scrim covers the whole window.
  *
+ * Docked panels (3.0): beside the content instead of over it, in a
+ * layout that shares the room. DS.overlay opens them as a non-modal layer.
+ *
+ *   <div class="ds-sheet__layout">
+ *     <div class="ds-sheet__main"> ... the list ... </div>
+ *     <section class="ds-sheet__panel ds-sheet__panel--push" aria-labelledby="t" hidden>   (or --inspector)
+ *       <div class="ds-sheet__resize" aria-label="Resize the details"></div>     (optional)
+ *       <div class="ds-sheet__head"> ... </div>
+ *       <div class="ds-sheet__body"> ... </div>
+ *
+ *   --push        the content narrows while the panel's width opens from 0
+ *                 (the registered --ds-sheet-reveal, 0 to 1, over
+ *                 --ds-dur-long on --ds-ease-out; back in --ds-dur-base,
+ *                 --ds-ease-exit); its parts keep their width, uncovered
+ *                 from the inline end; DS.sheet moves focus in
+ *   --inspector   the same beside a list that stays usable; focus stays in
+ *                 the list
+ * No scrim, no radius, a hairline (--ds-sheet-docked-border) instead of
+ * the shadow, --ds-sheet-docked-width (400px); it sticks in view in a
+ * taller page. The layout is a container: under 720px the panel lies over
+ * the main column with the overlay elevation, under 480px it takes its
+ * whole width.
+ *
+ * Resizing (3.0): .ds-sheet__resize, the first child of a panel (modal or
+ * docked), is a separator on its inner edge (DS.sheet writes its role,
+ * values and the width, --ds-sheet-size, a runtime property): a hit strip
+ * at least the touch target wide under .ds-touch, a pill that shows on
+ * hover, focus and while it drags, always without hover (data-resizing on the panel, which
+ * holds the docked width's transition). The modal sheet's separator sits on
+ * its left edge (physical, like its slide); at 600px and below it has none.
+ *
  * Options: density changes the padding of head, body and foot and the height
  * of the head; shape multiplies the radius; a size class on the sheet changes
  * only the controls inside (its width is --ds-sheet-width, or --wide).
  *
- * Forced colours: the transparent outline of the panel becomes its edge.
+ * Forced colours: the transparent outline of the panel becomes its edge;
+ * a docked panel's hairline stays; the separator's pill is CanvasText,
+ * Highlight while focused or dragged.
  *
  * Hook: --ds-sheet-width (560px), --ds-sheet-width-wide (720px),
  * --ds-sheet-padding (--ds-space-6), --ds-sheet-head-height (64px),
  * --ds-sheet-radius (--ds-radius-dialog), --ds-sheet-foot-border
- * (1px solid --ds-line).
+ * (1px solid --ds-line), --ds-sheet-docked-width (400px),
+ * --ds-sheet-docked-border (1px solid --ds-line).
  *
  * Print: an open sheet is not printed (it floats over the page).
  *
@@ -127,6 +161,18 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+/*
+ * How much of a docked panel's width is open (0 closed, 1 open): registered,
+ * so the width it gives follows a transition, on --ds-ease-out (a size that
+ * pushes the content never overshoots). Internal: written by the rules below
+ * only, never inherited.
+ */
+@property --ds-sheet-reveal {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
 
 @layer ds.components.sheet {
   .ds-sheet {
@@ -502,11 +548,220 @@
     view-transition-name: ds-sheet-body;
   }
 
+  /* ── Resizing (3.0) ───────────────────────────────── */
+
+  /* The panel's width: a remembered or dragged width (--ds-sheet-size,
+     written by DS.sheet) wins over the hook. */
+  .ds-sheet > .ds-sheet__panel:has(> .ds-sheet__resize) {
+    width: min(100%, var(--ds-sheet-size, var(--ds-sheet-width, 560px)));
+  }
+
+  .ds-sheet > .ds-sheet__panel--wide:has(> .ds-sheet__resize) {
+    width: min(100%, var(--ds-sheet-size, var(--ds-sheet-width-wide, 720px)));
+  }
+
+  /* The separator on the panel's inner edge: a hit strip across the
+     edge, at least the touch target under .ds-touch, with a pill in its
+     middle that shows on hover, focus and while it drags. */
+  .ds-sheet__resize {
+    --_hit: max(var(--ds-target-min, 0px), var(--ds-space-4));
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: calc(var(--_hit) / -2);
+    z-index: var(--ds-z-raised);
+    inline-size: var(--_hit);
+    display: grid;
+    place-items: center;
+    cursor: col-resize;
+    touch-action: none;
+    outline-offset: 0;
+    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  .ds-sheet__resize::before {
+    content: '';
+    inline-size: var(--ds-space-1);
+    block-size: var(--ds-space-12);
+    border-radius: calc(var(--ds-space-1) / 2);
+    background: var(--ds-outline);
+    opacity: 0;
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      background-color var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  @media (hover: hover) {
+    .ds-sheet__resize:hover::before {
+      opacity: 1;
+    }
+  }
+
+  /* No hover to find it by: the pill stays, so a finger sees what to drag. */
+  @media (hover: none) {
+    .ds-sheet__resize::before {
+      opacity: 1;
+    }
+  }
+
+  .ds-sheet__resize:focus-visible::before,
+  .ds-sheet__panel[data-resizing] > .ds-sheet__resize::before {
+    opacity: 1;
+    background: var(--ds-primary);
+  }
+
+  /* The ring on the pill, solid from the first frame (inset: the strip
+     sits on the panel's edge). */
+  .ds-sheet__resize:focus-visible {
+    outline: var(--ds-focus-outline);
+    outline-offset: calc(-1 * var(--ds-focus-width));
+  }
+
+  .ds-sheet__panel[data-resizing] {
+    user-select: none;
+  }
+
+  /* The modal sheet slides in from the right edge: its separator sits on
+     the panel's left edge whatever the direction. */
+  .ds-sheet .ds-sheet__resize {
+    left: calc(var(--_hit) / -2);
+    right: auto;
+  }
+
+  /* ── Docked panels (3.0): push and inspector ───────── */
+
+  /* The region a docked panel shares: the page's content in
+     .ds-sheet__main, the panel at its inline end. Narrower than
+     --ds-sheet-docked-break (a container query), the panel lies over the
+     main column instead of narrowing it. */
+  .ds-sheet__layout {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    min-block-size: 0;
+    container: ds-sheet-layout / inline-size;
+  }
+
+  .ds-sheet__main {
+    flex: 1 1 0;
+    min-inline-size: 0;
+  }
+
+  /* Docked: no scrim, no radius, a hairline instead of the shadow; its
+     width opens from 0 (the content beside it narrows, on --ds-ease-out:
+     a size that pushes never overshoots) while its parts keep their
+     width and are uncovered from the inline end. It sticks in view in a
+     taller page. */
+  .ds-sheet__panel--push,
+  .ds-sheet__panel--inspector {
+    --_w: var(--ds-sheet-size, var(--ds-sheet-docked-width, 400px));
+    position: sticky;
+    inset-block-start: 0;
+    flex: none;
+    inline-size: calc(min(var(--_w), 100%) * var(--ds-sheet-reveal));
+    block-size: auto;
+    max-block-size: 100dvh;
+    padding-top: 0;
+    align-items: flex-end;
+    overflow: clip;
+    border-radius: 0;
+    border-inline-start: var(--ds-sheet-docked-border, 1px solid var(--ds-line));
+    background: var(--ds-surface);
+    box-shadow: none;
+  }
+
+  .ds-sheet__panel--push::after,
+  .ds-sheet__panel--inspector::after {
+    display: none;
+  }
+
+  .ds-sheet__panel--push > *,
+  .ds-sheet__panel--inspector > * {
+    inline-size: min(var(--_w), 100cqi);
+    max-inline-size: none;
+  }
+
+  .ds-sheet__panel--push > .ds-sheet__resize,
+  .ds-sheet__panel--inspector > .ds-sheet__resize {
+    inline-size: var(--_hit);
+  }
+
+  .ds-sheet__panel[hidden],
+  .ds-sheet__panel--push[hidden],
+  .ds-sheet__panel--inspector[hidden] {
+    display: none;
+  }
+
+  .ds-sheet__panel--push[data-state],
+  .ds-sheet__panel--inspector[data-state] {
+    transition: --ds-sheet-reveal var(--ds-dur-long) var(--ds-ease-out);
+  }
+
+  .ds-sheet__panel--push[data-state="closed"],
+  .ds-sheet__panel--inspector[data-state="closed"] {
+    --ds-sheet-reveal: 0;
+    pointer-events: none;
+    transition: --ds-sheet-reveal var(--ds-dur-base) var(--ds-ease-exit);
+  }
+
+  /* A drag follows the pointer, so the width does not glide meanwhile. */
+  .ds-sheet__panel--push[data-resizing],
+  .ds-sheet__panel--inspector[data-resizing] {
+    transition: none;
+  }
+
+  /* The separator must stay inside the clip of the panel. */
+  .ds-sheet__panel--push > .ds-sheet__resize,
+  .ds-sheet__panel--inspector > .ds-sheet__resize {
+    inset-inline-start: 0;
+  }
+
+  .ds-sheet__panel--push .ds-sheet__head,
+  .ds-sheet__panel--inspector .ds-sheet__head {
+    min-height: calc(var(--ds-sheet-head-height, 64px) - var(--ds-space-2) + var(--ds-density, 0) * 4px);
+  }
+
+  .ds-sheet__panel--push .ds-sheet__body,
+  .ds-sheet__panel--inspector .ds-sheet__body {
+    padding-bottom: var(--ds-space-6);
+  }
+
+  /* Short of room, the docked panel lies over the main column (non-modal,
+     its own elevation), the whole width on a phone. */
+  @container ds-sheet-layout (max-width: 720px) {
+    .ds-sheet__panel--push,
+    .ds-sheet__panel--inspector {
+      position: absolute;
+      inset-block: 0;
+      inset-inline-end: 0;
+      max-block-size: none;
+      z-index: var(--ds-z-raised);
+      box-shadow: var(--ds-elev-overlay);
+    }
+  }
+
+  @container ds-sheet-layout (max-width: 480px) {
+    .ds-sheet__panel--push,
+    .ds-sheet__panel--inspector {
+      --_w: 100cqi;
+      border-inline-start: 0;
+    }
+
+    .ds-sheet__panel--push > .ds-sheet__resize,
+    .ds-sheet__panel--inspector > .ds-sheet__resize {
+      display: none;
+    }
+  }
+
   @media (max-width: 600px) {
     .ds-sheet__panel,
-    .ds-sheet__panel--wide {
+    .ds-sheet__panel--wide,
+    .ds-sheet > .ds-sheet__panel:has(> .ds-sheet__resize) {
       width: 100%;
       border-radius: 0;
+    }
+
+    .ds-sheet .ds-sheet__resize {
+      display: none;
     }
 
     /* Phones: the sheet rises from the bottom and falls back down; the
@@ -570,8 +825,23 @@
     }
   }
 
+  @media (forced-colors: active) {
+    .ds-sheet__resize::before {
+      background: CanvasText;
+      opacity: 1;
+    }
+
+    .ds-sheet__resize:focus-visible::before,
+    .ds-sheet__panel[data-resizing] > .ds-sheet__resize::before {
+      background: Highlight;
+    }
+  }
+
   @media print {
-    .ds-sheet {
+    .ds-sheet,
+    .ds-sheet__panel--push,
+    .ds-sheet__panel--inspector,
+    .ds-sheet__resize {
       display: none;
     }
   }

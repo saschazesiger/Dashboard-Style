@@ -45,3 +45,45 @@ SG_LAB.add({
     return on ? DS.dialog.open(dialog, { opener: stage.querySelector('[data-lab-open]') }) : DS.dialog.close(dialog);
   },
 });
+
+/* The non-modal box: no frame, no scrim, the page stays usable. */
+var floating = null;
+
+function modelessOf() {
+  if (floating) return floating;
+  var host = document.createElement('div');
+  host.innerHTML = '<section class="ds-dialog__box ds-dialog__box--modeless" id="sg-lab-dialog-modeless" role="dialog" aria-labelledby="sg-lab-dialog-modeless-title" hidden>' +
+    '<h2 class="ds-dialog__title" id="sg-lab-dialog-modeless-title">Export running</h2>' +
+    '<p class="ds-dialog__text">240 devices, about a minute. The page stays usable meanwhile.</p>' +
+    '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Hide</button></div></section>';
+  floating = host.firstChild;
+  (document.querySelector('.ds-theme') || document.body).append(floating);
+  return floating;
+}
+
+SG_LAB.add({
+  id: 'dialog-modeless',
+  group: 'overlays',
+  title: 'Non-modal dialog',
+  note: 'The box alone floats in at the end of the window: it fades, grows from --ds-scale-enter and rises --ds-distance-md on the spring, without a scrim; it leaves the same way back, accelerating.',
+  shows: ['.ds-dialog__box--modeless', '--ds-dur-slow', '--ds-dur-base', '--ds-distance-md', '--ds-scale-enter', '--ds-ease-spatial', '--ds-ease-exit'],
+  html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-lab-open>Open a non-modal dialog</button></div>',
+  height: 120,
+  setup: function (stage) {
+    stage.querySelector('[data-lab-open]').addEventListener('click', function (event) {
+      DS.overlay.open(modelessOf(), { opener: event.currentTarget });
+    });
+  },
+  subject: function () { return modelessOf(); },
+  state: function () { return modelessOf().getAttribute('data-state') === 'open'; },
+  play: function (stage) {
+    var box = modelessOf();
+    return DS.overlay.open(box, { opener: stage.querySelector('[data-lab-open]') })
+      .then(function () { return DS.overlay.close(box); })
+      .then(function () { return DS.motion.settled(box); });
+  },
+  toggle: function (stage, on) {
+    var box = modelessOf();
+    return on ? DS.overlay.open(box, { opener: stage.querySelector('[data-lab-open]') }) : DS.overlay.close(box);
+  },
+});
