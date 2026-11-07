@@ -1,0 +1,68 @@
+/*
+ * Feedback: thumbs up and down on a reply, optionally with a dialog that
+ * asks why. Two quiet icon toggle buttons (aria-pressed) whose thumb fills
+ * while pressed, an optional question before them and a status after.
+ *
+ *   <div class="ds-feedback" role="group" aria-label="Rate this answer" data-ds-feedback
+ *     data-ds-feedback-reason="reason-dialog">
+ *     <span class="ds-feedback__label" aria-hidden="true">Helpful?</span>
+ *     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-pressed="false" aria-label="Helpful"
+ *       data-tip="Helpful" data-ds-feedback-value="up">(thumbUp 18 .ds-icon--fillable)</button>
+ *     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-pressed="false" aria-label="Not helpful"
+ *       data-tip="Not helpful" data-ds-feedback-value="down">(thumbDown 18 .ds-icon--fillable)</button>
+ *     <span class="ds-feedback__status"></span>
+ *   </div>
+ *
+ * Parts:
+ *   .ds-feedback__label    the question, meta type in text-2 (the group's
+ *                          name says it to a screen reader)
+ *   .ds-feedback__status   the thanks the module writes once feedback is
+ *                          given (empty: no room)
+ *
+ * States: aria-pressed on the chosen button (the button's on look and the
+ * filled thumb, .ds-icon--fillable: never the colour alone); with
+ * data-ds-feedback-lock the module makes both buttons aria-disabled once
+ * feedback is given (the chosen one keeps its on look).
+ *
+ * Options (src/core/options.css, docs/options.md): size, shape and touch
+ * reach the buttons (button.css); density takes 1px of the gap per step.
+ * There is no tone.
+ *
+ * Hooks: none of its own; the buttons read the button's.
+ *
+ * Motion: the thumb fills on --ds-dur-fast (utilities.css); the reason
+ * dialog opens and closes through DS.overlay.
+ *
+ * Forced colours: the pressed button is Highlight / HighlightText
+ * (button.css); the status is text.
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.feedback {
+  .ds-feedback {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: max(0px, calc(2px + var(--ds-density, 0) * 1px));
+    min-width: 0;
+  }
+
+  .ds-feedback__label,
+  .ds-feedback__status {
+    color: var(--ds-text-2);
+    font: var(--ds-font-meta);
+  }
+
+  .ds-feedback__label {
+    margin-inline-end: var(--ds-space-1);
+  }
+
+  .ds-feedback__status {
+    margin-inline-start: var(--ds-space-2);
+  }
+
+  .ds-feedback__status:empty {
+    display: none;
+  }
+}

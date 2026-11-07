@@ -820,6 +820,18 @@ strings a script adds have an option, so a page in another language passes its o
 | `Disconnected` | the status of a disconnected `DS.terminal` (the system's string `terminalDisconnected`) | `DS.core.config({ strings: { terminalDisconnected } })` |
 | `{key} held for the next key` | what `DS.terminal` announces when Ctrl or Alt is held (the system's string `terminalHeld`) | `DS.core.config({ strings: { terminalHeld } })` |
 | `{key} released` | what `DS.terminal` announces when Ctrl or Alt is let go (the system's string `terminalReleased`) | `DS.core.config({ strings: { terminalReleased } })` |
+| `Send` | the name and tooltip of a composer's submit button when its markup has no `aria-label` (the system's string `send`) | `DS.core.config({ strings: { send } })` |
+| `Stop` | the name and tooltip of a composer's submit button while a reply runs (`DS.composer`, busy) (the system's string `stop`) | `DS.core.config({ strings: { stop } })` |
+| `Remove {name}` | the name of the remove button of a composer's attachment chip (the system's string `removeNamed`) | `DS.core.config({ strings: { removeNamed } })` |
+| `Attached {names}` | what a composer announces when files are attached (the system's string `filesAttached`) | `DS.core.config({ strings: { filesAttached } })` |
+| `Removed {name}` | what a composer announces when an attachment is removed (the system's string `fileRemoved`) | `DS.core.config({ strings: { fileRemoved } })` |
+| `Results: {count}` | what a composer announces when a palette opens or filtering changes how many options match (none: the string `noResults`) (the system's string `resultCount`) | `DS.core.config({ strings: { resultCount } })` |
+| `Latest` | the label of the "Latest" pill a transcript writes when its markup has none (the system's string `latest`) | `DS.core.config({ strings: { latest } })` |
+| `{count} new` | the count of messages that arrived while the reader of a transcript scrolled up (the system's string `unreadCount`) | `DS.core.config({ strings: { unreadCount } })` |
+| `Earlier messages loaded` | what a transcript announces once earlier messages loaded (the system's string `earlierLoaded`) | `DS.core.config({ strings: { earlierLoaded } })` |
+| `Stopped` | the note of a message stopped before its end (`DS.message`, partial) (the system's string `messageStopped`) | `DS.core.config({ strings: { messageStopped } })` |
+| `Not completed` | the note of a failed message without an error text of the page's (the system's string `messageFailed`) | `DS.core.config({ strings: { messageFailed } })` |
+| `Thanks for the feedback` | what a feedback pair announces and shows once feedback is given (the system's string `feedbackThanks`) | `DS.core.config({ strings: { feedbackThanks } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 | `Command` | the system's string `kbdCommand`: the spoken name of ⌘ in a key combo (`DS.kbd`) on Apple systems | `DS.core.config({ strings: { kbdCommand } })` |
 | `Option` | the system's string `kbdOption`: the spoken name of ⌥ in a key combo (`DS.kbd`) on Apple systems | `DS.core.config({ strings: { kbdOption } })` |

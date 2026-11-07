@@ -355,6 +355,8 @@ const CONTINUITY = {
   'shell-search-sheet': { in: 'stage', sel: '[data-lab-sheet]', props: ['opacity', 'translate.y'] },
   'shell-launcher': { in: 'stage', sel: '#sg-lab-launcher', props: ['opacity'] },
   'shell-account': { in: 'stage', sel: '#sg-lab-account', props: ['opacity'] },
+  'composer-palette': { in: 'stage', sel: '.ds-composer__palette', props: ['opacity', 'scale.x'] },
+  'ailabel-tip': { in: 'stage', sel: '.ds-ailabel__tip', props: ['opacity', 'scale.x'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */
@@ -380,6 +382,8 @@ const CONTINUITY_EXEMPT = {
   'banner-priority': 'each toggle shows or hides the waiting messages in the DOM and flip() glides the view from where it is painted, so its translate restarts from a new layout place (as sortable)',
   'toast-stack': 'each toggle sets data-expanded and flip() glides every message from where it is painted, so its translate restarts from a new layout place (as sortable)',
   'loadingoverlay-show': 'the veil waits --ds-delay-loader before it fades in (a quick task never flashes it), so the reversal at half of delay plus fade comes before it shows; an overlay hidden before it showed goes at once, by design',
+  'composer-attachments': 'each toggle adds a new chip or removes it (DS.motion.enter / leave, pop): another element each time, not one value turning back',
+  'transcript-latest': 'each toggle scrolls the log and appends a message or sticks to the end; the pill is a .ds-presence (motion.css), whose own demo checks its continuity',
 };
 
 /**

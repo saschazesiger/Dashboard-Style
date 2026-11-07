@@ -1,0 +1,33 @@
+{
+  "name": "feedback",
+  "group": "feedback",
+  "order": 970,
+  "docsOrder": 960,
+  "need": "Rate a reply: thumbs up or down, with an optional dialog that asks why",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-feedback",
+    "ds-feedback__label",
+    "ds-feedback__status"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "utilities"
+  ],
+  "context": [],
+  "hooks": {},
+  "keyframes": [],
+  "js": [
+    "feedback"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.feedback.create": "the thumb fills through .ds-icon--fillable (utilities) and the dialog opens through DS.overlay: no motion of its own",
+    "DS.feedback.toggle": "a pure function: no motion",
+    "DS.feedback.asks": "a pure function: no motion"
+  }
+}

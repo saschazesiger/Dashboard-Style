@@ -61,7 +61,7 @@ radios and their cards, fieldsets and form sections, filters and an action bar. 
 | Variant | `.ds-field--outlined` (default), `.ds-field--filled`, `.ds-field--inset`; on one control `.ds-input--outlined`, `.ds-input--filled`, `.ds-input-group--filled` | the field, or one control | the look: an outline, the tonal fill, the tonal box with the label inside |
 | Size | `.ds-xs`, `.ds-sm`, `.ds-md`, `.ds-lg`, `.ds-xl` | a control, a field, a form | fields 24, 32, 40, 48, 56px high (8px per step), side padding 4px per step, the size's type role at the regular weight (16px on phones at every size); a `.ds-check` row and the halo 8px per step, the box 2px per step; labels and hints keep their roles |
 | Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container (the compact theme sets dense) | 4px less height per step (fields, groups, the inset box, `.ds-check` rows, halos); 2px less padding per step on cards; side padding and type stay |
-| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the radius of fields, the search pill, the composer, checkboxes, the check list and the cards times 0, .5, 1, 1.5; a card's press morph too. A radio stays round |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the radius of fields, the search pill, checkboxes, the check list and the cards times 0, .5, 1, 1.5; a card's press morph too. A radio stays round |
 | Touch | `.ds-touch` | the theme or a container | at least `--ds-touch-target` (48px) whatever the size and density, a minimum and no addition (`.ds-lg` stays 48px, `.ds-xl` 56px): fields, `.ds-check` rows, cards, halos; field text at `--ds-font-input`. A halo is painted: a bare `.ds-checkbox` or `.ds-radio-input` still takes a tap only on its box, so under touch give it a `.ds-check` label or an equally large label around it |
 | State | `aria-invalid="true"`, `.ds-field--warning`, `.ds-field--success`, `readonly`, `aria-readonly="true"`, `disabled` | the control, the field | the border and ring, always with a hint in words; there is no tone class on a field |
 
@@ -119,7 +119,7 @@ radios and their cards, fieldsets and form sections, filters and an action bar. 
 - Keyboard and names: native controls, so Tab reaches every field, checkbox and radio, Space toggles, the arrows move
   within a radio group and step a number. Every field has a `<label>` (`.ds-sr` when the design shows none) and its
   hint by `aria-describedby`; a group of radios a `role="radiogroup"` with a name.
-- Forced colours: a focused field (also an input group, a filled field and the composer) shows a `Highlight`
+- Forced colours: a focused field (also an input group and a filled field) shows a `Highlight`
   outline, since its inset ring is a shadow that forced colours drop; a selected card's edge and checked input are
   `Highlight`; blocked is `GrayText` (a disabled field or group, a disabled fieldset's legend, a blocked card's title
   and edge when checked); a warning or success field keeps the system's edge and its word says which.
@@ -421,15 +421,10 @@ const pill = DS.indicator.create(group, { active: '.ds-radio:has(input:checked)'
 group.addEventListener('change', () => pill.update()); // checking a radio changes no attribute
 ```
 
-**Growing textarea and the composer**
+**Growing textarea**
 
 ```html
 <textarea class="ds-input ds-input--grow" rows="1" aria-label="Note"></textarea>
-
-<form class="ds-composer">
-  <textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message" placeholder="Write a message"></textarea>
-  <button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send" data-tip="Send">[icon send 20]</button>
-</form>
 ```
 
 - `.ds-input--grow` starts one row tall (`--ds-input-height`) and grows with its text up to `--ds-input-grow-max`
@@ -457,10 +452,7 @@ group.addEventListener('change', () => pill.update()); // checking a radio chang
   `<selectedcontent>` are ignored, and the option's icon is not shown. Keys, type-ahead, the value, `required` and
   `:user-invalid` are the engine's either way.
 - Forced colours: the chosen row is `SelectedItem`, the focused one has a `CanvasText` ring, the list keeps an edge.
-- `.ds-composer`: a filled shell (`--ds-composer-radius`) with the textarea and its actions, which stay at the
-  bottom while the text grows (up to `--ds-composer-max-height`, 220px). The ring follows the field model on the
-  shell: at once while the focus is inside, fading back on blur. Forced colours: the shell keeps a transparent border
-  (its edge there) and shows the outline while focused.
+- A message field with its actions, attachments, commands and mentions is the [composer](#composer).
 
 **Actions that stay on a phone**
 

@@ -592,6 +592,18 @@ const DEFAULT_STRINGS = Object.freeze({
   terminalDisconnected: 'Disconnected',
   terminalHeld: '{key} held for the next key',
   terminalReleased: '{key} released',
+  send: 'Send',
+  stop: 'Stop',
+  removeNamed: 'Remove {name}',
+  filesAttached: 'Attached {names}',
+  fileRemoved: 'Removed {name}',
+  resultCount: 'Results: {count}',
+  latest: 'Latest',
+  unreadCount: '{count} new',
+  earlierLoaded: 'Earlier messages loaded',
+  messageStopped: 'Stopped',
+  messageFailed: 'Not completed',
+  feedbackThanks: 'Thanks for the feedback',
 });
 
 /**

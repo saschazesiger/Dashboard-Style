@@ -1,7 +1,7 @@
 /*
  * The Form demo: the three looks of a field, its slots and states, the check
  * and radio controls with their cards, fieldset and form section, filters
- * and the composer. Registered through SG.demo() (styleguide/sg-core.js).
+ * and the growing textarea (the composer has a page of its own). Registered through SG.demo() (styleguide/sg-core.js).
  * Size, density, shape and touch come from the options panel around it; only
  * the look is chosen here (h.variant), since a field shows meaning through
  * its state and a word, never a tone. The page-side lines a project writes
@@ -162,7 +162,7 @@ function toolbar(h) {
 SG.demo('form', {
   title: 'Form',
   group: 'forms',
-  need: 'Collect input: labelled fields in three looks, slots, states, checks and cards, form sections, filters, action bars and a composer',
+  need: 'Collect input: labelled fields in three looks, slots, states, checks and cards, form sections, filters and action bars',
   lead: 'Labels above their fields, a 2px focus ring at once, states in words. The options panel changes size, density, shape and touch around the demo; field text stays 16px on phones at every size.',
   options: { variants: Object.keys(LOOKS), sizes: true, density: true, shape: true, tones: false },
 
@@ -177,8 +177,7 @@ SG.demo('form', {
       h.section('Editing in rows', rows(h), 'Change a field: a dot and the word "(changed)" mark it until it is saved. A value set by another system reads as text.') +
       h.section('Fieldset and form section', sections(h), 'In a narrow panel the head of a section falls above its fields.') +
       h.section('Toolbar, search and inline form', toolbar(h)) +
-      h.section('Growing textarea and composer', '<textarea class="ds-input ds-input--grow" rows="1" aria-label="Note" placeholder="A note that grows with its text"></textarea>' +
-        '<form class="ds-composer" onsubmit="return false"><textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message" placeholder="Write a message"></textarea><button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send" data-tip="Send">' + h.icon('send', 20) + '</button></form>') +
+      h.section('Growing textarea', '<textarea class="ds-input ds-input--grow" rows="1" aria-label="Note" placeholder="A note that grows with its text"></textarea>', 'A message field with attachments, commands and mentions is the composer.') +
       h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> walks the fields; <kbd class="ds-kbd">Space</kbd> toggles a checkbox; the arrow keys move within a radio group. A read-only field stays in the tab order; a blocked checkbox says why and ignores <kbd class="ds-kbd">Space</kbd>.</p>');
   },
 
