@@ -34,6 +34,11 @@ test('names and roles: named columns and buttons, the level and what shows writt
   await open(page, 900);
   await expect(page.locator(layout)).toHaveAttribute('data-state', 'list');
   expect(await shown(page)).toEqual(['2', 'list detail']);
+  // The layout carries its own role and name (a plain div takes no name); the list column is a region named by its title.
+  await expect(page.locator(layout)).toHaveAttribute('role', 'group');
+  await expect(page.locator(layout)).toHaveAccessibleName('Devices');
+  await expect(page.getByRole('group', { name: 'Devices', exact: true }).first()).toBeVisible();
+  await expect(page.locator(col('list'))).toHaveAccessibleName('Devices');
   await expect(page.getByRole('region', { name: 'Devices', exact: true }).first()).toBeVisible();
   await expect(page.locator(col('detail'))).toHaveAccessibleName('Device');
   // The sub-detail waits; the back buttons hide while their column's predecessor shows.
@@ -86,6 +91,46 @@ test('two columns: a row opens the detail beside the list and the focus stays; t
   await page.locator(`${col('detail')} .ds-listdetail__close`).click();
   await expect(page.locator(layout)).toHaveAttribute('data-state', 'list');
   await expect.poll(() => changes.map((change) => change.level)).toEqual(['detail', 'sub', 'detail', 'list']);
+});
+
+test('two columns: a close or back button that hides as it is pressed hands the focus back to the row', async ({ page }) => {
+  await open(page, 900);
+  const hidden = () => page.evaluate(() => document.activeElement?.closest('[data-demo="layout"]') ? document.activeElement.checkVisibility() : null);
+  // The detail's close button: the level becomes list, the button hides, the detail column stays.
+  await row(page, 2).click();
+  const close = page.locator(`${col('detail')} .ds-listdetail__close`);
+  await focusByKeyboard(page, close);
+  await page.keyboard.press('Enter');
+  await expect(page.locator(layout)).toHaveAttribute('data-state', 'list');
+  expect(await shown(page)).toEqual(['2', 'list detail']);
+  expect(await visible(page, `${col('detail')} .ds-listdetail__close`)).toBe(false);
+  await expect(row(page, 2), 'close: back on the row that opened the detail').toBeFocused();
+  expect(await hidden()).toBe(true);
+
+  // The detail's back button at the sub level: the list comes back, the button hides.
+  await row(page, 1).click();
+  await page.locator(`${col('detail')} [data-ds-listdetail-show="sub"]`).click();
+  expect(await shown(page)).toEqual(['2', 'detail sub']);
+  await focusByKeyboard(page, page.locator(`${col('detail')} .ds-listdetail__back`));
+  await page.keyboard.press('Enter');
+  await expect(page.locator(layout)).toHaveAttribute('data-state', 'list');
+  expect(await shown(page)).toEqual(['2', 'list detail']);
+  expect(await visible(page, `${col('detail')} .ds-listdetail__back`)).toBe(false);
+  await expect(row(page, 1), 'back: on the row that opened the detail').toBeFocused();
+});
+
+test('the row picked last is the one going back returns to, also after the layout narrows', async ({ page }) => {
+  await open(page, 900);
+  await row(page, 0).click();
+  await row(page, 3).click();
+  await expect(row(page, 3)).toBeFocused();
+  await narrow(page, 400);
+  await expect.poll(() => shown(page)).toEqual(['1', 'detail']);
+  await expect(page.locator(`${col('detail')} .ds-listdetail__title`)).toBeFocused();
+  await focusByKeyboard(page, page.locator(`${col('detail')} .ds-listdetail__back`));
+  await page.keyboard.press('Enter');
+  expect(await shown(page)).toEqual(['1', 'list']);
+  await expect(row(page, 3)).toBeFocused();
 });
 
 test('three columns: the sub-detail beside both', async ({ page }) => {

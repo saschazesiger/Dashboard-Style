@@ -44,7 +44,7 @@
  *   loading      aria-busy="true" on the panel and a skeleton (loading.css)
  *                in the body; the loading bar of the head shows
  *   refreshing   DS.motion.refresh(body, load, { loadbar: false }): the body
- *                dims (.ds-stale) and takes aria-busy="true" after
+ *                takes aria-busy="true" at once and dims (.ds-stale) after
  *                --ds-delay-loader; the loading bar of the head shows while
  *                the body is busy
  *   failed       an empty state in the body, .ds-empty--error with its icon,

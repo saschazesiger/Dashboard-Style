@@ -41,7 +41,7 @@ function ldTicket(h, row) {
 }
 
 function ldLayout(h, ids, frame) {
-  return '<div class="ds-listdetail' + (frame ? ' ds-listdetail--outlined' : '') + '" data-ds-listdetail="list" aria-label="Devices" style="--ds-listdetail-height: 480px" data-demo="layout">' +
+  return '<div class="ds-listdetail' + (frame ? ' ds-listdetail--outlined' : '') + '" data-ds-listdetail="list" role="group" aria-label="Devices" style="--ds-listdetail-height: 480px" data-demo="layout">' +
     '<section class="ds-listdetail__list" aria-labelledby="' + ids.list + '">' +
       '<header class="ds-listdetail__head"><h3 class="ds-listdetail__title" id="' + ids.list + '">Devices</h3><span class="ds-badge ds-tone-neutral">' + LD_DEVICES.length + '</span></header>' +
       '<ul class="ds-list ds-list--interactive" aria-label="Devices" data-ld-rows>' + ldRows(h, null) + '</ul></section>' +

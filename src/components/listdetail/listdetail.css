@@ -4,7 +4,7 @@
  * columns that fold to fewer as the layout narrows, down to one with a back
  * button on a phone (js: DS.listdetail). Each column scrolls on its own.
  *
- *   <div class="ds-listdetail" data-ds-listdetail aria-label="Devices">
+ *   <div class="ds-listdetail" data-ds-listdetail role="group" aria-label="Devices">
  *     <section class="ds-listdetail__list" aria-labelledby="ld-list-title">
  *       <header class="ds-listdetail__head"><h2 class="ds-listdetail__title" id="ld-list-title">Devices</h2></header>
  *       <ul class="ds-list ds-list--interactive"> ... <a class="ds-list__action" href="#d42" data-ds-listdetail-show="detail">LAPTOP-0042</a> ... </ul>

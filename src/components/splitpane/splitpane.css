@@ -58,11 +58,11 @@
  *
  * Behaviour (DS.splitpane, docs: splitpane.md): drag a divider (pointer,
  * touch, pen); with the focus on it ArrowLeft and ArrowRight (stacked:
- * ArrowUp and ArrowDown) move it by --ds-space-4 (Shift: four times that),
- * Home and End to the pane's smallest and largest size, Enter collapses and
- * restores a pane marked data-ds-splitpane-collapsible (so does a double
- * click; dragging it below half its minimum snaps it shut), Escape during a
- * drag puts it back. data-ds-splitpane-store="<key>" remembers the sizes
+ * ArrowUp and ArrowDown) move it by data-ds-splitpane-step px (16; Shift:
+ * four times that), Home and End to the pane's smallest and largest size,
+ * Enter collapses and restores a pane marked data-ds-splitpane-collapsible
+ * (so does a double click; dragging it below half its minimum snaps it
+ * shut), Escape during a drag puts it back. data-ds-splitpane-store="<key>" remembers the sizes
  * and what is collapsed (DS.store). A button with
  * data-ds-splitpane-toggle="<pane id>" collapses and restores that pane and
  * carries aria-expanded.

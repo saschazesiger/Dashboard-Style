@@ -4,7 +4,7 @@ A list, the detail of what is picked in it and, optionally, a sub-detail (a rela
 columns that fold to fewer as the layout narrows, down to one with a back button on a phone:
 
 ```html
-<div class="ds-listdetail" data-ds-listdetail="list" aria-label="Devices">
+<div class="ds-listdetail" data-ds-listdetail="list" role="group" aria-label="Devices">
   <section class="ds-listdetail__list" aria-labelledby="ld-list">
     <header class="ds-listdetail__head"><h2 class="ds-listdetail__title" id="ld-list">Devices</h2></header>
     <ul class="ds-list ds-list--interactive">
@@ -99,11 +99,12 @@ triggers need `DS.init()`, or call `set()` and `back()`. `set(level, { animate: 
 without the entrance or the focus move. `DS.listdetail.arrange`, `DS.listdetail.level` and `DS.listdetail.parent` are the
 pure functions behind it.
 
-**Accessibility.** Name the layout and each column (`aria-label`, or `aria-labelledby` to its title). The focus moves
-only when the column that held it is no longer shown, so on a wide layout it stays in the list while the detail
-changes: going deeper it lands on the new column's title (given `tabindex="-1"`), which a screen reader reads; going
-back on the trigger that opened the level it left. A resize that hides the focused column moves the focus the same
-way. The back button is a real button with a name ("Back to devices"); hidden buttons are `display: none`, so they are
+**Accessibility.** Name the layout (`role="group"` with `aria-label`: a plain `div` takes no name) and each column
+(`aria-label`, or `aria-labelledby` to its title). The focus moves only when the column that held it is no longer shown
+or the focused control hid (the close button just pressed, the detail's back button once the list is back), so on a
+wide layout it stays in the list while the detail changes: going deeper it lands on the new column's title (given
+`tabindex="-1"`), which a screen reader reads; going back on the trigger that opened the level below the one it lands
+on (the row picked last). A resize that hides the focused column or control moves the focus the same way. The back button is a real button with a name ("Back to devices"); hidden buttons are `display: none`, so they are
 no tab stop. Hidden columns are out of the tab order and the accessibility tree.
 
 **Forced colours.** The hairlines and the frame are borders, so they stay; the buttons are the system's.

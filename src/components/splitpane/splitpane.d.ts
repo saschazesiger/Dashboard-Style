@@ -44,6 +44,9 @@ export interface SplitpaneController {
   /** Back to the markup's sizes, nothing collapsed, the remembered sizes forgotten. */
   reset(): void;
   on(type: 'change', fn: (detail: SplitpaneChange) => void): () => void;
+  /** The attribute path: re-reads the option attributes named (step, stack, store) without a new controller. */
+  update(names?: string[]): void;
+  /** Stops it and takes back what it wrote: no pane stays collapsed or inert, the dividers keep the markup's attributes. */
   destroy(): void;
 }
 

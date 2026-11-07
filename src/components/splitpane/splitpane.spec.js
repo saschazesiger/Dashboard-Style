@@ -207,6 +207,70 @@ test('double click and the toggle button collapse and restore; the button carrie
   expect(await height(page, stacked)).toBeCloseTo(start, 0);
 });
 
+test('a hide button inside the pane: the pane collapses and the focus moves to its divider, not to the page', async ({ page }) => {
+  await open(page);
+  await page.$eval(list, (el) => {
+    el.insertAdjacentHTML('afterbegin', '<button class="ds-btn" type="button" id="hide-inside" data-ds-splitpane-toggle="0">Hide</button>');
+  });
+  const hide = page.locator('#hide-inside');
+  await focusByKeyboard(page, hide);
+  await page.keyboard.press('Enter');
+  await expect(page.locator(list)).toHaveAttribute('data-state', 'collapsed');
+  expect(await page.$eval(list, (el) => el.inert)).toBe(true);
+  await expect(page.locator(divider), 'the divider that opens it again').toBeFocused();
+  await page.keyboard.press('Enter');
+  await settle(page);
+  await expect(page.locator(list)).not.toHaveAttribute('data-state');
+
+  // From the page too: collapse() on a pane that holds the focus.
+  await hide.focus();
+  await page.$eval(two, (el) => DS.core.get(el, 'splitpane').collapse(0));
+  await expect(page.locator(divider)).toBeFocused();
+});
+
+test('a key that changes nothing reports nothing', async ({ page }) => {
+  await open(page);
+  const changes = [];
+  await page.exposeFunction('reportChange', (detail) => changes.push(detail.collapsed[0]));
+  await page.$eval(two, (el) => el.addEventListener('ds:change', (event) => window.reportChange(event.detail)));
+  await focusByKeyboard(page, page.locator(divider));
+  await page.keyboard.press('Home');
+  await page.keyboard.press('Home');
+  await page.keyboard.press('End');
+  await page.keyboard.press('End');
+  await page.keyboard.press('ArrowRight');
+  await expect.poll(() => changes.length).toBe(2);
+  await page.keyboard.press('Enter');
+  await settle(page);
+  await page.keyboard.press('ArrowLeft');
+  await expect.poll(() => changes.length).toBe(3);
+  await page.keyboard.press('Home');
+  await expect.poll(() => changes.length).toBe(4);
+  expect(changes, 'shut by Enter, open again by Home').toEqual([false, false, true, false]);
+});
+
+test('destroy() takes back what it wrote: a collapsed pane is reachable again', async ({ page }) => {
+  await open(page);
+  const before = await page.$eval(divider, (el) => el.getAttribute('aria-orientation'));
+  expect(before).toBe('vertical');
+  await page.$eval(two, (el) => DS.core.get(el, 'splitpane').collapse(0));
+  await settle(page);
+  expect(await page.$eval(list, (el) => el.inert)).toBe(true);
+  // The behaviour goes with its attribute, as a re-render that drops it would.
+  await page.$eval(two, (el) => el.removeAttribute('data-ds-splitpane'));
+  await expect(page.locator(list)).not.toHaveAttribute('data-state');
+  expect(await page.$eval(list, (el) => el.inert)).toBe(false);
+  expect(await page.$eval(list, (el) => el.style.getPropertyValue('--ds-splitpane-size'))).toBe('280px');
+  await settle(page);
+  expect(await width(page, list)).toBeCloseTo(280, 0);
+  for (const name of ['aria-valuenow', 'aria-valuemin', 'aria-valuemax', 'aria-valuetext', 'aria-orientation']) {
+    await expect(page.locator(divider), name).not.toHaveAttribute(name);
+  }
+  // The markup's own attributes stay.
+  await expect(page.locator(divider)).toHaveAttribute('role', 'separator');
+  await expect(page.locator(divider)).toHaveAccessibleName('Resize the device list');
+});
+
 test('remembers the sizes and what is collapsed; reset() forgets them', async ({ page }) => {
   await open(page);
   await focusByKeyboard(page, page.locator(divider));
@@ -280,8 +344,11 @@ test('options: the grip steps with size, the hit area and the grip take the touc
 
 test('motion: collapsing glides the size on the decelerating curve, without overshoot, and turns back from where it is', async ({ page }) => {
   await open(page);
-  await page.$eval(two, (el) => DS.core.get(el, 'splitpane').collapse(0));
-  const widths = await page.$eval(list, (el) => {
+  const widths = await page.$eval(two, async (split) => {
+    const el = split.querySelector('.ds-splitpane__pane');
+    DS.core.get(split, 'splitpane').collapse(0);
+    // A frame first: Gecko may start the transition at its next style update, not at the read below.
+    await new Promise((resolve) => { requestAnimationFrame(resolve); });
     const animations = el.getAnimations().filter((animation) => animation.transitionProperty === '--ds-splitpane-size');
     if (!animations.length) return null;
     const [animation] = animations;
@@ -301,21 +368,39 @@ test('motion: collapsing glides the size on the decelerating curve, without over
   await page.$eval(list, (el) => el.getAnimations().forEach((animation) => animation.play()));
   await settle(page);
 
-  // Reversed mid-way: it turns from where it is (read in the same frame as the reversal).
+  // Reversed mid-way: it turns from where it is. The opening transition is
+  // held where it is, so the new one must start from that very width, in
+  // every engine, whatever the frame timing.
   const turn = await page.$eval(two, async (el) => {
     const split = DS.core.get(el, 'splitpane');
     const pane = el.querySelector('.ds-splitpane__pane');
     const at = () => pane.getBoundingClientRect().width;
+    const frame = () => new Promise((resolve) => { requestAnimationFrame(resolve); });
+    const glide = () => pane.getAnimations().find((animation) => animation.transitionProperty === '--ds-splitpane-size') ?? null;
     split.expand(0);
-    await new Promise((resolve) => { requestAnimationFrame(() => requestAnimationFrame(resolve)); });
+    await frame();
+    await frame();
+    const opening = glide();
+    if (!opening) return null;
+    opening.currentTime = opening.effect.getComputedTiming().duration * 0.4;
+    opening.pause();
     const mid = at();
     split.collapse(0);
-    return { mid, after: at() };
+    await frame();
+    const closing = glide();
+    if (!closing || closing === opening) return { mid, after: null };
+    closing.pause();
+    closing.currentTime = 0;
+    const after = at();
+    closing.play();
+    return { mid, after };
   });
+  expect(turn, 'a transition of the registered size on the way out').not.toBeNull();
   expect(turn.mid).toBeGreaterThan(0);
   expect(turn.mid).toBeLessThan(280);
-  // Within a frame of where it was (engines sample the running transition a frame apart), neither shut nor open.
-  expect(Math.abs(turn.after - turn.mid)).toBeLessThan(40);
+  expect(turn.after, 'a new transition on the way back').not.toBeNull();
+  // The way back starts where the way out was held: neither shut nor open.
+  expect(Math.abs(turn.after - turn.mid)).toBeLessThan(2);
   await settle(page);
   expect(await width(page, list)).toBeCloseTo(0, 0);
 });

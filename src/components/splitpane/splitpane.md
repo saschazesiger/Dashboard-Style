@@ -48,7 +48,8 @@ then resizes its outer neighbour.
   during a drag puts it back where it began.
 - A pane with `data-ds-splitpane-collapsible` collapses: `Enter` on its divider, a double click on the divider, or a drag
   below half its minimum snaps it shut; the same again (or a drag or an arrow key out) restores it to its last open
-  size. A pane that cannot collapse goes back to its start size on a double click. A collapsed pane is inert.
+  size. A pane that cannot collapse goes back to its start size on a double click. A collapsed pane is inert; when it
+  held the focus (a hide button in its own header), the focus moves to its divider first.
 - `data-ds-splitpane-toggle="<pane id>"` on a button anywhere in the page (or the pane's index, on a button inside the
   split pane) collapses and restores that pane; the system keeps its `aria-expanded` and `aria-controls`.
 - `data-ds-splitpane-store="<key>"` remembers the sizes and the collapsed panes (`DS.store`, namespace `splitpane`),
@@ -75,8 +76,11 @@ DS.splitpane.toPixels('calc(20% + 16px)', 1000);   // 216
 DS.splitpane.nextSize({ size: 320, min: 240, max: 600 }, { key: 'ArrowRight' });   // { size: 336, collapsed: false }
 ```
 
-`DS.splitpane.create` returns the controller (`get`, `set`, `collapse`, `expand`, `toggle`, `reset`, `on`, `destroy`);
-its toggle buttons need `DS.init()` (one delegated listener per root), or call `toggle()`. `ds:change` goes out after a
+`DS.splitpane.create` returns the controller (`get`, `set`, `collapse`, `expand`, `toggle`, `reset`, `on`, `update`,
+`destroy`); its toggle buttons need `DS.init()` (one delegated listener per root), or call `toggle()`. A change of
+`data-ds-splitpane-step`, `-stack` or `-store` reaches the controller through `update()`, so the panes keep their sizes.
+`destroy()` takes back what it wrote: a collapsed pane opens to its markup size and is no longer inert, the dividers
+keep only the attributes of the markup. `ds:change` goes out after a
 drag, a key, a toggle or `set()`, never during a drag. `DS.splitpane.toPixels` and `DS.splitpane.nextSize` are the pure
 functions behind it.
 

@@ -33,13 +33,15 @@
  * column. A back or close button the page left unnamed is named t('back')
  * or t('close').
  *
- * Focus (only when the column that held it is no longer shown, so a wide
- * layout leaves the focus in the list): going deeper it moves to the title
- * of the level's column (.ds-listdetail__title or its first heading, with
- * tabindex="-1"), else to the column; going back to the trigger that
- * opened the level it left, else to that column's title. A resize that
- * hides the focused column does the same. A screen reader reads the title
- * it lands on.
+ * Focus (only when the column that held it is no longer shown, or the
+ * focused control hid in a column that stays, such as the close button
+ * just pressed; so a wide layout leaves the focus in the list): going
+ * deeper it moves to the title of the level's column (.ds-listdetail__title
+ * or its first heading, with tabindex="-1"), else to the column; going back
+ * to the trigger that opened the level below the one it lands on (the
+ * latest, also a row picked while the detail showed), else to that
+ * column's title. A resize that hides the focused column or control does
+ * the same. A screen reader reads the title it lands on.
  *
  * Widths: the columns fit by the hooks --ds-listdetail-list-width (320px),
  * --ds-listdetail-detail-min (400px) and --ds-listdetail-sub-width (360px),
@@ -171,16 +173,23 @@ function controller(el, start, signal) {
     target?.focus();
   }
 
-  /** Moves the focus out of a column that no longer shows, to the level's own (going back: to the trigger of the level it left). */
-  function rescue(leaving) {
+  /**
+   * Moves the focus out of a column that no longer shows, or off a control
+   * that hid in a column that stays (the close or back button just pressed),
+   * to the level's own; going back, to the trigger that opened the level
+   * below the one it lands on (the row, also when it skips a level).
+   */
+  function rescue(back) {
     const active = el.ownerDocument.activeElement;
     const holder = active && el.contains(active) ? active.closest(Object.values(COLUMN).map((cls) => `.${cls}`).join(', ')) : null;
-    if (!holder || shown(holder)) return;
-    focusIn(current, leaving ? openers.get(leaving) : null);
+    if (!holder || (shown(holder) && canTakeFocus(active))) return;
+    focusIn(current, back ? openers.get(LEVELS[LEVELS.indexOf(current) + 1]) : null);
   }
 
   function go(next, options = {}) {
     const target = level(next, available());
+    // A trigger of the level that already shows (another row on a wide layout) is the one going back returns to.
+    if (target === current && options.opener && LEVELS.indexOf(target) > 0) openers.set(target, options.opener);
     if (target === current) return;
     const previous = current;
     const deeper = LEVELS.indexOf(target) > LEVELS.indexOf(previous);
@@ -191,7 +200,7 @@ function controller(el, start, signal) {
     el.setAttribute('data-state', current);
     const after = arrangeNow();
     if (options.animate !== false) for (const name of after) if (!before.includes(name)) enter(column(name), 'slide');
-    if (options.focus !== false) rescue(deeper ? null : previous);
+    if (options.focus !== false) rescue(!deeper);
     if (!deeper) for (const name of LEVELS.slice(LEVELS.indexOf(current) + 1)) openers.delete(name);
     if (signal.aborted) return;
     const detail = { level: current, previous };
@@ -204,7 +213,7 @@ function controller(el, start, signal) {
   // A resize folds or unfolds the columns; one that hides the column holding the focus moves it to the level's own.
   const resize = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(() => {
     const before = shownNow.join();
-    if (arrangeNow().join() !== before) rescue(null);
+    if (arrangeNow().join() !== before) rescue(false);
   }) : null;
   resize?.observe(el);
 

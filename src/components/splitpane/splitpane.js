@@ -31,7 +31,9 @@
  * data-ds-splitpane-toggle="<pane id>", anywhere in the page (or the pane's
  * index, inside the split pane), collapses and restores that pane: one
  * delegated listener per root of DS.init(); the module keeps its
- * aria-expanded and aria-controls.
+ * aria-expanded and aria-controls. A pane that collapses while it holds the
+ * focus hands it to its divider (else to a toggle of it outside it) before
+ * it turns inert. destroy() takes back what the module wrote.
  *
  * The divider's value (aria-valuenow, -min, -max) is the pane's share of the
  * room the dividers leave, in percent; a collapsed pane reads
@@ -58,6 +60,7 @@
 import { define, emit, get, t } from '../../js/core.js';
 import { settled } from '../../js/motion.js';
 import { open as openStore } from '../../js/store.js';
+import { canTakeFocus } from '../../js/a11y.js';
 
 const DEFAULT_STEP = 16;
 const BIG_STEP = 4;
@@ -66,6 +69,8 @@ const DIVIDER = 'ds-splitpane__divider';
 const FILL = 'ds-splitpane__pane--fill';
 const TOGGLE = 'data-ds-splitpane-toggle';
 const SIZE = '--ds-splitpane-size';
+/** The divider attributes the module writes, put back as the markup had them by destroy(). */
+const DIVIDER_ATTRS = ['role', 'tabindex', 'aria-orientation', 'aria-label', 'aria-controls', 'aria-valuenow', 'aria-valuemin', 'aria-valuemax', 'aria-valuetext'];
 
 let uid = 0;
 
@@ -137,9 +142,10 @@ function controller(el, options, signal) {
   const doc = el.ownerDocument;
   const view = doc.defaultView ?? globalThis;
   const listeners = new Set();
-  const key = options.store || '';
-  const prefs = key ? openStore('splitpane') : null;
-  const step = Number(options.step) > 0 ? Number(options.step) : DEFAULT_STEP;
+  let key = options.store || '';
+  let prefs = key ? openStore('splitpane') : null;
+  const stepOf = (value) => (Number(value) > 0 ? Number(value) : DEFAULT_STEP);
+  let step = stepOf(options.step);
   /**
    * Per pane: its element, the size it opens to as CSS text (`text`, in the
    * unit of the markup), whether that unit is a percentage, the markup's
@@ -150,9 +156,12 @@ function controller(el, options, signal) {
   /** @type {{ el: HTMLElement, pane: any, sign: number }[]} */
   let dividers = [];
   let drag = null;
+  /** The markup's own attributes of each divider, for destroy(). */
+  const original = new Map();
 
   const axis = () => (el.classList.contains('ds-splitpane--stacked') || el.getAttribute('data-state') === 'stacked' ? 'y' : 'x');
-  const stackBelow = Number(options.stack) > 0 ? Number(options.stack) : 0;
+  const stackOf = (value) => (Number(value) > 0 ? Number(value) : 0);
+  let stackBelow = stackOf(options.stack);
   const extent = (node) => {
     const rect = node.getBoundingClientRect();
     return axis() === 'y' ? rect.height : rect.width;
@@ -194,6 +203,7 @@ function controller(el, options, signal) {
   }
 
   function prepare({ el: node, pane }) {
+    if (!original.has(node)) original.set(node, DIVIDER_ATTRS.map((name) => [name, node.getAttribute(name)]));
     if (!node.hasAttribute('role')) node.setAttribute('role', 'separator');
     if (!node.hasAttribute('tabindex')) node.tabIndex = 0;
     node.setAttribute('aria-orientation', axis() === 'y' ? 'horizontal' : 'vertical');
@@ -258,6 +268,7 @@ function controller(el, options, signal) {
    */
   function apply(pane, next, glides) {
     const opening = pane.collapsed && !next.collapsed;
+    if (next.collapsed && !pane.collapsed) evacuate(pane);
     pane.text = textOf(pane, next.size);
     pane.collapsed = next.collapsed;
     pane.el.inert = next.collapsed;
@@ -274,6 +285,21 @@ function controller(el, options, signal) {
       });
     }
     describe();
+  }
+
+  /**
+   * Moves the focus out of a pane that collapses (a hide button in its own
+   * header), before it turns inert: to the divider that controls it, else a
+   * toggle of it outside it.
+   */
+  function evacuate(pane) {
+    const active = doc.activeElement;
+    if (!active || !pane.el.contains(active)) return;
+    const candidates = [
+      ...dividers.filter((divider) => divider.pane === pane).map((divider) => divider.el),
+      ...toggles().filter((node) => !pane.el.contains(node) && paneOf(node.getAttribute(TOGGLE), node) === pane),
+    ];
+    candidates.find((node) => canTakeFocus(node))?.focus();
   }
 
   function state() {
@@ -329,6 +355,8 @@ function controller(el, options, signal) {
     const size = pane.collapsed ? sizeOf(pane) : extent(pane.el);
     const next = nextSize({ size, min, max, collapsed: pane.collapsed, collapsible: collapsible(pane), step }, { ...input, sign: divider.sign, axis: axis() });
     if (!next) return false;
+    // A key that changes nothing (ArrowRight at the largest size, Home at the smallest) reports nothing.
+    if (next.collapsed === pane.collapsed && textOf(pane, next.size) === pane.text) return true;
     apply(pane, next, next.collapsed !== pane.collapsed);
     report(pane);
     return true;
@@ -515,10 +543,48 @@ function controller(el, options, signal) {
       listeners.add(fn);
       return () => listeners.delete(fn);
     },
+    /** The attribute path: an option attribute changed (so the panes keep their sizes, no new controller). */
+    update(names = []) {
+      if (names.includes('data-ds-splitpane-step')) step = stepOf(el.getAttribute('data-ds-splitpane-step'));
+      if (names.includes('data-ds-splitpane-stack')) {
+        stackBelow = stackOf(el.getAttribute('data-ds-splitpane-stack'));
+        if (!stackBelow && el.getAttribute('data-state') === 'stacked') {
+          cancelDrag();
+          el.removeAttribute('data-state');
+          for (const divider of dividers) prepare(divider);
+        } else fold();
+      }
+      if (names.includes('data-ds-splitpane-store')) {
+        const next = el.getAttribute('data-ds-splitpane-store') || '';
+        if (next !== key) {
+          prefs?.destroy();
+          key = next;
+          prefs = key ? openStore('splitpane') : null;
+          restore();
+          settle();
+        }
+      }
+      describe();
+    },
     destroy() {
       cancelDrag();
       if (stackBelow && el.getAttribute('data-state') === 'stacked') el.removeAttribute('data-state');
       resize?.disconnect();
+      // What the module wrote goes, so no pane stays shut and inert with nothing left to open it.
+      for (const pane of panes) {
+        pane.token += 1;
+        pane.el.inert = false;
+        pane.el.removeAttribute('data-state');
+        if (pane.inline) pane.el.style.setProperty(SIZE, pane.inline);
+        else pane.el.style.removeProperty(SIZE);
+      }
+      for (const [node, attrs] of original) {
+        for (const [name, value] of attrs) {
+          if (value === null) node.removeAttribute(name);
+          else node.setAttribute(name, value);
+        }
+      }
+      original.clear();
       listeners.clear();
       prefs?.destroy();
     },
