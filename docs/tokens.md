@@ -83,6 +83,8 @@ sine): the wave and the flat fill cross-fade on the gliding share. Not generated
 | `--ds-surface-popover` | `= --ds-surface` | floating lists and bars: menus, the combobox list, the skip link, the save bar |
 | `--ds-color-scheme` | `light` | `light` or `dark`: `:where(.ds-theme)` sets `color-scheme` from it, so scrollbars, date pickers and native controls match the palette (zero specificity: a page or component that sets `color-scheme` wins) |
 | `--ds-skeleton-highlight` | `var(--ds-surface-high)` | the band of the skeleton wave that passes over the bones |
+| `--ds-shimmer-glint` | `#ffffff` (light and dark; the text colour under `themes/contrast.css`) | the glint of [Shimmer](components.md#shimmer): a copy of the text that travels over the words |
+| `--ds-shimmer-peak` | derived: `--ds-text` at 55% (`transparent` under `themes/contrast.css`: no glint) | the mask at the crest of the shimmer's band; only its alpha counts (the glint's strength) |
 | `--ds-text` | `#1f1f1f` | text, values, titles |
 | `--ds-text-2` | `#444746` | labels, leads, meta, inactive icons; on any surface |
 | `--ds-text-3` | `#747775` | placeholders; **on white only** (4.5:1) |
@@ -105,7 +107,10 @@ sine): the wave and the flat fill cross-fade on the gliding share. Not generated
 | `--ds-scrim` | `rgba(0,0,0,.32)` | behind dialogs, sheets, the modal drawer; never blurred |
 | `--ds-scrim-nested` | `rgba(0,0,0,.16)` | behind a dialog over another open modal (`.ds-dialog--nested`): about 43% together instead of 54% |
 | `--ds-fill-round` | derived: `--ds-text` at 8% (`rgba(31,31,31,.08)`) | disc of `.ds-btn--disc` |
-| `--ds-code-bg` | `= --ds-surface-low` | inline code (`.ds-base`) |
+| `--ds-code-bg` | `= --ds-surface-low` | inline code (`.ds-base`), code blocks |
+| `--ds-code-keyword`, `--ds-code-string`, `--ds-code-number`, `--ds-code-comment`, `--ds-code-function` | `#8430ce`, `#146c2e`, `#9c4300`, `#5f6368`, `#0b57d0` | syntax colours of [Syntax highlighting](components.md#syntax-highlighting): keywords; strings and regular expressions; numbers and constants; comments; calls, definitions, a command, a tag name. Each at 4.5:1 on `--ds-code-bg` (7:1 under `themes/contrast.css`), at fixed hues |
+| `--ds-code-type`, `--ds-code-property`, `--ds-code-meta` | `#00696b`, `#a3195b`, `#4c5a92` | classes, built-in types, CSS selectors; keys, CSS properties, attributes, options, variables; decorators, a doctype, a shell prompt, diff headers |
+| `--ds-code-inserted`, `--ds-code-deleted` | `#146c2e`, `#b3261e` | the `+` and `-` lines of a diff (a code block tints the line with them; the sign stays) |
 | `--ds-chart-1`, `--ds-chart-2`, `--ds-chart-3`, `--ds-chart-4` | `= --ds-primary`, `#c76a00`, `#00897b`, `#9334e6` | the four chart series, in this order ([Chart colours](#chart-colours)) |
 | `--ds-chart-track` | `= --ds-surface-high` | the track of a meter |
 | `--ds-chart-neutral` | `= --ds-outline` | the rest of a highlighted series (`.ds-columns--mini`), a neutral meter or key |

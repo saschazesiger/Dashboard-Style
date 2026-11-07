@@ -353,6 +353,13 @@
     /* The band of the skeleton wave that passes over the bones. */
     --ds-skeleton-highlight: var(--ds-surface-high);
 
+    /* The shimmer on the words of a status line (.ds-shimmer): the colour
+       of the glint, a copy of the text on top (white in light and dark),
+       and the mask at the crest of its band, of which only the alpha counts
+       (the glint's strength: 55% of the text). */
+    --ds-shimmer-glint: #ffffff;
+    --ds-shimmer-peak: color-mix(in srgb, var(--ds-text) 55%, transparent);
+
     /* Text. --ds-text-3 reaches 4.5:1 on white only; on any tinted surface
        the quieter text is --ds-text-2. */
     --ds-text: #1f1f1f;
@@ -433,6 +440,21 @@
 
     /* Inline code. */
     --ds-code-bg: var(--ds-surface-low);
+
+    /* Syntax colours (the token spans of DS.highlight, the tint of a
+       diff's lines): each at 4.5:1 on --ds-code-bg, at fixed hues, so a
+       keyword looks the same in every product. A change never rests on the
+       colour: the + and - of a diff stay. */
+    --ds-code-keyword: #8430ce;
+    --ds-code-string: #146c2e;
+    --ds-code-number: #9c4300;
+    --ds-code-comment: #5f6368;
+    --ds-code-function: #0b57d0;
+    --ds-code-type: #00696b;
+    --ds-code-property: #a3195b;
+    --ds-code-meta: #4c5a92;
+    --ds-code-inserted: #146c2e;
+    --ds-code-deleted: #b3261e;
 
     /* Charts (meters, columns, legends): four series in a fixed order,
        never cycled (more fold into "Other"), each at 3:1 on the surfaces

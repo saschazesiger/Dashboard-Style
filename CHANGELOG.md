@@ -24,6 +24,10 @@ Everything is additive: no 2.x name changes meaning.
 - **Strings** two packages added under one name: a section saved in an object page is `sectionSaved`, the bounds of a
   range filter's chip `rangeMin` and `rangeMax` (`rangeFrom` and `rangeTo` are the time range's labels), and
   `DS.steps` announces through `stepOf` (`Step {step} of {total}: {label}`).
+- **Colour roles**: the code roles `--ds-code-keyword`, `-string`, `-number`, `-comment`, `-function`, `-type`,
+  `-property`, `-meta`, `-inserted` and `-deleted` (text on `--ds-code-bg`, checked like every text pair) and
+  `--ds-shimmer-glint` and `--ds-shimmer-peak` are roles of `tokens.css` with dark and contrast values; the theme
+  generator derives the code roles at fixed hues. `themes/contrast.css` gives them `light-dark()` pairs.
 - **Cascade order**: the new components sit between the 2.x ones and `ripple`, which stays the last sublayer.
 - **Core**: `DS.virtual` with `keyboard: false` leaves every key to the page; `DS.overlay` returns the focus only to an
   element that takes it (a span that only placed a popup counts as gone); `DS.dom.followEnd()` keeps to the end after
@@ -584,9 +588,9 @@ Everything is additive: no 2.x name changes meaning.
   ("Thinking" with the shimmer, then "Thought for 12s" or the page's own), the thoughts following their end while they
   stream, an optional auto open and close. Strings `reasoningRunning`, `reasoningDone`.
 - Shimmer (`.ds-shimmer`, `data-shimmer`): a soft glint that travels over the words of a status line, on
-  `ds-progress-wave`. Hook `--ds-shimmer-length`; colour roles `--ds-shimmer-glint` and `--ds-shimmer-peak` and the
-  loop `--ds-loop-shimmer` requested (until then: a `light-dark()` of `--ds-surface` and
-  `--ds-on-primary-container`, and `--ds-loop-loader`).
+  `ds-progress-wave`. Hook `--ds-shimmer-length`; colour roles `--ds-shimmer-glint` and `--ds-shimmer-peak` (in
+  `tokens.css`, `themes/dark.css` and `themes/contrast.css`); the loop `--ds-loop-shimmer` requested (until then:
+  `--ds-loop-loader`).
 - Thinking indicator (`.ds-thinking`, `DS.thinking`, `data-ds-thinking`): the step on a wheel with the shimmer, the
   thought, the elapsed time and the tokens. Strings `tokensOne`, `tokensOther`.
 - Tool call (`.ds-toolcall`, `DS.toolcall`, `data-ds-toolcall`): a disclosure row in a frame with the call's name,

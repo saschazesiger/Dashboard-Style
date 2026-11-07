@@ -725,16 +725,6 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-bottomsheet-width` | 640px | bottom sheet: the panel at most, centred on a wider screen |
 | `--ds-bottomsheet-gap` | `--ds-space-12` | bottom sheet: the room above the panel at its full height |
 | `--ds-bottomsheet-radius` | `--ds-radius-dialog` | bottom sheet: the panel's top corners at the default shape |
-| `--ds-code-keyword` | `--ds-primary` (the role requested: light #8430ce, dark #d7aefb) | the colour of keywords on `--ds-code-bg`; a role once the integrator moves it into tokens.css |
-| `--ds-code-string` | `--ds-success` (the role requested: light #146c2e, dark #81c995) | the colour of strings and regular expressions on `--ds-code-bg`; a role once the integrator moves it into tokens.css |
-| `--ds-code-number` | `--ds-warning` (the role requested: light #9c4300, dark #ffb683) | the colour of numbers and constants (`true`, `null`, a hex colour) on `--ds-code-bg`; a role once the integrator moves it into tokens.css |
-| `--ds-code-comment` | `--ds-text-2` (the role requested: light #5f6368, dark #9aa0a6) | the colour of comments on `--ds-code-bg`; a role once the integrator moves it into tokens.css |
-| `--ds-code-function` | `--ds-info` (the role requested: light #0b57d0, dark #a8c7fa) | the colour of calls, definitions, a command, a tag name on `--ds-code-bg`; a role once the integrator moves it into tokens.css |
-| `--ds-code-type` | `--ds-on-info-container` (the role requested: light #00696b, dark #5cd5d5) | the colour of classes, built-in types, a CSS class or id selector on `--ds-code-bg`; a role once the integrator moves it into tokens.css |
-| `--ds-code-property` | `--ds-on-error-container` (the role requested: light #a3195b, dark #ffb0cd) | the colour of keys, CSS properties, attributes, options, variables on `--ds-code-bg`; a role once the integrator moves it into tokens.css |
-| `--ds-code-meta` | `--ds-text-2` (the role requested: light #4c5a92, dark #bac3ff) | the colour of decorators, a doctype, a shell prompt, diff headers on `--ds-code-bg`; a role once the integrator moves it into tokens.css |
-| `--ds-code-inserted` | `--ds-success` (the role requested: light #146c2e, dark #6dd58c) | the colour of the `+` lines of a diff (a code block tints them with it) on `--ds-code-bg`; a role once the integrator moves it into tokens.css |
-| `--ds-code-deleted` | `--ds-error` (the role requested: light #b3261e, dark #f2b8b5) | the colour of the `-` lines of a diff (a code block tints them with it) on `--ds-code-bg`; a role once the integrator moves it into tokens.css |
 | `--ds-code-block-radius` | `--ds-radius-card` | `.ds-code-block`, a `pre` in prose and the `.ds-code` frame (times `--ds-shape`) |
 | `--ds-toc-height` | 32px | a link of the column at size md and comfortable (8px per size step, 4px per density step) |
 | `--ds-toc-bar-height` | 48px | a link of `.ds-toc--bar` at size md and comfortable, as high as a tab |
@@ -786,8 +776,6 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-terminal-magenta` | `--ds-error` and `--ds-primary` half and half | terminal frame: ANSI magenta |
 | `--ds-terminal-cyan` | `--ds-info` and `--ds-success` half and half | terminal frame: ANSI cyan |
 | `--ds-terminal-white` | `--ds-text` | terminal frame: ANSI white |
-| `--ds-shimmer-glint` | a `light-dark()` of `--ds-surface` and `--ds-on-primary-container` (requested as a colour role: white in light and dark, the text in the contrast theme) | `.ds-shimmer`: the colour of the wave, the copy of the text on top |
-| `--ds-shimmer-peak` | `color-mix(in srgb, var(--ds-text) 55%, transparent)` (requested as a colour role) | `.ds-shimmer`: the mask at the crest of the band; only its alpha counts (the glint's strength) |
 | `--ds-shimmer-length` | 480px | `.ds-shimmer`: one tile of the wave, the band and the pause after it; it travels one length per `--ds-loop-shimmer` |
 | `--ds-wheel-fade` | `--ds-space-3` | `.ds-wheel`: the soft edge above and below the slot, given back by a negative margin |
 | `--ds-wheel-travel` | 100% | `.ds-wheel`: how far a line glides as it goes or comes (one line, its own height) |

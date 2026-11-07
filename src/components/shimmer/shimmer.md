@@ -29,7 +29,8 @@ is the text's own, said once. The glint carries no meaning: say the state in the
 
 **Hooks and roles.** `--ds-shimmer-length` (480px, one tile: the band and the pause after it;
 [theming.md](theming.md#component-hooks)). The colour roles `--ds-shimmer-glint` (white in light and dark; the text
-colour in the contrast theme) and `--ds-shimmer-peak` (`color-mix(in srgb, var(--ds-text) 55%, transparent)`).
+colour in the contrast theme) and `--ds-shimmer-peak` (`color-mix(in srgb, var(--ds-text) 55%, transparent)`;
+`transparent` in the contrast theme, so no glint passes there) ([tokens.md](tokens.md)).
 
 **Motion.** The mask tile travels one `--ds-shimmer-length` per `--ds-loop-shimmer` (4.55s, the shape loader's round;
 `--ds-loop-loader` until that token is in the theme), linear and endless, on the progress wave's keyframe

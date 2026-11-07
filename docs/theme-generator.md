@@ -53,7 +53,10 @@ into `tools/color.mjs`. A scheme decides how much chroma each palette gets; tone
 
 The status palettes (error, success, warning) and the chart series keep their colour in every scheme: status is
 never told by colour alone, but colour still helps. The chart series beside `--ds-chart-1` (the primary) sit at fixed hue
-steps from the primary hue, the steps of the default palette (blue, orange, teal, purple).
+steps from the primary hue, the steps of the default palette (blue, orange, teal, purple). The syntax colours
+(`--ds-code-keyword` ... `--ds-code-deleted`) keep fixed hues whatever the seed and the scheme, those of `tokens.css`
+(the comment grey takes the neutral variant palette), at the tones of `tokens.css` and `themes/dark.css`, and of
+`themes/contrast.css` at the high level; each is a text pair on `--ds-code-bg`.
 
 ## Contrast levels
 
@@ -98,7 +101,7 @@ So:
 
 Shadows are not colours, so a shadow cannot be one `light-dark()`. Its colour parts are: `--ds-elev-1` to
 `--ds-elev-3` cast grey in the light scheme and black in the dark. The scrims (`--ds-scrim`, `--ds-scrim-nested`)
-darken in the dark scheme as in `themes/dark.css`.
+darken in the dark scheme as in `themes/dark.css`. The shimmer's glint (`--ds-shimmer-glint`) stays white in both.
 
 ## What it guarantees
 
@@ -114,7 +117,7 @@ darken in the dark scheme as in `themes/dark.css`.
   pair in both schemes, so `node tools/check-theme.mjs themes/presets/ocean.css` passes as well.
 - **The roles of `themes/dark.css`, and nothing else.** It sets every colour role that does not follow another role
   by itself, plus the floating surfaces (`--ds-surface-overlay`, `--ds-surface-popover`), `--ds-color-scheme`, the
-  scrims and the shadows. It never sets a scale, a hook or a motion token, and it stays unlayered.
+  scrims, the shimmer's glint and the shadows. It never sets a scale, a hook or a motion token, and it stays unlayered.
 - **sRGB hex.** HCT tones are always inside sRGB, so every value is hex. OKLCH would only be needed for a colour
   outside sRGB, which the generator never writes.
 - **Deterministic.** The same options give the same file, byte for byte. Regenerate it rather than editing it; the

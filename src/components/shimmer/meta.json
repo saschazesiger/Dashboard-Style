@@ -15,14 +15,6 @@
   "requires": [],
   "context": [],
   "hooks": {
-    "--ds-shimmer-glint": {
-      "default": "a `light-dark()` of `--ds-surface` and `--ds-on-primary-container` (requested as a colour role: white in light and dark, the text in the contrast theme)",
-      "description": "`.ds-shimmer`: the colour of the wave, the copy of the text on top"
-    },
-    "--ds-shimmer-peak": {
-      "default": "`color-mix(in srgb, var(--ds-text) 55%, transparent)` (requested as a colour role)",
-      "description": "`.ds-shimmer`: the mask at the crest of the band; only its alpha counts (the glint's strength)"
-    },
     "--ds-shimmer-length": {
       "default": "480px",
       "description": "`.ds-shimmer`: one tile of the wave, the band and the pause after it; it travels one length per `--ds-loop-shimmer`"
@@ -33,17 +25,5 @@
   ],
   "js": [],
   "progressive": [],
-  "ripple": false,
-  "roles": {
-    "--ds-shimmer-glint": {
-      "light": "#ffffff",
-      "dark": "#ffffff",
-      "contrast": "var(--ds-text)"
-    },
-    "--ds-shimmer-peak": {
-      "light": "color-mix(in srgb, var(--ds-text) 55%, transparent)",
-      "dark": "color-mix(in srgb, var(--ds-text) 55%, transparent)",
-      "contrast": "transparent"
-    }
-  }
+  "ripple": false
 }

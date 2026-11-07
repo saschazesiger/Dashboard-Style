@@ -123,6 +123,17 @@ export const TEXT_PAIRS = [
   ['--ds-text-2', '--ds-surface-overlay'],
   ['--ds-text', '--ds-surface-popover'],
   ['--ds-text-2', '--ds-surface-popover'],
+  // Syntax colours (3.0, DS.highlight) on the code ground.
+  ['--ds-code-keyword', '--ds-code-bg'],
+  ['--ds-code-string', '--ds-code-bg'],
+  ['--ds-code-number', '--ds-code-bg'],
+  ['--ds-code-comment', '--ds-code-bg'],
+  ['--ds-code-function', '--ds-code-bg'],
+  ['--ds-code-type', '--ds-code-bg'],
+  ['--ds-code-property', '--ds-code-bg'],
+  ['--ds-code-meta', '--ds-code-bg'],
+  ['--ds-code-inserted', '--ds-code-bg'],
+  ['--ds-code-deleted', '--ds-code-bg'],
 ];
 
 /** Checkboxes and radios at 3:1 (WCAG 1.4.11): box, fill, mark, error. */

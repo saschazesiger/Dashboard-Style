@@ -27,9 +27,10 @@
  *                                               the colour)
  *   punctuation             --ds-text-2
  *   operator                the text colour
- * Every role reaches 4.5:1 on --ds-code-bg in the light and the dark
- * scheme, 7:1 under themes/contrast.css. Until a theme declares the code
- * roles, each falls back to the closest role of the palette.
+ * The code roles are colour roles of tokens.css, with their dark values in
+ * themes/dark.css and their contrast values in themes/contrast.css: each
+ * reaches 4.5:1 on --ds-code-bg in the light and the dark scheme, 7:1
+ * under themes/contrast.css (the tests check the pairs).
  *
  * Options: none. The tokens keep the size, weight and font of the code
  * around them (.ds-code-block's code role); size, density, shape and tone
@@ -43,48 +44,48 @@
 
 @layer ds.components.highlight {
   .ds-highlight__keyword {
-    color: var(--ds-code-keyword, var(--ds-primary));
+    color: var(--ds-code-keyword);
   }
 
   .ds-highlight__string,
   .ds-highlight__regex {
-    color: var(--ds-code-string, var(--ds-success));
+    color: var(--ds-code-string);
   }
 
   .ds-highlight__number,
   .ds-highlight__constant {
-    color: var(--ds-code-number, var(--ds-warning));
+    color: var(--ds-code-number);
   }
 
   .ds-highlight__comment {
-    color: var(--ds-code-comment, var(--ds-text-2));
+    color: var(--ds-code-comment);
   }
 
   .ds-highlight__function,
   .ds-highlight__tag {
-    color: var(--ds-code-function, var(--ds-info));
+    color: var(--ds-code-function);
   }
 
   .ds-highlight__type {
-    color: var(--ds-code-type, var(--ds-on-info-container));
+    color: var(--ds-code-type);
   }
 
   .ds-highlight__property,
   .ds-highlight__attribute,
   .ds-highlight__variable {
-    color: var(--ds-code-property, var(--ds-on-error-container));
+    color: var(--ds-code-property);
   }
 
   .ds-highlight__meta {
-    color: var(--ds-code-meta, var(--ds-text-2));
+    color: var(--ds-code-meta);
   }
 
   .ds-highlight__inserted {
-    color: var(--ds-code-inserted, var(--ds-success));
+    color: var(--ds-code-inserted);
   }
 
   .ds-highlight__deleted {
-    color: var(--ds-code-deleted, var(--ds-error));
+    color: var(--ds-code-deleted);
   }
 
   .ds-highlight__punctuation {

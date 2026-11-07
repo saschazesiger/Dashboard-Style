@@ -391,6 +391,13 @@
     /* The band of the skeleton wave that passes over the bones. */
     --ds-skeleton-highlight: var(--ds-surface-high);
 
+    /* The shimmer on the words of a status line (.ds-shimmer): the colour
+       of the glint, a copy of the text on top (white in light and dark),
+       and the mask at the crest of its band, of which only the alpha counts
+       (the glint's strength: 55% of the text). */
+    --ds-shimmer-glint: #ffffff;
+    --ds-shimmer-peak: color-mix(in srgb, var(--ds-text) 55%, transparent);
+
     /* Text. --ds-text-3 reaches 4.5:1 on white only; on any tinted surface
        the quieter text is --ds-text-2. */
     --ds-text: #1f1f1f;
@@ -471,6 +478,21 @@
 
     /* Inline code. */
     --ds-code-bg: var(--ds-surface-low);
+
+    /* Syntax colours (the token spans of DS.highlight, the tint of a
+       diff's lines): each at 4.5:1 on --ds-code-bg, at fixed hues, so a
+       keyword looks the same in every product. A change never rests on the
+       colour: the + and - of a diff stay. */
+    --ds-code-keyword: #8430ce;
+    --ds-code-string: #146c2e;
+    --ds-code-number: #9c4300;
+    --ds-code-comment: #5f6368;
+    --ds-code-function: #0b57d0;
+    --ds-code-type: #00696b;
+    --ds-code-property: #a3195b;
+    --ds-code-meta: #4c5a92;
+    --ds-code-inserted: #146c2e;
+    --ds-code-deleted: #b3261e;
 
     /* Charts (meters, columns, legends): four series in a fixed order,
        never cycled (more fold into "Other"), each at 3:1 on the surfaces
@@ -40027,9 +40049,10 @@
  *                                               the colour)
  *   punctuation             --ds-text-2
  *   operator                the text colour
- * Every role reaches 4.5:1 on --ds-code-bg in the light and the dark
- * scheme, 7:1 under themes/contrast.css. Until a theme declares the code
- * roles, each falls back to the closest role of the palette.
+ * The code roles are colour roles of tokens.css, with their dark values in
+ * themes/dark.css and their contrast values in themes/contrast.css: each
+ * reaches 4.5:1 on --ds-code-bg in the light and the dark scheme, 7:1
+ * under themes/contrast.css (the tests check the pairs).
  *
  * Options: none. The tokens keep the size, weight and font of the code
  * around them (.ds-code-block's code role); size, density, shape and tone
@@ -40041,48 +40064,48 @@
 
 @layer ds.components.highlight {
   .ds-highlight__keyword {
-    color: var(--ds-code-keyword, var(--ds-primary));
+    color: var(--ds-code-keyword);
   }
 
   .ds-highlight__string,
   .ds-highlight__regex {
-    color: var(--ds-code-string, var(--ds-success));
+    color: var(--ds-code-string);
   }
 
   .ds-highlight__number,
   .ds-highlight__constant {
-    color: var(--ds-code-number, var(--ds-warning));
+    color: var(--ds-code-number);
   }
 
   .ds-highlight__comment {
-    color: var(--ds-code-comment, var(--ds-text-2));
+    color: var(--ds-code-comment);
   }
 
   .ds-highlight__function,
   .ds-highlight__tag {
-    color: var(--ds-code-function, var(--ds-info));
+    color: var(--ds-code-function);
   }
 
   .ds-highlight__type {
-    color: var(--ds-code-type, var(--ds-on-info-container));
+    color: var(--ds-code-type);
   }
 
   .ds-highlight__property,
   .ds-highlight__attribute,
   .ds-highlight__variable {
-    color: var(--ds-code-property, var(--ds-on-error-container));
+    color: var(--ds-code-property);
   }
 
   .ds-highlight__meta {
-    color: var(--ds-code-meta, var(--ds-text-2));
+    color: var(--ds-code-meta);
   }
 
   .ds-highlight__inserted {
-    color: var(--ds-code-inserted, var(--ds-success));
+    color: var(--ds-code-inserted);
   }
 
   .ds-highlight__deleted {
-    color: var(--ds-code-deleted, var(--ds-error));
+    color: var(--ds-code-deleted);
   }
 
   .ds-highlight__punctuation {
@@ -40405,11 +40428,11 @@
   }
 
   .ds-code__line--inserted {
-    background: color-mix(in srgb, var(--ds-code-inserted, var(--ds-success)) 10%, transparent);
+    background: color-mix(in srgb, var(--ds-code-inserted) 10%, transparent);
   }
 
   .ds-code__line--deleted {
-    background: color-mix(in srgb, var(--ds-code-deleted, var(--ds-error)) 10%, transparent);
+    background: color-mix(in srgb, var(--ds-code-deleted) 10%, transparent);
   }
 
   /* The foot: the button that unfolds, a fade over the folded lines. */
@@ -42432,7 +42455,9 @@
  * shape and tone have nothing to act on.
  *
  * Hooks: --ds-shimmer-length (480px, one tile: the band and the pause after
- * it). Roles: --ds-shimmer-glint, --ds-shimmer-peak (meta.json "roles").
+ * it). Roles (tokens.css; a theme sets them): --ds-shimmer-glint (white;
+ * the text colour under themes/contrast.css), --ds-shimmer-peak (the text
+ * at 55%; transparent under themes/contrast.css, so no glint).
  *
  * Forced colours: the copy is left out (content: none); the text stays.
  */
@@ -42457,9 +42482,9 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    color: var(--ds-shimmer-glint, light-dark(var(--ds-surface), var(--ds-on-primary-container)));
+    color: var(--ds-shimmer-glint);
     pointer-events: none;
-    mask-image: linear-gradient(90deg, transparent 0 32%, var(--ds-shimmer-peak, color-mix(in srgb, var(--ds-text) 55%, transparent)) 50%, transparent 68% 100%);
+    mask-image: linear-gradient(90deg, transparent 0 32%, var(--ds-shimmer-peak) 50%, transparent 68% 100%);
     mask-size: var(--ds-shimmer-length, 480px) 100%;
     mask-repeat: repeat-x;
     animation: ds-progress-wave var(--ds-loop-loader) linear infinite;

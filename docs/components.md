@@ -4408,7 +4408,9 @@ diff stay.
 
 **Roles.** `--ds-code-keyword`, `--ds-code-string`, `--ds-code-number`, `--ds-code-comment`, `--ds-code-function`,
 `--ds-code-type`, `--ds-code-property`, `--ds-code-meta`, `--ds-code-inserted`, `--ds-code-deleted`, on
-`--ds-code-bg` ([tokens.md](tokens.md)). A theme sets the roles, never the token classes.
+`--ds-code-bg` ([tokens.md](tokens.md)): colour roles of `tokens.css` at fixed hues, with their dark values in
+`themes/dark.css` and their contrast values in `themes/contrast.css`; the theme generator derives them from the same
+hues. A theme sets the roles, never the token classes.
 ## Image
 
 A picture in a frame of a fixed shape, cropped or fitted, with a tint while it loads, words where it fails and a
@@ -15221,7 +15223,8 @@ is the text's own, said once. The glint carries no meaning: say the state in the
 
 **Hooks and roles.** `--ds-shimmer-length` (480px, one tile: the band and the pause after it;
 [theming.md](theming.md#component-hooks)). The colour roles `--ds-shimmer-glint` (white in light and dark; the text
-colour in the contrast theme) and `--ds-shimmer-peak` (`color-mix(in srgb, var(--ds-text) 55%, transparent)`).
+colour in the contrast theme) and `--ds-shimmer-peak` (`color-mix(in srgb, var(--ds-text) 55%, transparent)`;
+`transparent` in the contrast theme, so no glint passes there) ([tokens.md](tokens.md)).
 
 **Motion.** The mask tile travels one `--ds-shimmer-length` per `--ds-loop-shimmer` (4.55s, the shape loader's round;
 `--ds-loop-loader` until that token is in the theme), linear and endless, on the progress wave's keyframe

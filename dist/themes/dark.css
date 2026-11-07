@@ -80,6 +80,21 @@
   --ds-chart-3: #4fd8c4;
   --ds-chart-4: #c58af9;
 
+  /* ── Syntax colours: light tones of the same hues, 4.5:1 on the code ground ── */
+  --ds-code-keyword: #d7aefb;
+  --ds-code-string: #81c995;
+  --ds-code-number: #ffb683;
+  --ds-code-comment: #9aa0a6;
+  --ds-code-function: #a8c7fa;
+  --ds-code-type: #5cd5d5;
+  --ds-code-property: #ffb0cd;
+  --ds-code-meta: #bac3ff;
+  --ds-code-inserted: #6dd58c;
+  --ds-code-deleted: #f2b8b5;
+
+  /* ── The shimmer's glint: white over the light text too, a soft glint ── */
+  --ds-shimmer-glint: #ffffff;
+
   /* ── Scrims and shadows on black ── */
   --ds-scrim: rgba(0, 0, 0, .48);
   --ds-scrim-nested: rgba(0, 0, 0, .24);

@@ -1389,6 +1389,17 @@ const TEXT_PAIRS = [
   ['--ds-text-2', '--ds-surface-overlay'],
   ['--ds-text', '--ds-surface-popover'],
   ['--ds-text-2', '--ds-surface-popover'],
+  // Syntax colours (3.0, DS.highlight) on the code ground.
+  ['--ds-code-keyword', '--ds-code-bg'],
+  ['--ds-code-string', '--ds-code-bg'],
+  ['--ds-code-number', '--ds-code-bg'],
+  ['--ds-code-comment', '--ds-code-bg'],
+  ['--ds-code-function', '--ds-code-bg'],
+  ['--ds-code-type', '--ds-code-bg'],
+  ['--ds-code-property', '--ds-code-bg'],
+  ['--ds-code-meta', '--ds-code-bg'],
+  ['--ds-code-inserted', '--ds-code-bg'],
+  ['--ds-code-deleted', '--ds-code-bg'],
 ];
 
 /** Checkboxes and radios at 3:1 (WCAG 1.4.11): box, fill, mark, error. */
@@ -1673,6 +1684,23 @@ const CHART_OFFSETS = { '--ds-chart-2': 146.5, '--ds-chart-3': -85.7, '--ds-char
 const CHART_CHROMA = { 'tonal-spot': 48, vibrant: 64, neutral: 32, fidelity: null, monochrome: 24 };
 
 /**
+ * The syntax colours (--ds-code-*, DS.highlight): fixed hues, the light
+ * values of tokens.css as seeds, whatever the seed and the scheme, so a
+ * keyword looks the same in every product (like the status colours). The
+ * comment is a grey and takes the neutral variant palette instead.
+ */
+const CODE_SEEDS = {
+  '--ds-code-keyword': '#8430ce',
+  '--ds-code-string': '#146c2e',
+  '--ds-code-number': '#9c4300',
+  '--ds-code-function': '#0b57d0',
+  '--ds-code-type': '#00696b',
+  '--ds-code-property': '#a3195b',
+  '--ds-code-meta': '#4c5a92',
+  '--ds-code-deleted': '#b3261e',
+};
+
+/**
  * Roles that tokens.css declares as var() of another role and that a pair
  * reads: they follow by themselves, so the generator checks them through
  * the role they read (a test keeps this list equal to tokens.css).
@@ -1687,6 +1715,7 @@ const FOLLOWS = {
   '--ds-chart-error': '--ds-error',
   '--ds-chart-track': '--ds-surface-high',
   '--ds-on-accent-icon': '--ds-on-accent',
+  '--ds-code-bg': '--ds-surface-low',
 };
 
 /**
@@ -1739,6 +1768,17 @@ const ROLE_TABLE = [
   ['--ds-chart-2', '--ds-chart-2', 52, 45, 75, 80, 'chart'],
   ['--ds-chart-3', '--ds-chart-3', 50, 45, 78, 80, 'chart'],
   ['--ds-chart-4', '--ds-chart-4', 45, 40, 68, 75, 'chart'],
+  // The tones of tokens.css and themes/dark.css (standard), and of themes/contrast.css (high).
+  ['--ds-code-keyword', '--ds-code-keyword', 40, 30, 77, 87, 'code'],
+  ['--ds-code-string', '--ds-code-string', 40, 30, 75, 86, 'code'],
+  ['--ds-code-number', '--ds-code-number', 40, 31, 80, 87, 'code'],
+  ['--ds-code-comment', 'neutralVariant', 42, 31, 66, 80, 'code'],
+  ['--ds-code-function', '--ds-code-function', 40, 31, 80, 90, 'code'],
+  ['--ds-code-type', '--ds-code-type', 40, 30, 79, 90, 'code'],
+  ['--ds-code-property', '--ds-code-property', 36, 27, 80, 89, 'code'],
+  ['--ds-code-meta', '--ds-code-meta', 40, 30, 80, 90, 'code'],
+  ['--ds-code-inserted', '--ds-code-string', 40, 30, 78, 86, 'code'],
+  ['--ds-code-deleted', '--ds-code-deleted', 40, 31, 80, 90, 'code'],
 ];
 
 const ROLES = ROLE_TABLE.map(([name, palette, lightStandard, lightHigh, darkStandard, darkHigh, group, ground = false]) => {
@@ -1746,10 +1786,11 @@ const ROLES = ROLE_TABLE.map(([name, palette, lightStandard, lightHigh, darkStan
   return { name, palettes: { light, dark }, tones: { light: [lightStandard, lightHigh], dark: [darkStandard, darkHigh] }, group, ground };
 });
 
-/** The values that are not tones: scrims, and the colour of the shadows (on black in the dark scheme). */
+/** The values that are not tones: scrims, the shimmer's white glint, and the colour of the shadows (on black in the dark scheme). */
 const FIXED = [
   ['--ds-scrim', 'rgba(0, 0, 0, .32)', 'rgba(0, 0, 0, .48)'],
   ['--ds-scrim-nested', 'rgba(0, 0, 0, .16)', 'rgba(0, 0, 0, .24)'],
+  ['--ds-shimmer-glint', '#ffffff', '#ffffff'],
 ];
 const SHADOWS = [
   ['--ds-elev-1', ['0 1px 2px 0', '.3'], ['0 1px 3px 1px', '.15']],
@@ -1764,6 +1805,7 @@ const GROUP_TITLES = {
   status: 'Status: inks on their containers',
   inverse: 'Inverse: snackbars and tooltips',
   chart: 'Chart series (the first is the primary)',
+  code: 'Syntax colours on the code ground (fixed hues)',
 };
 
 /**
@@ -1789,7 +1831,7 @@ const asArgb = (value, label) => {
   return argb;
 };
 
-/** The palettes of a theme: the scheme's six, plus accent, status (info too), the warning surface and the chart series. */
+/** The palettes of a theme: the scheme's six, plus accent, status (info too), the warning surface, the chart series and the syntax colours. */
 function palettes({ seed, scheme, neutral, accent, error, success, warning, info }) {
   const source = Hct.fromInt(seed);
   const variant = SCHEMES[scheme];
@@ -1819,6 +1861,7 @@ function palettes({ seed, scheme, neutral, accent, error, success, warning, info
   for (const [name, offset] of Object.entries(CHART_OFFSETS)) {
     set[name] = TonalPalette.fromHueAndChroma(sanitizeDegreesDouble(base.primary.hue + offset), chroma);
   }
+  for (const [name, hex] of Object.entries(CODE_SEEDS)) set[name] = fromSeed(parseColor(hex));
   return set;
 }
 
@@ -1979,7 +2022,7 @@ function generateTheme(options = {}) {
     lines.push(`  ${role.name}: ${both(light.values[role.name], dark.values[role.name])};`);
   }
   lines.push('');
-  lines.push('  /* ── Scrims and shadows (on black in the dark) ── */');
+  lines.push('  /* ── Scrims, the shimmer\'s glint and shadows (on black in the dark) ── */');
   for (const [property, lightValue, darkValue] of FIXED) lines.push(`  ${property}: ${both(lightValue, darkValue)};`);
   for (const [property, ...layers] of SHADOWS) {
     const value = layers.map(([geometry, alpha]) => `${geometry} ${both(`rgba(60, 64, 67, ${alpha})`, `rgba(0, 0, 0, ${alpha})`)}`).join(', ');
