@@ -86,6 +86,13 @@ test('a running call ticks, and set() ends it: the mark, the word, the time stop
   await expect(running).toHaveAttribute('data-status', 'running');
   await expect(running.locator('.ds-toolcall__mark .ds-spinner')).toHaveCount(1);
   await expect(running.locator('.ds-toolcall__word')).toHaveText('Running');
+
+  // Without a label the status brings its own word, and the announcement says it.
+  await page.evaluate(() => { window.spoken = []; });
+  await running.evaluate((el) => DS.core.get(el, 'toolcall').set({ status: 'done' }));
+  await expect(running.locator('.ds-toolcall__word')).toHaveText('Done');
+  await expect(running.locator('.ds-toolcall__mark svg')).toHaveCount(1);
+  await expect.poll(() => page.evaluate(() => [...new Set(window.spoken)])).toEqual(['search_tickets: Done']);
 });
 
 test('the attributes are read again: a page that re-renders writes the status and the duration', async ({ page }) => {
@@ -97,6 +104,18 @@ test('the attributes are read again: a page that re-renders writes the status an
     el.removeAttribute('data-ds-toolcall-duration');
   });
   await expect(page.locator('[data-demo="list"] > .ds-toolcall').nth(4).locator('.ds-toolcall__time')).toHaveText(/^[5-7]s$/);
+  // The status changed alone: its mark and its word follow.
+  const fifth = page.locator('[data-demo="list"] > .ds-toolcall').nth(4);
+  await expect(fifth.locator('.ds-toolcall__mark .ds-spinner')).toHaveCount(1);
+  await expect(fifth.locator('.ds-toolcall__word')).toHaveText('Running');
+  // A re-render that writes its own word with the status keeps it.
+  await fifth.evaluate((el) => {
+    el.querySelector('.ds-toolcall__word').textContent = 'Stopped by you';
+    el.setAttribute('data-status', 'cancelled');
+  });
+  await expect(fifth.locator('.ds-toolcall__mark svg')).toHaveCount(1);
+  await expect(fifth.locator('.ds-toolcall__word')).toHaveText('Stopped by you');
+  await fifth.evaluate((el) => el.setAttribute('data-status', 'running'));
   await page.locator('[data-demo="list"] > .ds-toolcall').nth(4).evaluate((el) => el.setAttribute('data-ds-toolcall-duration', '64000'));
   await expect(page.locator('[data-demo="list"] > .ds-toolcall').nth(4).locator('.ds-toolcall__time')).toHaveText('1m 4s');
 });

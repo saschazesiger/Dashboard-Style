@@ -17,8 +17,8 @@
  *
  * What it writes: the share (the larger of tokens and cost against their
  * budgets) as --ds-share on the .ds-usage__meter (a .ds-meter, role meter,
- * with aria-valuenow and aria-valuetext) and its tone (.ds-meter--warning
- * near, .ds-meter--error over); the text of .ds-usage__value ("182.4K of
+ * with aria-valuenow and aria-valuetext; hidden without a budget) and its
+ * tone (.ds-meter--warning near, .ds-meter--error over); the text of .ds-usage__value ("182.4K of
  * 250K tokens") and .ds-usage__cost ("$3.12 of $5.00"); data-state="near"
  * or "over" on the root and, in .ds-usage__status, an icon and the word
  * (strings usageNear, usageOver), which it also announces once when the
@@ -140,15 +140,21 @@ function controller(el, start, signal) {
   const render = (speak) => {
     const now = snapshot();
     const meter = part('meter');
-    if (meter) {
+    // Without a budget there is no share: no meter at 0% for a screen reader, no empty track.
+    if (meter) meter.hidden = now.share === null;
+    if (meter && now.share === null) {
+      for (const name of ['aria-valuenow', 'aria-valuetext', 'aria-valuemin', 'aria-valuemax']) meter.removeAttribute(name);
+      meter.style.removeProperty('--ds-share');
+      meter.classList.remove('ds-meter--warning', 'ds-meter--error');
+    } else if (meter) {
       if (!meter.hasAttribute('role')) meter.setAttribute('role', 'meter');
-      const shareShown = Math.min(1, now.share ?? 0);
+      const shareShown = Math.min(1, now.share);
       meter.style.setProperty('--ds-share', String(shareShown));
       meter.setAttribute('aria-valuemin', '0');
       meter.setAttribute('aria-valuemax', '100');
       // A meter's value stays in its range; the text says how far past it.
       meter.setAttribute('aria-valuenow', String(Math.round(shareShown * 100)));
-      meter.setAttribute('aria-valuetext', now.share === null ? '' : t('usageShare', { percent: percent(now.share, { maximumFractionDigits: 0 }) }));
+      meter.setAttribute('aria-valuetext', t('usageShare', { percent: percent(now.share, { maximumFractionDigits: 0 }) }));
       meter.classList.toggle('ds-meter--warning', now.state === 'near');
       meter.classList.toggle('ds-meter--error', now.state === 'over');
     }

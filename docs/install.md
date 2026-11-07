@@ -410,6 +410,11 @@ strings a script adds have an option, so a page in another language passes its o
 | `Approved` | the state word of an approved `DS.plan` card, also announced (the system's string `planApproved`) | `DS.core.config({ strings: { planApproved } })` |
 | `Rejected` | the state word of a rejected `DS.plan` card, also announced (the system's string `planRejected`) | `DS.core.config({ strings: { planRejected } })` |
 | `Answered: {answer}` | the line of an answered `DS.question` card, `{answer}` the chosen labels as a list, also announced (the system's string `questionAnswered`) | `DS.core.config({ strings: { questionAnswered } })` |
+| `Pending` | the status word of a `DS.toolcall` row turned pending without a label of the page's (the system's string `toolPending`) | `DS.core.config({ strings: { toolPending } })` |
+| `Running` | the status word of a `DS.toolcall` row turned running without a label of the page's (the system's string `toolRunning`) | `DS.core.config({ strings: { toolRunning } })` |
+| `Done` | the status word of a `DS.toolcall` row turned done without a label of the page's (the system's string `toolDone`) | `DS.core.config({ strings: { toolDone } })` |
+| `Failed` | the status word of a `DS.toolcall` row turned failed without a label of the page's (the system's string `toolFailed`) | `DS.core.config({ strings: { toolFailed } })` |
+| `Cancelled` | the status word of a `DS.toolcall` row turned cancelled without a label of the page's (the system's string `toolCancelled`) | `DS.core.config({ strings: { toolCancelled } })` |
 | `Skipped` | the line of a skipped `DS.question` card, also announced (the system's string `questionSkipped`) | `DS.core.config({ strings: { questionSkipped } })` |
 | `Choose an answer.` | the message of a `DS.question` card sent without an answer (the system's string `questionRequired`) | `DS.core.config({ strings: { questionRequired } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |

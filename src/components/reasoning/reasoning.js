@@ -59,7 +59,11 @@ function readAttributes(el) {
   };
 }
 
-function controller(el, start, signal) {
+function controller(el, start, given) {
+  // Without the signal of DS.init() (create()), destroy() ends its own.
+  const own = given ? null : new AbortController();
+  const signal = given ?? own.signal;
+
   const listeners = new Set();
   const summary = el.querySelector(':scope > summary');
   const line = summary?.querySelector('.ds-reasoning__summary') ?? null;
@@ -158,7 +162,7 @@ function controller(el, start, signal) {
       }
       if (!changed) return;
       render();
-      if (signal?.aborted) return;
+      if (signal.aborted) return;
       const detail = snapshot();
       emit(el, 'change', detail);
       listeners.forEach((fn) => fn(detail));
@@ -183,6 +187,7 @@ function controller(el, start, signal) {
       follower?.destroy();
       follower = null;
       listeners.clear();
+      own?.abort();
     },
   };
 }
@@ -199,7 +204,7 @@ define('reasoning', {
 
 /**
  * A reasoning disclosure driven from the page; the same controller the
- * attribute path makes.
+ * attribute path makes; destroy() removes its listeners.
  * @param {Element} el
  * @param {{ since?: Date|number|string, done?: boolean, total?: number, auto?: boolean }} [options]
  */

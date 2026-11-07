@@ -54,8 +54,10 @@ test('set() rolls the step, writes the thought and the tokens, and tells the pag
   await expect(run.locator('.ds-wheel__line:not([aria-hidden])')).toHaveText('Reading the device list');
   await expect(run.locator('.ds-thinking__thought')).toHaveText('Forty laptops, eleven of them older than three years');
   await expect(run.locator('.ds-thinking__tokens')).toHaveText('1.7K tokens');
-  const change = await page.evaluate(() => window.changes.at(-1));
-  expect(change).toMatchObject({ step: 'Reading the device list', tokens: 1712, done: false });
+  // One set() is one ds:change, the indicator's: the wheel inside it tells nobody.
+  const changes = await page.evaluate(() => window.changes);
+  expect(changes).toHaveLength(1);
+  expect(changes[0]).toMatchObject({ step: 'Reading the device list', tokens: 1712, done: false });
 
   await page.locator('[data-demo="finish"]').click();
   await expect(run).toHaveAttribute('data-state', 'done');

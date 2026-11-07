@@ -52,8 +52,9 @@ answers in place):
 - **With one**, the card emits `ds:answer` (cancelable) with `{ values, labels, other, skipped: false }`. A page that
   calls `preventDefault()` keeps it open and settles it later with `set({ state: 'answered' })`. Otherwise the controls
   are disabled (the choice stays in view), the actions go, the answer line says `Answered: All three` (string
-  `questionAnswered`; several labels as a list, `DS.format.list()`), takes the focus (`tabindex="-1"`) and is
-  announced; `ds:change` follows with `{ state }`.
+  `questionAnswered`; several labels as a list, `DS.format.list()`) and takes the focus (`tabindex="-1"`) when the
+  focus was in the card, so a screen reader reads it; otherwise (an answer set from the page) it is announced.
+  `ds:change` follows with `{ state }`.
 - **Skip** does the same with `skipped: true` and `Skipped` (string `questionSkipped`).
 - `set({ state: 'waiting' })` opens it again.
 - `data-ds-question-state="answered"` (or `"skipped"`) renders a question from history decided at once, with its
@@ -88,7 +89,8 @@ Exports: `DS.question.create(form)` (the controller), `DS.question.answerText(st
 
 **Accessibility.** A `<form>` named by its title; the options are a radio group (or a group of checkboxes) named by
 the same title, so a screen reader hears the question with each option. The error is tied to the group and the
-answer is announced once; focus never falls to the page when the actions go.
+answer is said once (read on the focused line, or announced when the focus was elsewhere); focus never falls to the
+page when the actions go.
 
 **Forced colours.** The frame keeps its border; the glyph follows the line's forced text colour; the cards are the
 form's.

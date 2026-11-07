@@ -2,7 +2,8 @@
  * The question card on its demo page: names and roles (a form and a radio
  * group named by the question), the error of an answer without a choice,
  * an answer by keyboard (digits, Enter) with the actions going, the
- * controls disabled, the line focused and announced once, ds:answer and
+ * controls disabled, the line focused (announced only when the focus was
+ * elsewhere), ds:answer and
  * ds:change; one's own answer, several choices, Skip, a cancelled
  * ds:answer settled by set(), a question from history, the narrow column,
  * density and shape, forced colours. Runs in the `fallback` project too.
@@ -62,7 +63,7 @@ test('an answer without a choice: the message with an icon, aria-invalid, focus 
   await expect(group).not.toHaveAttribute('aria-invalid');
 });
 
-test('keyboard: a digit picks, Enter answers; the actions go, the controls lock, the line takes focus and is spoken once', async ({ page }) => {
+test('keyboard: a digit picks, Enter answers; the actions go, the controls lock, the line takes focus and is not announced too', async ({ page }) => {
   await open(page);
   const card = page.locator(ONE);
   await listen(page, ONE);
@@ -79,7 +80,10 @@ test('keyboard: a digit picks, Enter answers; the actions go, the controls lock,
   await expect(card.getByRole('radio').nth(1)).toBeChecked();
   await expect(card.getByRole('radio').nth(1)).toBeDisabled();
   await expect(card.getByRole('textbox')).toBeDisabled();
-  await expect.poll(() => page.evaluate(() => [...new Set(window.spoken)])).toEqual(['Answered: Only LAPTOP-0007']);
+  // Read on the focused line, so not announced as well. An answer set from
+  // the page while the focus is elsewhere is announced instead.
+  await page.locator('[data-demo="many"]').evaluate((el) => DS.core.get(el, 'question').set({ state: 'skipped' }));
+  await expect.poll(() => page.evaluate(() => [...new Set(window.spoken)])).toEqual(['Skipped']);
   expect(await page.evaluate(() => window.events)).toEqual([
     ['answer', { values: ['worst'], labels: ['Only LAPTOP-0007'], other: '', skipped: false }],
     ['change', 'answered'],
@@ -139,6 +143,32 @@ test('a cancelled ds:answer keeps it open until the page settles it; a question 
     return question.get();
   });
   expect(state).toEqual({ state: 'waiting', values: ['all'], labels: ['All three'], other: '' });
+});
+
+test('create() then destroy(): digits, Skip and Enter do nothing', async ({ page }) => {
+  await open(page);
+  await page.evaluate((sel) => {
+    const copy = document.querySelector(sel).cloneNode(true);
+    copy.removeAttribute('data-ds-question');
+    copy.id = 'own';
+    // A real submit would leave the page once nothing prevents it.
+    copy.addEventListener('submit', (event) => event.preventDefault());
+    document.querySelector('#fx-component').append(copy);
+    window.answered = 0;
+    copy.addEventListener('ds:answer', () => { window.answered += 1; });
+    DS.question.create(copy).destroy();
+  }, ONE);
+  const card = page.locator('#own');
+  await card.getByRole('radio').first().focus();
+  await page.keyboard.press('2');
+  await expect(card.getByRole('radio').nth(1)).not.toBeChecked();
+  await card.getByRole('button', { name: 'Skip' }).click();
+  await card.getByRole('radio').first().check();
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(200);
+  expect(await page.evaluate(() => window.answered)).toBe(0);
+  await expect(card).toHaveAttribute('data-state', 'waiting');
+  await expect(card.locator('.ds-question__actions')).toBeVisible();
 });
 
 test('narrow and phone width: nothing overflows at 360px', async ({ page }) => {

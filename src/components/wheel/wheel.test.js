@@ -4,7 +4,7 @@
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { create, hooks, roll, turnAt } from './wheel.js';
+import { hooks, roll, turnAt } from './wheel.js';
 
 describe('DS.wheel.turnAt', () => {
   it('turns at once the first time', () => {
@@ -40,13 +40,9 @@ describe('DS.wheel.hooks', () => {
   });
 });
 
-describe('DS.wheel.roll and create without a DOM', () => {
+describe('DS.wheel.roll without a DOM', () => {
   it('does nothing without a slot', async () => {
     assert.equal(await roll(null, 'Thinking'), undefined);
     assert.equal(await roll({}, 'Thinking'), undefined);
-  });
-
-  it('exports the controller factory', () => {
-    assert.equal(typeof create, 'function');
   });
 });

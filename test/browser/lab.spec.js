@@ -721,6 +721,7 @@ const LAYERS = {
   'Tooltip warm-up': { drive: 'warm', part: '.ds-tooltip', variants: [['1', 'tooltips']] },
   Menu: { drive: 'popup', part: '#sg-lab-menu', variants: [['sg-lab-menu', 'menu']] },
   'Combobox list': { drive: 'popup', part: '.ds-combo__popup', variants: [['sg-lab-combo', 'combobox']] },
+  'Citation card': { drive: 'cite', part: '.ds-cite__card', variants: [['lab-cite-card', 'cite-card']] },
 };
 
 /**
@@ -797,6 +798,12 @@ function layerStep(page, layer, step, variant, row) {
       root = tip();
       part = root;
       done = act === 'open' ? () => root.getAttribute('data-state') === 'open' : () => root.hidden;
+    } else if (spec.drive === 'cite') {
+      // Through its marker's controller (the lab's setup made it), as a press would.
+      part = document.getElementById(id);
+      root = part;
+      stage.cite.set(act === 'open');
+      done = act === 'open' ? () => part.getAttribute('data-state') === 'open' : () => !part.hasAttribute('data-state');
     } else {
       part = stage.querySelector(spec.part);
       root = part;

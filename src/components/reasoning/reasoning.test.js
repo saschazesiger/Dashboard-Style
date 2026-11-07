@@ -7,6 +7,28 @@ import assert from 'node:assert/strict';
 import { config } from '../../js/core.js';
 import { create, summaryText } from './reasoning.js';
 
+/**
+ * A stand-in element that records its listeners: one is live until its
+ * signal aborts (one without a signal stays for good).
+ */
+function fakeElement(attributes = {}, extra = {}) {
+  const added = [];
+  const attrs = new Map(Object.entries(attributes));
+  const view = { setTimeout: () => 0, clearTimeout() {}, addEventListener() {} };
+  return {
+    live: () => added.filter((entry) => !entry.signal?.aborted).map((entry) => entry.type),
+    ownerDocument: { defaultView: view, activeElement: null, getElementById: () => null },
+    addEventListener: (type, fn, options) => added.push({ type, signal: options?.signal }),
+    getAttribute: (name) => (attrs.has(name) ? attrs.get(name) : null),
+    hasAttribute: (name) => attrs.has(name),
+    setAttribute: (name, value) => attrs.set(name, String(value)),
+    removeAttribute: (name) => attrs.delete(name),
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    ...extra,
+  };
+}
+
 describe('DS.reasoning.summaryText', () => {
   it('says Thinking while it runs and how long it took once done', () => {
     config({ locale: 'en' });
@@ -25,7 +47,12 @@ describe('DS.reasoning.summaryText', () => {
 });
 
 describe('DS.reasoning.create', () => {
-  it('is the controller factory', () => {
-    assert.equal(typeof create, 'function');
+  it('listens for the toggle until destroy()', () => {
+    const el = fakeElement();
+    const reasoning = create(el);
+    assert.deepEqual(el.live(), ['toggle']);
+    assert.equal(el.getAttribute('data-state'), 'running');
+    reasoning.destroy();
+    assert.deepEqual(el.live(), []);
   });
 });
