@@ -92,16 +92,24 @@
      the title (or the item that holds it) gives way: every other item
      keeps its width, even one wider than its content (an icon button, an
      avatar). Without one, the items shrink as flex items do, to their
-     longest word. */
+     longest word. The row tells its items through --_shrink: a :has()
+     before a combinator, or one inside the items' :not(), would make
+     Chromium restyle the whole page on any text change anywhere. */
   .ds-cluster--nowrap {
+    --_shrink: 1;
     flex-wrap: nowrap;
   }
 
-  .ds-cluster--nowrap:has(.ds-truncate) > :not(.ds-truncate, :has(.ds-truncate)) {
-    flex-shrink: 0;
+  .ds-cluster--nowrap:has(.ds-truncate) {
+    --_shrink: 0;
+  }
+
+  .ds-cluster--nowrap > :not(.ds-truncate) {
+    flex-shrink: var(--_shrink);
   }
 
   .ds-cluster--nowrap > :has(.ds-truncate) {
+    flex-shrink: 1;
     min-width: 0;
   }
 

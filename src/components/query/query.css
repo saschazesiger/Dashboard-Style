@@ -92,9 +92,17 @@
     padding-block: calc(var(--ds-space-1) - 1px);
   }
 
-  /* With tokens, the example query of the placeholder would read as one. */
-  .ds-query__box:has(> .ds-query__tokens > .ds-chip) > .ds-query__input::placeholder {
-    color: transparent;
+  /* With tokens, the example query of the placeholder would read as one.
+     The box tells its placeholder through --_placeholder: a :has() before
+     a combinator to a pseudo-element would make Chromium restyle the whole
+     page on any text change anywhere. Only the opacity, so the
+     placeholder keeps the colour its field gives it. */
+  .ds-query__box:has(> .ds-query__tokens > .ds-chip) {
+    --_placeholder: 0;
+  }
+
+  .ds-query__input::placeholder {
+    opacity: var(--_placeholder, 1);
   }
 
   .ds-query__icon {

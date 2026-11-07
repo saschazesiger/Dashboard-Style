@@ -44291,8 +44291,15 @@
       };
       const resize = more && typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(() => layout()) : null;
       resize?.observe(row);
+      // The system's own hidden helpers (data-ds-keep and aria-hidden: the
+      // fixed-origin probe DS.position puts beside the menu where anchor
+      // positioning is missing) are no change of the actions: a layout then
+      // would hide the focused More button for a moment and drop the focus to
+      // <body>.
+      const helper = (node) => node === menu || node === more || (node.nodeType === 1 && /** @type {Element} */ (node).hasAttribute('data-ds-keep') && /** @type {Element} */ (node).getAttribute('aria-hidden') === 'true');
+      const helpersOnly = (record) => record.type === 'childList' && [...record.addedNodes, ...record.removedNodes].every(helper);
       const changes = more && typeof view.MutationObserver === 'function' ? new view.MutationObserver((records) => {
-        if (records.every((record) => record.target === menu || menu.contains(record.target) || record.target === more)) return;
+        if (records.every((record) => record.target === menu || menu.contains(record.target) || record.target === more || helpersOnly(record))) return;
         relayout();
       }) : null;
       changes?.observe(actions, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['disabled', 'aria-disabled', 'aria-label'] });

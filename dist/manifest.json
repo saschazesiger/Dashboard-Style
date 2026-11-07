@@ -363,8 +363,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 6769,
-      "gzip": 1851
+      "bytes": 6821,
+      "gzip": 1860
     },
     "utilities": {
       "css": "css/components/utilities.css",
@@ -2226,6 +2226,7 @@
         "ds-stack--page"
       ],
       "attributes": [
+        "data-ds-keep",
         "data-ds-page-head",
         "data-ds-page-head-condense",
         "data-scrolled"
@@ -3157,8 +3158,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 6675,
-      "gzip": 1782
+      "bytes": 6669,
+      "gzip": 1783
     },
     "dashpanel": {
       "css": "css/components/dashpanel.css",
@@ -3666,8 +3667,8 @@
       "hooks": [],
       "ripple": false,
       "progressive": [],
-      "bytes": 4449,
-      "gzip": 1225
+      "bytes": 4436,
+      "gzip": 1230
     },
     "views": {
       "css": "css/components/views.css",
@@ -6328,8 +6329,8 @@
       "progressive": [
         "scrollbar-color"
       ],
-      "bytes": 7015,
-      "gzip": 1841
+      "bytes": 7075,
+      "gzip": 1860
     },
     "reasoning": {
       "css": "css/components/reasoning.css",
