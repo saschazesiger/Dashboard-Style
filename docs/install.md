@@ -672,6 +672,18 @@ strings a script adds have an option, so a page in another language passes its o
 | `{count} events` | the count of `DS.auditlog`, no filter set (the system's string `auditlogEvents`) | `DS.core.config({ strings: { auditlogEvents } })` |
 | `{shown} of {total} events` | the count of `DS.auditlog` while a filter is set, shown and announced (the system's string `auditlogFiltered`) | `DS.core.config({ strings: { auditlogFiltered } })` |
 | `Show {count} more` | the button of `DS.auditlog` under the list that draws the next entries past `limit` (the system's string `auditlogMore`) | `DS.core.config({ strings: { auditlogMore } })` |
+| `Show as table` | the label of the table view toggle of `DS.chart.create()` (the system's string `chartTableView`) | `DS.core.config({ strings: { chartTableView } })` |
+| `chart` | what the plot of a `DS.chart` that takes the arrow keys is (`role="application"`, `aria-roledescription`) (the system's string `chartRole`) | `DS.core.config({ strings: { chartRole } })` |
+| `Left and Right move along the points, Up and Down through the series, Page Up and Page Down jump, Home and End go to the ends.` | what the plot of a `DS.chart` describes (`aria-describedby`) (the system's string `chartKeys`) | `DS.core.config({ strings: { chartKeys } })` |
+| `Arrow keys move along the bars, Page Up and Page Down jump, Home and End go to the ends.` | the same for a horizontal bar chart (the system's string `chartKeysBars`) | `DS.core.config({ strings: { chartKeysBars } })` |
+| `Arrow keys move through the slices, Home and End go to the ends.` | the same for a donut, pie or ring (the system's string `chartKeysSlices`) | `DS.core.config({ strings: { chartKeysSlices } })` |
+| `{x}: {values}` | what a `DS.chart` announces when the keyboard moves to a point (the system's string `chartPoint`) | `DS.core.config({ strings: { chartPoint } })` |
+| `{name}: from {first} to {last}, lowest {min}, highest {max}` | the name of a `DS.chart` sparkline (the system's string `chartSummary`) | `DS.core.config({ strings: { chartSummary } })` |
+| `Total` | the sum in a stacked chart's tooltip and under a donut's figure (the system's string `chartTotal`) | `DS.core.config({ strings: { chartTotal } })` |
+| `Other` | the slice of a donut or pie that holds the fifth slice and later (the system's string `chartOther`) | `DS.core.config({ strings: { chartOther } })` |
+| `{series} shown` | what a `DS.chart` announces when a series shows again (the system's string `chartShown`) | `DS.core.config({ strings: { chartShown } })` |
+| `{series} hidden` | what a `DS.chart` announces when a series is hidden (the system's string `chartHidden`) | `DS.core.config({ strings: { chartHidden } })` |
+| `No data` | what a `DS.chart` without a value shows and is named (the system's string `chartEmpty`) | `DS.core.config({ strings: { chartEmpty } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 | `Command` | the system's string `kbdCommand`: the spoken name of ⌘ in a key combo (`DS.kbd`) on Apple systems | `DS.core.config({ strings: { kbdCommand } })` |
 | `Option` | the system's string `kbdOption`: the spoken name of ⌥ in a key combo (`DS.kbd`) on Apple systems | `DS.core.config({ strings: { kbdOption } })` |

@@ -435,6 +435,18 @@ const DEFAULT_STRINGS = Object.freeze({
   kbdThen: 'then',
   labelGroupMore: '+{count} more, show all {total}',
   labelGroupAll: 'All labels',
+  chartTableView: 'Show as table',
+  chartRole: 'chart',
+  chartKeys: 'Left and Right move along the points, Up and Down through the series, Page Up and Page Down jump, Home and End go to the ends.',
+  chartKeysBars: 'Arrow keys move along the bars, Page Up and Page Down jump, Home and End go to the ends.',
+  chartKeysSlices: 'Arrow keys move through the slices, Home and End go to the ends.',
+  chartPoint: '{x}: {values}',
+  chartSummary: '{name}: from {first} to {last}, lowest {min}, highest {max}',
+  chartTotal: 'Total',
+  chartOther: 'Other',
+  chartShown: '{series} shown',
+  chartHidden: '{series} hidden',
+  chartEmpty: 'No data',
 });
 
 /**
