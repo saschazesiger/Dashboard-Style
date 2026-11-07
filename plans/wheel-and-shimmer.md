@@ -1,7 +1,11 @@
 # Proposal: the wheel and the shimmer
 
-**Status:** proposed, not scheduled. Additive (two utility classes, a `DS.motion` export, two keyframes, hooks and
-two colour roles), so it fits a 2.x minor release and follows "Making a change" in [AGENTS.md](../AGENTS.md).
+**Status:** built in 3.0 (phase 2) as two component folders, `src/components/wheel/` and
+`src/components/shimmer/`. Where this proposal names `DS.motion.wheelHooks` and `DS.motion.wheel()`, 3.0 ships the
+component module `DS.wheel`: `DS.wheel.hooks` (the morph hooks), `DS.wheel.roll(slot, text)` (a line rolled in
+without a morph) and `DS.wheel.create(slot)` (a controller), as every 3.0 component with behaviour has its own module
+(plans/3.0-conventions.md). The shimmer's colour roles are `--ds-shimmer-glint` and `--ds-shimmer-peak`. The text
+below is the original proposal, kept for its reasoning.
 
 A project asked for a live status line that says what is running right now (a job's current step, an assistant's
 "Thinking" / "Running npm test" / "Writing") and that feels alive without a spinner or a bar. It built the two
