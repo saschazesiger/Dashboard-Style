@@ -163,7 +163,10 @@
     column-gap: var(--ds-space-1);
   }
 
-  .ds-field:has(> .ds-field__label + .ds-toggletip) > * {
+  /* What follows them spans both columns. A sibling selector: a :has()
+     before a combinator to a bare * would make Chromium restyle the whole
+     page on any text change anywhere. */
+  .ds-field > .ds-field__label + .ds-toggletip ~ * {
     grid-column: 1 / -1;
   }
 

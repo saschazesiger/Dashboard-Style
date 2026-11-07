@@ -363,8 +363,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 6769,
-      "gzip": 1851
+      "bytes": 6821,
+      "gzip": 1860
     },
     "utilities": {
       "css": "css/components/utilities.css",
@@ -3157,8 +3157,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 6675,
-      "gzip": 1782
+      "bytes": 6669,
+      "gzip": 1783
     },
     "dashpanel": {
       "css": "css/components/dashpanel.css",
@@ -3666,8 +3666,8 @@
       "hooks": [],
       "ripple": false,
       "progressive": [],
-      "bytes": 4449,
-      "gzip": 1225
+      "bytes": 4436,
+      "gzip": 1230
     },
     "views": {
       "css": "css/components/views.css",
