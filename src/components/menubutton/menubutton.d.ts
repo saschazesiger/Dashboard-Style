@@ -3,7 +3,7 @@
 /** A menu button's controller: the chosen value of a menu of radio items (else null). */
 export interface MenuButtonController {
   element: Element;
-  menu: Element | null;
+  readonly menu: Element | null;
   get(): string | null;
   set(value: string): void;
   /** 'change' after a user's pick: { value, item }. Returns the unsubscribe. */

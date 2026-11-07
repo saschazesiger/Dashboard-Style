@@ -10,13 +10,16 @@ SG_LAB.add({
   note: '<code>DS.menubutton.open()</code> and <code>close()</code>: the menu grows out of the button on the spring, the chevron (<code>.ds-chevron</code>) turns over <code>--ds-dur-medium</code>; the menu leaves with a quick fade and the chevron turns back.',
   shows: ['DS.menubutton.open', 'DS.menubutton.close', '.ds-menu-btn', '.ds-chevron', '--ds-dur-medium', '--ds-ease-spatial', '--ds-dur-instant'],
   html: '<div class="sg-popup-stage"><button class="ds-btn ds-menu-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-menubutton" data-lab-open>Sort: <span class="ds-menu-btn__value">Name</span>' +
-    '<svg class="ds-chevron ds-menu-btn__chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>' +
+    '<span data-lab-chevron></span></button>' +
     '<div class="ds-menu" role="menu" id="sg-lab-menubutton" aria-label="Sort by" data-ds-menu-checks hidden>' +
     '<button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="true" value="name"><span class="ds-menu__label">Name</span></button>' +
     '<button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="false" value="seen"><span class="ds-menu__label">Last seen</span></button>' +
     '<button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="false" value="owner"><span class="ds-menu__label">Owner</span></button></div></div>',
   height: 220,
   setup: function (stage) {
+    // The system's own glyph, as a real menu button draws it.
+    var slot = stage.querySelector('[data-lab-chevron]');
+    slot.replaceWith(DS.icons.iconElement(DS.icons.chevronDown, 16, 'ds-chevron ds-menu-btn__chevron'));
     DS.menubutton.create(stage.querySelector('[data-lab-open]'), { menu: stage.querySelector('.ds-menu') });
   },
   subject: function (stage) { return stage.querySelector('.ds-menu'); },

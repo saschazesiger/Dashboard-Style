@@ -118,6 +118,17 @@ test('a choice: the label follows the checked item, a pick sends ds:change, set(
   await expect(button.locator('.ds-menu-btn__value')).toHaveText('Owner');
   await expect(menu.locator('[value="owner"]')).toHaveAttribute('aria-checked', 'true');
   expect(await page.evaluate(() => window.__changes)).toEqual(['seen']);
+  // The page re-renders the menu (a new element, the same id): a pick in it still updates the label and sends ds:change.
+  await menu.evaluate((el) => {
+    const copy = el.cloneNode(true);
+    el.replaceWith(copy);
+    DS.init(copy.parentElement);
+  });
+  await button.click();
+  const fresh = await menuFor(page, button);
+  await fresh.getByRole('menuitemradio', { name: 'Name' }).click();
+  await expect(button.locator('.ds-menu-btn__value')).toHaveText('Name');
+  expect(await page.evaluate(() => window.__changes)).toEqual(['seen', 'name']);
 });
 
 test('blocked triggers never open: aria-disabled by click and keys, disabled not at all', async ({ page }) => {

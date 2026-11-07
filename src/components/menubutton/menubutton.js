@@ -34,7 +34,9 @@
  * value (its value attribute, else data-value, else its label) and
  * .ds-menu-btn__value shows its label. A user's pick sends ds:change
  * ({ value, item }) on the button; set() from the page sends nothing.
- * data-ds-value on the button is the initial value.
+ * data-ds-value on the button is the initial value. The menu is looked up
+ * again (and its picks listened to) when the one found is gone or was
+ * missing: a re-rendered menu keeps the label and ds:change working.
  *
  * ES2022; no progressive feature.
  */
@@ -98,9 +100,10 @@ function controller(button, options, signal) {
   const local = new AbortController();
   signal?.addEventListener('abort', () => local.abort(), { once: true });
   const on = { signal: local.signal };
-  let menu = options.menu ?? menuOf(button);
+  let menu = null;
+  /** @type {AbortController|null} */
+  let watching = null;
   const label = () => options.label ?? button.querySelector('.ds-menu-btn__value');
-  prepare(button, menu);
 
   const read = () => {
     const checked = radiosOf(menu).find((item) => item.getAttribute('aria-checked') === 'true');
@@ -125,18 +128,15 @@ function controller(button, options, signal) {
     return isOpenFor(button) ? closeOverlay(menu) : openOverlay(menu, { opener: button });
   };
 
-  if (options.value !== undefined && options.value !== null) choose(options.value);
-  else show();
-
   button.addEventListener('click', (/** @type {MouseEvent} */ event) => {
     if (event.defaultPrevented || event.detail > 1 || button.hasAttribute('data-ds-open') || blocked(button)) return;
-    menu = menu?.isConnected ? menu : menuOf(button);
+    resolve();
     toggle();
   }, on);
   button.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
     if (event.defaultPrevented || (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') || button.hasAttribute('data-ds-open')) return;
     if (event.altKey || event.ctrlKey || event.metaKey || blocked(button)) return;
-    menu = menu?.isConnected ? menu : menuOf(button);
+    resolve();
     if (!menu) return;
     event.preventDefault();
     // DS.menu reads this keydown: ArrowUp focuses the last item.
@@ -151,20 +151,50 @@ function controller(button, options, signal) {
     emit(button, 'change', detail);
     for (const fn of [...listeners]) fn(detail);
   };
-  menu?.addEventListener('ds:change', picked, on);
+  // The menu, and the pick listener on it: again when the menu named was
+  // missing or has been replaced (a re-render).
+  const use = (next) => {
+    if (next === menu) return;
+    watching?.abort();
+    watching = null;
+    menu = next;
+    if (!menu) return;
+    prepare(button, menu);
+    watching = new AbortController();
+    local.signal.addEventListener('abort', () => watching?.abort(), { once: true, signal: watching.signal });
+    menu.addEventListener('ds:change', picked, { signal: watching.signal });
+  };
+  const resolve = () => use(menu?.isConnected ? menu : options.menu?.isConnected ? options.menu : menuOf(button));
+  use(options.menu ?? menuOf(button));
+  if (!menu) prepare(button, null);
+
+  if (options.value !== undefined && options.value !== null) choose(options.value);
+  else show();
 
   return {
     element: button,
-    menu,
-    get: read,
-    set(value) { choose(value); },
+    get menu() { return menu; },
+    get() {
+      resolve();
+      return read();
+    },
+    set(value) {
+      resolve();
+      choose(value);
+    },
     on(type, fn) {
       if (type !== 'change' || typeof fn !== 'function') return () => {};
       listeners.add(fn);
       return () => listeners.delete(fn);
     },
-    open: () => (menu && !isOpenFor(button) ? openOverlay(menu, { opener: button }) : Promise.resolve()),
-    close: () => (menu && isOpenFor(button) ? closeOverlay(menu) : Promise.resolve()),
+    open() {
+      resolve();
+      return menu && !isOpenFor(button) ? openOverlay(menu, { opener: button }) : Promise.resolve();
+    },
+    close() {
+      resolve();
+      return menu && isOpenFor(button) ? closeOverlay(menu) : Promise.resolve();
+    },
     update(names) {
       if (names.includes('data-ds-value')) choose(button.getAttribute('data-ds-value'));
     },
