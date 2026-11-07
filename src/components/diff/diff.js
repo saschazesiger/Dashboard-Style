@@ -41,6 +41,11 @@
  * line numbers, a list of lines or a promise of one) the hunk header offers
  * them. A revealed run takes the focus at its first row and is announced.
  *
+ * Large diffs: a file above LARGE_FILE lines in its hunks starts folded,
+ * and a folded file renders no rows. A toggle, a fold or loaded lines render
+ * their file alone, and the word marks of a pair of lines are computed once
+ * per text.
+ *
  * Events on the element: ds:change { view, text } after set(), ds:expand
  * { file, count } after a fold opened.
  *
@@ -318,8 +323,24 @@ function markUp(html, marks, tag) {
 
 /* ── Rows ───────────────────────────────────────────── */
 
+/** The word marks of each pair of parsed lines, computed once: a re-render, a fold or a view switch reuses them. */
+const pairMarks = new WeakMap();
+
+/** words() of a removed and an added line, from the cache of the pair. */
+function pairWords(removed, added) {
+  let byAdded = pairMarks.get(removed);
+  if (!byAdded) pairMarks.set(removed, (byAdded = new WeakMap()));
+  if (!byAdded.has(added)) byAdded.set(added, words(removed.text, added.text));
+  return byAdded.get(added);
+}
+
+/** The marked lines of each hunk's list of lines, so a render reuses them. */
+const markedLines = new WeakMap();
+
 /** The lines of a hunk with the word marks of each changed pair (the i-th removal against the i-th addition of a block). */
 function marked(lines) {
+  const cached = markedLines.get(lines);
+  if (cached) return cached;
   const out = lines.map((line) => ({ ...line, marks: null }));
   for (let at = 0; at < out.length;) {
     if (out[at].kind !== 'del' && out[at].kind !== 'add') {
@@ -328,15 +349,16 @@ function marked(lines) {
     }
     const dels = [];
     const adds = [];
-    while (at < out.length && out[at].kind === 'del') dels.push(out[at++]);
-    while (at < out.length && out[at].kind === 'add') adds.push(out[at++]);
+    while (at < out.length && out[at].kind === 'del') dels.push(at++);
+    while (at < out.length && out[at].kind === 'add') adds.push(at++);
     for (let i = 0; i < Math.min(dels.length, adds.length); i += 1) {
-      const change = words(dels[i].text, adds[i].text);
+      const change = pairWords(lines[dels[i]], lines[adds[i]]);
       if (!change) continue;
-      dels[i].marks = change.removed;
-      adds[i].marks = change.added;
+      out[dels[i]].marks = change.removed;
+      out[adds[i]].marks = change.added;
     }
   }
+  markedLines.set(lines, out);
   return out;
 }
 
@@ -376,7 +398,8 @@ export function rows(file, options = {}) {
         const head = at === 0 ? 0 : context;
         const tail = end === lines.length ? 0 : context;
         const hidden = run.length - head - tail;
-        const key = `f${index}:${at}`;
+        // Keyed by the old-side number of the run's first line: lines loaded above the hunk shift no other fold.
+        const key = `f${index}:o${run[0].old}`;
         if (hidden >= MIN_FOLD && !expanded.has(key)) {
           run.slice(0, head).forEach(show);
           out.push({ type: 'fold', key, count: hidden, lines: run.slice(head, head + hidden) });
@@ -484,8 +507,19 @@ function withLoaded(file, view, fileIndex) {
 
 const STATUS_WORD = { added: 'diffFileAdded', deleted: 'diffFileDeleted', renamed: 'diffFileRenamed', copied: 'diffFileCopied' };
 
-/** The markup of one file: its header and its table. */
+/** Above this many lines in its hunks, a file starts folded: its table renders once the reader opens it. */
+const LARGE_FILE = 1000;
+
+/** The lines of a file's hunks. */
+const lineCount = (file) => file.hunks.reduce((sum, hunk) => sum + hunk.lines.length, 0);
+
+/** The markup of one file: its section around fileInner(). */
 function fileHtml(file, fileIndex, view) {
+  return `<section class="ds-diff__file" data-ds-key="${esc(`${fileIndex}:${file.path}`)}">${fileInner(file, fileIndex, view)}</section>`;
+}
+
+/** The content of one file's section: its header and its table (none while the file is folded). */
+function fileInner(file, fileIndex, view) {
   const id = `${view.id}-${fileIndex}`;
   const folded = view.folded.has(fileIndex);
   const name = file.status === 'renamed' || file.status === 'copied'
@@ -500,6 +534,9 @@ function fileHtml(file, fileIndex, view) {
   let body;
   if (file.binary || !file.hunks.length) {
     body = `<p class="ds-diff__empty">${esc(t(file.binary ? 'diffBinary' : 'diffNoChanges'))}</p>`;
+  } else if (folded) {
+    // A folded file costs nothing: its rows render when it opens.
+    body = '';
   } else {
     const split = view.mode === 'split';
     const columns = split ? 6 : 4;
@@ -513,7 +550,8 @@ function fileHtml(file, fileIndex, view) {
     body = `<table class="ds-diff__table" data-view="${split ? 'split' : 'unified'}" style="--ds-diff-digits: ${String(highest).length}"><thead class="ds-diff__cols"><tr>${heads}</tr></thead><tbody>${list.map((row) => rowHtml(row, view, file, fileIndex, columns)).join('')}</tbody></table>`;
   }
   const region = file.binary || !file.hunks.length ? '' : ` tabindex="0" role="region" aria-labelledby="${id}-name"`;
-  return `<section class="ds-diff__file" data-ds-key="${esc(`${fileIndex}:${file.path}`)}" aria-labelledby="${id}-name">${head}<div class="ds-diff__body" id="${id}-body"${region}${folded ? ' hidden' : ''}>${body}</div></section>`;
+  // One landmark per file: the body is the named region; the section around it stays unnamed (no second region).
+  return `${head}<div class="ds-diff__body" id="${id}-body"${region}${folded ? ' hidden' : ''}>${body}</div>`;
 }
 
 /* ── The controller ─────────────────────────────────── */
@@ -522,13 +560,19 @@ const VIEWS = new Set(['unified', 'split', 'auto']);
 
 function readOptions(el) {
   const context = el.getAttribute('data-ds-diff-context');
-  const heading = Number(el.getAttribute('data-ds-diff-heading'));
+  const heading = headingOf(el.getAttribute('data-ds-diff-heading'));
   return {
     view: el.getAttribute('data-ds-diff-view') ?? undefined,
     context: context === null ? undefined : context === 'all' ? 'all' : Number(context),
     language: el.getAttribute('data-ds-diff-lang') ?? undefined,
-    heading: heading >= 2 && heading <= 6 ? heading : undefined,
+    heading: heading ?? undefined,
   };
+}
+
+/** A heading level 2-6 (it goes into the markup as h<level>), else null. */
+function headingOf(value) {
+  const level = typeof value === 'number' ? value : Number(value);
+  return value !== null && value !== '' && Number.isInteger(level) && level >= 2 && level <= 6 ? level : null;
 }
 
 /** The px value of a length custom property on an element (px, rem or em), or null. */
@@ -558,7 +602,7 @@ function controller(el, start, outer) {
   const listeners = { change: new Set(), expand: new Set() };
   const source = start.fromSource ? el.querySelector(':scope > .ds-diff__source') : null;
   let text = start.text ?? source?.textContent ?? '';
-  let files = parse(text);
+  let files = [];
   let destroyed = false;
   /** The view the last render showed, so a resize renders again only when auto turns. */
   let lastMode = null;
@@ -569,7 +613,7 @@ function controller(el, start, outer) {
     mode: 'unified',
     context: start.context === 'all' ? 'all' : Number.isFinite(start.context) ? Math.max(0, start.context) : 3,
     language: start.language ?? null,
-    heading: start.heading ?? 3,
+    heading: headingOf(start.heading) ?? 3,
     own: start.highlight,
     highlight: null,
     load: typeof start.load === 'function' ? start.load : null,
@@ -578,6 +622,18 @@ function controller(el, start, outer) {
     loaded: new Map(),
     loading: new Set(),
   };
+
+  /** New text: its files, nothing opened or loaded yet; a large file starts folded. */
+  const reset = () => {
+    files = parse(text);
+    view.expanded.clear();
+    view.loaded.clear();
+    view.folded.clear();
+    files.forEach((file, index) => {
+      if (lineCount(file) > LARGE_FILE) view.folded.add(index);
+    });
+  };
+  reset();
 
   let holder = el.querySelector(':scope > .ds-diff__files');
   if (!holder) {
@@ -588,7 +644,7 @@ function controller(el, start, outer) {
 
   const modeNow = () => {
     if (view.wanted !== 'auto') return view.wanted;
-    const min = lengthOf(el, '--ds-diff-split-min') ?? 720;
+    const min = lengthOf(el, '--_split-min') ?? 720;
     return el.getBoundingClientRect().width >= min ? 'split' : 'unified';
   };
 
@@ -606,6 +662,20 @@ function controller(el, start, outer) {
       : `<p class="ds-diff__empty">${esc(t('diffNoChanges'))}</p>`;
     morphHtml(holder, html);
     if (source && !source.hidden) source.hidden = true;
+    watcher?.takeRecords();
+  };
+
+  /** One file again (a toggle, a fold, lines loaded): the rest stays as it is, unparsed and unrendered. */
+  const renderFile = (index) => {
+    if (destroyed) return;
+    const section = holder.children[index];
+    const file = files[index];
+    if (!file || !section?.classList.contains('ds-diff__file') || modeNow() !== view.mode) {
+      render();
+      return;
+    }
+    view.highlight = highlighterOf(view.own);
+    morphHtml(section, fileInner(file, index, { ...view, language: view.language ?? languageOf(file.path) }));
     watcher?.takeRecords();
   };
 
@@ -635,7 +705,7 @@ function controller(el, start, outer) {
       const index = [...holder.children].indexOf(button.closest('.ds-diff__file'));
       if (view.folded.has(index)) view.folded.delete(index);
       else view.folded.add(index);
-      render();
+      renderFile(index);
       return;
     }
     const fold = button.getAttribute('data-ds-diff-fold');
@@ -644,7 +714,7 @@ function controller(el, start, outer) {
       const shown = withLoaded(files[Number(fileIndex)], view, Number(fileIndex));
       const row = rows(shown, { view: 'unified', context: view.context }).find((item) => item.type === 'fold' && item.key === key);
       view.expanded.add(fold);
-      render();
+      renderFile(Number(fileIndex));
       if (row) reveal(Number(fileIndex), row.lines[0], row.count);
       return;
     }
@@ -656,7 +726,7 @@ function controller(el, start, outer) {
       const found = rows(withLoaded(file, view, Number(fileIndex)), { view: 'unified', context: 'all' }).find((item) => item.type === 'hunk' && item.index === hunkIndex);
       if (!found?.gap) return;
       view.loading.add(gap);
-      render();
+      renderFile(Number(fileIndex));
       const textBefore = text;
       Promise.resolve()
         .then(() => view.load({ file, path: file.path, from: found.gap.from, to: found.gap.to }))
@@ -664,13 +734,13 @@ function controller(el, start, outer) {
           view.loading.delete(gap);
           if (destroyed || text !== textBefore) return;
           const list = Array.isArray(lines) ? lines.map(String).slice(-found.gap.count) : [];
+          const old = found.gap.to - list.length + 1;
           if (list.length) {
             view.loaded.set(gap, list);
-            // The loaded lines open the hunk's first run of unchanged lines: never folded again.
-            view.expanded.add(`${fileIndex}|f${hunkIndex}:0`);
+            // The loaded lines open the hunk's first run of unchanged lines (keyed by its first old line): never folded again.
+            view.expanded.add(`${fileIndex}|f${hunkIndex}:o${old}`);
           }
-          render();
-          const old = found.gap.to - list.length + 1;
+          renderFile(Number(fileIndex));
           if (list.length) reveal(Number(fileIndex), { old, new: old + file.hunks[hunkIndex].newStart - file.hunks[hunkIndex].oldStart }, list.length);
         }, (error) => {
           view.loading.delete(gap);
@@ -690,10 +760,7 @@ function controller(el, start, outer) {
     if (!holder.isConnected || holder.parentNode !== el) el.append(holder);
     if (source && source.textContent !== text && start.fromSource) {
       text = source.textContent;
-      files = parse(text);
-      view.expanded.clear();
-      view.loaded.clear();
-      view.folded.clear();
+      reset();
     }
     render();
   }) : null;
@@ -721,10 +788,7 @@ function controller(el, start, outer) {
       let changed = false;
       if (next.text !== undefined && String(next.text) !== text) {
         text = String(next.text);
-        files = parse(text);
-        view.expanded.clear();
-        view.loaded.clear();
-        view.folded.clear();
+        reset();
         changed = true;
       }
       if (next.view !== undefined && VIEWS.has(next.view) && next.view !== view.wanted) {

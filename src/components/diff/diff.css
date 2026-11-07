@@ -49,11 +49,11 @@
  *             rules); the lines are no targets
  *   not tone: the colours are the kinds of change, each with its sign
  *
- * Accessibility: each file is a section named by its heading
- * (data-ds-diff-heading, default h3); its toggle is a disclosure button
- * named by the same heading (aria-expanded); the table has column headers
- * for screen readers; the body is a named, focusable region that scrolls
- * sideways with the arrow keys. A fold's button opens the lines and the
+ * Accessibility: each file is a section (unnamed: no landmark of its own)
+ * under its heading (data-ds-diff-heading, default h3); its toggle is a
+ * disclosure button named by the heading (aria-expanded); the table has
+ * column headers for screen readers; the body is a named, focusable region
+ * (the one landmark per file) that scrolls sideways with the arrow keys. A fold's button opens the lines and the
  * focus moves to the first of them.
  *
  * Forced colours: the colours go; the signs and words stay, inserted
@@ -79,6 +79,8 @@
   .ds-diff {
     --_bg: var(--ds-diff-bg, var(--ds-code-bg));
     --_radius: calc(var(--ds-diff-radius, var(--ds-radius-card)) * var(--ds-shape, 1));
+    /* Read by diff.js for data-ds-diff-view="auto". */
+    --_split-min: var(--ds-diff-split-min, 720px);
     display: block;
     min-inline-size: 0;
     color: var(--ds-text);

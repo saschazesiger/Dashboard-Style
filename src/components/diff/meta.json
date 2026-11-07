@@ -82,6 +82,10 @@
     "--ds-diff-sticky-top": {
       "default": "0px",
       "description": "where a file header sticks: the height of a fixed bar above the view"
+    },
+    "--ds-diff-split-min": {
+      "default": "720px",
+      "description": "the width of the view from which `data-ds-diff-view` `auto` shows the split view (px, rem or em)"
     }
   },
   "keyframes": [],

@@ -32,6 +32,10 @@ person opened stay open while the text stays the same.
   header sticks while its file scrolls under it, at `--ds-diff-sticky-top`.
 - The **body** (`.ds-diff__body`) holds the file's `.ds-diff__table`, whose `.ds-diff__cols` row names the columns
   for screen readers only.
+- **Large files**: a file with more than 1,000 lines in its hunks (a lockfile, generated code) starts folded, its
+  header and counts showing; its table renders once the reader opens it with the toggle. A folded file renders no
+  rows, and opening or folding a file, a fold or the lines loaded between hunks renders that file alone; the word
+  marks of a line pair are computed once per text.
 - **Hunk headers** (`.ds-diff__hunk`, its content in `.ds-diff__hunk-head`): the range (`@@ -1,5 +1,6 @@`,
   `.ds-diff__range`) and the section git names after it (`.ds-diff__section`, a function).
 - **Lines** (`.ds-diff__line`) with two gutters in the unified view, old and new line number (`.ds-diff__num`), a
@@ -116,10 +120,10 @@ the same one (`DS.core.get(el, 'diff')`). The data behind it is public for a pag
 - `DS.diff.rows(file, { view, context, expanded })`: the rows a view shows, folds included.
 - `DS.diff.highlighter(fn)`: above.
 
-**Accessibility.** Each file is a section named by its heading; its toggle is a disclosure button named by the same
-heading. The table has column headers for screen readers (old line, new line, change, code; in the split view before
+**Accessibility.** Each file is a section (unnamed, so not a landmark of its own) under its heading; its toggle is a
+disclosure button named by the heading. The table has column headers for screen readers (old line, new line, change, code; in the split view before
 and after), and each changed line says "Added" or "Removed" through its sign cell, so the kind never rests on colour.
-The body of each file is a focusable region named by the file that scrolls sideways with the arrow keys (`Tab`
+The body of each file is a focusable region named by the file (the one landmark per file) that scrolls sideways with the arrow keys (`Tab`
 reaches it, then the next file's toggle). A fold's button opens its lines, the first of them takes the focus (a ring
 inside the row) and the count is announced politely ("14 more lines shown").
 
@@ -127,8 +131,8 @@ inside the row) and the count is announced politely ("14 more lines shown").
 words struck through, and a hunk row keeps a rule above it. The focus ring is the system's.
 
 **Hooks**: `--ds-diff-bg`, `--ds-diff-add-bg`, `--ds-diff-del-bg`, `--ds-diff-add-word`, `--ds-diff-del-word`,
-`--ds-diff-hunk-bg`, `--ds-diff-radius`, `--ds-diff-font`, `--ds-diff-sticky-top` ([theming.md](theming.md)); and
-`--ds-diff-split-min` (720px), which the script reads for `data-ds-diff-view="auto"`. The script writes
+`--ds-diff-hunk-bg`, `--ds-diff-radius`, `--ds-diff-font`, `--ds-diff-sticky-top` and `--ds-diff-split-min` (720px;
+px, rem or em), the width from which `data-ds-diff-view="auto"` shows the split view ([theming.md](theming.md)). The script writes
 `--ds-diff-digits` (the digits of the highest line number) on each table, so the gutters fit the numbers.
 
 **Motion.** None of its own: a file's chevron turns with `.ds-chevron`, and a fold opens in one step (the rows
@@ -138,7 +142,7 @@ appear, the focus follows).
 - Diff view (`.ds-diff`, `DS.diff`): unified diff text parsed into files with headers, +/- counts, hunk headers, two
   line-number gutters, word-level marks, folded unchanged lines with their buttons, unified, split and auto views, a
   highlighter hook (`DS.diff.highlighter`, or `DS.highlight` from `ds.js`) and the lines between hunks through a
-  `load` callback. New strings `diffAdded`, `diffRemoved`, `diffStats`, `diffFileAdded`, `diffFileDeleted`,
+  `load` callback. Files above 1,000 lines start folded and render when opened. New strings `diffAdded`, `diffRemoved`, `diffStats`, `diffFileAdded`, `diffFileDeleted`,
   `diffFileRenamed`, `diffFileCopied`, `diffFileBinary`, `diffBinary`, `diffNoChanges`, `diffUntitled`,
   `diffNoNewline`, `diffExpandOne`, `diffExpand`, `diffShownOne`, `diffShown`, `diffOldLine`, `diffNewLine`,
   `diffChange`, `diffCode`, `diffOldCode`, `diffNewCode`.

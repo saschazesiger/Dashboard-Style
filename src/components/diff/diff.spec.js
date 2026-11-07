@@ -153,7 +153,9 @@ test('keyboard and names: the toggle folds the file, the body is a named region'
   const toggle = view.locator('.ds-diff__toggle');
   await expect(toggle).toHaveAccessibleName('src/a.js');
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-  await expect(view.locator('section.ds-diff__file')).toHaveAccessibleName('src/a.js');
+  // One landmark per file: the body, never the section around it too.
+  await expect(view.locator('section.ds-diff__file')).not.toHaveAttribute('aria-labelledby', /.*/);
+  await expect(view.getByRole('region')).toHaveCount(1);
   const body = view.locator('.ds-diff__body');
   await expect(body).toHaveAttribute('role', 'region');
   await expect(body).toHaveAccessibleName('src/a.js');
@@ -186,6 +188,57 @@ test('the lines between hunks: loaded by the page, shown with the focus on the f
   const numbers = await view.locator('.ds-diff__line', { hasText: 'loaded 17' }).locator('.ds-diff__num').evaluateAll((cells) => cells.map((cell) => cell.dataset.line));
   expect(numbers).toEqual(['17', '17']);
   await expect(view.locator('.ds-diff__fold')).toHaveCount(1);
+});
+
+test('a fold the reader opened stays open when the lines above its hunk load', async ({ page }) => {
+  await open(page);
+  const text = [
+    'diff --git a/src/b.js b/src/b.js',
+    '--- a/src/b.js',
+    '+++ b/src/b.js',
+    '@@ -20,16 +20,16 @@',
+    ' top',
+    '-old 1',
+    '+new 1',
+    ...Array.from({ length: 12 }, (_, i) => ` mid ${i + 1}`),
+    '-old 2',
+    '+new 2',
+    ' end',
+  ].join('\n');
+  await mount(page, text, { options: { load: 'numbered' } });
+  const view = page.locator('#probe');
+  await view.locator('.ds-diff__fold button').click();
+  await expect(view.locator('.ds-diff__fold')).toHaveCount(0);
+  const gap = view.locator('.ds-diff__hunk').first().locator('button');
+  await expect(gap).toHaveAccessibleName('Show 19 unchanged lines');
+  await gap.click();
+  await expect(view.locator('.ds-diff__line', { hasText: 'loaded 1' }).first()).toBeFocused();
+  await expect(view.locator('.ds-diff__fold')).toHaveCount(0);
+  await expect(view.locator('.ds-diff__line', { hasText: 'mid 7' })).toHaveCount(1);
+});
+
+test('a large file starts folded and renders its rows once opened; the heading level is checked', async ({ page }) => {
+  await open(page);
+  const large = ['diff --git a/package-lock.json b/package-lock.json', '--- /dev/null', '+++ b/package-lock.json', '@@ -0,0 +1,1100 @@', ...Array.from({ length: 1100 }, (_, i) => `+line ${i + 1}`)].join('\n');
+  await mount(page, `${TEXT}\n${large}`);
+  const view = page.locator('#probe');
+  const files = view.locator('.ds-diff__file');
+  await expect(files).toHaveCount(2);
+  await expect(files.nth(0).locator('.ds-diff__toggle')).toHaveAttribute('aria-expanded', 'true');
+  const toggle = files.nth(1).locator('.ds-diff__toggle');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(files.nth(1).locator('.ds-diff__body')).toBeHidden();
+  await expect(files.nth(1).locator('.ds-diff__line')).toHaveCount(0);
+  await expect(files.nth(1).locator('.ds-diff__count[data-kind="add"]')).toHaveText('+1100');
+  const first = await files.nth(0).locator('.ds-diff__line').first().elementHandle();
+  await toggle.click();
+  await expect(files.nth(1).locator('.ds-diff__line')).toHaveCount(1100);
+  // Only that file rendered: the other file's rows are the same nodes.
+  expect(await files.nth(0).locator('.ds-diff__line').first().evaluate((el, old) => el === old, first)).toBe(true);
+  // A heading option outside 2-6 goes back to h3, never into the markup.
+  await mount(page, TEXT, { options: { heading: '4 onclick=alert(1)' } });
+  await expect(page.locator('#probe h3.ds-diff__name')).toHaveCount(1);
+  await expect(page.locator('#probe [onclick]')).toHaveCount(0);
 });
 
 test('a highlighter colours the code; the word marks lie over it, the nesting whole', async ({ page }) => {
