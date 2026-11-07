@@ -234,6 +234,11 @@ function controller(el) {
       }
     }
     tail = Array.from(list.querySelectorAll('.ds-message')).at(-1) ?? null;
+    // At the end, a new line keeps the reader there before the next scroll
+    // event: WebKit clamps scrollTop silently when the content shrinks (a
+    // font swap) and fires that event late, with the next change, which
+    // followEnd() would read as the reader scrolling up.
+    if (wasAtEnd) el.scrollTop = el.scrollHeight;
     showUnread();
     correct();
   }
@@ -242,6 +247,9 @@ function controller(el) {
   mutations.observe(list, { childList: true, subtree: true });
   const sizes = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(() => correct()) : null;
   sizes?.observe(list);
+  // The load row changes the scroll height too (its button turns busy, it hides).
+  const row = el.querySelector(':scope > .ds-transcript__earlier');
+  if (row && row !== list) sizes?.observe(row);
 
   const onChange = (event) => {
     const message = event.target;

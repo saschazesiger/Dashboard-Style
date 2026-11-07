@@ -29,7 +29,9 @@ SG_LAB.add({
     field.value = on ? '/' : '';
     field.setSelectionRange(field.value.length, field.value.length);
     field.dispatchEvent(new Event('input', { bubbles: true }));
-    return DS.motion.settled(palette);
+    // Its transitions, then a frame: DS.overlay hides it and lifts the
+    // exit's inert in the same settle.
+    return DS.motion.settled(palette, { transitions: true }).then(function () { return new Promise(requestAnimationFrame); });
   },
   play: function (stage) {
     var lab = this;

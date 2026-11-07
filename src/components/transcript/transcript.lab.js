@@ -27,7 +27,10 @@ SG_LAB.add({
       message.innerHTML = '<div class="ds-message__main"><p class="ds-message__content">A new reply.</p></div>';
       stage.querySelector('.ds-transcript__list').append(message);
     } else stage.transcript.stick();
-    return DS.motion.settled(pill);
+    // The module answers the scroll and the new message a frame later; then
+    // the pill's transitions run (and a smooth scroll back, if any).
+    return new Promise(function (resolve) { requestAnimationFrame(function () { requestAnimationFrame(resolve); }); })
+      .then(function () { return DS.motion.settled(pill, { transitions: true }); });
   },
   play: function (stage) {
     var lab = this;

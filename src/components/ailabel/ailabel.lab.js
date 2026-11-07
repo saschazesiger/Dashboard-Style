@@ -17,7 +17,9 @@ SG_LAB.add({
   state: function (stage) { return stage.querySelector('.ds-ailabel__tip').getAttribute('data-state') === 'open'; },
   toggle: function (stage, on) {
     stage.ailabel.set(on);
-    return DS.motion.settled(stage.querySelector('.ds-ailabel__tip'));
+    // Its transitions, then a frame: DS.overlay hides it and lifts the
+    // exit's inert in the same settle.
+    return DS.motion.settled(stage.querySelector('.ds-ailabel__tip'), { transitions: true }).then(function () { return new Promise(requestAnimationFrame); });
   },
   play: function (stage) {
     var lab = this;
