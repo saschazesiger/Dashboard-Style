@@ -28,7 +28,8 @@
     white-space: nowrap;
   }
 
-  :where(.ds-theme) :is([data-ds-format], time[data-ds-time])[data-tip] {
+  /* :where() keeps this at one attribute (0,1,0), so .ds-value--plain wins. */
+  :where(.ds-theme) :where([data-ds-format], time[data-ds-time])[data-tip] {
     text-decoration: underline dotted;
     text-decoration-color: var(--ds-text-3);
     text-underline-offset: var(--ds-link-underline-offset);
@@ -41,7 +42,7 @@
   }
 
   @media (forced-colors: active) {
-    :where(.ds-theme) :is([data-ds-format], time[data-ds-time])[data-tip] {
+    :where(.ds-theme) :where([data-ds-format], time[data-ds-time])[data-tip] {
       text-decoration-color: CanvasText;
     }
   }

@@ -84,6 +84,22 @@ test('relative times tick on the shared clock and carry the absolute date', asyn
   expect(look).toEqual(['dotted', 'tabular-nums', 'nowrap']);
 });
 
+test('.ds-value--plain drops the underline and the help cursor of a value and of a time with a tip', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const holder = document.createElement('p');
+    holder.id = 'plain';
+    holder.innerHTML = '<span class="ds-value--plain" data-ds-format="bytes" data-ds-value="1536000"></span> '
+      + '<time class="ds-value--plain" data-ds-time datetime="2026-01-04T09:00:00Z">Jan 4</time> '
+      + '<span data-ds-format="bytes" data-ds-value="1536000"></span>';
+    document.querySelector('#fx-component').append(holder);
+  });
+  const values = page.locator('#plain > *');
+  for (const index of [0, 1, 2]) await expect(values.nth(index)).toHaveAttribute('data-tip', /\d/);
+  const look = await values.evaluateAll((all) => all.map((el) => [getComputedStyle(el).textDecorationLine, getComputedStyle(el).cursor]));
+  expect(look).toEqual([['none', 'auto'], ['none', 'auto'], ['underline', 'help']]);
+});
+
 test('forced colours: the dotted underline in the text colour', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', 'forced colours are emulated in Chromium only');
   await page.emulateMedia({ forcedColors: 'active' });
