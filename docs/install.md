@@ -398,6 +398,7 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
 | `Copy code` | the name of the copy button of a code block that `DS.markdown` writes (the system's string `copyCode`) | `DS.core.config({ strings: { copyCode } })` |
+| `Code` | the name of a code block without a language that `DS.markdown` writes (the system's string `codeBlock`) | `DS.core.config({ strings: { codeBlock } })` |
 | `Wrap lines` | the name of a code block's wrap toggle without one of its own (`DS.code`; the system's string `wrapLines`) | `DS.core.config({ strings: { wrapLines } })` |
 | `Footnotes` | the hidden heading of the footnotes `DS.markdown` writes (the system's string `footnotes`) | `DS.core.config({ strings: { footnotes } })` |
 | `Back to reference {number}` | the name of a footnote's link back (`DS.markdown`; the system's string `footnoteBack`) | `DS.core.config({ strings: { footnoteBack } })` |

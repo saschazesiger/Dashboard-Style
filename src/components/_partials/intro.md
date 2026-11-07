@@ -24,7 +24,9 @@ component live.
 | Sections of one page or record (overview, history, settings) | [Tabs](#tabs) `.ds-tabs` (ARIA tabs, or links between pages of a record) |
 | Tabs or segmented switch? | tabs change what the page shows (sections, with a panel each); a segmented switch changes how the same content shows (a mode, a view) |
 | Where the user is in a form of several steps | [Steps](#steps) `.ds-steps` (marks with labels, or `--bar`) |
-| Rendered rich text (Markdown, a help article) or a block of code | [Prose and code](#prose-and-code): `.ds-prose`, `.ds-code-block` |
+| Rendered rich text (a help article, a chat answer) | [Prose and code](#prose-and-code): `.ds-prose`; from Markdown source, untrusted too: [Markdown](#markdown) `data-ds-markdown`, `DS.markdown` |
+| A block of code (a file, a command, a response) | [Code block](#code-block): `.ds-code-block`, in a `.ds-code` frame with header, copy, line numbers, tabs and fold (`DS.code`) |
+| Code in colour | [Syntax highlighting](#syntax-highlighting): `data-ds-highlight`, `DS.highlight`, the `--ds-code-*` roles |
 | A sign-in or password page | `.ds-auth` with `.ds-auth__card` ([Page](#page)) |
 | A block of related content | [Card](#card) `.ds-card`; a quieter block inside one: `.ds-card--filled` |
 | A whole card opens something (a device, a report) | `.ds-card--interactive` on `<a>` or `<button>`, or on a `<div>` with a `.ds-card__action` link ([Card](#card)) |
@@ -133,7 +135,8 @@ and update the copy; otherwise build it in the project with the project's own cl
 
 Contents: [App frame](#app-frame) · [Page](#page) · [Tabs](#tabs) · [Steps](#steps) · [Button](#button) · [Card](#card) ·
 [Tiles](#tiles) · [Disclosure](#disclosure) · [Lists](#lists) · [Timeline](#timeline) · [Tasks](#tasks) ·
-[Prose and code](#prose-and-code) · [Empty state](#empty-state) · [Status chip](#status-chip) · [Badge](#badge) · [Alert](#alert) ·
+[Prose and code](#prose-and-code) · [Markdown](#markdown) · [Code block](#code-block) ·
+[Syntax highlighting](#syntax-highlighting) · [Empty state](#empty-state) · [Status chip](#status-chip) · [Badge](#badge) · [Alert](#alert) ·
 [Table](#table) · [Form](#form) · [Chips](#chips) · [Switch](#switch) · [Combobox](#combobox) · [Menu](#menu) ·
 [Dialog](#dialog) · [Side sheet](#side-sheet) · [Snackbar](#snackbar) · [Tooltip](#tooltip) · [Save bar](#save-bar) ·
 [Loading](#loading) · [Progress](#progress) · [Charts](#charts) · [File upload](#file-upload) ·

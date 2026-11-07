@@ -49,10 +49,10 @@
  *
  * ES2022. Progressive: none.
  */
-import { define, emit, runtime, t } from '../../js/core.js';
+import { define, emit, get, runtime, t } from '../../js/core.js';
 import { morphHtml } from '../../js/dom.js';
 import { alert, alertCircle, check, copy, cornerUpLeft, flag, icon, info, lightbulb, link } from '../../js/icons.js';
-import { highlight, language as knownLanguage } from '../highlight/highlight.js';
+import { highlight } from '../highlight/highlight.js';
 import { linesHtml } from '../code/code.js';
 
 /** The page's defaults (use()): renderer, sanitize and any render option. */
@@ -70,6 +70,8 @@ const NAMED = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: '\u00a0'
   // The punctuation a URL could hide a scheme behind.
   colon: ':', Tab: '\t', NewLine: '\n', sol: '/', lpar: '(', rpar: ')', period: '.', comma: ',', excl: '!', quest: '?', num: '#', percnt: '%', ast: '*', plus: '+', equals: '=', semi: ';', bsol: '\\' };
 const ENTITY = /&(?:#(\d{1,7})|#[xX]([\da-fA-F]{1,6})|([A-Za-z][A-Za-z\d]{1,31}));/g;
+/** The same, sticky: an entity right at a position, without a search to the end. */
+const ENTITY_AT = new RegExp(ENTITY.source, 'y');
 
 function decodeEntities(text) {
   if (!text.includes('&')) return text;
@@ -130,6 +132,10 @@ function inline(source, ctx) {
   /** @type {any[]} */
   const tokens = [];
   const brackets = [];
+  // Openers below this depth of the stack were open when a link closed: they make no link (no link inside a link).
+  let linkFloor = 0;
+  // What one scan found no end for, so a later scan stops at once and hostile input stays linear.
+  const misses = { runs: null, cursors: null, titles: new Set(), mail: -1 };
   let pos = 0;
   let plain = '';
   const flush = () => {
@@ -165,7 +171,7 @@ function inline(source, ctx) {
       const run = /`+/y;
       run.lastIndex = pos;
       const ticks = run.exec(text)[0];
-      const close = findCodeClose(text, pos + ticks.length, ticks.length);
+      const close = findCodeClose(text, pos + ticks.length, ticks.length, misses);
       if (close < 0) {
         plain += ticks;
         pos += ticks.length;
@@ -179,9 +185,9 @@ function inline(source, ctx) {
     }
 
     if (char === '&') {
-      ENTITY.lastIndex = pos;
-      const match = ENTITY.exec(text);
-      if (match && match.index === pos) {
+      ENTITY_AT.lastIndex = pos;
+      const match = ENTITY_AT.exec(text);
+      if (match) {
         plain += decodeEntities(match[0]);
         pos += match[0].length;
         continue;
@@ -210,7 +216,7 @@ function inline(source, ctx) {
 
     // GFM's extended autolinks, before emphasis can split them: at the start of a word.
     if (/[A-Za-z\d]/.test(char) && (pos === 0 || /[\s*_~(]/.test(text[pos - 1]))) {
-      const auto = extendedAt(text, pos, ctx, brackets.length > 0);
+      const auto = extendedAt(text, pos, ctx, brackets.length > 0, misses);
       if (auto) {
         flush();
         tokens.push({ type: 'autolink', value: auto.text, html: auto.html });
@@ -220,7 +226,7 @@ function inline(source, ctx) {
     }
 
     if (char === '*' || char === '_' || char === '~') {
-      const run = new RegExp(`\\${char}+`, 'y');
+      const run = DELIMITER_RUN[char];
       run.lastIndex = pos;
       const length = run.exec(text)[0].length;
       const before = pos > 0 ? text[pos - 1] : undefined;
@@ -242,24 +248,24 @@ function inline(source, ctx) {
 
     if (char === '!' && text[pos + 1] === '[') {
       flush();
-      brackets.push({ index: tokens.length, image: true, start: pos + 2, active: true });
+      brackets.push({ index: tokens.length, image: true, start: pos + 2 });
       tokens.push({ type: 'text', value: '![', bracket: true });
       pos += 2;
       continue;
     }
 
     if (char === '[') {
-      // A footnote reference: [^id] with a definition.
-      const note = /\[\^([^\]\s]+)\]/y;
-      note.lastIndex = pos;
-      const found = note.exec(text);
+      // A footnote reference: [^id] with a definition. Its number now, in the order of the source; its link when written.
+      FOOTNOTE_REF.lastIndex = pos;
+      const found = FOOTNOTE_REF.exec(text);
       if (found && ctx.footnotes.has(normalizeLabel(found[1]))) {
-        markup(footnoteRef(normalizeLabel(found[1]), ctx));
+        flush();
+        tokens.push({ type: 'fnref', id: normalizeLabel(found[1]), number: noteNumber(normalizeLabel(found[1]), ctx) });
         pos += found[0].length;
         continue;
       }
       flush();
-      brackets.push({ index: tokens.length, image: false, start: pos + 1, active: true });
+      brackets.push({ index: tokens.length, image: false, start: pos + 1 });
       tokens.push({ type: 'text', value: '[', bracket: true });
       pos += 1;
       continue;
@@ -273,13 +279,14 @@ function inline(source, ctx) {
         continue;
       }
       flush();
-      if (!opener.active) {
+      const inactive = !opener.image && brackets.length < linkFloor;
+      linkFloor = Math.min(linkFloor, brackets.length);
+      if (inactive) {
         tokens.push({ type: 'text', value: ']' });
         pos += 1;
         continue;
       }
-      const label = text.slice(opener.start, pos);
-      const target = linkTarget(text, pos + 1, label, ctx);
+      const target = linkTarget(text, pos + 1, opener.start, pos, ctx, misses);
       if (!target) {
         tokens.push({ type: 'text', value: ']' });
         pos += 1;
@@ -291,8 +298,8 @@ function inline(source, ctx) {
       emphasis(inner);
       const content = renderTokens(inner, ctx, true);
       tokens.push({ type: 'html', value: opener.image ? imageHtml(target, content, ctx) : linkHtml(target, content, ctx) });
-      // No link inside a link: earlier openers become text.
-      if (!opener.image) for (const earlier of brackets) if (!earlier.image) earlier.active = false;
+      // No link inside a link: the openers still on the stack make none.
+      if (!opener.image) linkFloor = brackets.length;
       pos = target.end;
       continue;
     }
@@ -305,12 +312,29 @@ function inline(source, ctx) {
   return renderTokens(tokens, ctx, false);
 }
 
-/** The end of a code span opened by `count` backticks: a run of exactly that many, or -1. */
-function findCodeClose(text, from, count) {
-  const run = /`+/g;
-  run.lastIndex = from;
-  for (let match = run.exec(text); match; match = run.exec(text)) if (match[0].length === count) return match.index;
-  return -1;
+const DELIMITER_RUN = { '*': /\*+/y, _: /_+/y, '~': /~+/y };
+
+/**
+ * The end of a code span opened by `count` backticks: a run of exactly that
+ * many, or -1. The runs of the text are listed once (by length, in order),
+ * so runs of every length do not each scan to the end.
+ */
+function findCodeClose(text, from, count, misses) {
+  if (!misses.runs) {
+    misses.runs = new Map();
+    for (const match of text.matchAll(/`+/g)) {
+      const list = misses.runs.get(match[0].length);
+      if (list) list.push(match.index);
+      else misses.runs.set(match[0].length, [match.index]);
+    }
+  }
+  const list = misses.runs.get(count);
+  if (!list) return -1;
+  // The openers come in order, so a cursor per length moves forward only.
+  let at = misses.cursors?.get(count) ?? 0;
+  while (at < list.length && list[at] < from) at += 1;
+  (misses.cursors ??= new Map()).set(count, at);
+  return at < list.length ? list[at] : -1;
 }
 
 const AUTOLINK_URI = /<([A-Za-z][A-Za-z\d+.-]{1,31}:[^\s<>]*)>/y;
@@ -329,12 +353,19 @@ function autolinkAt(text, pos, ctx) {
   return null;
 }
 
+/** CommonMark's limits: a label holds at most 999 characters; parentheses in a destination nest 32 deep (cmark's). */
+const LABEL_MAX = 999;
+const PAREN_MAX = 32;
+const ANGLE_DESTINATION = /<((?:[^<>\n\\]|\\[^\n])*)>/y;
+const FOOTNOTE_REF = /\[\^([^[\]\s]{1,999})\]/y;
+const unescapeText = (text) => text.replace(/\\([!-/:-@[-`{-~])/g, '$1');
+
 /**
  * What follows a closing bracket: an inline destination `(url "title")`, a
- * full `[ref]`, a collapsed `[]` or a shortcut reference. Returns { href,
- * title, end } or null.
+ * full `[ref]`, a collapsed `[]` or a shortcut reference. The link text is
+ * text[from, to). Returns { href, title, end } or null.
  */
-function linkTarget(text, at, label, ctx) {
+function linkTarget(text, at, from, to, ctx, misses) {
   if (text[at] === '(') {
     let pos = at + 1;
     const skip = () => {
@@ -343,11 +374,12 @@ function linkTarget(text, at, label, ctx) {
     skip();
     let href = '';
     if (text[pos] === '<') {
-      const close = text.indexOf('>', pos);
-      const inside = close < 0 ? null : text.slice(pos + 1, close);
-      if (inside === null || /[\n<]/.test(inside)) return null;
-      href = inside;
-      pos = close + 1;
+      // No line break and no < inside the brackets: the scan ends at the next one.
+      ANGLE_DESTINATION.lastIndex = pos;
+      const angle = ANGLE_DESTINATION.exec(text);
+      if (!angle) return null;
+      href = unescapeText(angle[1]);
+      pos += angle[0].length;
     } else {
       let depth = 0;
       const start = pos;
@@ -358,14 +390,18 @@ function linkTarget(text, at, label, ctx) {
           continue;
         }
         if (/\s/.test(char)) break;
-        if (char === '(') depth += 1;
+        if (char === '(') {
+          depth += 1;
+          // Deeper nesting is no destination; it also keeps a run of `[a](b` from scanning to the end on every bracket.
+          if (depth > PAREN_MAX) return null;
+        }
         if (char === ')') {
           if (depth === 0) break;
           depth -= 1;
         }
         pos += 1;
       }
-      href = text.slice(start, pos).replace(/\\([!-/:-@[-`{-~])/g, '$1');
+      href = unescapeText(text.slice(start, pos));
     }
     const beforeTitle = pos;
     skip();
@@ -373,31 +409,40 @@ function linkTarget(text, at, label, ctx) {
     const quote = text[pos];
     if (pos > beforeTitle && (quote === '"' || quote === "'" || quote === '(')) {
       const end = quote === '(' ? ')' : quote;
+      // A quote that found no end once finds none later either.
+      if (misses.titles.has(end)) return null;
       let close = pos + 1;
       while (close < text.length && text[close] !== end) close += text[close] === '\\' ? 2 : 1;
-      if (close >= text.length) return null;
-      title = text.slice(pos + 1, close).replace(/\\([!-/:-@[-`{-~])/g, '$1');
+      if (close >= text.length) {
+        misses.titles.add(end);
+        return null;
+      }
+      title = unescapeText(text.slice(pos + 1, close));
       pos = close + 1;
       skip();
     }
     if (text[pos] !== ')') return null;
     return { href, title, end: pos + 1 };
   }
-  // References: [text][label], [label][], [label].
+  // References: [text][label], [label][], [label]; a label longer than CommonMark's limit is none.
+  const label = to - from <= LABEL_MAX ? text.slice(from, to) : null;
   if (text[at] === '[') {
     const close = text.indexOf(']', at + 1);
-    if (close > at) {
+    if (close > at && close - at - 1 <= LABEL_MAX) {
       const ref = text.slice(at + 1, close);
-      const found = ctx.refs.get(normalizeLabel(ref || label));
+      const key = ref || label;
+      const found = key === null ? null : ctx.refs.get(normalizeLabel(key));
       if (found) return { ...found, end: close + 1 };
       if (ref) return null;
     }
   }
-  const found = ctx.refs.get(normalizeLabel(label));
+  const found = label === null ? null : ctx.refs.get(normalizeLabel(label));
   return found ? { ...found, end: at } : null;
 }
 
 function anchor(href, content, title, ctx) {
+  // An anchored heading is one link already: links inside it are their text.
+  if (ctx.bare) return content;
   const attributes = [`href="${escape(href)}"`];
   if (title) attributes.push(`title="${escape(title)}"`);
   if (isExternal(href)) {
@@ -423,16 +468,28 @@ function imageHtml(target, content, ctx) {
   return `<img src="${escape(src)}" alt="${alt}"${title} loading="lazy" decoding="async">`;
 }
 
-function footnoteRef(id, ctx) {
-  let number = ctx.noteOrder.indexOf(id) + 1;
+/** A footnote's number: the order of its first reference. */
+function noteNumber(id, ctx) {
+  let number = ctx.noteNumbers.get(id);
   if (!number) {
     ctx.noteOrder.push(id);
     number = ctx.noteOrder.length;
+    ctx.noteNumbers.set(id, number);
   }
-  const uses = (ctx.noteUses.get(id) ?? 0) + 1;
-  ctx.noteUses.set(id, uses);
-  const ref = `${ctx.prefix}fnref-${slug(id)}${uses > 1 ? `-${uses}` : ''}`;
-  return `<sup class="ds-prose__fnref"><a href="#${ctx.prefix}fn-${slug(id)}" id="${ref}" aria-describedby="${ctx.prefix}footnotes">${number}</a></sup>`;
+  return number;
+}
+
+/**
+ * A footnote reference: its number as a link to the note, ids by number (a
+ * label of punctuation alone would make no id of its own). Inside a link or
+ * an anchored heading only the number, since a link may hold no other.
+ */
+function footnoteRef(token, ctx, bare) {
+  if (bare) return `<sup class="ds-prose__fnref">${token.number}</sup>`;
+  const uses = (ctx.noteUses.get(token.id) ?? 0) + 1;
+  ctx.noteUses.set(token.id, uses);
+  const ref = `${ctx.prefix}fnref-${token.number}${uses > 1 ? `-${uses}` : ''}`;
+  return `<sup class="ds-prose__fnref"><a href="#${ctx.prefix}fn-${token.number}" id="${ref}" aria-describedby="${ctx.prefix}footnotes">${token.number}</a></sup>`;
 }
 
 /**
@@ -472,7 +529,12 @@ function emphasis(tokens) {
   }
 }
 
-const EXTENDED = /(?:https?:\/\/|www\.)[^\s<]*|[A-Za-z\d._+-]+@[A-Za-z\d_-]+(?:\.[A-Za-z\d_-]+)+/y;
+const EXTENDED_URL = /(?:https?:\/\/|www\.)[^\s<]*/y;
+// In brackets the link's text ends at ]: the autolink does too.
+const EXTENDED_URL_BRACKETED = /(?:https?:\/\/|www\.)[^\s<\]]*/y;
+const TRAILING = '?!.,:*_~\'"';
+const MAIL_LOCAL = /[A-Za-z\d._+-]+/y;
+const MAIL_DOMAIN = /@[A-Za-z\d_-]+(?:\.[A-Za-z\d_-]+)+/y;
 
 /**
  * A GFM extended autolink at `pos` (www., http://, https://, an e-mail
@@ -480,23 +542,56 @@ const EXTENDED = /(?:https?:\/\/|www\.)[^\s<]*|[A-Za-z\d._+-]+@[A-Za-z\d_-]+(?:\
  * brackets a ] ends it. Returns
  * { text, html } or null.
  */
-function extendedAt(text, pos, ctx, bracketed) {
-  EXTENDED.lastIndex = pos;
-  const match = EXTENDED.exec(text);
-  if (!match) return null;
-  // Inside brackets the link's text ends at ]: the autolink does too.
-  let url = bracketed ? match[0].split(']')[0] : match[0];
-  const mail = !/^(?:https?:\/\/|www\.)/i.test(url);
+function extendedAt(text, pos, ctx, bracketed, misses) {
+  const scheme = bracketed ? EXTENDED_URL_BRACKETED : EXTENDED_URL;
+  scheme.lastIndex = pos;
+  let url = scheme.exec(text)?.[0] ?? null;
+  const mail = url === null;
+  if (mail) {
+    // An address: its local part, then @ and a domain. Every start inside a local part that failed fails alike.
+    if (pos < misses.mail) return null;
+    MAIL_LOCAL.lastIndex = pos;
+    const local = MAIL_LOCAL.exec(text);
+    if (!local) return null;
+    MAIL_DOMAIN.lastIndex = pos + local[0].length;
+    const domain = MAIL_DOMAIN.exec(text);
+    if (!domain) {
+      misses.mail = pos + local[0].length;
+      return null;
+    }
+    url = local[0] + domain[0];
+  }
   if (mail) {
     url = url.replace(/\.+$/, '');
-    if (/[-_]$/.test(url) || !/@[^.]+\./.test(url)) return null;
-  } else {
-    for (;;) {
-      let next = url.replace(/[?!.,:*_~'"]+$/, '').replace(/&[A-Za-z\d]+;$/, '');
-      if (next.endsWith(')') && (next.match(/\(/g)?.length ?? 0) < (next.match(/\)/g)?.length ?? 0)) next = next.slice(0, -1);
-      if (next === url) break;
-      url = next;
+    if (/[-_]$/.test(url) || !/@[^.]+\./.test(url)) {
+      misses.mail = pos + url.indexOf('@');
+      return null;
     }
+  } else {
+    // From the end, each character once: trailing punctuation, an entity-like `&name;`, an unbalanced ).
+    let end = url.length;
+    let opens = 0;
+    let closes = 0;
+    for (const char of url) {
+      if (char === '(') opens += 1;
+      else if (char === ')') closes += 1;
+    }
+    for (;;) {
+      let next = end;
+      while (next > 0 && TRAILING.includes(url[next - 1])) next -= 1;
+      if (url[next - 1] === ';') {
+        let at = next - 2;
+        while (at >= 0 && /[A-Za-z\d]/.test(url[at])) at -= 1;
+        if (at < next - 2 && url[at] === '&') next = at;
+      }
+      if (url[next - 1] === ')' && opens < closes) {
+        next -= 1;
+        closes -= 1;
+      }
+      if (next === end) break;
+      end = next;
+    }
+    url = url.slice(0, end);
     if (!/[A-Za-z\d]/.test(url.replace(/^(?:https?:\/\/|www\.)/i, ''))) return null;
   }
   const href = mail ? `mailto:${url}` : /^www\./i.test(url) ? `http://${url}` : url;
@@ -510,7 +605,8 @@ function renderTokens(tokens, ctx, inLink) {
     if (token.type === 'html') out += token.value;
     else if (token.type === 'text') out += escape(token.value);
     // No link inside a link: an autolink in a link's text is text.
-    else if (token.type === 'autolink') out += inLink ? escape(token.value) : token.html;
+    else if (token.type === 'autolink') out += inLink || ctx.bare ? escape(token.value) : token.html;
+    else if (token.type === 'fnref') out += footnoteRef(token, ctx, inLink || ctx.bare);
     else out += token.before.join('') + escape(token.char.repeat(token.count)) + token.after.join('');
   }
   return out;
@@ -561,11 +657,14 @@ function cells(line) {
   return out.map((cell) => cell.trim());
 }
 
+/** How deep quotes and lists nest (cmark's and markdown-it's limit); deeper markers are paragraph text. */
+const MAX_DEPTH = 100;
+
 /**
  * The blocks of `lines` as nodes: { type, ... }. Footnote and link
- * reference definitions go into ctx.
+ * reference definitions go into ctx. `depth`: the quotes and lists around.
  */
-function blocks(lines, ctx) {
+function blocks(lines, ctx, depth = 0) {
   const nodes = [];
   let para = null;
   const close = () => {
@@ -638,7 +737,7 @@ function blocks(lines, ctx) {
       continue;
     }
 
-    if (QUOTE.test(line)) {
+    if (depth < MAX_DEPTH && QUOTE.test(line)) {
       close();
       const body = [];
       while (index < lines.length) {
@@ -650,8 +749,8 @@ function blocks(lines, ctx) {
       }
       const callout = CALLOUT.exec(body[0]?.trim() ?? '');
       nodes.push(callout
-        ? { type: 'callout', kind: callout[1].toLowerCase(), children: blocks(body.slice(1), ctx) }
-        : { type: 'quote', children: blocks(body, ctx) });
+        ? { type: 'callout', kind: callout[1].toLowerCase(), children: blocks(body.slice(1), ctx, depth + 1) }
+        : { type: 'quote', children: blocks(body, ctx, depth + 1) });
       continue;
     }
 
@@ -677,9 +776,9 @@ function blocks(lines, ctx) {
     const ordered = !bullet && ORDERED.exec(line);
     const item = bullet || ordered;
     // A list may interrupt a paragraph only with content, an ordered one only from 1.
-    if (item && (!para || ((bullet ? bullet[4] : ordered[5])?.trim() && (bullet || ordered[2] === '1')))) {
+    if (item && depth < MAX_DEPTH && (!para || ((bullet ? bullet[4] : ordered[5])?.trim() && (bullet || ordered[2] === '1')))) {
       close();
-      const list = listAt(lines, index, ctx);
+      const list = listAt(lines, index, ctx, depth);
       nodes.push(list.node);
       index = list.end;
       continue;
@@ -720,7 +819,7 @@ function blocks(lines, ctx) {
 }
 
 /** A list from `start`: its items (with their own blocks), tight or loose. */
-function listAt(lines, start, ctx) {
+function listAt(lines, start, ctx, depth) {
   const first = expandTabs(lines[start]);
   const bullet = BULLET.exec(first);
   const ordered = !bullet && ORDERED.exec(first);
@@ -775,7 +874,7 @@ function listAt(lines, start, ctx) {
       task = box[1] !== ' ';
       body[0] = body[0].slice(box[0].length);
     }
-    items.push({ task, children: blocks(body, ctx) });
+    items.push({ task, children: blocks(body, ctx, depth + 1) });
   }
   return { node: { type: 'list', ordered: Boolean(ordered), start: ordered ? Number(ordered[2]) : 1, loose, items }, end: index };
 }
@@ -790,34 +889,52 @@ const CALLOUTS = {
   caution: { tone: 'error', glyph: alertCircle, key: 'calloutCaution' },
 };
 
+/**
+ * The ids the renderer writes itself (after the prefix): footnotes, code-n,
+ * fn-n, fnref-n and fnref-n-m from the second reference on. A heading's slug
+ * never takes one; with -1 after it, it is none.
+ */
+const SYSTEM_ID = /^(?:footnotes|code-\d+|fn-\d+|fnref-\d+(?:-(?!1$)\d+)?)$/;
+
+/** A heading's id: its slug, made unique with -1, -2 ... against every id of the render. */
+function headingId(text, ctx) {
+  const base = slug(text);
+  let id = base;
+  for (let n = 1; ctx.ids.has(id) || SYSTEM_ID.test(id); n += 1) id = `${base}-${n}`;
+  ctx.ids.add(id);
+  return `${ctx.prefix}${id}`;
+}
+
 function headingHtml(node, ctx) {
   const level = Math.min(6, node.level + (ctx.options.headingOffset ?? 0));
+  // An anchored heading is a link: its own links and footnote references are written as their text.
+  ctx.bare = Boolean(ctx.options.anchors);
   const content = inline(node.text, ctx);
-  const plainText = content.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, ' ');
-  let id = `${ctx.prefix}${slug(plainText)}`;
-  const seen = ctx.slugs.get(id) ?? 0;
-  ctx.slugs.set(id, seen + 1);
-  if (seen) id = `${id}-${seen}`;
-  if (!ctx.options.anchors) return `<h${level} id="${escape(id)}">${content}</h${level}>`;
-  return `<h${level} id="${escape(id)}"><a class="ds-prose__anchor" href="#${escape(id)}">${content}${icon(link, 16)}</a></h${level}>`;
+  ctx.bare = false;
+  const id = escape(headingId(content.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, ' '), ctx));
+  if (!ctx.options.anchors) return `<h${level} id="${id}">${content}</h${level}>`;
+  return `<h${level} id="${id}"><a class="ds-prose__anchor" href="#${id}">${content}${icon(link, 16)}</a></h${level}>`;
 }
 
 function codeHtml(node, ctx) {
   const lang = node.lang;
-  const known = lang && knownLanguage(lang);
   const body = ctx.options.highlight !== false && lang ? highlight(node.text, lang) : escape(node.text);
   const cls = lang ? ` class="language-${escape(lang.replace(/[^\w+#.-]/g, ''))}"` : '';
-  if (ctx.options.code !== 'block') return `<pre><code${cls}>${body}</code></pre>`;
+  // A block can scroll: a stop of its own with a name, the language or the word for code.
+  const name = escape(lang || t('codeBlock'));
+  if (ctx.options.code !== 'block') return `<pre tabindex="0" aria-label="${name}"><code${cls}>${body}</code></pre>`;
   ctx.codes += 1;
   const id = `${ctx.prefix}code-${ctx.codes}`;
   const label = lang ? `<span class="ds-code__lang">${escape(lang)}</span>` : '';
   const copyLabel = escape(t('copyCode'));
-  // The lines as DS.code renders them, so a later render (a streamed answer) patches nothing back.
-  return `<figure class="ds-code" data-ds-code${known ? ` data-ds-code-lang="${escape(lang)}"` : ''}>`
+  // The lines as DS.code renders them, so a later render (a streamed answer) patches nothing back: the language
+  // whenever there is one, as DS.code passes it (the page's own highlighter may know what the system's does not).
+  const language = ctx.options.highlight !== false ? lang : '';
+  return `<figure class="ds-code" data-ds-code${language ? ` data-ds-code-lang="${escape(language)}"` : ''}>`
     + `<div class="ds-code__head ds-sm">${label}<span class="ds-code__actions">`
     + `<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" data-ds-copy="#${id}" aria-label="${copyLabel}" data-tip="${copyLabel}">`
     + `<span class="ds-icon-swap"><span class="ds-icon-swap__a">${icon(copy, 20)}</span><span class="ds-icon-swap__b">${icon(check, 20)}</span></span></button>`
-    + `</span></div><pre class="ds-code-block" tabindex="0"${lang ? ` aria-label="${escape(lang)}"` : ''}><code id="${id}"${cls}>${linesHtml(node.text, { language: ctx.options.highlight !== false && known ? lang : '' })}</code></pre></figure>`;
+    + `</span></div><pre class="ds-code-block" tabindex="0" aria-label="${name}"><code id="${id}"${cls}>${linesHtml(node.text, { language })}</code></pre></figure>`;
 }
 
 function listHtml(node, ctx) {
@@ -874,15 +991,16 @@ function footnotesHtml(ctx) {
     const id = ctx.noteOrder[at];
     const note = ctx.footnotes.get(id);
     const children = blocks(note.lines, ctx);
-    const uses = ctx.noteUses.get(id) ?? 1;
+    let html = children.map((child) => blockHtml(child, ctx)).join('\n');
+    // A link back for every reference written as a link (one in a link's text or an anchored heading is a bare number).
+    const uses = ctx.noteUses.get(id) ?? 0;
     const backs = Array.from({ length: uses }, (_, use) => {
-      const ref = `${ctx.prefix}fnref-${slug(id)}${use ? `-${use + 1}` : ''}`;
+      const ref = `${ctx.prefix}fnref-${at + 1}${use ? `-${use + 1}` : ''}`;
       return ` <a class="ds-prose__fnback" href="#${ref}" aria-label="${escape(t('footnoteBack', { number: at + 1 }))}">${icon(cornerUpLeft, 16)}</a>`;
     }).join('');
-    let html = children.map((child) => blockHtml(child, ctx)).join('\n');
-    if (html.endsWith('</p>')) html = `${html.slice(0, -4)}${backs}</p>`;
-    else html += `<p>${backs.trim()}</p>`;
-    items.push(`<li id="${ctx.prefix}fn-${slug(id)}">${html}</li>`);
+    if (backs && html.endsWith('</p>')) html = `${html.slice(0, -4)}${backs}</p>`;
+    else if (backs) html += `<p>${backs.trim()}</p>`;
+    items.push(`<li id="${ctx.prefix}fn-${at + 1}">${html}</li>`);
   }
   return `<section class="ds-prose__footnotes" aria-labelledby="${ctx.prefix}footnotes"><h2 class="ds-sr" id="${ctx.prefix}footnotes">${escape(t('footnotes'))}</h2>\n<ol>\n${items.join('\n')}\n</ol>\n</section>`;
 }
@@ -917,8 +1035,10 @@ export function render(source, options = {}) {
       refs: new Map(),
       footnotes: new Map(),
       noteOrder: [],
+      noteNumbers: new Map(),
       noteUses: new Map(),
-      slugs: new Map(),
+      ids: new Set(),
+      bare: false,
       codes: 0,
     };
     const tree = blocks(text.split('\n'), ctx);
@@ -970,6 +1090,8 @@ function controller(el, start, signal) {
   const write = () => {
     morphHtml(el, render(source, options));
     if (el.setAttribute) el.setAttribute('data-state', 'rendered');
+    // A code frame DS.code already runs (a streamed answer) reads its new lines: copy, get() and folding follow.
+    for (const frame of el.querySelectorAll?.('[data-ds-code]') ?? []) get(frame, 'code')?.refresh?.();
   };
   write();
   return {

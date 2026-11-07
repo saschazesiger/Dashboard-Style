@@ -101,7 +101,7 @@ code.get();
 code.select(1);                                 // the second file (ds:select { index, panel })
 code.expand(true);                              // unfold (ds:expand { expanded })
 code.wrap(true);                                // wrap (ds:wrap { wrap })
-code.refresh();                                 // after the page changed a block's data-ds-code-* attributes
+code.refresh();                                 // after the page changed a block's data-ds-code-* attributes or lines
 code.on('select', ({ index }) => { /* ... */ });
 DS.code.parseLines('2,4-6');                    // Set { 2, 4, 5, 6 }
 DS.code.linesHtml(source, { language: 'json', start: 1, marks: new Set([2]) });   // the lines' markup, for a server or a test
@@ -120,8 +120,8 @@ DS.code.linesHtml(source, { language: 'json', start: 1, marks: new Set([2]) }); 
   the tint.
 - Copy: the copy button (`DS.copy`) says "Copied" to screen readers.
 
-**Forced colours.** The block and the frame keep their edges (a transparent outline the forced colours paint), the
-header its hairline; a marked line keeps its bar, in `Highlight`; the tokens take the text colour.
+**Forced colours.** The block and the frame keep their edges (a transparent outline the forced colours paint; in a
+frame the frame is the edge, and a focused block keeps its ring), the header its hairline; a marked line keeps its bar, in `Highlight`; the tokens take the text colour.
 
 **Motion.** The fold glides: the block's height (a named exception, `meta.json`) opens over `--ds-dur-medium` on
 `--ds-ease-out` and folds over `--ds-dur-base` on `--ds-ease-in`, set by DS.code from the height it has, so a reversal
@@ -142,4 +142,5 @@ and `--ds-code-max` (the folded lines) on the frame; read them, never set them.
   `.ds-code__lang`, `.ds-code__actions`, `.ds-code__line` (`--mark`, `--inserted`, `--deleted`), `.ds-code__foot`,
   `.ds-code__expand-label`; `DS.code` (`data-ds-code`, `-lang`, `-label`, `-start`, `-mark`, `-max`, `-wrap`,
   `-remember`, `-expand`; `create`, `parseLines`, `linesHtml`). A `.ds-code-block` in prose now takes the prose's gap.
-  String `wrapLines`. Motion exception: the folded block's `height`.
+  String `wrapLines`. Motion exception: the folded block's `height`. `get()` and `refresh()` read lines the page changed
+  underneath (a streamed Markdown answer); in forced colours a focused framed block keeps its ring.

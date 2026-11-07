@@ -269,4 +269,10 @@ test('forced colours: the frame and the block keep an edge; a marked line its ba
   });
   expect(await page.locator('[data-demo="header"] mark').first().evaluate((el) => getComputedStyle(el).borderInlineStartColor)).toBe(system);
   expect(await page.locator('[data-demo="header"] mark').first().evaluate((el) => getComputedStyle(el).borderInlineStartWidth)).toBe('2px');
+  // The frame is the edge, yet a framed block that has focus keeps its ring: the block is a stop, the ring its only cue.
+  const framed = page.locator('[data-demo="header"] pre.ds-code-block');
+  expect(await framed.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('none');
+  await focusByKeyboard(page, framed);
+  expect(await framed.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('solid');
+  expect(await framed.evaluate((el) => getComputedStyle(el).outlineWidth)).toBe('2px');
 });

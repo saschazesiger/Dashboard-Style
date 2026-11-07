@@ -47,7 +47,8 @@
  * class, --ds-code-max and --ds-code-digits) it claims through
  * DS.dom.own(), so a page that re-renders with DS.dom.morphHtml keeps it;
  * the lines a page writes as linesHtml() writes them patch to nothing (a
- * streamed DS.markdown answer).
+ * streamed DS.markdown answer), and get() and refresh() read lines a page
+ * changed underneath as the new code.
  *
  * Events on the root: ds:change { code, index } after set(), ds:select
  * { index, panel } after a tab changes, ds:expand { expanded }, ds:wrap
@@ -179,6 +180,14 @@ function controller(root, options, signal) {
   });
   if (options.code !== undefined && panels[0]) panels[0].source = String(options.code);
 
+  /**
+   * The page may change the lines underneath (a streamed DS.markdown answer morphs the frame): when the text is no
+   * longer what the last render wrote, the text is the source again.
+   */
+  const sync = (panel) => {
+    if (panel.text !== undefined && panel.code.textContent !== panel.text) panel.source = panel.code.textContent;
+  };
+
   const tablist = root.querySelector('[role="tablist"]');
   const tabs = tablist ? Array.from(tablist.querySelectorAll('[role="tab"]')) : [];
   const tabOf = (panel) => tabs.find((tab) => tab.getAttribute('aria-controls') === panel.pre.id) ?? null;
@@ -191,6 +200,7 @@ function controller(root, options, signal) {
     const marks = parseLines(panel.pre.getAttribute('data-ds-code-mark') ?? (panels.length === 1 ? root.getAttribute('data-ds-code-mark') : null));
     const first = Number.isInteger(start) ? start : 1;
     morphHtml(panel.code, linesHtml(panel.source, { language: lang, start: first, marks }));
+    panel.text = panel.code.textContent;
     const count = panel.code.childElementCount;
     panel.lines = count;
     panel.pre.style.setProperty('--ds-code-digits', String(String(first + Math.max(count, 1) - 1).length));
@@ -362,10 +372,16 @@ function controller(root, options, signal) {
   writeState();
 
   return {
-    get() { return active()?.source ?? ''; },
+    get() {
+      const panel = active();
+      if (!panel) return '';
+      sync(panel);
+      return panel.source;
+    },
     set(next) {
       const panel = active();
       if (!panel) return;
+      sync(panel);
       const text = String(next ?? '');
       if (text === panel.source) return;
       panel.source = text;
@@ -383,6 +399,7 @@ function controller(root, options, signal) {
     wrap(on = true) { setWrap(on); },
     /** Reads the blocks' attributes again (language, start, marks, max) and renders. */
     refresh() {
+      panels.forEach(sync);
       panels.forEach(render);
       head();
       writeState();

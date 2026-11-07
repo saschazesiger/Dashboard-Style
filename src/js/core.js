@@ -152,6 +152,7 @@ const DEFAULT_STRINGS = Object.freeze({
   dragDroppedZone: 'Dropped {label} in {zone}, position {position} of {total}.',
   dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
   copyCode: 'Copy code',
+  codeBlock: 'Code',
   wrapLines: 'Wrap lines',
   footnotes: 'Footnotes',
   footnoteBack: 'Back to reference {number}',

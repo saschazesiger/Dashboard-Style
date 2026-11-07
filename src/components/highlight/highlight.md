@@ -86,8 +86,9 @@ view.destroy();                                   // the plain text again
 - `DS.highlight.create(el, { code, language })` returns the controller (`get`, `set`, `on('change')`, `destroy`);
   `destroy()` puts the plain text back.
 
-**Speed.** One pass with one combined expression per language: 2,000 lines of JavaScript take a few tens of
-milliseconds; the code block (`DS.code`) renders only once per change.
+**Speed.** One pass with one combined expression per language, linear in the code, long single lines included (it
+also colours untrusted code, a `DS.markdown` answer): 2,000 lines of JavaScript take a few tens of milliseconds; the
+code block (`DS.code`) renders only once per change.
 
 **Accessibility.** Colour only: the code reads the same to a screen reader, and nothing in it is a stop of its own.
 Every code role reaches 4.5:1 on `--ds-code-bg` in the light and the dark scheme, 7:1 under `themes/contrast.css`.
@@ -104,4 +105,5 @@ diff stay.
   `languages`, `register`, `use`, `create`, `KINDS`) with tokenizers for json, js, ts, sh, html, xml, css, sql, yaml,
   go, py and diff; the token classes `.ds-highlight__*`; the colour roles `--ds-code-keyword`, `--ds-code-string`,
   `--ds-code-number`, `--ds-code-comment`, `--ds-code-function`, `--ds-code-type`, `--ds-code-property`,
-  `--ds-code-meta`, `--ds-code-inserted`, `--ds-code-deleted` (light, dark and contrast values).
+  `--ds-code-meta`, `--ds-code-inserted`, `--ds-code-deleted` (light, dark and contrast values). Linear time, long single
+  lines included.

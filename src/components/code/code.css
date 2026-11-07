@@ -335,7 +335,8 @@
       outline: 1px solid transparent;
     }
 
-    .ds-code > .ds-code-block {
+    /* The frame is the edge; a framed block's own focus ring stays. */
+    .ds-code > .ds-code-block:not(:focus-visible) {
       outline: 0;
     }
 

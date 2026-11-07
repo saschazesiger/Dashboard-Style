@@ -18,7 +18,8 @@
  * a function of the match (an identifier becomes a keyword, a function, a
  * type or a property by what stands around it; a tag splits into its
  * parts; a regular expression literal is told from a division). One pass,
- * no backtracking across tokens: 2,000 lines take a few milliseconds.
+ * no backtracking across tokens, linear in the code (long single lines
+ * too): 2,000 lines take tens of milliseconds.
  *
  * Kinds, each a class .ds-highlight__<kind> coloured by a --ds-code-* role
  * (highlight.css): keyword, string, number, comment, function, type,
@@ -143,10 +144,29 @@ const NEXT_CALL = /[ \t]*(?:<[\w$<>, \t[\]]*>)?\(/y;
 const NEXT_COLON = /[ \t]*:(?!:)/y;
 const NEXT_WORD = /[ \t]+[A-Za-z_$]/y;
 
-/** The kind of `[a-z]...` at the start of a line or a command (sh). */
-function lineStart(code, index) {
-  const from = code.lastIndexOf('\n', index - 1) + 1;
-  return /^[ \t]*(?:\$[ \t]+)?$/.test(code.slice(from, index));
+/**
+ * Whether only blanks, or a `$ ` prompt, stand between the line's start and
+ * `index` (sh: a word there is a command). The state of the line goes along
+ * with the run, character by character, since a run asks in order: a long
+ * line costs its length once, not once per word.
+ */
+function lineStart(state, index) {
+  const data = state.data;
+  if (data.lineAt === undefined || index < data.lineAt) {
+    data.lineAt = state.code.lastIndexOf('\n', index - 1) + 1;
+    data.line = 'start';
+  }
+  const code = state.code;
+  // start: blanks only; dollar: a $ after them; prompt: blanks after the $; other: anything else.
+  for (let at = data.lineAt; at < index; at += 1) {
+    const char = code[at];
+    const blank = char === ' ' || char === '\t';
+    if (char === '\n') data.line = 'start';
+    else if (data.line === 'start') data.line = blank ? 'start' : char === '$' ? 'dollar' : 'other';
+    else if (data.line === 'dollar' || data.line === 'prompt') data.line = blank ? 'prompt' : 'other';
+  }
+  data.lineAt = index;
+  return data.line === 'start' || data.line === 'prompt';
 }
 
 /* ── Languages ──────────────────────────────────────── */
@@ -232,8 +252,9 @@ const SH_RULES = [
   ['attribute', /(?<=[\s=])--?[A-Za-z][\w-]*/],
   ['number', /(?<![\w./:-])\d+(?:\.\d+)?(?![\w./:-])/],
   [(word, state, index) => {
-    if (SH_KEYWORDS.has(word) && (lineStart(state.code, index) || SH_COMMAND_AFTER.test(state.prev?.text ?? ''))) return 'keyword';
-    if (lineStart(state.code, index) || SH_COMMAND_AFTER.test(state.prev?.text ?? '')) return 'function';
+    const command = lineStart(state, index) || SH_COMMAND_AFTER.test(state.prev?.text ?? '');
+    if (SH_KEYWORDS.has(word) && command) return 'keyword';
+    if (command) return 'function';
     return null;
   }, /[A-Za-z_.\/~][\w./~+-]*/],
   ['punctuation', /[(){}[\]]/],
@@ -400,16 +421,25 @@ const SQL_RULES = [
 /** Where a plain scalar starts: after a key's colon, a list item's dash, a flow bracket or comma, or a line's indent. */
 const YAML_SCALAR_START = '(?<=(?:^[ \\t]*(?:-[ \\t]+)*|(?:^|[ \\t])-[ \\t]+|:[ \\t]+|[[,{][ \\t]*))';
 const YAML_SCALAR_END = '(?=[ \\t]*(?:#|$|,[ \\t]|\\]|\\}))';
+/** The dashes of the list items that open a line, each punctuation, in one token: the rules after them look back over a run once. */
+const yamlItems = (text) => text.split(/(-)/).filter(Boolean).map((part) => [part === '-' ? 'punctuation' : null, part]);
+
 const YAML_RULES = [
   ['comment', /(?<=^|[ \t])#[^\n]*/],
   ['meta', /^(?:---|\.\.\.)(?=[ \t]|$)/],
-  ['property', /(?<=^[ \t]*(?:-[ \t]+)*|[{,][ \t]*)(?:"(?:[^"\\\n]|\\.)*"|'(?:[^'\n]|'')*'|[^\s#'"{}[\],:&*!|>%@`-](?:[^\n:#]|:(?=\S)|(?<=\S)#)*?|-[^\s#:][^\n:#]*?)(?=[ \t]*:(?:[ \t]|$))/],
+  [yamlItems, /^[ \t]*-(?:[ \t]+-)*(?=[ \t]|$)/],
+  ['property', /(?<=^[ \t]*(?:-[ \t]+)*)(?:"(?:[^"\\\n]|\\.)*"|'(?:[^'\n]|'')*'|[^\s#'"{}[\],:&*!|>%@`-](?:[^\n:#]|:(?=\S)|(?<=\S)#)*?|-[^\s#:][^\n:#]*?)(?=[ \t]*:(?:[ \t]|$))/],
+  // A key in a flow collection ends at the next , [ ] { or }: the search for its colon stops there too.
+  ['property', /(?<=[{,][ \t]*)(?:"(?:[^"\\\n]|\\.)*"|'(?:[^'\n]|'')*'|[^\s#'"{}[\],:&*!|>%@`-](?:[^\n:#,[\]{}]|:(?=[^\s,[\]{}])|(?<=\S)#)*?|-[^\s#:,[\]{}][^\n:#,[\]{}]*?)(?=[ \t]*:(?:[ \t]|$))/],
   ['string', /"(?:[^"\\\n]|\\[\s\S])*"?|'(?:[^'\n]|'')*'?/],
   ['meta', /[&*][\w-]+/],
   ['type', /!!?[\w-]*/],
   ['punctuation', /(?<=^[ \t]*(?:-[ \t]+)*)-(?=[ \t]|$)|(?<=:[ \t]+)[|>][+-]?\d*(?=[ \t]*(?:#|$))|[{}[\],]|:(?=[ \t]|$)/],
   ['constant', new RegExp(`${YAML_SCALAR_START}(?:true|false|null|yes|no|on|off|~)${YAML_SCALAR_END}`, 'i')],
   ['number', new RegExp(`${YAML_SCALAR_START}[-+]?(?:0x[\\da-fA-F]+|0o[0-7]+|\\d[\\d_]*(?:\\.\\d*)?(?:[eE][+-]?\\d+)?|\\.inf|\\.nan)${YAML_SCALAR_END}`, 'i')],
+  // Blanks (and dashes between them) as one plain token, last: no rule starts inside a run, so the lookbehinds above
+  // scan a long run once rather than at every position in it.
+  [null, /[ \t]+(?:-[ \t]+)*/],
 ];
 
 const GO_KEYWORDS = words(`break case chan const continue default defer else fallthrough for func go goto if import interface

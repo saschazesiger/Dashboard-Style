@@ -7,6 +7,7 @@
 import { describe, it, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { render, slug, use } from './markdown.js';
+import { use as highlighter } from '../highlight/highlight.js';
 
 const one = (source, options) => render(source, options).trim();
 
@@ -25,6 +26,31 @@ describe('blocks', () => {
   it('heading anchors: the text links to the heading, the icon hidden', () => {
     const html = one('## Before you start', { anchors: true });
     assert.match(html, /^<h2 id="before-you-start"><a class="ds-prose__anchor" href="#before-you-start">Before you start<svg [^>]*aria-hidden="true"/);
+  });
+
+  it('heading anchors hold no other link: links, autolinks and footnote references are their text', () => {
+    const html = render('## See [docs](https://example.com) or <https://example.com/a>, www.example.com and a note[^1]\n\n[^1]: Text.', { anchors: true });
+    const heading = /<h2[^]*?<\/h2>/.exec(html)[0];
+    assert.equal((heading.match(/<a\b/g) ?? []).length, 1, heading);
+    assert.match(heading, /^<h2 id="[^"]+"><a class="ds-prose__anchor" href="#[^"]+">See docs or https:\/\/example\.com\/a, www\.example\.com and a note<sup class="ds-prose__fnref">1<\/sup><svg/);
+    assert.ok(html.includes('<li id="fn-1"><p>Text.</p></li>'), 'a note referenced only as a number has no link back');
+    assert.equal(one('## See [docs](/x)'), '<h2 id="see-docs">See <a href="/x">docs</a></h2>', 'without anchors the link stays');
+  });
+
+  it('a footnote reference in a link\'s text is its number alone', () => {
+    const html = render('[see[^1]](/x)\n\n[^1]: Text.');
+    assert.ok(html.startsWith('<p><a href="/x">see<sup class="ds-prose__fnref">1</sup></a></p>'), html);
+  });
+
+  it('ids never collide: heading slugs, repeats, the code and footnote ids', () => {
+    assert.equal(one('# Setup\n# Setup 1\n# Setup'), '<h1 id="setup">Setup</h1>\n<h1 id="setup-1">Setup 1</h1>\n<h1 id="setup-2">Setup</h1>');
+    const code = render('## Code 1\n\n```js\nx\n```', { code: 'block', idPrefix: 'm-' });
+    assert.ok(code.includes('<h2 id="m-code-1-1">') && code.includes('<code id="m-code-1"') && code.includes('data-ds-copy="#m-code-1"'), code);
+    const notes = render('## Footnotes\n\n## fn-1\n\n## fnref-1\n\nA[^!] B[^?]\n\n[^!]: one\n[^?]: two', { idPrefix: 'm-' });
+    for (const id of ['m-footnotes', 'm-fn-1', 'm-fn-2', 'm-fnref-1', 'm-fnref-2', 'm-footnotes-1', 'm-fn-1-1', 'm-fnref-1-1']) {
+      assert.equal(notes.split(`id="${id}"`).length, 2, `${id} once: ${notes}`);
+    }
+    assert.ok(notes.includes('href="#m-fn-1"') && notes.includes('href="#m-fn-2"'), 'two labels that slug alike keep two notes');
   });
 
   it('paragraphs, soft and hard breaks; breaks makes every break hard', () => {
@@ -58,18 +84,30 @@ describe('blocks', () => {
   });
 
   it('code: fenced with a language (highlighted), tildes, indented, an unclosed fence runs to the end', () => {
-    assert.equal(one('```js\nconst a = 1;\n```'), '<pre><code class="language-js"><span class="ds-highlight__keyword">const</span> a <span class="ds-highlight__operator">=</span> <span class="ds-highlight__number">1</span><span class="ds-highlight__punctuation">;</span></code></pre>');
-    assert.equal(one('~~~\n<b>\n~~~'), '<pre><code>&lt;b&gt;</code></pre>');
-    assert.equal(one('    indented\n    code'), '<pre><code>indented\ncode</code></pre>');
-    assert.equal(one('```\nopen'), '<pre><code>open</code></pre>');
-    assert.equal(one('```js\nconst a\n```', { highlight: false }), '<pre><code class="language-js">const a</code></pre>');
-    assert.equal(one('``` js extra words\nx\n```', { highlight: false }), '<pre><code class="language-js">x</code></pre>');
+    assert.equal(one('```js\nconst a = 1;\n```'), '<pre tabindex="0" aria-label="js"><code class="language-js"><span class="ds-highlight__keyword">const</span> a <span class="ds-highlight__operator">=</span> <span class="ds-highlight__number">1</span><span class="ds-highlight__punctuation">;</span></code></pre>');
+    assert.equal(one('~~~\n<b>\n~~~'), '<pre tabindex="0" aria-label="Code"><code>&lt;b&gt;</code></pre>', 'a block can scroll: a stop with a name');
+    assert.equal(one('    indented\n    code'), '<pre tabindex="0" aria-label="Code"><code>indented\ncode</code></pre>');
+    assert.equal(one('```\nopen'), '<pre tabindex="0" aria-label="Code"><code>open</code></pre>');
+    assert.equal(one('```js\nconst a\n```', { highlight: false }), '<pre tabindex="0" aria-label="js"><code class="language-js">const a</code></pre>');
+    assert.equal(one('``` js extra words\nx\n```', { highlight: false }), '<pre tabindex="0" aria-label="js"><code class="language-js">x</code></pre>');
   });
 
   it('code: a frame with a header and a copy button for DS.code', () => {
     const html = one('```py\nprint(1)\n```', { code: 'block', idPrefix: 'm1-' });
     assert.match(html, /^<figure class="ds-code" data-ds-code data-ds-code-lang="py"><div class="ds-code__head ds-sm"><span class="ds-code__lang">py<\/span>/);
     assert.ok(html.includes('data-ds-copy="#m1-code-1"') && html.includes('aria-label="Copy code"') && html.includes('<code id="m1-code-1" class="language-py"><span class="ds-code__line" data-line="1"><span class="ds-highlight__function">print</span>'));
+    assert.ok(html.includes('<pre class="ds-code-block" tabindex="0" aria-label="py">'));
+    assert.ok(one('```\nx\n```', { code: 'block' }).includes('<pre class="ds-code-block" tabindex="0" aria-label="Code">'), 'a block without a language is named too');
+  });
+
+  it('code frame: a language the system does not know goes to the page\'s highlighter, as DS.code passes it', () => {
+    highlighter((code, language) => (language === 'rust' ? `<b>${code}</b>` : null));
+    try {
+      const html = one('```rust\nfn main\n```', { code: 'block', idPrefix: 'r-' });
+      assert.ok(html.includes('data-ds-code-lang="rust"') && html.includes('<span class="ds-code__line" data-line="1"><b>fn main</b></span>'), html);
+    } finally {
+      highlighter(null);
+    }
   });
 
   it('thematic breaks; a table with alignment, escaped pipes and short rows', () => {
@@ -144,13 +182,13 @@ describe('inlines', () => {
 
   it('footnotes: numbered in order of reference, a hidden heading, links back for every reference', () => {
     const html = render('A[^b] and B[^a] and A again[^b].\n\n[^a]: Note *a*.\n[^b]: Note b.', { idPrefix: 'm-' });
-    assert.ok(html.includes('<sup class="ds-prose__fnref"><a href="#m-fn-b" id="m-fnref-b" aria-describedby="m-footnotes">1</a></sup>'));
-    assert.ok(html.includes('<sup class="ds-prose__fnref"><a href="#m-fn-a" id="m-fnref-a" aria-describedby="m-footnotes">2</a></sup>'));
-    assert.ok(html.includes('id="m-fnref-b-2"'));
+    assert.ok(html.includes('<sup class="ds-prose__fnref"><a href="#m-fn-1" id="m-fnref-1" aria-describedby="m-footnotes">1</a></sup>'), 'ids by number');
+    assert.ok(html.includes('<sup class="ds-prose__fnref"><a href="#m-fn-2" id="m-fnref-2" aria-describedby="m-footnotes">2</a></sup>'));
+    assert.ok(html.includes('id="m-fnref-1-2"'));
     assert.ok(html.includes('<section class="ds-prose__footnotes" aria-labelledby="m-footnotes"><h2 class="ds-sr" id="m-footnotes">Footnotes</h2>'));
-    assert.ok(html.indexOf('id="m-fn-b"') < html.indexOf('id="m-fn-a"'), 'notes in the order of their references');
-    assert.ok(html.includes('href="#m-fnref-b-2" aria-label="Back to reference 1"'));
-    assert.ok(html.includes('<p>Note <em>a</em>. <a class="ds-prose__fnback" href="#m-fnref-a" aria-label="Back to reference 2">'));
+    assert.ok(html.indexOf('<li id="m-fn-1"><p>Note b.') > 0 && html.indexOf('id="m-fn-1"') < html.indexOf('id="m-fn-2"'), 'notes in the order of their references');
+    assert.ok(html.includes('href="#m-fnref-1-2" aria-label="Back to reference 1"'));
+    assert.ok(html.includes('<p>Note <em>a</em>. <a class="ds-prose__fnback" href="#m-fnref-2" aria-label="Back to reference 2">'));
     assert.equal(one('An [^undefined] reference.'), '<p>An [^undefined] reference.</p>');
     assert.equal(one('[^unused]: never referenced'), '', 'a note nobody references is not written');
   });
@@ -225,12 +263,47 @@ describe('slug', () => {
 });
 
 describe('robustness', () => {
-  it('renders hostile nesting and long runs in linear time', () => {
-    for (const source of ['*'.repeat(20000), '['.repeat(20000), '> '.repeat(2000) + 'x', '- '.repeat(500) + 'x', '`'.repeat(20000), 'a'.repeat(5000) + '_'.repeat(5000), '**a'.repeat(5000)]) {
-      const start = performance.now();
-      render(source);
-      assert.ok(performance.now() - start < 5000, `${source.slice(0, 12)}...: ${(performance.now() - start).toFixed(0)}ms`);
+  // Each a source of `n` characters that once took quadratic time (seconds at 100 KB) or overflowed the stack.
+  const HOSTILE = {
+    'unclosed destinations': (n) => '[a](b'.repeat(n / 5),
+    'brackets': (n) => '['.repeat(n / 2) + ']'.repeat(n / 2),
+    'unclosed titles': (n) => '[a](b ('.repeat(n / 7),
+    'angle destinations': (n) => '[a](<b'.repeat(n / 6),
+    'links in brackets': (n) => '['.repeat(n / 2) + '[a](b)'.repeat(n / 12),
+    'entities': (n) => '&a'.repeat(n / 2),
+    'code span runs': (n) => Array.from({ length: Math.floor(Math.sqrt(2 * n)) }, (_, i) => `${'`'.repeat(i + 1)}a`).join(''),
+    'addresses': (n) => 'a_'.repeat(n / 2),
+    'autolinks in brackets': (n) => '['.repeat(n / 2) + '(www.a]'.repeat(n / 14),
+    'autolink tails': (n) => `www.a${'&b;.)'.repeat(n / 5)}`,
+    'footnote openers': (n) => '[^a'.repeat(n / 3),
+    'nested lists': (n) => `${'- '.repeat(n / 2)}x`,
+    'nested quotes': (n) => `${'>'.repeat(n)} x`,
+    'nested list lines': (n) => Array.from({ length: Math.floor(Math.sqrt(n)) }, (_, i) => `${'  '.repeat(i)}- x`).join('\n'),
+    'emphasis': (n) => '*a**b***c'.repeat(n / 9),
+    'runs': (n) => '*'.repeat(n),
+    'underscores': (n) => 'a'.repeat(n / 2) + '_'.repeat(n / 2),
+  };
+  /** The faster of two runs, in ms. */
+  const time = (source) => Math.min(...[0, 1].map(() => {
+    const start = performance.now();
+    render(source, { anchors: true, code: 'block' });
+    return performance.now() - start;
+  }));
+
+  it('renders hostile input in linear time and never overflows the stack', () => {
+    for (const [name, make] of Object.entries(HOSTILE)) {
+      const small = time(make(25000));
+      const large = time(make(100000));
+      // Linear: four times the text, about four times the time (quadratic would be sixteen). Fast is fine whatever the ratio.
+      assert.ok(large < 250 || large < small * 8 + 50, `${name}: 25 KB ${small.toFixed(0)}ms, 100 KB ${large.toFixed(0)}ms`);
     }
+  });
+
+  it('nests quotes and lists 100 deep; deeper markers are text', () => {
+    const html = render(`${'> '.repeat(150)}x`);
+    assert.equal(html.split('<blockquote>').length - 1, 100);
+    assert.ok(html.includes(`<p>${'&gt; '.repeat(49)}&gt; x</p>`), html.slice(-400));
+    assert.equal(render(`${'- '.repeat(150)}x`).split('<ul>').length - 1, 100);
   });
 
   it('takes CRLF, a NUL, an empty source', () => {

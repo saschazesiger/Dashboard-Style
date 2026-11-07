@@ -2,8 +2,9 @@
  * Markdown on its demo: the live editor renders in place (DS.dom.morphHtml
  * keeps the nodes), the attribute path with anchors, hostile input as text,
  * a streamed answer in compact prose with code blocks that DS.code takes
- * over, footnotes and anchors by keyboard, the source readable before the
- * module runs. Runs in the `fallback` project too.
+ * over (and the lines later chunks bring), footnotes and anchors by
+ * keyboard, an anchored heading without nested links, the source readable
+ * before the module runs. Runs in the `fallback` project too.
  */
 import { test, expect } from '../../../test/browser/base-test.js';
 import { ready, focusByKeyboard } from '../../../test/browser/helpers/motion.js';
@@ -99,6 +100,51 @@ test('a streamed answer: compact prose, code blocks in a frame DS.code takes ove
   expect(await frame.locator('[data-ds-copy]').getAttribute('data-ds-copy')).toBe(`#${id}`);
   await expect(frame.locator('[data-ds-copy]')).toHaveAccessibleName('Copy code');
   await expect(answer.locator('ol > li')).toHaveCount(3);
+});
+
+test('an anchored heading holds no other link: the parsed page has no link inside a link', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(() => {
+    const el = document.createElement('div');
+    el.className = 'ds-prose';
+    document.getElementById('fx-component').append(el);
+    const view = DS.markdown.create(el, { anchors: true, source: '## See [docs](https://example.com) now[^1]\n\n[see[^1]](/x)\n\n[^1]: A note.' });
+    const heading = el.querySelector('h2');
+    const out = {
+      nested: el.querySelectorAll('a a').length,
+      anchors: heading.querySelectorAll('a').length,
+      text: heading.querySelector('.ds-prose__anchor').textContent,
+      icon: Boolean(heading.querySelector('.ds-prose__anchor > svg')),
+    };
+    view.destroy();
+    el.remove();
+    return out;
+  });
+  expect(result).toEqual({ nested: 0, anchors: 1, text: 'See docs now1', icon: true });
+});
+
+test('a streamed code block: DS.code reads the lines the next chunk brings, so get(), copy and refresh() have them all', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(async () => {
+    const el = document.createElement('div');
+    el.className = 'ds-prose';
+    document.getElementById('fx-component').append(el);
+    const view = DS.markdown.create(el, { code: 'block', source: '```js\nconst a' });
+    const figure = el.querySelector('[data-ds-code]');
+    DS.init(el);
+    const code = await new Promise((resolve) => {
+      const wait = () => (DS.core.get(figure, 'code') ? resolve(DS.core.get(figure, 'code')) : requestAnimationFrame(wait));
+      wait();
+    });
+    view.set('```js\nconst a = 1;\nconst b = 2;\n```');
+    const got = code.get();
+    code.refresh();
+    const out = { got, text: figure.querySelector('code').textContent, lines: figure.querySelectorAll('.ds-code__line').length };
+    view.destroy();
+    el.remove();
+    return out;
+  });
+  expect(result).toEqual({ got: 'const a = 1;\nconst b = 2;', text: 'const a = 1;\nconst b = 2;', lines: 2 });
 });
 
 test('before the module renders, the source keeps its line breaks', async ({ page }) => {

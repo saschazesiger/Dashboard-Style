@@ -1,7 +1,7 @@
 /**
  * DS.highlight: the tokenizers of every language, the escaping, the line
  * split (also of an external highlighter's markup), aliases, registration
- * and the speed on 2,000 lines. The browser side is highlight.spec.js.
+ * and the speed on 2,000 lines and on long single lines. The browser side is highlight.spec.js.
  */
 import { describe, it, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
@@ -295,6 +295,26 @@ describe('speed', () => {
       const took = performance.now() - start;
       assert.equal(result.length, 2000, lang);
       assert.ok(took < 5000, `${lang}: ${took.toFixed(0)}ms`);
+    }
+  });
+
+  it('takes long single lines in linear time (they once took seconds to minutes)', () => {
+    const cases = [
+      ['sh', (n) => 'a '.repeat(n / 2)], ['sh', (n) => '$ a '.repeat(n / 4)],
+      ['yaml', (n) => ' '.repeat(n)], ['yaml', (n) => '- '.repeat(n / 2)], ['yaml', (n) => `x ${'- '.repeat(n / 2)}`],
+      ['yaml', (n) => `{${',a'.repeat(n / 2)}`], ['yaml', (n) => 'a: '.repeat(n / 3)],
+      ['js', (n) => 'a '.repeat(n / 2)], ['css', (n) => `a{${'b:c '.repeat(n / 4)}`], ['html', (n) => '<a '.repeat(n / 3)],
+    ];
+    const time = (code, lang) => Math.min(...[0, 1].map(() => {
+      const start = performance.now();
+      tokenize(code, lang);
+      return performance.now() - start;
+    }));
+    for (const [lang, make] of cases) {
+      const small = time(make(25000), lang);
+      const large = time(make(100000), lang);
+      // Four times the code, about four times the time (quadratic: sixteen); tens of milliseconds pass whatever the ratio.
+      assert.ok(large < 100 || large < small * 8 + 30, `${lang} ${JSON.stringify(make(12))}: 25 KB ${small.toFixed(0)}ms, 100 KB ${large.toFixed(0)}ms`);
     }
   });
 });
