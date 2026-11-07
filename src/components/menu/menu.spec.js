@@ -397,6 +397,11 @@ test('search: it takes focus, typing filters and says when nothing matches, the 
   await expect(menu).toHaveAttribute('data-state', 'open');
   const field = menu.locator('.ds-menu__search input');
   await expect(field).toBeFocused();
+  // A menu owns only items: the field sits beside the role="menu" list it controls, not in it.
+  expect(await menu.getAttribute('role')).toBeNull();
+  const list = menu.locator('.ds-menu__list');
+  await expect(list).toHaveAttribute('role', 'menu');
+  await expect(field).toHaveAttribute('aria-controls', await list.getAttribute('id'));
   await page.keyboard.type('gr');
   await expect(menu.locator('.ds-menu__item:visible')).toHaveCount(1);
   await expect(menu.locator('.ds-menu__item:visible')).toContainText('Grace Hopper');
@@ -447,6 +452,21 @@ test('context menu: a right click opens it at the pointer, the row is told and g
   expect(at.y).toBeCloseTo(box.y + box.height / 2, 0);
   expect(await menu.evaluate((el) => el.matches(':popover-open'))).toBe(true);
   expect(await focused(page)).toBe('Rename');
+  // A second right click at once, on another row: that row's menu (no window swallows a real right click).
+  const other = rows.nth(2);
+  const otherBox = await other.boundingBox();
+  // At its far end, clear of the open menu that hangs over it.
+  const far = { x: otherBox.x + otherBox.width - 20, y: otherBox.y + otherBox.height / 2 };
+  const over = await menu.boundingBox();
+  expect(far.x > over.x + over.width || far.y > over.y + over.height, 'the second click lands outside the menu').toBe(true);
+  await page.mouse.click(far.x, far.y, { button: 'right' });
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await expect(menu.locator('[data-row-name]')).toHaveText('PRINTER-0007');
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  await page.mouse.click(box.x + 60, box.y + box.height / 2, { button: 'right' });
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await expect(menu.locator('[data-row-name]')).toHaveText('LAPTOP-0043');
   // A press on its own row closes it too.
   await page.mouse.click(box.x + 300, box.y + box.height / 2);
   await expect(menu).toBeHidden();

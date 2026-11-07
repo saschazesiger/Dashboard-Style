@@ -68,6 +68,7 @@
     transition:
       border-radius var(--ds-dur-medium) var(--ds-ease-spatial),
       color var(--ds-dur-fast) var(--ds-ease-in-out),
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
       outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
@@ -128,6 +129,7 @@
     transition:
       border-radius var(--ds-dur-micro) var(--ds-ease-out),
       color var(--ds-dur-fast) var(--ds-ease-in-out),
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
       outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 

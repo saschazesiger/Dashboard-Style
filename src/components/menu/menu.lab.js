@@ -44,7 +44,7 @@ SG_LAB.add({
   group: 'overlays',
   title: 'Submenu beside its item',
   note: 'It grows out of its item towards the end on the spring, its first item level with it; ArrowLeft or Escape closes it onto the item, and the parent takes it along when it closes.',
-  shows: ['.ds-menu__chevron', '--ds-delay-tooltip-hide', '--ds-delay-tooltip-skip', '--ds-scale-popup'],
+  shows: ['.ds-menu__chevron', '--ds-delay-submenu', '--ds-delay-submenu-close', '--ds-scale-popup'],
   html: '<div class="sg-popup-stage"><button class="ds-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-menu-parent" data-lab-open>Device</button>' +
     '<div class="ds-menu" role="menu" id="sg-lab-menu-parent" aria-label="Device" hidden>' +
     '<button class="ds-menu__item" role="menuitem" type="button"><span class="ds-menu__label">Rename</span></button>' +

@@ -60,7 +60,8 @@ DS.popover.open(popover, { anchor: { x: event.clientX, y: event.clientY }, opene
 - **Closing** goes through `DS.overlay`: Escape closes the topmost layer (a menu opened inside the popover first)
   and focus goes back to the trigger when it was inside; a pointerdown outside the popover, its trigger and the
   layers above it, and focus moving out of them close it and leave focus where it went; `[data-ds-close]` inside
-  closes it; the trigger's `aria-expanded` follows. `ds:open` and `ds:close` (`detail.reason`) bubble from it.
+  closes it; the trigger's `aria-expanded` follows (a trigger without one, such as a hover card's link, is left
+  without it). `ds:open` and `ds:close` (`detail.reason`) bubble from it.
 - **Hover card** (`data-ds-popover-trigger="hover"`, with `.ds-popover--tip`): a preview of a person or an object.
   A mouse or pen resting on the trigger opens it after `--ds-delay-tooltip`, keyboard focus at once; it never takes
   focus (Tab from the trigger reaches its links, since it follows the trigger in the markup), and it closes
@@ -83,7 +84,7 @@ DS.popover.open(popover, { anchor: { x: event.clientX, y: event.clientY }, opene
 - A popover with controls is `role="dialog"` (non-modal: no `aria-modal`) with a name (`aria-labelledby` its title);
   its trigger has `aria-haspopup="dialog"`, `aria-expanded` (kept in step) and `aria-controls`.
 - A hover card is `role="group"` with a name, and the trigger points `aria-describedby` at it, or the card only
-  repeats what its target page says.
+  repeats what its target page says. Its trigger gets no `aria-expanded`: a link to a person is no disclosure.
 - Keyboard: Enter or Space on the trigger opens it and moves focus in; Tab and Shift+Tab move through it and out of
   it (closing it); Escape closes it and focus goes back to the trigger.
 - Forced colours: its transparent outline becomes its edge; the arrow goes.
@@ -95,7 +96,8 @@ DS.popover.open(popover, { anchor: { x: event.clientX, y: event.clientY }, opene
 
 **Motion:** as a menu, it grows out of its anchor (the arrow's tip): a fade over `--ds-dur-fast` while it grows from
 `--ds-scale-popup` and its clip opens from the anchor's edge over `--ds-dur-medium` on `--ds-ease-spatial`; it leaves
-with a fade over `--ds-dur-instant`, and a popover closed mid-way turns back from where it is.
+with a fade over `--ds-dur-instant`, and a popover closed mid-way turns back from where it is. The "Popover" and
+"Help card" rows of [Overlays](motion.md#overlays) in motion.md.
 
 <!-- changelog
 - Popover (`.ds-popover`, `js/popover.js`, `DS.popover`): an anchored non-modal panel with an optional arrow

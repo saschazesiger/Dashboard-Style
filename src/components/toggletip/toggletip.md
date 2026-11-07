@@ -69,7 +69,7 @@ tells that the card opened; `on('open' | 'close', fn)` hears the card's own even
 `--ds-toggletip-size` ([theming.md](theming.md#component-hooks)); the card's are the popover's.
 
 **Motion:** the card is a popover: it grows out of the button (the arrow's tip) and leaves with a fade. The button
-morphs on press like every pill.
+morphs on press like every pill. The "Help card" row of [Overlays](motion.md#overlays) in motion.md.
 
 <!-- changelog
 - Toggletip (`.ds-toggletip`, `js/toggletip.js`, `DS.toggletip`): the info button that opens a help card

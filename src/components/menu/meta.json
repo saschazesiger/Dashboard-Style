@@ -18,6 +18,7 @@
     "ds-menu__item",
     "ds-menu__item--danger",
     "ds-menu__label",
+    "ds-menu__list",
     "ds-menu__meta",
     "ds-menu__search",
     "ds-menu__shortcut"

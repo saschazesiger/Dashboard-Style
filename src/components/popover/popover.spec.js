@@ -185,6 +185,8 @@ test('the hover card: a resting mouse opens it after the delay, keyboard focus a
   });
   await name.hover();
   await expect(card).toHaveAttribute('data-state', 'open', { timeout: 2000 });
+  // A link to a person is no disclosure: DS.overlay's aria-expanded stays off it.
+  expect(await name.getAttribute('aria-expanded')).toBeNull();
   const waited = await page.evaluate(() => ({
     gap: window.__hover.open - window.__hover.over,
     delay: DS.motion.motionDuration(document.querySelector('[data-demo="person"]'), '--ds-delay-tooltip'),
@@ -199,6 +201,7 @@ test('the hover card: a resting mouse opens it after the delay, keyboard focus a
   // Leaving both: it closes after the grace.
   await page.mouse.move(2, 2);
   await expect(card).toBeHidden();
+  expect(await name.getAttribute('aria-expanded')).toBeNull();
   // Keyboard focus shows it at once; focus stays on the name, Tab reaches its link.
   await focusByKeyboard(page, name);
   await expect(card).toHaveAttribute('data-state', 'open');
@@ -278,7 +281,7 @@ test('DS.popover: open at a point, close, and the controller', async ({ page }) 
     control.on('close', () => seen.push('close'));
     await DS.popover.open(el, { anchor: { x: 300, y: 200 }, opener: document.querySelector('[data-demo="share"]'), focus: false });
     const box = el.getBoundingClientRect();
-    const at = { left: box.left, top: box.top, open: control.get() };
+    const at = { left: box.left, top: box.top, open: control.get(), origin: el.style.getPropertyValue('--ds-motion-origin'), clip: el.style.getPropertyValue('--ds-clip-from') };
     await control.set(false);
     control.destroy();
     return { at, seen, open: control.get(), hidden: el.hidden };
@@ -286,6 +289,12 @@ test('DS.popover: open at a point, close, and the controller', async ({ page }) 
   expect(result.at.open).toBe(true);
   // Centred on the point with the arrow (align center), 12px below it.
   expect(result.at.top).toBeCloseTo(212, 0);
+  // It grows out of the point (the arrow's tip), not out of its opener elsewhere on the page.
+  const [ox, oy] = result.at.origin.trim().split(/\s+/).map(parseFloat);
+  expect(ox).toBeCloseTo(300 - result.at.left, 0);
+  expect(oy).toBe(0);
+  // From the top edge, below the point: the bottom inset is the whole box.
+  expect(result.at.clip).toMatch(/^inset\(calc\([^)]*\)\) calc\([^)]*\)\) 100% /);
   expect(result.seen).toEqual(['open', 'close']);
   expect(result.open).toBe(false);
   expect(result.hidden).toBe(true);

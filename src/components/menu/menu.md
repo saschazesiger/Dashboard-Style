@@ -108,17 +108,21 @@ as in 2.x.
   with it, before the item when there is no room after it (`data-placement="end"` or `"start"`), and it grows out of
   the item. ArrowRight, Enter and Space open it with focus on its first item; ArrowLeft and Escape close it and focus
   its item (mirrored right to left). A click opens it; a mouse or pen resting on the item opens it after
-  `--ds-delay-tooltip-hide` and leaves focus where it is. Hover intent: a pointer that moves on to another item closes
-  it after `--ds-delay-tooltip-skip` unless it reaches the submenu first, so a diagonal path across the items keeps
+  `--ds-delay-submenu` and leaves focus where it is. Hover intent: a pointer that moves on to another item closes
+  it after `--ds-delay-submenu-close` unless it reaches the submenu first, so a diagonal path across the items keeps
   it. Its item keeps the hover layer while it shows. Choosing an item in a submenu closes the whole chain and focus
   goes back to the first trigger; Tab does too, and a menu that closes takes its submenus with it.
-- **Search.** A long menu takes a search field at its top:
+- **Search.** A long menu takes a search field at its top. A menu holds only items, groups and separators, so the
+  `.ds-menu` that opens is then a plain container (no role, no name) and the items sit in a `.ds-menu__list` with
+  `role="menu"` and the name; the field names that list in `aria-controls`:
 
   ```html
-  <div class="ds-menu" role="menu" id="assign" aria-label="Assign to" hidden>
-    <div class="ds-menu__search">[icon search 20]<input type="search" aria-label="Search people" placeholder="Search" autocomplete="off"></div>
-    <button class="ds-menu__item" role="menuitem" type="button"><span class="ds-menu__label">Ada Lovelace</span></button>
-    …
+  <div class="ds-menu" id="assign" hidden>
+    <div class="ds-menu__search">[icon search 20]<input type="search" aria-label="Search people" aria-controls="assign-list" placeholder="Search" autocomplete="off"></div>
+    <div class="ds-menu__list" role="menu" id="assign-list" aria-label="Assign to">
+      <button class="ds-menu__item" role="menuitem" type="button"><span class="ds-menu__label">Ada Lovelace</span></button>
+      …
+    </div>
   </div>
   ```
 
@@ -129,7 +133,7 @@ as in 2.x.
   in the field, and the first Escape clears a filled field (the second closes). The field is pinned at the top while
   the items scroll, and the menu's next open starts unfiltered.
 - **Context menu.** `data-ds-contextmenu="<selector or id>"` on a row, a tile or a region opens that menu at the pointer
-  on a right click, at the finger after a long press of `--ds-delay-tooltip` on a touch screen (a move of more than
+  on a right click, at the finger after a long press of `--ds-delay-long-press` on a touch screen (a move of more than
   10px is a scroll; the click and the native menu the press would end in never happen, and the platform's callout and
   text selection stay off the target), and under the focused element on Shift+F10 or the ContextMenu key. The target
   gets a cancelable `ds:contextmenu` first (`detail: { menu, x, y }`): fit the items to the row there, or call
@@ -169,7 +173,7 @@ as in 2.x.
 ### Names and forced colours
 
 - Names and roles: the trigger has `aria-haspopup="menu"`, `aria-expanded` (kept in step) and `aria-controls`; the menu
-  `role="menu"` and a name; its rows `role="menuitem"`, `menuitemcheckbox` or `menuitemradio` with `aria-checked`; a
+  `role="menu"` and a name (with a search, its `.ds-menu__list` does); its rows `role="menuitem"`, `menuitemcheckbox` or `menuitemradio` with `aria-checked`; a
   group `role="group"` with `aria-labelledby` its heading. An item that opens a submenu has `aria-haspopup="menu"`,
   `aria-expanded` (kept in step) and `aria-controls`; the search field has a name (`aria-label`). A context target that
   takes focus (a row with `tabindex="0"`) says so in its own words, as a hint (`aria-describedby`): "Shift+F10 for
@@ -185,12 +189,15 @@ as in 2.x.
 
 **JS API.** `js/menu.js` (`DS.menu`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`; `openAt(el, options)` opens a menu at a point (`x`, `y`, `opener`, `returnTo`: a context menu; without a point, under the opener); `create(el)` returns the controller that `data-ds-menu` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`).
 
-**Motion:** the "Menu" row of [Overlays](motion.md#overlays) in motion.md.
+**Motion:** the "Menu", "Submenu" and "Context menu" rows of [Overlays](motion.md#overlays) in motion.md.
 
 <!-- changelog
 - Menu: submenus (an item with `aria-haspopup="menu"` and `aria-controls`, `.ds-menu__chevron`; beside the item in
   the top layer, ArrowRight / ArrowLeft, hover intent, the chain closes together), a search at the top of a long menu
-  (`.ds-menu__search`, `.ds-menu__empty` written with the string `noResults`), and context menus
+  (`.ds-menu__search` over the items in a `.ds-menu__list`, `.ds-menu__empty` written with the string `noResults`), and context menus
   (`data-ds-contextmenu`: right click, long press, Shift+F10 and the ContextMenu key; `ds:contextmenu`;
-  `DS.menu.openAt()`). The items, check and radio items of a menu ignore those of a submenu inside it.
+  `DS.menu.openAt()`). The items, check and radio items of a menu ignore those of a submenu inside it. New motion
+  tokens for them: `--ds-delay-submenu` (100ms, hover intent), `--ds-delay-submenu-close` (300ms, the grace) and
+  `--ds-delay-long-press` (500ms, the touch that opens a context menu). A searchable menu puts its items in a
+  `.ds-menu__list` with `role="menu"`, since a menu owns only items.
 -->

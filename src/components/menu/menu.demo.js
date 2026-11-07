@@ -83,9 +83,10 @@ SG.demo('menu', {
 
       h.section('Search inside a long menu', '<div class="sg-row">' +
         '<button class="ds-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="' + assign + '" data-ds-open="#' + assign + '" data-demo="assign">' + h.icon('user', 16) + 'Assign</button></div>' +
-        '<div class="ds-menu" role="menu" id="' + assign + '" aria-label="Assign to" hidden data-demo="assign-menu">' +
-        '<div class="ds-menu__search">' + h.icon('search', 20) + '<input type="search" aria-label="Search people" placeholder="Search" autocomplete="off"></div>' +
-        people.map(function (name) { return item(h, 'user', name, '', ' data-toast="Assigned to ' + name + '."'); }).join('') + '</div>',
+        '<div class="ds-menu" id="' + assign + '" hidden data-demo="assign-menu">' +
+        '<div class="ds-menu__search">' + h.icon('search', 20) + '<input type="search" aria-label="Search people" aria-controls="' + assign + '-list" placeholder="Search" autocomplete="off"></div>' +
+        '<div class="ds-menu__list" role="menu" id="' + assign + '-list" aria-label="Assign to">' +
+        people.map(function (name) { return item(h, 'user', name, '', ' data-toast="Assigned to ' + name + '."'); }).join('') + '</div></div>',
         'Typing filters the items; ArrowDown moves into them, Enter takes the first match, Escape clears the field first.') +
 
       h.section('Context menu', '<div class="ds-list" role="list" aria-label="Devices" data-demo="rows">' +
@@ -101,8 +102,9 @@ SG.demo('menu', {
         }).join('') + '</div>' +
         '<p class="ds-muted" id="' + context + '-hint">Right-click a row or a tile, press and hold it, or focus it and press Shift+F10.</p>' +
         '<div class="ds-menu" role="menu" id="' + context + '" aria-label="Device actions" hidden data-demo="context-menu">' +
-        '<p class="ds-menu__heading" data-row-name>Device</p>' +
-        item(h, 'pencil', 'Rename', '', ' data-act="Renamed"') + item(h, 'copy', 'Duplicate', '', ' data-act="Duplicated"') +
+        '<div role="group" aria-labelledby="' + context + '-name">' +
+        '<p class="ds-menu__heading" id="' + context + '-name" data-row-name>Device</p>' +
+        item(h, 'pencil', 'Rename', '', ' data-act="Renamed"') + item(h, 'copy', 'Duplicate', '', ' data-act="Duplicated"') + '</div>' +
         '<div class="ds-menu__divider" role="separator"></div>' +
         item(h, 'trash', 'Delete device', ' ds-menu__item--danger', ' data-act="Deleted"') + '</div>') +
 

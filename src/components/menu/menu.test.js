@@ -46,9 +46,9 @@ describe('DS.menu', () => {
 
   it('times submenus and the long press by the tokens: hover intent and the touch delay', () => {
     const source = read('src/components/menu/menu.js');
-    assert.match(source, /time\('--ds-delay-tooltip-hide'\)/);
-    assert.match(source, /time\('--ds-delay-tooltip-skip'\)/);
-    assert.match(source, /motionDuration\(target, '--ds-delay-tooltip'\)/);
+    assert.match(source, /time\('--ds-delay-submenu'\)/);
+    assert.match(source, /time\('--ds-delay-submenu-close'\)/);
+    assert.match(source, /motionDuration\(target, '--ds-delay-long-press'\)/);
     assert.doesNotMatch(source.replace(/\/\*[\s\S]*?\*\//g, ''), /setTimeout\([^,]+,\s*\d+\)/);
   });
 

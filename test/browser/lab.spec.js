@@ -307,6 +307,10 @@ const CONTINUITY = {
   'dialog-sizes': { in: 'doc', sel: '#sg-lab-dialog-xl .ds-dialog__box', props: ['opacity', 'scale.x'] },
   'sheet-wide': { in: 'doc', sel: '#sg-lab-sheet-wide .ds-sheet__panel', props: ['translate.x'] },
   'menu-rich': { in: 'stage', sel: '#sg-lab-menu-rich', props: ['opacity'] },
+  'menu-submenu': { in: 'stage', sel: '#sg-lab-menu-sub', props: ['opacity'] },
+  'menu-context': { in: 'stage', sel: '#sg-lab-menu-context', props: ['opacity'] },
+  'popover-open': { in: 'stage', sel: '#sg-lab-popover', props: ['opacity'] },
+  'toggletip-open': { in: 'stage', sel: '#sg-lab-toggletip', props: ['opacity'] },
   sheet: { in: 'doc', sel: '#sg-lab-sheet .ds-sheet__panel', props: ['translate.x'] },
   'sheet-div': { in: 'doc', sel: '#sg-lab-sheet-div .ds-sheet__panel', props: ['translate.x'] },
   'dialog-full': { in: 'doc', sel: '#sg-lab-dialog-full .ds-dialog__box', props: ['opacity', 'translate.y'] },
@@ -694,7 +698,9 @@ function overlayRows() {
  * How the lab shows each layer of the table: its variants (`id` of the
  * element, its opener, `nested` when a parent dialog opens first), the
  * part whose tracks the row names, and a phone viewport where the row is
- * for phones. `drive` names the driver in layerStep().
+ * for phones. `drive` names the driver in layerStep() ('lab': the demo's
+ * own toggle(), the way its component opens it; `after`: a layer the toggle
+ * opened too, closed once the row's layer closed).
  */
 const LAYERS = {
   Scrim: { drive: 'modal', part: '.ds-dialog__backdrop, .ds-sheet__backdrop', variants: [['sg-lab-dialog', 'dialog'], ['sg-lab-dialog-div', 'dialog-div'], ['sg-lab-sheet', 'sheet'], ['sg-lab-sheet-div', 'sheet-div']] },
@@ -711,6 +717,10 @@ const LAYERS = {
   Tooltip: { drive: 'tooltip', part: '.ds-tooltip', variants: [['0', 'tooltips']] },
   'Tooltip warm-up': { drive: 'warm', part: '.ds-tooltip', variants: [['1', 'tooltips']] },
   Menu: { drive: 'popup', part: '#sg-lab-menu', variants: [['sg-lab-menu', 'menu']] },
+  Submenu: { drive: 'lab', part: '#sg-lab-menu-sub', after: '#sg-lab-menu-parent', variants: [['sg-lab-menu-sub', 'menu-submenu']] },
+  'Context menu': { drive: 'lab', part: '#sg-lab-menu-context', variants: [['sg-lab-menu-context', 'menu-context']] },
+  Popover: { drive: 'lab', part: '#sg-lab-popover', variants: [['sg-lab-popover', 'popover-open']] },
+  'Help card': { drive: 'lab', part: '#sg-lab-toggletip', variants: [['sg-lab-toggletip', 'toggletip-open']] },
   'Combobox list': { drive: 'popup', part: '.ds-combo__popup', variants: [['sg-lab-combo', 'combobox']] },
 };
 
@@ -788,6 +798,11 @@ function layerStep(page, layer, step, variant, row) {
       root = tip();
       part = root;
       done = act === 'open' ? () => root.getAttribute('data-state') === 'open' : () => root.hidden;
+    } else if (spec.drive === 'lab') {
+      part = stage.querySelector(spec.part);
+      root = part;
+      window.SG_LAB.find((entry) => entry.id === demo).toggle(stage, act === 'open', window.SG_LAB_HELPERS);
+      done = act === 'open' ? () => part.getAttribute('data-state') === 'open' : () => !part.hasAttribute('data-state');
     } else {
       part = stage.querySelector(spec.part);
       root = part;
@@ -827,6 +842,12 @@ function layerStep(page, layer, step, variant, row) {
     }
     for (const animation of part.getAnimations()) if (Number.isFinite(animation.effect.getComputedTiming().iterations)) animation.finish();
     await until(done, `settled ${act}`);
+    const after = act === 'close' && spec.after ? stage.querySelector(spec.after) : null;
+    if (after) {
+      DS.overlay.close(after);
+      for (const animation of after.getAnimations()) if (Number.isFinite(animation.effect.getComputedTiming().iterations)) animation.finish();
+      await until(() => !after.hasAttribute('data-state'), `settled ${spec.after}`);
+    }
     return { actual, expected, origin };
   }, { layer, step, variant, tracks: row[step === 'open' ? 'entrance' : 'exit'] });
 }

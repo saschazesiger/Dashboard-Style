@@ -46,7 +46,7 @@
  * anchor positioning is not used (the arrow needs the script's coordinates).
  */
 import { define } from '../../js/core.js';
-import { motionDuration, originFrom } from '../../js/motion.js';
+import { motionDuration, originFrom, settled } from '../../js/motion.js';
 import { computePlacement, dropProbe, fixedOrigin, place, pxOf, round, viewportBounds } from '../../js/position.js';
 import { tabbables } from '../../js/a11y.js';
 import { internals, open as openOverlay, close as closeOverlay } from '../../js/overlay.js';
@@ -58,6 +58,14 @@ const records = new WeakMap();
 
 /** Documents with this module's listeners. */
 const listening = new WeakSet();
+
+/**
+ * The opener of an open popover that had no aria-expanded of its own (a
+ * hover card's link to a person): DS.overlay writes it on every popup's
+ * opener, and this takes it off again, so the link is never read as
+ * "collapsed". @type {WeakMap<Element, Element>}
+ */
+const unexpanded = new WeakMap();
 
 /** The script coordinates this module writes (runtime properties, owned while it shows). */
 const PROPS = ['--ds-popover-x', '--ds-popover-y', '--ds-popover-arrow', 'max-width'];
@@ -152,6 +160,26 @@ function position(element, record) {
   style.setProperty('--ds-popover-arrow', `${round(result.arrow)}px`);
 }
 
+/** A point of the anchor for originFrom(): the element, or the point { x, y }. */
+const originOf = (anchor) => (isElement(anchor) ? anchor : { x: Number(anchor?.x) || 0, y: Number(anchor?.y) || 0 });
+
+/**
+ * The entrance again, from the anchor: DS.overlay grows every popup out of
+ * its opener, so one opened at a point or at another element takes its
+ * closed state at its own anchor once more and grows from there.
+ */
+function regrow(element, record) {
+  const style = /** @type {HTMLElement} */ (element).style;
+  style.setProperty('transition', 'none');
+  style.setProperty('scale', 'none');
+  element.setAttribute('data-state', 'closed');
+  originFrom(originOf(record.anchor), element);
+  style.removeProperty('scale');
+  flushStyle(element);
+  style.removeProperty('transition');
+  element.setAttribute('data-state', 'open');
+}
+
 /** Placed at rest size, then its closed state without a transition, so it grows from its anchor. */
 function prepare(element, record) {
   const style = /** @type {HTMLElement} */ (element).style;
@@ -161,7 +189,7 @@ function prepare(element, record) {
   style.setProperty('scale', 'none');
   toTopLayer(element);
   position(element, record);
-  originFrom(isElement(record.anchor) ? record.anchor : { x: Number(record.anchor?.x) || 0, y: Number(record.anchor?.y) || 0 }, element);
+  originFrom(originOf(record.anchor), element);
   style.removeProperty('scale');
   flushStyle(element);
   style.removeProperty('transition');
@@ -274,6 +302,11 @@ function listen(doc) {
   // Once a close of DS.overlay settled: out of the top layer, coordinates gone.
   doc.addEventListener('ds:close', (event) => {
     const element = /** @type {Element} */ (event.target);
+    const opener = unexpanded.get(element);
+    if (opener) {
+      unexpanded.delete(element);
+      opener.removeAttribute('aria-expanded');
+    }
     if (!records.has(element)) return;
     const state = overlays.get(element);
     state?.closing?.then(() => {
@@ -319,7 +352,18 @@ export function open(element, options = {}) {
   records.set(element, record);
   for (const name of PROPS) own(element, 'props', name);
   if (!reverse) prepare(element, record);
-  const entrance = openOverlay(element, { opener, returnTo: options.returnTo });
+  const expanded = opener?.getAttribute?.('aria-expanded') ?? null;
+  let entrance = openOverlay(element, { opener, returnTo: options.returnTo });
+  // The replayed entrance cancelled the one DS.overlay waits for: wait for this one.
+  if (!reverse && record.anchor !== opener) {
+    regrow(element, record);
+    entrance = settled(element, { transitions: true });
+  }
+  // An opener that says nothing about being expanded (a hover card's link) stays so.
+  if (opener && (expanded === null || unexpanded.get(element) === opener)) {
+    opener.removeAttribute('aria-expanded');
+    unexpanded.set(element, opener);
+  } else unexpanded.delete(element);
   // Moved into an open native dialog by DS.overlay (so it is not inert): back into the top layer there.
   if (!isTop(element) && element.isConnected) {
     toTopLayer(element);

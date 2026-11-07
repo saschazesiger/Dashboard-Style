@@ -26,15 +26,17 @@
  * in the top layer at --ds-menu-x/-y (towards the end, flipped towards the
  * start without room, its first item level with the item): on ArrowRight,
  * Enter or Space (focus on its first item), on a click, and when a mouse or
- * pen rests on the item for --ds-delay-tooltip-hide (focus stays). ArrowLeft
+ * pen rests on the item for --ds-delay-submenu (focus stays). ArrowLeft
  * and Escape close it onto its item; a pointer that moves to another item
- * closes it after --ds-delay-tooltip-skip unless it reaches the submenu
+ * closes it after --ds-delay-submenu-close unless it reaches the submenu
  * first (hover intent: a diagonal path across other items keeps it). An item
  * chosen in a submenu closes the whole chain, and Tab too; a menu that closes
  * closes its open submenus.
  *
- * Search (3.0): a menu with a .ds-menu__search (an input type="search")
- * focuses it on opening; typing filters the items by label and description
+ * Search (3.0): a menu with a .ds-menu__search (an input type="search";
+ * the .ds-menu is then a plain container and its items sit in a
+ * .ds-menu__list with role="menu", since a menu owns only items) focuses it
+ * on opening; typing filters the items by label and description
  * (hiding the groups, headings and dividers left empty, showing
  * .ds-menu__empty with the string noResults, which is also announced);
  * ArrowDown and ArrowUp move between the field and the items, Enter chooses
@@ -43,7 +45,7 @@
  *
  * Context menus (3.0): [data-ds-contextmenu="<selector or id>"] on a row, a
  * tile or a region opens that menu at the pointer on a right click, at the
- * press after a long touch (--ds-delay-tooltip, cancelled by a move past
+ * press after a long touch (--ds-delay-long-press, cancelled by a move past
  * 10px; the click and the native menu it would end in never happen), and
  * below the focused element on Shift+F10 or the ContextMenu key. The element
  * gets ds:contextmenu first ({ menu, x, y }, cancelable: preventDefault()
@@ -330,10 +332,12 @@ function openSub(item, mode) {
     if (mode === 'first') firstItem(sub)?.focus({ preventScroll: true });
     return;
   }
+  // Taken back mid-exit by its own item: it turns back from where it is.
+  const reverse = overlays.get(sub)?.phase === 'closing' && overlays.get(sub)?.opener === item && custom.get(sub)?.anchor === item;
   custom.set(sub, { kind: 'sub', anchor: item });
   focusMode.set(sub, mode);
   openOverlay(sub, { opener: item });
-  enterCustom(sub);
+  if (!reverse) enterCustom(sub);
   // A parent opened a moment ago is still growing, so its item's box is
   // scaled: once the parent rests, the submenu goes beside the item's
   // final box (a few pixels; it is still entering itself).
@@ -434,7 +438,7 @@ function hoverIntent(menu) {
       closeTimer = setTimeout(() => {
         closeTimer = 0;
         for (const other of openSubsOf(menu)) if (overlays.get(other)?.opener !== pending && overlays.get(other)?.opener !== item) closeFrom(other, 'parent');
-      }, time('--ds-delay-tooltip-skip'));
+      }, time('--ds-delay-submenu-close'));
     }
     if (sub && enabled(item) && !(isOpen(sub) && overlays.get(sub)?.opener === item)) {
       pending = item;
@@ -444,7 +448,7 @@ function hoverIntent(menu) {
         if (!isOpen(menu)) return;
         cancelClose();
         openSub(item, 'none');
-      }, time('--ds-delay-tooltip-hide'));
+      }, time('--ds-delay-submenu'));
     } else if (sub) cancelClose();
   });
   menu.addEventListener('pointerleave', () => cancelOpen());
@@ -594,10 +598,18 @@ export function openAt(element, options = {}) {
   const opener = options.opener ?? activeIn(element) ?? null;
   const point = Number.isFinite(options.x) && Number.isFinite(options.y) ? { x: Number(options.x), y: Number(options.y) } : null;
   const expanded = opener?.getAttribute?.('aria-expanded') ?? null;
+  // Taken back mid-exit at the same point by the same opener: it turns back from where it is.
+  const before = custom.get(element);
+  const reverse = Boolean(point) && overlays.get(element)?.phase === 'closing' && overlays.get(element)?.opener === opener
+    && before?.kind === 'point' && before.anchor.x === point.x && before.anchor.y === point.y;
   if (point) custom.set(element, { kind: 'point', anchor: point });
   else custom.delete(element);
-  const entrance = openOverlay(element, { opener, returnTo: options.returnTo });
-  if (point) enterCustom(element);
+  let entrance = openOverlay(element, { opener, returnTo: options.returnTo });
+  // The replayed entrance cancelled the one DS.overlay waits for: wait for this one.
+  if (point && !reverse) {
+    enterCustom(element);
+    entrance = settled(element, { transitions: true });
+  }
   // A row or a tile is no menu button: it says nothing about being expanded.
   if (opener && (expanded === null || unexpanded.get(element) === opener)) {
     opener.removeAttribute('aria-expanded');
@@ -663,8 +675,10 @@ define('contextmenu', {
     if (!doc) return () => {};
     let press = /** @type {{ target: Element, id: number, x: number, y: number, timer: any } | null} */ (null);
     let swallow = /** @type {((event: Event) => void) | null} */ (null);
-    // When the last menu opened here (performance.now()); none yet.
-    let opened = -Infinity;
+    // When the key last opened a menu here (performance.now()) and how long
+    // the browser's own contextmenu event after it is swallowed; none yet. A
+    // right click opens no window: the next one is a real one.
+    let keyOpen = { at: -Infinity, within: 0 };
     const targetOf = (/** @type {Event} */ event) => /** @type {Element|null} */ (/** @type {Element} */ (event.composedPath?.()[0] ?? event.target)?.closest?.('[data-ds-contextmenu]') ?? null);
     /** Opens the menu of `target` at a point, or under it (the keyboard). */
     const show = (target, point) => {
@@ -673,7 +687,6 @@ define('contextmenu', {
       const rect = target.getBoundingClientRect();
       const at = point ?? { x: rect.left, y: rect.bottom };
       if (!emit(target, 'contextmenu', { menu, x: at.x, y: at.y }, { cancelable: true })) return false;
-      opened = clock();
       // The focusable element the menu came from gets focus back: the
       // target itself, or the control inside it that had focus.
       const active = activeIn(target);
@@ -694,14 +707,20 @@ define('contextmenu', {
     const onContextMenu = (/** @type {MouseEvent} */ event) => {
       if (handled.has(event)) return;
       handled.add(event);
-      const target = targetOf(event);
-      if (!target || event.defaultPrevented) return;
-      cancelPress();
-      // The long press or the key opened it a moment ago: the browser's own event that follows is no second one.
-      if (clock() - opened < motionDuration(target, '--ds-delay-tooltip')) {
+      if (event.defaultPrevented) return;
+      // The key opened a menu a moment ago: the browser's own event that
+      // follows (on keyup on some systems, at the menu item that has focus by
+      // then, outside every target) is no second one, and its native menu
+      // stays shut. Once: the next one is the user's. (The long press
+      // swallows its own, see onPointerDown.)
+      if (clock() - keyOpen.at < keyOpen.within) {
+        keyOpen = { at: -Infinity, within: 0 };
         event.preventDefault();
         return;
       }
+      const target = targetOf(event);
+      if (!target) return;
+      cancelPress();
       // A keyboard's context menu event comes at no pointer position (0, 0 or the element's corner).
       const keyboard = event.button !== 2 && event.clientX === 0 && event.clientY === 0;
       if (show(target, keyboard ? null : { x: event.clientX, y: event.clientY })) event.preventDefault();
@@ -713,6 +732,8 @@ define('contextmenu', {
       if (!contextKey || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
       const target = targetOf(event);
       if (!target || !show(target, null)) return;
+      // --ds-delay-dismiss: as for a scrim, an event this soon after the open is the tail of the opening gesture.
+      keyOpen = { at: clock(), within: motionDuration(target, '--ds-delay-dismiss') };
       event.preventDefault();
     };
     const onPointerDown = (/** @type {PointerEvent} */ event) => {
@@ -737,7 +758,7 @@ define('contextmenu', {
         };
         doc.addEventListener('click', swallow, true);
         doc.addEventListener('contextmenu', swallow, true);
-      }, motionDuration(target, '--ds-delay-tooltip'));
+      }, motionDuration(target, '--ds-delay-long-press'));
     };
     const onPointerMove = (/** @type {PointerEvent} */ event) => {
       if (!press || event.pointerId !== press.id) return;

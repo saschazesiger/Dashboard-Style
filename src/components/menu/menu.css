@@ -43,8 +43,11 @@
  * A search at the top of a long menu (3.0), and the row the system writes
  * when nothing matches:
  *
- *   <div class="ds-menu__search">(search) <input type="search" aria-label="Search actions" placeholder="Search"></div>
- *   <p class="ds-menu__empty" role="none">No results</p>
+ *   <div class="ds-menu" id="assign" hidden>                       no role: a menu holds only items
+ *     <div class="ds-menu__search">(search) <input type="search" aria-label="Search people" aria-controls="assign-list" placeholder="Search"></div>
+ *     <div class="ds-menu__list" role="menu" id="assign-list" aria-label="Assign to">…items…</div>
+ *     <p class="ds-menu__empty" role="none">No results</p>
+ *   </div>
  *
  * A context menu (3.0): data-ds-contextmenu="#row-menu" on a row, a tile or
  * a region opens the menu at the pointer (right click, long press) or under
@@ -352,8 +355,10 @@
     background: var(--ds-line);
   }
 
-  /* A group of items (role="group") is a column like the menu itself. */
-  .ds-menu [role="group"] {
+  /* A group of items (role="group") and the items under a search
+     (.ds-menu__list) are a column like the menu itself. */
+  .ds-menu [role="group"],
+  .ds-menu__list {
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
