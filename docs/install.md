@@ -729,6 +729,14 @@ strings a script adds have an option, so a page in another language passes its o
 | `{count} match` | what the drawer's filter (`data-ds-drawer`) announces for one match (the system's string `filterMatch`; the plural rules of the locale pick it) | `DS.core.config({ strings: { filterMatch } })` |
 | `{count} matches` | the same for any other count (the system's string `filterMatches`) | `DS.core.config({ strings: { filterMatches } })` |
 | `Show {count} more` | the name and tooltip of the breadcrumbs' "more" button (`data-ds-breadcrumbs`; the system's string `breadcrumbsMore`) | `DS.core.config({ strings: { breadcrumbsMore } })` |
+| `More tabs` | the name of the More button and menu of a row of tabs that overflows (`data-ds-tabs-overflow`) (the system's string `moreTabs`) | `DS.core.config({ strings: { moreTabs } })` |
+| `{label} closed` | what `DS.tabs` announces when a tab closes (the system's string `tabClosed`) | `DS.core.config({ strings: { tabClosed } })` |
+| `Close {label}` | the named close action `DS.tabs` writes in the panel of a tab it adds (the system's string `closeTab`) | `DS.core.config({ strings: { closeTab } })` |
+| `More actions` | the name of the More button and menu that a page head's actions fold into (`data-ds-page-head`) (the system's string `moreActions`) | `DS.core.config({ strings: { moreActions } })` |
+| `Back to top` | the name of a back-to-top button that has no text of its own (`data-ds-backtop`) (the system's string `backToTop`) | `DS.core.config({ strings: { backToTop } })` |
+| `Editing {label}` | what `DS.object` announces when a section of an object page turns into its form (the system's string `editing`) | `DS.core.config({ strings: { editing } })` |
+| `{label} saved` | what `DS.object` announces when a section's form is saved (the system's string `saved`) | `DS.core.config({ strings: { saved } })` |
+| `Step {position} of {total}: {label}` | what `DS.steps` announces when the current step changes (the system's string `stepOf`) | `DS.core.config({ strings: { stepOf } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 | `Command` | the system's string `kbdCommand`: the spoken name of ⌘ in a key combo (`DS.kbd`) on Apple systems | `DS.core.config({ strings: { kbdCommand } })` |
 | `Option` | the system's string `kbdOption`: the spoken name of ⌥ in a key combo (`DS.kbd`) on Apple systems | `DS.core.config({ strings: { kbdOption } })` |

@@ -38,3 +38,56 @@ SG_LAB.add({
   state: function (stage) { return at(stage) === 1; },
   toggle: function (stage, on, sg) { return goTo(stage, on ? 1 : 0, sg); },
 });
+
+/*
+ * A stage path whose current stage moves (DS.steps): the stages change
+ * their fill and ink on --ds-dur-medium; the page sets data-status, the
+ * module aria-current.
+ */
+/* The icons go in at setup: the entries are built before ds.js has run. */
+function glyphs(stage) {
+  stage.querySelectorAll('[data-lab-glyph]').forEach(function (slot) {
+    slot.replaceWith(DS.icons.iconElement(DS.icons[slot.getAttribute('data-lab-glyph')], Number(slot.getAttribute('data-size'))));
+  });
+}
+
+var STAGE_NAMES = ['New', 'Triaged', 'In progress', 'Resolved'];
+
+function stages(current) {
+  return STAGE_NAMES.map(function (label, index) {
+    var done = index < current;
+    return '<li class="ds-steps__step"' + (done ? ' data-status="done"' : '') + (index === current ? ' aria-current="step"' : '') + '>' +
+      '<span class="ds-steps__mark">' + (done ? '<span data-lab-glyph="check" data-size="16"></span>' : String(index + 1)) + '</span>' +
+      '<span class="ds-steps__label">' + label + '</span></li>';
+  }).join('');
+}
+
+function moveStage(stage, current, sg) {
+  var list = stage.querySelector('.ds-steps');
+  Array.from(list.children).forEach(function (step, index) {
+    if (index < current) step.setAttribute('data-status', 'done');
+    else step.removeAttribute('data-status');
+  });
+  stage.dsSteps.set(current);
+  return sg.frames(2).then(function () {
+    return Promise.all(Array.from(list.children).map(function (step) { return DS.motion.settled(step, { transitions: true }); }));
+  });
+}
+
+SG_LAB.add({
+  id: 'steps-path',
+  group: 'navigation',
+  title: 'Steps: a stage path moving on',
+  note: 'The current stage moves: <code>DS.steps</code> moves <code>aria-current</code> (and announces the stage), the page sets the done one; fills and inks change on <code>--ds-dur-medium</code>. Toggle fast: each colour continues from where it is.',
+  shows: ['DS.steps.create', '.ds-steps--path', '--ds-dur-medium', '--ds-ease-in-out'],
+  html: '<ol class="ds-steps ds-steps--path" aria-label="Ticket stages" style="inline-size: 420px;">' + stages(1) + '</ol>',
+  height: 120,
+  setup: function (stage) {
+    glyphs(stage);
+    stage.dsSteps = DS.steps.create(stage.querySelector('.ds-steps'));
+  },
+  play: function (stage, sg) { return moveStage(stage, 2, sg); },
+  reset: function (stage, sg) { return moveStage(stage, 1, sg); },
+  state: function (stage) { return stage.dsSteps.get() === 2; },
+  toggle: function (stage, on, sg) { return moveStage(stage, on ? 2 : 1, sg); },
+});

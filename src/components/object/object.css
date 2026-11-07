@@ -1,0 +1,143 @@
+/*
+ * Object page: one record on one page. The page head with its key facts,
+ * the section anchors (a bar of jump links) under it, and the sections as
+ * cards; an edit mode turns a section, or all of them, into its inline-edit
+ * form (object.js).
+ *
+ *   <div class="ds-object" data-ds-object>
+ *     <header class="ds-page-head ds-page-head--sticky" data-ds-page-head>
+ *       ... <h1 class="ds-page-head__title" id="obj-title" tabindex="-1">LAPTOP-0042</h1> ...
+ *       <div class="ds-page-head__actions">
+ *         <button class="ds-btn" type="button" data-ds-object-cancel hidden>Cancel</button>
+ *         <button class="ds-btn ds-btn--filled" type="button" data-ds-object-save hidden>Save all</button>
+ *         <button class="ds-btn ds-btn--filled" type="button" data-ds-object-edit>Edit</button>
+ *       </div>
+ *       <dl class="ds-page-head__details"> key facts </dl>
+ *     </header>
+ *     <nav class="ds-toc ds-toc--bar ds-toc--sticky" aria-label="Sections" data-ds-toc> links to the sections </nav>
+ *     <section class="ds-card ds-object__section" id="general" aria-labelledby="general-title">
+ *       <div class="ds-object__head">
+ *         <h2 class="ds-object__title" id="general-title">General</h2>
+ *         <button class="ds-btn ds-btn--text ds-sm ds-object__edit" type="button" data-ds-object-edit aria-describedby="general-title">Edit</button>
+ *       </div>
+ *       <div class="ds-object__view"> <dl class="ds-facts ds-facts--rows"> ... </dl> </div>
+ *       <form class="ds-form ds-object__form" hidden> fields ...
+ *         <div class="ds-form-actions"><button class="ds-btn" type="button" data-ds-object-cancel>Cancel</button><button class="ds-btn ds-btn--filled" type="submit">Save</button></div>
+ *       </form>
+ *     </section>
+ *   </div>
+ *
+ * Layout: a column of --ds-object-gap (--ds-space-5). The head and the bar
+ * stick one under the other: the module writes the head's height as
+ * --ds-object-head and the bar's as --ds-object-bar on the .ds-object (runtime
+ * properties: never set them), the bar sticks at --ds-object-head, and a
+ * section's scroll-margin-top keeps its title clear of both when a jump
+ * scrolls to it.
+ *
+ * Parts: .ds-object__section (a section, a .ds-card), .ds-object__head (its
+ * title row: the title, the section's edit action at its end),
+ * .ds-object__title (the title role), .ds-object__edit (the section's edit
+ * action, a small text button, gone while the section edits), .ds-object__view
+ * and .ds-object__form (the two faces; the module owns their hidden).
+ *
+ * State, written by the module: data-editing on a section that shows its
+ * form, and on the .ds-object while every section does (edit mode).
+ *
+ * Options: size, density, shape and tone reach the controls and the cards
+ * inside (each computes its own); the object page's own rhythm is layout.
+ *
+ * Hooks: --ds-object-gap (--ds-space-5: between the parts).
+ *
+ * Forced colours: the cards keep their edges; a section that edits shows its
+ * form (the state is the form, never a colour).
+ *
+ * Print: the bar of anchors and the edit actions stay off the paper (the
+ * head prints in place).
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.object {
+  .ds-object {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ds-object-gap, var(--ds-space-5));
+    align-content: start;
+    min-width: 0;
+  }
+
+  /* The head carries no bottom margin of its own here: the gap is the rhythm. */
+  .ds-object > .ds-page-head {
+    margin-bottom: 0;
+  }
+
+  /* A condensed head keeps the room of what folded (page.css). */
+  .ds-object > .ds-page-head[data-scrolled] {
+    margin-bottom: var(--ds-page-head-fold, 0px);
+  }
+
+  /* The bar of anchors sticks under the head (its height, written by the
+     module), on the same ground. */
+  .ds-object > .ds-toc--bar.ds-toc--sticky {
+    top: calc(var(--ds-page-head-top, 0px) + var(--ds-object-head, 0px));
+  }
+
+  /* A sticky head and the bar under it are one band: the bar takes the
+     head's hairline, so the head drops its own. */
+  .ds-object > .ds-page-head--sticky:has(+ .ds-toc--bar)::after {
+    display: none;
+  }
+
+  /* The bar follows the head with no gap, so nothing shows between them. */
+  .ds-object > .ds-page-head + .ds-toc--bar {
+    margin-top: calc(-1 * var(--ds-object-gap, var(--ds-space-5)));
+  }
+
+  .ds-object__section {
+    display: grid;
+    gap: var(--ds-space-3);
+    min-width: 0;
+    /* A jump lands with the title clear of the head and the bar. */
+    scroll-margin-top: calc(var(--ds-page-head-top, 0px) + var(--ds-object-head, 0px) + var(--ds-object-bar, 0px) + var(--ds-space-4));
+  }
+
+  .ds-object__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ds-space-3);
+    min-width: 0;
+  }
+
+  .ds-object__title {
+    margin: 0;
+    color: var(--ds-text);
+    font: var(--ds-font-title);
+    overflow-wrap: anywhere;
+  }
+
+  /* The section's edit action: its text ends on the card's content edge
+     (it hangs its padding into the gutter, as in a card's link row). */
+  .ds-object__edit {
+    flex: none;
+    margin-inline-end: calc(-1 * var(--ds-space-3));
+  }
+
+  .ds-object__section[data-editing] .ds-object__edit,
+  .ds-object__view[hidden],
+  .ds-object__form[hidden] {
+    display: none;
+  }
+
+  .ds-object__view,
+  .ds-object__form {
+    min-width: 0;
+  }
+
+  @media print {
+    .ds-object > .ds-toc,
+    .ds-object__edit {
+      display: none;
+    }
+  }
+}

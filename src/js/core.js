@@ -501,6 +501,14 @@ const DEFAULT_STRINGS = Object.freeze({
   filterMatch: '{count} match',
   filterMatches: '{count} matches',
   breadcrumbsMore: 'Show {count} more',
+  moreTabs: 'More tabs',
+  tabClosed: '{label} closed',
+  closeTab: 'Close {label}',
+  moreActions: 'More actions',
+  backToTop: 'Back to top',
+  editing: 'Editing {label}',
+  saved: '{label} saved',
+  stepOf: 'Step {position} of {total}: {label}',
 });
 
 /**

@@ -434,9 +434,16 @@
    *
    * data-label (optional, the option's text again) reserves the width of the
    * heavier current weight, so the switch keeps its width when the current
-   * option changes. It is for an option whose content is its text (or one
-   * wrapper): the option stacks its content and the reserved copy in a
-   * column. Options without it lay out their content in a row, as before.
+   * option changes: the copy lies under the text, without height (a grid;
+   * an icon keeps its column). Options without it lay out their content in
+   * a row, as before.
+   *
+   * Icons and counts: an icon (svg, 16 to 20) before the label, a count
+   * after it (.ds-segmented__count, tabular meta figures, read with the
+   * label through a .ds-sr separator); an option that is only an icon is
+   * named by aria-label (with data-tip) and takes half the side padding.
+   *   <button class="ds-segmented__option" type="button" role="radio" aria-checked="true" data-label="Open">(inbox 18)Open<span class="ds-segmented__count"><span class="ds-sr">, </span>12</span></button>
+   *   <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" aria-label="Map" data-tip="Map">(map 18)</button>
    */
   .ds-segmented {
     /* The options, computed here and read by the options inside. The hook
@@ -520,17 +527,57 @@
      state layer. Only these options turn into a column (still centred both
      ways), so the copy takes the width without taking a line. */
   .ds-segmented__option[data-label] {
-    flex-direction: column;
+    display: inline-grid;
+    grid-auto-flow: column;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    /* The lighter text centres over the heavier copy's width. */
+    justify-items: center;
   }
 
   .ds-segmented__option[data-label]::after {
     content: attr(data-label);
     display: block;
+    grid-row: 2;
+    grid-column: 1;
     height: 0;
     overflow: hidden;
     visibility: hidden;
     pointer-events: none;
     font-weight: var(--ds-weight-label);
+  }
+
+  /* An icon before the label (svg, 16 to 20) and a count after it
+     (.ds-segmented__count): a row with --ds-space-2 between the parts. The
+     icon takes both rows of the grid, so the reserved copy goes under the
+     text, in its column. */
+  .ds-segmented__option {
+    column-gap: var(--ds-space-2);
+  }
+
+  .ds-segmented__option[data-label] > svg:first-child {
+    grid-row: 1 / span 2;
+  }
+
+  .ds-segmented__option[data-label]:has(> svg:first-child)::after {
+    grid-column: 2;
+  }
+
+  .ds-segmented__option svg {
+    flex-shrink: 0;
+  }
+
+  .ds-segmented__count {
+    color: inherit;
+    font: var(--ds-font-meta);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* An option that is only an icon (named by aria-label, with data-tip):
+     half the side padding of a label, so the switch stays compact. */
+  .ds-segmented__option:not([data-label]):has(> svg:only-child) {
+    padding-inline: calc(var(--_pad) / 2);
   }
 
   .ds-segmented__option + .ds-segmented__option {

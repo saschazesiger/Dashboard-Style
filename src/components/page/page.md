@@ -71,6 +71,62 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
 - Empty parts take no room (`:empty`: the head, the lead, the status, the actions, the details and the tabs). The lead's
   figures are tabular. Print leaves out the back link and the actions.
 
+### A sticky head that condenses, actions that fold
+
+```html
+<header class="ds-page-head ds-page-head--sticky" data-ds-page-head>
+  ... the same parts ...
+</header>
+```
+
+- **`.ds-page-head--sticky`** sticks `--ds-page-head-top` (0px; the height of a bar that sticks above it) below the top
+  of its scroller, on `--ds-page-head-bg` (`--ds-backdrop`; set it to the surface it lies on), with `--ds-space-3`
+  above and below. A hairline under it shows while the content scrolls under it: where scroll timelines exist it fades
+  in over the first `--ds-space-2` of scroll (`ds-scroll-fade`, progressive), elsewhere with `data-scrolled` over
+  `--ds-dur-fast`. Print puts it back in the flow.
+- **Condensing** (`data-ds-page-head` on a sticky head; `data-ds-page-head-condense="off"` keeps it whole): once the
+  head sticks (a head under a banner or a toolbar first scrolls up to its sticky top) and the reader has scrolled past
+  what folds, the module writes `data-scrolled` on the head and the back link or breadcrumbs,
+  the lead, the status and the key facts fold away; the title takes `--ds-font-title` on one line (an ellipsis when
+  short of room) with the actions at its end, also on a narrow page; the tabs stay. What folded keeps its room in the
+  flow (a bottom margin as tall, `--ds-page-head-fold`, a runtime property the module writes), so the content under it
+  stays where it was, a running scroll goes on, and the state follows the scroll position alone: nothing jumps,
+  nothing flickers. The scroller is the nearest scrolling ancestor of the head, else the page. A head prints whole,
+  also while condensed.
+- **Folding actions** (`data-ds-page-head` on any head): the module writes `.ds-page-head__more` (a quiet icon button
+  named "More actions", the string `moreActions`) and its `.ds-menu` after the actions. Actions that do not fit the
+  title row (on its own line under the title as well; half of it beside the title of a condensed head) hide, the first
+  ones first and a filled one last, and the menu lists them with their icon and label; an item presses its action (a
+  link item follows the link), a blocked action stays blocked in the menu. The row's width decides (a
+  `ResizeObserver`), so a narrow content panel folds as a phone does. An action that opens an overlay with itself as
+  the opener passes the More button instead while it is folded (`hidden`), so the popup is placed against a button on
+  screen and the focus returns to it on close:
+  `DS.overlay.open(dialog, { opener: button.hidden ? head.querySelector('.ds-page-head__more') : button })`.
+- `ds:change` on the head: `{ condensed }`.
+
+| Attribute | Option | What |
+|---|---|---|
+| `data-ds-page-head` | | the behaviour, on the `.ds-page-head` |
+| `data-ds-page-head-condense` | `condense: false` | `off`: a sticky head stays whole |
+
+The controller (`DS.get(head, 'page')`, or what `DS.page.create(head, options)` returns): `get()` (whether it is
+condensed), `set(condensed)` (until the next scroll decides), `on('change', fn)`, `refresh()` (lays the actions out
+again and measures the head's place, after content above it changed) and `destroy()`. `DS.page.fold(widths, { room, gap, more, order })` is the folding rule alone: the indices of the
+actions that fold.
+
+What the module writes is owned state (`DS.dom.morphHtml` keeps it): `data-scrolled` and its `style` (the fold) on the
+head and `hidden` on the folded actions; the More button and its menu are the system's own (`data-ds-keep`).
+
+- Keyboard and names: the More button is a tab stop after the actions that stay; Enter, Space or Down opens its menu
+  (`DS.menu`: arrow keys, Escape returns the focus to More). A condensed head keeps every action reachable. The title
+  keeps its heading level in both states.
+- Forced colours: the hairline under a sticky head is `CanvasText`; the More
+  button and menu are the button's and the menu's.
+
+**Motion:** the hairline under a sticky head fades in with the scroll (or over `--ds-dur-fast`); the head condenses in
+one frame once its folding parts have scrolled under it, so the reader sees no jump.
+The More menu opens and closes as every menu does.
+
 ### Breadcrumbs
 
 ```html
@@ -133,3 +189,10 @@ page, never inside `.ds-app`.
 ```js
 DS.motion.transition(() => { DS.dom.morphHtml(view, renderStep(2)); return view.firstElementChild; }, { type: 'forward', focus: true });
 ```
+
+<!-- changelog
+- Page head: `.ds-page-head--sticky` (`--ds-page-head-top`, `--ds-page-head-bg`) and a behaviour module (`DS.page`,
+  `data-ds-page-head`): the sticky head condenses once the reader has scrolled (`data-scrolled`, the content kept in
+  place; the hairline on a scroll timeline where supported), and the actions fold into a More menu
+  (`.ds-page-head__more`) by the row's width.
+-->

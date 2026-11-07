@@ -1,0 +1,34 @@
+{
+  "name": "backtop",
+  "group": "navigation",
+  "order": 1310,
+  "docsOrder": 44,
+  "need": "Take the reader back to the top of a long page or box: a button that appears after a scroll",
+  "tier": 2,
+  "status": "beta",
+  "classes": [
+    "ds-backtop",
+    "ds-backtop--fixed"
+  ],
+  "attributes": [],
+  "requires": [
+    "button"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-backtop-offset": {
+      "default": "`--ds-space-6`",
+      "description": "the room between the back-to-top button and the bottom and end edges of its scroller or the window"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "backtop"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.backtop.shown": "arithmetic of the threshold (whether the button shows at a scroll position), no motion of its own"
+  }
+}

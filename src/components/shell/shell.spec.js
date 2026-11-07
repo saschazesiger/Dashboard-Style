@@ -392,7 +392,7 @@ test('keyboard: the modal drawer takes the focus, Escape closes it and gives it 
 
 test('keyboard: a switch of buttons is one tab stop and skips nothing it may reach; its links are a stop each', async ({ page }) => {
   await open(page);
-  const group = page.locator('[role="radiogroup"][data-demo="segmented"]');
+  const group = page.locator('[role="radiogroup"][data-demo="segmented"]').first();
   const options = group.locator('.ds-segmented__option');
   await focusByKeyboard(page, options.first());
   await page.keyboard.press('ArrowRight');
@@ -403,6 +403,45 @@ test('keyboard: a switch of buttons is one tab stop and skips nothing it may rea
   await expect(options.nth(1), 'an aria-disabled option takes the focus, never the state').toHaveAttribute('aria-checked', 'true');
   expect(await options.evaluateAll((els) => els.filter((el) => el.tabIndex === 0).length)).toBe(1);
   expect(await page.locator('nav[data-demo="segmented"] a').evaluateAll((els) => els.every((el) => el.tabIndex === 0))).toBe(true);
+});
+
+test('icons and counts: a count reads with the label, the width holds when the choice moves, an icon-only option is named and compact', async ({ page }) => {
+  await open(page);
+  const tickets = page.getByRole('radiogroup', { name: 'Tickets' });
+  await expect(tickets.getByRole('radio', { name: /^Open\s*, 12$/ })).toHaveAttribute('aria-checked', 'true');
+  await expect(tickets.getByRole('radio')).toHaveCount(2);
+  const look = () => tickets.evaluate((el) => {
+    const options = [...el.querySelectorAll('.ds-segmented__option')];
+    const open = options[0];
+    const icon = open.querySelector('svg').getBoundingClientRect();
+    const count = open.querySelector('.ds-segmented__count').getBoundingClientRect();
+    return {
+      widths: options.map((option) => Math.round(option.getBoundingClientRect().width)),
+      height: Math.round(open.getBoundingClientRect().height),
+      row: Math.abs((icon.top + icon.bottom) / 2 - (count.top + count.bottom) / 2) <= 2,
+      order: icon.right <= count.left,
+      tabular: getComputedStyle(open.querySelector('.ds-segmented__count')).fontVariantNumeric,
+    };
+  });
+  const before = await look();
+  expect(before.row, 'icon, label and count on one line').toBe(true);
+  expect(before.order).toBe(true);
+  expect(before.tabular).toBe('tabular-nums');
+  await tickets.getByRole('radio', { name: /^Waiting\s*, 3$/ }).click();
+  await expect(tickets.getByRole('radio', { name: /^Waiting\s*, 3$/ })).toHaveAttribute('aria-checked', 'true');
+  const after = await look();
+  expect(after.widths, 'the reserved width keeps every option in place').toEqual(before.widths);
+  expect(after.height).toBe(before.height);
+  const layout = page.getByRole('radiogroup', { name: 'Layout' });
+  const map = layout.getByRole('radio', { name: 'Map' });
+  await expect(map).toHaveCount(1);
+  const pads = await layout.evaluate((el) => {
+    const option = el.querySelector('.ds-segmented__option');
+    const style = getComputedStyle(option);
+    const label = getComputedStyle(document.querySelector('[aria-label="Tickets"] .ds-segmented__option'));
+    return { icon: parseFloat(style.paddingInlineStart), label: parseFloat(label.paddingInlineStart) };
+  });
+  expect(pads.icon).toBeCloseTo(pads.label / 2, 0);
 });
 
 test('names and roles', async ({ page }) => {

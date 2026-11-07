@@ -265,3 +265,131 @@ test('forced colours: done and current Highlight, an error mark its ring and ico
   expect(bar[0]).toBe(system.highlight);
   expect(bar[1]).toBe(system.text);
 });
+
+test('clickable: a done step\'s button is a tab stop, Enter goes there: aria-current moves to its button, a screen reader hears it, ds:change may stop it', async ({ page }) => {
+  await open(page);
+  const list = page.locator('[data-demo="clickable"]');
+  const buttons = list.getByRole('button');
+  await expect(buttons).toHaveCount(3);
+  await expect(list.getByRole('button', { name: 'Contact' })).toHaveAttribute('aria-current', 'step');
+  // Only the current label takes the label weight.
+  const weights = await list.locator('.ds-steps__label').evaluateAll((els) => els.map((el) => getComputedStyle(el).fontWeight));
+  expect(weights).toEqual(['400', '400', '500', '400', '400']);
+  const device = list.getByRole('button', { name: /^Device/ });
+  await device.focus();
+  await page.keyboard.press('Enter');
+  await expect(device).toHaveAttribute('aria-current', 'step');
+  await expect(list.getByRole('button', { name: 'Contact' })).not.toHaveAttribute('aria-current');
+  await expect(device).toBeFocused();
+  await expect(page.locator('[aria-live]').filter({ hasText: 'Step 1 of 5: Device' })).toHaveCount(1);
+  // The current label follows the button that carries aria-current.
+  expect(await list.locator('.ds-steps__label').first().evaluate((el) => getComputedStyle(el).fontWeight)).toBe('500');
+  // A listener that cancels keeps the step where it is.
+  await page.evaluate(() => document.addEventListener('ds:change', (event) => event.preventDefault(), { once: true }));
+  await list.getByRole('button', { name: /^Problem/ }).click();
+  await expect(device).toHaveAttribute('aria-current', 'step');
+  // The controller.
+  const moved = await list.evaluate((el) => {
+    const steps = DS.get(el, 'steps');
+    const seen = [];
+    const off = steps.on('change', (detail) => seen.push(detail.index));
+    steps.set(2);
+    off();
+    return { at: steps.get(), seen };
+  });
+  expect(moved).toEqual({ at: 2, seen: [2] });
+});
+
+test('clickable: the state layer reaches past the mark and label without moving them, presses squarer, ripples; touch makes it a finger\'s target', async ({ page }) => {
+  await open(page);
+  const list = page.locator('[data-demo="clickable"]');
+  const plain = await page.locator('[aria-label="Every status, in a row"] .ds-steps__step').first().evaluate((el) => el.getBoundingClientRect().height);
+  const link = list.locator('.ds-steps__link').first();
+  const geometry = await link.evaluate((el) => {
+    const box = el.getBoundingClientRect();
+    const mark = el.querySelector('.ds-steps__mark').getBoundingClientRect();
+    return { height: box.height, step: el.parentElement.getBoundingClientRect().height, left: mark.left - box.left, radius: parseFloat(getComputedStyle(el, '::before').borderTopLeftRadius) };
+  });
+  expect(geometry.height).toBe(32);
+  expect(geometry.step).toBe(plain);
+  expect(geometry.left).toBe(8);
+  expect(geometry.radius).toBe(16);
+  await link.scrollIntoViewIfNeeded();
+  const box = await link.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await expect(link.locator('.ds-press-ripple')).toHaveCount(1);
+  await page.mouse.up();
+  await list.evaluate((el) => el.classList.add('ds-touch'));
+  expect(await link.evaluate((el) => el.getBoundingClientRect().height)).toBe(48);
+});
+
+test('the stage path: chevrons 40px high (touch 48), the current filled with the label weight, done with a check, hints read not shown; narrow keeps the current label whole', async ({ page }) => {
+  await open(page);
+  const path = page.locator('[aria-label="Ticket 1042: stages"]');
+  const stages = path.locator('.ds-steps__step');
+  const look = await stages.evaluateAll((els) => els.map((el) => ({
+    height: el.getBoundingClientRect().height,
+    clip: getComputedStyle(el).clipPath.startsWith('polygon'),
+    background: getComputedStyle(el).backgroundColor,
+    mark: getComputedStyle(el.querySelector('.ds-steps__mark')).display,
+    weight: getComputedStyle(el.querySelector('.ds-steps__label')).fontWeight,
+  })));
+  expect(look.map((entry) => entry.height)).toEqual([40, 40, 40, 40, 40]);
+  expect(look.every((entry) => entry.clip)).toBe(true);
+  expect(look.map((entry) => entry.mark)).toEqual(['grid', 'grid', 'none', 'none', 'none']);
+  expect(look.map((entry) => entry.weight)).toEqual(['400', '400', '500', '400', '400']);
+  expect(new Set(look.map((entry) => entry.background)).size).toBe(3);
+  // Chevrons nest: each one starts inside the previous one's point.
+  const overlaps = await stages.evaluateAll((els) => els.slice(1).map((el, index) => els[index].getBoundingClientRect().right - el.getBoundingClientRect().left));
+  for (const overlap of overlaps) expect(overlap).toBeCloseTo(8, 1);
+  await path.evaluate((el) => el.classList.add('ds-touch'));
+  expect(await stages.first().evaluate((el) => el.getBoundingClientRect().height)).toBe(48);
+  await path.evaluate((el) => el.classList.remove('ds-touch'));
+  // The error path: its hint word is read, not shown.
+  const error = page.locator('[aria-label="Ticket 1044: stages, one needs attention"] [data-status="error"]');
+  await expect(error).toContainText('needs attention');
+
+  await page.setViewportSize({ width: 390, height: 900 });
+  await settle(page);
+  const current = path.locator('[aria-current="step"] .ds-steps__label');
+  const whole = await current.evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
+  expect(whole).toBe(true);
+  const right = await path.evaluate((el) => el.getBoundingClientRect().right);
+  expect(right).toBeLessThanOrEqual(390);
+});
+
+test('the stage path\'s links: the current stage\'s button carries aria-current, a passed stage\'s button goes there, the ring lies inside', async ({ page }) => {
+  await open(page);
+  const path = page.locator('[data-demo="path"]');
+  await expect(path.getByRole('button')).toHaveCount(3);
+  const triaged = path.getByRole('button', { name: /^Triaged/ });
+  await triaged.focus();
+  await page.keyboard.press('Space');
+  await expect(triaged).toHaveAttribute('aria-current', 'step');
+  // The ring snaps inward (outline-offset on --ds-dur-fast) and rests inside the chevron.
+  await expect.poll(() => triaged.evaluate((el) => {
+    const style = getComputedStyle(el);
+    return parseFloat(style.outlineOffset) + parseFloat(style.outlineWidth);
+  })).toBe(0);
+});
+
+test('forced colours: the current stage Highlight, the others Canvas with their words', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'forced colours are emulated in Chromium only');
+  await page.emulateMedia({ forcedColors: 'active' });
+  await open(page);
+  const system = await page.evaluate(() => {
+    const probe = (value) => {
+      const el = document.createElement('span');
+      el.style.forcedColorAdjust = 'none';
+      el.style.backgroundColor = value;
+      document.querySelector('.ds-theme').append(el);
+      const colour = getComputedStyle(el).backgroundColor;
+      el.remove();
+      return colour;
+    };
+    return { highlight: probe('Highlight'), canvas: probe('Canvas') };
+  });
+  const backgrounds = await page.locator('[aria-label="Ticket 1042: stages"] .ds-steps__step').evaluateAll((els) => els.map((el) => getComputedStyle(el).backgroundColor));
+  expect(backgrounds).toEqual([system.canvas, system.canvas, system.highlight, system.canvas, system.canvas]);
+});
