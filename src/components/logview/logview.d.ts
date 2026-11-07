@@ -101,8 +101,8 @@ export interface LogviewController {
   on(type: 'change', fn: (detail: { query: string; levels: LogLevel[]; wrap: boolean; time: string; shown: number; count: number }) => void): () => void;
   on(type: 'select', fn: (detail: { lines: number[] }) => void): () => void;
   on(type: 'copy', fn: (detail: { text: string; count: number }) => void): () => void;
-  /** Reads the data-ds-logview-* options again. */
-  update(): void;
+  /** Applies the data-ds-logview-* options (and aria-label) whose attributes changed; without `names`, all of them. */
+  update(names?: string[]): void;
   destroy(): void;
 }
 

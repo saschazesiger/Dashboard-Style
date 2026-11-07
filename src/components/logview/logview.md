@@ -18,7 +18,9 @@ follow new lines as they arrive with a "Latest" pill to come back to the end.
 The page writes the text into `.ds-logview__source`; `DS.init()` reads it, renders the view next to it and hides the
 source. Without the script the source reads as a plain block of text. Lines that arrive later go through
 `append()`; a page that re-renders the source with more text at its end gets the new lines appended, other text
-starts the log again.
+starts the log again. That holds for a re-render of the page around the view with `DS.dom.morphHtml` too: the bar and
+the scroller carry `data-ds-keep`, and the source's `hidden` and the element's `data-wrap` and `data-time` are owned
+state, so the morph leaves the view as it is and patches only the source.
 
 **What it shows** (rendered by the script; the page writes none of it):
 
@@ -36,7 +38,8 @@ starts the log again.
   on a warning tint; the icon and the word say the level, never the colour alone.
 - The **"Latest" pill**: a `.ds-jump` with a `.ds-presence` around an elevated button, through
   `DS.dom.followEnd()`. While the reader is at the end, new lines keep the view there; scrolling up lets go and
-  shows the pill; pressing it goes back to the end and follows again.
+  shows the pill; pressing it goes back to the end and follows again. Pressed from the keyboard, the focus moves to
+  the last line (the pill hides at once).
 - `.ds-logview__empty`: "No lines yet", or "No line matches the filters".
 
 **Lines.** A timestamp at the start (ISO 8601 such as `2026-11-04T09:00:01.120Z`, a time of day `09:00:01`, a
@@ -63,7 +66,10 @@ over the ground; bold, dim, italic, underline, strike and inverse are words of `
 | `data-ds-logview-time` | `time` | `time` (default: the time of day), `full` (the stamp as written) or `off` (no column) |
 | `data-ds-logview-limit` | `limit` | lines kept (default 100000; `0`: no limit): past it the oldest tenth goes at once, so a log at its limit does not shift on every line |
 | `data-ds-logview-tools` | `tools` | `off`: no bar (the API still works) |
-| `data-ds-logview-store` | `store` | a `DS.store` namespace that remembers wrap and timestamps |
+| `data-ds-logview-store` | `store` | a `DS.store` namespace that remembers wrap and timestamps; read once, when the view starts |
+
+A change of one of the other attributes (or of `aria-label`, the name of the lines) applies that option alone: the
+wrap and timestamps the reader chose stay until `data-ds-logview-wrap` or `data-ds-logview-time` itself changes.
 
 The view writes `data-wrap` and `data-time` on the element, `data-level` on the lines and chips, and the runtime
 properties `--ds-logview-chars`, `--ds-logview-digits`, `--ds-logview-time-chars` and `--ds-logview-level-chars` on

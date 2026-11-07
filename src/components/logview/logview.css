@@ -11,20 +11,20 @@
  *   </div>
  *
  * What logview.js renders (the page writes none of it):
- *   <div class="ds-logview__bar">
+ *   <div class="ds-logview__bar" data-ds-keep>
  *     <div class="ds-logview__find">
  *       <div class="ds-search ds-logview__search">(search)<input class="ds-input" type="search"></div>
  *       <span class="ds-logview__found">3 of 12</span>
- *       .ds-logview__prev, .ds-logview__next, .ds-logview__only (quiet icon buttons; only: aria-pressed)
+ *       <button class="ds-btn ds-btn--quiet ds-btn--icon" data-ds-logview-act="previous|next|only"> (only: aria-pressed)
  *     </div>
- *     <div class="ds-logview__tools"> .ds-logview__wrap, .ds-logview__time (aria-pressed), .ds-logview__copy </div>
+ *     <div class="ds-logview__tools"><button class="ds-btn ds-btn--quiet ds-btn--icon" data-ds-logview-act="wrap|time|copy"> (wrap, time: aria-pressed)</div>
  *     <div class="ds-logview__filters">
  *       <fieldset class="ds-chips ds-logview__levels"><label class="ds-chip ds-logview__chip" data-level="error">
  *         <input class="ds-chip__input" type="checkbox" checked><span class="ds-chip__body">(check)(icon .ds-logview__glyph)Error<span class="ds-logview__tally">12</span></span></label> ...</fieldset>
  *       <span class="ds-logview__count">4,000 lines</span>
  *     </div>
  *   </div>
- *   <div class="ds-logview__scroller">
+ *   <div class="ds-logview__scroller" data-ds-keep>
  *     <div class="ds-logview__lines" role="listbox" aria-multiselectable="true">
  *       <div class="ds-logview__line" role="option" aria-selected="false" data-level="error">
  *         <span class="ds-logview__num" data-line="812"></span>
@@ -247,6 +247,8 @@
   .ds-logview__line {
     --_pad: max(0px, calc(2px + var(--ds-density, 0) * 1px + var(--ds-size-step, 0) * 1px));
     position: relative;
+    /* The hover layer (z-index -1) stays above the level tint, below the text. */
+    isolation: isolate;
     display: grid;
     grid-template-columns: calc(var(--ds-logview-digits, 3) * 1ch) calc(var(--ds-logview-time-chars, 8) * 1ch) calc(var(--ds-logview-level-chars, 7) * 1ch + 20px) minmax(0, 1fr);
     column-gap: var(--ds-space-3);
@@ -279,6 +281,7 @@
     content: "";
     position: absolute;
     inset: 0;
+    z-index: -1;
     background: currentColor;
     opacity: 0;
     pointer-events: none;

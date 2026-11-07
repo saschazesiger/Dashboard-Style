@@ -227,6 +227,14 @@ test('follows the end while lines arrive; scrolling up shows Latest, which goes 
   await latest.getByRole('button', { name: 'Latest' }).click();
   await expect.poll(gap).toBeLessThan(2);
   await expect(latest).toBeHidden();
+  // From the keyboard: the pill hides, so the focus goes to the last line.
+  await scroller.evaluate((el) => { el.scrollTop = 0; });
+  await expect(latest).toBeVisible();
+  await latest.getByRole('button', { name: 'Latest' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(view.locator('.ds-logview__line', { hasText: 'more 3' })).toBeFocused();
+  await expect.poll(gap).toBeLessThan(2);
+  await expect(latest).toBeHidden();
 });
 
 test('wrap and timestamps: toggles with aria-pressed, remembered in a store', async ({ page }) => {
@@ -259,6 +267,53 @@ test('a page that re-renders the source with more lines appends them; destroy() 
   await page.evaluate(() => DS.core.destroy(document.querySelector('#probe')));
   await expect(view.locator('.ds-logview__bar')).toHaveCount(0);
   await expect(view.locator('.ds-logview__source')).toBeVisible();
+});
+
+test('a re-render of the page with DS.dom.morphHtml keeps the view, appends the new lines and keeps the reader\'s choices', async ({ page }) => {
+  await open(page);
+  const view = await mount(page, `${TEXT}\n`);
+  await view.getByRole('button', { name: 'Wrap lines' }).click();
+  await view.locator('.ds-logview__line').first().click();
+  expect(await page.evaluate(() => window.probeLog.get().selected)).toEqual([1]);
+  const same = await page.evaluate((text) => {
+    const host = document.querySelector('#probe');
+    const wrap = document.createElement('div');
+    wrap.id = 'probe-wrap';
+    host.before(wrap);
+    wrap.append(host);
+    const esc = (value) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const html = `<div id="probe" class="ds-logview" aria-label="Probe log" data-ds-logview><pre class="ds-logview__source">${esc(`${text}\n2026-11-04T09:00:11.000Z ERROR One more\n2026-11-04T09:00:12.000Z INFO  And another\n`)}</pre></div>`;
+    DS.dom.morphHtml(wrap, html);
+    return wrap.firstElementChild === host;
+  }, TEXT);
+  expect(same).toBe(true);
+  await expect(view.locator('.ds-logview__count')).toHaveText('12 lines');
+  await expect(view.locator('.ds-logview__bar')).toBeVisible();
+  await expect(view.locator('.ds-logview__line', { hasText: 'And another' })).toHaveCount(1);
+  await expect(view.locator('.ds-logview__source')).toBeHidden();
+  await expect(view).toHaveAttribute('data-wrap', '');
+  await expect(view).toHaveAttribute('data-time', 'time');
+  // Appended, not started again: the selection stays.
+  expect(await page.evaluate(() => window.probeLog.get().selected)).toEqual([1]);
+});
+
+test('an attribute change applies its option alone: the reader\'s wrap stays, follow and tools apply', async ({ page }) => {
+  await open(page);
+  const view = await mount(page);
+  await view.getByRole('button', { name: 'Wrap lines' }).click();
+  await expect(view).toHaveAttribute('data-wrap', '');
+  await page.evaluate(() => document.querySelector('#probe').setAttribute('aria-label', 'Renamed log'));
+  await expect(view.getByRole('listbox', { name: 'Renamed log' })).toHaveCount(1);
+  await expect(view).toHaveAttribute('data-wrap', '');
+  await page.evaluate(() => document.querySelector('#probe').setAttribute('data-ds-logview-follow', 'off'));
+  await expect(view.locator('.ds-logview__scroller > .ds-jump')).toBeHidden();
+  await page.evaluate(() => document.querySelector('#probe').setAttribute('data-ds-logview-tools', 'off'));
+  await expect(view.locator('.ds-logview__bar')).toBeHidden();
+  await page.evaluate(() => document.querySelector('#probe').setAttribute('data-ds-logview-tools', 'on'));
+  await expect(view.locator('.ds-logview__bar')).toBeVisible();
+  await page.evaluate(() => document.querySelector('#probe').setAttribute('data-ds-logview-wrap', 'off'));
+  await expect(view).not.toHaveAttribute('data-wrap', '');
+  await expect(view).toHaveAttribute('data-time', 'time');
 });
 
 test('options: density and size step the lines, shape the corners; narrow hides the level word', async ({ page }) => {

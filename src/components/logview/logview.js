@@ -47,6 +47,13 @@
  * button copies the selected lines that show (else the active one) as plain
  * text, without the ANSI codes; a text selection of the page's own wins.
  *
+ * A page that re-renders around the view with DS.dom.morphHtml keeps it:
+ * the bar and the scroller carry data-ds-keep, and the source's `hidden`
+ * and the element's data-wrap and data-time are owned state. A change of
+ * data-ds-logview-wrap, -time, -limit, -follow, -tools or aria-label applies
+ * that option alone (the reader's wrap and timestamps stay otherwise);
+ * data-ds-logview-store is read once, when the view starts.
+ *
  * Events on the element: ds:change { query, levels, wrap, time, shown,
  * count } after a filter, the search or a view option changed; ds:select
  * { lines } (the line numbers) after the selection changed; ds:copy
@@ -55,7 +62,7 @@
  * ES2022. Progressive: none (navigator.clipboard is checked before use).
  */
 import { define, emit, runtime, t } from '../../js/core.js';
-import { followEnd, morphHtml } from '../../js/dom.js';
+import { followEnd, morphHtml, own, disown } from '../../js/dom.js';
 import { announce } from '../../js/a11y.js';
 import { number, absolute } from '../../js/format.js';
 import { open as openStore } from '../../js/store.js';
@@ -404,9 +411,14 @@ function controller(el, start, outer) {
   /* The parts. */
   el.setAttribute('data-time', state.time);
   if (state.wrap) el.setAttribute('data-wrap', '');
+  // What the view writes on the page's element is owned state: a re-render keeps it.
+  own(el, 'attrs', 'data-time');
+  own(el, 'attrs', 'data-wrap');
   const levelChip = (level) => `<label class="ds-chip ds-logview__chip" data-level="${level}"><input class="ds-chip__input" type="checkbox" value="${level}" data-ds-logview-level="${level}" checked><span class="ds-chip__body">${icon(check, 18, 'ds-chip__check')}${icon(LEVEL_ICON[level], 18, 'ds-logview__glyph')}<span>${esc(t(LEVEL_WORD[level]))}</span><span class="ds-logview__tally"></span></span></label>`;
+  // The bar and the scroller are the view's own: a morph of the page around them leaves them.
   const bar = doc.createElement('div');
   bar.className = 'ds-logview__bar';
+  bar.setAttribute('data-ds-keep', '');
   bar.hidden = !state.tools;
   morphHtml(bar, `<div class="ds-logview__find"><div class="ds-search ds-logview__search">${icon(search, 20)}<input class="ds-input" type="search" data-ds-logview-act="search" aria-label="${esc(t('logSearch'))}" placeholder="${esc(t('logSearchPlaceholder'))}" aria-describedby="${id}-found" aria-keyshortcuts="Control+F" enterkeyhint="search" autocomplete="off" spellcheck="false"></div>`
     + `<span class="ds-logview__found" id="${id}-found"></span>`
@@ -417,6 +429,7 @@ function controller(el, start, outer) {
     + `<div class="ds-logview__filters"><fieldset class="ds-chips ds-logview__levels" hidden><legend class="ds-sr">${esc(t('logLevels'))}</legend></fieldset><span class="ds-logview__count" aria-hidden="true"></span></div>`);
   const scroller = doc.createElement('div');
   scroller.className = 'ds-logview__scroller';
+  scroller.setAttribute('data-ds-keep', '');
   morphHtml(scroller, `<div class="ds-logview__lines" role="listbox" aria-multiselectable="true" id="${id}-lines"></div><p class="ds-logview__empty" hidden></p><div class="ds-jump"><div class="ds-presence ds-logview__latest" hidden><button class="ds-btn ds-btn--elevated ds-sm" type="button" data-ds-logview-act="latest">${icon(arrowDown, 18)}${esc(t('logLatest'))}</button></div></div>`);
   el.append(bar, scroller);
   const listbox = /** @type {HTMLElement} */ (scroller.firstElementChild);
@@ -482,7 +495,7 @@ function controller(el, start, outer) {
   };
 
   const list = windowRows(scroller, { content: listbox, count: 0, render, estimate: 24 });
-  const follower = state.follow ? followEnd(scroller, { pill }) : null;
+  let follower = state.follow ? followEnd(scroller, { pill }) : null;
 
   /* What shows around the rows. */
   const widths = () => {
@@ -772,6 +785,25 @@ function controller(el, start, outer) {
     return true;
   };
 
+  const setFollow = (on) => {
+    if (state.follow === on) return;
+    state.follow = on;
+    pill.parentElement.hidden = !on;
+    if (on) follower = followEnd(scroller, { pill });
+    else {
+      follower?.destroy();
+      follower = null;
+      pill.hidden = true;
+    }
+  };
+
+  const setTools = (on) => {
+    if (state.tools === on) return;
+    state.tools = on;
+    bar.hidden = !on;
+    syncBar();
+  };
+
   const setLevels = (levels) => {
     const visible = new Set(levels);
     const hidden = new Set(LEVELS.filter((level) => !visible.has(level)));
@@ -840,8 +872,16 @@ function controller(el, start, outer) {
     if (event.shiftKey && list.indexOf(/** @type {Node} */ (event.target)) >= 0) event.preventDefault();
   }, { signal });
 
+  // Whether the Latest pill held the focus when it was pressed: it hides at once, so the focus goes to the last line.
+  let latestFocused = false;
+  scroller.addEventListener('click', (event) => {
+    if (/** @type {Element} */ (event.target)?.closest?.('[data-ds-logview-act="latest"]')) latestFocused = pill.contains(doc.activeElement);
+  }, { capture: true, signal });
+
   scroller.addEventListener('click', (event) => {
     if (/** @type {Element} */ (event.target)?.closest?.('[data-ds-logview-act="latest"]')) {
+      if (latestFocused && shown.length) list.focus(shown.length - 1);
+      latestFocused = false;
       announce(t('logFollowing'));
       return;
     }
@@ -945,6 +985,7 @@ function controller(el, start, outer) {
   if (source) {
     watcher?.observe(source, { childList: true, characterData: true, subtree: true });
     source.hidden = true;
+    own(source, 'attrs', 'hidden');
   }
 
   const handle = {
@@ -1004,12 +1045,18 @@ function controller(el, start, outer) {
       set.add(fn);
       return () => set.delete(fn);
     },
-    update() {
+    /** Applies the options whose attributes changed (`names`, from DS.core), else all of them. */
+    update(names) {
+      const has = (attribute) => !Array.isArray(names) || names.includes(attribute);
       const options = readOptions(el);
-      setWrap(options.wrap);
-      setTime(options.time);
-      if (options.limit !== undefined) state.limit = options.limit;
-      listbox.setAttribute('aria-label', name());
+      let change = false;
+      if (has('data-ds-logview-wrap')) change = setWrap(options.wrap) || change;
+      if (has('data-ds-logview-time')) change = setTime(options.time) || change;
+      if (has('data-ds-logview-limit')) state.limit = options.limit ?? LIMIT;
+      if (has('data-ds-logview-follow')) setFollow(options.follow);
+      if (has('data-ds-logview-tools')) setTools(options.tools);
+      if (has('aria-label')) listbox.setAttribute('aria-label', name());
+      if (change) changed();
     },
     destroy() {
       if (destroyed) return;
@@ -1023,7 +1070,12 @@ function controller(el, start, outer) {
       Object.values(listeners).forEach((set) => set.clear());
       bar.remove();
       scroller.remove();
-      if (source) source.hidden = false;
+      if (source) {
+        disown(source, 'attrs', 'hidden');
+        source.hidden = false;
+      }
+      disown(el, 'attrs', 'data-time');
+      disown(el, 'attrs', 'data-wrap');
       el.removeAttribute('data-time');
       el.removeAttribute('data-wrap');
     },
@@ -1037,7 +1089,7 @@ function controller(el, start, outer) {
 
 define('logview', {
   attribute: 'data-ds-logview',
-  attributes: ['data-ds-logview-wrap', 'data-ds-logview-time', 'data-ds-logview-limit', 'aria-label'],
+  attributes: ['data-ds-logview-wrap', 'data-ds-logview-time', 'data-ds-logview-limit', 'data-ds-logview-follow', 'data-ds-logview-tools', 'aria-label'],
   init(el, ctx) {
     return controller(el, { ...readOptions(el), fromSource: true }, ctx.signal);
   },
