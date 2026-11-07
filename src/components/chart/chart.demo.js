@@ -169,7 +169,7 @@ SG.demo('chart', {
   title: 'Charts',
   group: 'data',
   need: 'Show a share, a figure per day or week, or a trend at a glance',
-  lead: 'Meters, columns and legends from the chart roles: four series in a fixed order, each at 3:1. A fill is clipped at its share (--ds-share), never scaled, so its round end keeps its shape; the first render fills from zero, later values glide. The chart module (axes, lines, a cursor) comes later.',
+  lead: 'DS.chart draws SVG charts from a table or a spec: line, area, column, bar, combo, sparkline, donut, pie, ring, gauge and bar gauge. A cursor with a tooltip follows the pointer and the keyboard (one tab stop, each point announced), the legend shows and hides series, a toggle shows the table, and live data morphs in. Below them, the CSS-only meters, columns and legends; all from the chart roles: four series in a fixed order, each at 3:1.',
   options: { sizes: true, density: true, shape: true, tones: ['neutral', 'primary', 'info', 'success', 'warning', 'error'] },
 
   render: function (h) {

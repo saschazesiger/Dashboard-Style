@@ -20,7 +20,8 @@
  *                      shows) with an svg .ds-chart__swatch (a line with
  *                      its marker, or a fill) and .ds-chart__key-name
  *                      (.ds-chart__key-value: a slice's share, a ring's value)
- *   .ds-chart__frame   the plot, one tab stop (role img, or meter for a
+ *   .ds-chart__frame   the plot, one tab stop (role application described
+ *                      as a chart; img when it takes no keys, meter for a
  *                      gauge): svg.ds-chart__svg with its layers
  *                      .ds-chart__grid (__gridline, __baseline),
  *                      __bands (__zone), __hover (__band), __bars (__bar),
@@ -66,7 +67,8 @@
  * multiplies the radius of a bar's data end, a legend key, the tooltip;
  * .ds-touch makes every legend key at least --ds-touch-target high. The
  * frame is container-driven: under 480px of chart width the plot is 3/4
- * of its height and a donut's legend goes under it (beside it from 480px).
+ * of its height and a donut's legend goes under it (beside it from 480px,
+ * shrinking to 10rem before it would wrap).
  *
  *   <span class="ds-meter" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100"
  *         aria-valuenow="78" aria-valuetext="78% used"></span>     (the page sets --ds-share: .78)
@@ -150,7 +152,12 @@
  * --ds-chart-bar (24px), --ds-chart-radius (--ds-radius-xs),
  * --ds-chart-stroke (2px), --ds-chart-marker (8px), --ds-chart-grid
  * (--ds-line), --ds-chart-area-opacity (--ds-state-dragged),
- * * --ds-chart-stack-opacity (--ds-state-stale), --ds-chart-dash-2 ... -4.
+ * --ds-chart-stack-opacity (--ds-state-stale), --ds-chart-dash-2 ... -4.
+ *
+ * Progressive:
+ * - content-visibility: auto (the table a screen reader reads while the
+ *   chart shows is not laid out, so a long series stays fast; it stays in
+ *   the accessibility tree): without it the hidden table is laid out.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -560,8 +567,11 @@
   }
 
   /* flex and clip-path as well: a wrapper of the page's (a .ds-table-wrap,
-     in a later layer) may keep its own position and overflow. */
+     in a later layer) may keep its own position and overflow. Not laid out
+     (content-visibility), yet read: a table of 10,000 rows would take
+     seconds of layout on every new value. */
   .ds-chart[data-state="chart"] > :not(figcaption, .ds-chart__tools, .ds-chart__legend, .ds-chart__frame) {
+    content-visibility: auto;
     flex: none;
     position: absolute;
     width: 1px;
@@ -871,11 +881,15 @@
       order: 1;
     }
 
-    /* At most one and a half plots wide (the frame's height, computed as the frame does), so a
-       share stays next to its name in a wide card. */
+    /* From no basis up to one and a half plots wide (the frame's height,
+       computed as the frame does), so a share stays next to its name in a
+       wide card. With a basis of zero the line breaks only below the
+       legend's minimum: it shrinks beside the plot first (a half-width
+       card of 530px keeps it there). */
     :is(.ds-chart--donut, .ds-chart--pie, .ds-chart--ring) > .ds-chart__legend {
-      flex: 0 1 calc((var(--ds-chart-height, 240px) + var(--ds-size-step, 0) * 40px + var(--ds-density, 0) * 16px) * 1.5);
-      min-inline-size: 0;
+      flex: 1 1 0;
+      min-inline-size: 10rem;
+      max-inline-size: calc((var(--ds-chart-height, 240px) + var(--ds-size-step, 0) * 40px + var(--ds-density, 0) * 16px) * 1.5);
       flex-direction: column;
       order: 2;
       margin-inline-start: var(--ds-space-6);

@@ -34,7 +34,7 @@ same from a script and returns the same controller.
 ```js
 const chart = DS.chart.create(el, { type: 'area', labels, series, stack: 'normal', curve: 'monotone' });
 chart.set({ labels: next, series: nextSeries });   // the lines morph, the bars glide, the figures count
-chart.toggle('Errors');                            // hides or shows a series (never the last one)
+chart.toggle('Errors');                            // hides or shows a series (a donut's slice), never the last one
 chart.view('table');                               // the table in place of the plot
 chart.on('select', ({ index, series, key, label }) => openDetail(key));
 ```
@@ -121,16 +121,19 @@ middle, each ring's value in the legend. **Donut and pie** show one series, a sl
 | Shape | `.ds-shape-*` | `.ds-chart` | the radius of a bar's data end, the legend keys (pills at the default), the tooltip, a bar gauge's meters |
 | Touch | `.ds-touch` | `.ds-chart__key` | every legend key at least `--ds-touch-target` high |
 | Tone | `tone` of a series, a threshold, a zone | the mark | `neutral`, `warning` and `error` take their chart roles, the others the tone; always with the series' or zone's name |
-| Width | (container) | `.ds-chart` | under 480px of chart width the plot is 3/4 as high and category ticks take the caption font; from 480px a donut's, pie's or ring's legend stands beside it as a column with the shares |
+| Width | (container) | `.ds-chart` | under 480px of chart width the plot is 3/4 as high and category ticks take the caption font; from 480px a donut's, pie's or ring's legend stands beside it as a column with the shares (it narrows to 10rem rather than wrap) |
 
 ### Behaviour and keyboard
 
 - **Cursor.** Pointing at the plot snaps a crosshair to the nearest x (columns: the category's band), with a dot on
-  each line and the tooltip: the x, then each visible series' value with its key, a stacked chart's total. A column
-  or a slice is its own target. Touch shows it on a tap.
-- **Keyboard** (the plot is one tab stop, `role="img"` with the chart's name and a hint): `←` `→` move along the points
-  (a horizontal bar chart and a donut also `↑` `↓`), `↑` `↓` go through the series at that point and back to all of
-  them, `Home` and `End` go to the ends, `Page Up` and `Page Down` jump a tenth, `Enter` emits `ds:select`, `Escape`
+  each line and the tooltip: the x, then each visible series' value with its key, a stacked chart's total. Columns
+  snap to their category (the tooltip and `ds:select` take every series there, `series: -1`); a slice is its own
+  target. Touch shows it on a tap.
+- **Keyboard** (the plot is one tab stop, `role="application"` with `aria-roledescription` "chart", the chart's name
+  and a hint, so a screen reader in browse mode passes the arrow keys to it; a plot without keys, a chart without data
+  or a sparkline without a tooltip, stays `role="img"`): `←` `→` move along the points (a horizontal bar chart's bars
+  and a donut's slices also `↑` `↓`, with a hint of their own), `↑` `↓` go through the series at that point and back
+  to all of them, `Home` and `End` go to the ends, `Page Up` and `Page Down` jump a tenth, `Enter` emits `ds:select`, `Escape`
   hides the cursor (and keeps an overlay around the chart open). Each move shows the crosshair and the tooltip and is
   announced ("09:00: Requests 420, Errors 3", `DS.a11y.announce`).
 - **Legend.** Each key is a toggle button (`aria-pressed`): it hides or shows its series (a slice of a donut), which
@@ -141,7 +144,10 @@ middle, each ring's value in the legend. **Donut and pie** show one series, a sl
   bar gauge the same. **Sparkline**: `role="img"` named by a summary ("Requests: from 120 to 340, lowest 98, highest
   360"); with `tooltip: true` it is a tab stop as well.
 - **Responsive.** The chart lays out at the size of its frame and again when that changes (a `ResizeObserver`):
-  ticks thin out to what fits, labels never overlap, a label at an edge moves in.
+  ticks thin out to what fits, labels never overlap, a label at an edge moves in. A resize redraws the plot only; the
+  table is written again when the data changes.
+- **Large data.** A line or area with more than two points per pixel draws, per pixel column, the first, lowest,
+  highest and last point (so every peak and gap stays); the tooltip, the keyboard and the table keep every point.
 - **Events** (bubbling, on the figure; the controller's `on()` gets the same detail): `ds:change` `{ spec }` after
   `set()`, `ds:toggle` `{ series, name, visible }`, `ds:view` `{ view }`, `ds:point` `{ index, series, key, label }`
   when the cursor moves to another point, `ds:select` the same on a click or `Enter`.
@@ -149,7 +155,8 @@ middle, each ring's value in the legend. **Donut and pie** show one series, a sl
 ### JS API
 
 - `DS.chart.create(el, spec)`: draws the chart; returns the controller: `get()` (the spec with each series'
-  visibility), `set(spec)` (merged over the current one), `on(type, fn)`, `toggle(series, visible)`, `view(mode)`,
+  visibility), `set(spec)` (merged over the current one), `on(type, fn)`, `toggle(series, visible)` (a series by index
+  or name; on a donut or pie a slice by index or label, as its legend key does; never the last one), `view(mode)`,
   `focus(index, series)`, `update()` (reads the attributes and the table again), `destroy()`. On the attribute path
   `DS.core.get(el, 'chart')` returns it.
 - The engine, pure functions a page may use for a chart of its own: `DS.chart.scale(type, domain, range, options)`
@@ -158,13 +165,14 @@ middle, each ring's value in the legend. **Donut and pie** show one series, a sl
   `DS.chart.path(points, { curve, area })` (SVG path data with gaps; areas close along their `y0`),
   `DS.chart.stack(series, { offset })` (`[lo, hi]` per value, negatives downwards, `percent`),
   `DS.chart.nearest(positions, value)` (hit testing), `DS.chart.parse(table)` and
-  `DS.chart.layout(spec, width, height, metrics)` (where everything goes, without a DOM).
+  `DS.chart.layout(spec, width, height, metrics)` (where everything goes, without a DOM; each series' `points`, and
+  `drawn`, the points its path draws).
 
 ### Accessibility
 
 Every chart keeps its text equivalent: the page's table, or the one the module writes from JSON, read by screen
 readers while the chart shows and shown by the table view. The plot is named by the caption (or `title`, or the
-figure's `aria-label`) and says how to move; each step is announced with its values. Status is never by colour alone:
+figure's `aria-label`; give one of them: without, it is named by its series' names) and says how to move; each step is announced with its values. Status is never by colour alone:
 zones and tones come with their word, hidden series with a hollow key and a struck name, series with their dash and
 marker.
 
@@ -320,6 +328,6 @@ stop of its own when nothing inside takes focus. A meter with its own figure is 
 - Added: hooks `--ds-chart-height`, `--ds-chart-radial-height`, `--ds-chart-gauge-height`, `--ds-chart-spark-height`,
   `--ds-chart-bar`, `--ds-chart-radius`, `--ds-chart-stroke`, `--ds-chart-marker`, `--ds-chart-grid`,
   `--ds-chart-area-opacity`, `--ds-chart-stack-opacity`, `--ds-chart-dash-2` to `--ds-chart-dash-4`; strings
-  `chartTableView`, `chartKeys`, `chartKeysSlices`, `chartPoint`, `chartSummary`, `chartTotal`, `chartOther`,
-  `chartShown`, `chartHidden`, `chartEmpty`.
+  `chartTableView`, `chartRole`, `chartKeys`, `chartKeysBars`, `chartKeysSlices`, `chartPoint`, `chartSummary`,
+  `chartTotal`, `chartOther`, `chartShown`, `chartHidden`, `chartEmpty`.
 -->

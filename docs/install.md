@@ -398,7 +398,9 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
 | `Show as table` | the label of the table view toggle of `DS.chart.create()` (the system's string `chartTableView`) | `DS.core.config({ strings: { chartTableView } })` |
-| `Arrow keys move along the points, Up and Down through the series, Home and End go to the ends.` | what the plot of a `DS.chart` describes (`aria-describedby`) (the system's string `chartKeys`) | `DS.core.config({ strings: { chartKeys } })` |
+| `chart` | what the plot of a `DS.chart` that takes the arrow keys is (`role="application"`, `aria-roledescription`) (the system's string `chartRole`) | `DS.core.config({ strings: { chartRole } })` |
+| `Left and Right move along the points, Up and Down through the series, Page Up and Page Down jump, Home and End go to the ends.` | what the plot of a `DS.chart` describes (`aria-describedby`) (the system's string `chartKeys`) | `DS.core.config({ strings: { chartKeys } })` |
+| `Arrow keys move along the bars, Page Up and Page Down jump, Home and End go to the ends.` | the same for a horizontal bar chart (the system's string `chartKeysBars`) | `DS.core.config({ strings: { chartKeysBars } })` |
 | `Arrow keys move through the slices, Home and End go to the ends.` | the same for a donut, pie or ring (the system's string `chartKeysSlices`) | `DS.core.config({ strings: { chartKeysSlices } })` |
 | `{x}: {values}` | what a `DS.chart` announces when the keyboard moves to a point (the system's string `chartPoint`) | `DS.core.config({ strings: { chartPoint } })` |
 | `{name}: from {first} to {last}, lowest {min}, highest {max}` | the name of a `DS.chart` sparkline (the system's string `chartSummary`) | `DS.core.config({ strings: { chartSummary } })` |

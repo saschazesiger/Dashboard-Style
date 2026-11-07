@@ -118,7 +118,7 @@ export interface ChartController {
   on(type: 'toggle', fn: (detail: { series: number; name: string; visible: boolean }) => void): () => void;
   on(type: 'view', fn: (detail: { view: 'chart' | 'table' }) => void): () => void;
   on(type: 'point' | 'select', fn: (detail: ChartPoint) => void): () => void;
-  /** Shows or hides a series (by index or name); never hides the last one. */
+  /** Shows or hides a series (by index or name), on a donut or pie a slice (by index or label); never hides the last one. */
   toggle(series: number | string, visible?: boolean): boolean;
   /** 'chart' or 'table'; returns the view in force. */
   view(mode?: 'chart' | 'table'): 'chart' | 'table';

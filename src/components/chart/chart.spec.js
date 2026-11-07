@@ -258,12 +258,14 @@ test.describe('DS.chart', () => {
     await open(page);
     const types = await page.locator('.ds-chart').evaluateAll((els) => els.map((el) => [...el.classList].find((name) => /^ds-chart--(?!stacked|patterns|empty)/.test(name))));
     for (const type of ['line', 'area', 'column', 'bar', 'combo', 'sparkline', 'donut', 'pie', 'ring', 'gauge', 'bargauge']) expect(types, type).toContain(`ds-chart--${type}`);
-    await expect(page.getByRole('img', { name: 'Response time per hour' })).toBeVisible();
+    await expect(page.getByRole('application', { name: 'Response time per hour' })).toBeVisible();
     const gauge = page.getByRole('meter', { name: 'Processor load' });
     await expect(gauge).toHaveAttribute('aria-valuenow', '76');
     await expect(gauge).toHaveAttribute('aria-valuetext', /76.*High/);
     await expect(page.getByRole('meter', { name: 'Server 3' })).toHaveAttribute('aria-valuetext', /93.*Critical/);
-    await expect(page.getByRole('img', { name: /^Requests per minute: from .* highest/ })).toBeVisible();
+    // The sparkline with a tooltip takes the arrows; the others are pictures.
+    await expect(page.getByRole('application', { name: /^Requests per minute: from .* highest/ })).toBeVisible();
+    await expect(page.getByRole('img', { name: /^Devices online: from .* highest/ })).toBeVisible();
     await expect(page.getByRole('img', { name: 'No data yet: No data' })).toBeVisible();
     // Lines of series 2 are dashed; a series has its marker shape in the legend too.
     const dash = await page.locator('.ds-chart--line .ds-chart__series--s2 .ds-chart__line').first().evaluate((el) => getComputedStyle(el).strokeDasharray);
@@ -275,9 +277,11 @@ test.describe('DS.chart', () => {
     await open(page);
     const id = await chart(page, LINE, { caption: 'Requests per hour' });
     const frame = page.locator(`${id} .ds-chart__frame`);
-    await expect(frame).toHaveAttribute('role', 'img');
+    // A role that passes the arrows through a screen reader's browse mode, described as a chart.
+    await expect(frame).toHaveAttribute('role', 'application');
+    await expect(frame).toHaveAttribute('aria-roledescription', 'chart');
     await expect(frame).toHaveAccessibleName('Requests per hour');
-    await expect(frame).toHaveAccessibleDescription(/Arrow keys/);
+    await expect(frame).toHaveAccessibleDescription(/Left and Right .* Page Up and Page Down/);
     await focusByKeyboard(page, frame);
     await expect(frame).toBeFocused();
     const tip = page.locator(`${id} .ds-chart__tip`);
@@ -292,6 +296,14 @@ test.describe('DS.chart', () => {
     await page.keyboard.press('ArrowDown');
     await expect(tip).not.toContainText('Errors');
     await expect(page.locator(`${id} .ds-chart__lines > .ds-chart__series--dim`)).toHaveCount(1);
+    // The pick survives a redraw: new data (mid-morph and after it) and a resize.
+    await page.evaluate(() => window.__last.set({ series: [{ name: 'Requests', values: [130, 330, null, 210, 250] }, { name: 'Errors', values: [22, 28, 24, 41, 12] }] }));
+    await expect(page.locator(`${id} .ds-chart__lines > .ds-chart__series--dim`)).toHaveCount(1);
+    await page.evaluate((sel) => window.DS.motion.settled(document.querySelector(sel), { subtree: true, names: ['ds-chart-morph'] }), id);
+    await expect(page.locator(`${id} .ds-chart__lines > .ds-chart__series--dim`)).toHaveCount(1);
+    await page.locator(id).evaluate((el) => { el.style.inlineSize = '520px'; });
+    await expect.poll(() => page.locator(`${id} .ds-chart__svg`).getAttribute('width')).toBe('520');
+    await expect(page.locator(`${id} .ds-chart__lines > .ds-chart__series--dim`)).toHaveCount(1);
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('ArrowDown');
     await expect(page.locator(`${id} .ds-chart__series--dim`)).toHaveCount(0);
@@ -299,7 +311,7 @@ test.describe('DS.chart', () => {
     await page.keyboard.press('ArrowRight');
     await expect(tip).toContainText('–');
     await page.keyboard.press('End');
-    await expect(tip).toContainText('260');
+    await expect(tip).toContainText('250');
     await listen(page, id, 'ds:select');
     await page.keyboard.press('Enter');
     expect(await heard(page)).toMatchObject({ index: 4 });
@@ -325,6 +337,50 @@ test.describe('DS.chart', () => {
     expect(await heard(page)).toMatchObject({ index: 1, label: 'Tue' });
     await page.mouse.move(1, 1);
     await expect(tip).not.toHaveAttribute('data-state', 'open');
+  });
+
+  test('names and hints: a bare chart is named by its series, a bar chart says Up and Down move along the bars, a chart without keys is a picture', async ({ page }) => {
+    await open(page);
+    const bare = await chart(page, LINE, { caption: '' });
+    await expect(page.locator(`${bare} .ds-chart__frame`)).toHaveAccessibleName('Requests, Errors');
+    const bars = await chart(page, { type: 'bar', labels: ['Laptops', 'Printers'], series: [{ name: 'Devices', values: [40, 10] }] }, { caption: 'Devices' });
+    await expect(page.locator(`${bars} .ds-chart__frame`)).toHaveAccessibleDescription(/along the bars/);
+    const spark = await chart(page, { type: 'sparkline', series: [{ name: 'Load', values: [1, 3, 2] }] });
+    const frame = page.locator(`${spark} .ds-chart__frame`);
+    await expect(frame).toHaveAttribute('role', 'img');
+    await expect(frame).not.toHaveAttribute('tabindex', /.*/);
+    await expect(frame).not.toHaveAttribute('aria-roledescription', /.*/);
+  });
+
+  test('a donut toggles its slices from the API as its legend does, never the last one', async ({ page }) => {
+    await open(page);
+    const id = await chart(page, { type: 'donut', labels: ['Email', 'Phone', 'Chat'], series: [{ name: 'Tickets', values: [5, 3, 2] }] }, { caption: 'Tickets by channel' });
+    await listen(page, id, 'ds:toggle');
+    expect(await page.evaluate(() => window.__last.toggle('Email'))).toBe(false);
+    expect(await heard(page)).toMatchObject({ series: 0, name: 'Email', visible: false });
+    await expect(page.locator(`${id} .ds-chart__key`, { hasText: 'Email' })).toHaveAttribute('aria-pressed', 'false');
+    expect(await page.evaluate(() => window.__last.toggle(1))).toBe(false);
+    // Chat is the last one shown: it stays.
+    expect(await page.evaluate(() => window.__last.toggle('Chat'))).toBe(true);
+    expect(await page.evaluate(() => window.__last.toggle(0, true))).toBe(true);
+    await expect(page.locator(`${id} .ds-chart__key`, { hasText: 'Email' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('a donut in a half-width card (530px) keeps its legend beside the plot, each share next to its name', async ({ page }) => {
+    await open(page);
+    const id = await chart(page, { type: 'donut', labels: ['Email', 'Phone', 'Chat', 'Portal'], series: [{ name: 'Tickets', values: [5, 3, 2, 1] }] }, { caption: 'Tickets by channel', style: 'inline-size: 530px' });
+    const read = await page.locator(id).evaluate((el) => {
+      const frame = el.querySelector('.ds-chart__frame').getBoundingClientRect();
+      const legend = el.querySelector('.ds-chart__legend').getBoundingClientRect();
+      const name = el.querySelector('.ds-chart__key-name').getBoundingClientRect();
+      const value = el.querySelector('.ds-chart__key-value').getBoundingClientRect();
+      return { frameRight: frame.right, frameBottom: frame.bottom, legendLeft: legend.left, legendTop: legend.top, legendWidth: legend.width, gap: value.left - name.right };
+    });
+    // On the plot's line, after it (not wrapped under it).
+    expect(read.legendLeft).toBeGreaterThanOrEqual(read.frameRight);
+    expect(read.legendTop).toBeLessThan(read.frameBottom);
+    expect(read.legendWidth).toBeLessThanOrEqual(360 + 1);
+    expect(read.gap).toBeLessThan(260);
   });
 
   test('legend: each key toggles its series (aria-pressed, announced), never the last one', async ({ page }) => {

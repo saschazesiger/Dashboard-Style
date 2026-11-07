@@ -296,4 +296,41 @@ describe('DS.chart.layout', () => {
     assert.ok(lay.xTicks.length < 20 && lay.xTicks.length > 1);
     assert.equal(lay.xTicks.at(-1).value, 59, 'the last category keeps its label');
   });
+
+  it('draws only what a pixel shows: points first, lowest, highest and last per pixel column, with the gaps', () => {
+    const labels = Array.from({ length: 4000 }, (_, i) => i);
+    const values = labels.map((i) => (i === 2001 ? 500 : i === 3000 ? null : i % 7));
+    const lay = layout({ type: 'line', labels, series: [{ name: 'Load', values }] }, 400, 200);
+    const { drawn, points } = lay.series[0];
+    assert.equal(points.length, 4000, 'the cursor and the table keep every point');
+    assert.ok(drawn.length <= 4 * lay.plot.width + 4, String(drawn.length));
+    assert.ok(drawn.some((point) => point.value === 500), 'a peak stays');
+    assert.ok(drawn.some((point) => point.y === null), 'a gap stays');
+    assert.deepEqual([drawn[0].key, drawn.at(-1).key], ['0', '3999'], 'both ends stay');
+    // A short series draws every point.
+    const short = layout({ type: 'line', labels: [1, 2, 3], series: [{ name: 'Load', values: [1, 2, 3] }] }, 400, 200);
+    assert.equal(short.series[0].drawn, short.series[0].points);
+  });
+
+  it('a stack draws the same points in every series, so its edges stay shared', () => {
+    const labels = Array.from({ length: 3000 }, (_, i) => i);
+    const lay = layout({ type: 'area', stack: true, labels, series: [{ name: 'A', values: labels.map((i) => i % 5) }, { name: 'B', values: labels.map((i) => i % 3) }] }, 300, 200);
+    assert.deepEqual(lay.series[0].drawn.map((point) => point.key), lay.series[1].drawn.map((point) => point.key));
+  });
+
+  it('lays out 100k points of a time line in a time budget, without a spread past the argument limit', () => {
+    const start = new Date(2026, 0, 1).getTime();
+    const labels = Array.from({ length: 100000 }, (_, i) => new Date(start + i * 60000).toISOString());
+    const values = labels.map((_, i) => (i % 1000 === 0 ? null : Math.sin(i / 50) * 100));
+    const began = performance.now();
+    const lay = layout({ type: 'line', labels, series: [{ name: 'Requests', values }, { name: 'Errors', values: values.map((v) => (v === null ? null : v / 10)) }] }, 800, 240);
+    const took = performance.now() - began;
+    assert.ok(took < 3000, `${Math.round(took)}ms`);
+    assert.ok(lay.xTicks.length > 1);
+    assert.ok(lay.series[0].drawn.length < 5000);
+    // 200k columns' worth of labels on a band axis, and a bar gauge as long, do not throw either.
+    const many = Array.from({ length: 200000 }, (_, i) => `#${i}`);
+    assert.doesNotThrow(() => layout({ type: 'line', x: { type: 'band' }, labels: many, series: [{ name: 'A', values: many.map((_, i) => i) }] }, 800, 240));
+    assert.doesNotThrow(() => layout({ type: 'bargauge', labels: many, series: [{ name: 'A', values: many.map((_, i) => i) }] }, 0, 0));
+  });
 });

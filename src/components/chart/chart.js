@@ -25,13 +25,21 @@
  * is always there for screen readers (visually hidden while the chart
  * shows); the toggle shows it in place of the plot.
  *
- * Keyboard: the frame is one tab stop. The arrows move along the points
- * (Left and Right along the x axis, Up and Down through the series at that
- * point; a donut's slices with either), Home and End go to the ends, Enter
- * emits ds:select, Escape hides the cursor. Each move shows the crosshair
- * and the tooltip and is announced (DS.a11y.announce). The pointer does the
- * same: the crosshair snaps to the nearest x, a column or slice is its own
- * target.
+ * Keyboard: the frame is one tab stop (role application, described as a
+ * chart, so a screen reader in browse mode passes the arrows through). The
+ * arrows move along the points (Left and Right along the x axis, Up and
+ * Down through the series at that point; a horizontal bar chart's bars and
+ * a donut's slices with either), Page Up and Page Down jump a tenth, Home
+ * and End go to the ends, Enter emits ds:select, Escape hides the cursor.
+ * Each move shows the crosshair and the tooltip and is announced
+ * (DS.a11y.announce). The pointer does the same: the crosshair snaps to the
+ * nearest x, columns to their category (every series there), a slice is
+ * its own target.
+ *
+ * Large data: a line or area with more than two points per pixel draws
+ * the first, lowest, highest and last point of each pixel column (the
+ * layout's `drawn`); the table, the tooltip and the keyboard keep every
+ * point.
  *
  * Motion (D14, the named exception "chart path morph"): a line or area
  * morphs its path to new data on --ds-ease-value over --ds-dur-glide, from
@@ -112,6 +120,18 @@ const GAUGE_END = (2 / 3) * Math.PI;
 const round = (value) => Math.round(value * 100) / 100;
 const finite = (value) => typeof value === 'number' && Number.isFinite(value);
 const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+
+// A loop, not Math.min(...list): a spread of a long series passes the engine's argument limit.
+const minOf = (values, start = Infinity) => {
+  let out = start;
+  for (const value of values) if (value < out) out = value;
+  return out;
+};
+const maxOf = (values, start = -Infinity) => {
+  let out = start;
+  for (const value of values) if (value > out) out = value;
+  return out;
+};
 
 /* ── Ticks ──────────────────────────────────────────── */
 
@@ -278,6 +298,15 @@ function timePointFormat(step, span) {
   if (step < 28 * DAY) return { year: 'numeric', month: 'short', day: 'numeric' };
   if (step < YEAR) return { year: 'numeric', month: 'short' };
   return { year: 'numeric' };
+}
+
+/** The point format of a list of dates (ms): from their smallest step and their span. */
+function timesFormat(times) {
+  let step = Infinity;
+  for (let i = 1; i < times.length; i += 1) if (times[i] > times[i - 1] && times[i] - times[i - 1] < step) step = times[i] - times[i - 1];
+  if (!Number.isFinite(step)) step = DAY;
+  const span = times.length ? times[times.length - 1] - times[0] : 0;
+  return timePointFormat(step, span);
 }
 
 /* ── Scales ─────────────────────────────────────────── */
@@ -643,6 +672,8 @@ function normalize(input, previous) {
     type, kind,
     horizontal: type === 'bar',
     labels, keys, xs, dates, xType,
+    // Once per spec: the tooltip, the table and the band labels format every point with it.
+    timeFormat: dates ? timesFormat(times) : null,
     series,
     stack: stackMode,
     curve: ['linear', 'monotone', 'step'].includes(spec.curve) ? spec.curve : 'linear',
@@ -685,16 +716,20 @@ function formatValue(value, format, compact = false) {
   return compact ? number(value, { notation: 'compact', maximumFractionDigits: 1 }) : number(value, { maximumFractionDigits: 2 });
 }
 
+/** The point formats of specs normalized elsewhere (without timeFormat). */
+const handFormats = new WeakMap();
+
 /** The label of an x position, as the tooltip and the table write it. */
 function formatX(spec, index) {
   const label = spec.labels[index];
   if (spec.dates) {
-    const times = spec.xs.length && spec.xType === 'time' ? spec.xs : spec.keys.map(Number);
-    let step = Infinity;
-    for (let i = 1; i < times.length; i += 1) if (times[i] > times[i - 1]) step = Math.min(step, times[i] - times[i - 1]);
-    if (!Number.isFinite(step)) step = DAY;
-    const span = times.length ? times[times.length - 1] - times[0] : 0;
-    return absolute(Number(spec.keys[index]), spec.x.format ?? timePointFormat(step, span));
+    // A normalized spec carries its format; one made by hand gets it here, once.
+    let format = spec.x.format ?? spec.timeFormat ?? handFormats.get(spec);
+    if (!format) {
+      format = timesFormat(spec.keys.map(Number));
+      handFormats.set(spec, format);
+    }
+    return absolute(Number(spec.keys[index]), format);
   }
   if (typeof label === 'number') return formatValue(label, spec.x.format);
   return String(label ?? '');
@@ -728,12 +763,13 @@ function axisDomain(values, options, needsZero) {
 /**
  * Where everything of a chart goes in a box of `width` x `height` px: the
  * scales, the plot, the axes and their ticks, the points of each series
- * (x, y, the stack's y0, the value), the bars (their band and their
- * shares of the plot), the slices or rings of a radial chart, the gauge's
- * arcs, the positions the cursor snaps to. Pure (no DOM): `metrics` gives
- * `measure(text)` (default an estimate), `line` (the label line height,
- * 16), `gap` (8), `bar` (the widest bar, 24), `seam` (the gap between
- * touching bars, 2) and `marker` (8).
+ * (x, y, the stack's y0, the value) and those its path draws (`drawn`:
+ * all of them, or a reduction where there are more than two a pixel), the
+ * bars (their band and their shares of the plot), the slices or rings of
+ * a radial chart, the gauge's arcs, the positions the cursor snaps to.
+ * Pure (no DOM): `metrics` gives `measure(text)` (default an estimate),
+ * `line` (the label line height, 16), `gap` (8), `bar` (the widest bar,
+ * 24), `seam` (the gap between touching bars, 2) and `marker` (8).
  * @param {object} spec  the input of create() (or a normalized one)
  * @param {number} width
  * @param {number} height
@@ -830,9 +866,10 @@ function cartesianLayout(s, box, m) {
   let valueStart = null;
   let valueEnd = null;
 
+  // Measured once: a long category axis has a label per point.
+  const widestLabel = s.xType === 'band' && !spark ? maxOf(labelText.map((text) => m.measure(text)), 0) : 0;
   if (s.horizontal) {
-    const widest = Math.min(box.width * 0.4, Math.max(0, ...labelText.map((text) => m.measure(text))));
-    start = spark ? start : widest + m.gap;
+    start = spark ? start : Math.min(box.width * 0.4, widestLabel) + m.gap;
   } else if (!spark) {
     valueStart = startAxis ? valueAxis(startAxis.options, startAxis.domain, plotHeight, plotBottom, plotTop, percentScale && startAxis.needsZero) : null;
     valueEnd = endAxis ? valueAxis(endAxis.options, endAxis.domain, plotHeight, plotBottom, plotTop, false) : null;
@@ -861,8 +898,8 @@ function cartesianLayout(s, box, m) {
     xScale = scale('band', s.keys, along, lineOnly ? { padding: 0, outer: 0.5 } : { padding: spark ? 0.25 : 0.3 });
   } else {
     const defined = s.xs.filter(finite);
-    const lo = defined.length ? Math.min(...defined) : 0;
-    const hi = defined.length ? Math.max(...defined) : 1;
+    const lo = defined.length ? minOf(defined) : 0;
+    const hi = defined.length ? maxOf(defined) : 1;
     xScale = scale(s.xType === 'time' ? 'time' : 'linear', lo === hi ? [lo - 1, hi + 1] : [lo, hi], along);
   }
   const positions = s.labels.map((_, i) => (s.xType === 'band' ? xScale.map(i) : xScale.map(s.xs[i])));
@@ -871,7 +908,7 @@ function cartesianLayout(s, box, m) {
   let xTicks = [];
   if (!spark) {
     if (s.xType === 'band') {
-      const room = s.horizontal ? line + 4 : Math.max(...labelText.map((text) => m.measure(text)), 1) + m.gap * 2;
+      const room = s.horizontal ? line + 4 : Math.max(widestLabel, 1) + m.gap * 2;
       const every = Math.max(1, Math.ceil((n * room) / Math.max(1, length)));
       xTicks = labelText.map((label, i) => ({ value: i, pos: positions[i], label })).filter((_, i) => (n - 1 - i) % every === 0);
     } else {
@@ -952,6 +989,23 @@ function cartesianLayout(s, box, m) {
     }
   }
 
+  // More than two points a pixel: each path draws a reduction (a stack the
+  // same indices in every series, so its edges stay shared); the cursor,
+  // the tooltip and the table keep every point.
+  for (const entry of series) entry.drawn = entry.points;
+  if (n > 2 * Math.max(1, length)) {
+    const along = s.horizontal ? 'y' : 'x';
+    const paths = series.filter((entry) => entry.mark !== 'column');
+    const shown = paths.filter((entry) => entry.visible);
+    for (const entry of paths) if (!entry.visible) entry.drawn = [];
+    const pick = (entry, indices) => { entry.drawn = [...indices].sort((a, b) => a - b).map((i) => entry.points[i]); };
+    if (s.stack) {
+      const keep = new Set();
+      for (const entry of shown) reduceIndices(entry.points, along, keep);
+      for (const entry of shown) pick(entry, keep);
+    } else for (const entry of shown) pick(entry, reduceIndices(entry.points, along, new Set()));
+  }
+
   // Thresholds and annotations.
   const rules = s.thresholds.map((entry) => {
     const sc = entry.axis === 'end' && valueEnd ? valueEnd.scale : valueStart?.scale;
@@ -997,6 +1051,49 @@ function cartesianLayout(s, box, m) {
     baseline: valueStart ? valueStart.scale.map(valueStart.scale.type === 'log' ? valueStart.scale.domain[0] : clamp(0, Math.min(...valueStart.scale.domain), Math.max(...valueStart.scale.domain))) : null,
     positions, series, rules, markers, band: xScale.step || 0,
   };
+}
+
+/**
+ * The indices of the points a path draws when there are more than two a
+ * pixel, added to `into`: per pixel column along the axis, the first,
+ * lowest, highest and last point of each defined run, so every peak
+ * stays; and the first point of each gap, so the path keeps its breaks.
+ */
+function reduceIndices(points, along, into) {
+  const across = along === 'x' ? 'y' : 'x';
+  let bucket = NaN;
+  let first = -1;
+  let low = -1;
+  let high = -1;
+  let last = -1;
+  let gap = false;
+  const flush = () => {
+    if (first >= 0) into.add(first).add(low).add(high).add(last);
+    first = -1;
+  };
+  points.forEach((point, i) => {
+    if (!point || !finite(point[along]) || !finite(point[across])) {
+      flush();
+      if (!gap) into.add(i);
+      gap = true;
+      bucket = NaN;
+      return;
+    }
+    gap = false;
+    const column = Math.floor(point[along]);
+    if (column !== bucket) {
+      flush();
+      bucket = column;
+      first = i;
+      low = i;
+      high = i;
+    }
+    if (point[across] < points[low][across]) low = i;
+    if (point[across] > points[high][across]) high = i;
+    last = i;
+  });
+  flush();
+  return into;
 }
 
 function radialLayout(s, box, m) {
@@ -1075,7 +1172,7 @@ function gaugeLayout(s, box, m) {
 function rowsLayout(s) {
   const source = s.series[0];
   const values = source ? source.values : [];
-  const max = s.max ?? Math.max(0, ...values.filter(finite));
+  const max = s.max ?? maxOf(values.filter(finite), 0);
   const rows = values.map((value, i) => {
     const zone = finite(value) ? s.zones.find((entry) => entry.to === null || value <= entry.to) ?? null : null;
     return {
@@ -1189,26 +1286,37 @@ function blendPoints(from, to, p) {
   });
 }
 
-/** Where a point that is new comes from: on the line drawn so far, at its x (or the nearest end). */
-function entryPoint(shown, point, horizontal, baseline) {
-  const defined = shown.filter((entry) => finite(entry.x) && finite(entry.y));
+/** The points drawn so far, defined, in order along the axis (once per series and morph). */
+function alongAxis(shown, horizontal) {
+  const along = horizontal ? 'y' : 'x';
+  return [...(shown?.values() ?? [])].filter((entry) => finite(entry.x) && finite(entry.y)).sort((a, b) => a[along] - b[along]);
+}
+
+/** Where a point that is new comes from: on the line drawn so far (`sorted`, alongAxis()), at its x (or the nearest end). */
+function entryPoint(sorted, point, horizontal, baseline) {
   const along = horizontal ? 'y' : 'x';
   const across = horizontal ? 'x' : 'y';
-  if (!defined.length) {
+  if (!sorted.length) {
     // The first render: up from the baseline.
     const flat = finite(baseline) ? baseline : point[across];
     return { ...point, [across]: flat, y0: finite(point.y0) ? flat : point.y0 };
   }
-  const sorted = [...defined].sort((a, b) => a[along] - b[along]);
   const at = point[along];
   let value;
   let base;
   if (at <= sorted[0][along]) [value, base] = [sorted[0][across], sorted[0].y0];
   else if (at >= sorted[sorted.length - 1][along]) [value, base] = [sorted[sorted.length - 1][across], sorted[sorted.length - 1].y0];
   else {
-    const i = sorted.findIndex((entry) => entry[along] >= at);
-    const a = sorted[i - 1];
-    const b = sorted[i];
+    // The first drawn point at or after `at` (a binary search: a stream adds points to long lines).
+    let lo = 0;
+    let hi = sorted.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (sorted[mid][along] >= at) hi = mid;
+      else lo = mid + 1;
+    }
+    const a = sorted[lo - 1];
+    const b = sorted[lo];
     const k = (at - a[along]) / ((b[along] - a[along]) || 1);
     value = a[across] + (b[across] - a[across]) * k;
     base = finite(a.y0) && finite(b.y0) ? a.y0 + (b.y0 - a.y0) * k : point.y0;
@@ -1264,6 +1372,10 @@ function controller(el, initial, signal) {
   let morph = null;
   let size = { width: 0, height: 0 };
   let cursor = { index: -1, series: -1, active: false };
+  // What the cursor marks (the series it picked, the slice it is on): every
+  // draw writes it into the class it sets, so a morph frame, set() or a
+  // resize keeps it.
+  let marks = { series: -1, slice: -1 };
   let viewMode = 'chart';
   let first = true;
   let destroyed = false;
@@ -1285,6 +1397,14 @@ function controller(el, initial, signal) {
     node.setAttribute('data-ds-keep', '');
     return node;
   };
+
+  /** The class of a series part as drawn: its series, then the cursor's marks. */
+  const partClass = (entry, extra = '', position = -1) => [
+    seriesClass('ds-chart__series', entry),
+    extra,
+    marks.series >= 0 && entry.index !== marks.series ? 'ds-chart__series--dim' : '',
+    marks.slice >= 0 && position === marks.slice ? 'ds-chart__slice--active' : '',
+  ].filter(Boolean).join(' ');
 
   /* Parts. */
   const tools = keep(html(doc, 'div', 'ds-chart__tools'));
@@ -1380,40 +1500,49 @@ function controller(el, initial, signal) {
   };
 
   /* Roles and names. */
-  const name = () => titleText();
+  /** The chart's name: its title, else its series' names (a chart made bare from a script is still named). */
+  const name = () => titleText() || spec.series.map((entry) => entry.name).filter(Boolean).join(', ');
+  const noRole = { role: null, tabindex: null, 'aria-roledescription': null, 'aria-label': null, 'aria-describedby': null, 'aria-valuemin': null, 'aria-valuemax': null, 'aria-valuenow': null, 'aria-valuetext': null };
+  /**
+   * A plot that takes the arrows is role application, described as a chart:
+   * a screen reader in browse mode would keep the arrows of an img for its
+   * own cursor. One that does not (no data, a sparkline without a tooltip) is
+   * an img.
+   */
+  const interactive = (label) => ({ role: 'application', tabindex: '0', 'aria-roledescription': t('chartRole'), 'aria-label': label || null, 'aria-describedby': hint.id });
   const applyRoles = () => {
     const title = name();
     if (spec.kind === 'gauge') {
-      attrs(frame, { role: 'meter', tabindex: null, 'aria-label': title || null, 'aria-describedby': null,
+      attrs(frame, { ...noRole, role: 'meter', 'aria-label': title || null,
         'aria-valuemin': spec.min, 'aria-valuemax': spec.max ?? 100, 'aria-valuenow': current?.value ?? null,
         'aria-valuetext': current?.value === null || current?.value === undefined ? null : [formatValue(current.value, spec.format), current.zone?.label].filter(Boolean).join(', ') });
       return;
     }
     if (spec.kind === 'rows') {
-      attrs(frame, { role: null, tabindex: null, 'aria-label': null, 'aria-describedby': null, 'aria-valuemin': null, 'aria-valuemax': null, 'aria-valuenow': null, 'aria-valuetext': null });
+      attrs(frame, noRole);
       return;
     }
     if (spec.kind === 'spark') {
-      attrs(frame, { role: 'img', tabindex: spec.tooltip ? '0' : null, 'aria-label': summary() || null, 'aria-describedby': spec.tooltip ? hint.id : null, 'aria-valuemin': null, 'aria-valuemax': null, 'aria-valuenow': null, 'aria-valuetext': null });
+      attrs(frame, spec.tooltip ? { ...noRole, ...interactive(summary()) } : { ...noRole, role: 'img', 'aria-label': summary() || null });
       return;
     }
     if (isEmpty()) {
-      attrs(frame, { role: 'img', tabindex: null, 'aria-label': [title, t('chartEmpty')].filter(Boolean).join(': '), 'aria-describedby': null, 'aria-valuemin': null, 'aria-valuemax': null, 'aria-valuenow': null, 'aria-valuetext': null });
+      attrs(frame, { ...noRole, role: 'img', 'aria-label': [title, t('chartEmpty')].filter(Boolean).join(': ') });
       return;
     }
-    attrs(frame, { role: 'img', tabindex: '0', 'aria-label': title || null, 'aria-describedby': hint.id, 'aria-valuemin': null, 'aria-valuemax': null, 'aria-valuenow': null, 'aria-valuetext': null });
+    attrs(frame, { ...noRole, ...interactive(title) });
   };
 
   const summary = () => {
     const entry = spec.series.find((item) => item.visible) ?? spec.series[0];
     const values = (entry?.values ?? []).filter(finite);
-    if (!values.length) return titleText();
+    if (!values.length) return name();
     const text = t('chartSummary', {
       name: titleText() || entry.name,
       first: formatValue(values[0], spec.format),
       last: formatValue(values[values.length - 1], spec.format),
-      min: formatValue(Math.min(...values), spec.format),
-      max: formatValue(Math.max(...values), spec.format),
+      min: formatValue(minOf(values), spec.format),
+      max: formatValue(maxOf(values), spec.format),
     });
     return text;
   };
@@ -1462,14 +1591,19 @@ function controller(el, initial, signal) {
     });
   };
 
-  /* The table for screen readers (and the table view). */
+  /* The table for screen readers (and the table view): written again only
+     when the spec or the title changed, never for a resize or a toggle. */
+  let tableFor = null;
   const renderTable = () => {
+    const title = titleText();
+    if (tableFor && tableFor.spec === spec && tableFor.title === title) return;
+    tableFor = { spec, title };
     if (sourceTable(el) || !spec.table) {
       tableBox.replaceChildren();
       return;
     }
     const table = html(doc, 'table', 'ds-table');
-    const caption = html(doc, 'caption', 'ds-chart__table-caption', titleText());
+    const caption = html(doc, 'caption', 'ds-chart__table-caption', title);
     const head = html(doc, 'thead');
     const headRow = html(doc, 'tr');
     const corner = html(doc, 'th', '', spec.x.label);
@@ -1589,7 +1723,7 @@ function controller(el, initial, signal) {
     const entries = (lay.series ?? []).filter((entry) => entry.mark === 'column');
     const fresh = [];
     keyed(gBars, entries, (entry) => entry.index, (entry) => svg(doc, 'g')).forEach(({ el: g, item: entry }) => {
-      attrs(g, { class: seriesClass('ds-chart__series', entry), 'data-series': entry.index });
+      attrs(g, { class: partClass(entry), 'data-series': entry.index });
       keyed(g, entry.bars, (bar) => bar.key, () => svg(doc, 'rect', {}, 'ds-chart__bar')).forEach(({ el: rect, item: bar, fresh: isNew }) => {
         attrs(rect, {
           x: round(bar.x), y: round(bar.y), width: round(Math.max(0, bar.width)), height: round(Math.max(0, bar.height)),
@@ -1629,12 +1763,12 @@ function controller(el, initial, signal) {
     const pointsNow = new Map();
     keyed(gAreas, lines.filter((entry) => entry.mark === 'area'), (entry) => entry.index, () => svg(doc, 'path', {}, 'ds-chart__area')).forEach(({ el: node, item: entry }) => {
       const pts = frameOf(entry);
-      attrs(node, { class: `${seriesClass('ds-chart__series', entry)} ds-chart__area`, 'data-series': entry.index, d: entry.visible ? path(pts, { curve, area: true }) : '' });
+      attrs(node, { class: partClass(entry, 'ds-chart__area'), 'data-series': entry.index, d: entry.visible ? path(pts, { curve, area: true }) : '' });
     });
     keyed(gLines, lines, (entry) => entry.index, () => svg(doc, 'g')).forEach(({ el: g, item: entry }) => {
       const pts = frameOf(entry);
       pointsNow.set(entry.index, pts);
-      attrs(g, { class: seriesClass('ds-chart__series', entry), 'data-series': entry.index, 'data-hidden': entry.visible ? null : '' });
+      attrs(g, { class: partClass(entry), 'data-series': entry.index, 'data-hidden': entry.visible ? null : '' });
       let line = g.querySelector('.ds-chart__line');
       if (!line) {
         line = svg(doc, 'path', {}, 'ds-chart__line');
@@ -1659,10 +1793,10 @@ function controller(el, initial, signal) {
     keyed(gAreas, tracks, (item) => item.key, () => svg(doc, 'path', {}, 'ds-chart__track')).forEach(({ el: node, item }) => {
       attrs(node, { d: arcPath(lay.cx, lay.cy, item.inner, item.outer, 0, 2 * Math.PI) });
     });
-    keyed(gLines, slices, (item) => item.key, () => svg(doc, 'path')).forEach(({ el: node, item }) => {
+    keyed(gLines, slices, (item) => item.key, () => svg(doc, 'path')).forEach(({ el: node, item }, position) => {
       const angles = frameOf(item);
       attrs(node, {
-        class: `${seriesClass('ds-chart__series', item)} ds-chart__slice`,
+        class: partClass(item, 'ds-chart__slice', position),
         'data-series': item.index,
         d: arcPath(lay.cx, lay.cy, item.inner, item.outer, angles.a0 + (item.pad ?? 0), angles.a1 - (item.pad ?? 0)),
       });
@@ -1749,15 +1883,22 @@ function controller(el, initial, signal) {
     drawAxes(lay);
     drawBars(lay, animate && !first ? true : animate);
     const lines = lay.series.filter((entry) => entry.mark !== 'column');
-    const targets = new Map(lines.map((entry) => [entry.index, entry.points]));
+    // What a path draws: every point, or the layout's reduction of a long series.
+    const targets = new Map(lines.map((entry) => [entry.index, entry.drawn ?? entry.points]));
     const from = new Map();
     for (const entry of lines) {
       const before = shown.get(entry.index);
-      const drawn = before ? [...before.values()] : [];
+      let sorted = null;
       const map = new Map();
-      for (const point of entry.points) {
+      for (const point of targets.get(entry.index)) {
         if (!finite(point.y) && !finite(point.x)) continue;
-        map.set(point.key, before?.get(point.key) ?? entryPoint(drawn, point, lay.horizontal, lay.baseline));
+        const known = before?.get(point.key);
+        if (known) {
+          map.set(point.key, known);
+          continue;
+        }
+        sorted ??= alongAxis(before, lay.horizontal);
+        map.set(point.key, entryPoint(sorted, point, lay.horizontal, lay.baseline));
       }
       from.set(entry.index, map);
     }
@@ -1889,7 +2030,7 @@ function controller(el, initial, signal) {
     tools.hidden = !spec.table || empty;
     toggle.setAttribute('aria-label', t('chartTableView'));
     toggle.setAttribute('data-tip', t('chartTableView'));
-    hint.textContent = spec.kind === 'radial' ? t('chartKeysSlices') : t('chartKeys');
+    hint.textContent = t(spec.kind === 'radial' ? 'chartKeysSlices' : spec.horizontal ? 'chartKeysBars' : 'chartKeys');
     if (lay.kind === 'radial' || lay.kind === 'gauge') {
       // The figure sits on the centre of the arcs (a gauge's is above the middle).
       centre.style.setProperty('--ds-chart-cx', `${round(lay.cx)}px`);
@@ -1983,6 +2124,7 @@ function controller(el, initial, signal) {
       const mid = (slice.a0 + slice.a1) / 2;
       const r = (slice.inner + slice.outer) / 2;
       anchor = { x: lay.cx + r * Math.sin(mid), y: lay.cy - r * Math.cos(mid) };
+      marks = { series: -1, slice: cursor.index };
       gLines.querySelectorAll('.ds-chart__slice').forEach((node, i) => node.classList.toggle('ds-chart__slice--active', i === cursor.index));
       attrs(cursorLine, { x1: null, x2: null, y1: null, y2: null });
       cursorLine.classList.remove('ds-chart__cursor--on');
@@ -2003,6 +2145,7 @@ function controller(el, initial, signal) {
         hoverRect.classList.remove('ds-chart__band--on');
       }
       dotsFor(cursor.index);
+      marks = { series: cursor.series, slice: -1 };
       for (const g of root.querySelectorAll('.ds-chart__bars > [data-series], .ds-chart__lines > [data-series], .ds-chart__areas > [data-series]')) {
         g.classList.toggle('ds-chart__series--dim', cursor.series >= 0 && Number(g.getAttribute('data-series')) !== cursor.series);
       }
@@ -2046,6 +2189,7 @@ function controller(el, initial, signal) {
   };
 
   const hideCursor = () => {
+    marks = { series: -1, slice: -1 };
     tip.removeAttribute('data-state');
     cursorLine.classList.remove('ds-chart__cursor--on');
     hoverRect.classList.remove('ds-chart__band--on');
@@ -2167,21 +2311,29 @@ function controller(el, initial, signal) {
     moveTo(clamp(index, 0, count - 1), series, true);
   }, options);
 
+  /** A donut's or pie's legend shows and hides slices, not series. */
+  const slicesToggle = () => spec.kind === 'radial' && spec.type !== 'ring';
+
+  /** Shows or hides a slice (never the last one shown); returns whether it shows. */
+  const toggleSlice = (slice, visible) => {
+    const want = visible === undefined ? !slice.visible : Boolean(visible);
+    if (want === slice.visible) return slice.visible;
+    if (!want && (current?.slices ?? []).filter((item) => item.visible).length <= 1) return slice.visible;
+    if (want) hiddenSlices.delete(slice.key);
+    else hiddenSlices.add(slice.key);
+    render(true);
+    announce(t(want ? 'chartShown' : 'chartHidden', { series: slice.name }));
+    emitOut('toggle', { series: slice.index, name: slice.name, visible: want });
+    return want;
+  };
+
   legend.addEventListener('click', (event) => {
     const button = event.target.closest?.('.ds-chart__key');
     if (!button || !legend.contains(button)) return;
     const key = button.getAttribute('data-series');
-    if (spec.kind === 'radial' && spec.type !== 'ring') {
-      const slices = current?.slices ?? [];
-      const slice = slices.find((item) => item.key === key);
-      if (!slice) return;
-      const shownCount = slices.filter((item) => item.visible).length;
-      if (slice.visible && shownCount <= 1) return;
-      if (slice.visible) hiddenSlices.add(key);
-      else hiddenSlices.delete(key);
-      render(true);
-      announce(t(slice.visible ? 'chartHidden' : 'chartShown', { series: slice.name }));
-      emitOut('toggle', { series: slice.index, name: slice.name, visible: !slice.visible });
+    if (slicesToggle()) {
+      const slice = (current?.slices ?? []).find((item) => item.key === key);
+      if (slice) toggleSlice(slice);
       return;
     }
     api.toggle(Number(key));
@@ -2245,8 +2397,17 @@ function controller(el, initial, signal) {
       listeners.get(type).add(fn);
       return () => listeners.get(type)?.delete(fn);
     },
-    /** Shows or hides a series (by index or name); returns whether it shows. Never hides the last one. */
+    /**
+     * Shows or hides a series (by index or name), on a donut or pie a slice
+     * (by index or label), as its legend key does; returns whether it shows.
+     * Never hides the last one.
+     */
     toggle(series, visible) {
+      if (slicesToggle()) {
+        const slices = current?.slices ?? [];
+        const slice = typeof series === 'number' ? slices[series] : slices.find((item) => item.name === series || item.key === String(series));
+        return slice ? toggleSlice(slice, visible) : false;
+      }
       const index = typeof series === 'number' ? series : spec.series.findIndex((entry) => entry.name === series);
       const entry = spec.series[index];
       if (!entry) return false;
