@@ -1096,7 +1096,7 @@ describe('CSS for the baseline', () => {
     }
     // A node that DS.dom.morphHtml moves with insertBefore skips its @starting-style entrances.
     for (const moving of [':where(.ds-theme) [data-ds-moving]', ':where(.ds-theme) [data-ds-moving] *']) assert.ok(selectors.includes(moving), moving);
-    const moving = /^:where\(\.ds-theme\) \[data-ds-moving\]( \*)?$/;
+    const moving = /^:where\(\.ds-theme\) \[data-ds-moving\]( \*)?(::(before|after))?$/;
     // `hidden` inside the theme without .ds-base (DS.motion.leave(el, v, { then: 'hide' })).
     const hidden = ':where(.ds-theme) :where([hidden]:not(.ds-presence, [hidden="until-found"]))';
     assert.ok(selectors.includes(hidden), hidden);

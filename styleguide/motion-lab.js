@@ -351,13 +351,41 @@
     });
   }
 
+  function setupDemo(demo) {
+    if (demo.entry.setup) demo.entry.setup(demo.stage, SG);
+    labOn(demo);
+  }
+
+  /*
+   * The first setup that measures (an indicator, a scroller) styles every
+   * section, so the state each later setup writes at once (a Send button
+   * blocked while its field is empty, a meter's share, the ranks of an
+   * ordered choice, a scroller's edge hairlines, a roving tabindex) would
+   * play as a transition on load. A page that wires its components before
+   * its first render shows that state at once; so do the demos: the setups
+   * run under data-ds-moving (transition: none, motion.css) on the page,
+   * lifted after one style flush. What a setup starts later (a frame, an
+   * observer) still moves as it would on any page.
+   *
+   * The charts are set up last. Once an SVG <text> is in the page (a
+   * chart's ticks), WebKit lays the whole page out again after every
+   * pointer, touch or wheel listener a later setup adds, at its next
+   * layout read: half a second each on this page, seconds before the lab
+   * was ready. Set up last, they pay it at most once.
+   */
   function setupLab() {
+    var page = $('#sg-page');
+    page.setAttribute('data-ds-moving', '');
+    var charts = [];
     LAB.forEach(function (entry) {
       var card = $('[data-lab-demo="' + entry.id + '"]');
       var demo = labDemos[entry.id] = { entry: entry, card: card, stage: $('.sg-lab-stage', card), on: false, run: 0, timers: [] };
-      if (entry.setup) entry.setup(demo.stage, SG);
-      labOn(demo);
+      if (demo.stage.querySelector('.ds-chart')) charts.push(demo);
+      else setupDemo(demo);
     });
+    charts.forEach(setupDemo);
+    void getComputedStyle(page).opacity;
+    page.removeAttribute('data-ds-moving');
     $('#sg-page').addEventListener('click', function (event) {
       var button = event.target.closest('[data-lab]');
       var demo = button && labDemos[button.closest('[data-lab-demo]').getAttribute('data-lab-demo')];

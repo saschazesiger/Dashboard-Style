@@ -157,13 +157,17 @@
     opacity: 0;
   }
 
-  /* In a field: the label and the button share the first row. */
+  /* In a field: the label and the button share the first row; what
+     follows them spans both columns (selected from the button, not as
+     children of a field that :has() one: Chromium restyles every ancestor
+     of each DOM change anywhere on the page for that form, and lays the
+     whole page out). */
   .ds-field:has(> .ds-field__label + .ds-toggletip) {
     grid-template-columns: auto 1fr;
     column-gap: var(--ds-space-1);
   }
 
-  .ds-field:has(> .ds-field__label + .ds-toggletip) > * {
+  .ds-field > .ds-field__label + .ds-toggletip ~ * {
     grid-column: 1 / -1;
   }
 

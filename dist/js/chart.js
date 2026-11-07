@@ -2232,28 +2232,40 @@ function controller(el, initial, signal) {
 
   /* Events. */
   const options = { signal };
-  frame.addEventListener('pointermove', (event) => {
-    if (!spec.tooltip || viewMode !== 'chart') return;
-    const hit = pointerIndex(event);
-    if (!hit) {
-      if (!frame.contains(doc.activeElement)) hideCursor();
-      return;
-    }
-    moveTo(hit.index, -1, false, { x: hit.x, y: hit.y });
-  }, options);
-  frame.addEventListener('pointerleave', (event) => {
-    if (event.pointerType === 'touch') return;
-    // The keyboard's cursor stays when the pointer leaves; a click's focus does not hold it.
-    if (!frame.matches(':focus-visible')) {
-      cursor.active = false;
-      hideCursor();
-    } else showCursor(false);
-  }, options);
-  frame.addEventListener('pointerdown', (event) => {
-    if (event.pointerType !== 'touch' || !spec.tooltip) return;
-    const hit = pointerIndex(event);
-    if (hit) moveTo(hit.index, -1, false, { x: hit.x, y: hit.y });
-  }, options);
+  /*
+   * The pointer listeners come in a microtask, after the task that made the
+   * chart (no event can come before it). In WebKit, once an SVG <text> (a
+   * tick) is in the page, every pointer, touch or wheel listener added
+   * costs a layout of the whole page at the next layout read: the first
+   * render's own read, and the next chart's, paid it once per chart. Added
+   * after the task, the charts a page makes together pay it once.
+   */
+  const pointerEvents = () => {
+    if (destroyed) return;
+    frame.addEventListener('pointermove', (event) => {
+      if (!spec.tooltip || viewMode !== 'chart') return;
+      const hit = pointerIndex(event);
+      if (!hit) {
+        if (!frame.contains(doc.activeElement)) hideCursor();
+        return;
+      }
+      moveTo(hit.index, -1, false, { x: hit.x, y: hit.y });
+    }, options);
+    frame.addEventListener('pointerleave', (event) => {
+      if (event.pointerType === 'touch') return;
+      // The keyboard's cursor stays when the pointer leaves; a click's focus does not hold it.
+      if (!frame.matches(':focus-visible')) {
+        cursor.active = false;
+        hideCursor();
+      } else showCursor(false);
+    }, options);
+    frame.addEventListener('pointerdown', (event) => {
+      if (event.pointerType !== 'touch' || !spec.tooltip) return;
+      const hit = pointerIndex(event);
+      if (hit) moveTo(hit.index, -1, false, { x: hit.x, y: hit.y });
+    }, options);
+  };
+  queueMicrotask(pointerEvents);
   frame.addEventListener('click', (event) => {
     const hit = pointerIndex(event);
     if (!hit || spec.kind === 'gauge' || spec.kind === 'rows') return;

@@ -92,8 +92,11 @@
     padding-block: calc(var(--ds-space-1) - 1px);
   }
 
-  /* With tokens, the example query of the placeholder would read as one. */
-  .ds-query__box:has(> .ds-query__tokens > .ds-chip) > .ds-query__input::placeholder {
+  /* With tokens, the example query of the placeholder would read as one.
+     From the run's side (not as a child of a box that :has() a chip:
+     Chromium restyles every ancestor of each DOM change anywhere on the
+     page for that form, and lays the whole page out). */
+  .ds-query__box > .ds-query__tokens:has(> .ds-chip) ~ .ds-query__input::placeholder {
     color: transparent;
   }
 

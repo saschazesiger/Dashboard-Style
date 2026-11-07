@@ -2085,9 +2085,14 @@
      every sort. It carries data-ds-moving for one style flush: no
      transitions, so data changes glide and never replay an entrance.
      DS.indicator.create() sets it on the track for the flush that
-     gives its items their look under the new pill. */
+     gives its items their look under the new pill. Their ::before and
+     ::after too: a hairline or a state layer is part of the look. */
   :where(.ds-theme) [data-ds-moving],
-  :where(.ds-theme) [data-ds-moving] * {
+  :where(.ds-theme) [data-ds-moving]::before,
+  :where(.ds-theme) [data-ds-moving]::after,
+  :where(.ds-theme) [data-ds-moving] *,
+  :where(.ds-theme) [data-ds-moving] *::before,
+  :where(.ds-theme) [data-ds-moving] *::after {
     transition: none;
   }
 
@@ -2672,13 +2677,22 @@
      the title (or the item that holds it) gives way: every other item
      keeps its width, even one wider than its content (an icon button, an
      avatar). Without one, the items shrink as flex items do, to their
-     longest word. */
+     longest word. A cluster that holds a title says so to its items
+     (--_cluster-shrink: 0, inherited); a selector that styles the items of
+     a cluster that :has() a title, or an item after one that does, makes
+     Chromium restyle the whole page on each change of an attribute
+     anywhere. An item that is another nowrap cluster passes the 0 on to
+     its own items: they keep their width as it keeps its own. */
   .ds-cluster--nowrap {
     flex-wrap: nowrap;
   }
 
-  .ds-cluster--nowrap:has(.ds-truncate) > :not(.ds-truncate, :has(.ds-truncate)) {
-    flex-shrink: 0;
+  .ds-cluster--nowrap:has(.ds-truncate) {
+    --_cluster-shrink: 0;
+  }
+
+  .ds-cluster--nowrap > :not(.ds-truncate, :has(.ds-truncate)) {
+    flex-shrink: var(--_cluster-shrink, 1);
   }
 
   .ds-cluster--nowrap > :has(.ds-truncate) {
@@ -28907,13 +28921,17 @@
     opacity: 0;
   }
 
-  /* In a field: the label and the button share the first row. */
+  /* In a field: the label and the button share the first row; what
+     follows them spans both columns (selected from the button, not as
+     children of a field that :has() one: Chromium restyles every ancestor
+     of each DOM change anywhere on the page for that form, and lays the
+     whole page out). */
   .ds-field:has(> .ds-field__label + .ds-toggletip) {
     grid-template-columns: auto 1fr;
     column-gap: var(--ds-space-1);
   }
 
-  .ds-field:has(> .ds-field__label + .ds-toggletip) > * {
+  .ds-field > .ds-field__label + .ds-toggletip ~ * {
     grid-column: 1 / -1;
   }
 
@@ -30897,8 +30915,11 @@
     padding-block: calc(var(--ds-space-1) - 1px);
   }
 
-  /* With tokens, the example query of the placeholder would read as one. */
-  .ds-query__box:has(> .ds-query__tokens > .ds-chip) > .ds-query__input::placeholder {
+  /* With tokens, the example query of the placeholder would read as one.
+     From the run's side (not as a child of a box that :has() a chip:
+     Chromium restyles every ancestor of each DOM change anywhere on the
+     page for that form, and lays the whole page out). */
+  .ds-query__box > .ds-query__tokens:has(> .ds-chip) ~ .ds-query__input::placeholder {
     color: transparent;
   }
 
