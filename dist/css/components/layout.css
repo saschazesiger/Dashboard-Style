@@ -94,24 +94,25 @@
      the title (or the item that holds it) gives way: every other item
      keeps its width, even one wider than its content (an icon button, an
      avatar). Without one, the items shrink as flex items do, to their
-     longest word. The row tells its items through --_shrink: a :has()
-     before a combinator, or one inside the items' :not(), would make
-     Chromium restyle the whole page on any text change anywhere. */
+     longest word. A cluster that holds a title says so to its items
+     (--_cluster-shrink: 0, inherited); a selector that styles the items of
+     a cluster that :has() a title, or an item after one that does, makes
+     Chromium restyle the whole page on each change of an attribute
+     anywhere. An item that is another nowrap cluster passes the 0 on to
+     its own items: they keep their width as it keeps its own. */
   .ds-cluster--nowrap {
-    --_shrink: 1;
     flex-wrap: nowrap;
   }
 
   .ds-cluster--nowrap:has(.ds-truncate) {
-    --_shrink: 0;
+    --_cluster-shrink: 0;
   }
 
-  .ds-cluster--nowrap > :not(.ds-truncate) {
-    flex-shrink: var(--_shrink);
+  .ds-cluster--nowrap > :not(.ds-truncate, :has(.ds-truncate)) {
+    flex-shrink: var(--_cluster-shrink, 1);
   }
 
   .ds-cluster--nowrap > :has(.ds-truncate) {
-    flex-shrink: 1;
     min-width: 0;
   }
 

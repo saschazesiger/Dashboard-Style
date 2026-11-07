@@ -363,8 +363,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 6821,
-      "gzip": 1860
+      "bytes": 6832,
+      "gzip": 1865
     },
     "utilities": {
       "css": "css/components/utilities.css",
@@ -3668,7 +3668,7 @@
       "hooks": [],
       "ripple": false,
       "progressive": [],
-      "bytes": 4436,
+      "bytes": 4449,
       "gzip": 1230
     },
     "views": {

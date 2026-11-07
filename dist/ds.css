@@ -2677,24 +2677,25 @@
      the title (or the item that holds it) gives way: every other item
      keeps its width, even one wider than its content (an icon button, an
      avatar). Without one, the items shrink as flex items do, to their
-     longest word. The row tells its items through --_shrink: a :has()
-     before a combinator, or one inside the items' :not(), would make
-     Chromium restyle the whole page on any text change anywhere. */
+     longest word. A cluster that holds a title says so to its items
+     (--_cluster-shrink: 0, inherited); a selector that styles the items of
+     a cluster that :has() a title, or an item after one that does, makes
+     Chromium restyle the whole page on each change of an attribute
+     anywhere. An item that is another nowrap cluster passes the 0 on to
+     its own items: they keep their width as it keeps its own. */
   .ds-cluster--nowrap {
-    --_shrink: 1;
     flex-wrap: nowrap;
   }
 
   .ds-cluster--nowrap:has(.ds-truncate) {
-    --_shrink: 0;
+    --_cluster-shrink: 0;
   }
 
-  .ds-cluster--nowrap > :not(.ds-truncate) {
-    flex-shrink: var(--_shrink);
+  .ds-cluster--nowrap > :not(.ds-truncate, :has(.ds-truncate)) {
+    flex-shrink: var(--_cluster-shrink, 1);
   }
 
   .ds-cluster--nowrap > :has(.ds-truncate) {
-    flex-shrink: 1;
     min-width: 0;
   }
 
@@ -28920,15 +28921,16 @@
     opacity: 0;
   }
 
-  /* In a field: the label and the button share the first row. */
+  /* In a field: the label and the button share the first row; what
+     follows them spans both columns (selected from the button, not as
+     children of a field that :has() one: Chromium restyles every ancestor
+     of each DOM change anywhere on the page for that form, and lays the
+     whole page out). */
   .ds-field:has(> .ds-field__label + .ds-toggletip) {
     grid-template-columns: auto 1fr;
     column-gap: var(--ds-space-1);
   }
 
-  /* What follows them spans both columns. A sibling selector: a :has()
-     before a combinator to a bare * would make Chromium restyle the whole
-     page on any text change anywhere. */
   .ds-field > .ds-field__label + .ds-toggletip ~ * {
     grid-column: 1 / -1;
   }
@@ -30914,16 +30916,11 @@
   }
 
   /* With tokens, the example query of the placeholder would read as one.
-     The box tells its placeholder through --_placeholder: a :has() before
-     a combinator to a pseudo-element would make Chromium restyle the whole
-     page on any text change anywhere. Only the opacity, so the
-     placeholder keeps the colour its field gives it. */
-  .ds-query__box:has(> .ds-query__tokens > .ds-chip) {
-    --_placeholder: 0;
-  }
-
-  .ds-query__input::placeholder {
-    opacity: var(--_placeholder, 1);
+     From the run's side (not as a child of a box that :has() a chip:
+     Chromium restyles every ancestor of each DOM change anywhere on the
+     page for that form, and lays the whole page out). */
+  .ds-query__box > .ds-query__tokens:has(> .ds-chip) ~ .ds-query__input::placeholder {
+    color: transparent;
   }
 
   .ds-query__icon {
