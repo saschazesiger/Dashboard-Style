@@ -70,15 +70,19 @@ const URL_MODES = ['off', 'read', 'sync'];
 
 const listOf = (value) => (value == null ? [] : Array.isArray(value) ? value.map(String) : [String(value)]);
 
-/** A state with its filters in name order and empty parts left out, so two equal states read equal. */
+/**
+ * A state with its filters in name order and empty parts left out, so two
+ * equal states read equal. A filter name is data: Object.fromEntries() keeps
+ * one named __proto__ or constructor an own property of plain objects.
+ */
 function canonical(state) {
   const out = {};
-  const filters = {};
+  const filters = [];
   for (const name of Object.keys(state?.filters ?? {}).sort()) {
     const values = listOf(state.filters[name]);
-    if (values.some((value) => value !== '')) filters[name] = values;
+    if (values.some((value) => value !== '')) filters.push([name, values]);
   }
-  if (Object.keys(filters).length) out.filters = filters;
+  if (filters.length) out.filters = Object.fromEntries(filters);
   if (state?.sort) out.sort = String(state.sort);
   if (Array.isArray(state?.columns) && state.columns.length) out.columns = state.columns.map(String);
   return out;
@@ -117,7 +121,9 @@ export function fromQuery(search, options = {}) {
   const params = search instanceof URLSearchParams ? search : new URLSearchParams(String(search ?? '').replace(/^\?/, ''));
   let view = null;
   let found = false;
-  const state = { filters: {} };
+  /** Filter names from the address are data (constructor, __proto__ ...): a Map, never keys looked up on an object. */
+  const filters = new Map();
+  const state = {};
   for (const [key, value] of params) {
     if (prefix && !key.startsWith(prefix)) continue;
     const name = key.slice(prefix.length);
@@ -126,8 +132,9 @@ export function fromQuery(search, options = {}) {
     if (name === 'view') view = value;
     else if (name === 'sort') state.sort = value;
     else if (name === 'cols') state.columns = value.split(',').map((part) => part.trim()).filter(Boolean);
-    else (state.filters[name] ??= []).push(value);
+    else filters.set(name, [...(filters.get(name) ?? []), value]);
   }
+  state.filters = Object.fromEntries(filters);
   return found ? { view, state: canonical(state) } : null;
 }
 
@@ -158,7 +165,7 @@ function controller(el, given, signal) {
   const listeners = new Map();
   const list = el.querySelector('.ds-views__list');
   const trigger = /** @type {HTMLElement|null} */ (el.querySelector('.ds-views__trigger'));
-  let store = openStore('views');
+  const store = openStore('views');
   /** Built-in views from the markup and the options. */
   let builtins = [];
   /** The user's views and the stored default. */
@@ -472,12 +479,8 @@ function controller(el, given, signal) {
     remove: (ask = false) => actions.delete(ask),
     link,
     update() {
-      const key = options.key;
+      // A new key needs no new store (its namespace is 'views'; the key is read per get and set), so the change listener stays.
       options = { ...options, ...readOptions(el), ...given };
-      if (key !== options.key) {
-        store.destroy();
-        store = openStore('views');
-      }
       readBuiltins();
       readSaved();
       if (!find(current.id)) current = { id: defaultId(), state: canonical(find(defaultId())?.state) };

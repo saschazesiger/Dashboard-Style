@@ -13,10 +13,28 @@ async function open(page, width = 1280) {
   await page.setViewportSize({ width, height: 900 });
   await page.goto('/test/browser/fixtures/component.html?c=facets');
   await ready(page);
+  await page.evaluate(() => {
+    window.saidLog = [];
+    new MutationObserver((records) => {
+      const regions = new Set(records.map((record) => (record.target.nodeType === 1 ? record.target : record.target.parentElement)?.closest('[aria-live]')).filter(Boolean));
+      for (const region of regions) if (region.textContent.trim()) window.saidLog.push(region.textContent.trim());
+    }).observe(document.body, { subtree: true, childList: true, characterData: true });
+  });
   await page.mouse.move(1, 1);
 }
 
-const said = (page) => page.evaluate(() => [...document.querySelectorAll('[aria-live]')].map((node) => node.textContent).join('\n'));
+/**
+ * Everything the live regions hold and held since open(): the count said once
+ * the changes pause takes the announcer's text over, so a removal said before
+ * it is read from the log.
+ */
+const said = (page) => page.evaluate(() => [...(window.saidLog ?? []), ...[...document.querySelectorAll('[aria-live]')].map((node) => node.textContent)].join('\n'));
+/** Every text the live regions said since it was called, in order, once per time it was said. */
+async function speech(page) {
+  const from = await page.evaluate(() => window.saidLog.length);
+  return () => page.evaluate((from) => window.saidLog.slice(from), from);
+}
+
 const panel = (page) => page.getByRole('complementary', { name: 'Filters' }).first();
 const layout = (page) => page.locator('.ds-facets-layout').first();
 const narrowLayout = (page) => page.locator('.ds-facets-layout').nth(1);
@@ -155,6 +173,53 @@ test('folded: the toggle opens the panel in the sheet by keyboard, with its badg
   await settle(page);
   await expect(sheet).toBeHidden();
   await expect(toggle).toBeFocused();
+});
+
+test('folded: the applied filters stay beside the list as chips, removable without the sheet; the count is said from the sheet', async ({ page }) => {
+  await open(page);
+  const spoken = await speech(page);
+  const narrow = narrowLayout(page);
+  await expect(narrow).toHaveAttribute('data-folded', '');
+  const row = narrow.locator('.ds-facets-layout__main .ds-facets__applied');
+  await expect(row).toBeHidden();
+  // Unfolded, the panel's own row is the one: the row beside the list stays hidden.
+  await panel(page).getByRole('checkbox', { name: /^Online/ }).check();
+  await expect(panel(page).locator('.ds-facets__applied')).toBeVisible();
+  await expect(layout(page).locator('.ds-facets-layout__main .ds-facets__applied')).toBeHidden();
+  const toggle = narrow.getByRole('button', { name: /^Filters/ });
+  await toggle.click();
+  const sheet = page.getByRole('dialog', { name: 'Filters' });
+  await expect(sheet).toBeVisible();
+  await settle(page);
+  await sheet.getByRole('checkbox', { name: /^Server/ }).check();
+  await sheet.getByRole('checkbox', { name: /^Online/ }).check();
+  await expect(sheet.getByRole('button', { name: 'Show 2 devices' })).toBeVisible();
+  // The page around the modal sheet is inert, yet the count is said once the changes pause.
+  await expect.poll(spoken).toContain('2 devices');
+  await page.keyboard.press('Escape');
+  await settle(page);
+  await expect(sheet).toBeHidden();
+  const chips = row.getByRole('group', { name: 'Applied filters' });
+  await expect(row).toBeVisible();
+  await expect(chips.getByRole('button')).toHaveText(['Remove filter Status: Online', 'Remove filter Type: Server']);
+  await expect(row.getByRole('button', { name: 'Clear all' })).not.toHaveAttribute('aria-disabled', /.*/);
+  await chips.getByRole('button', { name: 'Remove filter Status: Online' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(chips.getByRole('button', { name: 'Remove filter Type: Server' })).toBeFocused();
+  await expect.poll(() => said(page)).toContain('Removed Status: Online');
+  await page.keyboard.press('Enter');
+  // The last chip went and the panel is folded away: the focus goes to the toggle.
+  await expect(row).toBeHidden();
+  await expect(toggle).toBeFocused();
+  expect(await page.evaluate(() => DS.get(document.querySelectorAll('.ds-facets')[1]).get())).toEqual({});
+  // Destroyed with the sheet open: the panel goes back to the layout and the sheet closes.
+  await toggle.click();
+  await expect(sheet).toBeVisible();
+  await settle(page);
+  await page.evaluate(() => DS.get(document.querySelectorAll('.ds-facets')[1]).destroy());
+  await expect(narrow.locator(':scope > .ds-facets')).toHaveCount(1);
+  await settle(page);
+  await expect(sheet).toBeHidden();
 });
 
 test('the layout unfolds when it is wide enough again, and folds when it narrows', async ({ page }) => {

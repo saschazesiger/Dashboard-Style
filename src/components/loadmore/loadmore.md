@@ -60,7 +60,9 @@ nothing) and the list `aria-busy`. Then:
   a button that had the focus hands it to the status (`tabindex="-1"`, owned).
 - **Failed:** `data-state="error"`, the status says "Could not load more." with the alert icon in the error ink, the button
   says "Try again", and the infinite scroll waits for a press.
-- **A new query** (a filter, a sort): `reset({ loaded, total })` starts over, the automatic loads too.
+- **A new query** (a filter, a sort): `reset({ loaded, total })` starts over, the automatic loads too. A load still
+  running is dropped: its answer, when it comes, changes nothing and sends no event, and the next load waits for nothing
+  but its own page.
 
 New items come in with the page's `DS.motion.flip()` and `DS.dom.morphHtml()` (keyed: the new rows fade in, nothing
 else moves). The `ds:loaded` event (`{ loaded, total, state, added }`) follows each load.

@@ -34,8 +34,11 @@
  * A change by the user (input on a text field, change on the others, a
  * chip, Clear all) sends ds:filter ({ filters, name, reason }) on the bar
  * once the filters changed; set() and write() send nothing. Removing and
- * clearing are announced ("Removed Status: Online", "Filters cleared");
- * the result count is a polite live region the page fills with count().
+ * clearing are announced ("Removed Status: Online", "Filters cleared").
+ * The page writes the result count with count(): it shows at once, and
+ * after a change by the user it is announced once the changes pause
+ * (--ds-delay-tooltip), through the page's announcer, which also speaks
+ * while the filters sit in the modal sheet.
  *
  * Folding (data-folded on the bar, written by the system): a
  * ResizeObserver measures whether the search, the filters and the count
@@ -56,11 +59,11 @@
  *   their state, focus and running transitions): without it insertBefore.
  */
 import { define, emit, get as controllerOf, t } from '../../js/core.js';
-import { settled } from '../../js/motion.js';
+import { settled, motionDuration } from '../../js/motion.js';
 import { own, disown, morphHtml } from '../../js/dom.js';
 import { icon, close as closeGlyph } from '../../js/icons.js';
 import { announce, canTakeFocus } from '../../js/a11y.js';
-import { open as openOverlay } from '../../js/overlay.js';
+import { open as openOverlay, close as closeOverlay } from '../../js/overlay.js';
 import { number, plural } from '../../js/format.js';
 
 /** The controllers create() made, so the attribute path takes over the same one. */
@@ -96,28 +99,32 @@ const boundOf = (node) => {
   return bound === 'min' || bound === 'max' ? bound : null;
 };
 
-/** The filters the controls hold: name to a list of strings, empty ones left out. */
+/**
+ * The filters the controls hold: name to a list of strings, empty ones left
+ * out. A control's name is data (constructor, __proto__ ...): Maps collect,
+ * and Object.fromEntries() makes every name an own property.
+ */
 function readControls(controls) {
-  /** @type {Record<string, string[]>} */
-  const out = {};
-  const ranges = {};
+  /** @type {Map<string, string[]>} */
+  const out = new Map();
+  const ranges = new Map();
   for (const node of controls) {
     const name = node.name;
     const kind = kindOf(node);
     const bound = boundOf(node);
     if (bound) {
-      ranges[name] ??= ['', ''];
-      ranges[name][bound === 'min' ? 0 : 1] = clean(node.value);
+      if (!ranges.has(name)) ranges.set(name, ['', '']);
+      ranges.get(name)[bound === 'min' ? 0 : 1] = clean(node.value);
       continue;
     }
     let values = [];
     if (kind === 'checkbox' || kind === 'radio') values = node.checked && checkValue(node) !== '' ? [checkValue(node)] : [];
     else if (kind === 'select') values = [...node.selectedOptions].map((option) => option.value).filter((value) => value !== '');
     else if (clean(node.value)) values = [node.value.trim()];
-    if (values.length) (out[name] ??= []).push(...values);
+    if (values.length) out.set(name, [...(out.get(name) ?? []), ...values]);
   }
-  for (const [name, range] of Object.entries(ranges)) if (range[0] !== '' || range[1] !== '') out[name] = range;
-  return out;
+  for (const [name, range] of ranges) if (range[0] !== '' || range[1] !== '') out.set(name, range);
+  return Object.fromEntries(out);
 }
 
 /**
@@ -137,7 +144,7 @@ function writeControls(controls, filters) {
   const changed = [];
   const firstOf = new Map();
   for (const node of controls) {
-    const values = listOf(filters?.[node.name]);
+    const values = listOf(filters && Object.hasOwn(filters, node.name) ? filters[node.name] : undefined);
     const kind = kindOf(node);
     const bound = boundOf(node);
     let before;
@@ -322,34 +329,36 @@ function readOptions(el) {
 
 /**
  * The filter engine of a container: its controls, the applied chips, Clear
- * all, ds:filter and the announcements. The bar's controller adds folding;
- * DS.facets adds its facets.
+ * all, the result count, ds:filter and the announcements. The bar's
+ * controller adds folding; DS.facets adds its facets.
  */
 function engine(el, options, signal) {
   const doc = el.ownerDocument;
+  const view = doc.defaultView;
   const listeners = new Map();
   /** Parts that hold controls outside `el` (folded into a sheet). */
   const away = new Set();
-  const part = (selector) => (selector ? [el, ...away].map((root) => (root.matches?.(selector) ? root : root.querySelector(selector))).find(Boolean) ?? null : null);
-  const parts = (selector) => [el, ...away, ...(options.extra?.() ?? [])].flatMap((root) => [...root.querySelectorAll(selector)]);
+  /** Every match in the element, its parts away and the extra roots (a chips row beside the list, the sheet), each once. */
+  const parts = (selector) => (selector ? [...new Set([el, ...away, ...(options.extra?.() ?? [])].flatMap((root) => (root ? [...root.querySelectorAll(selector)] : [])))] : []);
   const controls = () => controlsIn([el, ...away]);
   let last = JSON.stringify(readControls(controls()));
   let quiet = 0;
+  /** The result count the page gave, and whether a change by the user came since it was last said. */
+  let total = null;
+  let forms = null;
+  let asked = false;
+  let speak = 0;
 
   const tell = (type, detail) => (listeners.get(type) ?? new Set()).forEach((fn) => fn(detail));
 
-  /** The chips of the applied filters, keyed; the applied row hides while there are none. */
+  /** The chips of the applied filters in every chips row, keyed; an applied row hides while there are none. */
   const paint = () => {
     const list = appliedOf(controls());
-    const chips = part(options.chips);
-    if (chips) {
-      const html = list.map((entry) => `<button class="ds-chip ds-chip--input" type="button" data-ds-key="${esc(entry.key)}" data-ds-filter-key="${esc(entry.key)}">` +
-        `<span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">${esc(t('removeFilter'))} </span>${esc(entry.chip)}</span>` +
-        `${icon(closeGlyph, 18, 'ds-chip__trailing')}</span></button>`).join('');
-      morphHtml(chips, html);
-    }
-    const row = part(options.applied);
-    if (row) {
+    const html = list.map((entry) => `<button class="ds-chip ds-chip--input" type="button" data-ds-key="${esc(entry.key)}" data-ds-filter-key="${esc(entry.key)}">` +
+      `<span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">${esc(t('removeFilter'))} </span>${esc(entry.chip)}</span>` +
+      `${icon(closeGlyph, 18, 'ds-chip__trailing')}</span></button>`).join('');
+    for (const chips of parts(options.chips)) morphHtml(chips, html);
+    for (const row of parts(options.applied)) {
       const hide = list.length === 0;
       if (hide !== row.hidden) {
         own(row, 'attrs', 'hidden');
@@ -369,6 +378,38 @@ function engine(el, options, signal) {
     return list;
   };
 
+  /**
+   * The result count in words, in the count and on the sheet's results
+   * button at once. Said through announce() (the toast region, which stays
+   * usable above the modal sheet, where a live region in the inert page
+   * would be silent) once the changes pause (--ds-delay-tooltip, so typing
+   * in the search says it once), and only after a change by the user: the
+   * first count and set() stay quiet.
+   */
+  const paintCount = () => {
+    if (total == null) return '';
+    const shown = number(total);
+    const text = forms ? plural(total, forms) : plural(total, { one: t('resultsOne', { count: shown }), other: t('resultsOther', { count: shown }) });
+    for (const node of parts(options.count)) if (node.textContent !== text) node.textContent = text;
+    const label = t('showResults', { results: text });
+    for (const node of parts(options.results)) {
+      const slot = node.querySelector('.ds-btn__label') ?? node;
+      if (slot.textContent !== label) slot.textContent = label;
+    }
+    return text;
+  };
+  const count = (value, given) => {
+    total = Number(value);
+    forms = given ?? null;
+    const text = paintCount();
+    if (!asked || !text) return;
+    asked = false;
+    view?.clearTimeout(speak);
+    speak = view?.setTimeout(() => {
+      if (!signal?.aborted) announce(text);
+    }, motionDuration(el, '--ds-delay-tooltip')) ?? 0;
+  };
+
   /** Tells the page when the filters changed. */
   const changed = (name, reason) => {
     const filters = readControls(controls());
@@ -380,12 +421,13 @@ function engine(el, options, signal) {
     last = now;
     if (signal?.aborted) return;
     const detail = { filters, name, reason };
+    asked = true;
     emit(el, 'filter', detail);
     tell('change', detail);
   };
 
-  /** Where focus goes when the chip or button that had it went. */
-  const home = () => /** @type {HTMLElement|null} */ ([...el.querySelectorAll(options.home ?? 'input, select, button, textarea')].find((node) => canTakeFocus(node)) ?? null);
+  /** Where focus goes when the chip or button that had it went (the controls folded away: `fallback`, the button that opens them). */
+  const home = () => /** @type {HTMLElement|null} */ ([...el.querySelectorAll(options.home ?? 'input, select, button, textarea')].find((node) => canTakeFocus(node)) ?? [options.fallback?.()].find((node) => node && canTakeFocus(node)) ?? null);
 
   /** Empties the controls of one applied entry (by key), or all; tells and announces. */
   const clear = (key, user = true) => {
@@ -438,13 +480,14 @@ function engine(el, options, signal) {
   const onClick = (event) => {
     const target = /** @type {Element} */ (event.target);
     const chip = target?.closest?.('[data-ds-filter-key]');
-    if (chip && (part(options.chips)?.contains(chip))) {
-      const chips = [...part(options.chips).querySelectorAll('[data-ds-filter-key]')];
+    const host = chip ? parts(options.chips).find((node) => node.contains(chip)) : null;
+    if (host) {
+      const chips = [...host.querySelectorAll('[data-ds-filter-key]')];
       const index = chips.indexOf(chip);
       const hadFocus = doc.activeElement === chip || event.detail === 0;
       clear(chip.getAttribute('data-ds-filter-key'));
       if (hadFocus || doc.activeElement === doc.body || !doc.activeElement?.isConnected) {
-        const left = [...(part(options.chips)?.querySelectorAll('[data-ds-filter-key]') ?? [])];
+        const left = [...host.querySelectorAll('[data-ds-filter-key]')];
         /** @type {HTMLElement|null} */ (left[index] ?? left[index - 1] ?? home())?.focus();
       }
       return;
@@ -458,17 +501,23 @@ function engine(el, options, signal) {
   };
   for (const type of ['input', 'change']) on(el, type, onControl);
   on(el, 'click', onClick);
-  on(doc, 'ds:config', paint);
+  on(doc, 'ds:config', () => {
+    paint();
+    paintCount();
+  });
+  signal?.addEventListener('abort', () => view?.clearTimeout(speak));
 
   return {
     paint,
     clear,
+    count,
     controls,
     away,
-    /** Listens on a part outside the element (a folded part in a sheet), until `off` aborts. */
+    /** Listens on a part outside the element (a folded part in a sheet, a chips row beside the list), until `off` aborts. */
     watch(root, off) {
-      for (const type of ['input', 'change']) root.addEventListener(type, onControl, { signal: off });
-      root.addEventListener('click', onClick, { signal: off });
+      const listen = off ? { signal: off } : {};
+      for (const type of ['input', 'change']) root.addEventListener(type, onControl, listen);
+      root.addEventListener('click', onClick, listen);
     },
     get() {
       return readControls(controls());
@@ -485,6 +534,7 @@ function engine(el, options, signal) {
     },
     destroy() {
       listeners.clear();
+      view?.clearTimeout(speak);
     },
   };
 }
@@ -497,6 +547,8 @@ function controller(el, given, signal) {
     chips: '.ds-filterbar__chips',
     applied: '.ds-filterbar__applied',
     clear: '.ds-filterbar__clear',
+    count: '.ds-filterbar__count',
+    results: '.ds-filterbar__results',
     home: 'input[type="search"], input, select, button',
     extra: () => [sheetOf()].filter(Boolean),
     paint: (list) => badge(list),
@@ -506,8 +558,8 @@ function controller(el, given, signal) {
   const more = /** @type {HTMLElement|null} */ (el.querySelector('.ds-filterbar__more'));
   let needed = 0;
   let folding = null;
-  let total = null;
-  let forms = null;
+  /** While the filters sit in the sheet: where they came from and the listeners on the sheet. */
+  let away = null;
 
   /** The badge of the "Filters" button: how many applied filters sit in the folded part. */
   function badge(list) {
@@ -570,6 +622,7 @@ function controller(el, given, signal) {
     const sheet = sheetOf();
     if (!sheet || !filters || folding) return;
     const off = new AbortController();
+    away = { off, sheet, home: filters.parentNode, next: filters.nextSibling };
     base.away.add(filters);
     base.watch(sheet, off.signal);
     folding = fold(filters, sheet, {
@@ -577,29 +630,27 @@ function controller(el, given, signal) {
       back() {
         base.away.delete(filters);
         off.abort();
+        away = null;
         folding = null;
         measure();
       },
     });
     base.paint();
   };
+
+  /** Destroyed with the filters in the sheet: they go back now, the sheet's listeners go, and the sheet closes. */
+  const unfold = () => {
+    if (!away || !filters) return;
+    const { off, sheet, home, next } = away;
+    away = null;
+    folding = null;
+    off.abort();
+    base.away.delete(filters);
+    if (sheet.contains(filters) && home?.isConnected) move(home, filters, next?.parentNode === home ? next : null);
+    closeOverlay(sheet);
+  };
   more?.addEventListener('click', openSheet, { signal });
   if (more && !more.hasAttribute('aria-haspopup')) more.setAttribute('aria-haspopup', 'dialog');
-
-  /** The result count, in the bar and on the sheet's button. */
-  const paintCount = () => {
-    if (total == null) return;
-    const shown = number(total);
-    const text = forms ? plural(total, forms) : plural(total, { one: t('resultsOne', { count: shown }), other: t('resultsOther', { count: shown }) });
-    for (const node of el.querySelectorAll('.ds-filterbar__count')) if (node.textContent !== text) node.textContent = text;
-    const sheet = sheetOf();
-    for (const node of sheet ? sheet.querySelectorAll('.ds-filterbar__results') : []) {
-      const label = t('showResults', { results: text });
-      const slot = node.querySelector('.ds-btn__label') ?? node;
-      if (slot.textContent !== label) slot.textContent = label;
-    }
-  };
-  doc.addEventListener('ds:config', paintCount, { signal });
 
   base.paint();
   measure();
@@ -611,10 +662,8 @@ function controller(el, given, signal) {
     clear(key) {
       base.clear(key ?? null, false);
     },
-    count(value, given) {
-      total = Number(value);
-      forms = given ?? null;
-      paintCount();
+    count(value, forms) {
+      base.count(value, forms);
     },
     fold() {
       el.setAttribute('data-folded', '');
@@ -627,6 +676,7 @@ function controller(el, given, signal) {
     },
     destroy() {
       observer?.disconnect();
+      unfold();
       base.destroy();
     },
   };
@@ -663,11 +713,16 @@ export function create(el, options = {}) {
 
 /**
  * The filter engine of any container of named controls (applied chips in
- * `chips`, a Clear all button `clear`, the applied row `applied`, ds:filter
- * and the announcements), for a component that builds on the bar's rules:
- * DS.facets. Its handle: get(), set(), on(), clear(key), paint(), destroy().
+ * every `chips` row, Clear all buttons `clear`, the applied rows `applied`,
+ * the result count in `count` and on the `results` buttons, ds:filter and
+ * the announcements), for a component that builds on the bar's rules:
+ * DS.facets. The selectors match inside `el` and the roots `extra` returns
+ * (a chips row beside the list, the sheet); `home` finds where focus goes
+ * when its chip went, else `fallback()`. Its handle: get(), set(), on(),
+ * clear(key), paint(), count(value, forms), watch(root, signal) (listens
+ * for chips and Clear all on a root outside `el`) and destroy().
  * @param {Element} el
- * @param {{ chips?: string, clear?: string, applied?: string, home?: string, extra?: () => Element[], paint?: (list: object[]) => void }} options
+ * @param {{ chips?: string, clear?: string, applied?: string, count?: string, results?: string, home?: string, fallback?: () => Element|null, extra?: () => Element[], paint?: (list: object[]) => void }} options
  * @param {AbortSignal|null} [signal]
  */
 export function filters(el, options, signal = null) {
@@ -678,6 +733,8 @@ export function filters(el, options, signal = null) {
     on: base.on,
     clear: (key) => base.clear(key ?? null, false),
     paint: base.paint,
+    count: base.count,
+    watch: base.watch,
     destroy: base.destroy,
   };
 }

@@ -10,10 +10,12 @@
  *       <div class="ds-filterbar__filters">
  *         <div class="ds-field"><label class="ds-field__label" for="status">Status</label>
  *           <select class="ds-input" id="status" name="status"><option value="">Any</option>...</select></div>
+ *         <div class="ds-filterbar__range" role="group" aria-label="Storage in GB" data-ds-filter-label="Storage">
+ *           <div class="ds-field">(min: data-ds-filter-bound="min")</div><div class="ds-field">(max)</div></div>
  *         ...
  *       </div>
  *       <button class="ds-btn ds-filterbar__more" type="button" aria-haspopup="dialog">(filter 20)Filters<span class="ds-badge ds-filterbar__badge" hidden></span></button>
- *       <p class="ds-filterbar__count" aria-live="polite">48 results</p>
+ *       <p class="ds-filterbar__count">48 results</p>
  *     </div>
  *     <div class="ds-filterbar__applied" hidden>
  *       <div class="ds-chips ds-filterbar__chips" role="group" aria-label="Applied filters"></div>
@@ -28,11 +30,13 @@
  *
  * The row: the search takes the room that is left, at least
  * --ds-filterbar-search-min (200px); the filters sit in one line after it,
- * their fields --ds-filterbar-field-width (160px) wide; the count at the
- * end. Without the script the row wraps. With it, data-folded (written by
+ * their fields --ds-filterbar-field-width (160px) wide (the two fields of
+ * a .ds-filterbar__range --ds-filterbar-range-width, 96px, each); the count
+ * at the end. Without the script the row wraps. With it, data-folded (written by
  * the system when the row cannot hold them in one line) hides the filters
  * and shows .ds-filterbar__more, whose badge counts the applied filters
- * among them. In the sheet's body the filters stack, full width.
+ * among them. In the sheet's body the filters stack, full width (a range's
+ * two fields share the row).
  *
  * The applied row: input chips (chip.css), one per applied value, and
  * "Clear all" after them; it hides while nothing is applied (the hidden
@@ -51,7 +55,7 @@
  * bar adds no colour.
  *
  * Hooks: --ds-filterbar-search-min (200px), --ds-filterbar-field-width
- * (160px), --ds-filterbar-gap (12px). The computed --_gap and --_field are private: never
+ * (160px), --ds-filterbar-range-width (96px), --ds-filterbar-gap (12px). The computed --_gap and --_field are private: never
  * set it.
  *
  * No progressive feature in the stylesheet.
@@ -93,6 +97,18 @@
 
   .ds-filterbar__filters .ds-field {
     width: var(--ds-filterbar-field-width, 160px);
+  }
+
+  /* A range: two fields of one name side by side, narrower than a field. */
+  .ds-filterbar__range {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--ds-space-2);
+    min-width: 0;
+  }
+
+  .ds-filterbar__filters .ds-filterbar__range > .ds-field {
+    width: var(--ds-filterbar-range-width, 96px);
   }
 
   .ds-filterbar__more {
@@ -154,6 +170,12 @@
 
   .ds-sheet__body > .ds-filterbar__filters .ds-field {
     width: auto;
+  }
+
+  .ds-sheet__body > .ds-filterbar__filters .ds-filterbar__range > .ds-field {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
   }
 
 }

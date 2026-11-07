@@ -36,7 +36,12 @@
  *   the layout when the panel would wrap above the main part; the panel
  *   hides and .ds-facets__toggle shows, with a badge of the applied filters.
  *   The toggle opens the sheet of data-ds-facets-sheet with the panel moved
- *   into its body (DS.filterbar.fold) and puts it back once it closed.
+ *   into its body (DS.filterbar.fold) and puts it back once it closed. A
+ *   .ds-facets__applied in the main part gets the same chips and Clear all
+ *   (shown while folded); its last chip hands the focus to the toggle.
+ * - Count: count() writes .ds-facets__count and the sheet's
+ *   .ds-facets__results at once; after a change by the user it is
+ *   announced once changes pause (the bar's engine), also from the sheet.
  *
  * Strings: facetShowAll, facetShowFewer, facetNoMatch, facetMatchesOne,
  * facetMatchesOther, and the bar's removeFilter, filterRemoved,
@@ -54,6 +59,7 @@ import { motionDuration } from '../../js/motion.js';
 import { own, disown } from '../../js/dom.js';
 import { announce } from '../../js/a11y.js';
 import { number, plural } from '../../js/format.js';
+import { close as closeOverlay } from '../../js/overlay.js';
 import { filters as engineOf, fold as foldInto } from '../filterbar/filterbar.js';
 
 /** The controllers create() made, so the attribute path takes over the same one. */
@@ -136,9 +142,9 @@ function controller(el, given, signal) {
   const toggle = /** @type {HTMLElement|null} */ (layout?.querySelector('.ds-facets__toggle') ?? null);
   const sheetOf = () => (options.sheet ? (typeof options.sheet === 'string' ? doc.querySelector(options.sheet) : options.sheet) : null);
   let folding = null;
+  /** While the panel sits in the sheet: where it came from. */
+  let away = null;
   let lastWidth = -1;
-  let total = null;
-  let forms = null;
   let speak = 0;
 
   /** The badge of the toggle: how many filters are applied. */
@@ -168,12 +174,19 @@ function controller(el, given, signal) {
     chips: '.ds-facets__chips',
     clear: '.ds-facets__clear',
     applied: '.ds-facets__applied',
+    count: '.ds-facets__count',
+    results: '.ds-facets__results',
     home: 'input[name], select[name], textarea[name]',
+    // Folded, the panel's controls hide: a chip removed beside the list hands the focus to the toggle.
+    fallback: () => toggle,
+    // A second applied row in the main part (shown while folded), the count there, the sheet's results button.
+    extra: () => [main, sheetOf()].filter(Boolean),
     paint: (list) => {
       badge(list);
       for (const facet of el.querySelectorAll('.ds-facet')) paintFacet(facet);
     },
   }, signal);
+  if (main) base.watch(main, signal);
 
   /** The count of an option, from its .ds-check__count (null: none or not a number). */
   const countOf = (row) => {
@@ -308,9 +321,11 @@ function controller(el, given, signal) {
   const openSheet = () => {
     const sheet = sheetOf();
     if (!sheet || folding) return null;
+    away = { sheet, home: el.parentNode, next: el.nextSibling };
     folding = foldInto(el, sheet, {
       opener: toggle,
       back() {
+        away = null;
         folding = null;
         lastWidth = -1;
         measure();
@@ -321,20 +336,15 @@ function controller(el, given, signal) {
   toggle?.addEventListener('click', () => { openSheet(); }, { signal });
   if (toggle && !toggle.hasAttribute('aria-haspopup')) toggle.setAttribute('aria-haspopup', 'dialog');
 
-  /** The result count, in the layout and on the sheet's button. */
-  const paintCount = () => {
-    if (total == null) return;
-    const shown = number(total);
-    const text = forms ? plural(total, forms) : plural(total, { one: t('resultsOne', { count: shown }), other: t('resultsOther', { count: shown }) });
-    for (const node of (layout ?? el).querySelectorAll('.ds-facets__count')) if (node.textContent !== text) node.textContent = text;
-    const sheet = sheetOf();
-    for (const node of sheet ? sheet.querySelectorAll('.ds-facets__results') : []) {
-      const label = t('showResults', { results: text });
-      const slot = node.querySelector('.ds-btn__label') ?? node;
-      if (slot.textContent !== label) slot.textContent = label;
-    }
+  /** Destroyed with the panel in the sheet: it goes back now and the sheet closes. */
+  const unfold = () => {
+    if (!away) return;
+    const { sheet, home, next } = away;
+    away = null;
+    folding = null;
+    if (sheet.contains(el) && home?.isConnected) home.insertBefore(el, next?.parentNode === home ? next : null);
+    closeOverlay(sheet);
   };
-  doc.addEventListener('ds:config', () => { paintAll(); paintCount(); }, { signal });
 
   paintAll();
   measure();
@@ -367,9 +377,7 @@ function controller(el, given, signal) {
       paintAll();
     },
     count(value, pluralForms) {
-      total = Number(value);
-      forms = pluralForms ?? null;
-      paintCount();
+      base.count(value, pluralForms);
     },
     open() {
       return openSheet() ?? Promise.resolve();
@@ -383,6 +391,7 @@ function controller(el, given, signal) {
     destroy() {
       observer?.disconnect();
       view?.clearTimeout(speak);
+      unfold();
       base.destroy();
     },
   };

@@ -50,7 +50,11 @@ filters above the list, use the [filter bar](#filter-bar).
   </section>
   <div class="ds-facets-layout__main">
     <button class="ds-btn ds-facets__toggle" type="button" aria-haspopup="dialog">[icon filter 20]Filters<span class="ds-badge ds-facets__badge" hidden></span></button>
-    <p class="ds-facets__count" aria-live="polite">27 results</p>
+    <div class="ds-facets__applied" hidden>                    <!-- optional: the applied chips while folded -->
+      <div class="ds-chips ds-facets__chips" role="group" aria-label="Applied filters"></div>
+      <button class="ds-btn ds-btn--text ds-facets__clear" type="button">Clear all</button>
+    </div>
+    <p class="ds-facets__count">27 results</p>
     ... the list ...
   </div>
 </div>
@@ -98,7 +102,14 @@ role. A checked option's label takes the label weight, so the choice shows by mo
 - **Applied chips and Clear all.** `.ds-facets__chips` gets an input chip per applied value ("Status: Online"); a chip
   removes its value and the focus moves to the next chip, else the one before, else the first filter.
   `.ds-facets__clear` empties every filter; it is `aria-disabled="true"` while nothing is applied, and
-  `.ds-facets__applied` hides. Removals are announced ("Removed Status: Online", "Filters cleared").
+  `.ds-facets__applied` hides. Removals are announced ("Removed Status: Online", "Filters cleared"). A second
+  `.ds-facets__applied` in `.ds-facets-layout__main` (optional, with its chips and Clear all) shows only while the
+  layout is folded, so on a phone the applied filters stay in sight and removable without opening the sheet; when its
+  last chip goes the focus moves to the toggle.
+- **Result count.** `count(27)` writes "27 results" in `.ds-facets__count` (in the main part, or in the panel without a
+  layout) and "Show 27 results" on `.ds-facets__results` at once. After a change by the user the count is announced
+  once the changes pause (`--ds-delay-tooltip`), through the page's announcer, which also speaks while the panel sits
+  in the modal sheet; the first count and `set()` stay quiet. `.ds-facets__count` is no live region of its own.
 - **Counts.** `counts({ status: { online: 24, offline: 0 } })` writes each option's `.ds-check__count` in the locale.
   An option counted 0 that is not checked is disabled (or hidden, with `data-ds-facets-zero="hide"`), never while it has
   the focus; a checked one stays, so it can be unchecked.
@@ -143,11 +154,12 @@ functions.
   would be) named by its title. Each facet is a `<fieldset>` named by its `<legend>`, so a screen reader says "Status,
   group" before its options; every option is a native checkbox or radio with its label (the count is part of the name:
   "Online 24"). The facet search has an `aria-label`. The chips are buttons in a named group ("Remove filter Status:
-  Online"). `.ds-facets__count` is `aria-live="polite"`.
+  Online"). The count is announced by the system (no `aria-live` on `.ds-facets__count`).
 - **Keyboard.** Tab walks the search, the options (radios: one stop, arrows choose), "Show all" and the fields; Space
   checks. In the sheet focus starts on the first control, Tab stays inside, Escape closes it (after emptying a facet
   search) and focus returns to "Filters".
-- **Announcements.** Removals and Clear all; the matches of a facet search; the page's count.
+- **Announcements.** Removals and Clear all; the matches of a facet search; the page's count after a change, once
+  changes pause (also from the sheet).
 - **Strings.** `facetShowAll`, `facetShowFewer`, `facetNoMatch`, `facetMatchesOne`, `facetMatchesOther`, and the filter
   bar's `removeFilter`, `filterRemoved`, `filtersCleared`, `filtersApplied`, `filterChip`, `resultsOne`,
   `resultsOther`, `showResults`, `rangeFrom`, `rangeTo`, `rangeBetween` (`DS.core.config()`).
@@ -176,6 +188,6 @@ motion; the list's change is the page's `DS.motion.flip()`.
   `data-ds-facets-zero`, `data-ds-facet-limit`, hooks `--ds-facets-width`, `--ds-facets-main-min`, `--ds-facets-gap`,
   `--ds-facet-max-height`): facets with counts, a search inside long facets, a limit with "Show all", ranges, applied
   chips with Clear all, a side sheet when the layout is narrow; `counts()`, `count()`, `open()`, `visible()`,
-  `foldText()`. Strings `facetShowAll`, `facetShowFewer`, `facetNoMatch`, `facetMatchesOne`, `facetMatchesOther`.
+  `foldText()`; a second applied row in the main part while folded; the count announced once changes pause. Strings `facetShowAll`, `facetShowFewer`, `facetNoMatch`, `facetMatchesOne`, `facetMatchesOther`.
 - Filter bar: a radio of `value=""` is "Any" (no filter), and the one checked again once its filter is empty.
 -->

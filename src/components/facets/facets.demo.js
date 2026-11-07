@@ -109,7 +109,9 @@ function block(h, label, narrow) {
     '<div class="ds-facets-layout__main" style="display: grid; gap: var(--ds-space-3)">' +
     '<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-space-3)">' +
     '<button class="ds-btn ds-facets__toggle" type="button" aria-haspopup="dialog">' + h.icon('filter', 20) + 'Filters<span class="ds-badge ds-facets__badge" hidden></span></button>' +
-    '<p class="ds-facets__count" aria-live="polite"></p></div>' +
+    '<p class="ds-facets__count"></p></div>' +
+    '<div class="ds-facets__applied" hidden><div class="ds-chips ds-facets__chips" role="group" aria-label="Applied filters"></div>' +
+    '<button class="ds-btn ds-btn--text ds-facets__clear" type="button">Clear all</button></div>' +
     '<ul class="ds-list" aria-label="' + label + '" data-demo-list></ul></div></div>' + sheetHtml(h, sheet) + '</div>';
 }
 
@@ -124,8 +126,8 @@ SG.demo('facets', {
     return h.section('Beside the list', block(h, 'Devices', false),
       'Check a status or a type: the counts of the other facets follow. Search the owners, or show them all. An option that would leave nothing is disabled. Narrow the width in the options panel to watch the panel fold.') +
       h.section('Folded', block(h, 'Devices, narrow', true),
-        'In a narrow column the panel folds behind Filters, whose badge counts what is applied. The sheet holds the same panel; it goes back when the sheet closes.') +
-      h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> walks the facets (a radio facet is one stop; the arrows choose), <kbd class="ds-kbd">Space</kbd> checks. In a facet search <kbd class="ds-kbd">Escape</kbd> empties it first. The number of matches is announced once typing pauses, removals and Clear all when they happen.</p>');
+        'In a narrow column the panel folds behind Filters, whose badge counts what is applied. The applied filters stay in sight above the list as chips, each removable, with Clear all. The sheet holds the same panel; it goes back when the sheet closes.') +
+      h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> walks the facets (a radio facet is one stop; the arrows choose), <kbd class="ds-kbd">Space</kbd> checks. In a facet search <kbd class="ds-kbd">Escape</kbd> empties it first. The number of matches is announced once typing pauses, removals and Clear all when they happen, and the count of results once the changes pause.</p>');
   },
 
   wire: function (root, h) {

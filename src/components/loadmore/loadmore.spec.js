@@ -152,6 +152,51 @@ test('the controller: create with load, set, reset, one load at a time', async (
   expect(seen).toEqual({ same: true, calls: 1, after: { loaded: 2, total: 3, state: 'idle' }, done: { loaded: 3, total: 3, state: 'done' }, text: 'Showing 2' });
 });
 
+test('a reset during a slow load drops it: the next load keeps its own counts and sends one change', async ({ page }) => {
+  await open(page);
+  const seen = await page.evaluate(async () => {
+    const host = document.createElement('div');
+    host.innerHTML = '<ul id="probe-list"><li>a</li></ul><div class="ds-loadmore" data-ds-loadmore-for="#probe-list"><p class="ds-loadmore__status"><span class="ds-loadmore__text"></span></p><button class="ds-btn ds-loadmore__button" type="button">More</button></div>';
+    document.querySelector('#fx-component').append(host);
+    const el = host.querySelector('.ds-loadmore');
+    const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    let slow = true;
+    const more = DS.loadmore.create(el, {
+      loaded: 5,
+      total: 30,
+      status: ({ loaded, total }) => `${loaded} of ${total} devices`,
+      load: () => (slow ? wait(1500).then(() => ({ loaded: 10 })) : wait(100).then(() => ({ loaded: 15 }))),
+    });
+    const changes = [];
+    more.on('change', (detail) => changes.push(detail));
+    const said = [];
+    new MutationObserver(() => {
+      for (const node of document.querySelectorAll('[aria-live]')) if (node.textContent.trim()) said.push(node.textContent.trim());
+    }).observe(document.body, { subtree: true, childList: true, characterData: true });
+    const first = more.load();
+    await wait(800);
+    more.reset({ loaded: 5, total: 30 });
+    slow = false;
+    const second = more.load();
+    const answered = await second;
+    const list = document.querySelector('#probe-list').getAttribute('aria-busy');
+    await first;
+    await wait(1200);
+    const result = { answered, state: more.get(), changes: changes.map(({ loaded, added }) => ({ loaded, added })), list, text: el.querySelector('.ds-loadmore__text').textContent, said: said.some((text) => text.includes('15 of 30 devices')) };
+    more.destroy();
+    host.remove();
+    return result;
+  });
+  expect(seen).toEqual({
+    answered: { loaded: 15, total: 30, state: 'idle' },
+    state: { loaded: 15, total: 30, state: 'idle' },
+    changes: [{ loaded: 15, added: 10 }],
+    list: null,
+    text: '15 of 30 devices',
+    said: true,
+  });
+});
+
 test('options: density steps the padding, size and touch reach the button; a phone keeps it in 360px', async ({ page }) => {
   await open(page);
   const measure = (classes) => page.evaluate((classes) => {

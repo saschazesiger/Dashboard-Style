@@ -144,6 +144,20 @@ test('the address: a view and a state come in, an edited state says so; another 
   await other.evaluate(() => DS.get(document.querySelector('.ds-views')).create('From the other tab'));
   await openMenu(page);
   await expect(menu(page).getByRole('menuitemradio', { name: 'From the other tab' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(menu(page)).toBeHidden();
+  // A new key: its views show, and the other tab's saves under it still arrive.
+  for (const tab of [page, other]) {
+    await tab.evaluate(() => {
+      const el = document.querySelector('.ds-views');
+      el.setAttribute('data-ds-views-key', 'sg-demo-devices-2');
+      DS.get(el).update();
+    });
+  }
+  await other.evaluate(() => DS.get(document.querySelector('.ds-views')).create('Under the new key'));
+  await openMenu(page);
+  await expect(menu(page).getByRole('menuitemradio', { name: 'Under the new key' })).toBeVisible();
+  await expect(menu(page).getByRole('menuitemradio', { name: 'From the other tab' })).toHaveCount(0);
   await other.close();
 });
 

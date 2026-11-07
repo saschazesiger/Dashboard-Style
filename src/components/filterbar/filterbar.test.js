@@ -63,6 +63,19 @@ describe('DS.filterbar.read', () => {
     assert.deepEqual(read(root(range('', '64'))), { storage: ['', '64'] });
     assert.deepEqual(read(root(range('', ''))), {});
   });
+
+  it('reads controls named like a member of Object.prototype as filters', () => {
+    const nodes = [
+      control({ type: 'checkbox', name: 'constructor', value: 'a', checked: true }),
+      control({ type: 'text', name: 'toString', value: 'b' }),
+      control({ type: 'checkbox', name: '__proto__', value: 'c', checked: true }),
+      control({ type: 'number', name: 'hasOwnProperty', value: '1', attrs: { 'data-ds-filter-bound': 'min' } }),
+      control({ type: 'number', name: 'hasOwnProperty', value: '', attrs: { 'data-ds-filter-bound': 'max' } }),
+    ];
+    const filters = read(root(nodes));
+    assert.deepEqual(filters, JSON.parse('{ "constructor": ["a"], "toString": ["b"], "__proto__": ["c"], "hasOwnProperty": ["1", ""] }'));
+    assert.equal(Object.getPrototypeOf(filters), Object.prototype);
+  });
 });
 
 describe('DS.filterbar.write', () => {
@@ -95,6 +108,17 @@ describe('DS.filterbar.write', () => {
     const filters = { a: ['2'], b: ['x y'] };
     write(root(nodes), filters);
     assert.deepEqual(read(root(nodes)), filters);
+  });
+
+  it('empties a control named like a member of Object.prototype that the filters leave out', () => {
+    const nodes = [
+      control({ type: 'checkbox', name: 'constructor', value: 'a', checked: true }),
+      control({ type: 'text', name: 'toString', value: 'b' }),
+    ];
+    write(root(nodes), {});
+    assert.deepEqual(read(root(nodes)), {});
+    write(root(nodes), { constructor: ['a'], toString: 'c' });
+    assert.deepEqual(read(root(nodes)), { constructor: ['a'], toString: ['c'] });
   });
 });
 

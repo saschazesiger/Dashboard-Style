@@ -116,19 +116,25 @@ function controller(el, given, signal) {
   const label = button ? (button.querySelector('.ds-btn__face:not(.ds-btn__face--busy, .ds-btn__face--done, .ds-btn__face--failed)') ?? button).textContent.replace(/\s+/g, ' ').trim() : '';
   /** The running load: its settle functions, and what started it. */
   let pending = null;
+  /** Counts the loads and resets: a load whose number is no longer current (reset() came) leaves no trace. */
+  let generation = 0;
+  /** The button's busy face while it is held (it outlives a load that reset() ended), settled either way. */
+  let face = null;
   let observer = null;
 
   const listOf = () => (options.for ? doc.querySelector(options.for) : null);
   const tell = (type, detail) => (listeners.get(type) ?? new Set()).forEach((fn) => fn(detail));
   const snapshot = () => ({ loaded: state.loaded, total: state.total, state: state.state });
+  /** The status in the page's words when create() has `status`; the announcement says the same. */
+  const words = () => (typeof options.status === 'function' ? String(options.status(snapshot()) ?? '') : statusText(snapshot()));
 
   const paint = () => {
     if (state.state === 'idle') el.removeAttribute('data-state');
     else el.setAttribute('data-state', state.state);
     const text = el.querySelector('.ds-loadmore__text') ?? el.querySelector('.ds-loadmore__status');
     if (text) {
-      const words = typeof options.status === 'function' ? String(options.status(snapshot()) ?? '') : statusText(snapshot());
-      if (text.textContent !== words) text.textContent = words;
+      const said = words();
+      if (text.textContent !== said) text.textContent = said;
     }
   };
 
@@ -188,6 +194,7 @@ function controller(el, given, signal) {
     if (signal?.aborted || state.state === 'loading' || state.state === 'done') return Promise.resolve(snapshot());
     if (from === 'auto' && (state.state === 'error' || state.autoLoads >= options.auto)) return Promise.resolve(snapshot());
     if (from === 'auto') state.autoLoads += 1;
+    const mine = ++generation;
     const previous = state.loaded;
     const before = listOf()?.children.length ?? 0;
     const focusWasOnButton = button != null && doc.activeElement === button;
@@ -212,9 +219,24 @@ function controller(el, given, signal) {
     } else {
       emit(el, 'loadmore', { loaded: previous, total: state.total, auto: from === 'auto', respond });
     }
-    const run = button ? busy(button, work, { done: false, failed: false }) : work;
-    return run.then(
+    // The busy face is only the button's look: the result comes from `work`
+    // itself. A face still held by a load that reset() ended (busy() would
+    // hand back that run) finishes first, then this load takes the button.
+    let look = work;
+    if (button) {
+      const held = face;
+      const BUSY = { done: false, failed: false };
+      look = held ? held.then(() => busy(button, work, BUSY)) : busy(button, work, BUSY);
+      const settled = look.then(() => {}, () => {});
+      face = settled;
+      settled.then(() => {
+        if (face === settled) face = null;
+      });
+    }
+    const stale = () => mine !== generation;
+    return look.then(() => work, () => work).then(
       (result) => {
+        if (stale()) return snapshot();
         pending = null;
         busyList(false);
         if (signal?.aborted) return snapshot();
@@ -222,8 +244,7 @@ function controller(el, given, signal) {
         if (button && state.state !== 'error') setLabel(button, label);
         paint();
         const added = (state.loaded ?? 0) - (previous ?? 0);
-        const status = statusText(snapshot());
-        announce([added > 0 ? t('loadMoreLoaded', { count: number(added) }) : '', status].filter(Boolean).join(' '));
+        announce([added > 0 ? t('loadMoreLoaded', { count: number(added) }) : '', words()].filter(Boolean).join(' '));
         if (state.state === 'done') keepFocus(focusWasOnButton);
         else if (focusWasOnButton && from !== 'auto' && options.focus === 'new') focusNew(before);
         const told = { ...snapshot(), added };
@@ -233,6 +254,7 @@ function controller(el, given, signal) {
         return snapshot();
       },
       (error) => {
+        if (stale()) return snapshot();
         pending = null;
         busyList(false);
         if (signal?.aborted) return snapshot();
@@ -300,9 +322,12 @@ function controller(el, given, signal) {
       return start('api');
     },
     reset(value = {}) {
+      // The running load ends here: its answer, whenever it comes, is ignored.
+      generation += 1;
       if (pending) {
         pending.resolve({});
         pending = null;
+        busyList(false);
       }
       state.loaded = count(value.loaded) ?? null;
       state.total = 'total' in value ? count(value.total) : state.total;

@@ -26,7 +26,8 @@
  *     </section>
  *     <div class="ds-facets-layout__main">
  *       <button class="ds-btn ds-facets__toggle" type="button" aria-haspopup="dialog">(filter 20)Filters<span class="ds-badge ds-facets__badge" hidden></span></button>
- *       <p class="ds-facets__count" aria-live="polite">48 results</p> ... the list ...
+ *       <div class="ds-facets__applied" hidden>(chips, Clear all: optional, shown while folded)</div>
+ *       <p class="ds-facets__count">48 results</p> ... the list ...
  *     </div>
  *   </div>
  *   <dialog class="ds-sheet" id="facets-sheet" aria-labelledby="facets-sheet-title"> ... head ...
@@ -39,7 +40,9 @@
  * the row cannot hold both, the panel wraps above the main part (without
  * the script, which keeps it usable); the script then writes data-folded
  * on the layout instead: the panel hides and .ds-facets__toggle shows
- * (with a badge of the applied filters). A facet's rows stack at full
+ * (with a badge of the applied filters), and a .ds-facets__applied in the
+ * main part (optional) shows the applied chips, which stay removable
+ * without the sheet; unfolded it hides (the panel has its own). A facet's rows stack at full
  * width, the count at the end; a checked row's label takes the label
  * weight, so the choice shows by more than the check. Rows the system hides
  * (beyond the limit, or not matching the facet's search) take the hidden
@@ -99,6 +102,11 @@
 
   .ds-facets-layout[data-folded] .ds-facets__toggle {
     display: inline-flex;
+  }
+
+  /* The applied row beside the list: only while the panel is folded away. */
+  .ds-facets-layout:not([data-folded]) > .ds-facets-layout__main .ds-facets__applied {
+    display: none;
   }
 
   .ds-facets {

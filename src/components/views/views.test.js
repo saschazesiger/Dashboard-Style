@@ -47,6 +47,20 @@ describe('DS.views.fromQuery', () => {
     // Without one every parameter but view, sort and cols is a filter.
     assert.deepEqual(fromQuery('?tab=2'), { view: null, state: { filters: { tab: ['2'] } } });
   });
+
+  it('reads a parameter named like a member of Object.prototype as a filter, and leaves the prototype alone', () => {
+    for (const name of ['constructor', 'toString', 'hasOwnProperty', 'valueOf']) {
+      const read = fromQuery(`${name}=1&${name}=2`);
+      assert.deepEqual(read, { view: null, state: { filters: { [name]: ['1', '2'] } } });
+      assert.equal(toQuery(read.state), `${name}=1&${name}=2`);
+    }
+    const proto = fromQuery('__proto__=x&status=online');
+    assert.deepEqual(proto.state.filters, JSON.parse('{ "__proto__": ["x"], "status": ["online"] }'));
+    assert.equal(Object.getPrototypeOf(proto.state.filters), Object.prototype);
+    assert.equal(Object.hasOwn(proto.state.filters, '__proto__'), true);
+    assert.equal(toQuery(proto.state), '__proto__=x&status=online');
+    assert.equal({}.x, undefined);
+  });
 });
 
 describe('DS.views registration', () => {

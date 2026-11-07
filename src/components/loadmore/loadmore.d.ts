@@ -34,7 +34,7 @@ export interface LoadMoreController {
   set(value?: { loaded?: number; total?: number | null; added?: number; done?: boolean; error?: unknown }): void;
   /** A load now, as the button. */
   load(): Promise<LoadMoreSnapshot>;
-  /** A new query: back to the start. */
+  /** A new query: back to the start; a load still running is dropped. */
   reset(value?: { loaded?: number; total?: number | null }): void;
   on(type: 'change', fn: (detail: LoadMoreSnapshot & { added?: number; error?: unknown }) => void): () => void;
   update(): void;

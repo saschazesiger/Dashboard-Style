@@ -15,6 +15,7 @@
     "ds-filterbar__count",
     "ds-filterbar__filters",
     "ds-filterbar__more",
+    "ds-filterbar__range",
     "ds-filterbar__results",
     "ds-filterbar__row",
     "ds-filterbar__search"
@@ -42,6 +43,10 @@
     "--ds-filterbar-field-width": {
       "default": "160px",
       "description": "the width of an inline filter field in the bar (full width in the sheet)"
+    },
+    "--ds-filterbar-range-width": {
+      "default": "96px",
+      "description": "the width of each of the two fields of a `.ds-filterbar__range` in the bar (they share the row in the sheet)"
     },
     "--ds-input-height": {
       "owner": "form"

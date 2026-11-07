@@ -44,6 +44,10 @@ export interface FiltersEngine {
   on(type: 'change', fn: (detail: FilterDetail) => void): () => void;
   clear(key?: string | null): void;
   paint(): AppliedFilter[];
+  /** The result count in `count` and on the `results` buttons; announced after a change by the user, once changes pause. */
+  count(value: number, forms?: Record<string, string | ((values: { count: number; formatted: string }) => string)>): void;
+  /** Listens for chips and Clear all on a root outside the element (a chips row beside the list), until `signal` aborts. */
+  watch(root: Element, signal?: AbortSignal | null): void;
   destroy(): void;
 }
 
@@ -58,4 +62,4 @@ export declare function fold(part: Element, sheet: Element, options?: { opener?:
 /** The controller data-ds-filterbar makes. */
 export declare function create(el: Element, options?: { sheet?: string | Element | null }): FilterbarController;
 /** The engine of the chips and Clear all on any container (DS.facets builds on it). */
-export declare function filters(el: Element, options: { chips?: string; clear?: string; applied?: string; home?: string; extra?: () => Element[]; paint?: (list: AppliedFilter[]) => void }, signal?: AbortSignal | null): FiltersEngine;
+export declare function filters(el: Element, options: { chips?: string; clear?: string; applied?: string; count?: string; results?: string; home?: string; fallback?: () => Element | null; extra?: () => Element[]; paint?: (list: AppliedFilter[]) => void }, signal?: AbortSignal | null): FiltersEngine;

@@ -33,9 +33,9 @@ function select(h, name, label, options) {
 function range(h) {
   var from = h.uid('from');
   var to = h.uid('to');
-  return '<div role="group" aria-label="Storage in GB" data-ds-filter-label="Storage" style="display: flex; gap: var(--ds-space-2)">' +
-    '<div class="ds-field" style="width: 96px"><label class="ds-field__label" for="' + from + '">Storage from</label><input class="ds-input" id="' + from + '" type="number" inputmode="numeric" min="0" name="storage" data-ds-filter-bound="min" placeholder="GB"></div>' +
-    '<div class="ds-field" style="width: 96px"><label class="ds-field__label" for="' + to + '">to</label><input class="ds-input" id="' + to + '" type="number" inputmode="numeric" min="0" name="storage" data-ds-filter-bound="max" placeholder="GB"></div></div>';
+  return '<div class="ds-filterbar__range" role="group" aria-label="Storage in GB" data-ds-filter-label="Storage">' +
+    '<div class="ds-field"><label class="ds-field__label" for="' + from + '">Storage from</label><input class="ds-input" id="' + from + '" type="number" inputmode="numeric" min="0" name="storage" data-ds-filter-bound="min" placeholder="GB"></div>' +
+    '<div class="ds-field"><label class="ds-field__label" for="' + to + '">to</label><input class="ds-input" id="' + to + '" type="number" inputmode="numeric" min="0" name="storage" data-ds-filter-bound="max" placeholder="GB"></div></div>';
 }
 
 function bar(h, label, sheet, all) {
@@ -49,7 +49,7 @@ function bar(h, label, sheet, all) {
     (all ? '<label class="ds-check"><input type="checkbox" name="mine" value="yes" data-ds-filter-label="Owner"><span>Only mine</span></label>' : '') +
     '</div>' +
     '<button class="ds-btn ds-filterbar__more" type="button" aria-haspopup="dialog">' + h.icon('filter', 20) + 'Filters<span class="ds-badge ds-filterbar__badge" hidden></span></button>' +
-    '<p class="ds-filterbar__count" aria-live="polite"></p></div>' +
+    '<p class="ds-filterbar__count"></p></div>' +
     '<div class="ds-filterbar__applied" hidden><div class="ds-chips ds-filterbar__chips" role="group" aria-label="Applied filters"></div>' +
     '<button class="ds-btn ds-btn--text ds-filterbar__clear" type="button">Clear all</button></div></div>' +
     '<dialog class="ds-sheet" id="' + sheet + '" aria-labelledby="' + sheet + '-title"><div class="ds-sheet__backdrop" data-ds-close></div>' +
@@ -97,7 +97,7 @@ SG.demo('filterbar', {
       'Type to search; choose a status, a type or a storage range. Each applied value is a chip that removes it. Narrow the width in the options panel to watch the filters fold.') +
       h.section('Folded', block(h, 'Filter devices, narrow', true),
         'Here the row cannot hold the filters (one more: Only mine), so they fold behind Filters, whose badge counts what is applied among them. The sheet holds the same controls, stacked; they go back when it closes.') +
-      h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> goes through the search, the filters or Filters, the chips and Clear all. <kbd class="ds-kbd">Enter</kbd> on a chip removes it and the focus moves to the next chip. Every removal is announced, and the count is a polite live region.</p>');
+      h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> goes through the search, the filters or Filters, the chips and Clear all. <kbd class="ds-kbd">Enter</kbd> on a chip removes it and the focus moves to the next chip. Every removal is announced, and the count once the changes pause, also from the sheet.</p>');
   },
 
   wire: function (root, h) {

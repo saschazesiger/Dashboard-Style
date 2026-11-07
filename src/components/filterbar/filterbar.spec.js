@@ -12,10 +12,28 @@ async function open(page, width = 1280) {
   await page.setViewportSize({ width, height: 900 });
   await page.goto('/test/browser/fixtures/component.html?c=filterbar');
   await ready(page);
+  await page.evaluate(() => {
+    window.saidLog = [];
+    new MutationObserver((records) => {
+      const regions = new Set(records.map((record) => (record.target.nodeType === 1 ? record.target : record.target.parentElement)?.closest('[aria-live]')).filter(Boolean));
+      for (const region of regions) if (region.textContent.trim()) window.saidLog.push(region.textContent.trim());
+    }).observe(document.body, { subtree: true, childList: true, characterData: true });
+  });
   await page.mouse.move(1, 1);
 }
 
-const said = (page) => page.evaluate(() => [...document.querySelectorAll('[aria-live]')].map((node) => node.textContent).join('\n'));
+/**
+ * Everything the live regions hold and held since open(): the count said once
+ * the changes pause takes the announcer's text over, so a removal said before
+ * it is read from the log.
+ */
+const said = (page) => page.evaluate(() => [...(window.saidLog ?? []), ...[...document.querySelectorAll('[aria-live]')].map((node) => node.textContent)].join('\n'));
+/** Every text the live regions said since it was called, in order, once per time it was said. */
+async function speech(page) {
+  const from = await page.evaluate(() => window.saidLog.length);
+  return () => page.evaluate((from) => window.saidLog.slice(from), from);
+}
+
 const wide = (page) => page.getByRole('search', { name: 'Filter devices', exact: true });
 const narrow = (page) => page.getByRole('search', { name: 'Filter devices, narrow' });
 
@@ -101,6 +119,36 @@ test('narrow: the filters fold behind Filters, open in the sheet by keyboard, an
   await sheet.getByRole('button', { name: 'Show 10 devices' }).click();
   await settle(page);
   await expect(more).toBeFocused();
+});
+
+test('the count is said once the changes pause, also from the modal sheet; destroy puts folded filters back', async ({ page }) => {
+  await open(page);
+  const spoken = await speech(page);
+  const counts = async () => (await spoken()).filter((text) => /^\d+ devices?$/.test(text));
+  // Typing says the count once, when it pauses; the count shows at once.
+  const bar = wide(page);
+  await bar.getByRole('searchbox', { name: 'Search devices' }).pressSequentially('laptop');
+  await expect(bar.locator('.ds-filterbar__count')).toHaveText('2 devices');
+  await expect.poll(counts).toEqual(['2 devices']);
+  await page.waitForTimeout(800);
+  expect(await counts()).toEqual(['2 devices']);
+  // set() stays quiet.
+  await page.evaluate(() => DS.get(document.querySelector('.ds-filterbar')).set({}));
+  // In the sheet the page is inert: the count is said all the same.
+  const narrowBar = narrow(page);
+  await narrowBar.getByRole('button', { name: 'Filters' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Filters' });
+  await expect(sheet).toBeVisible();
+  await settle(page);
+  await sheet.getByRole('combobox', { name: 'Status' }).selectOption('online');
+  await expect(sheet.getByRole('button', { name: 'Show 5 devices' })).toBeVisible();
+  await expect.poll(counts).toEqual(['2 devices', '5 devices']);
+  // Destroyed with the sheet open: the filters go back to the bar and the sheet closes.
+  await page.evaluate(() => DS.get(document.querySelectorAll('.ds-filterbar')[1]).destroy());
+  await expect(narrowBar.locator('.ds-filterbar__row > .ds-filterbar__filters')).toHaveCount(1);
+  await expect(sheet.locator('.ds-filterbar__filters')).toHaveCount(0);
+  await settle(page);
+  await expect(sheet).toBeHidden();
 });
 
 test('the bar unfolds when it is wide enough again, and folds when it narrows', async ({ page }) => {
