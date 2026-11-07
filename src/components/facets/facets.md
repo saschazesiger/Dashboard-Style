@@ -162,7 +162,7 @@ functions.
   changes pause (also from the sheet).
 - **Strings.** `facetShowAll`, `facetShowFewer`, `facetNoMatch`, `facetMatchesOne`, `facetMatchesOther`, and the filter
   bar's `removeFilter`, `filterRemoved`, `filtersCleared`, `filtersApplied`, `filterChip`, `resultsOne`,
-  `resultsOther`, `showResults`, `rangeFrom`, `rangeTo`, `rangeBetween` (`DS.core.config()`).
+  `resultsOther`, `showResults`, `rangeMin`, `rangeMax`, `rangeBetween` (`DS.core.config()`).
 
 ### Forced colours
 

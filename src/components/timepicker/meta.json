@@ -1,8 +1,8 @@
 {
   "name": "timepicker",
   "group": "forms",
-  "order": 430,
-  "docsOrder": 235,
+  "order": 590,
+  "docsOrder": 240,
   "need": "Pick a time of day: type it or choose it from a list, in 12 or 24 hours as the locale has it",
   "tier": 1,
   "status": "beta",

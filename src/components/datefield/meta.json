@@ -1,8 +1,8 @@
 {
   "name": "datefield",
   "group": "forms",
-  "order": 410,
-  "docsOrder": 233,
+  "order": 460,
+  "docsOrder": 238,
   "need": "Type a date, a time, a date and time or a range of dates part by part, in the locale's order",
   "tier": 1,
   "status": "beta",

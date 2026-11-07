@@ -42,12 +42,107 @@ and every `src/components/<name>/<name>.js`, as `manifest.json` `js` lists them)
 | `js/store.js` | `DS.store` | core (`src/js/`) | `core` | [core.md](core.md) |
 | `js/virtual.js` | `DS.virtual` | core (`src/js/`) | `core`, `dom` | [core.md](core.md) |
 | `js/dnd.js` | `DS.dnd` | core (`src/js/`) | `core`, `motion` | [core.md](core.md) |
+| `js/ailabel.js` | `DS.ailabel` | component (`src/components/ailabel/`) | `core`, `overlay`, `position` | [components.md](components.md#ai-label) |
+| `js/auditlog.js` | `DS.auditlog` | component (`src/components/auditlog/`) | `a11y`, `core`, `dom`, `format`, `icons`, `motion` | [components.md](components.md#audit-log) |
+| `js/avatar.js` | `DS.avatar` | component (`src/components/avatar/`) | `core`, `dom`, `overlay` | [components.md](components.md#avatar) |
+| `js/backtop.js` | `DS.backtop` | component (`src/components/backtop/`) | `core`, `dom`, `motion` | [components.md](components.md#back-to-top) |
 | `js/badge.js` | `DS.badge` | component (`src/components/badge/`) | `core`, `motion` | [components.md](components.md#badge) |
-| `js/dialog.js` | `DS.dialog` | component (`src/components/dialog/`) | `core`, `icons`, `motion`, `overlay` | [components.md](components.md#dialog) |
-| `js/menu.js` | `DS.menu` | component (`src/components/menu/`) | `core`, `motion`, `overlay` | [components.md](components.md#menu) |
-| `js/sheet.js` | `DS.sheet` | component (`src/components/sheet/`) | `core`, `overlay` | [components.md](components.md#side-sheet) |
-| `js/toast.js` | `DS.toast` | component (`src/components/toast/`) | `core`, `icons`, `motion`, `overlay`, `position` | [components.md](components.md#snackbar) |
+| `js/bottomsheet.js` | `DS.bottomsheet` | component (`src/components/bottomsheet/`) | `a11y`, `core`, `dom`, `motion`, `overlay` | [components.md](components.md#bottom-sheet) |
+| `js/calendar.js` | `DS.calendar` | component (`src/components/calendar/`) | `core`, `dom`, `icons`, `motion` | [components.md](components.md#calendar) |
+| `js/chart.js` | `DS.chart` | component (`src/components/chart/`) | `a11y`, `core`, `dom`, `format`, `icons`, `motion`, `position` | [components.md](components.md#charts) |
+| `js/cite.js` | `DS.cite` | component (`src/components/cite/`) | `a11y`, `core`, `motion`, `overlay`, `position` | [components.md](components.md#sources-and-citations) |
+| `js/command.js` | `DS.command` | component (`src/components/command/`) | `core`, `hotkeys`, `icons`, `motion`, `overlay`, `store` | [components.md](components.md#command-palette) |
+| `js/composer.js` | `DS.composer` | component (`src/components/composer/`) | `a11y`, `core`, `dom`, `format`, `icons`, `motion`, `overlay`, `position`, `store` | [components.md](components.md#composer) |
+| `js/copy.js` | `DS.copy` | component (`src/components/copy/`) | `a11y`, `core`, `hotkeys`, `motion` | [components.md](components.md#copy-button) |
+| `js/datefield.js` | `DS.datefield` | component (`src/components/datefield/`) | `calendar`, `core` | [components.md](components.md#date-field) |
+| `js/dialog.js` | `DS.dialog` | component (`src/components/dialog/`) | `a11y`, `core`, `dom`, `icons`, `motion`, `overlay` | [components.md](components.md#dialog) |
+| `js/diff.js` | `DS.diff` | component (`src/components/diff/`) | `a11y`, `core`, `dom`, `icons` | [components.md](components.md#diff-view) |
+| `js/duration.js` | `DS.duration` | component (`src/components/duration/`) | `core`, `format` | [components.md](components.md#duration-input) |
+| `js/errorsummary.js` | `DS.errorsummary` | component (`src/components/errorsummary/`) | `core`, `dom`, `format`, `icons` | [components.md](components.md#error-summary) |
+| `js/expandable.js` | `DS.expandable` | component (`src/components/expandable/`) | `core` | [components.md](components.md#expandable-text) |
+| `js/feedback.js` | `DS.feedback` | component (`src/components/feedback/`) | `a11y`, `core`, `overlay` | [components.md](components.md#feedback) |
+| `js/filterbar.js` | `DS.filterbar` | component (`src/components/filterbar/`) | `a11y`, `core`, `dom`, `format`, `icons`, `motion`, `overlay` | [components.md](components.md#filter-bar) |
+| `js/facets.js` | `DS.facets` | component (`src/components/facets/`) | `a11y`, `core`, `dom`, `filterbar`, `format`, `motion`, `overlay` | [components.md](components.md#facet-filter-panel) |
+| `js/form.js` | `DS.form` | component (`src/components/form/`) | `a11y`, `core`, `dom`, `format` | [components.md](components.md#form) |
+| `js/formatted.js` | `DS.formatted` | component (`src/components/formatted/`) | `core`, `dom`, `format` | [components.md](components.md#formatted-values-and-relative-time) |
+| `js/highlight.js` | `DS.highlight` | component (`src/components/highlight/`) | `core`, `dom` | [components.md](components.md#syntax-highlighting) |
+| `js/code.js` | `DS.code` | component (`src/components/code/`) | `core`, `dom`, `highlight`, `indicator`, `motion`, `store` | [components.md](components.md#code-block) |
+| `js/hits.js` | `DS.hits` | component (`src/components/hits/`) | `core` | [components.md](components.md#search-hits) |
+| `js/image.js` | `DS.image` | component (`src/components/image/`) | `core`, `dom`, `icons` | [components.md](components.md#image) |
+| `js/inlineedit.js` | `DS.inlineedit` | component (`src/components/inlineedit/`) | `a11y`, `core`, `dom`, `icons`, `motion` | [components.md](components.md#inline-edit) |
+| `js/kbd.js` | `DS.kbd` | component (`src/components/kbd/`) | `core`, `hotkeys` | [components.md](components.md#key-combos) |
+| `js/kveditor.js` | `DS.kveditor` | component (`src/components/kveditor/`) | `a11y`, `core`, `icons`, `motion` | [components.md](components.md#key-value-editor) |
+| `js/labelgroup.js` | `DS.labelgroup` | component (`src/components/labelgroup/`) | `core`, `overlay`, `position` | [components.md](components.md#label-group) |
+| `js/levelmeter.js` | `DS.levelmeter` | component (`src/components/levelmeter/`) | `core`, `dom`, `motion` | [components.md](components.md#level-meter) |
+| `js/lightbox.js` | `DS.lightbox` | component (`src/components/lightbox/`) | `a11y`, `core`, `icons`, `motion`, `overlay` | [components.md](components.md#lightbox) |
+| `js/list.js` | `DS.list` | component (`src/components/list/`) | `a11y`, `core`, `dnd`, `dom`, `icons`, `motion`, `virtual` | [components.md](components.md#lists) |
+| `js/listbox.js` | `DS.listbox` | component (`src/components/listbox/`) | `a11y`, `core`, `dom`, `icons`, `motion`, `virtual` | [components.md](components.md#listbox) |
+| `js/choices.js` | `DS.choices` | component (`src/components/choices/`) | `a11y`, `core`, `dom`, `listbox` | [components.md](components.md#choice-list) |
+| `js/combobox.js` | `DS.combobox` | component (`src/components/combobox/`) | `a11y`, `core`, `format`, `icons`, `listbox`, `motion`, `overlay` | [components.md](components.md#combobox) |
+| `js/listdetail.js` | `DS.listdetail` | component (`src/components/listdetail/`) | `a11y`, `core`, `motion` | [components.md](components.md#list-detail-layout) |
+| `js/loadingoverlay.js` | `DS.loadingoverlay` | component (`src/components/loadingoverlay/`) | `a11y`, `core`, `dom`, `motion` | [components.md](components.md#loading-overlay) |
+| `js/loadmore.js` | `DS.loadmore` | component (`src/components/loadmore/`) | `a11y`, `core`, `dom`, `format`, `motion` | [components.md](components.md#load-more-and-infinite-scroll) |
+| `js/logview.js` | `DS.logview` | component (`src/components/logview/`) | `a11y`, `core`, `dom`, `format`, `icons`, `store`, `virtual` | [components.md](components.md#log-viewer) |
+| `js/markdown.js` | `DS.markdown` | component (`src/components/markdown/`) | `code`, `core`, `dom`, `highlight`, `icons` | [components.md](components.md#markdown) |
+| `js/media.js` | `DS.media` | component (`src/components/media/`) | `a11y`, `core`, `dom` | [components.md](components.md#media) |
+| `js/menu.js` | `DS.menu` | component (`src/components/menu/`) | `a11y`, `core`, `motion`, `overlay`, `position` | [components.md](components.md#menu) |
+| `js/datagrid.js` | `DS.datagrid` | component (`src/components/datagrid/`) | `a11y`, `core`, `dnd`, `dom`, `format`, `icons`, `menu`, `motion`, `position`, `store`, `virtual` | [components.md](components.md#data-grid) |
+| `js/menubutton.js` | `DS.menubutton` | component (`src/components/menubutton/`) | `core`, `menu` | [components.md](components.md#menu-button) |
+| `js/message.js` | `DS.message` | component (`src/components/message/`) | `a11y`, `core`, `icons`, `motion` | [components.md](components.md#message) |
+| `js/number.js` | `DS.number` | component (`src/components/number/`) | `a11y`, `core`, `dom`, `format`, `motion` | [components.md](components.md#number-input) |
+| `js/object.js` | `DS.object` | component (`src/components/object/`) | `a11y`, `core`, `dom`, `motion` | [components.md](components.md#object-page) |
+| `js/orderedchoice.js` | `DS.orderedchoice` | component (`src/components/orderedchoice/`) | `core`, `dnd` | [components.md](components.md#ordered-choice) |
+| `js/otp.js` | `DS.otp` | component (`src/components/otp/`) | `core`, `dom` | [components.md](components.md#code-field-one-time-code-pin) |
+| `js/page.js` | `DS.page` | component (`src/components/page/`) | `core`, `dom`, `icons`, `menu` | [components.md](components.md#page) |
+| `js/password.js` | `DS.password` | component (`src/components/password/`) | `a11y`, `core`, `dom`, `motion` | [components.md](components.md#password) |
+| `js/picker.js` | `DS.picker` | component (`src/components/picker/`) | `a11y`, `core`, `overlay`, `position` | [components.md](components.md#picker-popover) |
+| `js/daterange.js` | `DS.daterange` | component (`src/components/daterange/`) | `calendar`, `core`, `datefield`, `picker` | [components.md](components.md#date-range-picker) |
+| `js/plan.js` | `DS.plan` | component (`src/components/plan/`) | `a11y`, `core`, `icons`, `motion` | [components.md](components.md#plan-card) |
+| `js/popover.js` | `DS.popover` | component (`src/components/popover/`) | `a11y`, `core`, `motion`, `overlay`, `position` | [components.md](components.md#popover) |
+| `js/prioritybar.js` | `DS.prioritybar` | component (`src/components/prioritybar/`) | `a11y`, `core`, `icons`, `menubutton` | [components.md](components.md#priority-action-bar) |
+| `js/query.js` | `DS.query` | component (`src/components/query/`) | `a11y`, `core`, `dom`, `icons`, `overlay`, `store` | [components.md](components.md#query-input) |
+| `js/question.js` | `DS.question` | component (`src/components/question/`) | `a11y`, `core`, `format`, `icons`, `motion` | [components.md](components.md#question-card) |
+| `js/search.js` | `DS.search` | component (`src/components/search/`) | `a11y`, `core`, `dom`, `format`, `hotkeys`, `icons`, `motion`, `overlay`, `store` | [components.md](components.md#search-field) |
+| `js/secret.js` | `DS.secret` | component (`src/components/secret/`) | `a11y`, `core`, `dom` | [components.md](components.md#secret-field) |
+| `js/selectpanel.js` | `DS.selectpanel` | component (`src/components/selectpanel/`) | `a11y`, `core`, `format`, `listbox`, `overlay`, `position` | [components.md](components.md#select-panel) |
+| `js/sheet.js` | `DS.sheet` | component (`src/components/sheet/`) | `a11y`, `core`, `dom`, `motion`, `overlay`, `store` | [components.md](components.md#side-sheet) |
+| `js/shell.js` | `DS.shell` | component (`src/components/shell/`) | `a11y`, `core`, `dom`, `format`, `icons`, `indicator`, `menu`, `motion`, `overlay`, `store` | [components.md](components.md#app-frame) |
+| `js/shortcuts.js` | `DS.shortcuts` | component (`src/components/shortcuts/`) | `core`, `hotkeys`, `overlay` | [components.md](components.md#shortcut-sheet) |
+| `js/sort.js` | `DS.sort` | component (`src/components/sort/`) | `a11y`, `core` | [components.md](components.md#sort-control) |
+| `js/splitbutton.js` | `DS.splitbutton` | component (`src/components/splitbutton/`) | `core`, `menubutton` | [components.md](components.md#split-button) |
+| `js/splitpane.js` | `DS.splitpane` | component (`src/components/splitpane/`) | `a11y`, `core`, `motion`, `store` | [components.md](components.md#split-pane) |
+| `js/steps.js` | `DS.steps` | component (`src/components/steps/`) | `a11y`, `core`, `dom` | [components.md](components.md#steps) |
+| `js/suggestions.js` | `DS.suggestions` | component (`src/components/suggestions/`) | `core`, `dom`, `icons` | [components.md](components.md#suggestions) |
+| `js/tabs.js` | `DS.tabs` | component (`src/components/tabs/`) | `a11y`, `core`, `dom`, `icons`, `indicator`, `menu`, `motion` | [components.md](components.md#tabs) |
+| `js/taginput.js` | `DS.taginput` | component (`src/components/taginput/`) | `a11y`, `core`, `icons`, `motion` | [components.md](components.md#tag-input) |
+| `js/tearsheet.js` | `DS.tearsheet` | component (`src/components/tearsheet/`) | `a11y`, `core`, `dialog`, `dom`, `icons`, `motion`, `overlay` | [components.md](components.md#tearsheet) |
+| `js/terminal.js` | `DS.terminal` | component (`src/components/terminal/`) | `a11y`, `core`, `dom`, `icons` | [components.md](components.md#terminal-frame) |
+| `js/timepicker.js` | `DS.timepicker` | component (`src/components/timepicker/`) | `a11y`, `core`, `datefield`, `picker` | [components.md](components.md#time-picker) |
+| `js/datepicker.js` | `DS.datepicker` | component (`src/components/datepicker/`) | `calendar`, `core`, `datefield`, `picker`, `timepicker` | [components.md](components.md#date-picker) |
+| `js/timerange.js` | `DS.timerange` | component (`src/components/timerange/`) | `a11y`, `calendar`, `core`, `datefield`, `format`, `icons`, `picker`, `store` | [components.md](components.md#time-range) |
+| `js/toast.js` | `DS.toast` | component (`src/components/toast/`) | `core`, `dom`, `format`, `icons`, `motion`, `overlay`, `position` | [components.md](components.md#snackbar) |
+| `js/banner.js` | `DS.banner` | component (`src/components/banner/`) | `core`, `icons`, `motion`, `store`, `toast` | [components.md](components.md#banner) |
+| `js/notifications.js` | `DS.notifications` | component (`src/components/notifications/`) | `badge`, `core`, `format`, `icons`, `motion`, `overlay`, `toast` | [components.md](components.md#notification-centre) |
+| `js/toc.js` | `DS.toc` | component (`src/components/toc/`) | `core`, `dom`, `indicator` | [components.md](components.md#jump-links) |
+| `js/toggle.js` | `DS.toggle` | component (`src/components/toggle/`) | `a11y`, `core` | [components.md](components.md#toggle-button-and-toggle-group) |
+| `js/toggletip.js` | `DS.toggletip` | component (`src/components/toggletip/`) | `a11y`, `core`, `overlay`, `popover` | [components.md](components.md#toggletip) |
 | `js/tooltip.js` | `DS.tooltip` | component (`src/components/tooltip/`) | `core`, `motion`, `overlay`, `position` | [components.md](components.md#tooltip) |
+| `js/tracker.js` | `DS.tracker` | component (`src/components/tracker/`) | `a11y`, `core` | [components.md](components.md#tracker) |
+| `js/transcript.js` | `DS.transcript` | component (`src/components/transcript/`) | `a11y`, `core`, `dom`, `icons`, `motion` | [components.md](components.md#transcript) |
+| `js/transfer.js` | `DS.transfer` | component (`src/components/transfer/`) | `a11y`, `core`, `listbox` | [components.md](components.md#transfer-list) |
+| `js/tree.js` | `DS.tree` | component (`src/components/tree/`) | `a11y`, `core`, `dnd`, `dom`, `icons`, `motion` | [components.md](components.md#tree-view) |
+| `js/jsonview.js` | `DS.jsonview` | component (`src/components/jsonview/`) | `a11y`, `core`, `format`, `icons`, `motion`, `tree` | [components.md](components.md#json-viewer) |
+| `js/truncate.js` | `DS.truncate` | component (`src/components/truncate/`) | `core`, `dom` | [components.md](components.md#truncate) |
+| `js/typeconfirm.js` | `DS.typeconfirm` | component (`src/components/typeconfirm/`) | `a11y`, `core`, `dom`, `icons`, `motion`, `overlay` | [components.md](components.md#type-to-confirm) |
+| `js/unsaved.js` | `DS.unsaved` | component (`src/components/unsaved/`) | `a11y`, `core`, `hotkeys`, `motion`, `overlay` | [components.md](components.md#unsaved-changes-guard) |
+| `js/upload.js` | `DS.upload` | component (`src/components/upload/`) | `a11y`, `core`, `dom`, `format`, `icons`, `motion` | [components.md](components.md#file-upload) |
+| `js/views.js` | `DS.views` | component (`src/components/views/`) | `a11y`, `core`, `dialog`, `dom`, `icons`, `overlay`, `store` | [components.md](components.md#saved-views) |
+| `js/wheel.js` | `DS.wheel` | component (`src/components/wheel/`) | `core`, `motion` | [components.md](components.md#wheel) |
+| `js/thinking.js` | `DS.thinking` | component (`src/components/thinking/`) | `core`, `format`, `wheel` | [components.md](components.md#thinking-indicator) |
+| `js/reasoning.js` | `DS.reasoning` | component (`src/components/reasoning/`) | `core`, `dom`, `format`, `thinking` | [components.md](components.md#reasoning-disclosure) |
+| `js/toolcall.js` | `DS.toolcall` | component (`src/components/toolcall/`) | `a11y`, `core`, `format`, `icons`, `thinking` | [components.md](components.md#tool-call) |
+| `js/usage.js` | `DS.usage` | component (`src/components/usage/`) | `a11y`, `core`, `format`, `icons`, `thinking` | [components.md](components.md#usage-meter) |
+| `js/wizard.js` | `DS.wizard` | component (`src/components/wizard/`) | `a11y`, `core`, `dom`, `icons`, `motion` | [components.md](components.md#form-wizard) |
 <!-- /generated: modules -->
 
 Browsers: Safari 17.5, Chrome and Edge 123, Firefox 130 and later (3.0). Newer features are refinements that the
@@ -378,8 +473,8 @@ strings a script adds have an option, so a page in another language passes its o
 | `Moved {count} to {list}` | what a transfer list announces after a move, `{list}` the name of the side (the system's string `transferMoved`) | `DS.core.config({ strings: { transferMoved } })` |
 | `Position {position}` | the place of a checked row of an ordered choice, for a screen reader (the system's string `orderPosition`) | `DS.core.config({ strings: { orderPosition } })` |
 | `Create “{text}”` | the last option of a creatable combobox (`DS.combobox`) (the system's string `createOption`) | `DS.core.config({ strings: { createOption } })` |
-| `1 result` | the status line of a filtered combobox, one match (the system's string `resultsOne`) | `DS.core.config({ strings: { resultsOne } })` |
-| `{count} results` | the same, several matches (the system's string `resultsOther`) | `DS.core.config({ strings: { resultsOther } })` |
+| `{count} result` | the status line of a filtered combobox and the count `count()` of `DS.filterbar` writes, one (the system's string `resultsOne`) | `DS.core.config({ strings: { resultsOne } })` |
+| `{count} results` | the same, other numbers (the system's string `resultsOther`) | `DS.core.config({ strings: { resultsOther } })` |
 | `Type to search` | the status line of a combobox with a `source` before its first letters (the system's string `typeToSearch`) | `DS.core.config({ strings: { typeToSearch } })` |
 | `Added {label}` | what a combobox of several values and a tag input announce when a value comes (the system's string `added`) | `DS.core.config({ strings: { added } })` |
 | `Removed {label}` | the same when a value goes (the system's string `removed`) | `DS.core.config({ strings: { removed } })` |
@@ -611,11 +706,9 @@ strings a script adds have an option, so a page in another language passes its o
 | `Filters cleared` | what `DS.filterbar` and `DS.facets` announce after Clear all (the system's string `filtersCleared`) | `DS.core.config({ strings: { filtersCleared } })` |
 | `{count} applied` | the hidden words after the badge of the Filters button of a folded `DS.filterbar` (the system's string `filtersApplied`) | `DS.core.config({ strings: { filtersApplied } })` |
 | `{label}: {value}` | the text of an applied filter chip in `DS.filterbar` and `DS.facets` (the system's string `filterChip`) | `DS.core.config({ strings: { filterChip } })` |
-| `{count} result` | the count `count()` of `DS.filterbar` writes, one (the system's string `resultsOne`) | `DS.core.config({ strings: { resultsOne } })` |
-| `{count} results` | the same, other numbers (the system's string `resultsOther`) | `DS.core.config({ strings: { resultsOther } })` |
 | `Show {results}` | the results button in the sheet of a folded `DS.filterbar` (the system's string `showResults`) | `DS.core.config({ strings: { showResults } })` |
-| `from {min}` | a range filter with only a lower bound, on its chip (the system's string `rangeFrom`) | `DS.core.config({ strings: { rangeFrom } })` |
-| `up to {max}` | a range filter with only an upper bound, on its chip (the system's string `rangeTo`) | `DS.core.config({ strings: { rangeTo } })` |
+| `from {min}` | a range filter with only a lower bound, on its chip (the system's string `rangeMin`) | `DS.core.config({ strings: { rangeMin } })` |
+| `up to {max}` | a range filter with only an upper bound, on its chip (the system's string `rangeMax`) | `DS.core.config({ strings: { rangeMax } })` |
 | `{min} to {max}` | a range filter with both bounds, on its chip (the system's string `rangeBetween`) | `DS.core.config({ strings: { rangeBetween } })` |
 | `Show all {count}` | the button after the first options of a facet with a limit in `DS.facets` (the system's string `facetShowAll`) | `DS.core.config({ strings: { facetShowAll } })` |
 | `Show fewer` | the same button while every option shows (the system's string `facetShowFewer`) | `DS.core.config({ strings: { facetShowFewer } })` |
@@ -709,10 +802,13 @@ strings a script adds have an option, so a page in another language passes its o
 | `Yesterday` | a day group of a `DS.notifications` centre (the system's string `notificationsYesterday`) | `DS.core.config({ strings: { notificationsYesterday } })` |
 | `Earlier` | the day group of older notifications (the system's string `notificationsEarlier`) | `DS.core.config({ strings: { notificationsEarlier } })` |
 | `No notifications` | the empty state of a `DS.notifications` centre (the system's string `notificationsEmpty`) | `DS.core.config({ strings: { notificationsEmpty } })` |
+| `Error` | the word a screen reader hears before the time of an error notification in a `DS.notifications` centre (the system's string `notificationsError`) | `DS.core.config({ strings: { notificationsError } })` |
+| `Warning` | the same for a warning notification (the system's string `notificationsWarning`) | `DS.core.config({ strings: { notificationsWarning } })` |
+| `Success` | the same for a success notification (the system's string `notificationsSuccess`) | `DS.core.config({ strings: { notificationsSuccess } })` |
 | `{count} unread` | the unread count in the head of a `DS.notifications` centre (the system's string `notificationsUnreadCount`) | `DS.core.config({ strings: { notificationsUnreadCount } })` |
 | `Show {count} more` | the button that shows the banners of a `DS.banner` stack beyond the first (the system's string `bannerMore`) | `DS.core.config({ strings: { bannerMore } })` |
 | `Resize the panel` | the name of a side sheet's separator without one of its own (`DS.sheet`; the system's string `resizePanel`) | `DS.core.config({ strings: { resizePanel } })` |
-| `Step {step} of {total}: {label}` | a tearsheet's progress line and what it says on a step change (`DS.tearsheet`; the system's string `stepOf`) | `DS.core.config({ strings: { stepOf } })` |
+| `Step {step} of {total}: {label}` | a tearsheet's progress line and what it says on a step change (`DS.tearsheet`), and what `DS.steps` announces when the current step changes (the system's string `stepOf`) | `DS.core.config({ strings: { stepOf } })` |
 | `, done` | the hidden word after a done step of a tearsheet's rail (the system's string `stepDone`) | `DS.core.config({ strings: { stepDone } })` |
 | `, needs attention` | the hidden word after a step that failed its check (the system's string `stepError`) | `DS.core.config({ strings: { stepError } })` |
 | `Discard your changes?` | the title of the question before a tearsheet with unsaved changes closes (the system's string `discardTitle`; or `DS.tearsheet.create(el, { discard: { title } })`) | `DS.core.config({ strings: { discardTitle } })` |
@@ -732,11 +828,10 @@ strings a script adds have an option, so a page in another language passes its o
 | `More tabs` | the name of the More button and menu of a row of tabs that overflows (`data-ds-tabs-overflow`) (the system's string `moreTabs`) | `DS.core.config({ strings: { moreTabs } })` |
 | `{label} closed` | what `DS.tabs` announces when a tab closes (the system's string `tabClosed`) | `DS.core.config({ strings: { tabClosed } })` |
 | `Close {label}` | the named close action `DS.tabs` writes in the panel of a tab it adds (the system's string `closeTab`) | `DS.core.config({ strings: { closeTab } })` |
-| `More actions` | the name of the More button and menu that a page head's actions fold into (`data-ds-page-head`) (the system's string `moreActions`) | `DS.core.config({ strings: { moreActions } })` |
+| `More actions` | the name of the More button and menu that a page head's actions fold into (`data-ds-page-head`) or of a priority action bar (the system's string `moreActions`) | `DS.core.config({ strings: { moreActions } })` |
 | `Back to top` | the name of a back-to-top button that has no text of its own (`data-ds-backtop`) (the system's string `backToTop`) | `DS.core.config({ strings: { backToTop } })` |
 | `Editing {label}` | what `DS.object` announces when a section of an object page turns into its form (the system's string `editing`) | `DS.core.config({ strings: { editing } })` |
-| `{label} saved` | what `DS.object` announces when a section's form is saved (the system's string `saved`) | `DS.core.config({ strings: { saved } })` |
-| `Step {position} of {total}: {label}` | what `DS.steps` announces when the current step changes (the system's string `stepOf`) | `DS.core.config({ strings: { stepOf } })` |
+| `{label} saved` | what `DS.object` announces when a section's form is saved (the system's string `sectionSaved`) | `DS.core.config({ strings: { sectionSaved } })` |
 | `Online` | the word of an online status: the label of an avatar's status dot, a group's menu item (the system's string `presenceOnline`) | `DS.core.config({ strings: { presenceOnline } })` |
 | `Away` | the same, away (the system's string `presenceAway`) | `DS.core.config({ strings: { presenceAway } })` |
 | `Busy` | the same, busy (the system's string `presenceBusy`) | `DS.core.config({ strings: { presenceBusy } })` |
@@ -859,7 +954,6 @@ A test fails on a quoted UI string in `src/js/` without an option and a row here
 the locale of `DS.core.config()` (`lang` on `<html>` by default): `DS.format` ([core.md](core.md#dsformat-numbers-dates-and-the-shared-clock))
 formats figures, sizes, durations, lists, plurals and relative time through `Intl`, and nothing else in the system
 | `More options for {label}` | the name of a split button's menu toggle without one of its own, `{label}` the action's name (the system's string `moreOptionsFor`) | `DS.core.config({ strings: { moreOptionsFor } })` |
-| `More actions` | the name and tooltip of the More button of a priority action bar (the system's string `moreActions`) | `DS.core.config({ strings: { moreActions } })` |
 | `Copying is blocked here. The text is selected: press {keys} to copy it.` | what `DS.copy` announces when the browser refuses both ways of copying, `{keys}` the platform's copy keys (the system's string `copyManual`) | `DS.core.config({ strings: { copyManual } })` |
 formats either by itself (`countUp(el, value, { format: DS.format.number })` for a figure that counts).
 

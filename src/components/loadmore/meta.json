@@ -1,7 +1,7 @@
 {
   "name": "loadmore",
   "group": "data",
-  "order": 400,
+  "order": 420,
   "docsOrder": 181,
   "need": "Grow a long list by pages: a Load more button, or an infinite scroll that stops for the footer",
   "tier": 1,

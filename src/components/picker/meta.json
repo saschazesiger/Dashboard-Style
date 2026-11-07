@@ -1,7 +1,7 @@
 {
   "name": "picker",
   "group": "overlays",
-  "order": 420,
+  "order": 540,
   "docsOrder": 284,
   "need": "Open a panel of choices from a button: the popover of the date and time pickers",
   "tier": 1,

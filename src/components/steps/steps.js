@@ -96,7 +96,10 @@ function controller(list, signal) {
         else element.removeAttribute('aria-current');
       }
     });
-    if (how.announce !== false) announce(t('stepOf', position(index, steps.length, labelOf(steps[index]))));
+    if (how.announce !== false) {
+      const at = position(index, steps.length, labelOf(steps[index]));
+      announce(t('stepOf', { step: at.position, total: at.total, label: at.label }));
+    }
     for (const entry of listeners) entry({ index, step: steps[index], previous });
     return true;
   };

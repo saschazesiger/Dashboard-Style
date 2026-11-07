@@ -431,6 +431,7 @@ group.addEventListener('change', () => pill.update()); // checking a radio chang
   (50vh), then scrolls. Where `field-sizing: content` is missing, `DS.dom.autosize(textarea)` sets the height through
   the CSSOM (never animated); since 3.0 `DS.init()` does it for every `textarea.ds-input--grow` (the behaviour
   `autosize` of `DS.form`), so the page calls nothing. Where `field-sizing` exists it steps aside.
+- A message field with its actions, attachments, commands and mentions is the [composer](#composer).
 
 **Customizable select (`.ds-select`, progressive).**
 
@@ -452,7 +453,6 @@ group.addEventListener('change', () => pill.update()); // checking a radio chang
   `<selectedcontent>` are ignored, and the option's icon is not shown. Keys, type-ahead, the value, `required` and
   `:user-invalid` are the engine's either way.
 - Forced colours: the chosen row is `SelectedItem`, the focused one has a `CanvasText` ring, the list keeps an edge.
-- A message field with its actions, attachments, commands and mentions is the [composer](#composer).
 
 **Actions that stay on a phone**
 

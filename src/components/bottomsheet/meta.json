@@ -1,7 +1,7 @@
 {
   "name": "bottomsheet",
   "group": "overlays",
-  "order": 1130,
+  "order": 1150,
   "docsOrder": 262,
   "need": "Show a short task or details from the bottom edge on a phone, with heights to rest at and a drag to dismiss",
   "tier": 2,

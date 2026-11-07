@@ -33,6 +33,22 @@
  *     <div> panels </div>
  *   </div>
  *
+ *   The behaviour (tabs.js, DS.tabs): data-ds-tabs on the row selects,
+ *   moves the one tab stop, shows the panels, glides the indicator and
+ *   closes tabs; the page listens to ds:change, ds:close and ds:add.
+ *   <div class="ds-tabs" role="tablist" aria-label="Device" data-ds-tabs> ... </div>
+ *
+ *   A bar around the row, for a row that overflows into a "More" menu
+ *   (data-ds-tabs-overflow) and for an add button; the hairline is the bar's:
+ *   <div class="ds-tabs__bar">
+ *     <div class="ds-tabs" role="tablist" aria-label="Reports" data-ds-tabs data-ds-tabs-overflow> ... </div>
+ *     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-tabs__add" type="button" aria-label="New report">(plus 20)</button>
+ *   </div>
+ *   The module writes the More button after the row (a quiet button,
+ *   .ds-tabs__more, "More" and a chevron) and its .ds-menu; the tabs that do
+ *   not fit carry hidden.
+ *
+ *   By hand, without the module (2.x):
  *   DS.indicator.create(tabs, { active: '[aria-selected="true"], [aria-current="page"]', className: 'ds-tabs__indicator' })
  *   DS.dom.roving(tabs)   (arrow keys, Home, End; the page's click handler selects;
  *                          vertical: { orientation: 'vertical' })
@@ -59,7 +75,11 @@
  * Parts: .ds-tabs__count (a count after the label, tabular meta figures; a
  * .ds-sr separator reads it with the label; a .ds-badge still works for
  * news), an icon as the tab's first child (svg, 18 or 20), .ds-tabs__item
- * with .ds-tabs__close (above).
+ * with .ds-tabs__close (above), .ds-tabs__bar (the row with the buttons
+ * after it: as wide as its container, the hairline under all of them; none
+ * around a contained or flush row), .ds-tabs__more (the More button the
+ * module writes, after the last tab that fits), .ds-tabs__add (an icon
+ * button at the bar's end, the page's own).
  *
  * Options (src/core/options.css, docs/options.md), on the row or any
  * ancestor; each is computed here, in the tab's own rule:
@@ -93,6 +113,9 @@
  * Overflow: the row scrolls sideways without a scrollbar (a vertical one
  * scrolls down); DS.dom.roving() scrolls a focused tab into view, and
  * DS.indicator.create(..., { reveal: true }) keeps the selected one in view.
+ * With data-ds-tabs-overflow in a .ds-tabs__bar the tabs that do not fit
+ * hide instead (hidden on the tab or its .ds-tabs__item) and the More menu
+ * lists them; the selected tab always stays in the row.
  *
  * Hooks: --ds-tabs-height (48px, size md and comfortable),
  * --ds-tabs-padding-x (--ds-space-4), --ds-tabs-font (the size's role),
@@ -118,7 +141,7 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
+@layer ds.components.global, ds.components.layout, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.calendar, ds.components.container, ds.components.loadmore, ds.components.popover, ds.components.splitpane, ds.components.upload, ds.components.datefield, ds.components.kveditor, ds.components.listdetail, ds.components.sort, ds.components.text, ds.components.toggletip, ds.components.dashpanel, ds.components.filterbar, ds.components.picker, ds.components.spacing, ds.components.wizard, ds.components.facets, ds.components.sticky, ds.components.timepicker, ds.components.unsaved, ds.components.datepicker, ds.components.print, ds.components.query, ds.components.views, ds.components.datagrid, ds.components.daterange, ds.components.timerange, ds.components.duration, ds.components.link, ds.components.toggle, ds.components.button-group, ds.components.menubutton, ds.components.splitbutton, ds.components.copy, ds.components.prioritybar, ds.components.listbox, ds.components.number, ds.components.tree, ds.components.choices, ds.components.jsonview, ds.components.password, ds.components.auditlog, ds.components.secret, ds.components.taginput, ds.components.otp, ds.components.selectpanel, ds.components.inlineedit, ds.components.orderedchoice, ds.components.transfer, ds.components.typeconfirm, ds.components.errorsummary, ds.components.search, ds.components.meter, ds.components.bar-list, ds.components.category-bar, ds.components.lozenge, ds.components.result, ds.components.formatted, ds.components.kbd, ds.components.truncate, ds.components.expandable, ds.components.hits, ds.components.tracker, ds.components.labelgroup, ds.components.image, ds.components.composer, ds.components.message, ds.components.transcript, ds.components.suggestions, ds.components.feedback, ds.components.ailabel, ds.components.tearsheet, ds.components.loadingoverlay, ds.components.lightbox, ds.components.bottomsheet, ds.components.highlight, ds.components.markdown, ds.components.code, ds.components.toc, ds.components.backtop, ds.components.diff, ds.components.logview, ds.components.object, ds.components.terminal, ds.components.shimmer, ds.components.wheel, ds.components.thinking, ds.components.toolcall, ds.components.reasoning, ds.components.cite, ds.components.plan, ds.components.question, ds.components.usage, ds.components.presence, ds.components.avatar, ds.components.persona, ds.components.media, ds.components.levelmeter, ds.components.command, ds.components.shortcuts, ds.components.banner, ds.components.notifications, ds.components.ripple;
 
 @layer ds.components.tabs {
   .ds-tabs {
@@ -137,6 +160,44 @@
 
   .ds-tabs--line {
     border-bottom-color: var(--ds-line);
+  }
+
+  /* The bar: the row and the buttons after it share one hairline. The row
+     takes the width of its tabs (so the More button follows the last one),
+     a full-width row the rest. */
+  .ds-tabs__bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-1);
+    min-width: 0;
+    border-bottom: 1px solid var(--ds-line);
+  }
+
+  .ds-tabs__bar:has(> .ds-tabs:is(.ds-tabs--flush, .ds-tabs--contained)) {
+    border-bottom: 0;
+  }
+
+  .ds-tabs__bar > .ds-tabs {
+    flex: 0 1 auto;
+    border-bottom: 0;
+  }
+
+  .ds-tabs__bar > .ds-tabs--fill {
+    flex: 1 1 auto;
+  }
+
+  .ds-tabs__more,
+  .ds-tabs__add {
+    flex: none;
+  }
+
+  /* What overflows into the More menu, and the More button while nothing
+     does: gone, whatever display the part sets. */
+  .ds-tabs__tab[hidden],
+  .ds-tabs__item[hidden],
+  .ds-tabs__more[hidden] {
+    display: none;
   }
 
   .ds-tabs--flush {

@@ -1,7 +1,7 @@
 {
   "name": "tracker",
   "group": "data",
-  "order": 900,
+  "order": 1030,
   "docsOrder": 326,
   "need": "Show a row of status cells (uptime by day, the last runs of a job), each state with its own shape and word, and a summary",
   "tier": 1,

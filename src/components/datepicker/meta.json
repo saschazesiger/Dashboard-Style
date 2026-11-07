@@ -1,8 +1,8 @@
 {
   "name": "datepicker",
   "group": "forms",
-  "order": 440,
-  "docsOrder": 234,
+  "order": 610,
+  "docsOrder": 239,
   "need": "Pick one date, or a date and a time: type it or choose it in a calendar",
   "tier": 1,
   "status": "beta",

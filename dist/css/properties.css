@@ -67,6 +67,18 @@
   initial-value: 0;
 }
 
+@property --ds-scroll-edge-start {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --ds-scroll-edge-end {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
 @property --ds-motion-distance {
   syntax: '*';
   inherits: false;
@@ -133,18 +145,6 @@
   initial-value: 0;
 }
 
-@property --ds-scroll-edge-start {
-  syntax: '<number>';
-  inherits: false;
-  initial-value: 0;
-}
-
-@property --ds-scroll-edge-end {
-  syntax: '<number>';
-  inherits: false;
-  initial-value: 0;
-}
-
 @property --ds-indicator-t {
   syntax: '<length>';
   inherits: false;
@@ -175,6 +175,18 @@
   initial-value: 0px;
 }
 
+@property --ds-chart-from {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --ds-sheet-reveal {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+
 @property --ds-table-fade-start {
   syntax: '<length>';
   inherits: false;
@@ -197,4 +209,22 @@
   syntax: '<color>';
   inherits: false;
   initial-value: transparent;
+}
+
+@property --ds-splitpane-size {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 50%;
+}
+
+@property --ds-splitpane-min {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --ds-splitpane-max {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 100%;
 }

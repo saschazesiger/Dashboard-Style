@@ -1,7 +1,7 @@
 {
   "name": "transcript",
   "group": "content",
-  "order": 950,
+  "order": 1080,
   "docsOrder": 940,
   "need": "Scroll a conversation: stick to the end, a \"Latest\" jump with the count of new messages, day separators, load earlier messages in place",
   "tier": 1,

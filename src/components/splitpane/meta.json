@@ -1,7 +1,7 @@
 {
   "name": "splitpane",
   "group": "layout",
-  "order": 400,
+  "order": 440,
   "docsOrder": 62,
   "need": "Show two or three panes side by side or stacked, resized by dragging or the keyboard, remembered, collapsible",
   "tier": 1,

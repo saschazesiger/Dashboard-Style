@@ -1,8 +1,8 @@
 {
   "name": "kbd",
   "group": "content",
-  "order": 860,
-  "docsOrder": 205,
+  "order": 990,
+  "docsOrder": 209,
   "need": "Show a keyboard shortcut as the keys of the user's platform (\u2318 or Ctrl), read out in words",
   "tier": 1,
   "status": "beta",

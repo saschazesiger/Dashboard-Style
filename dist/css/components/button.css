@@ -22,6 +22,12 @@
  *                            action ink would not read)
  *   .ds-btn--icon            round, icon only (needs aria-label)
  *   .ds-btn--disc            hover: a solid disc fades in behind the icon
+ *   icon buttons             .ds-btn--icon with a look: standard
+ *                            (--quiet: no frame, the quieter ink),
+ *                            --filled, --tonal or --outlined; an
+ *                            aria-label and a data-tip with the same
+ *                            words; each also a toggle (aria-pressed, a
+ *                            .ds-icon--fillable glyph fills while on)
  *   .ds-btn--block           full width (a form's one action on a phone,
  *                            a sign-in card)
  *   [aria-pressed="true"]    a toggle that is on: the tint, plus the
@@ -31,7 +37,11 @@
  *                            button stays clear and its label changes
  *                            colour on the pill's timing; with
  *                            aria-disabled="true" a choice made once and
- *                            locked: it keeps its on look, no layer
+ *                            locked: it keeps its on look, no layer; on
+ *                            --filled or --tonal the neutral container
+ *                            while off (aria-pressed="false") and the
+ *                            variant's own fill while on (Material 3
+ *                            toggles: off and on differ by the fill)
  *   .ds-btn--disclosure      a button that opens a panel; while
  *                            aria-expanded="true" it takes the tint like a
  *                            pressed toggle (so does a button with
@@ -147,7 +157,7 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
+@layer ds.components.global, ds.components.layout, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.calendar, ds.components.container, ds.components.loadmore, ds.components.popover, ds.components.splitpane, ds.components.upload, ds.components.datefield, ds.components.kveditor, ds.components.listdetail, ds.components.sort, ds.components.text, ds.components.toggletip, ds.components.dashpanel, ds.components.filterbar, ds.components.picker, ds.components.spacing, ds.components.wizard, ds.components.facets, ds.components.sticky, ds.components.timepicker, ds.components.unsaved, ds.components.datepicker, ds.components.print, ds.components.query, ds.components.views, ds.components.datagrid, ds.components.daterange, ds.components.timerange, ds.components.duration, ds.components.link, ds.components.toggle, ds.components.button-group, ds.components.menubutton, ds.components.splitbutton, ds.components.copy, ds.components.prioritybar, ds.components.listbox, ds.components.number, ds.components.tree, ds.components.choices, ds.components.jsonview, ds.components.password, ds.components.auditlog, ds.components.secret, ds.components.taginput, ds.components.otp, ds.components.selectpanel, ds.components.inlineedit, ds.components.orderedchoice, ds.components.transfer, ds.components.typeconfirm, ds.components.errorsummary, ds.components.search, ds.components.meter, ds.components.bar-list, ds.components.category-bar, ds.components.lozenge, ds.components.result, ds.components.formatted, ds.components.kbd, ds.components.truncate, ds.components.expandable, ds.components.hits, ds.components.tracker, ds.components.labelgroup, ds.components.image, ds.components.composer, ds.components.message, ds.components.transcript, ds.components.suggestions, ds.components.feedback, ds.components.ailabel, ds.components.tearsheet, ds.components.loadingoverlay, ds.components.lightbox, ds.components.bottomsheet, ds.components.highlight, ds.components.markdown, ds.components.code, ds.components.toc, ds.components.backtop, ds.components.diff, ds.components.logview, ds.components.object, ds.components.terminal, ds.components.shimmer, ds.components.wheel, ds.components.thinking, ds.components.toolcall, ds.components.reasoning, ds.components.cite, ds.components.plan, ds.components.question, ds.components.usage, ds.components.presence, ds.components.avatar, ds.components.persona, ds.components.media, ds.components.levelmeter, ds.components.command, ds.components.shortcuts, ds.components.banner, ds.components.notifications, ds.components.ripple;
 
 @layer ds.components.button {
   .ds-btn {
@@ -575,6 +585,29 @@
     --ds-btn-bg: var(--ds-accent);
     --ds-btn-color: var(--ds-on-accent);
     --ds-btn-hover-color: var(--ds-on-accent);
+  }
+
+  /* Filled and tonal toggles (Material 3): off, the neutral container (the
+     action ink on a filled one, the quieter ink on a tonal one); on, the
+     variant's own fill. So off and on differ by the fill, not by a hue, and
+     a filled toggle that is on stays filled. */
+  :is(.ds-btn--filled, .ds-btn--primary, .ds-btn--tonal)[aria-pressed="false"] {
+    --ds-btn-border: var(--ds-surface-highest);
+    --ds-btn-bg: var(--ds-surface-highest);
+    --ds-btn-color: var(--ds-action-ink);
+    --ds-btn-hover-color: var(--ds-action-ink);
+  }
+
+  .ds-btn--tonal[aria-pressed="false"] {
+    --ds-btn-color: var(--ds-text-2);
+    --ds-btn-hover-color: var(--ds-text);
+  }
+
+  :is(.ds-btn--filled, .ds-btn--primary)[aria-pressed="true"] {
+    --ds-btn-border: var(--ds-primary);
+    --ds-btn-bg: var(--ds-primary);
+    --ds-btn-color: var(--ds-on-primary);
+    --ds-btn-hover-color: var(--ds-on-primary);
   }
 
   /* A choice made once and then locked (aria-disabled while pressed): it

@@ -1,7 +1,7 @@
 {
   "name": "transfer",
   "group": "forms",
-  "order": 650,
+  "order": 890,
   "docsOrder": 236,
   "need": "Move options between two lists, available and chosen: permissions, group members; with filters and keys",
   "tier": 2,

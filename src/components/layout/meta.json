@@ -42,9 +42,7 @@
   ],
   "attributes": [],
   "requires": [],
-  "context": [
-    "text"
-  ],
+  "context": ["truncate"],
   "hooks": {
     "--ds-cluster-gap": {
       "default": "`--ds-space-2`",

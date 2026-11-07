@@ -1,7 +1,7 @@
 {
   "name": "suggestions",
   "group": "actions",
-  "order": 960,
+  "order": 1090,
   "docsOrder": 950,
   "need": "Offer follow-up prompts: a row of chips that scrolls sideways and drags, or wraps; a press fills or sends the composer",
   "tier": 1,

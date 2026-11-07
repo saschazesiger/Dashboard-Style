@@ -1,7 +1,7 @@
 {
   "name": "print",
   "group": "layout",
-  "order": 440,
+  "order": 620,
   "docsOrder": 362,
   "need": "Decide what goes on paper and where sheets break, and lay out a printable report or invoice",
   "tier": 1,

@@ -1,7 +1,7 @@
 {
   "name": "spacing",
   "group": "layout",
-  "order": 420,
+  "order": 550,
   "docsOrder": 356,
   "need": "Set the gap between parts, or the rare top margin, on the space scale",
   "tier": 1,

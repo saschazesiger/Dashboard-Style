@@ -1,7 +1,7 @@
 {
   "name": "menubutton",
   "group": "actions",
-  "order": 540,
+  "order": 720,
   "docsOrder": 54,
   "need": "Open a menu of actions or choices from a button with a chevron, and show the choice",
   "tier": 1,

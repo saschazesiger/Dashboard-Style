@@ -10,7 +10,7 @@ White panels on a tinted backdrop, hairlines instead of shadows, pill-shaped act
 ![License: MIT](https://img.shields.io/badge/license-MIT-146c2e)
 ![Dependencies: 0](https://img.shields.io/badge/dependencies-0-146c2e)
 ![Build step: none](https://img.shields.io/badge/build%20step-none-146c2e)
-![Components: 39](https://img.shields.io/badge/components-39-6750a4)
+![Components: 143](https://img.shields.io/badge/components-143-6750a4)
 ![Icons: 275](https://img.shields.io/badge/icons-275-6750a4)
 
 [🚀 Live tour](https://saschazesiger.github.io/Dashboard-Style/) ·

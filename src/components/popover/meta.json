@@ -1,7 +1,7 @@
 {
   "name": "popover",
   "group": "overlays",
-  "order": 400,
+  "order": 430,
   "docsOrder": 245,
   "need": "Show a small form, a share box or details next to the control that opened it, without leaving the page",
   "tier": 1,

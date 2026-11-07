@@ -1,7 +1,7 @@
 {
   "name": "datagrid",
   "group": "data",
-  "order": 450,
+  "order": 650,
   "docsOrder": 175,
   "need": "Work through many records: sort by several columns, choose and resize columns, select across pages, edit in place, export",
   "tier": 1,

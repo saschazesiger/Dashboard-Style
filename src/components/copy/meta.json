@@ -1,7 +1,7 @@
 {
   "name": "copy",
   "group": "actions",
-  "order": 560,
+  "order": 740,
   "docsOrder": 56,
   "need": "Copy a value, a key or a link with one press, and say that it worked",
   "tier": 1,

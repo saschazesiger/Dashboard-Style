@@ -1,7 +1,7 @@
 {
   "name": "tearsheet",
   "group": "overlays",
-  "order": 1100,
+  "order": 1120,
   "docsOrder": 255,
   "need": "Create or edit something in a tall flow of steps over the page, with its own head and foot",
   "tier": 1,

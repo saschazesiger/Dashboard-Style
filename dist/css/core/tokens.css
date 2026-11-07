@@ -6,8 +6,9 @@
  * inside a foreign page (an embedded widget) without touching that page's
  * variables. A full app puts class="ds-theme" on <html>. The exceptions
  * are the @property registrations at the top level: --ds-time-scale, the
- * runtime properties the loading indicators animate (below it) and the
- * share of a chart mark (--ds-share).
+ * runtime properties the loading indicators animate (below it), the
+ * share of a chart mark (--ds-share) and the ends of a cut edge's fade
+ * (--ds-scroll-edge-start, --ds-scroll-edge-end).
  *
  * Three layers:
  *   1. Scales: motion, spacing, state layers, layers (z), radius scale.
@@ -46,7 +47,7 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
+@layer ds.components.global, ds.components.layout, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.calendar, ds.components.container, ds.components.loadmore, ds.components.popover, ds.components.splitpane, ds.components.upload, ds.components.datefield, ds.components.kveditor, ds.components.listdetail, ds.components.sort, ds.components.text, ds.components.toggletip, ds.components.dashpanel, ds.components.filterbar, ds.components.picker, ds.components.spacing, ds.components.wizard, ds.components.facets, ds.components.sticky, ds.components.timepicker, ds.components.unsaved, ds.components.datepicker, ds.components.print, ds.components.query, ds.components.views, ds.components.datagrid, ds.components.daterange, ds.components.timerange, ds.components.duration, ds.components.link, ds.components.toggle, ds.components.button-group, ds.components.menubutton, ds.components.splitbutton, ds.components.copy, ds.components.prioritybar, ds.components.listbox, ds.components.number, ds.components.tree, ds.components.choices, ds.components.jsonview, ds.components.password, ds.components.auditlog, ds.components.secret, ds.components.taginput, ds.components.otp, ds.components.selectpanel, ds.components.inlineedit, ds.components.orderedchoice, ds.components.transfer, ds.components.typeconfirm, ds.components.errorsummary, ds.components.search, ds.components.meter, ds.components.bar-list, ds.components.category-bar, ds.components.lozenge, ds.components.result, ds.components.formatted, ds.components.kbd, ds.components.truncate, ds.components.expandable, ds.components.hits, ds.components.tracker, ds.components.labelgroup, ds.components.image, ds.components.composer, ds.components.message, ds.components.transcript, ds.components.suggestions, ds.components.feedback, ds.components.ailabel, ds.components.tearsheet, ds.components.loadingoverlay, ds.components.lightbox, ds.components.bottomsheet, ds.components.highlight, ds.components.markdown, ds.components.code, ds.components.toc, ds.components.backtop, ds.components.diff, ds.components.logview, ds.components.object, ds.components.terminal, ds.components.shimmer, ds.components.wheel, ds.components.thinking, ds.components.toolcall, ds.components.reasoning, ds.components.cite, ds.components.plan, ds.components.question, ds.components.usage, ds.components.presence, ds.components.avatar, ds.components.persona, ds.components.media, ds.components.levelmeter, ds.components.command, ds.components.shortcuts, ds.components.banner, ds.components.notifications, ds.components.ripple;
 
 /*
  * Slow motion for the styleguide and the browser tests: every duration and
@@ -132,6 +133,26 @@
   initial-value: 0;
 }
 
+/*
+ * The two ends of a cut edge's fade (0 ... 1), as numbers: the scroller,
+ * the combobox list, the listbox and the choice list mask their scrolling
+ * box with them. Registered here, once, so they interpolate (the
+ * scroll-linked keyframes and the attribute transitions) in whatever set
+ * of single files a page links; they do not inherit, so a scroller inside
+ * a scroller keeps its own.
+ */
+@property --ds-scroll-edge-start {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --ds-scroll-edge-end {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
 @layer ds.tokens {
   .ds-theme {
     /* ── 1. Motion: durations ───────────────────────────
@@ -214,6 +235,12 @@
     --ds-delay-tooltip: calc(500ms * var(--ds-time-scale, 1));
     --ds-delay-tooltip-skip: calc(300ms * var(--ds-time-scale, 1));
     --ds-delay-tooltip-hide: calc(100ms * var(--ds-time-scale, 1));
+    /* Submenu hover intent: a resting pointer opens it after the first, a
+       pointer that moved on to another item closes it after the second.
+       A touch held this long opens a context menu. */
+    --ds-delay-submenu: calc(100ms * var(--ds-time-scale, 1));
+    --ds-delay-submenu-close: calc(300ms * var(--ds-time-scale, 1));
+    --ds-delay-long-press: calc(500ms * var(--ds-time-scale, 1));
     /* A backdrop or scrim click this soon after the open does not close
        (shorter than the dialog's --ds-dur-slow entrance; DISMISS_DELAY_MS). */
     --ds-delay-dismiss: calc(300ms * var(--ds-time-scale, 1));

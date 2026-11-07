@@ -23,8 +23,18 @@
  * data-ds-busy on the dialog; a rejection keeps it open with an error
  * snackbar (errorText) and focus back on the confirm button.
  *
+ * What a question is about: `lines` (a list, .ds-dialog__lines) and
+ * `facts` (term and value pairs, .ds-dialog__facts) of confirm(),
+ * alert() and prompt() go under the text.
+ *
  * An action sheet's list (.ds-dialog__list): ArrowUp, ArrowDown, Home and End
  * move focus among its .ds-menu__item rows.
+ *
+ * Non-modal (.ds-dialog__box--modeless, 3.0): DS.overlay opens it as a
+ * non-modal layer (no trap, no inert, no scroll lock; Escape closes it
+ * while it is the top layer). This module moves focus into it once it
+ * opened (autofocus, else its first focusable control, else the box) and
+ * watches its body's scroll, as DS.overlay does for a modal dialog.
  *
  * Form dialog (opt-in, so a 2.x form that posts or has its own handler stays
  * the page's): when the box is a <form class="ds-dialog__box"
@@ -42,6 +52,8 @@
 import { define, emit, t } from './core.js';
 import { busy } from './motion.js';
 import { alertCircle, iconElement } from './icons.js';
+import { watchScrolled } from './dom.js';
+import { tabbables } from './a11y.js';
 import { internals, open as openOverlay, close as closeOverlay } from './overlay.js';
 
 const { overlays, activeIn, sharedOf, canFocus, arrowTarget, controllerOf, part } = internals;
@@ -76,8 +88,10 @@ export function close(element, options = {}) {
  * (in the theme's .ds-toasts region, made when the page has none, inside
  * the open dialog) and focuses the confirm button again.
  * Resolves true when it closed through the confirm button, else false.
- * @param {{ title?: string, text?: string, confirmLabel?: string, cancelLabel?: string, destructive?: boolean,
- *   opener?: Element|null, onConfirm?: () => unknown, errorText?: string }} [options]
+ * `lines` (strings) and `facts` ([term, value] pairs) show what it is
+ * about under the text.
+ * @param {{ title?: string, text?: string, lines?: string[], facts?: Array<[string, string]>, confirmLabel?: string,
+ *   cancelLabel?: string, destructive?: boolean, opener?: Element|null, onConfirm?: () => unknown, errorText?: string }} [options]
  * @returns {Promise<boolean>}
  */
 export function confirm(options = {}) {
@@ -87,7 +101,8 @@ export function confirm(options = {}) {
 /**
  * Tells something with a built alertdialog and one button (`closeLabel`,
  * default the string `ok`); resolves once it closes.
- * @param {{ title?: string, text?: string, closeLabel?: string, opener?: Element|null }} [options]
+ * @param {{ title?: string, text?: string, lines?: string[], facts?: Array<[string, string]>, closeLabel?: string,
+ *   opener?: Element|null }} [options]
  * @returns {Promise<void>}
  */
 export function alert(options = {}) {
@@ -104,7 +119,8 @@ export function alert(options = {}) {
  * aria-describedby, announced assertively) until the next input.
  * `onConfirm(value)` runs as in confirm(). Resolves the value when it
  * closed through the confirm button, else null.
- * @param {{ title?: string, text?: string, label?: string, value?: string, confirmLabel?: string,
+ * @param {{ title?: string, text?: string, lines?: string[], facts?: Array<[string, string]>, label?: string,
+ *   value?: string, confirmLabel?: string,
  *   cancelLabel?: string, opener?: Element|null, onConfirm?: (value: string) => unknown, errorText?: string,
  *   requiredText?: string,
  *   input?: { type?: string, autocomplete?: string, inputmode?: string, required?: boolean,
@@ -161,6 +177,23 @@ function ask(kind, options) {
     text.id = `${id}-text`;
     labelled.setAttribute('aria-describedby', text.id);
     box.append(text);
+  }
+  // What the question is about: the items it takes, the facts of a record.
+  const lines = Array.isArray(options.lines) ? options.lines.filter((line) => line != null && String(line) !== '') : [];
+  if (lines.length) {
+    const list = make('ul', 'ds-dialog__lines');
+    for (const line of lines) list.append(make('li', '', line));
+    box.append(list);
+  }
+  const facts = Array.isArray(options.facts) ? options.facts.filter((fact) => Array.isArray(fact) && fact.length >= 2) : [];
+  if (facts.length) {
+    const list = make('dl', 'ds-dialog__facts');
+    for (const [term, value] of facts) {
+      const row = make('div', '');
+      row.append(make('dt', '', term), make('dd', '', value));
+      list.append(row);
+    }
+    box.append(list);
   }
   /** @type {HTMLInputElement|null} */
   let field = null;
@@ -421,9 +454,40 @@ export function create(element) {
   return controllerOf(element);
 }
 
+/** The non-modal box. */
+const MODELESS = '.ds-dialog__box--modeless';
+
+/**
+ * A non-modal box that DS.overlay opened: focus moves in (DS.overlay
+ * honoured autofocus already; a non-modal layer gets nothing else from it),
+ * and its body's scroll is watched for the hairline.
+ */
+function modelessOpened(box) {
+  for (const body of box.querySelectorAll(':scope > .ds-dialog__body')) {
+    const handle = watchScrolled(body);
+    if (!body.querySelector(':scope > [data-ds-sentinel]')) handle.update();
+  }
+  const active = activeIn(box);
+  if (active && box.contains(active)) return;
+  const target = tabbables(box)[0];
+  if (target) target.focus({ preventScroll: true });
+  else {
+    if (!box.hasAttribute('tabindex')) box.setAttribute('tabindex', '-1');
+    box.focus({ preventScroll: true });
+  }
+}
+
 define('dialog', {
   attribute: 'data-ds-dialog',
   init: (element) => create(element),
+  global(root) {
+    const onOpen = (/** @type {Event} */ event) => {
+      const box = /** @type {Element} */ (event.target);
+      if (box?.matches?.(MODELESS)) modelessOpened(box);
+    };
+    root.addEventListener('ds:open', onOpen);
+    return () => root.removeEventListener('ds:open', onOpen);
+  },
 });
 
 internals.use('dialog', {

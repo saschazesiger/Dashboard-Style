@@ -1,8 +1,8 @@
 {
   "name": "daterange",
   "group": "forms",
-  "order": 450,
-  "docsOrder": 236,
+  "order": 660,
+  "docsOrder": 241,
   "need": "Pick a range of dates, or a relative one such as the last 7 days, with presets and two months",
   "tier": 1,
   "status": "beta",

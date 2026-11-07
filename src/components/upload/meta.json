@@ -1,7 +1,7 @@
 {
   "name": "upload",
   "group": "forms",
-  "order": 400,
+  "order": 450,
   "docsOrder": 332,
   "need": "Upload files: a drop zone, the files with their progress, retry and remove, previews, limits and smaller images",
   "tier": 1,

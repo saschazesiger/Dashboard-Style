@@ -1,7 +1,7 @@
 {
   "name": "toggletip",
   "group": "overlays",
-  "order": 410,
+  "order": 510,
   "docsOrder": 285,
   "need": "Explain a field or a figure in a help card that opens on a click or tap of an info button",
   "tier": 1,

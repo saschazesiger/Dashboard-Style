@@ -59,7 +59,12 @@
  *                                     .ds-shape-* multiplies its radius)
  *   <hr class="ds-divider">           a hairline (--inset: from --ds-space-4)
  *   <span class="ds-divider ds-divider--vertical" role="separator" aria-orientation="vertical"></span>
+ *                                     upright (--inset: short of the row's edges)
  *   <div class="ds-divider ds-divider--label" role="separator"><span>Today</span></div>
+ *                                     around a caption (--start, --end: near that end)
+ *   <div class="ds-divider ds-divider--vertical ds-divider--label" role="separator" aria-orientation="vertical"><span>or</span></div>
+ *                                     upright around a caption
+ *   The colour: --ds-divider-color (--ds-line).
  *
  * Icons that fill when on (js/icons.js, the fillable glyphs):
  * .ds-icon--fillable on the <svg> fills its last element in currentColor
@@ -72,7 +77,8 @@
  * (docs/theming.md, "Touch screens"); never automatic.
  *
  * Hooks: --ds-pressable-radius (--ds-radius-sm), --ds-pressable-layer
- * (currentColor), --ds-kbd-border (--ds-line-2), --ds-kbd-bg (--ds-surface).
+ * (currentColor), --ds-kbd-border (--ds-line-2), --ds-kbd-bg (--ds-surface),
+ * --ds-divider-color (--ds-line).
  *
  * Progressive:
  * - text-wrap (a paragraph of .ds-muted avoids a lone last word): without
@@ -80,7 +86,7 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
+@layer ds.components.global, ds.components.layout, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.calendar, ds.components.container, ds.components.loadmore, ds.components.popover, ds.components.splitpane, ds.components.upload, ds.components.datefield, ds.components.kveditor, ds.components.listdetail, ds.components.sort, ds.components.text, ds.components.toggletip, ds.components.dashpanel, ds.components.filterbar, ds.components.picker, ds.components.spacing, ds.components.wizard, ds.components.facets, ds.components.sticky, ds.components.timepicker, ds.components.unsaved, ds.components.datepicker, ds.components.print, ds.components.query, ds.components.views, ds.components.datagrid, ds.components.daterange, ds.components.timerange, ds.components.duration, ds.components.link, ds.components.toggle, ds.components.button-group, ds.components.menubutton, ds.components.splitbutton, ds.components.copy, ds.components.prioritybar, ds.components.listbox, ds.components.number, ds.components.tree, ds.components.choices, ds.components.jsonview, ds.components.password, ds.components.auditlog, ds.components.secret, ds.components.taginput, ds.components.otp, ds.components.selectpanel, ds.components.inlineedit, ds.components.orderedchoice, ds.components.transfer, ds.components.typeconfirm, ds.components.errorsummary, ds.components.search, ds.components.meter, ds.components.bar-list, ds.components.category-bar, ds.components.lozenge, ds.components.result, ds.components.formatted, ds.components.kbd, ds.components.truncate, ds.components.expandable, ds.components.hits, ds.components.tracker, ds.components.labelgroup, ds.components.image, ds.components.composer, ds.components.message, ds.components.transcript, ds.components.suggestions, ds.components.feedback, ds.components.ailabel, ds.components.tearsheet, ds.components.loadingoverlay, ds.components.lightbox, ds.components.bottomsheet, ds.components.highlight, ds.components.markdown, ds.components.code, ds.components.toc, ds.components.backtop, ds.components.diff, ds.components.logview, ds.components.object, ds.components.terminal, ds.components.shimmer, ds.components.wheel, ds.components.thinking, ds.components.toolcall, ds.components.reasoning, ds.components.cite, ds.components.plan, ds.components.question, ds.components.usage, ds.components.presence, ds.components.avatar, ds.components.persona, ds.components.media, ds.components.levelmeter, ds.components.command, ds.components.shortcuts, ds.components.banner, ds.components.notifications, ds.components.ripple;
 
 @layer ds.components.utilities {
   /* Placed at the top left of its positioned ancestor: left where it stands
@@ -302,7 +308,7 @@
     height: 0;
     margin: 0;
     border: 0;
-    border-top: 1px solid var(--ds-line);
+    border-top: 1px solid var(--ds-divider-color, var(--ds-line));
   }
 
   .ds-divider--inset {
@@ -316,7 +322,13 @@
     height: auto;
     min-height: 1em;
     border-top: 0;
-    border-inline-start: 1px solid var(--ds-line);
+    border-inline-start: 1px solid var(--ds-divider-color, var(--ds-line));
+  }
+
+  /* Upright and inset: it stops short of the row's top and bottom edges. */
+  .ds-divider--vertical.ds-divider--inset {
+    margin-inline-start: 0;
+    margin-block: var(--ds-space-2);
   }
 
   .ds-divider--label {
@@ -333,7 +345,28 @@
   .ds-divider--label::after {
     content: '';
     flex: 1 1 0;
-    border-top: 1px solid var(--ds-line);
+    border-top: 1px solid var(--ds-divider-color, var(--ds-line));
+  }
+
+  /* The caption near one end: a short lead hairline on its side. */
+  .ds-divider--label.ds-divider--start::before,
+  .ds-divider--label.ds-divider--end::after {
+    flex: 0 0 var(--ds-space-4);
+  }
+
+  /* Upright around a caption ("or" between two columns): the hairlines
+     above and below it. */
+  .ds-divider--vertical.ds-divider--label {
+    flex-direction: column;
+    width: auto;
+    border-inline-start: 0;
+  }
+
+  .ds-divider--vertical.ds-divider--label::before,
+  .ds-divider--vertical.ds-divider--label::after {
+    min-height: var(--ds-space-2);
+    border-top: 0;
+    border-inline-start: 1px solid var(--ds-divider-color, var(--ds-line));
   }
 
   /* Icons that fill when on: the last element of a fillable glyph is a closed outline. */

@@ -1,7 +1,7 @@
 {
   "name": "logview",
   "group": "content",
-  "order": 1320,
+  "order": 1330,
   "docsOrder": 127,
   "need": "Read a long or live log: levels, colours, filter, search, follow the end, copy lines",
   "tier": 1,

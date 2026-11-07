@@ -1,7 +1,7 @@
 {
   "name": "listdetail",
   "group": "layout",
-  "order": 410,
+  "order": 480,
   "docsOrder": 64,
   "need": "Show a list, the detail of what is picked and a sub-detail as columns that fold to one with a back button on phones",
   "tier": 1,

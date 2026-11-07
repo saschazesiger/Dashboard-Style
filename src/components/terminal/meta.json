@@ -1,7 +1,7 @@
 {
   "name": "terminal",
   "group": "content",
-  "order": 1330,
+  "order": 1350,
   "docsOrder": 128,
   "need": "Frame a terminal emulator: title, connection status, actions, and the keys a phone keyboard lacks",
   "tier": 2,

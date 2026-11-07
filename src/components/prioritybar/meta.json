@@ -1,7 +1,7 @@
 {
   "name": "prioritybar",
   "group": "actions",
-  "order": 570,
+  "order": 750,
   "docsOrder": 57,
   "need": "Keep a row of actions on one line at any width: what does not fit folds into a More menu",
   "tier": 1,

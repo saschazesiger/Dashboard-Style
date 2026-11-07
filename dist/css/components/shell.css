@@ -14,7 +14,17 @@
  *       <a class="ds-brand" href="/">[mark] <span class="ds-brand__name">Product</span></a>
  *       [<h1 class="ds-topbar__title">Page</h1>]   (instead of a page head on small screens)
  *       [<div class="ds-topbar__search"> <div class="ds-search"> ... </div> </div>]   (hidden below 720px)
+ *       (3.0, DS.shell: <div class="ds-topbar__search" data-ds-search-sheet> [.ds-topbar__search-back] .ds-search
+ *        [<div class="ds-topbar__results">] </div>, a sheet below 720px opened by .ds-topbar__search-open)
  *       [<div class="ds-topbar__actions"> icon buttons, each with data-tip </div>]
+ *       (the app switcher: an icon button and <div class="ds-menu ds-launcher" role="menu" aria-label="Apps" data-ds-launcher>
+ *        <a class="ds-menu__item ds-launcher__app" role="menuitem"> <span class="ds-launcher__icon">(icon)</span>
+ *        <span class="ds-launcher__label">Devices</span> </a> ... </div>; the bell: an icon button with a
+ *        .ds-badge--dot inside)
+ *       (the account menu: <div class="ds-account"> <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger"
+ *        type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account">
+ *        <span class="ds-account__avatar" aria-hidden="true">A</span></button> <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email">
+ *        <div class="ds-account__head" aria-hidden="true"> avatar, name (#account-name), email (#account-email) </div> [data-ds-scheme-switch group] sign out </div></div>)
  *       <div class="ds-account"> <div class="ds-account__text"> <div class="ds-account__name"> <div class="ds-account__email"> </div>
  *         <span class="ds-account__avatar" role="img" aria-label="..." tabindex="0" data-tip="...">A</span> <button class="ds-btn ds-btn--text" type="button">Sign out</button>
  *       (.ds-account--capsule: avatar, text aria-hidden, <span class="ds-account__divider"></span>, the sign-out button)
@@ -39,8 +49,7 @@
  *       [<div class="ds-banner"> <div class="ds-alert ds-tone-warning" role="status"> ... </div> </div>]
  *       <main class="ds-view [ds-view--fill | ds-view--fixed]" id="main" tabindex="-1"> <div class="ds-content"> <div class="ds-page"> ...
  *
- *   An avatar elsewhere: <span class="ds-avatar [ds-sm | ds-lg]" role="img" aria-label="Ada Lovelace">A</span>
- *   or <img class="ds-avatar" src="..." alt=""> next to the name.
+ *   An avatar elsewhere: .ds-avatar (avatar.css).
  *
  * State attributes on .ds-app, set by the page's script:
  *   data-drawer-open    the modal drawer is open (at 900px and below)
@@ -64,14 +73,14 @@
  *   size      .ds-xs ... .ds-xl: a drawer row and a segmented switch 8px per
  *             step, a segmented option's side padding 4px per step, the
  *             type role of the size at the regular weight (only the current
- *             row or option is heavier); an avatar 8px per step (16 to 48px)
- *             and the size's role
+ *             row or option is heavier); the account's avatar 8px per
+ *             step (16 to 48px) and the size's role
  *   density   .ds-density-*: a drawer row and a segmented switch 4px per
  *             step; not their side padding, not the type
  *   shape     .ds-shape-*: multiplies the radius of the rows and the pill
  *             (rest and pressed), the segmented track and its press clip,
  *             the skip link, the account capsule, the panel's top corners,
- *             the modal drawer's open side and the avatar
+ *             the modal drawer's open side and the account's avatar
  *   touch     .ds-touch: drawer rows, the segmented switch, the skip link
  *             and the brand link are at least --ds-target-min; the menu
  *             button's box moves the bar's padding and the modal drawer's
@@ -128,7 +137,11 @@
  * --ds-view-scrollbar-gutter (stable; stable both-edges, or auto),
  * --ds-segmented-padding-x (--ds-space-4: the inline padding of an
  * option), --ds-topbar-search-max (720px), --ds-account-text-max
- * (240px), --ds-avatar-size (32px). Layout role: --ds-drawer-rail-width.
+ * (240px), --ds-account-menu-width (280px), --ds-launcher-columns (3),
+ * --ds-launcher-app-width (96px), --ds-launcher-app-height (88px at md,
+ * comfortable), --ds-launcher-icon-size (40px at md), --ds-launcher-font (the
+ * size's role); read: --ds-avatar-size (avatar.css). Layout role:
+ * --ds-drawer-rail-width.
  *
  * Drawer parts: .ds-drawer__back (a way up, between head and list, with a
  * hairline under it; above 900px the docked drawer's back item hides the
@@ -162,10 +175,9 @@
  * width (the only carrier of the name: role="img", aria-label, data-tip),
  * the text aria-hidden (at most --ds-account-text-max, hidden below
  * 720px), .ds-account__divider and a text button; without the button
- * (none, or hidden) the capsule ends with its start's room. .ds-avatar
- * (32px, --ds-avatar-size; .ds-sm 24px, .ds-lg 40px) is the same disc
- * anywhere. Its --sm and --lg, the 2.x sizes, are deprecated aliases until
- * 3.0 ships.
+ * (none, or hidden) the capsule ends with its start's room. The account's
+ * avatar is the disc of .ds-avatar (avatar.css: 32px, --ds-avatar-size;
+ * .ds-sm 24px, .ds-lg 40px).
  *
  * .ds-banner: a message for the whole app, the first child of .ds-panel
  * above the view, holding one .ds-alert (role="status", or role="alert"
@@ -223,7 +235,7 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
+@layer ds.components.global, ds.components.layout, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.calendar, ds.components.container, ds.components.loadmore, ds.components.popover, ds.components.splitpane, ds.components.upload, ds.components.datefield, ds.components.kveditor, ds.components.listdetail, ds.components.sort, ds.components.text, ds.components.toggletip, ds.components.dashpanel, ds.components.filterbar, ds.components.picker, ds.components.spacing, ds.components.wizard, ds.components.facets, ds.components.sticky, ds.components.timepicker, ds.components.unsaved, ds.components.datepicker, ds.components.print, ds.components.query, ds.components.views, ds.components.datagrid, ds.components.daterange, ds.components.timerange, ds.components.duration, ds.components.link, ds.components.toggle, ds.components.button-group, ds.components.menubutton, ds.components.splitbutton, ds.components.copy, ds.components.prioritybar, ds.components.listbox, ds.components.number, ds.components.tree, ds.components.choices, ds.components.jsonview, ds.components.password, ds.components.auditlog, ds.components.secret, ds.components.taginput, ds.components.otp, ds.components.selectpanel, ds.components.inlineedit, ds.components.orderedchoice, ds.components.transfer, ds.components.typeconfirm, ds.components.errorsummary, ds.components.search, ds.components.meter, ds.components.bar-list, ds.components.category-bar, ds.components.lozenge, ds.components.result, ds.components.formatted, ds.components.kbd, ds.components.truncate, ds.components.expandable, ds.components.hits, ds.components.tracker, ds.components.labelgroup, ds.components.image, ds.components.composer, ds.components.message, ds.components.transcript, ds.components.suggestions, ds.components.feedback, ds.components.ailabel, ds.components.tearsheet, ds.components.loadingoverlay, ds.components.lightbox, ds.components.bottomsheet, ds.components.highlight, ds.components.markdown, ds.components.code, ds.components.toc, ds.components.backtop, ds.components.diff, ds.components.logview, ds.components.object, ds.components.terminal, ds.components.shimmer, ds.components.wheel, ds.components.thinking, ds.components.toolcall, ds.components.reasoning, ds.components.cite, ds.components.plan, ds.components.question, ds.components.usage, ds.components.presence, ds.components.avatar, ds.components.persona, ds.components.media, ds.components.levelmeter, ds.components.command, ds.components.shortcuts, ds.components.banner, ds.components.notifications, ds.components.ripple;
 
 @layer ds.components.shell {
   /* As tall as the visual viewport where DS.dom.followViewport() writes
@@ -422,9 +434,16 @@
    *
    * data-label (optional, the option's text again) reserves the width of the
    * heavier current weight, so the switch keeps its width when the current
-   * option changes. It is for an option whose content is its text (or one
-   * wrapper): the option stacks its content and the reserved copy in a
-   * column. Options without it lay out their content in a row, as before.
+   * option changes: the copy lies under the text, without height (a grid;
+   * an icon keeps its column). Options without it lay out their content in
+   * a row, as before.
+   *
+   * Icons and counts: an icon (svg, 16 to 20) before the label, a count
+   * after it (.ds-segmented__count, tabular meta figures, read with the
+   * label through a .ds-sr separator); an option that is only an icon is
+   * named by aria-label (with data-tip) and takes half the side padding.
+   *   <button class="ds-segmented__option" type="button" role="radio" aria-checked="true" data-label="Open">(inbox 18)Open<span class="ds-segmented__count"><span class="ds-sr">, </span>12</span></button>
+   *   <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" aria-label="Map" data-tip="Map">(map 18)</button>
    */
   .ds-segmented {
     /* The options, computed here and read by the options inside. The hook
@@ -508,17 +527,57 @@
      state layer. Only these options turn into a column (still centred both
      ways), so the copy takes the width without taking a line. */
   .ds-segmented__option[data-label] {
-    flex-direction: column;
+    display: inline-grid;
+    grid-auto-flow: column;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    /* The lighter text centres over the heavier copy's width. */
+    justify-items: center;
   }
 
   .ds-segmented__option[data-label]::after {
     content: attr(data-label);
     display: block;
+    grid-row: 2;
+    grid-column: 1;
     height: 0;
     overflow: hidden;
     visibility: hidden;
     pointer-events: none;
     font-weight: var(--ds-weight-label);
+  }
+
+  /* An icon before the label (svg, 16 to 20) and a count after it
+     (.ds-segmented__count): a row with --ds-space-2 between the parts. The
+     icon takes both rows of the grid, so the reserved copy goes under the
+     text, in its column. */
+  .ds-segmented__option {
+    column-gap: var(--ds-space-2);
+  }
+
+  .ds-segmented__option[data-label] > svg:first-child {
+    grid-row: 1 / span 2;
+  }
+
+  .ds-segmented__option[data-label]:has(> svg:first-child)::after {
+    grid-column: 2;
+  }
+
+  .ds-segmented__option svg {
+    flex-shrink: 0;
+  }
+
+  .ds-segmented__count {
+    color: inherit;
+    font: var(--ds-font-meta);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* An option that is only an icon (named by aria-label, with data-tip):
+     half the side padding of a label, so the switch stays compact. */
+  .ds-segmented__option:not([data-label]):has(> svg:only-child) {
+    padding-inline: calc(var(--_pad) / 2);
   }
 
   .ds-segmented__option + .ds-segmented__option {
@@ -728,13 +787,12 @@
   }
 
   /*
-   * Avatar: the initial (or a picture) on the tint, a disc. The account's
-   * avatar is the same disc (both selectors), shown only where it stands in
-   * for the text. Narrow windows show the initial instead of name and
-   * email: the avatar then names them itself (aria-label) and shows them in
-   * its tooltip on hover, keyboard focus or a tap (data-tip). No status dot.
+   * The account's avatar: the disc of .ds-avatar (avatar.css, the same
+   * size formula), shown only where it stands in for the text. Narrow
+   * windows show the initial instead of name and email: the avatar then
+   * names them itself (aria-label) and shows them in its tooltip on hover,
+   * keyboard focus or a tap (data-tip). No status dot.
    */
-  .ds-avatar,
   .ds-account__avatar {
     --_size: calc(var(--ds-avatar-size, 32px) + var(--ds-size-step, 0) * 8px);
     flex-shrink: 0;
@@ -749,11 +807,6 @@
     font: var(--ds-size-font, var(--ds-font-label));
     object-fit: cover;
     user-select: none;
-  }
-
-  .ds-avatar {
-    display: inline-grid;
-    vertical-align: middle;
   }
 
   .ds-account__avatar {
@@ -776,20 +829,6 @@
     content: '';
     position: absolute;
     inset: min(0px, calc((var(--_size) - var(--ds-target-min, 0px)) / 2));
-  }
-
-  /* The 2.x sizes, deprecated aliases of .ds-sm and .ds-lg until 3.0 ships:
-     the fixed 24px and 40px disc, whatever size surrounds them. */
-  .ds-avatar--sm {
-    --ds-avatar-size: var(--ds-space-6);
-    --ds-size-step: 0;
-    font: var(--ds-font-caption);
-  }
-
-  .ds-avatar--lg {
-    --ds-avatar-size: var(--ds-space-10);
-    --ds-size-step: 0;
-    font: var(--ds-font-subtitle);
   }
 
   /*
@@ -1662,6 +1701,15 @@
       justify-content: center;
     }
 
+    /* A drawer action whose label is a .ds-drawer__label turns into an
+       icon button of its own height on the rail (the label is hidden but
+       read, as on the items; its data-tip names it). */
+    .ds-app--drawer[data-drawer-collapsed] .ds-drawer__actions > .ds-btn:has(> .ds-drawer__label) {
+      width: var(--_box);
+      padding-inline: 0;
+      gap: 0;
+    }
+
     .ds-app--drawer[data-drawer-collapsed] .ds-drawer__back::after,
     .ds-app--drawer[data-drawer-collapsed] .ds-drawer__foot--pinned::before {
       margin-inline: var(--ds-space-2);
@@ -1987,6 +2035,313 @@
   }
 
   /*
+   * ── 3.0: the frame's behaviours (shell.js) ───────
+   *
+   * Drawer filter: a search field between the actions and the list
+   * (data-ds-drawer filters the list's items by their labels). Filtered
+   * items, rows and groups take no room (data-ds-filtered, written by the
+   * module, never by the page); .ds-drawer__empty says there is no match.
+   * The rail has no room for the field: it goes there.
+   */
+  .ds-drawer__search {
+    flex-shrink: 0;
+    padding: var(--ds-space-1) var(--ds-space-3) var(--ds-space-2);
+  }
+
+  .ds-drawer [data-ds-filtered] {
+    display: none;
+  }
+
+  .ds-drawer__empty {
+    margin: 0;
+    padding: var(--ds-space-3) var(--ds-space-4);
+    color: var(--ds-text-2);
+    font: var(--ds-font-meta);
+  }
+
+  /* A badge (badge.css) at the end of an item or a group toggle: the place
+     of a count, which it may replace when the count is news (unread). */
+  .ds-drawer__item > .ds-badge,
+  .ds-drawer__toggle > .ds-badge {
+    margin-inline-start: auto;
+  }
+
+  @media (min-width: 901px) {
+    .ds-app--drawer[data-drawer-collapsed] .ds-drawer__search {
+      display: none;
+    }
+
+    /* On the rail a badge shrinks to a dot on the icon's corner, inside the
+       square (a ripple host clips what lies outside it). Its figure stays
+       in the markup and is read with the label; the dot takes the primary
+       colour (a tone's full colour), which holds 3:1 on the backdrop. */
+    .ds-app--drawer[data-drawer-collapsed] .ds-drawer__item > .ds-badge {
+      position: absolute;
+      inset-block-start: var(--ds-space-2);
+      inset-inline-end: var(--ds-space-2);
+      min-width: 0;
+      width: var(--ds-badge-dot-size, var(--ds-space-2));
+      height: var(--ds-badge-dot-size, var(--ds-space-2));
+      padding: 0;
+      overflow: hidden;
+      border-radius: 50%;
+      background: var(--ds-primary);
+      color: transparent;
+    }
+
+    .ds-app--drawer[data-drawer-collapsed] .ds-drawer__item > .ds-badge:is(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
+      background: var(--ds-tone);
+    }
+  }
+
+  /*
+   * The notification slot: an icon button of .ds-topbar__actions (the
+   * notification centre opens from it) carries a .ds-badge--dot on its
+   * icon's corner, inside its box (a ripple host clips what lies outside
+   * it). The dot's word sits in its .ds-sr ("3 unread"), and the button's
+   * name says it too.
+   */
+  .ds-topbar__actions .ds-btn--icon > .ds-badge--dot {
+    position: absolute;
+    inset-block-start: calc(50% - 10px);
+    inset-inline-end: calc(50% - 10px);
+    pointer-events: none;
+  }
+
+  /*
+   * Account menu: the avatar in a quiet icon button (its state layer, ring,
+   * ripple and target) opens a .ds-menu with the name and email at its
+   * head (aria-hidden: the menu is named by them through aria-labelledby),
+   * the theme switch (data-ds-scheme-switch: light, dark, auto) and sign
+   * out. The trigger shows its disc at every width.
+   */
+  .ds-account__trigger .ds-account__avatar,
+  .ds-account__head .ds-account__avatar {
+    display: grid;
+  }
+
+  /* The trigger is a target of its own: it never shrinks. */
+  .ds-account:has(> .ds-account__trigger) {
+    flex: none;
+  }
+
+  /* A phone's bar full of actions: a brand of only a name ends in an
+     ellipsis rather than pushing the account out (a mark stays whole). */
+  @media (max-width: 600px) {
+    .ds-topbar:has(> .ds-topbar__actions) > .ds-brand:not(:has(> :not(.ds-brand__name))) {
+      flex-shrink: 1;
+    }
+
+    .ds-topbar:has(> .ds-topbar__actions) > .ds-brand:not(:has(> :not(.ds-brand__name))) > .ds-brand__name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .ds-account__menu {
+    width: min(var(--ds-account-menu-width, 280px), calc(100vw - 2 * var(--ds-space-2)));
+    max-width: none;
+  }
+
+  .ds-account__head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--ds-space-3);
+    padding: var(--ds-space-2) var(--ds-space-4) var(--ds-space-3);
+  }
+
+  .ds-account__head .ds-account__avatar {
+    grid-row: span 2;
+  }
+
+  .ds-account__head :is(.ds-account__name, .ds-account__email) {
+    text-align: start;
+  }
+
+  /*
+   * App launcher: a .ds-menu laid out as a grid of apps (data-ds-launcher
+   * adds the arrow keys of two dimensions). Each app is a menu item: an
+   * icon on a tonal disc over a label of up to two lines; the current app
+   * (aria-current="true") takes the tint on its disc and the label weight,
+   * never colour alone.
+   */
+  .ds-launcher {
+    display: grid;
+    grid-template-columns: repeat(var(--ds-launcher-columns, 3), minmax(0, 1fr));
+    gap: var(--ds-space-1);
+    width: min(calc(var(--ds-launcher-columns, 3) * var(--ds-launcher-app-width, 96px) + 2 * var(--ds-space-2)), calc(100vw - 2 * var(--ds-space-2)));
+    max-width: none;
+    padding: calc(var(--ds-space-2) + var(--ds-density, 0) * 2px) var(--ds-space-2);
+  }
+
+  /* The edge shades and the parts that are no app span a whole row. */
+  .ds-launcher::before,
+  .ds-launcher::after,
+  .ds-launcher > :not(.ds-menu__item) {
+    grid-column: 1 / -1;
+  }
+
+  .ds-launcher__app {
+    --_h: calc(var(--ds-launcher-app-height, 88px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px);
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--ds-space-1);
+    min-height: max(var(--ds-target-min, 0px), var(--_h));
+    /* Density takes its 4px off the padding too, so the content never
+       holds the app taller than the step. */
+    padding: calc(var(--ds-space-2) + var(--ds-density, 0) * 2px) var(--ds-space-1);
+    border-radius: calc(var(--ds-radius-sm) * var(--ds-shape, 1));
+    font: var(--ds-launcher-font, var(--ds-size-font, var(--ds-font-body)));
+    font-weight: var(--ds-weight-regular);
+    text-align: center;
+  }
+
+  .ds-launcher__app::before {
+    border-radius: inherit;
+  }
+
+  .ds-launcher__icon {
+    --_size: calc(var(--ds-launcher-icon-size, 40px) + var(--ds-size-step, 0) * 8px);
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: var(--_size);
+    height: var(--_size);
+    border-radius: min(calc(min(var(--ds-radius-action), calc(var(--_size) / 2)) * var(--ds-shape, 1)), calc(var(--_size) / 2));
+    background: var(--ds-surface-high);
+    color: var(--ds-primary);
+  }
+
+  .ds-launcher__icon > svg {
+    color: inherit;
+  }
+
+  .ds-launcher__label {
+    display: -webkit-box;
+    max-width: 100%;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .ds-launcher__app[aria-current="true"] {
+    font-weight: var(--ds-weight-label);
+  }
+
+  .ds-launcher__app[aria-current="true"] .ds-launcher__icon {
+    background: var(--ds-accent);
+    color: var(--ds-on-accent);
+  }
+
+  /*
+   * Phone search: at 720px and below the bar's search is a sheet over the
+   * whole frame, opened by .ds-topbar__search-open (data-ds-search-sheet,
+   * DS.overlay). Its head is a back button and the field on the bar's
+   * height; .ds-topbar__results below holds what the page shows for the
+   * query and scrolls. It fades in while it slides down by
+   * --ds-distance-md on the spring (--ds-dur-medium) and fades out faster
+   * (--ds-dur-fast); data-state drives it, so a close mid-way turns back
+   * from where it is. The bar takes the dialog layer meanwhile, so nothing
+   * of the page paints over the sheet; the snackbars stay above.
+   */
+  .ds-topbar__search-open,
+  .ds-topbar__search-back,
+  .ds-topbar__results {
+    display: none;
+  }
+
+  @media (max-width: 720px) {
+    .ds-topbar__search-open {
+      display: inline-flex;
+    }
+  }
+
+  /* Open (DS.overlay writes data-state; the module opens it only at 720px
+     and below, and closes it when the window widens). */
+  .ds-topbar:has(> .ds-topbar__search[data-state]) {
+    z-index: var(--ds-z-dialog);
+  }
+
+  .ds-topbar__search[data-state] {
+    position: fixed;
+    inset: 0;
+    /* Above the bar's own positioned parts (its buttons), which follow it. */
+    z-index: var(--ds-z-raised);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: var(--ds-topbar-height) minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--ds-space-1);
+    max-width: none;
+    margin: 0;
+    padding-block: env(safe-area-inset-top) 0;
+    padding-inline: max(var(--ds-space-2), env(safe-area-inset-left)) max(var(--ds-space-4), env(safe-area-inset-right));
+    background: var(--ds-surface);
+    /* Invisible; forced colours paint it, so the sheet keeps an edge. */
+    outline: 1px solid transparent;
+    transition:
+      opacity var(--ds-dur-medium) var(--ds-ease-in-out),
+      translate var(--ds-dur-medium) var(--ds-ease-spatial);
+  }
+
+  .ds-topbar__search[data-state="closed"] {
+    opacity: 0;
+    translate: 0 calc(-1 * var(--ds-distance-md));
+    pointer-events: none;
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in),
+      translate var(--ds-dur-fast) var(--ds-ease-in);
+  }
+
+  .ds-topbar__search[data-state] .ds-topbar__search-back {
+    display: inline-flex;
+  }
+
+  .ds-topbar__search[data-state] .ds-topbar__results {
+    position: relative;
+    display: block;
+    grid-column: 1 / -1;
+    align-self: stretch;
+    min-height: 0;
+    overflow-y: auto;
+    padding-block: var(--ds-space-2) max(var(--ds-space-4), env(safe-area-inset-bottom));
+    scrollbar-width: thin;
+    scrollbar-color: var(--ds-line-2) transparent;
+  }
+
+  /*
+   * Breadcrumbs that fold (data-ds-breadcrumbs; page.css draws the trail):
+   * the crumbs that do not fit go into a menu behind .ds-breadcrumbs__more,
+   * a small quiet icon button after the first crumb (the middle first, then
+   * the first, then the parent; the current page never). The module marks
+   * them data-ds-collapsed; the chevron goes before the first crumb that
+   * shows. It replaces page.css's narrow rule (only the parent) with the
+   * measured fold.
+   */
+  .ds-breadcrumbs[data-ds-breadcrumbs] li:not([data-ds-collapsed]) {
+    display: flex;
+  }
+
+  .ds-breadcrumbs[data-ds-breadcrumbs] li[data-ds-collapsed] {
+    display: none;
+  }
+
+  .ds-breadcrumbs[data-ds-breadcrumbs] li::before {
+    content: none;
+  }
+
+  .ds-breadcrumbs[data-ds-breadcrumbs] li:not([data-ds-collapsed]) ~ li:not([data-ds-collapsed])::before {
+    content: '';
+  }
+
+  .ds-breadcrumbs__more {
+    flex: none;
+  }
+
+  /*
    * Forced colors (Windows contrast themes) drop the pill's fill: the
    * current destination and the selected option paint the selection
    * themselves, a choice in a set (SelectedItem, D8); the outline stays for
@@ -2040,8 +2395,34 @@
       outline-color: CanvasText;
     }
 
+    /* The current app is a choice in a set; a launcher's discs keep their
+       edges where fills are gone. */
+    .ds-launcher__app[aria-current="true"] {
+      forced-color-adjust: none;
+      background: SelectedItem;
+      color: SelectedItemText;
+    }
+
+    .ds-launcher__app[aria-current="true"] .ds-launcher__icon {
+      background: transparent;
+      color: inherit;
+    }
+
+    .ds-launcher__app[aria-current="true"]:focus-visible {
+      outline-color: CanvasText;
+    }
+
+    .ds-launcher__icon {
+      outline: 1px solid transparent;
+    }
+
+    /* A rail badge is a dot: the system's highlight. */
+    .ds-app--drawer[data-drawer-collapsed] .ds-drawer__item > .ds-badge {
+      forced-color-adjust: none;
+      background: Highlight;
+    }
+
     /* The disc keeps its edge where its fill is gone. */
-    .ds-avatar,
     .ds-account__avatar {
       outline: 1px solid transparent;
     }

@@ -1,8 +1,8 @@
 {
   "name": "hits",
   "group": "content",
-  "order": 890,
-  "docsOrder": 208,
+  "order": 1020,
+  "docsOrder": 212,
   "need": "Mark the hits of a search in a text, ignoring case and accents",
   "tier": 1,
   "status": "beta",

@@ -1,7 +1,7 @@
 {
   "name": "selectpanel",
   "group": "forms",
-  "order": 630,
+  "order": 860,
   "docsOrder": 234,
   "need": "Pick several values in a popover with a filter and an apply foot: labels, assignees, filters",
   "tier": 1,

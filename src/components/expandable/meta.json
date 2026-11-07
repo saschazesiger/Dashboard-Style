@@ -1,8 +1,8 @@
 {
   "name": "expandable",
   "group": "content",
-  "order": 880,
-  "docsOrder": 207,
+  "order": 1010,
+  "docsOrder": 211,
   "need": "Show the first lines of a long text with a Show more button that reveals the rest",
   "tier": 1,
   "status": "beta",

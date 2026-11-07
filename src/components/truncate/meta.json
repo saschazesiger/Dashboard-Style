@@ -1,8 +1,8 @@
 {
   "name": "truncate",
   "group": "content",
-  "order": 870,
-  "docsOrder": 206,
+  "order": 1000,
+  "docsOrder": 210,
   "need": "Cut a long text at its end, start or middle with an ellipsis and show it whole in a tooltip",
   "tier": 1,
   "status": "beta",

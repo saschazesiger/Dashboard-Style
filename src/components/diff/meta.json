@@ -1,7 +1,7 @@
 {
   "name": "diff",
   "group": "content",
-  "order": 1310,
+  "order": 1320,
   "docsOrder": 126,
   "need": "Show what changed in files: unified or side by side, with word marks and folded context",
   "tier": 1,

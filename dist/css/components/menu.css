@@ -34,7 +34,27 @@
  *     <span class="ds-menu__shortcut">Ctrl E</span></button>
  *   <button class="ds-menu__item ds-menu__item--danger" role="menuitem" type="button">(trash) <span class="ds-menu__label">Delete device</span></button>
  *
- *   DS.overlay.open(menu, { opener: button });   DS.overlay.close(menu);
+ * A submenu (3.0): the item names it, and it sits inside the menu right
+ * after the item; DS.menu places it beside the item in the top layer:
+ *
+ *   <button class="ds-menu__item" role="menuitem" type="button" aria-haspopup="menu" aria-expanded="false"
+ *           aria-controls="move-menu">(folder) <span class="ds-menu__label">Move to</span>(chevronRight, .ds-menu__chevron)</button>
+ *   <div class="ds-menu" role="menu" id="move-menu" aria-label="Move to" hidden>…</div>
+ *
+ * A search at the top of a long menu (3.0), and the row the system writes
+ * when nothing matches:
+ *
+ *   <div class="ds-menu" id="assign" hidden>                       no role: a menu holds only items
+ *     <div class="ds-menu__search">(search) <input type="search" aria-label="Search people" aria-controls="assign-list" placeholder="Search"></div>
+ *     <div class="ds-menu__list" role="menu" id="assign-list" aria-label="Assign to">…items…</div>
+ *     <p class="ds-menu__empty" role="none">No results</p>
+ *   </div>
+ *
+ * A context menu (3.0): data-ds-contextmenu="#row-menu" on a row, a tile or
+ * a region opens the menu at the pointer (right click, long press) or under
+ * the focused element (Shift+F10, the ContextMenu key).
+ *
+ *   DS.overlay.open(menu, { opener: button });   DS.overlay.close(menu);   DS.menu.openAt(menu, { x, y, opener: row });
  *   <button data-ds-open="#row-menu" aria-haspopup="menu" aria-expanded="false">   the same, with its arrow keys
  *
  * DS.overlay (js/overlay.js) places it below the trigger, aligned with its
@@ -94,7 +114,8 @@
  *
  * Forced colours: the menu keeps an edge (its transparent outline), the
  * focused item its ring, a blocked item GrayText; the edge shades go; a danger
- * item keeps the system's text, its label says what it does.
+ * item keeps the system's text, its label says what it does; an item whose
+ * submenu shows is Highlight on HighlightText.
  *
  * Print: an open menu is not printed.
  *
@@ -114,7 +135,7 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
+@layer ds.components.global, ds.components.layout, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.calendar, ds.components.container, ds.components.loadmore, ds.components.popover, ds.components.splitpane, ds.components.upload, ds.components.datefield, ds.components.kveditor, ds.components.listdetail, ds.components.sort, ds.components.text, ds.components.toggletip, ds.components.dashpanel, ds.components.filterbar, ds.components.picker, ds.components.spacing, ds.components.wizard, ds.components.facets, ds.components.sticky, ds.components.timepicker, ds.components.unsaved, ds.components.datepicker, ds.components.print, ds.components.query, ds.components.views, ds.components.datagrid, ds.components.daterange, ds.components.timerange, ds.components.duration, ds.components.link, ds.components.toggle, ds.components.button-group, ds.components.menubutton, ds.components.splitbutton, ds.components.copy, ds.components.prioritybar, ds.components.listbox, ds.components.number, ds.components.tree, ds.components.choices, ds.components.jsonview, ds.components.password, ds.components.auditlog, ds.components.secret, ds.components.taginput, ds.components.otp, ds.components.selectpanel, ds.components.inlineedit, ds.components.orderedchoice, ds.components.transfer, ds.components.typeconfirm, ds.components.errorsummary, ds.components.search, ds.components.meter, ds.components.bar-list, ds.components.category-bar, ds.components.lozenge, ds.components.result, ds.components.formatted, ds.components.kbd, ds.components.truncate, ds.components.expandable, ds.components.hits, ds.components.tracker, ds.components.labelgroup, ds.components.image, ds.components.composer, ds.components.message, ds.components.transcript, ds.components.suggestions, ds.components.feedback, ds.components.ailabel, ds.components.tearsheet, ds.components.loadingoverlay, ds.components.lightbox, ds.components.bottomsheet, ds.components.highlight, ds.components.markdown, ds.components.code, ds.components.toc, ds.components.backtop, ds.components.diff, ds.components.logview, ds.components.object, ds.components.terminal, ds.components.shimmer, ds.components.wheel, ds.components.thinking, ds.components.toolcall, ds.components.reasoning, ds.components.cite, ds.components.plan, ds.components.question, ds.components.usage, ds.components.presence, ds.components.avatar, ds.components.persona, ds.components.media, ds.components.levelmeter, ds.components.command, ds.components.shortcuts, ds.components.banner, ds.components.notifications, ds.components.ripple;
 
 @layer ds.components.menu {
   /* Fixed, so no scrolling or clipping box cuts it off. inset, margin and
@@ -336,8 +357,10 @@
     background: var(--ds-line);
   }
 
-  /* A group of items (role="group") is a column like the menu itself. */
-  .ds-menu [role="group"] {
+  /* A group of items (role="group") and the items under a search
+     (.ds-menu__list) are a column like the menu itself. */
+  .ds-menu [role="group"],
+  .ds-menu__list {
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
@@ -392,6 +415,94 @@
 
   .ds-menu__item--danger svg {
     color: inherit;
+  }
+
+  /* An item that opens a submenu: a chevron at its end; while its submenu
+     shows it keeps the hover layer, so the path stays visible (the word is
+     aria-expanded). */
+  .ds-menu__chevron {
+    flex-shrink: 0;
+    margin-inline-start: auto;
+  }
+
+  .ds-menu__label + .ds-menu__chevron,
+  .ds-menu__content + .ds-menu__chevron {
+    margin-inline-start: var(--ds-space-3);
+  }
+
+  .ds-menu__item[aria-expanded="true"]::before {
+    opacity: var(--ds-state-hover);
+  }
+
+  /* The search of a long menu: a field pinned at its top, flush with its
+     edge, the hairline under it standing for the top's cut edge. */
+  .ds-menu__search {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: var(--ds-z-raised);
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: var(--ds-space-2);
+    margin-block: calc(-1 * (var(--ds-menu-padding, var(--ds-space-2)) + var(--ds-density, 0) * 2px)) var(--ds-space-1);
+    padding: 0 var(--ds-space-3);
+    border-block-end: 1px solid var(--ds-line);
+    background: var(--ds-surface-popover);
+    color: var(--ds-text-2);
+    /* An inset ring, as on the items: it rests on the edge and snaps inward. */
+    outline-offset: 0;
+    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  .ds-menu__search > input {
+    flex: 1;
+    min-width: 0;
+    min-height: max(var(--ds-target-min, 0px), calc(var(--ds-menu-item-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ds-text);
+    font: var(--ds-font-input);
+  }
+
+  .ds-menu__search > input::placeholder {
+    color: var(--ds-text-2);
+    opacity: 1;
+  }
+
+  /* The ring sits on the row, inset, since the menu clips what lies outside. */
+  .ds-menu__search > input:focus-visible {
+    outline: none;
+  }
+
+  .ds-menu__search:has(input:focus-visible) {
+    outline: var(--ds-focus-outline);
+    outline-offset: calc(-1 * var(--ds-focus-width));
+  }
+
+  /* The pinned field is the top's edge: no shade over it. */
+  .ds-menu:has(> .ds-menu__search)::before {
+    display: none;
+  }
+
+  /* What the search says when nothing matches (written by the system). */
+  .ds-menu__empty {
+    flex-shrink: 0;
+    margin: 0;
+    padding: var(--ds-space-3) var(--ds-space-4);
+    color: var(--ds-text-2);
+    font: var(--ds-menu-font, var(--ds-size-font, var(--ds-font-body)));
+  }
+
+  /* A context menu's target on a touch screen: the long press is the
+     menu's, so the platform's callout and text selection stay away. */
+  @media (pointer: coarse) {
+    .ds-theme [data-ds-contextmenu] {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
   }
 
   /* The cut edges of a long menu. The menu is its own surface (a mask
@@ -454,8 +565,19 @@
   }
 
   /* Blocked is one system colour (D8). The shades go: forced colours
-     would keep their gradient in the theme's surface colour. */
+     would keep their gradient in the theme's surface colour. An item whose
+     submenu shows is an open disclosure: Highlight. */
   @media (forced-colors: active) {
+    .ds-menu__item[aria-expanded="true"] {
+      forced-color-adjust: none;
+      background: Highlight;
+      color: HighlightText;
+    }
+
+    .ds-menu__item[aria-expanded="true"] svg {
+      color: inherit;
+    }
+
     .ds-menu__item[aria-disabled="true"],
     .ds-menu__item:disabled {
       color: GrayText;

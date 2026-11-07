@@ -1,7 +1,7 @@
 {
   "name": "container",
   "group": "layout",
-  "order": 400,
+  "order": 410,
   "docsOrder": 354,
   "need": "Let a region react to its own width: hide, show or stack parts at the compact, medium and expanded container sizes",
   "tier": 1,

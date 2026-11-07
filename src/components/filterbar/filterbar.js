@@ -49,7 +49,7 @@
  * sheet has closed. Without the script nothing folds: the row wraps.
  *
  * Strings: removeFilter, filterRemoved, filtersCleared, filtersApplied,
- * filterChip, resultsOne, resultsOther, showResults, rangeFrom, rangeTo and
+ * filterChip, resultsOne, resultsOther, showResults, rangeMin, rangeMax and
  * rangeBetween of DS.core.config().
  *
  * ES2022.
@@ -229,8 +229,8 @@ const figure = (text) => (text !== '' && Number.isFinite(Number(text)) ? number(
 /** A range as words: "10 to 50", "from 10", "up to 50". */
 function rangeText(min, max) {
   if (min !== '' && max !== '') return t('rangeBetween', { min: figure(min), max: figure(max) });
-  if (min !== '') return t('rangeFrom', { min: figure(min) });
-  return t('rangeTo', { max: figure(max) });
+  if (min !== '') return t('rangeMin', { min: figure(min) });
+  return t('rangeMax', { max: figure(max) });
 }
 
 /** The applied filters of the controls, one entry per chip. */

@@ -1,7 +1,7 @@
 {
   "name": "filterbar",
   "group": "data",
-  "order": 420,
+  "order": 530,
   "docsOrder": 185,
   "need": "Filter a list from a bar of inline filters that fold into a sheet when narrow, with applied chips, Clear all and a count",
   "tier": 1,

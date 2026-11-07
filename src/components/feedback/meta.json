@@ -1,7 +1,7 @@
 {
   "name": "feedback",
   "group": "feedback",
-  "order": 970,
+  "order": 1100,
   "docsOrder": 960,
   "need": "Rate a reply: thumbs up or down, with an optional dialog that asks why",
   "tier": 1,

@@ -1,7 +1,7 @@
 {
   "name": "kveditor",
   "group": "forms",
-  "order": 410,
+  "order": 470,
   "docsOrder": 333,
   "need": "Edit pairs of a key and a value (environment variables, labels, headers): paste KEY=value lines, duplicates warned, secrets hidden",
   "tier": 1,

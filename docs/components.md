@@ -15,7 +15,7 @@ component live.
 | Switch a mode on the same page (list or map, day or week) | `.ds-segmented` with button options (`role="radio"`, `aria-checked`) in a page toolbar ([App frame](#app-frame)) |
 | Many destinations in the drawer: groups that close, counts, a way back up, actions at the end of an item, a narrow rail | `.ds-drawer__group` as `<details>` with `.ds-drawer__toggle`, `.ds-drawer__count`, `.ds-drawer__back`, `.ds-drawer__row`, `data-drawer-collapsed` ([App frame](#app-frame)) |
 | The page's title, search or actions in the top bar | `.ds-topbar__title`, `.ds-topbar__search`, `.ds-topbar__actions` ([App frame](#app-frame)) |
-| Who is signed in | `.ds-account` in the top bar, or the outlined `.ds-account--capsule`; a person anywhere else: `.ds-avatar` ([App frame](#app-frame)) |
+| Who is signed in | `.ds-account` in the top bar, or the outlined `.ds-account--capsule`; a person anywhere else: `.ds-avatar` ([Avatar](#avatar)), with name, role and status: `.ds-persona` ([Persona](#persona)) |
 | A message for the whole app (offline, maintenance) | `.ds-banner` with a `.ds-alert`, above the view ([App frame](#app-frame)) |
 | A full-page table, or a view that never scrolls (a chat, a terminal) | `.ds-view--fill`, `.ds-view--fixed` ([App frame](#app-frame)) |
 | Page title, lead and the column layout of cards | [Page](#page): `.ds-page-head`, `.ds-stack` (one column), `.ds-grid-2` (two) |
@@ -24,7 +24,9 @@ component live.
 | Sections of one page or record (overview, history, settings) | [Tabs](#tabs) `.ds-tabs` (ARIA tabs, or links between pages of a record) |
 | Tabs or segmented switch? | tabs change what the page shows (sections, with a panel each); a segmented switch changes how the same content shows (a mode, a view) |
 | Where the user is in a form of several steps | [Steps](#steps) `.ds-steps` (marks with labels, or `--bar`) |
-| Rendered rich text (Markdown, a help article) or a block of code | [Prose and code](#prose-and-code): `.ds-prose`, `.ds-code-block` |
+| Rendered rich text (a help article, a chat answer) | [Prose and code](#prose-and-code): `.ds-prose`; from Markdown source, untrusted too: [Markdown](#markdown) `data-ds-markdown`, `DS.markdown` |
+| A block of code (a file, a command, a response) | [Code block](#code-block): `.ds-code-block`, in a `.ds-code` frame with header, copy, line numbers, tabs and fold (`DS.code`) |
+| Code in colour | [Syntax highlighting](#syntax-highlighting): `data-ds-highlight`, `DS.highlight`, the `--ds-code-*` roles |
 | A sign-in or password page | `.ds-auth` with `.ds-auth__card` ([Page](#page)) |
 | A block of related content | [Card](#card) `.ds-card`; a quieter block inside one: `.ds-card--filled` |
 | A whole card opens something (a device, a report) | `.ds-card--interactive` on `<a>` or `<button>`, or on a `<div>` with a `.ds-card__action` link ([Card](#card)) |
@@ -133,7 +135,8 @@ and update the copy; otherwise build it in the project with the project's own cl
 
 Contents: [App frame](#app-frame) · [Page](#page) · [Tabs](#tabs) · [Steps](#steps) · [Button](#button) · [Card](#card) ·
 [Tiles](#tiles) · [Disclosure](#disclosure) · [Lists](#lists) · [Timeline](#timeline) · [Tasks](#tasks) ·
-[Prose and code](#prose-and-code) · [Empty state](#empty-state) · [Status chip](#status-chip) · [Badge](#badge) · [Alert](#alert) ·
+[Prose and code](#prose-and-code) · [Markdown](#markdown) · [Code block](#code-block) ·
+[Syntax highlighting](#syntax-highlighting) · [Empty state](#empty-state) · [Status chip](#status-chip) · [Badge](#badge) · [Alert](#alert) ·
 [Table](#table) · [Form](#form) · [Chips](#chips) · [Switch](#switch) · [Combobox](#combobox) · [Menu](#menu) ·
 [Dialog](#dialog) · [Side sheet](#side-sheet) · [Snackbar](#snackbar) · [Tooltip](#tooltip) · [Save bar](#save-bar) ·
 [Loading](#loading) · [Progress](#progress) · [Charts](#charts) · [File upload](#file-upload) ·
@@ -190,7 +193,8 @@ is the only scroller. At 900px and below the drawer becomes modal.
 | Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container (the compact theme sets dense) | 4px less height per step on drawer rows (48, 44, 40, 36px) and the switch; type, side padding and avatars stay |
 | Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | multiplies the radius of drawer rows and the pill (rest and pressed), the switch and its press clip, the skip link, the account capsule, the panel's top corners, the modal drawer's open side and the avatar |
 | Touch | `.ds-touch` | the theme or a container | drawer rows, the switch, the skip link and the brand link are at least `--ds-touch-target` (48px) whatever the size and density; the menu button's box moves the bar's padding and the modal drawer's lock-up with it |
-| Tone | none | | the frame states no status; a banner's alert does |
+| Size, density, shape, touch: launcher | the same classes | the `.ds-launcher` menu or any ancestor | an app 72 to 104px high (8px per size step, 4px per density step), its disc 24 to 56px (8px per size step), the size's type role; the shape multiplies the app's and the disc's radius; `.ds-touch` makes every app at least `--ds-touch-target` |
+| Tone | none | | the frame states no status; a banner's alert does; a badge takes its own tone |
 
 The frame itself (the top bar's height, the drawer's and the rail's width, the panel's margins) is layout, set through
 its roles (`--ds-topbar-height`, `--ds-drawer-width`, `--ds-drawer-rail-width`): no option moves it.
@@ -242,9 +246,23 @@ its roles (`--ds-topbar-height`, `--ds-drawer-width`, `--ds-drawer-rail-width`):
   pill arrives, the old one fades back. The weight switches at once. Without the script the active item paints its
   own tint, and tint and label change in one frame.
 - `data-label` on a segmented option (its text again) reserves the width of the heavier current weight, so the
-  switch keeps its width when the current option changes. The option then stacks its content and the reserved copy
-  in a column, so use it on an option whose content is its text (or wrap icon and text in one element); without it
-  the switch behaves as before.
+  switch keeps its width when the current option changes: the copy lies under the text without height, and an icon
+  keeps its own column; without it the switch behaves as before.
+- Icons and counts on a segmented option: an icon (`svg`, 16 to 20) before the label, a count after it
+  (`.ds-segmented__count`: tabular figures in the meta role, the option's colour, read with the label through a
+  `.ds-sr` separator), `--ds-space-2` between the parts. An option that is only an icon is named by `aria-label` (with
+  `data-tip` for the pointer) and takes half the side padding. Sizes, density, shape and touch apply as above.
+
+  ```html
+  <div class="ds-segmented" role="radiogroup" aria-label="Tickets">
+    <button class="ds-segmented__option" type="button" role="radio" aria-checked="true" data-label="Open">[icon inbox 18]Open<span class="ds-segmented__count"><span class="ds-sr">, </span>12</span></button>
+    <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-label="Waiting">[icon clock 18]Waiting<span class="ds-segmented__count"><span class="ds-sr">, </span>3</span></button>
+  </div>
+  <div class="ds-segmented" role="radiogroup" aria-label="View">
+    <button class="ds-segmented__option" type="button" role="radio" aria-checked="true" aria-label="List" data-tip="List">[icon list 18]</button>
+    <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" aria-label="Map" data-tip="Map">[icon map 18]</button>
+  </div>
+  ```
 - One tab stop for a set (2.0): tabs, segmented options that are buttons and toggle buttons in a track take
   `DS.dom.roving(container, { items })` ([motion](motion.md#dsdom-jsdomjs)): Tab reaches the current item only, the
   arrow keys, Home and End move between the items and (by default) press the one they reach, so your click handler
@@ -340,7 +358,8 @@ its roles (`--ds-topbar-height`, `--ds-drawer-width`, `--ds-drawer-rail-width`):
   symmetric room, `auto` for none), so a classic scrollbar that appears never shifts the content. Overlay
   scrollbars need no room; Safari before 18.2 ignores it.
 - Keyboard: the skip link is the first tab stop and shows only while focused. Drawer items are links or buttons, each a
-  tab stop; a group's `<summary>` opens and closes it with Enter or Space. In the modal drawer focus stays inside, and
+  tab stop; a group's `<summary>` opens and closes it with Enter or Space; with `data-ds-drawer` the arrow keys, Home
+  and End move between them too. In the modal drawer focus stays inside, and
   Escape closes it and returns focus to the menu button. The rail's toggle is a button with `aria-pressed`; hover never
   expands the rail. A segmented switch of buttons is one tab stop (`DS.dom.roving()`); one of links keeps a stop per
   link.
@@ -492,7 +511,12 @@ never expands the rail: only its toggle does. Items are squares of the height th
 as wide as the column allows.
 
 The toggle is the top bar's menu button: with `aria-pressed` it also shows above 900px, on the drawer icons' axis.
-The page sets the attribute, keeps it across loads and leaves the modal drawer to `DS.overlay` below 900px:
+`data-ds-shell` on the `.ds-app` does all of it (3.0, [below](#dsshell-the-frames-behaviour)): the button toggles the
+rail above 900px and opens the modal drawer at and below it, and the choice is remembered. A drawer action whose
+label is a `.ds-drawer__label` (`<button class="ds-btn ds-btn--tonal" data-tip="New ticket">[icon plus 18]<span
+class="ds-drawer__label">New ticket</span></button>`) turns into an icon button of its height on the rail, named by
+its tooltip. A page without `DS.shell` sets the attribute itself, keeps it across loads and leaves the modal drawer to
+`DS.overlay` below 900px:
 
 ```js
 const wide = matchMedia('(min-width: 901px)');
@@ -504,6 +528,187 @@ menu.addEventListener('click', () => {
   localStorage.setItem('drawer', collapsed ? 'rail' : 'full');
 });
 ```
+
+### DS.shell: the frame's behaviour
+
+`src/components/shell/shell.js` (3.0) wires what a 2.x page wrote by hand around the frame. Each part is a
+`data-ds-*` attribute that `DS.init()` picks up, or an export that returns the same controller (`get()`, `set()`,
+`on(type, fn)`, `destroy()`):
+
+| Attribute | Export | What it does |
+|---|---|---|
+| `data-ds-shell="<key>"` on `.ds-app` | `DS.shell.create(app, { key, rail, remember })` | the menu button: the rail above 900px (a toggle, `aria-pressed`), the modal drawer at and below it (a disclosure, `aria-expanded`, through `DS.overlay`); a choice in the modal drawer closes it; skip links; the drawer's pill (`DS.indicator`), cut edges (`DS.dom.scrollEdges`) and the view's `data-scrolled` (`DS.dom.watchScrolled`) |
+| `data-ds-drawer="<key>"` on `.ds-drawer` | `DS.shell.drawer(nav, { key, remember })` | groups remembered open or closed, the filter, the arrow keys |
+| `data-ds-search-sheet` on `.ds-topbar__search` | `DS.shell.searchSheet(el, { opener })` | the search as a full-width sheet at 720px and below (`DS.shell.SEARCH_QUERY`) |
+| `data-ds-launcher` on `.ds-menu.ds-launcher` | `DS.shell.launcher(menu)` | the launcher's arrow keys in two dimensions |
+| `data-ds-scheme-switch="<key>"` on a group | `DS.shell.schemeSwitch(el, { key, target, link, remember })` | light, dark and auto, remembered, in step everywhere |
+| `data-ds-breadcrumbs` on `.ds-breadcrumbs` | `DS.shell.breadcrumbs(nav)` | the crumbs that do not fit fold into a menu |
+
+Three helpers: `DS.shell.setScheme(value, { target, link, key, remember })` applies a scheme the way the switch does
+(and every switch follows); `DS.shell.matchText(text, query)`, the drawer filter's match (every word, any case, without
+accents) for a page's own search, and `DS.shell.fitCrumbs(widths, room, more)`, the breadcrumbs' fold, are pure
+functions.
+
+- **Frame** (`data-ds-shell`): the rail is remembered under the key through [`DS.store`](core.md) (namespace
+  `shell`); `data-ds-shell-rail="off"` keeps the drawer full (the button then shows only with the modal drawer) and
+  `data-ds-shell-remember="off"` stores nothing. Hover never expands the rail. `set({ rail })` and
+  `set({ open })` drive it from the page; `get()` returns `{ rail, open }`; `ds:change` (`{ rail }`) fires on the
+  `.ds-app`. The rail clears the drawer's filter (it has no room for the field). A skip link focuses its target (a
+  target that cannot take focus gets `tabindex="-1"`); one that leads into the drawer opens the modal drawer, one that
+  leads into a phone search sheet opens it.
+- **Push or overlay.** The width decides, not the page: above 900px the drawer is docked and pushes the panel (full
+  or as the rail); at and below it the drawer overlays the page as a modal sheet over the scrim. `DS.overlay` decides
+  by `DS.overlay.DRAWER_QUERY`. There is no modal drawer at desktop widths yet; a console that wants all the width for
+  its content uses the rail.
+- **Drawer** (`data-ds-drawer`): see [Filter, remembered groups and badges](#filter-remembered-groups-and-badges).
+- Every part this module adds (the "more" crumb and its menu, the drawer's "No results") carries `data-ds-keep`, so
+  a re-render with `DS.dom.morphHtml` leaves it. The marks it writes (`data-ds-filtered`, `data-ds-collapsed`, the
+  `open` of a group the filter opened) are owned state, so a re-render keeps them, and a re-render that changes the
+  drawer's list or the trail (new items, other labels) filters or folds again. Its strings come from `DS.core.config({ strings })`:
+  `filterMatch`, `filterMatches`, `noResults`, `breadcrumbsMore` ([install.md](install.md), "Language and locale").
+
+### Filter, remembered groups and badges
+
+```html
+<nav class="ds-drawer" aria-label="Main" tabindex="-1" data-ds-drawer="main">
+  <div class="ds-drawer__search">
+    <div class="ds-search">[icon filter 20]<input class="ds-input" type="search" aria-label="Filter the navigation" placeholder="Filter"></div>
+  </div>
+  <div class="ds-drawer__list">
+    <details class="ds-drawer__group ds-collapsible" id="nav-tickets" open> ... </details>
+    <a class="ds-drawer__item" href="/updates" data-tip="Updates">[icon bell 20]<span class="ds-drawer__label">Updates</span><span class="ds-badge"><span class="ds-sr">, </span>4<span class="ds-sr"> new</span></span></a>
+  </div>
+</nav>
+```
+
+- **Remembered groups.** Each `<details class="ds-drawer__group">` is remembered open or closed under the drawer's
+  key, by its `id` (else `data-ds-key`, else its heading's text). The groups around the current item
+  (`aria-current="page"`) open on load, without motion. `get()` returns `{ query, count, open }`, `set({ open:
+  { '<key>': true } })` opens or closes groups, `set({ query })` filters.
+- **The filter.** `.ds-drawer__search` (between the actions and the list) holds a search field. Typing filters the
+  items by their labels: every word, in any case, without accents; a group whose heading matches shows all of its
+  items. Groups that hold a match open until the field is cleared (then they close again and nothing of it is
+  remembered); filtered items, rows and groups take no room (`data-ds-filtered`, written by the module). Without a
+  match `.ds-drawer__empty` says "No results". The count is announced once the typing pauses
+  (`--ds-delay-tooltip`): "3 matches". Escape clears a filled field, ArrowDown goes to the first match. `ds:filter`
+  (`{ query, count }`) fires on the drawer. The rail hides the field.
+- **Keys** (the optional keys of the [APG disclosure navigation](https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation/)):
+  ArrowDown and ArrowUp move between the shown items and group toggles, Home and End to the first and the last;
+  ArrowUp from the first goes back to the field. Tab still reaches every link; Enter and Space open a group.
+- **Badges.** A `.ds-badge` ([Badge](#badge)) at the end of an item or a group toggle takes the count's place, when the
+  count is news (unread). Give it its words in `.ds-sr` (", 4 new"). On the rail it becomes a dot on the icon's corner
+  (`--ds-badge-dot-size`, `--ds-primary` or the badge's tone), its figure still read with the label; in forced colours
+  the dot is `Highlight`.
+- **Folder groups**: a nested `<details>` group is a folder; it indents its rows by `--ds-drawer-indent` per level (2-3
+  levels) and is remembered like any group.
+
+### Top bar: search, launcher, notifications and account
+
+```html
+<div class="ds-topbar">
+  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu">[icon menu 20]</button>
+  <a class="ds-brand" href="/"><span class="ds-brand__name">Product</span></a>
+  <div class="ds-topbar__search" data-ds-search-sheet>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__search-back" type="button" aria-label="Close search" data-ds-close>[icon arrowLeft 20]</button>
+    <div class="ds-search">[icon search 20]<input class="ds-input" type="search" aria-label="Search devices" placeholder="Search devices"></div>
+    <div class="ds-topbar__results"> (what the page shows for the query on phones) </div>
+  </div>
+  <div class="ds-topbar__actions">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__search-open" type="button" aria-label="Search" data-tip="Search">[icon search 20]</button>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Apps" aria-haspopup="menu" aria-expanded="false" aria-controls="apps" data-ds-open="#apps" data-tip="Apps">[icon apps 20]</button>
+    <div class="ds-menu ds-launcher" role="menu" id="apps" aria-label="Apps" data-ds-launcher hidden>
+      <a class="ds-menu__item ds-launcher__app" role="menuitem" href="/devices" aria-current="true"><span class="ds-launcher__icon">[icon laptop 24]</span><span class="ds-launcher__label">Devices</span></a>
+      <a class="ds-menu__item ds-launcher__app" role="menuitem" href="/tickets"><span class="ds-launcher__icon">[icon ticket 24]</span><span class="ds-launcher__label">Tickets</span></a>
+    </div>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Notifications, 3 unread" data-tip="Notifications">[icon bell 20]<span class="ds-badge ds-badge--dot ds-tone-error" aria-hidden="true"></span></button>
+  </div>
+  <div class="ds-account">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+    <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+      <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+      <div class="ds-menu__divider" role="separator"></div>
+      <div role="group" aria-labelledby="theme-heading" data-ds-scheme-switch>
+        <p class="ds-menu__heading" id="theme-heading">Theme</p>
+        <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="false" data-ds-scheme-value="light">[icon check 20 .ds-menu__check]<span class="ds-menu__label">Light</span>[icon sun 20]</button>
+        <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="false" data-ds-scheme-value="dark">[icon check 20 .ds-menu__check]<span class="ds-menu__label">Dark</span>[icon moon 20]</button>
+        <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="true" data-ds-scheme-value="auto">[icon check 20 .ds-menu__check]<span class="ds-menu__label">Device</span>[icon monitor 20]</button>
+      </div>
+      <div class="ds-menu__divider" role="separator"></div>
+      <button class="ds-menu__item" role="menuitem" type="button">[icon logout 20]<span class="ds-menu__label">Sign out</span></button>
+    </div>
+  </div>
+</div>
+```
+
+- **Global search, a sheet on phones** (`data-ds-search-sheet`). Above 720px the search sits in the bar as before;
+  the page shows its results its own way (a [Combobox](#combobox) list, or a results page). At 720px and below the
+  bar shows `.ds-topbar__search-open` instead, and that button opens the search as a full-width sheet over the whole
+  frame (`DS.overlay`): the head is `.ds-topbar__search-back` (a `data-ds-close` button) and the field on the bar's
+  height, `.ds-topbar__results` below it scrolls and holds what the page renders for the query (re-render it with
+  `DS.dom.morphHtml`). The field takes the focus; the rest of the page is inert (`DS.a11y.inert`), Tab stays inside,
+  the scroll is locked; Escape (a filled field's own clearing first) closes it and the focus returns to the button.
+  Widening the window closes it and the search is back in the bar. `get()` says whether it is open, `set(true)`
+  opens it (at phone width only). It fades in while it slides down by `--ds-distance-md` on the spring
+  (`--ds-dur-medium`) and leaves in `--ds-dur-fast`, accelerating; a close mid-way turns back. Forced colours: its
+  transparent outline becomes its edge.
+- **App switcher** (`.ds-launcher`): a [Menu](#menu) laid out as a grid of apps, opened by an icon button
+  (`data-ds-open`, `aria-haspopup="menu"`). Each app is a `.ds-menu__item.ds-launcher__app`: an icon on a tonal disc
+  (`.ds-launcher__icon`) over a label of up to two lines (`.ds-launcher__label`). The current app has
+  `aria-current="true"`: its disc takes the tint (`--ds-accent`) and its label the label weight, never colour alone;
+  forced colours make it `SelectedItem`. `data-ds-launcher` adds the grid's keys: Left and Right along a row, Up and
+  Down by a column (no wrap at the edges), Home and End; the menu does the rest (type-ahead, Escape, Tab closes).
+  `--ds-launcher-columns` (3) sets the columns, `--ds-launcher-app-width` (96px) a column's width (the grid is at
+  most the window's width), `--ds-launcher-app-height` (88px at md) and `--ds-launcher-icon-size` (40px) step 8px
+  per size; density takes 4px per step off an app and 2px off the grid's padding; `.ds-touch` makes every app at least
+  `--ds-target-min`; the shape multiplies the app's and the disc's radius.
+- **Notification bell** (the slot). An icon button in `.ds-topbar__actions` whose name carries the count
+  ("Notifications, 3 unread") and, while there is news, a `.ds-badge.ds-badge--dot` on its icon's corner, inside the
+  button (`aria-hidden`: the name says it). The notification centre itself is its own component: give the button its
+  `data-ds-open` (or open the centre from the page's click handler) and update the name and the dot when the count
+  changes. Without a centre, the button links to a notifications page.
+- **Account menu.** `.ds-account__trigger` is a quiet icon button around the `.ds-account__avatar` disc (its state
+  layer, ring, ripple and target; the disc keeps its size); it opens `.ds-account__menu` (a [Menu](#menu), at most
+  `--ds-account-menu-width`, 280px), headed by `.ds-account__head` (the avatar `.ds-lg`, name and email; `aria-hidden`,
+  since the menu's `aria-labelledby` names the ids of `.ds-account__name` and `.ds-account__email`: the menu is
+  "Ada Lovelace ada@example.org", without the avatar's initial). Then the theme switch, the page's own links (profile, settings) and sign out, a
+  `menuitem` whose click the page handles. The trigger never shrinks; on phones a brand of only a name gives way
+  with an ellipsis instead.
+- **Theme switch** (`data-ds-scheme-switch="<key>"`): items with `data-ds-scheme-value="light | dark | auto"` and
+  `aria-checked` (`menuitemradio` in a menu, whose keys are the menu's; `radio` in a `radiogroup` elsewhere, such as a
+`.ds-segmented`: the switch makes the checked radio the one tab stop, and the arrow keys move to the next or previous
+radio and choose it, round at the ends, Space chooses, as in the
+[APG radio group](https://www.w3.org/WAI/ARIA/apg/patterns/radio/)). A choice sets `data-ds-scheme` on
+  the `.ds-theme` around the switch (`auto` removes it: the system decides) or on the one
+  `data-ds-scheme-switch-target` names, which needs a theme that holds both schemes (a preset, `light-dark()`); with
+  `themes/dark.css` name its `<link>` in `data-ds-scheme-switch-link`, whose `media` follows (`all`, `not all`,
+  `(prefers-color-scheme: dark)`). The choice is stored under the key (default `scheme`; `data-ds-scheme-switch-remember="off"`
+  stores nothing) and applied on the next load (call `DS.init()` early, or apply it before the first paint with
+  `DS.shell.setScheme(DS.store.open('shell').get('scheme', 'auto'), { remember: false })`). Every switch on the page
+  and in other tabs follows, and so does a switch whose theme the page pins itself. `ds:change` (`{ value }`) fires on
+  the switch.
+
+### Breadcrumbs that fold
+
+```html
+<nav class="ds-breadcrumbs" aria-label="Breadcrumb" data-ds-breadcrumbs>
+  <ol>
+    <li><a href="/">Home</a></li>
+    <li><a href="/sites">Sites</a></li>
+    <li><a href="/sites/a">Building A</a></li>
+    <li><a href="/sites/a/devices">Devices</a></li>
+    <li><a href="/sites/a/devices/42" aria-current="page">LAPTOP-0042</a></li>
+  </ol>
+</nav>
+```
+
+`data-ds-breadcrumbs` measures the trail against the width of its nav (a `ResizeObserver`, so a narrower column, a
+panel or a resized window folds it, not only the window's width). When it does not fit, the crumbs after the first
+go into a menu behind `.ds-breadcrumbs__more` (a quiet `.ds-xs` icon button after the first crumb, named "Show 3
+more", `aria-haspopup="menu"`), from the start of the middle; then the first crumb; then the parent; the current
+page never. Folded crumbs carry `data-ds-collapsed` (written by the module). The menu lists them in order as links,
+opens with a click, Enter, Space, ArrowDown or ArrowUp, and moves and closes as every [Menu](#menu). It replaces the
+[Page](#page)'s narrow rule (only the parent on phones) with the measured fold. A trail the page changes
+folds again. `get()` lists the folded crumbs, `set()` measures again, `ds:change` (`{ folded }`) fires on the nav.
 
 ### Top bar parts
 
@@ -543,19 +748,8 @@ menu.addEventListener('click', () => {
 
 ### Avatar
 
-```html
-<span class="ds-avatar" role="img" aria-label="Ada Lovelace">A</span>                      <!-- the initial -->
-<span class="ds-avatar ds-sm" aria-hidden="true">A</span> Ada Lovelace                      <!-- next to the name -->
-<img class="ds-avatar" src="/people/ada.jpg" alt="">                                        <!-- a picture -->
-```
-
-A disc on the tint (`--ds-accent` / `--ds-on-accent`) of `--ds-avatar-size` (32px at size md, 8px per size step: `.ds-xs`
-16, `.ds-sm` 24, `.ds-lg` 40, `.ds-xl` 48px), the initial in the size's role, a picture covering it. The shape multiplies
-its radius (square at `.ds-shape-square`). `.ds-account__avatar` is the same disc. No status dot: a status goes next to
-the name as a word. Forced colours keep its edge.
-
-`.ds-avatar--sm` and `.ds-avatar--lg` are **deprecated** (3.0, removed when 3.0 ships): `.ds-sm` and `.ds-lg`, also on any
-ancestor. Until then they keep the fixed 2.x discs (24 and 40px).
+The account's avatar and an avatar anywhere else are [Avatar](#avatar) (`.ds-avatar`); `.ds-account__avatar` is the same
+disc, sized by `--ds-avatar-size`.
 
 ### A message for the whole app
 
@@ -596,6 +790,23 @@ print.
   widget never calls `followViewport()`: the host page owns the viewport.
 
 **Motion:** the [Navigation](motion.md#navigation) table (indicator, drawer, modal drawer, segmented, top bar) and [Views](motion.md#views) in motion.md.
+
+<!-- changelog -->
+- **App frame** (3.0): `DS.shell` (`src/components/shell/shell.js`), the frame's behaviour as `data-ds-*` attributes:
+  `data-ds-shell` (the menu button toggles the rail above 900px, remembered, and opens the modal drawer below; skip
+  links; the drawer's pill, edges and `data-scrolled`), `data-ds-drawer` (groups remembered open or closed, a filter
+  inside the drawer, `.ds-drawer__search` and `.ds-drawer__empty`, the arrow keys), `data-ds-search-sheet` (the top
+  bar's search as a full-width sheet at 720px and below, `.ds-topbar__search-open`, `.ds-topbar__search-back`,
+  `.ds-topbar__results`), `data-ds-launcher` (the app switcher, `.ds-launcher`, `.ds-launcher__app`,
+  `.ds-launcher__icon`, `.ds-launcher__label`, hooks `--ds-launcher-columns`, `--ds-launcher-app-width`,
+  `--ds-launcher-app-height`, `--ds-launcher-icon-size`, `--ds-launcher-font`), `data-ds-scheme-switch` and
+  `DS.shell.setScheme()` (light, dark, auto, remembered), the account menu (`.ds-account__trigger`,
+  `.ds-account__menu`, `.ds-account__head`, hook `--ds-account-menu-width`), and `data-ds-breadcrumbs` (the middle
+  folds into a menu behind `.ds-breadcrumbs__more` by the nav's width). Badges in drawer items (a dot on the rail),
+  a dot on a top bar icon button (the notification slot), and a drawer action that turns icon-only on the rail.
+  Strings `filterMatch`, `filterMatches`, `breadcrumbsMore`.
+- Segmented switch: icons and counts (`.ds-segmented__count`) on an option, icon-only options with half the side
+  padding; `data-label` now reserves the heavier width in a grid, so an icon keeps its column.
 ## Page
 
 The padded content area, one page of cards and its head: back link or breadcrumbs, title, status, actions, key facts
@@ -669,6 +880,62 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
 - Empty parts take no room (`:empty`: the head, the lead, the status, the actions, the details and the tabs). The lead's
   figures are tabular. Print leaves out the back link and the actions.
 
+### A sticky head that condenses, actions that fold
+
+```html
+<header class="ds-page-head ds-page-head--sticky" data-ds-page-head>
+  ... the same parts ...
+</header>
+```
+
+- **`.ds-page-head--sticky`** sticks `--ds-page-head-top` (0px; the height of a bar that sticks above it) below the top
+  of its scroller, on `--ds-page-head-bg` (`--ds-backdrop`; set it to the surface it lies on), with `--ds-space-3`
+  above and below. A hairline under it shows while the content scrolls under it: where scroll timelines exist it fades
+  in over the first `--ds-space-2` of scroll (`ds-scroll-fade`, progressive), elsewhere with `data-scrolled` over
+  `--ds-dur-fast`. Print puts it back in the flow.
+- **Condensing** (`data-ds-page-head` on a sticky head; `data-ds-page-head-condense="off"` keeps it whole): once the
+  head sticks (a head under a banner or a toolbar first scrolls up to its sticky top) and the reader has scrolled past
+  what folds, the module writes `data-scrolled` on the head and the back link or breadcrumbs,
+  the lead, the status and the key facts fold away; the title takes `--ds-font-title` on one line (an ellipsis when
+  short of room) with the actions at its end, also on a narrow page; the tabs stay. What folded keeps its room in the
+  flow (a bottom margin as tall, `--ds-page-head-fold`, a runtime property the module writes), so the content under it
+  stays where it was, a running scroll goes on, and the state follows the scroll position alone: nothing jumps,
+  nothing flickers. The scroller is the nearest scrolling ancestor of the head, else the page. A head prints whole,
+  also while condensed.
+- **Folding actions** (`data-ds-page-head` on any head): the module writes `.ds-page-head__more` (a quiet icon button
+  named "More actions", the string `moreActions`) and its `.ds-menu` after the actions. Actions that do not fit the
+  title row (on its own line under the title as well; half of it beside the title of a condensed head) hide, the first
+  ones first and a filled one last, and the menu lists them with their icon and label; an item presses its action (a
+  link item follows the link), a blocked action stays blocked in the menu. The row's width decides (a
+  `ResizeObserver`), so a narrow content panel folds as a phone does. An action that opens an overlay with itself as
+  the opener passes the More button instead while it is folded (`hidden`), so the popup is placed against a button on
+  screen and the focus returns to it on close:
+  `DS.overlay.open(dialog, { opener: button.hidden ? head.querySelector('.ds-page-head__more') : button })`.
+- `ds:change` on the head: `{ condensed }`.
+
+| Attribute | Option | What |
+|---|---|---|
+| `data-ds-page-head` | | the behaviour, on the `.ds-page-head` |
+| `data-ds-page-head-condense` | `condense: false` | `off`: a sticky head stays whole |
+
+The controller (`DS.get(head, 'page')`, or what `DS.page.create(head, options)` returns): `get()` (whether it is
+condensed), `set(condensed)` (until the next scroll decides), `on('change', fn)`, `refresh()` (lays the actions out
+again and measures the head's place, after content above it changed) and `destroy()`. `DS.page.fold(widths, { room, gap, more, order })` is the folding rule alone: the indices of the
+actions that fold.
+
+What the module writes is owned state (`DS.dom.morphHtml` keeps it): `data-scrolled` and its `style` (the fold) on the
+head and `hidden` on the folded actions; the More button and its menu are the system's own (`data-ds-keep`).
+
+- Keyboard and names: the More button is a tab stop after the actions that stay; Enter, Space or Down opens its menu
+  (`DS.menu`: arrow keys, Escape returns the focus to More). A condensed head keeps every action reachable. The title
+  keeps its heading level in both states.
+- Forced colours: the hairline under a sticky head is `CanvasText`; the More
+  button and menu are the button's and the menu's.
+
+**Motion:** the hairline under a sticky head fades in with the scroll (or over `--ds-dur-fast`); the head condenses in
+one frame once its folding parts have scrolled under it, so the reader sees no jump.
+The More menu opens and closes as every menu does.
+
 ### Breadcrumbs
 
 ```html
@@ -731,12 +998,19 @@ page, never inside `.ds-app`.
 ```js
 DS.motion.transition(() => { DS.dom.morphHtml(view, renderStep(2)); return view.firstElementChild; }, { type: 'forward', focus: true });
 ```
+
+<!-- changelog
+- Page head: `.ds-page-head--sticky` (`--ds-page-head-top`, `--ds-page-head-bg`) and a behaviour module (`DS.page`,
+  `data-ds-page-head`): the sticky head condenses once the reader has scrolled (`data-scrolled`, the content kept in
+  place; the hairline on a scroll timeline where supported), and the actions fold into a More menu
+  (`.ds-page-head__more`) by the row's width.
+-->
 ## Tabs
 
 Sections of one page or record. ARIA tabs show one panel at a time; link tabs move between pages of a record.
 
 ```html
-<div class="ds-tabs" role="tablist" aria-label="Device">
+<div class="ds-tabs" role="tablist" aria-label="Device" data-ds-tabs>
   <button class="ds-tabs__tab" role="tab" type="button" id="t-details" aria-selected="true" aria-controls="p-details" data-label="Details">Details</button>
   <button class="ds-tabs__tab" role="tab" type="button" id="t-history" aria-selected="false" aria-controls="p-history" tabindex="-1" data-label="History">History<span class="ds-tabs__count"><span class="ds-sr">, </span>3</span></button>
 </div>
@@ -766,7 +1040,7 @@ Sections of one page or record. ARIA tabs show one panel at a time; link tabs mo
 <!-- ... and in its panel, the named action everyone else reaches -->
 <div class="ds-tabs__panel" role="tabpanel" id="p-report" aria-labelledby="t-report" tabindex="0" hidden>
   ...
-  <button class="ds-btn ds-btn--text" type="button">Close Report</button>
+  <button class="ds-btn ds-btn--text" type="button" data-ds-tabs-close>Close Report</button>
 </div>
 ```
 
@@ -780,6 +1054,75 @@ Sections of one page or record. ARIA tabs show one panel at a time; link tabs mo
 | Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | multiplies the ring's radius, the state layer's (rest and pressed) and the contained tray's and pill's |
 | Touch | `.ds-touch` | the theme or a container | a tab is at least `--ds-touch-target` (48px) high whatever the size and density; so is the close button, and the tab keeps room for it |
 | Tone | none | | a tab states no status; a word or a `.ds-badge` in it may |
+
+### Behaviour: `data-ds-tabs`
+
+`data-ds-tabs` on the row (`DS.init()` finds it; `DS.tabs.create(row, options)` is the imperative path, with the same
+controller) does what 2.x pages wired by hand:
+
+- **Selection.** A click, or the arrow keys, selects a tab: `aria-selected`, the one tab stop (`DS.dom.roving()`), the
+  panels' `hidden` (the new one enters with `DS.motion.enter(panel, 'swap')`), the indicator (`DS.indicator`, with
+  `reveal`) and a `ds:change` on the row with `{ tab, panel, previous, value, first }` (`value` is the tab's id). With
+  `data-ds-tabs-activate="manual"` the arrow keys only move the focus and Enter or Space selects. An `aria-disabled`
+  tab takes the focus, never the selection. Link tabs (a `<nav>` of links) get the indicator; the page navigates and
+  sets `aria-current`.
+- **Panels kept alive.** A panel that hides keeps its DOM, its fields and its own scroll position. `first` in
+  `ds:change` is `true` the first time a panel shows, so a page may fill it then.
+- **Closing.** A tab closes when its `.ds-tabs__item` holds a `.ds-tabs__close` or it says
+  `aria-keyshortcuts="Delete"`: from that button, from Delete, and from a `data-ds-tabs-close` button in its panel.
+  `ds:close` (`{ tab, panel }`, on the row) may be cancelled, for unsaved work or the last tab; otherwise the tab and
+  its panel go, a neighbour takes the selection when the selected one closed, the focus stays in the row (the add
+  button when no tab is left), and a screen reader hears "{label} closed" (the string `tabClosed`). The overlays' own
+  `ds:close` bubbles too: check `event.target` when you listen above the row.
+- **Adding.** A `.ds-tabs__add` button in the `.ds-tabs__bar` sends `ds:add` on the row; the page calls `add()`,
+  which writes a tab (closable unless `closable: false`) and a panel after the last one, and selects and focuses it.
+  The panel of a tab that closes holds its named close action, a `.ds-btn--text` with `data-ds-tabs-close` ("Close
+  June", the string `closeTab`): the page puts its content before it (`panel.prepend()`). A page that passes its own
+  `panel` writes that action itself.
+- **Overflow into "More".** With `data-ds-tabs-overflow` (`overflow: true`) on a row in a `.ds-tabs__bar`, the tabs
+  that do not fit the bar hide (`hidden` on the tab or its `.ds-tabs__item`) and a "More" button after the last one
+  (`.ds-tabs__more`, the string `more`, named "More tabs", `moreTabs`) opens a `.ds-menu` of them, with their icons
+  and counts (`DS.menu`, so `DS.overlay` opens it, focuses it, closes it on Escape and returns the focus). An item
+  selects its tab, which comes back into the row and takes the focus: the selected tab always stays in the row. The
+  bar's width (a `ResizeObserver`), added and removed tabs and changed labels lay it out again. A vertical row never
+  overflows: it scrolls.
+
+```html
+<div class="ds-tabs__bar">
+  <div class="ds-tabs" role="tablist" aria-label="Drafts" data-ds-tabs data-ds-tabs-overflow> ... tabs that close ... </div>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-tabs__add" type="button" aria-label="New report">[icon plus 20]</button>
+</div>
+```
+
+```js
+row.addEventListener('ds:add', () => {
+  const { panel } = DS.get(row, 'tabs').add({ label: 'June' });
+  panel.prepend(renderReport('June')); // before the "Close June" action add() wrote
+});
+row.addEventListener('ds:close', (event) => {
+  if (unsaved(event.detail.panel)) event.preventDefault();
+});
+```
+
+| Attribute | Option | What |
+|---|---|---|
+| `data-ds-tabs` | | the behaviour, on the `.ds-tabs` row |
+| `data-ds-tabs-overflow` | `overflow: true` | the tabs that do not fit the `.ds-tabs__bar` go into a "More" menu |
+| `data-ds-tabs-activate` | `activate` | `focus` (default): the arrow keys select; `manual`: Enter or Space selects |
+| `data-ds-tabs-close` | | on a button in a panel: closes that panel's tab |
+
+The controller (`DS.get(row, 'tabs')`, or what `create()` returns): `get()` (the id of the selected tab, or for link
+tabs the current one), `set(idOrTab)` (selects it, also one in the More menu; returns whether the selection changed),
+`select(tab, { focus, animate })`, `close(tab)` (as Delete, `ds:close` first), `add({ label, id, closable, select,
+panel })` (returns `{ tab, panel }`), `refresh()` (lays the row out again), `on('change' | 'close' | 'add', fn)`
+(returns the unsubscribe) and `destroy()`. `DS.tabs.fit(widths, { room, gap, pad, selected })` is the arithmetic of the
+overflow alone: the indices of the tabs that stay in a row of `room` px.
+
+What the module writes is owned state, so a re-render with `DS.dom.morphHtml` keeps it: `aria-selected` on the tabs,
+`hidden` on the panels and on the tabs that overflow. Drive the selection with `set()`, not by re-rendering
+`aria-selected`. The More button and its menu are the system's own (`data-ds-keep`).
+
+Without the module (2.x, still fine for a row the page owns completely):
 
 ```js
 DS.indicator.create(tabs, { active: '[aria-selected="true"], [aria-current="page"]', className: 'ds-tabs__indicator', reveal: true });
@@ -797,6 +1140,8 @@ tabs.addEventListener('click', (event) => {
 });
 ```
 
+### Look
+
 - A row of `--ds-tabs-height` (48px at size md and comfortable) over a `--ds-line` hairline (`.ds-tabs--line` names this
   look explicitly); labels in the size's role (`--ds-tabs-font`) at the regular weight in `--ds-text-2`, side padding
   `--ds-tabs-padding-x`. The selected tab takes `--ds-primary` ink, the label weight and the bar: a
@@ -808,14 +1153,16 @@ tabs.addEventListener('click', (event) => {
   pill of `--ds-surface` that glides inside it (the same indicator). The tab gives up the tray's padding, so the row is
   as high as a line row. Selected is pill, ink, weight and ARIA.
 - `.ds-tabs--vertical`: a column with the hairline and the bar at its end, labels at its start (with `--contained` a
-  tall tray). Set `aria-orientation="vertical"` and call `DS.dom.roving(tabs, { orientation: 'vertical' })`.
+  tall tray). Set `aria-orientation="vertical"`: the module then moves with Up and Down (by hand:
+  `DS.dom.roving(tabs, { orientation: 'vertical' })`).
   `.ds-tabs__columns` lays it out beside the panels, and over them at 600px of the content.
 - `.ds-tabs__count`: a count after the label (tabular figures, the meta role, the tab's colour). A `.ds-sr` separator
   reads it with the label ("History, 3"). A `.ds-badge` is for news that needs the eye.
 - A tab that closes: `.ds-tabs__item` (`role="none"`) holds the tab and a `.ds-tabs__close`, a quiet extra-small icon
-  button lying over the tab's end; the tab keeps room for it, also under `.ds-touch`. The page removes the tab and its
-  panel and moves the focus before the closing control goes: when the selected tab closes it selects a neighbour and
-  focuses it; when another tab closes, the focus goes to the selected tab and the selection stays. The button is for the
+  button lying over the tab's end; the tab keeps room for it, also under `.ds-touch`. The module (or, without it, the
+  page) removes the tab and its panel and moves the focus before the closing control goes: when the selected tab
+  closes a neighbour takes the selection and the focus; when another tab closes, the focus goes to the selected tab
+  and the selection stays. The button is for the
   pointer alone: a tablist owns only tabs, so it is `tabindex="-1"` and `aria-hidden="true"`, with no name of its own.
   Delete on the tab closes it (`aria-keyshortcuts="Delete"` says so), and the tab's panel holds a named close action,
   the one way for a screen reader on a touch screen.
@@ -825,12 +1172,19 @@ tabs.addEventListener('click', (event) => {
 - Switching: the page toggles `hidden` on the panels and enters the new one (`DS.motion.enter(panel, 'swap')`). Link
   tabs are navigation: `DS.motion.transition(update, { type: 'fade-through' })` ([Views](motion.md#views)).
 - Overflow: the row scrolls sideways without a scrollbar (add `.ds-scroll-x` for its edge fades); `DS.dom.roving()`
-  scrolls a focused tab into view, and `reveal: true` keeps the selected one in view.
+  scrolls a focused tab into view, and `reveal: true` keeps the selected one in view. Or it folds into "More"
+  (`data-ds-tabs-overflow`, above).
+- `.ds-tabs__bar`: the row with the buttons after it (the More button, a `.ds-tabs__add`), as wide as its container;
+  the hairline is the bar's (none around a contained or flush row). The row takes the width of its tabs, so More
+  follows the last one; a `--fill` row takes the rest. `.ds-tabs__more` is a quiet button, "More" and a chevron;
+  `.ds-tabs__add` a quiet icon button the page writes, named by its `aria-label` ("New report").
 - `.ds-tabs--fill`: equal widths across the row. `.ds-tabs--flush`: no hairline (the tabs sit on a card's edge).
 - A panel that holds nothing focusable keeps `tabindex="0"`, so a keyboard reaches its content.
-- Keyboard: ARIA tabs are one tab stop (`DS.dom.roving()`): Left and Right (Up and Down in a vertical row), Home and End
-  move and select, a disabled tab is skipped, an `aria-disabled` one takes the focus and keeps its panel; Delete closes
-  a tab that closes; Tab goes on to the panel. Link tabs keep a stop per link. Names: the row's `aria-label`, `aria-controls` and `aria-labelledby` between
+- Keyboard (the APG tabs pattern, automatic activation by default): ARIA tabs are one tab stop (`DS.dom.roving()`):
+  Left and Right (Up and Down in a vertical row), Home and End move and select (with `manual`, Enter or Space
+  selects), a disabled tab and one folded into More are skipped, an `aria-disabled` one takes the focus and keeps its
+  panel; Delete closes a tab that closes; Tab goes on to the More and add buttons, then the panel. More opens its menu
+  on Enter, Space, Down (the first item) or Up (the last); Escape closes it and returns to More. Link tabs keep a stop per link. Names: the row's `aria-label`, `aria-controls` and `aria-labelledby` between
   tab and panel, `aria-current="page"` on the current link.
 - Forced colours: the selected tab is `SelectedItem` / `SelectedItemText` (a choice in a set) and the indicator is
   hidden; a focused selected tab keeps a `CanvasText` ring inside; blocked tabs are `GrayText`; the contained tray keeps
@@ -839,10 +1193,19 @@ tabs.addEventListener('click', (event) => {
 - Hooks: [theming.md](theming.md#component-hooks).
 
 **Motion:** the "Tabs" row of [Navigation](motion.md#navigation) in motion.md. The contained pill and the vertical bar
-glide like the bar.
+glide like the bar. The More menu opens and closes as every menu; a tab that comes back from it into the row takes
+its place at once (layout never animates) and the indicator glides to it.
+
+<!-- changelog
+- Tabs: `data-ds-tabs` (`DS.tabs`, `tabs.js`): selection, the keyboard, panels kept alive (`first` in `ds:change`),
+  the indicator, closing (`ds:close`, cancelable; Delete, the close button, `data-ds-tabs-close` in a panel), adding
+  (`.ds-tabs__add`, `ds:add`, `add()`) and the overflow into a "More" menu (`data-ds-tabs-overflow`,
+  `.ds-tabs__bar`, `.ds-tabs__more`). New strings `moreTabs`, `tabClosed`, `closeTab`.
+-->
 ## Steps
 
-Where the user is in a form of a few steps. Steps are not buttons: going back is a link or a button of the page.
+Where the user is in a form of a few steps, or a record in the stages of a pipeline. A step is no button unless it holds
+a `.ds-steps__link`: then the user may go to it.
 
 ```html
 <ol class="ds-steps" aria-label="Report a problem">
@@ -869,17 +1232,31 @@ Where the user is in a form of a few steps. Steps are not buttons: going back is
 
 <!-- or a bar: the same items, the list says where the user is -->
 <ol class="ds-steps ds-steps--bar" aria-label="Step 2 of 3"> ... </ol>
+
+<!-- or a stage path: the same items as chevrons -->
+<ol class="ds-steps ds-steps--path" aria-label="Ticket stages"> ... </ol>
+
+<!-- clickable: the mark and the label in a button (or a link), which carries aria-current -->
+<ol class="ds-steps" aria-label="Report a problem" data-ds-steps>
+  <li class="ds-steps__step" data-status="done">
+    <button class="ds-steps__link" type="button"><span class="ds-steps__mark">[icon check 16]</span><span class="ds-steps__label">Device<span class="ds-sr">, done</span></span></button>
+  </li>
+  <li class="ds-steps__step">
+    <button class="ds-steps__link" type="button" aria-current="step"><span class="ds-steps__mark">2</span><span class="ds-steps__label">Problem</span></button>
+  </li>
+  <li class="ds-steps__step"><span class="ds-steps__mark">3</span><span class="ds-steps__label">Contact</span></li>
+</ol>
 ```
 
 **Options** ([options.md](options.md)): classes on the list or any ancestor; the nearest wins.
 
 | Option | Classes | Where it applies | Effect |
 |---|---|---|---|
-| Variant | row (default), `--vertical`, `--bar` | the list | the layout |
+| Variant | row (default), `--vertical`, `--bar`, `--path` | the list | the layout |
 | Size | `.ds-xs`, `.ds-sm`, `.ds-md`, `.ds-lg`, `.ds-xl` | the list or a group | a mark of 16 to 32px (`--ds-steps-mark-size`, 4px per step), the size's type role (`--ds-steps-font`) at the regular weight (the current label alone takes the label weight) |
-| Density | `.ds-density-*` | any container | 2px per step off the room between the steps of a column (`--ds-steps-gap`); the row and the marks stay |
-| Shape | `.ds-shape-*` | any container or the theme | multiplies the radius of the marks and the segments |
-| Touch | none | | a step is no target; a link in one is the page's |
+| Density | `.ds-density-*` | any container | 2px per step off the room between the steps of a column (`--ds-steps-gap`); a stage 4px per step; the row and the marks stay |
+| Shape | `.ds-shape-*` | any container or the theme | multiplies the radius of the marks, the segments, the ends of a path and a link's state layer (at rest and pressed) |
+| Touch | `.ds-touch` | the theme or a container | a `.ds-steps__link` and a stage are at least `--ds-touch-target` high; a plain step is no target |
 | Tone | none | | a step's status is `data-status`, with its icon and word |
 
 - `data-status` on a step (the attribute of `.ds-tasks` too; never `data-state`, which `DS.overlay` writes):
@@ -902,14 +1279,436 @@ Where the user is in a form of a few steps. Steps are not buttons: going back is
   (a clip that glides on `--ds-ease-value` over `--ds-dur-glide`), an error segment with `--ds-error`, the rest is
   `--ds-accent`. Marks, labels and hints are visually hidden; the list's `aria-label` ("Step 2 of 3") says where the user
   is.
+- `.ds-steps__link`: a step the user may go to, a `<button>` or an `<a href>` around its mark and label. Its state
+  layer is a pill around both that reaches past them without moving them, at least `--ds-target-min` high; it turns
+  squarer while pressed (`--ds-radius-action-pressed` times the shape, back on the spring) and ripples
+  (`DS.ripple.attach()`); the ring sits outside and snaps in. `aria-current="step"` goes on the link (the stylesheet
+  reads it there or on the step). `aria-disabled="true"` blocks one (the disabled model). Upcoming steps the user may
+  not reach yet get no link.
+- `.ds-steps--path`: a stage path, the stages of a pipeline as chevrons that nest, `--ds-steps-path-height` (40px)
+  high: upcoming on `--ds-surface-high`, done `--ds-primary-container` with its check, current `--ds-primary` with its
+  label in the label weight, error `--ds-error` with its icon. Number marks and hints are read, not shown; a link fills
+  its chevron, its ring inside. At 600px of the content only the current label shows.
 - Moving between steps: `DS.motion.transition(update, { type: 'forward' })` (or `'back'`).
-- Keyboard and names: steps are not tab stops; the page's own links and buttons are. An `<ol>` with an `aria-label`,
-  `aria-current="step"` on the current one, a `.ds-sr` ", done" on a done one; a hint is read with its step.
+- Keyboard and names: plain steps are not tab stops; a `.ds-steps__link` is (Tab, Enter or Space). An `<ol>` with an
+  `aria-label`, `aria-current="step"` on the current one, a `.ds-sr` ", done" on a done one; a hint is read with its
+  step.
+
+### Behaviour: `data-ds-steps`
+
+`data-ds-steps` on the list (`DS.init()` finds it; `DS.steps.create(list)` is the imperative path, with the same
+controller):
+
+- A press on a step's button sends `ds:change` on the list (`{ index, step, previous }`, cancelable: a step that must
+  validate first); unless cancelled, that step becomes the current one (`aria-current="step"` on its link, or on the
+  step without one) and a screen reader hears "Step 2 of 4: Problem" (the string `stepOf`). An `<a href>` navigates as
+  links do: `ds:change` tells, the next page marks its own step. A blocked link does nothing.
+- The page keeps `data-status` (done, error, optional): what each step is, it knows; re-render with `DS.dom.morphHtml`
+  so a check draws itself.
+
+The controller (`DS.get(list, 'steps')`, or what `create()` returns): `get()` (the 0-based index of the current step, or
+-1), `set(index)` (moves the current step and announces it, without `ds:change`), `on('change', fn)` (after every move,
+a press or `set()`; returns the unsubscribe) and `destroy()`. `DS.steps.position(index, total, label)` is what a step
+announces. `aria-current` is owned state (`DS.dom.morphHtml` keeps it).
 - Forced colours: done and current marks and segments are `Highlight`, upcoming ones `CanvasText` outlines, an error
-  mark its icon on a `CanvasText` ring, an error segment a `CanvasText` fill, the connectors `CanvasText` (`Highlight` after a done step).
+  mark its icon on a `CanvasText` ring, an error segment a `CanvasText` fill, the connectors `CanvasText` (`Highlight`
+  after a done step). A stage path: the current stage `Highlight`, the others `Canvas` with their words, checks and
+  icons.
 - Hooks: [theming.md](theming.md#component-hooks).
 
-**Motion:** the "Steps" row of [Navigation](motion.md#navigation) in motion.md.
+**Motion:** the "Steps" row of [Navigation](motion.md#navigation) in motion.md. A stage's fill and ink change on
+`--ds-dur-medium`; a link's press is the state layer's morph and the ripple.
+
+<!-- changelog
+- Steps: clickable steps (`.ds-steps__link`, a button or a link around the mark and label, with state layer, ripple
+  and touch target), a stage path (`.ds-steps--path`, `--ds-steps-path-height`) and a behaviour module (`DS.steps`,
+  `data-ds-steps`): a press sends a cancelable `ds:change`, moves `aria-current` and announces the step.
+-->
+## Jump links
+
+The sections of a long page, and which one is being read: a table of contents beside the content, or a bar of anchors
+over it (the section anchors of an [object page](#object-page)). The link of the section in view is marked as the reader
+scrolls (scroll-spy), and a link scrolls to its section and moves the focus there.
+
+```html
+<nav class="ds-toc ds-toc--sticky" aria-labelledby="toc-title" data-ds-toc>
+  <p class="ds-toc__title" id="toc-title">On this page</p>
+  <ol class="ds-toc__list">
+    <li><a class="ds-toc__link" href="#overview">Overview</a></li>
+    <li><a class="ds-toc__link" href="#hardware">Hardware</a>
+      <ol class="ds-toc__list">
+        <li><a class="ds-toc__link" href="#storage">Storage</a></li>
+      </ol></li>
+    <li><a class="ds-toc__link" href="#software">Software<span class="ds-toc__count"><span class="ds-sr">, </span>3</span></a></li>
+  </ol>
+</nav>
+
+<!-- a bar of anchors over the content: the same list -->
+<nav class="ds-toc ds-toc--bar ds-toc--sticky" aria-label="Sections" data-ds-toc> ... </nav>
+```
+
+**Options** ([options.md](options.md)): classes on the toc or any ancestor; the nearest wins.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Variant | column (default), `--bar`; `--sticky` | the nav | a column with a line at its start, or a row of anchors over a hairline; `--sticky` with either |
+| Size | `.ds-xs` ... `.ds-xl` | the nav or a group | a link 16 to 48px high in a column (`--ds-toc-height`, 32px at md), 32 to 64px in a bar (`--ds-toc-bar-height`, 48px), 8px per step; side padding 4px per step; the size's type role (`--ds-toc-font`) at the regular weight (the current link of a column alone takes the label weight) |
+| Density | `.ds-density-*` | any container | 4px of height per step; padding and type stay |
+| Shape | `.ds-shape-*` | any container or the theme | multiplies the radius of the ring and the state layer, at rest and pressed |
+| Touch | `.ds-touch` | the theme or a container | a link is at least `--ds-touch-target` high |
+| Tone | none | | a link states no status; a `.ds-toc__count` may say how many |
+
+- **Column** (`.ds-toc`): a `--ds-line` hairline at its start, a row per link in `--ds-text-2`; nested lists are indented
+  (by padding, so the bar stays on the line). `.ds-toc__title` is the meta role above the list; name the nav by it
+  (`aria-labelledby`) or by an `aria-label`.
+- **Current**: `aria-current="location"` on the link of the section being read. It takes `--ds-primary` ink, the label
+  weight (in a column; in a bar the weight stays, so the links after it never move) and the indicator (`.ds-toc__indicator`, `DS.indicator`): a `--ds-toc-indicator-width` (3px) bar in
+  `--ds-toc-indicator-color` on the line, under the link in a bar. It glides from link to link; never colour alone.
+- **`.ds-toc--bar`**: a row of anchors over a hairline, as line tabs (48px links, the bar under the current one). It
+  scrolls sideways without a scrollbar and keeps the current link in view; only the first level shows.
+- **`.ds-toc--sticky`**: a column sticks `--ds-toc-top` (`--ds-space-4`) below the top of its scroller and scrolls
+  itself when taller than the view (at 600px of the content, where it sits above the text, it stops sticking); a bar sticks at the top on `--ds-toc-bg` (`--ds-backdrop`; set it to the surface
+  it lies on). Give the sections `scroll-margin-top` for what sticks above them (a sticky bar, a page head).
+- `.ds-toc__count`: a count after the label (tabular meta figures, the link's colour); a `.ds-sr` separator reads it
+  with the label.
+- Press: the state layer is a pill inside the link that turns squarer while pressed and springs back, with the ripple
+  (`DS.ripple.attach()`); the keyboard ring is inset and snaps inward.
+
+### Behaviour: `data-ds-toc`
+
+`data-ds-toc` on the nav (`DS.init()` finds it; `DS.toc.create(nav, options)` is the imperative path, with the same
+controller):
+
+- **Scroll-spy.** The current section is the last one whose top has passed the reading line, `data-ds-toc-offset` px
+  below the top of the scroller (default: the first section's `scroll-margin-top` plus a quarter of the scroller's
+  height). At the end of the scroll, where the last sections cannot reach the line, the last one whose top shows is
+  current. An `IntersectionObserver` whose root ends at the reading line says when a section crosses it, a second one
+  when the last section shows; there is no scroll listener. The scroller is the nearest scrolling ancestor of the first
+  section, else the page. A section is the element the link's hash names: a heading or a whole `<section>`.
+- **Jumps.** A click or Enter on a link scrolls its section to the top (smoothly within three heights of the scroller,
+  at once beyond that), marks its link at once, and moves the focus to the section
+  (with `tabindex="-1"` when it takes no focus of its own; the focus never scrolls), so Tab goes on inside it. The link
+  stays marked while its section shows, even a short one near the end. The hash is written with
+  `history.pushState` (no `hashchange`), so the address can be shared; `data-ds-toc-hash="off"` leaves the address
+  alone (a router that owns the hash). A click with a modifier opens the link as the browser does.
+- `ds:change` on the nav: `{ id, link, target, reason }` (`reason`: `'scroll'` or `'link'`).
+
+| Attribute | Option | What |
+|---|---|---|
+| `data-ds-toc` | | the behaviour, on the `.ds-toc` nav |
+| `data-ds-toc-offset` | `offset` | the reading line, px below the top of the scroller |
+| `data-ds-toc-hash` | `hash: false` | `off`: a jump leaves the address alone |
+
+The controller (`DS.get(nav, 'toc')`, or what `create()` returns): `get()` (the id of the current section, or null),
+`set(id)` (a jump, as a click: scrolls, focuses, marks), `on('change', fn)` (returns the unsubscribe), `refresh()` (reads
+the links and sections again; added and removed links are read by themselves) and `destroy()`.
+`DS.toc.current(tops, { line, bottom, atEnd, pinned })` is the rule alone: the index of the current section from the
+tops of the sections (px from the top of the view).
+
+What the module writes is owned state (`DS.dom.morphHtml` keeps it): `aria-current` on the links and the `tabindex` it
+gave a section.
+
+- Keyboard and names: every link is a tab stop (a list of links, not a widget); Enter jumps and moves the focus to the
+  section. The nav is a landmark named by its title or `aria-label`; the current link is `aria-current="location"`,
+  "current location" to a screen reader.
+- Forced colours: the current link is `SelectedItem` / `SelectedItemText` (a choice in a set) and the indicator is
+  hidden; a focused current link keeps a `CanvasText` ring inside; the line stays `CanvasText`. Print leaves the toc
+  off the paper.
+- Hooks: [theming.md](theming.md#component-hooks).
+
+**Motion:** the bar glides from link to link as the tabs' indicator does (stretching toward its target, landing on
+`--ds-ease-spatial`); a jump scrolls smoothly within three heights of the scroller. The labels change colour on the
+indicator's timing.
+
+<!-- changelog
+- Jump links (`.ds-toc`, `DS.toc`, `toc.js`): a table of contents or a bar of anchors, sticky, with scroll-spy through
+  `IntersectionObserver` (`aria-current="location"`), jumps that move the focus, and `ds:change`.
+-->
+## Back to top
+
+A button that appears once the reader has scrolled a long page or box down, and takes them back to its top.
+
+```html
+<!-- the last child of the long content: the page's, or a box's -->
+<button class="ds-btn ds-btn--elevated ds-btn--icon ds-backtop" type="button" data-ds-backtop hidden>[icon arrowUp 20]</button>
+
+<!-- with a label -->
+<button class="ds-btn ds-btn--elevated ds-backtop" type="button" data-ds-backtop hidden>[icon arrowUp 18] Back to top</button>
+
+<!-- fixed to the window's corner -->
+<button class="ds-btn ds-btn--elevated ds-btn--icon ds-backtop ds-backtop--fixed" type="button" data-ds-backtop hidden>[icon arrowUp 20]</button>
+```
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Variant | default, `--fixed` | the button | sticks to the bottom end of its scroller from the end of the content (its own row there, so it never covers the last line), or fixed to the window's bottom end corner, clear of the safe areas |
+| Look | `.ds-btn--elevated` (or `--tonal`), `--icon` | the button | the [button](#button)'s own: an icon button, or one with a label |
+| Size, density, shape, touch | the option classes | the button or any ancestor | the button computes them in its own rule; this component reads none |
+| Tone | none | | it states no status |
+
+`--ds-backtop-offset` (`--ds-space-6`) is the room to the bottom and end edges.
+
+### Behaviour: `data-ds-backtop`
+
+`data-ds-backtop` on the button (`DS.init()` finds it; `DS.backtop.create(button, options)` is the imperative path, with
+the same controller):
+
+- **When it shows.** The scroller is `data-ds-backtop-target` (a selector; `html` or `body` for the page), else the
+  nearest scrolling ancestor of the button, else the page. Past `data-ds-backtop-after` px of scroll (default: one height
+  of the scroller) the button enters (`DS.motion.enter(button, 'scale')`); under half of that it leaves again
+  (`DS.motion.leave(button, 'scale', { then: 'hide' })`), so a reader who stops near the line sees no flicker. One
+  passive scroll listener on the scroller, throttled to a frame.
+- **What it does.** A click scrolls the scroller to its top (smoothly within three of its heights, at once beyond that)
+  and moves the focus to the top: `data-ds-backtop-focus` (a selector), else the box's first heading (the page's first
+  `h1`), else the scroller (with `tabindex="-1"` when it takes no focus of its own; the focus never scrolls). So the
+  keyboard goes on from the top, as the eye does.
+- `ds:change` on the button: `{ shown }`.
+
+| Attribute | Option | What |
+|---|---|---|
+| `data-ds-backtop` | | the behaviour, on the `.ds-backtop` button |
+| `data-ds-backtop-after` | `after` | px of scroll after which it shows |
+| `data-ds-backtop-target` | `target` | the scroller, a selector |
+| `data-ds-backtop-focus` | `focus` | what takes the focus at the top, a selector |
+
+The controller (`DS.get(button, 'backtop')`, or what `create()` returns): `get()` (whether it shows), `set(shown)`
+(shows or hides it until the next scroll decides), `go()` (back to the top, as a click), `on('change', fn)` and
+`destroy()`. `DS.backtop.shown(top, { after, shown })` is the rule alone.
+
+What the module writes is owned state (`DS.dom.morphHtml` keeps it): `hidden` on the button, its `aria-label` and the
+`tabindex` it gave a target.
+
+- Keyboard and names: a button in the tab order where it sits (at the end of the content), named by its text or, without
+  one, by the string `backToTop` ("Back to top"; `DS.core.config({ strings })`). While hidden it is out of the tab order.
+- Forced colours: the button's own edge and ink. Print leaves it off the paper.
+- Hooks: [theming.md](theming.md#component-hooks).
+
+**Motion:** it enters with `ds-fade-in` and `ds-grow-in` and leaves with `ds-fade-out` and `ds-shrink-out` (the
+`.ds-enter--scale` and `.ds-leave--scale` pair); the way back scrolls smoothly within three heights of the scroller.
+
+<!-- changelog
+- Back to top (`.ds-backtop`, `.ds-backtop--fixed`, `DS.backtop`, `backtop.js`): a button that appears after a scroll
+  (with a threshold that does not flicker), scrolls back to the top and moves the focus there.
+-->
+## Object page
+
+One record on one page: the [page head](#page) with its key facts, the section anchors ([jump links](#jump-links) as a
+bar) under it, and the sections as cards; an edit mode turns a section, or every section, into its inline-edit form.
+
+```html
+<div class="ds-object" data-ds-object>
+  <header class="ds-page-head ds-page-head--sticky" data-ds-page-head>
+    <a class="ds-btn ds-btn--text ds-sm ds-page-head__back" href="/devices">[icon arrowLeft 18]<span class="ds-sr">Back to </span>Devices</a>
+    <div class="ds-page-head__row">
+      <div class="ds-page-head__text"><h1 class="ds-page-head__title" id="obj-title" tabindex="-1">LAPTOP-0042</h1></div>
+      <div class="ds-page-head__actions">
+        <button class="ds-btn" type="button" data-ds-object-cancel hidden>Cancel</button>
+        <button class="ds-btn ds-btn--filled" type="button" data-ds-object-save hidden>Save all</button>
+        <button class="ds-btn ds-btn--filled" type="button" data-ds-object-edit>Edit</button>
+      </div>
+    </div>
+    <dl class="ds-page-head__details">
+      <div class="ds-page-head__detail"><dt>Owner</dt><dd>Ada Lovelace</dd></div> ...
+    </dl>
+  </header>
+  <nav class="ds-toc ds-toc--bar ds-toc--sticky" aria-label="Sections" data-ds-toc>
+    <ol class="ds-toc__list"><li><a class="ds-toc__link" href="#general">General</a></li> ...</ol>
+  </nav>
+  <section class="ds-card ds-object__section" id="general" aria-labelledby="general-title">
+    <div class="ds-object__head">
+      <h2 class="ds-object__title" id="general-title">General</h2>
+      <button class="ds-btn ds-btn--text ds-sm ds-object__edit" type="button" data-ds-object-edit aria-describedby="general-title">Edit</button>
+    </div>
+    <div class="ds-object__view">
+      <dl class="ds-facts ds-facts--rows"><div><dt>Name</dt><dd>LAPTOP-0042</dd></div> ...</dl>
+    </div>
+    <form class="ds-form ds-object__form" hidden>
+      <div class="ds-form-grid"> <div class="ds-field"> ... </div> </div>
+      <div class="ds-form-actions">
+        <button class="ds-btn" type="button" data-ds-object-cancel>Cancel</button>
+        <button class="ds-btn ds-btn--filled" type="submit">Save</button>
+      </div>
+    </form>
+  </section>
+  ...
+</div>
+```
+
+| Part | What |
+|---|---|
+| `.ds-object` | the page: a column, `--ds-object-gap` (`--ds-space-5`) between the parts |
+| `.ds-page-head` | the head with its key facts (`.ds-page-head__details`); sticky and condensing with `.ds-page-head--sticky` and `data-ds-page-head` ([Page](#page)) |
+| `.ds-toc--bar` | the section anchors: a sticky bar of jump links that sticks right under the head and marks the section being read |
+| `.ds-object__section` | a section, on a `.ds-card`; a jump lands with its title clear of the head and the bar (`scroll-margin-top`) |
+| `.ds-object__head`, `.ds-object__title` | the section's title row: the title in the title role, the edit action at its end |
+| `.ds-object__edit` | the section's edit action (a small text button whose text ends on the card's edge); gone while the section edits |
+| `.ds-object__view`, `.ds-object__form` | the two faces of a section: what it shows, and its form (a `.ds-form`, hidden until it edits) |
+
+Options: size, density, shape and tone reach the controls and cards inside (each computes its own); the object page's
+own rhythm is layout. The head and the bar stick one under the other: the module writes the head's height as
+`--ds-object-head` and the bar's as `--ds-object-bar` on the `.ds-object` (runtime properties: read, never set). Status in
+the head (a `.ds-status` in `.ds-page-head__status`) carries its icon and word.
+
+### Behaviour: `data-ds-object`
+
+`data-ds-object` on the `.ds-object` (`DS.init()` finds it; `DS.object.create(el)` is the imperative path, with the same
+controller):
+
+- **Edit a section.** A `[data-ds-object-edit]` button in a section turns it into its form: the view hides, the form
+  enters (`DS.motion.enter(form, 'swap')`), the focus goes to its first field, a screen reader hears "Editing General"
+  (the string `editing`), and the section takes `data-editing`.
+- **Edit mode.** A `[data-ds-object-edit]` button outside the sections (in the head) turns every section that has a form
+  into it (a read-only section, such as a history without a `.ds-object__form`, stays as it is);
+  the `.ds-object` takes `data-editing`, that button hides and the `[data-ds-object-save]` and `[data-ds-object-cancel]`
+  buttons outside the sections show (the module owns their `hidden`; render them `hidden`).
+- **Save.** Submitting a section's form (its submit button, Enter in a field) sends `ds:save` on the section:
+  `{ section, id, form, values }` (`values`: the form's entries, a repeated name as a list). Unless a listener cancels
+  it, the view comes back, the focus goes to the section's edit action and a screen reader hears "General saved" (the
+  string `sectionSaved`). A page that saves on a server cancels `ds:save`, shows the busy state on the submit button
+  (`DS.motion.busy()`), and calls `done(section)` once saved; an error stays in the form ([Form](#form)). A form
+  with `novalidate` (the system's error hints instead of the browser's) validates in that listener: it cancels
+  `ds:save`, marks the fields (`aria-invalid="true"` and a `.ds-field__hint--error`), focuses the first and does not
+  call `done()`.
+  `[data-ds-object-save]` outside the sections submits every form that edits (each validates first) as one batch: the
+  focus stays put while the sections save and goes to the head's edit once the last one is done (to the first field of
+  a section that is still open when one did not validate).
+- **Cancel.** `[data-ds-object-cancel]` in a section, or Escape in its form (unless a popup in it is open), sends
+  `ds:cancel` (`{ section, id, form }`); unless cancelled (unsaved changes the page wants confirmed), the form resets
+  and the view comes back. Outside the sections it cancels every section that edits.
+- `ds:edit` (cancelable) on the section before it turns; `ds:change` (`{ editing }`, the ids that edit) on the `.ds-object`.
+
+The controller (`DS.get(el, 'object')`, or what `create()` returns): `get()` (the ids of the sections that edit),
+`set(ids)` (`true` for all that have a form, `false` for none), `edit(section)`, `save(section)`, `cancel(section)` (no argument: every
+section), `done(section)`, `on(type, fn)` and `destroy()`. `DS.object.values(entries)` is the mapping of a form's
+entries alone.
+
+What the module writes is owned state (`DS.dom.morphHtml` keeps it): `hidden` on the faces and on the buttons outside
+the sections, `data-editing` on the sections and the `.ds-object`.
+
+- Keyboard and names: the record is the page's `h1` (the head's title), each section a region named by its own title; the edit
+  action of a section is described by it (`aria-describedby`), so it reads "Edit, General". Entering the form moves the
+  focus to its first field, leaving it back to the edit action; Escape cancels. The anchors are links (Tab), the head's
+  actions and the More menu as in [Page](#page).
+- Forced colours: the cards keep their edges; a section that edits shows its form, so the state is never a colour.
+  Print leaves the bar and the edit actions off the paper.
+- Hooks: [theming.md](theming.md#component-hooks).
+
+**Motion:** a section's faces swap with `.ds-enter--swap` (the form in, then the view back); the head condenses and the
+bar's mark glides as on their own (Page, Jump links).
+
+<!-- changelog
+- Object page (`.ds-object`, `DS.object`, `object.js`): one record on one page, the page head with its key facts, the
+  section anchors as a sticky bar of jump links under it, sections as cards, and an edit mode that turns a section or
+  every section into its inline form (`ds:edit`, `ds:save` with the form's values, `ds:cancel`, `done()`).
+-->
+## Shortcut sheet
+
+Every keyboard shortcut of the page in one dialog: "?" opens it, and it lists what
+[`DS.hotkeys`](core.md#hotkeys) holds as the page stands, grouped by scope and by group.
+
+```html
+<dialog class="ds-dialog ds-dialog--lg ds-shortcuts" id="keys" data-ds-shortcuts aria-labelledby="keys-title">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <div class="ds-dialog__box">
+    <div class="ds-dialog__head">
+      <h2 class="ds-dialog__title" id="keys-title">Keyboard shortcuts</h2>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>[icon close 20]</button>
+    </div>
+    <input class="ds-input ds-shortcuts__filter" type="search" aria-label="Find a shortcut" placeholder="Find a shortcut" autofocus>
+    <div class="ds-dialog__body ds-shortcuts__list"></div>
+  </div>
+</dialog>
+```
+
+`shortcuts.js` fills `.ds-shortcuts__list` when the sheet opens:
+
+```html
+<section class="ds-shortcuts__scope" aria-labelledby="h1">          <!-- only when several scopes have shortcuts -->
+  <h3 class="ds-shortcuts__title" id="h1">Board</h3>
+  <div class="ds-shortcuts__groups">
+    <section class="ds-shortcuts__group" aria-labelledby="h2">
+      <h4 class="ds-shortcuts__heading" id="h2">Editing</h4>
+      <dl class="ds-shortcuts__items">
+        <div class="ds-shortcuts__item">
+          <dt class="ds-shortcuts__label">Save</dt>
+          <dd class="ds-shortcuts__keys"><span class="ds-shortcuts__combo" role="img" aria-label="Ctrl+S"><kbd class="ds-kbd">Ctrl</kbd><kbd class="ds-kbd">S</kbd></span></dd>
+        </div>
+        <div class="ds-shortcuts__item" data-off>
+          <dt class="ds-shortcuts__label">Archive <span class="ds-shortcuts__off">Not available here</span></dt>
+          <dd class="ds-shortcuts__keys"><span class="ds-shortcuts__combo" ...>...</span>
+            <span class="ds-shortcuts__or">or</span><span class="ds-shortcuts__combo" ...>...</span></dd>
+        </div>
+      </dl>
+    </section>
+  </div>
+</section>
+<p class="ds-shortcuts__empty">No keyboard shortcuts here.</p>              <!-- none at all, or none that match -->
+```
+
+### Options
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` … `.ds-xl` | the dialog or any ancestor | a shortcut's label type (`--ds-size-font`); the keys keep the code type |
+| Density | `.ds-density-*` | the dialog or any ancestor | a row's block padding 2px per step, the room between groups 4px per step |
+| Shape | `.ds-shape-*` | the dialog or any ancestor | the box's and the keys' radius |
+| Width | `.ds-dialog--lg`, `--xl` | the dialog | the groups flow into columns of at least `--ds-shortcuts-column` (240px): one on a phone |
+| Tone | none | | |
+
+### Behaviour
+
+- **Its own key.** `data-ds-shortcuts` (or `DS.shortcuts.create()`) registers "?" with `DS.hotkeys` ("Show the keyboard
+  shortcuts", so the sheet lists itself); `data-ds-shortcuts-hotkey` names another combo, `"off"` none. "?" is a plain
+  key: it never types into a field, where it stays the field's. The same key closes the open sheet; it passes while
+  another overlay is open. A `[data-ds-open]` button opens it too.
+- **What it lists.** `DS.hotkeys.list()` when the sheet opens, and again on every registration or scope change while it
+  is open: every registration with a description, also those of `data-ds-hotkey` and the [command
+  palette](#command-palette)'s commands. A control that is hidden is left out; one that does nothing now (disabled, a
+  scope that does not count) shows with `data-off` and the words "Not available here".
+- **Scopes.** With more than one scope that has shortcuts, each is a section (`.ds-shortcuts__scope`): the scope that
+  counts first leads, `global` ("Everywhere", the string `shortcutsGlobal`) comes last. Its heading is its label from
+  `scopes` (`{ board: 'Board' }`) or `data-ds-shortcuts-scopes` (the same as JSON), else its name with a capital.
+- **Filter.** A `.ds-shortcuts__filter` field hides what does not match every word typed, in the description or the
+  keys; nothing left says "No results".
+- `DS.shortcuts.render(container, { filter, labels, root, apple, headingLevel })` writes the same list into any element
+  (a help page) and returns how many shortcuts it shows; `DS.shortcuts.byScope(groups, order)` is its grouping.
+
+### JS API
+
+`js/shortcuts.js` (`DS.shortcuts`):
+
+- `create(el, { scopes, hotkey })` returns the controller (the one `data-ds-shortcuts` makes): `get()` (`{ open,
+  count, filter }`), `set({ scopes, filter })`, `on('filter', fn)`, `open({ opener })`, `close()`, `refresh()` and
+  `destroy()`.
+- `open(el, options)`, `close(el)`, `render(container, options)` and `byScope(groups, order)`.
+- Events on the dialog: `ds:filter` (`{ query, count }`) and the dialog's `ds:open` and `ds:close`.
+
+### Accessibility
+
+- A modal dialog named by its title; focus goes to the filter field on open, so typing finds a shortcut at once (without
+  one, to the first control, as in every dialog). The module marks the filter `autofocus` when nothing in the sheet
+  is, so `DS.overlay` focuses it first and the close button before it never flashes its tooltip.
+- Each group is a section named by its heading, its shortcuts a description list. A combo reads as one phrase
+  (`role="img"` with the line `DS.hotkeys.format()` gives: "Ctrl+S", "⇧⌘K"), so a screen reader never spells the keys.
+- A shortcut that is off says so in words, never by colour alone.
+- Plain-letter shortcuts are a burden for speech input (WCAG 2.1.4): the sheet makes them discoverable; offer a way to
+  turn them off where a page has many.
+
+### Forced colours
+
+Rows keep their hairlines (borders); a shortcut that is off reads `GrayText`.
+
+### Hooks
+
+`--ds-shortcuts-column` (240px): the narrowest column of groups.
+
+### Motion
+
+The dialog's entrance and exit (`DS.overlay`); the list changes in place.
+
+<!-- changelog -->
+- Shortcut sheet (3.0): `.ds-shortcuts` in a `.ds-dialog`, `DS.shortcuts` (`create`, `open`, `close`, `render`,
+  `byScope`), `data-ds-shortcuts`; "?" lists every shortcut of `DS.hotkeys`, grouped by scope and group, with a filter.
 ## Button
 
 One component for every action: a pill at the default shape, in one of a few looks, at any size and density.
@@ -971,6 +1770,19 @@ A choice made once, then locked (a vote, an answer that was sent): the pressed t
 </div>
 ```
 
+Icon buttons in the four looks of Material 3: standard (`--quiet`: no frame, the quieter ink), `--filled`, `--tonal`
+and `--outlined`. The label is required: an `aria-label`, and a `data-tip` with the same words, so a pointer user
+reads it too. Each is also a toggle (`aria-pressed`, with `data-ds-toggle` of [Toggle button](#toggle-button-and-toggle-group) or
+the page's own script), whose fillable glyph fills while it is on:
+
+```html
+<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit" data-tip="Edit">[icon pencil 20]</button>
+<button class="ds-btn ds-btn--filled ds-btn--icon" type="button" aria-label="Add device" data-tip="Add device">[icon plus 20]</button>
+<button class="ds-btn ds-btn--tonal ds-btn--icon" type="button" aria-label="Restart" data-tip="Restart">[icon refresh 20]</button>
+<button class="ds-btn ds-btn--outlined ds-btn--icon" type="button" aria-label="Lock" data-tip="Lock">[icon lock 20]</button>
+<button class="ds-btn ds-btn--filled ds-btn--icon" type="button" aria-pressed="false" aria-label="Pin" data-tip="Pin" data-ds-toggle>[icon pin 20 ds-icon--fillable]</button>
+```
+
 ```js
 await DS.motion.busy(saveButton, () => fetch(url, { method: 'POST', body }));   // busy, then "Saved" (or "Not saved") for a moment
 DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' });  // copy to check
@@ -1008,6 +1820,11 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
   Toggles in a track with a sliding indicator ([DS.indicator](motion.md), `.ds-has-indicator`) leave the tint to
   the pill (give it `--ds-accent`): the button stays clear, so only one pill shows while it travels, and its label
   changes colour on the pill's timing (`--ds-indicator-dur`).
+- A `--filled` or `--tonal` toggle shows the neutral container (`--ds-surface-highest`) while off
+  (`aria-pressed="false"`) and its own fill while on, as Material 3's toggles do: off and on differ by the fill, and a
+  filled toggle that is on stays filled. An outlined, quiet or text toggle keeps the tint. Give a text toggle an icon
+  that swaps to a check (`.ds-icon-swap`) and an icon toggle a fillable glyph (`.ds-icon--fillable`), so on is never
+  the colour alone.
 - `aria-disabled="true"` looks disabled but stays focusable and hoverable, so a tooltip can say why. `disabled` and
   `aria-busy="true"` block the pointer. Blocked for every input (2.0): once `DS.ripple.attach()` or `DS.motion.busy()` ran,
   or `DS.motion.guard()` was called once ([motion.md](motion.md#dsmotion-jsmotionjs)), a click, middle click, Enter,
@@ -1057,13 +1874,675 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
   `--ds-scale-small`, a `pathLength="1"` glyph draws itself, the outgoing icon only fades; a crossfade with a scale,
   not a path morph ([motion.md](motion.md)).
 - Keyboard and names: a `<button>` (or a link that navigates); Enter and Space press it. An icon button needs
-  `aria-label`; an adaptive one keeps its label as its name.
+  `aria-label` and a `data-tip` with the same words (the tooltip is how a pointer user reads the label); an adaptive
+  one keeps its label as its name.
 - Forced colours: the system button colours; a pressed toggle and an open disclosure button `Highlight` /
   `HighlightText` (focused: a `CanvasText` ring), a blocked one `GrayText`. The error tone becomes the system colours
   too, so its label carries the meaning.
 - Hooks: [theming.md](theming.md#component-hooks).
 
 **Motion:** the press, focus, busy and success rows of [Controls](motion.md#controls) in motion.md.
+
+<!-- changelog -->
+- Button: icon buttons in the standard (`--quiet`), `--filled`, `--tonal` and `--outlined` looks, each also a toggle,
+  documented with their required label and tooltip; a `--filled` or `--tonal` toggle shows the neutral container
+  while off and its own fill while on.
+## Link
+
+A link that navigates: inline in text, standalone, external with its icon, or quiet next to the main one. An action that
+does something on the page is a [Button](#button) (`.ds-link-btn` when it must read like a link).
+
+```html
+<p>Assigned to <a class="ds-link" href="/people/ada">Ada Lovelace</a> since Monday.</p>       <!-- inline -->
+<a class="ds-link ds-link--standalone" href="/devices">All devices[icon arrowRight 16 ds-link__icon]</a>
+<a class="ds-link ds-link--external" href="https://example.com/manual" target="_blank" rel="noopener noreferrer">
+  Product manual[icon external 16 ds-link__icon]<span class="ds-sr"> (opens in a new tab)</span></a>
+<a class="ds-link ds-link--standalone ds-link--external" href="https://example.com/status" target="_blank"
+   rel="noopener noreferrer">Service status[icon external 16 ds-link__icon]<span class="ds-sr"> (opens in a new tab)</span></a>
+<a class="ds-link--quiet" href="/devices/42/history">Show history</a>                        <!-- quiet -->
+```
+
+### Variants
+
+| Variant | Classes | Use |
+|---|---|---|
+| Inline | `.ds-link` | a link in running text: the link colour (`--ds-link`) and the underline (`--ds-link-underline`, the shared geometry); the look of every `<a>` under `.ds-base`, for a page or a region without it |
+| Standalone | `.ds-link .ds-link--standalone` | a link on its own line, at the end of a card or under a list ("All devices"): the label role, no underline at rest (its place tells it apart), the underline on hover, press and keyboard focus; an optional trailing `.ds-link__icon` (`arrowRight`, `chevronRight`) |
+| External | `.ds-link .ds-link--external` | a link that leaves the product: a trailing `.ds-link__icon` with `DS.icons.external`; with `target="_blank"` write `rel="noopener noreferrer"` and a `.ds-sr` "(opens in a new tab)". Combines with `--standalone` |
+| Quiet | `.ds-link--quiet` | a secondary link next to the main one: `--ds-text-2` with a hairline underline in `--ds-line-2`; the link colour and `--ds-link-underline-hover` on hover. Still underlined. Alone, without `.ds-link`; its rules ship with the [Button](#button) stylesheet, next to its twin `.ds-link-btn--quiet` |
+
+`.ds-link__icon` is an icon after the link's words (in a standalone link also before them): 1em square, on the text's
+centre line, `--ds-space-1` from the text. It never moves, also on hover.
+
+### Options
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | a standalone link or an ancestor | the size's type role (`--ds-size-font`, else the label role; hook `--ds-link-font`); an inline link keeps the type of its text |
+| Touch | `.ds-touch` | the theme or a container | a standalone link is at least `--ds-target-min` (48px) high; an inline link in text is exempt (WCAG 2.5.8) |
+| Shape | `.ds-shape-*` | any container | the focus ring's small radius (`--ds-radius-xs`) times `--ds-shape` |
+| Density | | | nothing: a link has no box of its own |
+
+Links never take a tone: a status is said with a [status chip](#status-chip) or a [badge](#badge), never with a red link.
+
+### Accessibility
+
+- An `<a href>`: Tab reaches it, Enter follows it. Its text says where it goes ("All devices", never "Click here");
+  an icon is `aria-hidden` (`DS.icons.icon` writes it).
+- In running text a link is told apart by its underline, not by colour alone; a standalone link stands apart from text
+  and takes the underline on hover and keyboard focus.
+- External: `target="_blank"` only where the user would lose work otherwise; then the `.ds-sr` text says it, and
+  `rel="noopener noreferrer"` keeps the new page from the opener.
+- Focus: the ring (`--ds-focus-outline`) is solid from the first frame and snaps from offset + width to its offset in
+  `--ds-dur-fast`.
+- Forced colours: the system's `LinkText`; a standalone link keeps its underline at rest there, since colour alone no
+  longer tells it apart.
+
+### Hooks
+
+`--ds-link-font` (a standalone link's type). The colours are the link roles: `--ds-link`, `--ds-link-underline`,
+`--ds-link-underline-hover`, `--ds-link-underline-thickness`, `--ds-link-underline-offset`
+([tokens.md](tokens.md)).
+
+**Motion:** the ink and the underline colour fade on `--ds-dur-fast`; a press on a touch screen darkens the underline
+as hover does. A link is inline text: no state layer, no ripple, no press morph, and hover moves nothing.
+
+<!-- changelog -->
+- Link (3.0): `.ds-link` (inline), `.ds-link--standalone`, `.ds-link--external` with `.ds-link__icon`, and the hook
+  `--ds-link-font`; the quiet link (`.ds-link--quiet`) is documented with them and still ships in button.css.
+## Toggle button and toggle group
+
+A button that stays on or off (`aria-pressed`), and a set of them where one or several are on: a view switch, the
+format of a text, a filter that is shown.
+
+```html
+<!-- One toggle -->
+<button class="ds-btn ds-btn--quiet" type="button" aria-pressed="false" data-ds-toggle>
+  <span class="ds-icon-swap"><span class="ds-icon-swap__a">[icon filter 16]</span><span class="ds-icon-swap__b">[icon check 16]</span></span>Only open
+</button>
+<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Pin" data-tip="Pin" data-ds-toggle>
+  [icon pin 20 ds-icon--fillable]
+</button>
+
+<!-- One of a set (single), one always on: a toolbar, one tab stop -->
+<div class="ds-toggle-group" role="toolbar" aria-label="View" data-ds-toggle-group="single" data-ds-toggle-group-required>
+  <button class="ds-btn" type="button" aria-pressed="true" value="list">[icon list 16]List</button>
+  <button class="ds-btn" type="button" aria-pressed="false" value="grid">[icon layoutGrid 16]Grid</button>
+</div>
+
+<!-- Several of a set (multiple), connected: one pill outline -->
+<div class="ds-toggle-group ds-btn-group" role="toolbar" aria-label="Format" data-ds-toggle-group="multiple" data-ds-value="bold">
+  <button class="ds-btn ds-btn--icon" type="button" aria-pressed="false" value="bold" aria-label="Bold" data-tip="Bold">[icon bold 20]</button>
+  <button class="ds-btn ds-btn--icon" type="button" aria-pressed="false" value="italic" aria-label="Italic" data-tip="Italic">[icon italic 20]</button>
+  <button class="ds-btn ds-btn--icon" type="button" aria-pressed="false" value="code" aria-label="Code" data-tip="Code">[icon code 20]</button>
+</div>
+```
+
+The buttons are `.ds-btn` toggles ([Button](#button) draws on and off: the tint on an outlined, quiet or text button;
+the neutral container off and the variant's fill on for a `--filled` or `--tonal` one). `.ds-toggle-group` lays them out
+in a row that wraps, `--ds-space-2` apart; with `.ds-btn-group` ([Button group](#button-group)) they join into one pill.
+
+### Options
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Look | `.ds-btn` variants | each button | outlined (default), `--quiet`, `--text`, `--filled`, `--tonal`; icon only with `--icon` |
+| Connected | `.ds-btn-group` | the group | one pill outline, no gap ([Button group](#button-group)) |
+| Size | `.ds-xs` ... `.ds-xl` | the group or any ancestor | the buttons' height, padding and type |
+| Density | `.ds-density-*` | any container | the buttons' height (4px per step) and the gap, 2px less per step (8px to 2px) |
+| Shape | `.ds-shape-*` | any container | the buttons' radius, times `--ds-shape` |
+| Touch | `.ds-touch` | the theme or a container | every button at least `--ds-touch-target` high; the gap stays |
+
+Toggles take no tone: on and off are a state, not a status.
+
+### Behaviour: `data-ds-toggle`, `data-ds-toggle-group`
+
+| Attribute | On | Effect |
+|---|---|---|
+| `data-ds-toggle` | a button | flips `aria-pressed` on its click (pointer, Enter, Space), after the page's own click handlers ran and none called `preventDefault()`; sends `ds:change` (`{ pressed }`) on the button. A button without `aria-pressed` starts off |
+| `data-ds-toggle-group="single"` | a container | at most one of its `[aria-pressed]` buttons is on; pressing the one that is on turns it off |
+| `data-ds-toggle-group="multiple"` | a container | each button flips on its own |
+| `data-ds-toggle-group-required` | the group | single: exactly one is on; pressing it again changes nothing |
+| `data-ds-value` | the group | the start: one value (single) or values separated by spaces (multiple); else the markup's `aria-pressed` |
+| `data-ds-toggle-group-roving="on"` / `"off"` | the group | one tab stop with the arrow keys, or every button its own tab stop; without it a `role="toolbar"` group is one tab stop and a `role="group"` is not (read at set-up) |
+
+An item's value is its `value` attribute, else its `data-value`, else its position (`"0"`, `"1"` ...). A user change
+sends `ds:change` (`{ value, item }`) on the group: `value` is a string or `null` (single) or a list (multiple). A
+`disabled`, `aria-disabled` or busy button never changes ([the action guard](#button)). Do not put `data-ds-toggle` on the
+buttons of a group: the group serves them.
+
+### JS API
+
+```js
+const pin = DS.toggle.create(button, { pressed: false });   // the controller data-ds-toggle makes
+pin.get();                                                    // false
+pin.set(true);                                                // from the page: no event
+pin.on('change', ({ pressed }) => save(pressed));
+
+const view = DS.toggle.group(element, { mode: 'single', required: true, value: 'list' });
+view.get();                     // 'list'
+view.set('grid');               // single: a value or null; multiple: a list of values
+view.on('change', ({ value, item }) => render(value));
+DS.get(element, 'toggle-group'); // the controller of a group the attribute set up
+DS.toggle.nextPressed(['bold'], 'italic', { mode: 'multiple' });   // ['bold', 'italic']
+DS.toggle.parseValue('bold code', 'multiple');                     // ['bold', 'code']
+```
+
+`DS.toggle.create(button, options)` and `DS.toggle.group(element, options)` return the controllers the attributes make
+(`get`, `set`, `on('change')`, `destroy`; a group also `update`), one per element: on a button or group the attribute
+set up they return that controller with their options applied, so a press still flips it once. What the options leave
+out, the markup says (`data-ds-toggle-group`, `-required`, `data-ds-value`, the role). `set()` is the page's, so it
+sends nothing.
+`DS.toggle.nextPressed(pressed, item, { mode, required })` is the pure rule behind a press, and
+`DS.toggle.parseValue(value, mode)` reads a `data-ds-value`.
+
+### Accessibility
+
+- Each toggle is a `<button>` with `aria-pressed`; a screen reader says "pressed" or "not pressed" with its name and
+  hears the change on its own. Its label never changes with the state ("Pin", not "Pin" / "Unpin"). An icon toggle
+  needs `aria-label` and a `data-tip` with the same words.
+- A set with arrow keys is a `role="toolbar"` with an `aria-label` (the APG toolbar), one tab stop
+  ([`DS.a11y.roving`](core.md)): ArrowLeft and ArrowRight move between the buttons (wrapping), Home and End go to the
+  first and the last; Space and Enter press. The stop starts on the button that is on; in a multiple group it rests on
+  the last focused button, in a single group Tab comes back to the button that is on. A `role="group"` with an
+  `aria-label` keeps every button in the Tab order (a group says nothing about arrow keys), for a few toggles among
+  other controls. A single-choice set that reads better as radios (a form value) is a segmented control or radio group
+  instead.
+- Never by colour alone: on is the tint plus the attribute; give a text toggle an icon that swaps to a check
+  (`.ds-icon-swap`: b shows under `aria-pressed="true"`) and an icon toggle a fillable glyph (`.ds-icon--fillable`
+  fills while on).
+- Forced colours: a toggle that is on is `Highlight` / `HighlightText`, a focused one with a `CanvasText` ring; a
+  blocked one `GrayText` ([Button](#button)).
+
+### Hooks
+
+`--ds-toggle-group-gap` (the gap at the comfortable density). The buttons read the button hooks.
+
+**Motion:** the buttons' own: the fill and the label colour fade on `--ds-dur-fast`, the press morph and the ripple;
+an icon swap crossfades with a small scale. The group moves nothing.
+
+<!-- changelog -->
+- Toggle button and toggle group (3.0): `DS.toggle` (`data-ds-toggle`, `data-ds-toggle-group="single | multiple"`,
+  `data-ds-toggle-group-required`, `data-ds-value`, `data-ds-toggle-group-roving`; roving focus in a `role="toolbar"`),
+  `.ds-toggle-group` and the hook
+  `--ds-toggle-group-gap`. Button: a `--filled` or `--tonal` toggle shows the neutral container while off and its
+  fill while on (Material 3 icon toggles); an outlined, quiet or text toggle keeps the tint.
+## Button group
+
+Related actions or toggles joined into one pill outline: zoom out, fit, zoom in; the views of a list; the two targets of
+a [split button](#split-button).
+
+```html
+<div class="ds-btn-group" role="group" aria-label="Zoom">
+  <button class="ds-btn" type="button">[icon minimize 16]Out</button>
+  <button class="ds-btn" type="button">Fit</button>
+  <button class="ds-btn" type="button">[icon plus 16]In</button>
+</div>
+
+<div class="ds-btn-group" role="group" aria-label="Device">                         <!-- icon buttons -->
+  <button class="ds-btn ds-btn--icon" type="button" aria-label="Restart" data-tip="Restart">[icon refresh 20]</button>
+  <button class="ds-btn ds-btn--icon" type="button" aria-label="Lock" data-tip="Lock">[icon lock 20]</button>
+  <button class="ds-btn ds-btn--icon" type="button" aria-label="Locate" data-tip="Locate">[icon mapPin 20]</button>
+</div>
+
+<div class="ds-btn-group ds-btn-group--block" role="group" aria-label="Period">     <!-- the whole line, a phone -->
+  <button class="ds-btn ds-btn--tonal" type="button"><span class="ds-btn__label">Day</span></button>
+  <button class="ds-btn ds-btn--tonal" type="button"><span class="ds-btn__label">Week</span></button>
+  <button class="ds-btn ds-btn--tonal" type="button"><span class="ds-btn__label">Month</span></button>
+</div>
+```
+
+The first and the last button make the ends of the pill (`--ds-btn-group-radius`, at most half the height, times
+`--ds-shape`, D11); the inner corners are square and neighbours share one border line. In a `--filled` or `--tonal` group
+a hairline in the label colour (`--ds-state-disabled`, 38%, into the fill) parts the buttons. Another element inside
+the group (the menu of a split button) does not count as an end. Toggles: put `.ds-btn-group` on a [toggle group](#toggle-button-and-toggle-group)
+(`data-ds-toggle-group`): the button that is on takes the tint inside the group's outline (an outlined toggle keeps the line colour, so the
+pill stays one line all round) and its border lies over its neighbours'.
+
+### Options
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Look | `.ds-btn`, `--filled`, `--tonal` on every button | the buttons | one look per group: outlined (default), filled or tonal; icon buttons (`--icon`) or labelled ones |
+| Full width | `.ds-btn-group--block` | the group | fills its line, the buttons share it equally; a label in `.ds-btn__label` ends in an ellipsis when the line is too narrow; icon buttons keep their size |
+| Size | `.ds-xs` ... `.ds-xl` | the group or any ancestor | the buttons' height, padding and type; the pill of the ends follows the height |
+| Density | `.ds-density-*` | any container | the buttons' height (4px per step) |
+| Shape | `.ds-shape-*` | any container or the theme | the outer corners and their press times `--ds-shape`: square, soft, the pill, round |
+| Touch | `.ds-touch` | the theme or a container | every button at least `--ds-touch-target` high |
+
+No tone: a group of actions has no status.
+
+### Accessibility
+
+- A `role="group"` with an `aria-label` that names what the buttons share ("Zoom"). Every button is a tab stop of its
+  own (a toolbar of many controls is a [priority action bar](#priority-action-bar) or a toggle group in a
+  `role="toolbar"`, one tab stop). Icon buttons need `aria-label` and a `data-tip` with the same words.
+- Focus: the ring of the focused button lies over its neighbours (`--ds-z-pinned`); a hovered, pressed or pressed-on
+  button raises its border (`--ds-z-raised`).
+- Forced colours: the system button colours; the shared lines stay `ButtonBorder`, a toggle that is on `Highlight` /
+  `HighlightText` ([Button](#button)).
+
+### Hooks
+
+`--ds-btn-group-radius` (the outer corners), `--ds-btn-group-divider` (the line between two buttons). The buttons read
+the button hooks; the group computes the pill of its ends from `--ds-btn-height`, `--ds-btn-height-exact` and
+`--ds-btn-icon-size` with the button's formula.
+
+**Motion:** the press morphs the outer corners of the pressed button (`--ds-btn-radius-pressed` times `--ds-shape`, in
+`--ds-dur-micro`) and springs them back on `--ds-ease-spatial`; the inner corners stay square. The state layer, the
+ripple and the colour fades are the buttons' own. Nothing moves.
+
+<!-- changelog -->
+- Button group (3.0): `.ds-btn-group` (one pill outline: outer corners the pill times `--ds-shape`, shared borders, a
+  divider in filled and tonal groups, the press morph on the outer corners) and `.ds-btn-group--block`; hooks
+  `--ds-btn-group-radius` and `--ds-btn-group-divider`.
+## Menu button
+
+A button that opens a [menu](#menu), with a chevron that turns while it is open. With a menu of radio items it is a
+choice ("Sort: Name") and shows what was chosen.
+
+```html
+<!-- Actions -->
+<button class="ds-btn ds-menu-btn" type="button" aria-haspopup="menu" aria-expanded="false"
+        aria-controls="export-menu" data-ds-menubutton="#export-menu">
+  [icon download 16]Export[icon chevronDown 16 ds-chevron ds-menu-btn__chevron]
+</button>
+<div class="ds-menu" id="export-menu" role="menu" aria-label="Export" hidden>
+  <button class="ds-menu__item" role="menuitem" type="button">[icon fileSpreadsheet 20]<span class="ds-menu__label">CSV</span></button>
+  <button class="ds-menu__item" role="menuitem" type="button">[icon fileJson 20]<span class="ds-menu__label">JSON</span></button>
+</div>
+
+<!-- A choice: the button shows the checked radio -->
+<button class="ds-btn ds-btn--quiet ds-menu-btn" type="button" aria-haspopup="menu" aria-expanded="false"
+        aria-controls="sort-menu" data-ds-menubutton="#sort-menu">
+  Sort: <span class="ds-menu-btn__value">Name</span>[icon chevronDown 16 ds-chevron ds-menu-btn__chevron]
+</button>
+<div class="ds-menu" id="sort-menu" role="menu" aria-label="Sort by" data-ds-menu-checks hidden>
+  <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="true" value="name">
+    [icon check 20 ds-menu__check]<span class="ds-menu__label">Name</span></button>
+  <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="false" value="seen">
+    [icon check 20 ds-menu__check]<span class="ds-menu__label">Last seen</span></button>
+</div>
+
+<!-- Icon only: no chevron, no class of its own -->
+<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="More actions" data-tip="More actions"
+        aria-haspopup="menu" aria-expanded="false" aria-controls="row-menu" data-ds-menubutton="#row-menu">[icon moreVertical 20]</button>
+```
+
+| Class | What |
+|---|---|
+| `.ds-menu-btn` | with `.ds-btn` in any look: the end padding before a chevron pulls in like a leading icon's (12px at md, 4px more per size above, never more than the side padding) |
+| `.ds-menu-btn__value` | the chosen label of a choice: one line, an ellipsis when the button is narrower than its words |
+| `.ds-menu-btn__chevron` | the chevron at the end, with `.ds-chevron` (motion.css), which turns it while `aria-expanded="true"` |
+
+A menu trigger does not take the pressed tint while its menu is open ([Button](#button)): the turned chevron and
+`aria-expanded` say it.
+
+### Options
+
+The button's: size (height, padding, type; the chevron's end padding steps with it), density (height), shape (the pill
+and its press), touch (the minimum), any look. The menu's own options apply to the menu ([Menu](#menu)). No tone.
+
+### Behaviour: `data-ds-menubutton`
+
+`data-ds-menubutton` names the menu: a selector or an id; empty, the button's `aria-controls`, else the `.ds-menu` right
+after the button. The module opens and closes it through `DS.overlay` with the button as its opener, and fills in what
+the markup lacks: `aria-haspopup="menu"`, `aria-expanded`, `aria-controls` (and an id on the menu), and
+`data-ds-menu-checks` on a menu of radio items. Write them in the markup as well: a re-render with `DS.dom.morphHtml`
+keeps only what its template has.
+
+| Attribute | On | Effect |
+|---|---|---|
+| `data-ds-menubutton` | the button | the menu it opens (see above) |
+| `data-ds-value` | the button | the start of a choice: the radio with that value is checked |
+
+A choice: the checked `menuitemradio` is the value (its `value` attribute, else `data-value`, else its label);
+`.ds-menu-btn__value` shows its label. A user's pick sends `ds:change` (`{ value, item }`) on the button, after the menu
+flipped the radio. A button that also has `data-ds-open` leaves opening to the overlay's trigger (the same keys).
+
+### JS API
+
+```js
+const sort = DS.menubutton.create(button, { menu, value: 'name' });   // the controller data-ds-menubutton makes
+sort.get();                         // 'name' (null without radio items)
+sort.set('seen');                   // checks that radio and shows its label; no event
+sort.on('change', ({ value, item }) => load({ sort: value }));
+sort.open();  sort.close();         // the same as DS.menubutton.open(button), DS.menubutton.close(button)
+DS.menubutton.open(button);         // DS.overlay.open(menu, { opener: button })
+DS.menubutton.close(button);
+DS.menubutton.menuOf(button);       // the menu a button names
+DS.menubutton.itemValue(item);      // an item's value
+```
+
+`DS.menubutton.create(button, { menu, value, label })` takes a `label` element to show the chosen label in (default
+`.ds-menu-btn__value`); the [split button](#split-button) points it at its action.
+
+### Accessibility
+
+- The APG menu button: a `<button>` with `aria-haspopup="menu"`, `aria-expanded` and `aria-controls`. Enter, Space and a
+  click open the menu on its first item and close it again; ArrowDown opens it on the first item, ArrowUp on the last.
+  Inside the menu its keys are [DS.menu](#menu)'s: the arrows, Home, End, type-ahead; Escape closes it and focus
+  returns to the button, Tab closes it and moves on. A second click of a double click does nothing.
+- Its name is its words ("Sort: Name" reads as the chosen value); an icon-only menu button needs `aria-label` and a
+  `data-tip` with the same words.
+- The checked radio of a choice is its `aria-checked`, and a check in the menu; never the colour alone.
+- Forced colours: the button's system colours; the chevron is `currentColor`.
+
+### Hooks
+
+The button's; `--ds-btn-padding-x` sets the side padding the chevron's end padding never exceeds.
+
+**Motion:** the menu grows out of the button and leaves with a fade ([Menu](#menu)); the chevron turns over
+`--ds-dur-medium` on the spring (`.ds-chevron`, a named exception of the rotate rule) and turns back from where it is
+when the menu closes mid-way.
+
+<!-- changelog -->
+- Menu button (3.0): `DS.menubutton` (`data-ds-menubutton`, `data-ds-value`, `create`, `open`, `close`, `menuOf`,
+  `itemValue`), `.ds-menu-btn`, `.ds-menu-btn__value` and `.ds-menu-btn__chevron`.
+## Split button
+
+One pill with two targets: the main action, and a menu of related actions or of the action's variants (save, or save
+as a draft; merge, or squash and merge).
+
+```html
+<!-- The action and related actions -->
+<div class="ds-btn-group ds-split-btn" role="group" aria-label="Save" data-ds-splitbutton>
+  <button class="ds-btn ds-btn--filled ds-split-btn__action" type="button"><span class="ds-split-btn__label">Save</span></button>
+  <button class="ds-btn ds-btn--filled ds-split-btn__toggle" type="button" aria-label="More save options"
+          aria-haspopup="menu" aria-expanded="false" aria-controls="save-menu">[icon chevronDown 20 ds-chevron]</button>
+</div>
+<div class="ds-menu" id="save-menu" role="menu" aria-label="Save options" hidden>
+  <button class="ds-menu__item" role="menuitem" type="button">[icon fileText 20]<span class="ds-menu__label">Save as draft</span></button>
+  <button class="ds-menu__item" role="menuitem" type="button">[icon duplicate 20]<span class="ds-menu__label">Save as a copy</span></button>
+</div>
+
+<!-- A choice: the menu picks the action's variant -->
+<div class="ds-btn-group ds-split-btn" role="group" aria-label="Merge" data-ds-splitbutton>
+  <button class="ds-btn ds-btn--filled ds-split-btn__action" type="button" value="merge">
+    <span class="ds-split-btn__label">Merge</span></button>
+  <button class="ds-btn ds-btn--filled ds-split-btn__toggle" type="button" aria-haspopup="menu" aria-expanded="false"
+          aria-controls="merge-menu">[icon chevronDown 20 ds-chevron]</button>
+</div>
+<div class="ds-menu" id="merge-menu" role="menu" aria-label="Merge method" data-ds-menu-checks hidden>
+  <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="true" value="merge">
+    [icon check 20 ds-menu__check]<span class="ds-menu__label">Merge</span></button>
+  <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="false" value="squash">
+    [icon check 20 ds-menu__check]<span class="ds-menu__label">Squash and merge</span></button>
+</div>
+```
+
+| Class | What |
+|---|---|
+| `.ds-split-btn` | the group, with `.ds-btn-group` ([Button group](#button-group): the pill's ends, square inner corners, the divider) and `role="group"` |
+| `.ds-split-btn__action` | the action: a `.ds-btn`; its click is the page's |
+| `.ds-split-btn__label` | the action's words; a choice writes the chosen label here; an ellipsis when it is too narrow |
+| `.ds-split-btn__toggle` | the menu half: a `.ds-btn` with the chevron only (20px, `.ds-chevron` turns it while open), 8px of side padding at md (2px per size step), at least `--ds-target-min` wide |
+
+Both buttons take the same look: `--filled` for the main action of its area (one per area), `--tonal`, or outlined.
+Put the menu right after the group (or name it with the toggle's `aria-controls`).
+
+### Options
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Look | `--filled`, `--tonal` or none, on both buttons | the buttons | the fill; a hairline divider parts the targets of a filled or tonal pill |
+| Size | `.ds-xs` ... `.ds-xl` | the group or any ancestor | height, padding, type; the toggle's side padding steps 2px per size |
+| Density | `.ds-density-*` | any container | the height |
+| Shape | `.ds-shape-*` | any container or the theme | the pill's ends and their press times `--ds-shape` |
+| Touch | `.ds-touch` | the theme or a container | the height, and the toggle at least as wide as the touch target |
+
+No tone: a destructive action never hides in a split button.
+
+### Behaviour: `data-ds-splitbutton`
+
+On the group. The toggle becomes a [menu button](#menu-button) (`DS.menubutton`): it opens and closes the menu through
+`DS.overlay`, under the toggle, and fills in `aria-haspopup`, `aria-expanded` and `aria-controls`. A toggle without
+`aria-label` gets one from the strings: "More options for Save" (`moreOptionsFor`, `DS.config({ strings })`).
+
+A choice: when the menu holds `menuitemradio` items, the checked one is the action's variant: its label shows in
+`.ds-split-btn__label`, its value (the item's `value`, else `data-value`, else its label) goes to the action's `value`
+attribute, so the action's click handler reads `event.currentTarget.value`. A user's pick sends `ds:change`
+(`{ value, item }`) on the group and does not run the action. `data-ds-value` on the group is the start.
+
+### JS API
+
+```js
+const merge = DS.splitbutton.create(group, { value: 'squash' });   // the controller data-ds-splitbutton makes
+merge.get();                      // 'squash'
+merge.set('merge');               // from the page: no event
+merge.on('change', ({ value }) => remember(value));
+merge.open();  merge.close();     // the menu
+merge.action;  merge.toggle;  merge.menu;
+DS.splitbutton.partsOf(group);    // { action, toggle, menu }
+```
+
+`DS.splitbutton.create(group, options)` returns the controller, one per group: on a group the attribute set up it
+returns that controller (`value` through `set()`); `DS.splitbutton.partsOf(group)` finds the parts as the module does.
+
+### Accessibility
+
+- Two tab stops: the action, then the toggle. The action is a plain button (Enter, Space). The toggle is an APG menu
+  button: Enter, Space or ArrowDown open the menu on its first item, ArrowUp on its last, Escape closes it and focus
+  returns to the toggle, Tab closes it and moves on.
+- Names: the group's `aria-label` names the pair; the toggle's name says what it opens ("More save options"), never
+  just "More". A choice's action reads the chosen label.
+- The checked variant is `aria-checked` with a check in the menu, never the colour alone.
+- Forced colours: the buttons' system colours, the divider `ButtonBorder`.
+
+### Hooks
+
+None of its own: the buttons read the button hooks, the pill reads `--ds-btn-group-radius` and
+`--ds-btn-group-divider`.
+
+**Motion:** each half presses on its own: the state layer, the ripple and the morph of its outer corners (the button
+group's). The menu grows out of the toggle ([Menu](#menu)) while the chevron turns over `--ds-dur-medium` on the spring.
+
+<!-- changelog -->
+- Split button (3.0): `DS.splitbutton` (`data-ds-splitbutton`, `data-ds-value`, `create`, `partsOf`),
+  `.ds-split-btn`, `.ds-split-btn__action`, `.ds-split-btn__label` and `.ds-split-btn__toggle`. String
+  `moreOptionsFor`.
+## Copy button
+
+Copies a value, a key or a link with one press, shows "Copied" for a moment and says it to screen readers. Without the
+Clipboard API it falls back to the copy command, and without that it selects the text and says how to copy it by hand.
+
+```html
+<!-- A value and its icon button, in the read-only field look -->
+<span class="ds-copy ds-copy--field">
+  <code class="ds-copy__value" id="api-key">ak_live_7f3a9c2e</code>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Copy the key" data-tip="Copy the key"
+          data-ds-copy="#api-key">
+    <span class="ds-icon-swap"><span class="ds-icon-swap__a">[icon copy 20]</span><span class="ds-icon-swap__b">[icon check 20]</span></span>
+  </button>
+</span>
+
+<!-- Inline, the value beside it -->
+<span class="ds-copy"><code class="ds-copy__value">LAPTOP-0042</code>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-xs" type="button" aria-label="Copy the serial number" data-ds-copy>
+    <span class="ds-icon-swap"><span class="ds-icon-swap__a">[icon copy 16]</span><span class="ds-icon-swap__b">[icon check 16]</span></span>
+  </button></span>
+
+<!-- A labelled button with a value of its own: the done face says "Copied" -->
+<button class="ds-btn" type="button" data-ds-copy data-ds-copy-value="https://example.com/t/4127">
+  <span class="ds-btn__faces">
+    <span class="ds-btn__face">[icon link 16]Copy link</span>
+    <span class="ds-btn__face ds-btn__face--done" aria-hidden="true">[icon check 16, pathLength 1]<span class="ds-copy__done"></span></span>
+  </span>
+</button>
+```
+
+| Class | What |
+|---|---|
+| `.ds-copy` | a value and its copy button in one line (`--ds-space-1` apart) |
+| `.ds-copy--field` | the read-only field look: the field's height (`--ds-input-height` with its size and density steps, the touch minimum), the field radius times `--ds-shape`, `--ds-copy-field-bg`; the value fills it and the button sits at its end: an icon button 8px lower than the field at every size and density (32px at md), never below the touch minimum |
+| `.ds-copy__value` | the value: the code role (`--ds-copy-font`), one line with an ellipsis; a click selects all of it (`user-select: all`) |
+| `.ds-copy__manual` | written by `DS.copy` after the button when the browser refuses to copy and nothing on the page shows the text (a `data-ds-copy-value`, a text from `set()`): a read-only field (with `.ds-copy__value`) holding the text, focused and selected, to copy by hand; it goes on blur, Escape takes focus back to the button |
+| `.ds-copy__done` | the words of a done face: `DS.copy` writes the strings' `copied` ("Copied") into it |
+
+The button is a [Button](#button): an icon button with an icon swap (`.ds-icon-swap`, copy to check) or a labelled one
+with faces (`.ds-btn__faces`; the done face's check draws itself).
+
+### Options
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Field look | `.ds-copy--field` | the `.ds-copy` | the box of a read-only field (above) |
+| Size | `.ds-xs` ... `.ds-xl` | the field, the button or any ancestor | the field's height (8px per step) and side padding; the button's own; the value keeps the code role |
+| Density | `.ds-density-*` | any container | the field's height, 4px per step |
+| Shape | `.ds-shape-*` | any container | the field's radius and the button's |
+| Touch | `.ds-touch` | the theme or a container | the field and the button at least `--ds-touch-target` high |
+
+No tone: copying has no status beyond "Copied".
+
+### Behaviour: `data-ds-copy`
+
+| Attribute | On | Effect |
+|---|---|---|
+| `data-ds-copy` | the button | copies on a press. Its value names the source: a selector or an id (a field's `value`, else the element's text); empty, the `.ds-copy__value` of the `.ds-copy` around the button |
+| `data-ds-copy-value` | the button | the text to copy, instead of a source |
+| `data-state="copied"` | the button, written by the system | for `--ds-hold-status` after a copy |
+
+A press copies through the Clipboard API (`navigator.clipboard.writeText`, secure pages), else through the copy command
+on a hidden, read-only textarea (focus goes back where it was). It worked: for `--ds-hold-status` the button carries
+`data-state="copied"`, an icon swap in it shows its check, a button with a done face shows it (`.ds-btn--done`, blocked
+while it shows), and the announcer says "Copied" (polite). It did not: the text is selected (in the source where it
+shows the text that was meant; else in a `.ds-copy__manual` field after the button, focused) and the announcer says
+"Copying is blocked here. The text is selected: press Ctrl+C to copy it." (assertive; ⌘C on Apple systems; string
+`copyManual`). Either way `ds:copy` (`{ text, ok, method }`, method `'clipboard'`, `'command'` or `'none'`) goes out
+on the button. A button without words and without a name gets the strings' `copy` ("Copy") as its `aria-label`.
+
+### JS API
+
+```js
+await DS.copy.copy('ak_live_7f3a9c2e');            // { ok: true, method: 'clipboard' }; never rejects
+DS.copy.textOf(button);                            // what the button would copy now
+const share = DS.copy.create(button, { text: url }); // the controller data-ds-copy makes
+share.set(nextUrl);                                // what it copies from now on (null: back to the markup)
+share.get();
+share.on('copy', ({ ok, method }) => { if (!ok) DS.overlay.toast(region, 'Copy it by hand.'); });
+share.copy();                                      // as a press does
+share.done();                                      // only the copied feedback, for a copy the page made itself
+```
+
+`DS.copy.copy(text, { doc })` is the copy alone (no feedback); `DS.copy.create(button, { text })` returns the controller
+(`get`, `set`, `copy`, `done`, `on('copy')`, `destroy`), one per button: on a button the attribute set up it returns that
+controller (`text` through `set()`), so a press still copies once; `DS.copy.textOf(button)` reads the source as the module does.
+
+### Accessibility
+
+- A `<button>`: Enter and Space copy. An icon button needs `aria-label` and a `data-tip` that say what is copied
+  ("Copy the key"), never only "Copy" when several sit on a page. Its name does not change after a copy; the
+  announcer says "Copied" instead, and the check or the done face shows it (never the colour alone).
+- `aria-disabled` and busy buttons never copy (the action guard); a button in its copied hold ignores presses.
+- The value is text (a `<code>`), read where it stands; with `user-select: all` one click selects all of it.
+- Forced colours: the field keeps its border; the value is `CanvasText`; the button's system colours.
+
+### Hooks
+
+`--ds-copy-font` (the value's type), `--ds-copy-field-bg` (the field look's fill). The field reads `--ds-input-height`
+to line up with the fields around it.
+
+**Motion:** the button's own: the icon swap crossfades with a small scale (`.ds-icon-swap`), the faces roll and the
+done check draws itself (`.ds-btn--done`); back after `--ds-hold-status`.
+
+<!-- changelog -->
+- Copy button (3.0): `DS.copy` (`data-ds-copy`, `data-ds-copy-value`, `copy`, `create`, `textOf`; the Clipboard API,
+  the copy command, then a selection and a hint), `.ds-copy`, `.ds-copy--field`, `.ds-copy__value`, `.ds-copy__manual`,
+  `.ds-copy__done`, hooks `--ds-copy-font` and `--ds-copy-field-bg`. String `copyManual`.
+## Priority action bar
+
+A row of actions that stays on one line at any width: the least important ones fold into a "More" menu when the bar
+is too narrow for all of them, and come back when there is room. The menu holds the same commands.
+
+```html
+<div class="ds-priority-bar" role="toolbar" aria-label="Ticket actions" data-ds-prioritybar>
+  <button class="ds-btn ds-btn--quiet" type="button" data-ds-priority="2">[icon pencil 16]Edit</button>
+  <button class="ds-btn ds-btn--quiet" type="button" data-ds-priority="1">[icon userPlus 16]Assign</button>
+  <button class="ds-btn ds-btn--quiet" type="button" aria-pressed="false" data-ds-toggle>[icon bellOff 16]Mute</button>
+  <button class="ds-btn ds-btn--quiet" type="button">[icon archive 16]Archive</button>
+  <button class="ds-btn ds-btn--quiet" type="button">[icon trash 16]Delete</button>
+</div>
+
+```
+
+| Class or attribute | What |
+|---|---|
+| `.ds-priority-bar` | the row: one line, no wrap. It takes the width its parent gives (a block, or a flex item that grows: `flex: 1 1 auto` is its own) and never the width of its actions (`contain: inline-size`), so folding never resizes it; it is as high as an icon button, so More never changes its height |
+| `.ds-priority-bar--end` | the actions sit at the end: in a head row (a flex row) the title takes the room it needs and the bar grows into the rest |
+| `.ds-priority-bar__more` | the More button: a quiet icon button (`moreHorizontal`, named "More actions", string `moreActions`) the module adds, or the bar's own child with this class; always the last item, shown only while something is folded |
+| `.ds-priority-bar__menu` | its menu (a `.ds-menu`, added the same way, or the bar's own child with this class), at least `--ds-priority-bar-menu-width` wide |
+| `data-ds-priority` | on an action: a number (default 0). The lower folds first; among equals the last one first |
+| `data-ds-folded` | on a folded action (and on More while nothing is folded), written by the system: not displayed |
+
+The actions are the bar's `.ds-btn` children (buttons and links) in any look; quiet ones are usual in a toolbar. Any
+other child (a divider, a search field) never folds and keeps its room. An action the page hides (`hidden`) is left out.
+
+### Options
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Alignment | `.ds-priority-bar--end` | the bar | the actions at the end |
+| Size | `.ds-xs` ... `.ds-xl` | the bar or any ancestor | the actions' height, padding and type; the bar's height |
+| Density | `.ds-density-*` | any container | the actions' height; the gap, 1px less per step (4px to 1px) |
+| Shape | `.ds-shape-*` | any container | the actions' radius |
+| Touch | `.ds-touch` | the theme or a container | every action and More at least `--ds-touch-target` |
+
+No tone: the bar has no status; a destructive action keeps its word and icon in the bar and in the menu.
+
+### Behaviour: `data-ds-prioritybar`
+
+The bar measures on every change of its width (`ResizeObserver`), of its content (`MutationObserver`: an action added,
+hidden or relabelled) and once the fonts are ready. It shows every action that fits and folds the rest: actions fold by
+priority, the More button appears at the end. Nothing animates: an action folds and unfolds at once. `ds:change`
+(`{ folded }`, the folded actions) goes out on the bar when the folded set changes.
+
+The menu lists the folded actions in the bar's order and is built each time it opens, so it shows them as they are: the
+action's label (`aria-label`, else `.ds-btn__label`, else its text) and its first icon; a toggle (`aria-pressed`) as a
+`menuitemcheckbox` with its check; a disabled, `aria-disabled` or busy one as an `aria-disabled` item. Picking an item
+clicks the action it stands for, so the page's handlers run as for a press in the bar. An action that opens its own
+menu or dialog should keep a high priority. The More button and the menu the module adds carry `data-ds-keep`, so a
+re-render of the bar with `DS.dom.morphHtml` keeps them.
+
+### JS API
+
+```js
+const bar = DS.prioritybar.create(element);       // the controller data-ds-prioritybar makes (the same one)
+bar.get();                                         // the folded actions
+bar.update();                                      // measure again (the observers do it by themselves)
+bar.on('change', ({ folded }) => { /* also a bubbling ds:change on the bar */ });
+bar.more;  bar.menu;
+DS.prioritybar.plan({ widths: [80, 96, 72], priorities: [2, 0, 0], available: 200, gap: 4, more: 40 });  // [1, 2]
+```
+
+`DS.prioritybar.create(bar)` returns the controller (`get`, `update`, `on('change')`, `destroy`, which unfolds every
+action and removes what the module added), one per bar: on a bar the attribute set up it returns that controller; `DS.prioritybar.plan(input)` is the pure rule behind the fold.
+
+### Accessibility
+
+- A `role="toolbar"` bar with an `aria-label` is one tab stop ([`DS.a11y.roving`](core.md)): ArrowLeft and ArrowRight
+  move between the shown actions and More, Home and End to the ends; a bar without the role leaves every action in
+  the Tab order. A focused action that folds hands its focus to More; a focused More that hides (nothing folds any
+  more) hands it, and the tab stop, to the last action, its open menu closed first. An open menu keeps its items when
+  the fold changes under it (a resize, a rotation), so the focus in it stays; the next open lists the fold as it is.
+- More is a [menu button](#menu-button): Enter, Space or ArrowDown open the menu on its first item, ArrowUp on its
+  last; the menu's arrows, Home, End and type-ahead; Escape closes it and focus returns to More.
+- A folded action is not displayed, so it is out of the accessibility tree; its menu item carries the same name and
+  state. Toggles stay `aria-checked` in the menu, never the colour alone.
+- Forced colours: the buttons' and the menu's system colours.
+
+### Hooks
+
+`--ds-priority-bar-gap` (the gap at the comfortable density), `--ds-priority-bar-menu-width` (the menu's least width);
+the bar's height reads `--ds-btn-icon-size`.
+
+**Motion:** none of its own: a fold is a layout change, so it happens at once. The menu grows out of More
+([Menu](#menu)).
+
+<!-- changelog -->
+- Priority action bar (3.0): `DS.prioritybar` (`data-ds-prioritybar`, `data-ds-priority`, `create`, `plan`; the More
+  button and its menu built when the markup has none), `.ds-priority-bar`, `.ds-priority-bar--end`,
+  `.ds-priority-bar__more`, `.ds-priority-bar__menu`, `data-ds-folded`; hooks `--ds-priority-bar-gap` and
+  `--ds-priority-bar-menu-width`. String `moreActions`.
 ## Card
 
 A block of related content on a surface, or a whole block that opens or picks something.
@@ -1220,6 +2699,329 @@ Hooks: `--ds-card-padding`, `--ds-card-padding-sm`, `--ds-card-padding-filled`, 
 resulting padding: read it, never set it.
 
 **Motion:** the press morph of [Controls](motion.md#controls) (`.ds-card--interactive`) and the "Alert, tile, card" row of [Feedback](motion.md#feedback). The mark's colours run on `--ds-dur-fast` with the card's.
+## Split pane
+
+Two or three panes side by side or stacked, with a divider between each pair that a pointer drags and the keyboard
+moves (the WAI-ARIA window splitter). Sizes can be remembered, panes can collapse:
+
+```html
+<div class="ds-splitpane ds-splitpane--outlined" data-ds-splitpane data-ds-splitpane-store="devices" style="--ds-splitpane-height: 480px">
+  <section class="ds-splitpane__pane" id="device-list" aria-label="Devices" data-ds-splitpane-collapsible
+           style="--ds-splitpane-size: 320px; --ds-splitpane-min: 240px; --ds-splitpane-max: 50%">
+    <ul class="ds-list"> ... </ul>
+  </section>
+  <div class="ds-splitpane__divider" role="separator" tabindex="0" aria-controls="device-list" aria-label="Resize the device list"></div>
+  <section class="ds-splitpane__pane ds-splitpane__pane--fill" aria-label="Details">
+    <div class="ds-splitpane__body"> ... </div>
+  </section>
+</div>
+
+<button class="ds-btn ds-btn--icon ds-btn--quiet" type="button" aria-label="Device list" data-ds-splitpane-toggle="device-list">[icon panelLeft 20]</button>
+```
+
+Three panes: give the outer two a size and the middle one `--fill` (a list, the work area, an inspector); each divider
+then resizes its outer neighbour.
+
+| Part | What |
+|---|---|
+| `.ds-splitpane` | the frame: a flex row (`--stacked`: a column) of `--ds-splitpane-height` (100%), clipping |
+| `.ds-splitpane__pane` | a pane that scrolls on its own; its start size `--ds-splitpane-size` (any length, or a percentage of the split pane; default 50%), its limits `--ds-splitpane-min` (0) and `--ds-splitpane-max` (100%), set on the pane; registered, so they do not reach a split pane nested inside |
+| `.ds-splitpane__pane--fill` | the pane that takes the rest; without one, the last pane does |
+| `.ds-splitpane__divider` | between two panes: a hairline with a grip, a hit area wider than the line; resizes the pane its `aria-controls` names, else the neighbour that does not fill |
+| `.ds-splitpane__body` | padded content in a pane (a pane has no padding, so it can collapse to nothing) |
+
+**Options** ([options.md](options.md)): classes on the split pane or any ancestor.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Variant | `.ds-splitpane--outlined` | the split pane | the hairline frame and `--ds-splitpane-radius` (`--ds-radius-card`) on `--ds-surface`: a split view inside a page; without it the split pane fills its place (the content panel, a card's body) |
+| Orientation | `.ds-splitpane--stacked` | the split pane | the panes one above the other, the divider across |
+| Size | `.ds-xs` ... `.ds-xl` | any ancestor | the grip's length, 8px per step (32px at md) |
+| Density | `.ds-density-*` | any container | the padding of `.ds-splitpane__body`, 2px per step; the panes and the divider stay |
+| Shape | `.ds-shape-*` | any container or the theme | the frame of `--outlined` and the grip's ends |
+| Touch | `.ds-touch` | any container | the hit area at least half the touch target wide (24px), the grip at least the target long (48px) |
+| Tone | | | not read: a divider says nothing |
+
+**Behaviour** (`data-ds-splitpane`, `DS.init()`):
+
+- Drag a divider with a pointer, a finger or a pen (captured, so it follows outside the line; while it drags, the line
+  and the grip turn `--ds-primary`, the resize cursor holds over the whole split pane and nothing selects). `Escape`
+  during a drag puts it back where it began.
+- A pane with `data-ds-splitpane-collapsible` collapses: `Enter` on its divider, a double click on the divider, or a drag
+  below half its minimum snaps it shut; the same again (or a drag or an arrow key out) restores it to its last open
+  size. A pane that cannot collapse goes back to its start size on a double click. A collapsed pane is inert; when it
+  held the focus (a hide button in its own header), the focus moves to its divider first.
+- `data-ds-splitpane-toggle="<pane id>"` on a button anywhere in the page (or the pane's index, on a button inside the
+  split pane) collapses and restores that pane; the system keeps its `aria-expanded` and `aria-controls`.
+- `data-ds-splitpane-store="<key>"` remembers the sizes and the collapsed panes (`DS.store`, namespace `splitpane`),
+  restored at the next load while the number of panes still matches.
+- `data-ds-splitpane-step="<px>"`: how far a key moves the divider (default 16; with `Shift` four times that).
+- `data-ds-splitpane-stack="<px>"`: stack the panes while the split pane is narrower than that (a phone). The system
+  measures its own width and writes `data-state="stacked"` on it, which lays it out as `--stacked`: the sizes and the
+  limits then apply to the heights, the divider runs across and moves with `ArrowUp` and `ArrowDown`
+  (`aria-orientation="horizontal"`). Give such a split pane sizes in percent, which read well either way.
+- A size keeps the unit the markup gave it: a percentage stays a share when the split pane resizes, anything else is
+  written in px. The browser holds the limits and shrinks the sized panes when the split pane gets narrower; a move is
+  clamped to the same limits and to the room the other panes leave (the filling pane keeps its minimum).
+
+**JS API.** The attribute path makes the controller (`DS.core.get(el, 'splitpane')`); from the page:
+
+```js
+const split = DS.splitpane.create(el, { store: 'devices', step: 16, stack: 560 });
+split.get();                          // { sizes: [320, null], collapsed: [false, false] } (px; null: the filling pane)
+split.set({ sizes: [400], collapsed: [false] });   // px, or CSS text ('30%')
+split.collapse(0); split.expand('device-list'); split.toggle(0);
+split.reset();                        // the markup's sizes, nothing collapsed, the remembered sizes forgotten
+split.on('change', ({ sizes, collapsed, index }) => { /* also a bubbling ds:change on the split pane */ });
+DS.splitpane.toPixels('calc(20% + 16px)', 1000);   // 216
+DS.splitpane.nextSize({ size: 320, min: 240, max: 600 }, { key: 'ArrowRight' });   // { size: 336, collapsed: false }
+```
+
+`DS.splitpane.create` returns the controller (`get`, `set`, `collapse`, `expand`, `toggle`, `reset`, `on`, `update`,
+`destroy`); its toggle buttons need `DS.init()` (one delegated listener per root), or call `toggle()`. A change of
+`data-ds-splitpane-step`, `-stack` or `-store` reaches the controller through `update()`, so the panes keep their sizes.
+`destroy()` takes back what it wrote: a collapsed pane opens to its markup size and is no longer inert, the dividers
+keep only the attributes of the markup. `ds:change` goes out after a
+drag, a key, a toggle or `set()`, never during a drag. `DS.splitpane.toPixels` and `DS.splitpane.nextSize` are the pure
+functions behind it.
+
+**Accessibility** (APG window splitter). Each divider is `role="separator"`, focusable, with `aria-orientation`
+(`vertical` between panes side by side), `aria-controls` (the pane it resizes) and its value: `aria-valuenow`,
+`aria-valuemin` and `aria-valuemax` are the pane's share of the room in percent; a collapsed pane reads
+`aria-valuetext` "Collapsed" (`t('splitpaneCollapsed')`). Name every divider after its pane (`aria-label="Resize the
+device list"`); one without a name gets `t('splitpaneResize')`. Keys on a divider: `ArrowLeft` / `ArrowRight` (stacked:
+`ArrowUp` / `ArrowDown`) move it, `Shift` four times as far; `Home` and `End` give the pane its smallest and largest
+size; `Enter` collapses and restores a collapsible pane. Name the panes (`aria-label` or a heading) so a screen reader
+user knows what grew.
+
+**Forced colours.** The line and the grip in `CanvasText`, `Highlight` while dragged; the focus ring in `CanvasText`.
+
+**Hooks:** `--ds-splitpane-size`, `--ds-splitpane-min`, `--ds-splitpane-max` (on a pane), `--ds-splitpane-height`,
+`--ds-splitpane-line`, `--ds-splitpane-grip`, `--ds-splitpane-hit`, `--ds-splitpane-radius`,
+`--ds-splitpane-padding` ([theming.md](theming.md#component-hooks)).
+
+**Motion.** Collapsing and restoring glide the size (`--ds-splitpane-size`, registered) over `--ds-dur-medium` on
+`--ds-ease-out` (a size that pushes layout never overshoots) and reverse from where they are; a drag and the keys move at
+once. The line and the grip change colour over `--ds-dur-fast`. Focus: a ring around the grip, solid from the first
+frame, snapping from offset + width to the offset.
+
+<!-- changelog -->
+- Split pane (`.ds-splitpane`, `DS.splitpane`): two or three panes, side by side or stacked, with dividers that drag
+  and move by keyboard (APG window splitter), limits per pane, collapse and restore (keys, double click, toggle
+  buttons), sizes remembered through `DS.store`, stacking under a width of its own on a phone
+  (`data-ds-splitpane-stack`). New strings `splitpaneResize`, `splitpaneCollapsed`.
+## List-detail layout
+
+A list, the detail of what is picked in it and, optionally, a sub-detail (a related record, a log line, a reply), as
+columns that fold to fewer as the layout narrows, down to one with a back button on a phone:
+
+```html
+<div class="ds-listdetail" data-ds-listdetail="list" role="group" aria-label="Devices">
+  <section class="ds-listdetail__list" aria-labelledby="ld-list">
+    <header class="ds-listdetail__head"><h2 class="ds-listdetail__title" id="ld-list">Devices</h2></header>
+    <ul class="ds-list ds-list--interactive">
+      <li class="ds-list__item"> ... <a class="ds-list__action" href="#d42" data-ds-listdetail-show="detail">LAPTOP-0042</a> ... </li>
+    </ul>
+  </section>
+  <section class="ds-listdetail__detail" aria-labelledby="ld-detail">
+    <header class="ds-listdetail__head">
+      <button class="ds-btn ds-btn--icon ds-btn--quiet ds-listdetail__back" type="button" aria-label="Back to devices">[icon arrowLeft 20]</button>
+      <h2 class="ds-listdetail__title" id="ld-detail">LAPTOP-0042</h2>
+    </header>
+    <div class="ds-listdetail__body"> ... <button class="ds-btn" type="button" data-ds-listdetail-show="sub">Ticket #42</button></div>
+  </section>
+  <section class="ds-listdetail__sub" aria-labelledby="ld-sub">
+    <header class="ds-listdetail__head">
+      <button class="ds-btn ds-btn--icon ds-btn--quiet ds-listdetail__back" type="button" aria-label="Back to LAPTOP-0042">[icon arrowLeft 20]</button>
+      <h2 class="ds-listdetail__title" id="ld-sub">Ticket #42</h2>
+      <button class="ds-btn ds-btn--icon ds-btn--quiet ds-listdetail__close" type="button" aria-label="Close the ticket">[icon close 20]</button>
+    </header>
+    <div class="ds-listdetail__body"> ... </div>
+  </section>
+</div>
+```
+
+| Part | What |
+|---|---|
+| `.ds-listdetail` | the layout: a row of columns of `--ds-listdetail-height` (100%); it folds by its own width (measured by the script), also inside a sheet or a card |
+| `.ds-listdetail__list` | the list column, `--ds-listdetail-list-width` (320px) beside the detail |
+| `.ds-listdetail__detail` | the detail: takes the rest, at least `--ds-listdetail-detail-min` (400px) beside another column; while nothing is picked it holds the page's empty state (an [empty state](#empty-state)) |
+| `.ds-listdetail__sub` | optional: the sub-detail, `--ds-listdetail-sub-width` (360px), shown only at the sub level |
+| `.ds-listdetail__head` | a column's header row, sticky at its top: a back button, the title, actions at the end |
+| `.ds-listdetail__title` | the column's title on one line with an ellipsis; where the focus lands when the column comes |
+| `.ds-listdetail__body` | padded content of a column |
+| `.ds-listdetail__back` | up one level; shown only while the column before it is hidden (a phone; the detail while the sub-detail pushes the list out) |
+| `.ds-listdetail__close` | up one level as well; shown only while the column before it shows (the sub-detail beside its detail) |
+
+A `.ds-list` right in a column loses its frame and runs to the column's edges.
+
+**What shows.** The level (`list`, `detail`, `sub`) and the layout's own width decide. The script measures the width
+(no size container, which would re-anchor the popups inside) and writes `data-columns` (1, 2, 3) and `data-shown` (the
+levels that show); the columns fit by `--ds-listdetail-list-width` + `--ds-listdetail-detail-min` (720px) and that plus
+`--ds-listdetail-sub-width` (1080px), read in px or rem:
+
+| Width of the layout | `list` | `detail` | `sub` |
+|---|---|---|---|
+| under 720px: one column | the list | the detail, with its back button | the sub-detail, with its back button |
+| 720px to 1080px: two | the list and the detail | the list and the detail | the detail (with its back button) and the sub-detail (with its close button) |
+| 1080px and more: three | the list and the detail | the list and the detail | all three |
+
+Before the script runs, a window under 720px shows the list alone (or the level `data-ds-listdetail` names), a wider
+one the list and the detail.
+
+**Options** ([options.md](options.md)): classes on the layout or any ancestor.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Variant | `.ds-listdetail--outlined` | the layout | the hairline frame and `--ds-listdetail-radius` (`--ds-radius-card`) on `--ds-surface`; without it the layout fills its place (the content panel) with hairlines between its columns |
+| Density | `.ds-density-*` | any container | the head's height (56px at the comfortable density, 4px per step) and the padding of the head and the body (2px per step) |
+| Shape | `.ds-shape-*` | any container or the theme | the frame of `--outlined` |
+| Touch | `.ds-touch` | any container | the head at least the touch target high |
+| Size, tone | | | not read: it is a layout; a size class reaches the controls in it |
+
+**Behaviour** (`data-ds-listdetail`, `DS.init()`):
+
+- `data-ds-listdetail` holds the page's level: its value at the start (`list` when empty or unknown; `detail` and `sub`
+  only when their column exists), and a later change of it (a re-render through `DS.dom.morphHtml`) sets the level.
+  The system writes the level it shows as `data-state`, the way it got there as `data-direction` (`forward`, `back`),
+  and `data-columns` and `data-shown` as above.
+- A click on `[data-ds-listdetail-show="detail"]` (or `"sub"`, `"list"`) goes to that level, after the page's own click
+  handlers (one delegated listener per root of `DS.init()`), which render what it shows; it goes also when a router
+  called `preventDefault()` on the link. `.ds-listdetail__back` and `.ds-listdetail__close` go up one level from their
+  column. A back or close button without a name gets `t('back')` or `t('close')`.
+- The page owns what is picked: mark the open row (`aria-current="true"` on its `.ds-list__action`), render the record,
+  and tie the levels to its routes (`ds:change`, `set()` on `popstate`) so the browser's back button works on a phone.
+
+**JS API.** The attribute path makes the controller (`DS.core.get(el, 'listdetail')`); from the page:
+
+```js
+const layout = DS.listdetail.create(el, { level: 'list' });
+layout.set('detail', { opener: row });   // after rendering the record; the focus comes back to `opener`
+layout.back();                           // up one level; back('sub'): up from that level
+layout.get();                            // 'detail'
+layout.visible();                        // ['list', 'detail'] at this width
+DS.listdetail.arrange(900, 'sub');       // { columns: 2, shown: ['detail', 'sub'] }
+layout.on('change', ({ level, previous }) => { /* also a bubbling ds:change on the layout */ });
+DS.listdetail.level('sub', ['list', 'detail']);   // 'list': no sub-detail column
+DS.listdetail.parent('sub');                      // 'detail'
+```
+
+`DS.listdetail.create` returns the controller (`get`, `set`, `back`, `visible`, `on`, `update`, `destroy`); its
+triggers need `DS.init()`, or call `set()` and `back()`. `set(level, { animate: false, focus: false })` changes the level
+without the entrance or the focus move. `DS.listdetail.arrange`, `DS.listdetail.level` and `DS.listdetail.parent` are the
+pure functions behind it.
+
+**Accessibility.** Name the layout (`role="group"` with `aria-label`: a plain `div` takes no name) and each column
+(`aria-label`, or `aria-labelledby` to its title). The focus moves only when the column that held it is no longer shown
+or the focused control hid (the close button just pressed, the detail's back button once the list is back), so on a
+wide layout it stays in the list while the detail changes: going deeper it lands on the new column's title (given
+`tabindex="-1"`), which a screen reader reads; going back on the trigger that opened the level below the one it lands
+on (the row picked last). A resize that hides the focused column or control moves the focus the same way. The back button is a real button with a name ("Back to devices"); hidden buttons are `display: none`, so they are
+no tab stop. Hidden columns are out of the tab order and the accessibility tree.
+
+**Forced colours.** The hairlines and the frame are borders, so they stay; the buttons are the system's.
+
+**Hooks:** `--ds-listdetail-height`, `--ds-listdetail-list-width`, `--ds-listdetail-detail-min`,
+`--ds-listdetail-sub-width`,
+`--ds-listdetail-line`, `--ds-listdetail-radius`, `--ds-listdetail-head-height`, `--ds-listdetail-padding`
+([theming.md](theming.md#component-hooks)).
+
+**Motion.** A column that comes into view by a change of level slides in and fades (`DS.motion.enter(column, 'slide')`:
+`ds-shift-in` over `--ds-dur-slow` on `--ds-ease-spatial` with `ds-fade-in`), from the end going deeper and from the
+start going back (`data-direction="back"` turns `--ds-motion-distance` round); the column that goes is gone at once.
+Nothing plays at the start or when the layout folds by a resize.
+
+<!-- changelog -->
+- List-detail layout (`.ds-listdetail`, `DS.listdetail`): list, detail and sub-detail columns that fold by the
+  layout's own width to two and to one with a back button, declarative triggers (`data-ds-listdetail-show`), focus
+  that follows the level, the entering column sliding in. New string `back`.
+## Dashboard panel
+
+A titled block of a dashboard (a chart, a table, a list, a few figures) with a menu at its end and the states its data
+goes through: loading, refreshing, failed, nothing to show. Panels sit in a grid and fill their cell's height, so a row
+of panels lines up whatever each one shows:
+
+```html
+<div class="ds-grid-2">
+  <section class="ds-dashpanel" aria-labelledby="p-tickets">
+    <header class="ds-dashpanel__head">
+      <div class="ds-dashpanel__heading">
+        <h3 class="ds-dashpanel__title" id="p-tickets">Tickets per day</h3>
+        <p class="ds-dashpanel__subtitle">Last 7 days</p>
+      </div>
+      <div class="ds-dashpanel__actions">
+        <button class="ds-btn ds-btn--icon ds-btn--quiet ds-sm" type="button" aria-label="Actions for tickets per day"
+                aria-haspopup="menu" aria-expanded="false" aria-controls="p-tickets-menu" data-ds-open="#p-tickets-menu">[icon moreVertical 18]</button>
+        <div class="ds-menu" id="p-tickets-menu" role="menu" aria-label="Tickets per day" hidden> ... </div>
+      </div>
+      <span class="ds-loadbar" aria-hidden="true"><span class="ds-loadbar__bar"></span></span>
+    </header>
+    <div class="ds-dashpanel__body"> <figure class="ds-columns"> ... </figure> </div>
+    <div class="ds-dashpanel__foot"><span>Updated 09:12</span> <a class="ds-link--quiet" href="/tickets">All tickets</a></div>
+  </section>
+</div>
+```
+
+| Part | What |
+|---|---|
+| `.ds-dashpanel` | the panel: a column as high as its grid cell; a region named by its title (`aria-labelledby`) |
+| `.ds-dashpanel__head` | the title row, at least `--ds-dashpanel-head-height` (56px): the heading, then the actions; its last child is the loading bar |
+| `.ds-dashpanel__heading` | the title and the subtitle, as wide as it gets |
+| `.ds-dashpanel__title` | one line, an ellipsis when it is too long |
+| `.ds-dashpanel__subtitle` | the period, the unit or the source, one line in the meta type |
+| `.ds-dashpanel__actions` | at the end: a status ([status chip](#status-chip): stale or partial data), a small quiet icon button or two, the menu button with its [menu](#menu) |
+| `.ds-dashpanel__body` | the content; it grows to fill the panel and is at least `--ds-dashpanel-body-min` (160px) high, so a state that replaces the content keeps its place |
+| `.ds-dashpanel__body--flush` | no padding: a table, a list or a chart that runs to the panel's edges (a `.ds-list` loses its sides and lower edge, and at the panel's foot takes its lower corners) |
+| `.ds-dashpanel__foot` | a hairline, then meta text and a link: when it was updated, where the rest is |
+
+**States.** The page sets them; status is never told by colour alone.
+
+| State | Markup |
+|---|---|
+| Loading (nothing to show yet) | `aria-busy="true"` on the panel and a [skeleton](#loading) in the body (`.ds-skeleton` with `role="status"` and its `.ds-sr` word) |
+| Refreshing (the old data stays) | `DS.motion.refresh(body, load, { loadbar: false })`: the body takes `aria-busy="true"` and, after `--ds-delay-loader`, dims (`.ds-stale`) |
+| Failed | an [empty state](#empty-state) in the body: `.ds-empty--error`, its icon, what failed and a "Try again" button |
+| No data | an empty state: `.ds-empty--no-data`, its icon and words |
+| Stale, partial | a `.ds-status` with its icon and word in the actions |
+
+The loading bar of the head (`.ds-loadbar`, its last child) lies along the head's lower edge and shows only while the
+panel or its body is `aria-busy="true"`; it waits the loader delay like every loading bar, so a fast answer shows
+nothing. An empty state alone in the body sits in its middle.
+
+**Options** ([options.md](options.md)): classes on the panel or any ancestor.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Variant | none (outlined), `.ds-dashpanel--filled`, `.ds-dashpanel--elevated` | the panel | outlined: the hairline on `--ds-surface`; filled: `--ds-dashpanel-filled-bg` (`--ds-surface-low`), no hairline, for a panel inside a card or a busy dashboard; elevated: `--ds-dashpanel-shadow` (`--ds-elev-1`) instead of the hairline |
+| Density | `.ds-density-*` | any container | the padding (2px per step) and the head's height (4px per step) |
+| Shape | `.ds-shape-*` | any container or the theme | the corners, `--ds-dashpanel-radius` (`--ds-radius-card`) times the shape |
+| Touch | `.ds-touch` | any container | the head at least the touch target high |
+| Size, tone | | | not read: a size class reaches the controls in it; the empty state, a status or an alert in it says what is wrong |
+
+**Behaviour the page adds.** The menu opens through the system (`data-ds-open`, [menu](#menu)); the page loads the data,
+sets the states above, and re-renders the body with `DS.dom.morphHtml` (charts glide to their new values through
+`--ds-share`). "Try again" puts the loading state back and loads again.
+
+**Accessibility.** The panel is a `section` named by its title (`aria-labelledby`); a truncated title keeps its whole
+text as the name. The menu button names the panel ("Actions for tickets per day"). A loading body carries
+`role="status"` with its word (the skeleton's `.ds-sr`), so the change is announced; the failed and no-data states say
+what happened in words and with an icon. Keys: `Tab` reaches the actions; the menu has the keys of the
+[menu](#menu).
+
+**Forced colours.** The outlined panel keeps its hairline; the filled and the elevated panel have a transparent border
+that becomes their edge.
+
+**Hooks:** `--ds-dashpanel-padding`, `--ds-dashpanel-radius`, `--ds-dashpanel-bg`, `--ds-dashpanel-border`,
+`--ds-dashpanel-filled-bg`, `--ds-dashpanel-shadow`, `--ds-dashpanel-head-height`, `--ds-dashpanel-body-min`
+([theming.md](theming.md#component-hooks)).
+
+**Motion.** None of its own: the refresh dims through `.ds-stale`, the loading bar fades in after the loader delay
+([loading](#loading)), and the content that arrives glides through the chart's `--ds-share` or `DS.motion.flip`.
+
+<!-- changelog -->
+- Dashboard panel (`.ds-dashpanel`): a titled panel with an actions slot for a menu, a loading bar along its head, a
+  body that keeps its place through the loading, refreshing, failed and no-data states, a foot; outlined, filled and
+  elevated.
 ## Tiles
 
 Key figures on tonal tiles that fill their row: a figure, how it moved and its trend. A tile can also open a list or
@@ -1247,8 +3049,29 @@ filter by its figure.
 - `.ds-tile__trend`: a slot at the foot of the tile for a sparkline ([`.ds-columns--mini`](#charts), or the project's
   own SVG in `currentColor`, `--ds-tile-trend-color`), so the sparklines of a row line up whatever stands above them.
   Inside a clickable tile the parts are `<span>`s, the sparkline's too: `<span class="ds-columns ds-columns--mini" role="img" aria-label="...">`.
-- A target: `.ds-tile__note` says it ("Target 95%"); a [`.ds-meter`](#charts) as a child of the tile, with its own
-  name, shows how far along the figure is.
+- `.ds-tile__unit`: a short unit after the figure, inside `.ds-tile__value`, in the subtitle type and `--ds-text-2`,
+  so the figure stays the thing to read. The figure then has an element of its own, `.ds-tile__figure`
+  (`<span class="ds-tile__figure">128</span><span class="ds-tile__unit">GB</span>`), and `DS.motion.countUp()` runs on
+  the figure: it writes `textContent`, which on the value would take the unit with it.
+- A target: `.ds-tile__target` holds a [`.ds-meter`](#charts) with its own name and value text, a
+  [`.ds-meter__threshold`](#meter-variants) at the target's share, and `.ds-tile__target-text` under it, which says in
+  words whether the target is met ("92% of the target of 140"), never the mark or the colour alone. A plain
+  `.ds-tile__note` ("Target 95%") or a bare `.ds-meter` as a child of the tile still work.
+
+```html
+<div class="ds-tile">
+  <p class="ds-tile__label"><span>Storage used</span></p>
+  <p class="ds-tile__value"><span class="ds-tile__figure">640</span><span class="ds-tile__unit">GB</span></p>
+  <p class="ds-tile__delta">[icon arrowUp 16]<span>40 GB more this month</span></p>
+  <div class="ds-tile__target">
+    <span class="ds-meter" role="meter" aria-label="Storage used" aria-valuemin="0" aria-valuemax="1000"
+          aria-valuenow="640" aria-valuetext="640 GB of 1,000, target below 800" style="--ds-share: .64">
+      <span class="ds-meter__threshold" style="--ds-share: .8" aria-hidden="true"></span></span>
+    <p class="ds-tile__target-text">Below the 800 GB target</p>
+  </div>
+  <div class="ds-tile__trend">...</div>
+</div>
+```
 
 The row fills its container, whatever it is (a page, a dialog, a side sheet, beside the drawer): as many tiles per row
 as fit at `--ds-tile-min-width` (176px), never more than `--ds-tiles-columns` (4), each row filled. `.ds-tiles--3`
@@ -1264,7 +3087,7 @@ The value never takes a colour and never wraps (it shrinks on narrow tiles; a va
 ellipsis, the last resort: shorten figures, put the full value in `data-tip`). A missing value takes
 `.ds-tile__value--empty` (`<p class="ds-tile__value ds-tile__value--empty">No data</p>`): `--ds-text-2` in the display
 font. Every new value goes through
-`DS.motion.countUp(el, next)`: it counts from the figure it shows (the last value it wrote, or one a re-render wrote since that reads back
+`DS.motion.countUp(el, next)` (`el` the `.ds-tile__value`, or its `.ds-tile__figure` when it has a unit): it counts from the figure it shows (the last value it wrote, or one a re-render wrote since that reads back
 through `format`; from 0 the first time) on `--ds-ease-value` over
 `--ds-dur-glide`, so a refresh counts on from the old value, a new value mid-count retargets from where the figure
 is, the same value changes nothing, and assistive technology gets the final value. A meter or progress bar set in
@@ -1334,6 +3157,11 @@ A selected tile is `Highlight` / `HighlightText`, its delta and sparkline with i
 `--ds-tile-value-line`, `--ds-tile-trend-color`, `--ds-tile-selected-bg`, `--ds-selected-ring`: see [theming.md](theming.md).
 
 **Motion:** the "Alert, tile, card" row of [Feedback](motion.md#feedback) (`countUp()`, the press morph) in motion.md.
+
+<!-- changelog -->
+- Tiles, KPI stat: `.ds-tile__unit` (a unit after the figure, which then sits in `.ds-tile__figure`, the element
+  `countUp()` writes) and `.ds-tile__target` with `.ds-tile__target-text`
+  (a meter with a threshold mark at the target and the words whether it is met).
 ## Disclosure
 
 A `<details>` with the system's summary: advanced settings, or an accordion whose sections open one at a time.
@@ -1497,7 +3325,64 @@ needs columns, sorting or bulk selection is a [Table](#table).
   opaque fill (`--ds-list-group-bg`), while its rows pass under it; `--ds-list-group-top` when a sticky page head
   stands above it. When focus moves up, the controls of its rows stop below the heading, never under it. `role="list"`
   keeps the list semantics in Safari; the heading's item is `role="presentation"`.
-  Below 12 rows a letter heading rarely helps; for thousands of rows wait for the virtual list.
+  Below 12 rows a letter heading rarely helps; for thousands of rows use a virtual list (below).
+
+### Selectable, reorderable and virtual rows
+
+`DS.list` (`js/list.js`) adds what a page would otherwise write for each list:
+
+```html
+<input class="ds-checkbox" type="checkbox" aria-label="Select all devices" aria-controls="devices" data-ds-list-all>
+<ul class="ds-list" id="devices" aria-label="Devices" data-ds-list data-ds-list-select="multiple" data-ds-list-reorder>
+  <li class="ds-list__item" data-ds-key="d42">
+    <input class="ds-checkbox ds-list__check" type="checkbox" aria-label="Select LAPTOP-0042">
+    <span class="ds-list__text"><span class="ds-list__title">LAPTOP-0042</span><span class="ds-list__meta">Notebook 14</span></span>
+  </li>
+</ul>
+
+<ul class="ds-list ds-list--scroll" aria-label="All devices" id="all"></ul>
+```
+
+```js
+const all = DS.list.create(document.querySelector('#all'), {
+  select: 'multiple',
+  virtual: { count: devices.length, estimate: 56, key: (i) => devices[i].id, render: (i) => rowHtml(devices[i]) },
+});
+all.on('change', ({ keys }) => bar.show(keys.length));
+```
+
+- **Select** (`data-ds-list-select="multiple"` or `"single"`): a `.ds-list__check` (a `.ds-checkbox`, or a radio with one
+  `name` for single) at the start of each row, named for its row. A checked row takes `--ds-list-selected-bg`
+  (`--ds-accent`) and keeps its box, so the state is never the colour alone. `Shift` and a click on a box checks or clears
+  every row from the last box clicked. In a list without `.ds-list__action`, a press anywhere on a row (not on one of its
+  controls) toggles its box, with the hover layer. A checkbox with `data-ds-list-all` and `aria-controls` naming the
+  list's `id` checks or clears all rows and shows mixed for some. After a range or all, the announcer says "12 selected".
+  The controller holds the keys (`data-ds-key`, else the box's `value`), so a morph or a window that renders the rows again
+  brings them back checked. `ds:change` `{ keys, key, checked }` tells the page.
+- **Reorder** (`data-ds-list-reorder`): each row gets a grip (`.ds-list__grip`, a quiet icon button named "Move
+  LAPTOP-0042") at its start, and `DS.dnd` moves the row by pointer and by keys (`Space` lifts, the arrows move, `Space`
+  drops, `Escape` cancels), with announcements. The page saves on `ds:drop` (`{ item, from, to }`, `to.index` ready for
+  `splice()`).
+- **Virtual** (`create(el, { virtual })`): `DS.virtual` keeps only the rows near the viewport: `count`, `render(index)`
+  (one `li.ds-list__item` with its `data-ds-key`, escaped), `key(index)` (for the selection), `estimate` and the other
+  options of [`DS.virtual.create`](core.md#dsvirtual-windowed-lists-and-rows). `.ds-list--scroll` makes the list its own
+  scroller, at most `--ds-list-max-height` (24rem) high; `virtual.scroller` names another. One tab stop, the active row
+  (an inset ring while it has the focus); `↑` `↓` `Home` `End` `PageUp` `PageDown` move it, `Tab` reaches its controls,
+  `Space` toggles its box. Rows get `aria-setsize` and `aria-posinset`. Reorder is not offered on a virtual list.
+  A virtual list that selects is a listbox, since the focus sits on the row and the row must say its state: the
+  module writes `role="listbox"` (and `aria-multiselectable="true"` for `multiple`) on the list, `role="option"` and
+  `aria-selected` on each row, and makes the row's box `inert` (a reader hears "DEVICE-0002, selected"; a press on the
+  box toggles the row). Keep other controls out of such rows: an option's content is read as text.
+
+| Export | What |
+|---|---|
+| `create(el, options)` | a list from the page (`select`, `reorder`, `virtual`), or new options for one `DS.init()` made |
+| `facts(el)` | the copy buttons of a `.ds-facts` (what `data-ds-facts-copy` does) |
+| `rangeKeys(keys, anchor, target)` | the keys from `anchor` to `target`, both included |
+| `allState(checked, total)` | `'true'`, `'false'` or `'mixed'` for a "select all" box |
+
+The list controller: `get()` (multiple: the checked keys; single: the key or `null`), `set(keys)`, `on(type, fn)`,
+`window()` (the `DS.virtual` controller), `configure(options)`, `update()`, `destroy()`.
 
 ### Key-value rows that open, bars, facts in rows and the lock
 
@@ -1513,6 +3398,15 @@ needs columns, sorting or bulk selection is a [Table](#table).
 <ul class="ds-kv-list ds-kv-list--bars">
   <li><span>Disk</span><strong>78%, high</strong><span class="ds-meter ds-tone-warning" aria-hidden="true"></span></li>
 </ul>
+
+<dl class="ds-facts ds-facts--grid ds-facts--bordered" data-ds-facts-copy>
+  <div><dt>Serial</dt><dd>5CD1234XYZ</dd></div>
+  <div><dt>Model</dt><dd>Notebook 14</dd></div>
+  <div class="ds-facts__wide"><dt>Location</dt><dd>Building A, 1st floor, room 101</dd></div>
+  <div class="ds-facts__full"><dt>Notes</dt><dd data-ds-facts-nocopy>Issued with a second charger.</dd></div>
+</dl>
+
+<dl class="ds-facts ds-facts--stacked"> ... </dl>
 
 <dl class="ds-facts ds-facts--rows">
   <div><dt>Owner</dt><dd>Ada Lovelace <span class="ds-lock" role="img" aria-label="Set by the directory sync" data-tip="Set by the directory sync">[icon lock 16]</span></dd></div>
@@ -1536,6 +3430,17 @@ needs columns, sorting or bulk selection is a [Table](#table).
 - `.ds-facts--rows`: each fact on a row of its own, the label in a column of `--ds-facts-label-width` (36%) in the
   body font, hairlines between; under 520px of content (or in a window of 600px and less) the label goes above its
   value.
+- `.ds-facts--stacked`: one fact under the other, each label above its value (a narrow column, a side sheet).
+- `.ds-facts--grid`: the columns of `.ds-facts`, and facts that span: `.ds-facts__wide` two columns, `.ds-facts__full`
+  the whole row (a description, an address). The grid measures itself, so where only one column fits a wide fact takes
+  that one.
+- `.ds-facts--bordered`: each fact in a cell with hairlines between and a frame around (corners
+  `--ds-facts-radius`, times `--ds-shape`); with `--rows` a framed table of label and value.
+- `data-ds-facts-copy` on the `dl`: `DS.list` writes a `.ds-facts__copy` button (a quiet icon button named "Copy
+  Owner") after each value; `data-ds-facts-nocopy` on a `dd` leaves it out. It copies the value's text (without the
+  lock), or the `dd`'s `data-ds-facts-value`, shows a check for `--ds-hold-status`, the announcer says "Copied" and
+  `ds:copy` `{ text, label }` tells the page. The button shows on the fact under the pointer or in use, and always
+  where there is no hover.
 - `.ds-lock` marks a value another system sets: the `lock` glyph, the reason in `aria-label` and `data-tip`. It is
   not an action and takes no `tabindex` (a tap shows the tip); name the reason once per card in a `.ds-meta` line.
   A locked value is text, never a disabled field ([rules.md](rules.md#state-and-feedback)).
@@ -1553,6 +3458,7 @@ On the list or any ancestor; each is computed in the component's own rule ([opti
 | | | `.ds-facts`, `.ds-plain-list` | the row gap 2px per step; facts above tiles also their column gap, as the tiles' |
 | Shape | `.ds-shape-*` | `.ds-list`, `.ds-list__media`, `.ds-kv-list__row` | multiplies the radius (a square list has square rows; a round media has rounded corners at `.ds-shape-soft`, square ones at `.ds-shape-square`) |
 | Touch | `.ds-touch` | `.ds-list__item`, `:is(a, button).ds-kv-list__row` | at least `--ds-touch-target` high; touch wins over size and density |
+| | | `.ds-facts--bordered` | its cells' padding 4px per size step and 2px per density step, as key-value rows |
 | Tone | `.ds-tone-*` | `.ds-kv-list__icon` | the icon's colour, from the class on the icon itself; always with a `.ds-sr` word |
 
 A two-line row grows with its text and its padding, so the height of a row is a minimum. Its small menu button keeps
@@ -1560,8 +3466,10 @@ its own `.ds-sm`.
 
 ### Behaviour, keyboard and names
 
-- The page wires what a row opens. Selectable and reorderable rows arrive with the list module of a later phase;
-  today use a [Table](#table) for bulk selection and `DS.motion.flip` for a reorder that the page drives.
+- The page wires what a row opens. Selection, reorder and the window come from `DS.list` (above); a list that needs
+  columns or sorting is a [Table](#table).
+- A row's box is named for its row ("Select LAPTOP-0042"), the grip by its action ("Move LAPTOP-0042"), a copy button by
+  its label ("Copy Owner").
 - `Tab` reaches a row's `.ds-list__action`, then its other controls; `Enter` opens the record, and `Space` presses it
   when it is a button. The row shows an inset ring and the focus layer while its action has keyboard focus. A key-value
   row that opens is a link or a button of its own.
@@ -1572,17 +3480,340 @@ its own `.ds-sm`.
 ### Forced colours
 
 The current row is `SelectedItem` / `SelectedItemText`, with a `CanvasText` ring when focused, and its other controls,
-chips and media take the system colours again on `Canvas`. A blocked key-value row is `GrayText`. The media's
+chips and media take the system colours again on `Canvas`. A blocked key-value row is `GrayText`. A checked row shows
+its box in the system colours (the tint gives way); the grip and the copy buttons are buttons. A row that holds the
+focus in a virtual list rings in the system's focus colour. The media's
 transparent border becomes its edge, in the current row too. The sticky heading's fill stays opaque.
 
 ### Hooks
 
 `--ds-list-item-height`, `--ds-list-padding`, `--ds-list-padding-y`, `--ds-list-radius`, `--ds-list-title-font`,
 `--ds-list-media-size`, `--ds-list-media-radius`, `--ds-list-text-min`, `--ds-list-current-bg`, `--ds-list-group-bg`,
-`--ds-list-group-top`, `--ds-kv-list-padding`, `--ds-facts-label-width`: see [theming.md](theming.md).
+`--ds-list-group-top`, `--ds-list-selected-bg`, `--ds-list-max-height`, `--ds-kv-list-padding`, `--ds-facts-label-width`,
+`--ds-facts-radius`: see [theming.md](theming.md).
 
 **Motion:** the "Row list, timeline" row of [Feedback](motion.md#feedback) and the press of
 [Controls](motion.md#controls) in motion.md.
+
+<!-- changelog -->
+- Lists: `DS.list` (`data-ds-list`): selectable rows (`data-ds-list-select`, `.ds-list__check`, shift ranges, a
+  "select all" box with `data-ds-list-all`, `--ds-list-selected-bg`), reorderable rows (`data-ds-list-reorder`,
+  `.ds-list__grip`, through `DS.dnd`) and a virtual list (`create(el, { virtual })`, `.ds-list--scroll`,
+  `--ds-list-max-height`). Facts: `.ds-facts--stacked`, `.ds-facts--grid` with `.ds-facts__wide` and `.ds-facts__full`,
+  `.ds-facts--bordered` (`--ds-facts-radius`) and copy per value (`data-ds-facts-copy`, `.ds-facts__copy`). New strings
+  `listMove`, `listSelected`, `factsCopy`.
+## Tree view
+
+A hierarchy that opens and closes (folders, groups, nested records), the APG tree pattern: pick one row, or check many
+with tri-state checks; children may load when a folder first opens, and items move by drag.
+
+```html
+<ul class="ds-tree" role="tree" aria-label="Files" data-ds-tree>
+  <li class="ds-tree__item" role="treeitem" aria-expanded="true" data-ds-key="docs">
+    <div class="ds-tree__row">
+      <span class="ds-tree__toggle" aria-hidden="true">[icon chevronRight 16]</span>
+      <span class="ds-tree__icon" aria-hidden="true">[icon folder 20][icon folderOpen 20]</span>
+      <span class="ds-tree__label">Documents</span>
+      <span class="ds-tree__meta">2 files</span>
+      <span class="ds-tree__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" tabindex="-1" aria-label="More for Documents">[icon moreVertical 18]</button></span>
+    </div>
+    <ul class="ds-tree__group" role="group">
+      <li class="ds-tree__item" role="treeitem" aria-selected="false" data-ds-key="plan">
+        <div class="ds-tree__row"><span class="ds-tree__icon" aria-hidden="true">[icon fileText 20]</span><span class="ds-tree__label">Plan.pdf</span><span class="ds-tree__meta">1.2 MB</span></div>
+      </li>
+      <li class="ds-tree__item" role="treeitem" aria-selected="false" aria-disabled="true" data-ds-key="old">
+        <div class="ds-tree__row"><span class="ds-tree__icon" aria-hidden="true">[icon lock 20]</span><span class="ds-tree__label">Archive 2019</span></div>
+      </li>
+    </ul>
+  </li>
+  <li class="ds-tree__item" role="treeitem" aria-expanded="false" data-ds-tree-lazy data-ds-key="reports">
+    <div class="ds-tree__row">
+      <span class="ds-tree__toggle" aria-hidden="true">[icon chevronRight 16]</span>
+      <span class="ds-tree__icon" aria-hidden="true">[icon folder 20][icon folderOpen 20]</span>
+      <span class="ds-tree__label">Reports</span>
+    </div>
+  </li>
+</ul>
+```
+
+- **Rows.** `.ds-tree__item` (`role="treeitem"`, keyed with `data-ds-key`) holds a `.ds-tree__row` and, for a folder,
+  a `.ds-tree__group` (`role="group"`) of child items. A folder has `aria-expanded` and a `.ds-tree__toggle` with a
+  `chevronRight` that turns a quarter while it is open; a leaf has neither, and its row keeps the toggle's room, so
+  labels line up. `.ds-tree__icon` holds one glyph, or two for a folder group: the second shows while the folder is
+  open (`folder`, `folderOpen`). `.ds-tree__label` takes the room and ends in an ellipsis (a link label,
+  `a.ds-tree__label`, reads as the row); `.ds-tree__meta` is a short fact in the meta font with tabular figures.
+- **Row actions.** `.ds-tree__actions` holds the row's buttons with `tabindex="-1"`: `Tab` reaches those of the
+  focused row only, then leaves the tree. Name the record in each `aria-label` ("More for Documents"). A menu opens
+  from them as anywhere ([Menu](#menu)).
+- Each level sits `--ds-tree-indent` (20px) further in, with a guide (`--ds-tree-guide`) below its folder's chevron.
+  Rows are `--ds-tree-row-height` (40px) at the default size and density, the label in the body font; the chosen row
+  (`aria-selected="true"`) takes `--ds-tree-selected-bg` (`--ds-accent`) and the label weight, a blocked row
+  (`aria-disabled="true"`) the disabled model.
+- Each row is a state layer and a ripple host: hover `--ds-state-hover-lg`, the press in `--ds-dur-micro` (not while
+  one of its buttons is pressed), the focus layer and an inset ring on `:focus-visible` of its item. No morph.
+
+### Options
+
+On the tree or any ancestor; each is computed in the component's own rule ([options.md](options.md)).
+
+| Option | Classes, attributes | Applies to | Effect |
+|---|---|---|---|
+| Selection | `data-ds-tree-select="single"` (default), `"checkbox"`, `"none"` | the tree | one chosen row (`aria-selected`); tri-state checks (`aria-checked`, `aria-multiselectable` on the tree); open and activate only |
+| Drag | `data-ds-tree-drag` | the tree | a grip in each row moves the item and its subtree (`DS.dnd`) |
+| Size | `.ds-xs` ... `.ds-xl` | a row | 8px of height per step (24, 32, 40, 48, 56px), the toggle and the indent 4px per step, the label the size's type role |
+| Density | `.ds-density-*` | a row | 4px of height per step (40, 36, 32, 28px), the side padding 2px per step; not the type or the indent |
+| Shape | `.ds-shape-*` | a row | multiplies the row's radius |
+| Touch | `.ds-touch` | a row | at least `--ds-touch-target` high; touch wins over size and density |
+| Tone | | | none: a status in a row is a chip or a word |
+
+### Checkboxes
+
+```html
+<ul class="ds-tree" role="tree" aria-label="Permissions" data-ds-tree data-ds-tree-select="checkbox">
+  <li class="ds-tree__item" role="treeitem" aria-expanded="true" aria-checked="mixed" data-ds-key="devices">
+    <div class="ds-tree__row">
+      <span class="ds-tree__toggle" aria-hidden="true">[icon chevronRight 16]</span>
+      <input class="ds-checkbox ds-tree__check" type="checkbox">
+      <span class="ds-tree__label">Devices</span>
+    </div>
+    <ul class="ds-tree__group" role="group">
+      <li class="ds-tree__item" role="treeitem" aria-checked="true" data-ds-key="devices.read">
+        <div class="ds-tree__row"><input class="ds-checkbox ds-tree__check" type="checkbox"><span class="ds-tree__label">Read</span></div>
+      </li>
+      <li class="ds-tree__item" role="treeitem" aria-checked="false" data-ds-key="devices.write">
+        <div class="ds-tree__row"><input class="ds-checkbox ds-tree__check" type="checkbox"><span class="ds-tree__label">Change</span></div>
+      </li>
+    </ul>
+  </li>
+</ul>
+```
+
+`aria-checked` on the item is the state; the `.ds-checkbox.ds-tree__check` in the row only shows it (`DS.tree` makes it
+inert, `aria-hidden` and keeps it in step: checked, or the dash for `mixed`). A click on the row or `Space` toggles the
+item and every loaded descendant that is not disabled; each folder above shows what its children hold (`mixed` for
+some). A disabled child that is not checked does not count, since a check of its folder could never reach it. Children
+that load later take their folder's state.
+
+### Lazy children
+
+An item with `data-ds-tree-lazy` loads its children the first time it opens:
+
+```js
+DS.tree.create(document.querySelector('#files'), {
+  load: async (item, { key, signal }) => {
+    const response = await fetch(`/api/folders/${key}`, { signal });
+    return (await response.json()).map((entry) => ({ id: entry.id, label: entry.name, icon: 'fileText', meta: entry.size, children: entry.folder || undefined }));
+  },
+});
+```
+
+`load(item, { key, signal })` returns, or resolves to, markup (a string of `.ds-tree__item` elements, morphed into the
+group), nodes, or data: `{ id, label, icon, meta, href, children, expanded, disabled, checked, selected }`, where
+`children: true` is another lazy folder and an array its children. Data is written through DOM APIs, so its text
+needs no escaping; an `href` becomes a link only when it is relative, a fragment (`#…`), `http:`, `https:` or
+`mailto:` (a `javascript:` or `data:` one leaves the label as text, so loader data from users is safe); `icon` names a glyph of `DS.icons` (a folder without one shows `folder` and `folderOpen`).
+
+- While it loads the item is `aria-busy="true"`: a `.ds-spinner.ds-tree__spinner` takes the chevron's place after
+  `--ds-delay-loader` (a fast load never flashes it). When the children arrive the folder opens and a polite
+  announcement says so ("Loaded Reports."); the signal aborts when the tree goes.
+- A loader that returns at once (no promise: children built from data the page already holds, as the
+  [JSON viewer](#json-viewer) does) renders them in place, with no busy state and no announcement.
+- A failure leaves the folder closed with `data-state="error"` and `.ds-tree__error` in its row ("Could not load", with
+  an icon), says "Could not load Reports.", dispatches `ds:error`, and the next opening tries again.
+- Without a loader the tree dispatches `ds:load` and opens the folder: the page fills its `.ds-tree__group` itself.
+- `create()` on a tree the attribute path already made returns that controller with the new options, so a page adds its
+  loader to markup that `DS.init()` found.
+
+### Drag to move
+
+With `data-ds-tree-drag` (or `drag: true`) `DS.tree` writes a `.ds-tree__grip` (a quiet extra small icon button named
+"Move Plan.pdf") at the end of each row and moves items through [`DS.dnd`](core.md#dsdnd-pointer-and-keyboard-drag):
+
+- **Pointer.** Drag the grip: a line above a row (`data-ds-tree-drop="before"`), below a folder's last row
+  (`"after"`), or the folder's row framed (`"inside"`, over its middle half) shows where it goes; the item follows the
+  pointer, raised (`drag.css`). A pointer that rests on a closed folder opens it after `--ds-delay-tooltip`.
+- **Keyboard.** `Tab` to the grip of the focused row, `Space` lifts; `ArrowUp` and `ArrowDown` step through every place
+  in reading order (before each row, into each closed folder, after the last row of each level), `Home` and `End` to the
+  first and last; `ArrowRight` opens the folder at an "into" place. `Space` drops, `Escape` cancels. Each step is
+  spoken: "Before Plan.pdf, in Documents.", "Into Reports.", "Moved Plan.pdf to Reports, position 3 of 3."
+- **Saving.** The tree moves the item in the DOM, then `ds:drop` tells the page with `to: { parent, index, zone }`
+  (`parent`: the folder item, or `null` for the top level; `index`: among its children). `preventDefault()` there puts
+  the item back. `accept(item, folder)` refuses a place before it shows. A disabled folder and a lazy one that has
+  not loaded take no item; a folder never goes into itself.
+
+### Behaviour, keyboard and names
+
+| Key | On a row |
+|---|---|
+| `ArrowDown`, `ArrowUp` | the next and the previous row that shows |
+| `ArrowRight` | a closed folder opens; an open one: its first child |
+| `ArrowLeft` | an open folder closes; else the parent folder |
+| `Home`, `End` | the first and the last row that shows |
+| `Enter` | activates the row: single selection chooses it, a link label follows, `ds:activate` |
+| `Space` | checkbox: toggles the check; single: chooses the row; none: activates |
+| `*` | opens every sibling folder |
+| letters | the next row whose label starts with them (`DS.a11y.typeahead`) |
+| `Tab` | the focused row's buttons, then out of the tree |
+
+- One tab stop: the active item has `tabindex="0"`, every other `-1` (owned state, so `DS.dom.morphHtml` keeps it).
+  Focus starts on the chosen row, else the first. Closing a folder that holds the focus moves it to the folder.
+- A click focuses the row; on the chevron it opens or closes the folder, elsewhere it chooses the row (single), toggles
+  its check (checkbox) or opens a folder (none); a double click opens or closes a folder.
+- Name the tree (`aria-label`). Each item takes its name from its `.ds-tree__label` (`DS.tree` points
+  `aria-labelledby` at it where the item has no `aria-label`), so a folder is not named by the text of every row below
+  it. `.ds-tree__icon` and `.ds-tree__toggle` are `aria-hidden`. Say a row's status in words in the row.
+
+### JS API
+
+```js
+const files = DS.tree.create(el, { select: 'single', load, drag: true, accept: (item, folder) => true });
+files.get();                        // the selected key; checkbox: the checked keys; none: the active key
+files.set('plan');                  // chooses a row (checkbox: an array of keys)
+files.expand('reports');            // opens a folder (loading it first), expand(key, false) closes it
+files.expandAll();                  // every loaded folder; expandAll(false) closes them
+files.check('devices', true);       // checkbox
+files.focus('plan');                // opens what lies above and focuses it
+files.item('plan');                 // the element
+files.reload('reports');            // loads a folder again
+files.on('toggle', ({ item, key, expanded }) => {});
+DS.tree.checkState(['true', 'mixed']);   // 'mixed': what a folder shows for these children
+```
+
+`DS.tree.create` returns the controller (`get`, `set`, `on`, `expand`, `expandAll`, `check`, `focus`, `item`,
+`reload`, `configure`, `destroy`); the attribute path makes the same one (`DS.core.get(el, 'tree')`).
+`DS.tree.checkState` is the rule behind the folders' checks. Events bubble from the tree: `ds:toggle` (`{ item, key,
+expanded }`), `ds:select` (`{ item, key }`), `ds:change` (`{ item, key, checked, keys }`), `ds:activate`, `ds:load`,
+`ds:error` (`{ item, key, error }`), and `ds:drag-start`, `ds:drag-move`, `ds:drop`, `ds:drag-cancel` of `DS.dnd`.
+
+The tree writes `aria-expanded`, `aria-selected` and `aria-checked`; a page that re-renders the tree writes them from
+the events, so its template keeps what the person chose.
+
+### Forced colours
+
+The chosen row is `SelectedItem` / `SelectedItemText`, with a `CanvasText` ring when it has focus; its buttons take the
+system colours again. A blocked row is `GrayText`. The drop marks are `Highlight`, the guide `GrayText`, and the checks
+are the system's checkboxes.
+
+### Hooks
+
+`--ds-tree-row-height`, `--ds-tree-padding`, `--ds-tree-indent`, `--ds-tree-toggle-size`, `--ds-tree-radius`,
+`--ds-tree-selected-bg`, `--ds-tree-guide`, `--ds-tree-drop-color`: see [theming.md](theming.md).
+
+**Motion:** a folder's children open with their height where the browser animates to `auto` (progressive
+`interpolate-size`, as `.ds-collapsible`: over `--ds-dur-medium` on `--ds-ease-out`, closing on `--ds-dur-base`,
+accelerating), else at once; the chevron turns a quarter on `--ds-ease-spatial`. A drop glides the item into place
+(`DS.dnd`).
+
+<!-- changelog -->
+- Tree view (`.ds-tree`, `DS.tree`): the APG tree with single selection, tri-state checkboxes, lazy children through a
+  loader, row actions, drag to move through `DS.dnd`, type-ahead and folder groups. New strings `treeMove`,
+  `treeMoveBefore`, `treeMoveAfter`, `treeMoveInside`, `treeDropped`, `treeLoaded`, `treeLoadFailed`, `treeError`.
+## JSON viewer
+
+A JSON document to read: its levels open and close, a search marks keys and values, each row copies its value or its
+path. For a payload, a webhook body, a record's raw data or a configuration.
+
+```html
+<div class="ds-jsonview" role="region" data-ds-jsonview aria-label="Response of GET /devices/42">
+  <!-- the JSON, in a script element of type application/json -->
+</div>
+```
+
+The source sits inside the element in a `<script type="application/json">` (it never renders; a `<pre>` works too, and
+shows until the script runs), or comes from the page:
+
+```js
+const view = DS.jsonview.create(document.querySelector('#payload'), { value: await response.json(), open: 2 });
+view.setText(await response.text());   // keeps every number's digits (ids beyond 2^53)
+```
+
+`DS.jsonview` (`js/jsonview.js`) writes everything inside the element: `.ds-jsonview__bar` (a search field
+`.ds-jsonview__find` in `.ds-jsonview__search`, the count of matches `.ds-jsonview__count`, previous and next, expand
+all and collapse all) and the rows, a [tree view](#tree-view) `.ds-tree.ds-jsonview__tree`. The source stays in place,
+hidden: a `<script type="application/json">` (or a `<pre>`) inside the element, else `value` or `text` of `create()`.
+
+- A row is the key (`.ds-jsonview__key`), `: ` (`.ds-jsonview__punct`) and the value (`.ds-jsonview__value`), in the code
+  font. The value says its type in its text, as JSON writes it (quotes around a string, `true`, `false`, `null`, `{…}`
+  and `[…]` around a container), and in its colour: `.ds-jsonview__value--string`, `--number`, `--boolean`, `--null`,
+  `--object`, `--array` (`.ds-jsonview__value--string`, `.ds-jsonview__value--number`, `.ds-jsonview__value--boolean`,
+  `.ds-jsonview__value--null`, `.ds-jsonview__value--object`, `.ds-jsonview__value--array`). A long value wraps. A container's row ends in its size ("3 keys", "120 items").
+- **Lazy.** Only what opens is rendered: `data-ds-jsonview-open` (or `open`, default 1) is how many levels show open at
+  first, and every other container renders its rows the first time it opens (quietly: the data is already there). A
+  container of more than 100 entries opens into ranges (`.ds-jsonview__range`, `[0 … 99]`, then `[0 … 9999]` levels for
+  more), so no level ever holds more than 100 rows. Expand all opens at most 1500 rows; the rest stay closed.
+- **Big numbers.** The parser keeps each number as the text it was written as: `12345678901234567890` shows and copies
+  with every digit. `get()` gives integers a double cannot hold as `BigInt`; `text()` gives the JSON exactly.
+- **Search.** The field marks every key and value that holds the text (case-insensitive) with
+  `<mark class="ds-jsonview__mark">`, opens the levels down to the first match and makes it the tree's chosen row. `Enter`
+  goes to the next match, `Shift+Enter` to the one before (or the buttons), `Escape` clears the field (a dialog around it
+  stays open). The count says "2 of 5" (at most 1000+) or "No results", and the announcer says it.
+- **Copy.** Each row has two buttons (`.ds-jsonview__actions`): the value (a string's own text, a number's digits, a
+  container as JSON with two spaces) and the path (`$.devices[0].name`, other keys quoted: `$["display name"]`). They
+  show on the row under the pointer, the focused row and the chosen row, and always without hover; `Tab` reaches them
+  from the focused row. The announcer says "Copied"; `ds:copy` tells the page.
+- **Not JSON.** Text that is no JSON shows `.ds-jsonview__error` with an icon and the place ("Not valid JSON: line 3,
+  column 7."), sets `data-state="error"` on the element and dispatches `ds:error`.
+- `data-ds-jsonview-search="off"` (or `search: false`) leaves out the bar.
+
+### Options
+
+On the viewer or any ancestor; each is computed in the component's own rule ([options.md](options.md)).
+
+| Option | Classes | Applies to | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the rows | those of the tree view, from a 32px row (`--ds-jsonview-row-height`): 8px per step; the indent 4px per step; the text stays the code font |
+| Density | `.ds-density-*` | the rows | 4px of height per step (32, 28, 24, 20px) |
+| Shape | `.ds-shape-*` | the block, the rows, a mark | multiplies the radius |
+| Touch | `.ds-touch` | the rows, the buttons | at least `--ds-touch-target` high |
+| Tone | none | | the types are in the text; an error says so in words |
+
+### JS API
+
+| Export | What |
+|---|---|
+| `create(el, options)` | a viewer from the page (`value` or `text`, `open`, `search`), or new options for one `DS.init()` made; the controller below |
+| `parse(text)` | JSON text to the model (`{ type, entries }`, `{ type: 'number', raw }` ...); throws a `SyntaxError` with `line`, `column` and `offset` |
+| `fromValue(input)` | a JavaScript value to the model, as `JSON.stringify` sees it (`toJSON()`, `undefined` left out, a `BigInt` with its digits); a cycle throws |
+| `toValue(model)` | the model to a value; integers beyond 2^53 become `BigInt` |
+| `stringify(model, indent)` | JSON text of a model or a value, every number as written (`indent` spaces, default 2; 0: one line) |
+| `pathOf(segments)` | a path from `$`: `['devices', 0, 'name']` gives `$.devices[0].name` |
+| `ranges(from, to)` | the ranges a container's entries open into (none up to 100) |
+| `search(model, query, limit)` | the entry index paths of the keys and values that hold `query`, in document order (at most `limit`, default 1000) |
+
+The controller: `get()`, `set(value)`, `setText(text)`, `text()`, `search(text)` (resolves once the first match shows),
+`matches()` (`{ query, total, index }`), `expandAll(open)`, `tree()` (the [tree view](#tree-view)'s controller),
+`on(type, fn)`, `configure({ open, search })`, `update()` and `destroy()` (the source shows again). Events on the
+element: `ds:copy` `{ kind, text, path }`, `ds:search` `{ query, total, index }`, `ds:error` `{ error }`, and those of
+the tree on its rows (`ds:toggle`, `ds:select`).
+
+### Keyboard and names
+
+The rows are the tree view's: one tab stop, `↑` `↓` walk, `→` opens or enters, `←` closes or goes up, `Home` `End`,
+`*` opens the siblings, letters jump by key, `Enter` and `Space` choose a row. `Tab` goes from the focused row to its copy
+buttons, then on. The field, the count and the buttons come first. The viewer is a named region (`role="region"` with
+`aria-label` or `aria-labelledby`: a plain `div` may not carry a name), which holds the search bar and the tree; the tree
+takes its name; each item is named by its key and value ("owner: {…}"), and each copy
+button by what it copies ("Copy the value of owner").
+
+### Forced colours
+
+The type colours give way to `CanvasText` (the syntax still tells the types apart); a mark is `Highlight` /
+`HighlightText`; the chosen row is the tree's `SelectedItem`. The block, the field and the error keep their borders.
+
+### Hooks
+
+`--ds-jsonview-row-height`, `--ds-jsonview-indent`, `--ds-jsonview-max-height`, `--ds-jsonview-radius`,
+`--ds-jsonview-key`, `--ds-jsonview-string`, `--ds-jsonview-number`, `--ds-jsonview-boolean`, `--ds-jsonview-null`,
+`--ds-jsonview-mark-bg`: see [theming.md](theming.md).
+
+**Motion:** the tree view's (a level opens with its height where the browser animates to `auto`; the chevron turns).
+
+<!-- changelog -->
+- JSON viewer (`.ds-jsonview`, `DS.jsonview`): a JSON document on the tree view, lazy (only what opens renders, more
+  than 100 entries open into ranges), with search and marks, copy value and copy path per row, and exact big numbers
+  (its own parser keeps each number's digits). New strings `jsonTree`, `jsonSearch`, `jsonFind`, `jsonPrevious`, `jsonNext`,
+  `jsonMatch`, `jsonExpandAll`, `jsonCollapseAll`, `jsonCopyValue`, `jsonCopyPath`, `jsonKey`, `jsonKeys`, `jsonItem`,
+  `jsonItems`, `jsonInvalid`.
 ## Timeline
 
 The history of a record, an activity feed or a thread of comments: entries on a rail, grouped by day.
@@ -1700,6 +3931,150 @@ its edge, and the comment box keeps its border.
 [theming.md](theming.md).
 
 **Motion:** the "Row list, timeline" row of [Feedback](motion.md#feedback) in motion.md.
+## Audit log
+
+Who did what and when, with the old and new values of every changed field, grouped by day and narrowed by filters. For
+the history of a whole workspace or of one record, a sign-in log, the changes of a setting.
+
+```html
+<section class="ds-auditlog" aria-label="Audit log" data-ds-auditlog>
+  <div class="ds-auditlog__filters" role="group" aria-label="Filter the log">
+    <div class="ds-search">[icon search 20]<input class="ds-input" type="search" aria-label="Search the log" placeholder="Search" data-ds-auditlog-filter="text"></div>
+    <select class="ds-input ds-input--filled" aria-label="Who" data-ds-auditlog-filter="actor">
+      <option value="">Everyone</option><option value="ada">Ada Lovelace</option><option value="sync">Directory sync</option>
+    </select>
+    <fieldset class="ds-chips"><legend class="ds-sr">What</legend>
+      <label class="ds-chip"><input class="ds-chip__input" type="checkbox" value="change" data-ds-auditlog-filter="kind"><span class="ds-chip__body">[icon check 18 ds-chip__check]<span>Changes</span></span></label>
+      <label class="ds-chip"><input class="ds-chip__input" type="checkbox" value="access" data-ds-auditlog-filter="kind"><span class="ds-chip__body">[icon check 18 ds-chip__check]<span>Sign-ins</span></span></label>
+    </fieldset>
+    <p class="ds-auditlog__count"></p>
+  </div>
+  <ol class="ds-timeline ds-timeline--activity" role="list" aria-label="Events"></ol>
+  <div class="ds-empty ds-empty--no-results ds-empty--section" data-ds-auditlog-empty hidden><p class="ds-empty__title">No events match the filters</p></div>
+  <!-- the records, in a script element of type application/json (or create(el, { entries })) -->
+</section>
+```
+
+```js
+const log = DS.auditlog.create(document.querySelector('#audit'), {
+  entries: await api.events(),               // [{ id, at, actor, action, target, source, status, muted, note, changes }]
+  fields: { owner: 'Owner', 'location.room': 'Room' },
+});
+log.set(await api.events());                 // new entries glide in at the top
+log.filter({ actor: 'ada', from: '2026-10-01' });
+```
+
+The log is a [timeline](#timeline) (`.ds-timeline--activity`): a day heading (`.ds-timeline__day`: "Today",
+"Yesterday", then the date written out), then one entry per record, newest first. An entry is one sentence, **who**
+(`<strong>`, with an avatar's initials or an icon in `.ds-timeline__marker`), **what** (the verb) and the target (a
+link where it has one), with **when** at the end of the line (`<time datetime>`, the full date and time in its
+`title`). Under it:
+
+- `.ds-auditlog__source`: where it came from (a channel, an address, a key), in the meta font.
+- `.ds-auditlog__diff`, a description list of the changed fields, one `.ds-auditlog__change` per field: the field
+  (`dt`), the old value (`.ds-auditlog__old`, struck through with `<del>`, a quiet error tint
+  `--ds-auditlog-old-bg`), an arrow, and the new value (`.ds-auditlog__new`, underlined with `<ins>`, a quiet success
+  tint `--ds-auditlog-new-bg`). A value that was not set says so in words (`.ds-auditlog__none`, "Not set"): a field
+  that was added or cleared. The field column is `--ds-auditlog-field-width` (10rem); under 520px of the log's width
+  the field goes above its values and the old value above the new one.
+- A status (`.ds-status`, an icon and a word: "Failed") in the head line when the event has an outcome; a muted entry
+  (`.ds-timeline__item--muted`, `muted: true`) for one that changed nothing; a note (`.ds-timeline__text`).
+- `.ds-auditlog__filters`: a wrapping bar for the page's own controls (selects, chips, a search field, date fields),
+  with `.ds-auditlog__count` at its end ("12 of 48 events").
+
+A page that renders on the server writes the same markup itself and needs no script; `DS.auditlog` draws it from records
+and filters it in the browser.
+
+### Records and filters
+
+`DS.auditlog` (`js/auditlog.js`) draws the entries of `create(el, { entries })`, or of a
+`<script type="application/json">` inside the element (`data-ds-auditlog`), with `DS.dom.morphHtml` (keyed by `id`):
+
+| Field | What |
+|---|---|
+| `id` | the key of its row |
+| `at` | when: a `Date`, a timestamp or an ISO text; the day and time in the page's locale (`DS.core.config`), `timeZone` for another zone |
+| `actor` | a name, or `{ name, id, initials, image, icon }` (`icon`: `sync`, `user` or `globe`, for a system that acted) |
+| `action` | the verb and what goes with it: "changed", "signed in to" |
+| `target` | a text, or `{ label, href }` |
+| `source`, `note` | a line in the meta font, a line of text |
+| `status` | `{ tone, text }`: a `.ds-status` with the tone's icon and the word |
+| `muted` | an entry that changed nothing |
+| `changes` | `[{ field, before, after }]`, or `before` and `after` as whole records: `changes()` finds what differs |
+| `facets` | the values the filters compare (else the entry's own field; an object by its `id`, else its `name`) |
+
+Values are text as they come; numbers go through `Intl`, a list is joined, an object is JSON, and `format(value, path,
+entry)` (an option) writes them the page's way. Every text is escaped, and a target's `href` stays a link only when it
+is relative, a fragment (`#…`), `http:`, `https:` or `mailto:`; any other (`javascript:`, `data:`) leaves the label as
+text, so records that carry user input are safe to pass through.
+
+**Many entries.** The first `limit` matching entries draw (200; `0` draws all), in the order they show; past them a
+"Show 200 more" button (`.ds-auditlog__more`, an outlined `.ds-btn` the module writes under the list) draws as many
+again and takes the focus to the first new entry. A change of the filters starts from the limit again; the count
+always says how many match. The words the text filter reads are taken once per entry, until `set()`,
+`configure()` or `update()` brings others.
+
+**Filters.** Each control inside the log with `data-ds-auditlog-filter="<name>"` narrows the entries: a select, a text
+or date field, radios, or checkboxes that share the name (none checked: all). `text` finds every word in what an entry
+shows, without case or accents (typing waits `--ds-dur-fast`); `from` and `to` take a date (`YYYY-MM-DD`, whole days);
+any other name compares the entry's facet. `filter(values)` keeps a name that no control holds (a facet the page sets
+from elsewhere) when the user changes another filter. A day without entries left goes with them. The count says "12 of 48 events"
+("48 events" without a filter) and the announcer says it after each change ("No results" for none); with nothing to show
+the list hides and the page's `[data-ds-auditlog-empty]` shows. A `reset` of a form around the controls clears them.
+
+| Export | What |
+|---|---|
+| `create(el, options)` | a log from the page (`entries`, `fields`, `format`, `filters`, `locale`, `timeZone`, `now`, `order`: `'newest'` or `'oldest'`, `live`, `limit`), or new options for one `DS.init()` made; the controller below |
+| `changes(before, after, options)` | the fields that differ between two versions of a record: `[{ path, field, before, after, kind }]`, `kind` `'added'`, `'removed'` or `'changed'`; nested objects open into `owner.name`, lists of objects into `ports[0].speed`; `options.fields` labels the paths, `options.ignore` leaves some out |
+| `group(entries, options)` | the entries by calendar day: `[{ key: '2026-10-12', label, entries }]` (`now`, `locale`, `timeZone`, `order`) |
+| `matches(entry, filters, options)` | whether an entry passes the filters (`{ text, from, to, <facet> }`) |
+
+The controller: `get()` (every entry), `set(entries)` (what changed glides through `DS.motion.flip`, held while the log is
+pointed at or holds the focus, as live data is; resolves once settled), `filter(values)` (sets the filters and the
+controls; without an argument returns them), `count()` (`{ shown, total }`), `on(type, fn)`, `configure(options)`,
+`update()` (reads the controls and the JSON again) and `destroy()`. Events on the element: `ds:filter`
+`{ filters, shown, total }`, `ds:render` `{ shown, total }`.
+
+### Options
+
+On the log or any ancestor; each is computed in the component's own rule ([options.md](options.md)).
+
+| Option | Classes | Applies to | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the timeline, `.ds-auditlog__change` | the timeline's (marker, title); a change row's block padding 2px per step; the values stay in the body font |
+| Density | `.ds-density-*` | `.ds-auditlog__change`, `.ds-auditlog__filters` | a change row's block padding 2px per step, the bar's gap 2px per step; the timeline's entries their own |
+| Shape | `.ds-shape-*` | `.ds-auditlog__diff`, the values | multiplies the radius |
+| Touch | `.ds-touch` | the filter controls | their own: the log adds no target |
+| Tone | none of its own | | an outcome is a `.ds-status` with an icon and a word; old and new carry a strike, an underline and a hidden word |
+
+### Keyboard and names
+
+Nothing in the log is a target but its links, the filter controls and "Show more", in reading order. Name the log (`aria-label`),
+the filter bar (`role="group"` with `aria-label`), each control and the list. A reader hears each change as "Owner,
+Before: Grace Hopper, After: Ada Lovelace": the words `.ds-sr` holds ("Before:", "After:") say which is which, the arrow
+is drawn and silent. Filtering announces the count.
+
+### Forced colours
+
+The tints give way; the strike and the underline stay, and the values keep a border that becomes their edge. The diff
+keeps its frame and hairlines; the timeline's marker and rail are its own.
+
+### Hooks
+
+`--ds-auditlog-field-width`, `--ds-auditlog-old-bg`, `--ds-auditlog-new-bg`, `--ds-auditlog-diff-radius`: see
+[theming.md](theming.md).
+
+**Motion:** the timeline's: new entries come in through `DS.motion.flip` (a new row fades in, the rows below glide down;
+a live log waits while it is pointed at or holds the focus). Filtering re-renders at once.
+
+<!-- changelog -->
+- Audit log (`.ds-auditlog`, `DS.auditlog`): who, what and when on the activity timeline, grouped by day, with a diff of
+  each changed field (`.ds-auditlog__diff`: old struck through, new underlined, the words for a reader), a filter bar
+  with a live count, and the pure helpers `changes()`, `group()` and `matches()`. Hooks `--ds-auditlog-field-width`,
+  `--ds-auditlog-old-bg`, `--ds-auditlog-new-bg`, `--ds-auditlog-diff-radius`. New strings `auditlogToday`,
+  `auditlogYesterday`, `auditlogUndated`, `auditlogBefore`, `auditlogAfter`, `auditlogNotSet`, `auditlogEvent`,
+  `auditlogEvents`, `auditlogFiltered`, `auditlogMore`. A `limit` (200) with a "Show more" button
+  (`.ds-auditlog__more`) keeps a log of thousands of entries quick.
 ## Tasks
 
 The steps of a job: an import, a setup, a migration, each step pending, running, done or failed.
@@ -1749,7 +4124,8 @@ The marks take `CanvasText`: the shape of the mark and the weight of the text ca
 **Motion:** the "Tasks" row of [Feedback](motion.md#feedback) in motion.md.
 ## Prose and code
 
-Rendered rich text (Markdown, a help article, a release note) and blocks of code.
+Rendered rich text (Markdown through [Markdown](#markdown), a help article, a release note). A `pre` in it is a
+[Code block](#code-block).
 
 ```html
 <div class="ds-prose">
@@ -1760,7 +4136,7 @@ Rendered rich text (Markdown, a help article, a release note) and blocks of code
   <pre><code>ds-cli retire LAPTOP-0042</code></pre>
   <table><thead><tr><th>Model</th><th>Years</th></tr></thead><tbody><tr><td>Laptop 14</td><td>4</td></tr></tbody></table>
   <hr>
-  <p>Ask <mark>IT support</mark> when in doubt.</p>
+  <p>Ask <mark>IT support</mark> when in doubt, or press <kbd>Ctrl</kbd> <kbd>K</kbd>.</p>
   <ul>
     <li><label><input type="checkbox" disabled checked> Charger packed</label></li>                  <!-- a task list -->
     <li><label><input type="checkbox" disabled> Label printed</label></li>
@@ -1769,23 +4145,25 @@ Rendered rich text (Markdown, a help article, a release note) and blocks of code
     <p class="ds-prose__callout-title">[icon alert 16]Warning</p>
     <p>Retiring a device erases it.</p>
   </div>
-  <section class="ds-prose__footnotes"><ol><li id="fn-1">The policy of the IT department.</li></ol></section>
+  <h2 id="setup"><a class="ds-prose__anchor" href="#setup">Setup[icon link 16]</a></h2>             <!-- a heading anchor -->
+  <p>Retired after four years.<sup class="ds-prose__fnref"><a href="#fn-1" id="fnref-1" aria-describedby="fn-label">1</a></sup></p>
+  <section class="ds-prose__footnotes" aria-labelledby="fn-label">                                    <!-- footnotes -->
+    <h2 class="ds-sr" id="fn-label">Footnotes</h2>
+    <ol><li id="fn-1"><p>The policy of the IT department.
+      <a class="ds-prose__fnback" href="#fnref-1" aria-label="Back to reference 1">[icon cornerUpLeft 16]</a></p></li></ol>
+  </section>
 </div>
 
 <div class="ds-prose ds-prose--compact"> ... </div>                                                   <!-- a chat bubble -->
-
-<pre class="ds-code-block" tabindex="0" aria-label="Request"><code>GET /api/devices/42 HTTP/1.1
-Accept: application/json</code></pre>
 ```
 
 | Option | Classes | Applies to | Effect |
 |---|---|---|---|
 | Variant | `.ds-prose--dense` | the prose | the body role instead of the reading role, the same hierarchy (in a card, a side sheet) |
 | Variant | `.ds-prose--compact` | the prose | for a chat bubble or a narrow panel: the body role, every heading at that size in the label weight, blocks `--ds-space-1` apart, less padding in quotes, callouts, code and table cells |
-| Variant | `.ds-code-block--wrap` | `.ds-code-block` | long lines wrap |
 | Tone | `.ds-tone-*` | `.ds-prose__callout` | the tint and its ink; always with `.ds-prose__callout-title`, a word and an icon |
-| Density | `.ds-density-*` | the prose or an ancestor | 1px per step off the gap between blocks, 2px off the padding of quotes, callouts, code and table cells (`.ds-prose--compact`, tight already: 1px, and a cell keeps its side padding); the text stays. A density class on one block changes that block, not the gap above it |
-| Shape | `.ds-shape-*` | the prose or an ancestor | multiplies the radius of quotes, callouts, code blocks and inline code |
+| Density | `.ds-density-*` | the prose or an ancestor | 1px per step off the gap between blocks, 2px off the padding of quotes, callouts, code ([Code block](#code-block)) and table cells (`.ds-prose--compact`, tight already: 1px, and a cell keeps its side padding); the text stays. A density class on one block changes that block, not the gap above it |
+| Shape | `.ds-shape-*` | the prose or an ancestor | multiplies the radius of quotes, callouts, inline code, `kbd`, `mark` and code blocks |
 | Size, touch | not read | | text keeps its role; the only targets are links in text and read-only checkboxes |
 
 - `.ds-prose` styles only bare elements inside it, under `:where(.ds-prose)`, so any class of the page wins over what
@@ -1794,9 +4172,12 @@ Accept: application/json</code></pre>
   margins reset, then one gap of `--ds-prose-gap` (`--ds-space-2`) between blocks and `--ds-space-5` above a
   heading; `h1` headline, `h2` subtitle, `h3` and `h4` the label weight at the reading size; lists indented
   `--ds-space-5` with `--ds-space-1` between items; `strong` in `--ds-prose-strong-weight` (the label weight); links
-  underlined like every link; a `pre` is a code block; a `table` gets hairline rows, a `--ds-text-2` head and tabular
-  figures and scrolls sideways when it is wider; a `blockquote` is a `--ds-surface-high` block on `--ds-radius-card`;
-  images are never wider than the text. Font `--ds-prose-font` (`--ds-font-reading`); `.ds-prose--dense` takes
+  underlined like every link; a `pre` is a code block ([Code block](#code-block)); a `table` gets hairline rows, a
+  `--ds-text-2` head and tabular figures and scrolls sideways when it is wider, and a cell's `data-align="start"`,
+  `"center"` or `"end"` aligns it (DS.markdown writes a GFM table's alignment so); a `blockquote` is a
+  `--ds-surface-high` block on `--ds-radius-card`; images are never wider than the text; inline `code` is a chip in the
+  text's size, a `kbd` a key (the code font in a hairline box, as `.ds-kbd`), a `mark` sits on the tint (`--ds-accent`,
+  `--ds-on-accent`). Font `--ds-prose-font` (`--ds-font-reading`); `.ds-prose--dense` takes
   `--ds-font-body` (in a card, a side sheet). Long words hyphenate where the browser can (progressive:
   `hyphenate-limit-chars`, only words of 18 characters or more), else break.
 - Task lists: a list item that starts with a checkbox (the input directly in the `<li>`, or in its first `<p>` or
@@ -1809,19 +4190,908 @@ Accept: application/json</code></pre>
   inside an element with a tone): the block takes `--ds-tone-container` and `--ds-on-tone-container`, bare links in it
   the same ink, still underlined; a component in it keeps its look. The word says what it is, so meaning never rests on
   the colour.
-- Footnotes: `.ds-prose__footnotes`, the meta role in `--ds-text-2` under a hairline; link the marks with `<sup><a>`.
-- `.ds-code-block`: the code role on `--ds-code-bg` in the card radius (`--ds-code-block-radius`, times `--ds-shape`), one line per line (`white-space: pre`, tab
-  size 2), scrolling sideways with a thin scrollbar. Give it `tabindex="0"` and a name (`aria-label`) only when it can
-  scroll sideways, so a keyboard reaches it (an inset ring). A `code` inside loses the inline chip.
-  `.ds-code-block--wrap` wraps long lines instead.
+- Footnotes: `.ds-prose__footnotes`, the meta role in `--ds-text-2` under a hairline, with a hidden heading that names
+  it (`.ds-sr`, `aria-labelledby`). A reference is `<sup class="ds-prose__fnref"><a>`: the caption role, a figure that
+  leaves the line height alone, described by that heading (`aria-describedby`); each note ends with a
+  `.ds-prose__fnback` link back (`aria-label` "Back to reference 1", a `cornerUpLeft` icon). The note a reference jumped
+  to (`:target`) takes the tint, so the eye finds it.
+- Heading anchors: `<h2 id="setup"><a class="ds-prose__anchor" href="#setup">Setup[icon link 16]</a></h2>`. The heading's
+  text links to the heading, so the heading's name stays its text and the link adds no extra stop; it keeps the
+  heading's look (no colour, no underline), and the icon (`aria-hidden`) fades in while the heading is hovered or the
+  link holds the focus (`--ds-dur-fast`, out on `--ds-dur-instant`; opacity only, nothing moves).
 - Under `.ds-base` bare headings take the type roles already (`h1` headline, `h2` subtitle, `h3` to `h6` the label
   role, no margins); `.ds-prose` keeps a reading hierarchy for rendered text.
-- Keyboard and names: links and checkboxes are native; a code block that can scroll needs `tabindex="0"` and an
-  `aria-label` (an inset ring on `:focus-visible`, solid from the first frame).
-- Forced colours: quotes, callouts and code blocks keep their edge (a transparent outline the forced colours paint); a task
-  box takes `Highlight` / `HighlightText` when checked, a `CanvasText` edge when not. Print: code blocks and tables wrap.
-- Hooks: `--ds-prose-gap`, `--ds-prose-font`, `--ds-prose-strong-weight`, `--ds-prose-radius`, `--ds-code-block-radius`
+- Keyboard and names: links and checkboxes are native, each with a ring on `:focus-visible` (heading anchors, footnote
+  links); a code block that can scroll needs `tabindex="0"` and a name ([Code block](#code-block)).
+- Forced colours: quotes and callouts keep their edge (a transparent outline the forced colours paint); a task box takes
+  `Highlight` / `HighlightText` when checked, a `CanvasText` edge when not; a `mark` takes `Mark` / `MarkText`; a `kbd`
+  keeps its border. Print: tables wrap; anchor icons go.
+- Hooks: `--ds-prose-gap`, `--ds-prose-font`, `--ds-prose-strong-weight`, `--ds-prose-radius`
   ([theming.md](theming.md#component-hooks)).
+
+<!-- changelog -->
+- Prose (3.0): heading anchors (`.ds-prose__anchor`), footnote references and links back (`.ds-prose__fnref`,
+  `.ds-prose__fnback`, the `:target` note on the tint), `kbd` and `mark` in prose, the column alignment `data-align`.
+  `.ds-code-block` and `.ds-code-block--wrap` and the hook `--ds-code-block-radius` move to [Code block](#code-block)
+  (same names; prose requires code).
+## Markdown
+
+Renders Markdown into [Prose](#prose-and-code) safely: a small renderer of the CommonMark subset a dashboard needs,
+plus GFM tables, task lists, strikethrough and autolinks, footnotes and callouts. No HTML passes through. A page with
+needs of its own plugs in its own sanitiser or renderer.
+
+```html
+<!-- rendered by DS.init() from its text; until then the text keeps its line breaks -->
+<div class="ds-prose" data-ds-markdown data-ds-markdown-anchors>
+## Before you start
+Back up the device and note its **asset tag**.
+</div>
+
+<!-- a chat message: line breaks kept, code blocks with a copy button -->
+<div class="ds-prose ds-prose--compact" data-ds-markdown data-ds-markdown-breaks data-ds-markdown-code="block">
+Run `ds-cli retire` with the asset tag.
+</div>
+```
+
+The source may also sit in a `script` element of the type `text/markdown` inside the element, where `<` and `&` need
+no escaping.
+
+```js
+DS.markdown.render('# Retire\nBack up **first**.');                 // '<h1 id="retire">Retire</h1>\n<p>Back up <strong>first</strong>.</p>'
+const answer = DS.markdown.create(bubble, { source: '', breaks: true, code: 'block' });
+answer.set(answer.get() + chunk);                                    // a streamed answer: patched in place (DS.dom.morphHtml)
+DS.markdown.use({ sanitize: (html) => DOMPurify.sanitize(html) });  // the page's sanitiser, on every render
+DS.markdown.use({ renderer: (source) => marked.parse(source), sanitize: (html) => DOMPurify.sanitize(html) });
+DS.markdown.slug('Before you start');                                // 'before-you-start'
+```
+
+**What it writes** (the bare markup `.ds-prose` styles):
+
+| Markdown | Markup |
+|---|---|
+| `#` to `######`, or a line of `===` / `---` under text | `h1` to `h6` with an `id` from the text (`slug`, numbered `-1`, `-2` ... until it is unique among every id of the render, the system's own included); with `anchors` the text links to the heading (`.ds-prose__anchor`), and links, autolinks and footnote references inside it are written as their text (a link holds no other link) |
+| text, a blank line between paragraphs | `p`; a line break is a space, two spaces or `\` before it a `<br>` (with `breaks` every one is) |
+| `**strong**`, `*em*`, `_em_`, `~~gone~~`, `` `code` `` | `strong`, `em`, `del`, `code` (CommonMark's delimiter rules: `snake_case_words` stay words) |
+| `- item`, `* item`, `+ item`, `1. item` (or `1)`), nested by indent | `ul`, `ol` (`start` from the first number); tight lists without `p`, loose ones with |
+| `- [ ] todo`, `- [x] done` | a task item: `<label><input type="checkbox" disabled> text</label>`, read-only |
+| `> quote` | `blockquote` |
+| `> [!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]` | a `.ds-prose__callout` in the tone info, success, primary, warning or error, with its icon and word (`calloutNote` ...) |
+| ```` ```js ```` ... ```` ``` ````, `~~~`, four spaces | `<pre tabindex="0" aria-label="js"><code class="language-js">` (a block can scroll: a stop named by its language, else `codeBlock`, "Code"), highlighted by [Syntax highlighting](#syntax-highlighting) (the page's own highlighter too); with `code: 'block'` a [Code block](#code-block) frame with the language and a copy button (its lines written as DS.code renders them, so a streamed render patches nothing back, and a frame DS.code already runs is refreshed after each render) |
+| `***`, `---`, `___` | `hr` |
+| a GFM table, `:--`, `:-:`, `--:` | `table` with `thead` and `tbody`, the alignment as `data-align="start|center|end"` |
+| `[text](https://example.com "title")`, `[text][ref]`, `[ref]`, `[ref]: /path` | `a`; an external one with `rel="noopener"` (and `target`) |
+| `![alt](https://example.com/a.png)` | `img` with `loading="lazy"` (only http, https or relative; `images: false` writes a link) |
+| `<https://...>`, `<name@example.com>`, `www.example.com`, `https://...`, `name@example.com` | `a` |
+| `text[^1]` and `[^1]: note` | a numbered `.ds-prose__fnref`, and the notes in a `.ds-prose__footnotes` with a hidden heading (`footnotes`) and a `.ds-prose__fnback` link back to each reference; ids by number (`fn-1`, `fnref-1`, `fnref-1-2`); in a link's text or an anchored heading the reference is its number alone |
+| `<b>`, `<script>`, any HTML | text, escaped: shown as written |
+
+**Safety.** Every character of the source is escaped in text and attributes. A link or image whose URL names any other
+scheme than http, https and mailto (`javascript:`, `data:`, `vbscript:`, `file:`, also written with entities, control
+characters, white space or capitals) is written as its text; relative and `#` links stay links. `schemes` widens the
+list (`['http', 'https', 'mailto', 'tel']`). Ids take `idPrefix`, so two rendered texts on a page keep their footnotes
+apart (the attribute path and `create()` give each element its own).
+
+**Hostile input.** The renderer takes untrusted text (a chat answer, a ticket) in time linear in its length: scans
+for a closing bracket, backtick run, quote or address stop where CommonMark's limits do (a label holds at most 999
+characters, parentheses in a destination nest 32 deep) or remember that a first scan found no end. Quotes and lists
+nest 100 deep; deeper markers are paragraph text, so no input overflows the stack.
+
+**The hook for the page's own.** `sanitize(html)` runs on every result (the system's or the renderer's), `renderer(source)`
+replaces the system's renderer; pass them per call or once for the page with `DS.markdown.use({ ... })`
+(`DS.markdown.use(null)` clears it). A renderer's markup is the page's: without a sanitiser it is taken as it comes.
+
+### Options
+
+| Option | Attribute | Effect |
+|---|---|---|
+| `anchors` | `data-ds-markdown-anchors` | headings link to themselves (`.ds-prose__anchor`, an icon on hover and focus) |
+| `breaks` | `data-ds-markdown-breaks` | every line break a `<br>` (a chat message) |
+| `code` | `data-ds-markdown-code="block"` | fenced code in a `.ds-code` frame with its language and a copy button (`copyCode`) |
+| `highlight` | | `false`: code stays plain |
+| `images` | `data-ds-markdown-images="off"` | `false`: an image becomes a link to it |
+| `idPrefix` | | before every id it writes |
+| `headingOffset` | | added to every heading level (`1`: `#` writes `h2`), at most `h6` |
+| `schemes`, `target`, `rel` | | the link schemes (default http, https, mailto), the target and rel of external links |
+| `renderer`, `sanitize` | | the page's own (above) |
+
+The look is the prose's: size, density, shape and tone are its options ([Prose](#prose-and-code)).
+
+### Behaviour: `data-ds-markdown`
+
+| Attribute | On | Effect |
+|---|---|---|
+| `data-ds-markdown` | the prose element | renders its text (de-indented), or a `<script type="text/markdown">` in it, into the element; a change of an option attribute renders again |
+| `data-state="rendered"` | the element, written by the system | until it is set, `markdown.css` keeps the source's line breaks (`white-space: pre-line`), so the text reads without the module |
+
+### JS API
+
+`DS.markdown.render(source, options)` returns the markup; `DS.markdown.create(el, { source, ...options })` returns
+the controller (`get`, `set`, `on('change')`, `destroy`) that the attribute path makes, rendering through
+`DS.dom.morphHtml`, so `set()` patches only what changed (a streamed answer keeps its nodes, a selection and a focused
+link); `ds:change` `{ source }` goes out on the element. `DS.markdown.use(defaults)` sets the page's defaults;
+`DS.markdown.slug(text)` is the id a heading gets.
+
+### Accessibility
+
+Headings keep their levels (`headingOffset` fits them under the page's own); a heading anchor's name is the heading's
+text, its icon hidden. Task boxes are disabled checkboxes named by their label. A footnote reference is a link
+described by the hidden "Footnotes" heading; each note links back ("Back to reference 1"). A callout is
+`role="note"` with its word. Images keep their alt text. Links are plain links: the system adds no extra tab stops.
+
+**Forced colours, motion.** Those of [Prose](#prose-and-code) and [Code block](#code-block); the renderer adds none.
+
+<!-- changelog -->
+- Markdown (3.0): `DS.markdown` (`data-ds-markdown` with `-anchors`, `-breaks`, `-code`, `-images`; `render`,
+  `create`, `use`, `slug`): a safe CommonMark subset with GFM tables, task lists, strikethrough and autolinks,
+  footnotes and callouts, no HTML passthrough, links limited to http, https, mailto and relative URLs, the page's own
+  sanitiser or renderer as a hook; linear time on hostile input, nesting capped at 100. Strings `copyCode`,
+  `codeBlock`, `footnotes`, `footnoteBack`, `calloutNote`, `calloutTip`, `calloutImportant`, `calloutWarning`,
+  `calloutCaution`.
+## Code block
+
+A block of code or a raw request, alone or in a frame with its file or language, a copy button, a wrap toggle, line
+numbers, marked lines, tabs for several files and a height that folds long code behind "Show more". Highlighting comes
+from [Syntax highlighting](#syntax-highlighting).
+
+```html
+<!-- a block alone: give it tabindex="0" and a name when it can scroll -->
+<pre class="ds-code-block" tabindex="0" aria-label="Request"><code>GET /api/devices/42 HTTP/1.1
+Accept: application/json</code></pre>
+<pre class="ds-code-block ds-code-block--wrap"><code>...</code></pre>                <!-- long lines wrap -->
+
+<!-- the frame: header, numbered lines, marked lines, folded after 12 lines -->
+<figure class="ds-code ds-code--lines" data-ds-code data-ds-code-max="12">
+  <div class="ds-code__head ds-sm">
+    <span class="ds-code__title">device.json</span>
+    <span class="ds-code__lang"></span>
+    <span class="ds-code__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" data-ds-code-wrap aria-pressed="false" aria-label="Wrap lines" data-tip="Wrap lines">[icon wrapText 20]</button>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" data-ds-copy aria-label="Copy code" data-tip="Copy code">
+        <span class="ds-icon-swap"><span class="ds-icon-swap__a">[icon copy 20]</span><span class="ds-icon-swap__b">[icon check 20]</span></span>
+      </button>
+    </span>
+  </div>
+  <pre class="ds-code-block" tabindex="0" data-ds-code-lang="json" data-ds-code-mark="3,5-6"><code>{ ... }</code></pre>
+  <div class="ds-code__foot">
+    <button class="ds-btn ds-btn--text" type="button" data-ds-code-expand aria-expanded="false">
+      <span class="ds-code__expand-label">Show more</span>[icon chevronDown 20, class ds-chevron]
+    </button>
+  </div>
+</figure>
+
+<!-- several files: a tablist in the header, a block per file -->
+<figure class="ds-code" data-ds-code>
+  <div class="ds-code__head ds-sm">
+    <div class="ds-tabs ds-tabs--flush" role="tablist" aria-label="Files">
+      <button class="ds-tabs__tab" role="tab" type="button" id="f-json" aria-selected="true" aria-controls="b-json" data-label="device.json">device.json</button>
+      <button class="ds-tabs__tab" role="tab" type="button" id="f-sh" aria-selected="false" aria-controls="b-sh" tabindex="-1" data-label="retire.sh">retire.sh</button>
+    </div>
+    <span class="ds-code__lang"></span>
+    <span class="ds-code__actions"> ... copy button ... </span>
+  </div>
+  <pre class="ds-code-block" id="b-json" role="tabpanel" aria-labelledby="f-json" tabindex="0" data-ds-code-lang="json"><code>...</code></pre>
+  <pre class="ds-code-block" id="b-sh" role="tabpanel" aria-labelledby="f-sh" tabindex="0" data-ds-code-lang="sh" hidden><code>...</code></pre>
+</figure>
+```
+
+| Class | What |
+|---|---|
+| `.ds-code-block` | the block: the code role on `--ds-code-bg` in the card radius (`--ds-code-block-radius`, times `--ds-shape`), one line per line (`white-space: pre`, tab size 2), scrolling sideways with a thin scrollbar; a `code` inside loses the inline chip. A `pre` in `.ds-prose` looks the same. No margin of its own outside prose; in prose the prose's gap spaces it |
+| `.ds-code-block--wrap` | long lines wrap instead of scrolling |
+| `.ds-code` | the frame on `--ds-code-bg` in the same radius; the blocks inside give up their own corners |
+| `.ds-code--lines` | numbers the lines in a gutter as wide as the largest number (`--ds-text-2`, never selected or copied) |
+| `.ds-code__head` | the header: a hairline under it; put `.ds-sm` on it so its controls stay a step under the text |
+| `.ds-code__title` | a file name: the code role, one line with an ellipsis |
+| `.ds-code__lang` | the language of the block shown (DS.code writes it: the block's `data-ds-code-label`, else its language) in the meta role and `--ds-text-2`; hidden without one |
+| `.ds-code__actions` | the buttons at the header's end (quiet icon buttons) |
+| `.ds-code__line` | a line (DS.code writes them, `data-line` its number) |
+| `.ds-code__line--mark` | a marked line: a `<mark>` with a 10% `--ds-primary` tint and a 2px bar at its start, so it never rests on the colour |
+| `.ds-code__line--inserted`, `.ds-code__line--deleted` | the `+` and `-` lines of a diff: a tint of `--ds-code-inserted` or `--ds-code-deleted`; the sign stays |
+| `.ds-code__foot`, `.ds-code__expand-label` | the foot with the button that unfolds a folded block, and its words ("Show more", "Show less"); a fade lies over the last folded lines. Without `data-state` (nothing to fold) the foot is gone |
+
+### Options
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Wrap | `.ds-code-block--wrap` | a block (DS.code sets it on every block of a frame from the wrap toggle) | long lines wrap |
+| Line numbers | `.ds-code--lines` | the frame | the gutter |
+| Density | `.ds-density-*` | any container | 2px per step off the block's padding (1px in `.ds-prose--compact`), the lines and the gutter with it; the header's tabs take their own density |
+| Shape | `.ds-shape-*` | any container or the theme | the radius of the block and the frame |
+| Touch | `.ds-touch` | the theme or a container | the header's tabs and buttons grow to the touch target, and the header with them |
+| Size, tone | not read | | the code keeps its role; code states no status |
+
+### Behaviour: `data-ds-code`
+
+| Attribute | On | Effect |
+|---|---|---|
+| `data-ds-code` | the frame (or a lone `pre`) | DS.code renders every `pre.ds-code-block` in it as lines, highlighted when the block names a language; the value is the language for blocks that name none |
+| `data-ds-code-lang` | a `pre` (or its `code`) | the block's language (a `language-<x>` class on the `code` works too) |
+| `data-ds-code-label` | a `pre` | the word the header shows for it instead of the language |
+| `data-ds-code-start` | a `pre` or the frame | the number of the first line (default 1) |
+| `data-ds-code-mark` | a `pre`, or the frame of one block | the lines to mark, as shown: `3`, `2,4-6` |
+| `data-ds-code-max` | the frame | fold a block longer than this many lines (`data-state="collapsed"`, written by the system) |
+| `data-ds-code-wrap` | a button in the frame | the wrap toggle: `aria-pressed`, every block wraps; without a name it gets the strings' `wrapLines` ("Wrap lines") |
+| `data-ds-code-remember` | the frame | a key: the wrap choice is kept under it (`DS.store`, namespace `code`) |
+| `data-ds-code-expand` | a button in `.ds-code__foot` | unfolds and folds (`aria-expanded`, `aria-controls`); its `.ds-code__expand-label` says `showMore` / `showLess` |
+| `data-ds-copy` | a button in the header | the copy button (`DS.copy`, the Copy button component): DS.code points it at the code of the block shown (`#<id>`), so it copies the source (line numbers are no text) |
+| `data-state` | the frame, written by the system | `collapsed` or `expanded` while a block is longer than `data-ds-code-max` |
+
+The code's text stays the source: each line keeps its line break, the numbers are generated content. A `role="tablist"`
+in the header switches the blocks: each tab's `aria-controls` names its `pre` (`role="tabpanel"`, `aria-labelledby` the
+tab); the arrow keys, `Home` and `End` move and select, the indicator glides, the block swaps in. A block without a
+name takes its tab, the title or the language as its `aria-labelledby`.
+
+### JS API
+
+```js
+const code = DS.code.create(figure);            // or DS.core.get(figure, 'code') on the attribute path
+code.set('{ "id": 43 }');                       // new source for the block shown, rendered (ds:change { code, index })
+code.get();
+code.select(1);                                 // the second file (ds:select { index, panel })
+code.expand(true);                              // unfold (ds:expand { expanded })
+code.wrap(true);                                // wrap (ds:wrap { wrap })
+code.refresh();                                 // after the page changed a block's data-ds-code-* attributes or lines
+code.on('select', ({ index }) => { /* ... */ });
+DS.code.parseLines('2,4-6');                    // Set { 2, 4, 5, 6 }
+DS.code.linesHtml(source, { language: 'json', start: 1, marks: new Set([2]) });   // the lines' markup, for a server or a test
+```
+
+`DS.code.create(el, { code })` returns the controller (`get`, `set`, `on`, `select`, `expand`, `wrap`, `refresh`,
+`destroy`); `DS.code.parseLines` and `DS.code.linesHtml` are the pure functions behind it.
+
+### Accessibility
+
+- A block that can scroll is a stop (`tabindex="0"`) with a name: an inset ring on `:focus-visible`, solid from the first
+  frame; the arrow keys scroll it. In a frame it is named by its tab, the title or the language.
+- The wrap toggle is a toggle button (`aria-pressed`), the expand button a disclosure (`aria-expanded`,
+  `aria-controls`); give icon buttons `aria-label` and `data-tip`.
+- Tabs follow the ARIA tabs pattern with automatic activation. A marked line is a `<mark>`, and its bar shows it beside
+  the tint.
+- Copy: the copy button (`DS.copy`) says "Copied" to screen readers.
+
+**Forced colours.** The block and the frame keep their edges (a transparent outline the forced colours paint; in a
+frame the frame is the edge, and a focused block keeps its ring), the header its hairline; a marked line keeps its bar, in `Highlight`; the tokens take the text colour.
+
+**Motion.** The fold glides: the block's height (a named exception, `meta.json`) opens over `--ds-dur-medium` on
+`--ds-ease-out` and folds over `--ds-dur-base` on `--ds-ease-in`, set by DS.code from the height it has, so a reversal
+continues; the fade follows on `--ds-dur-fast`, the chevron turns. A tab's block swaps in (`DS.motion.enter`, `swap`)
+and the tabs' indicator glides.
+
+**Print.** Blocks wrap and unclip; a folded block unfolds.
+
+**Runtime properties.** DS.code writes `--ds-code-digits` (the width of the largest line number, in digits) on a block
+and `--ds-code-max` (the folded lines) on the frame; read them, never set them.
+
+**Hooks.** `--ds-code-block-radius` ([theming.md](theming.md#component-hooks)); the colours are the roles
+`--ds-code-bg` and the code roles of [Syntax highlighting](#syntax-highlighting).
+
+<!-- changelog -->
+- Code block (3.0): `.ds-code-block` and `.ds-code-block--wrap` move from prose.css to the new component `code` (same
+  classes; prose requires it). New: the frame `.ds-code` with `.ds-code--lines`, `.ds-code__head`, `.ds-code__title`,
+  `.ds-code__lang`, `.ds-code__actions`, `.ds-code__line` (`--mark`, `--inserted`, `--deleted`), `.ds-code__foot`,
+  `.ds-code__expand-label`; `DS.code` (`data-ds-code`, `-lang`, `-label`, `-start`, `-mark`, `-max`, `-wrap`,
+  `-remember`, `-expand`; `create`, `parseLines`, `linesHtml`). A `.ds-code-block` in prose now takes the prose's gap.
+  String `wrapLines`. Motion exception: the folded block's `height`. `get()` and `refresh()` read lines the page changed
+  underneath (a streamed Markdown answer); in forced colours a focused framed block keeps its ring.
+## Syntax highlighting
+
+Colours code by its syntax with the system's own small tokenizers (D13): `json`, `js` and `ts`, `sh`, `html` and
+`xml`, `css`, `sql`, `yaml`, `go`, `py` and `diff`. A page that prefers its own highlighter plugs it in, and the colours
+still come from the theme's code roles.
+
+```html
+<!-- highlighted by DS.init(): the element's text, in the language it names -->
+<pre class="ds-code-block" tabindex="0" aria-label="Device"><code data-ds-highlight="json">{ "id": 42, "name": "LAPTOP-0042", "active": true }</code></pre>
+
+<!-- the class a Markdown renderer writes works too (data-ds-highlight left empty) -->
+<pre class="ds-code-block"><code class="language-sh" data-ds-highlight>ds-cli retire LAPTOP-0042 --force</code></pre>
+```
+
+DS.highlight writes the tokens as spans, each with one class:
+
+| Class | Tokens | Role |
+|---|---|---|
+| `.ds-highlight__keyword` | `const`, `if`, `SELECT`, `@media` | `--ds-code-keyword` |
+| `.ds-highlight__string`, `.ds-highlight__regex` | strings, template strings, regular expressions | `--ds-code-string` |
+| `.ds-highlight__number`, `.ds-highlight__constant` | numbers, `true`, `null`, `None`, hex colours, entities | `--ds-code-number` |
+| `.ds-highlight__comment` | comments | `--ds-code-comment` |
+| `.ds-highlight__function`, `.ds-highlight__tag` | calls and definitions, a command (`sh`), a tag name | `--ds-code-function` |
+| `.ds-highlight__type` | classes, built-in types, a CSS class or id selector, a YAML tag | `--ds-code-type` |
+| `.ds-highlight__property`, `.ds-highlight__attribute`, `.ds-highlight__variable` | keys, CSS properties, attributes, options (`--force`), `$HOME` | `--ds-code-property` |
+| `.ds-highlight__meta` | decorators, a doctype, a shell prompt, `---`, diff file and hunk headers | `--ds-code-meta` |
+| `.ds-highlight__inserted`, `.ds-highlight__deleted` | the `+` and `-` lines of a diff | `--ds-code-inserted`, `--ds-code-deleted` |
+| `.ds-highlight__punctuation` | brackets, commas, colons | `--ds-text-2` |
+| `.ds-highlight__operator` | `=`, `=>`, `&&`, a pipe | the text colour |
+
+| Language | Name | Aliases |
+|---|---|---|
+| JSON (comments allowed) | `json` | `jsonc`, `json5`, `webmanifest` |
+| JavaScript | `js` | `javascript`, `mjs`, `cjs`, `jsx`, `node` |
+| TypeScript | `ts` | `typescript`, `tsx`, `mts`, `cts` |
+| Shell, a console session | `sh` | `bash`, `shell`, `zsh`, `console`, `shellsession`, `sh-session` |
+| HTML (script and style inside in their own language) | `html` | `htm`, `xhtml`, `vue`, `svelte` |
+| XML | `xml` | `svg`, `xsl`, `xslt`, `plist`, `rss`, `atom`, `xaml` |
+| CSS | `css` | `scss`, `less` |
+| SQL | `sql` | `psql`, `pgsql`, `postgres`, `postgresql`, `mysql`, `sqlite`, `plsql`, `tsql` |
+| YAML | `yaml` | `yml` |
+| Go | `go` | `golang` |
+| Python | `py` | `python`, `python3`, `py3`, `pyi` |
+| Unified diff | `diff` | `patch`, `udiff` |
+
+**Options.** None: the tokens keep the size, weight and font of the code around them; size, density and shape are the
+code block's. No tone: a colour of a token says nothing about status.
+
+### Behaviour: `data-ds-highlight`
+
+| Attribute | On | Effect |
+|---|---|---|
+| `data-ds-highlight` | a `code` (or any element) | highlights its text in place when `DS.init()` finds it: the value names the language (`json`, an alias), empty takes a `language-<x>` (or `lang-<x>`) class of the element; an unknown language leaves the text plain. A change of the value highlights again |
+
+### JS API
+
+```js
+DS.highlight.tokenize('const a = 1;', 'js');      // [{ kind: 'keyword', text: 'const' }, { kind: null, text: ' a ' }, ...]
+DS.highlight.highlight(code, 'json');             // escaped markup with the token spans, for a page that renders itself
+DS.highlight.lines(code, 'py');                   // the same, one string per line: spans close and reopen at each break
+DS.highlight.language('yml');                     // 'yaml'; null for a language no tokenizer knows
+DS.highlight.languages();                         // ['css', 'diff', 'go', 'html', 'js', 'json', 'py', 'sh', 'sql', 'ts', 'xml', 'yaml']
+DS.highlight.KINDS;                               // the token kinds, one class each
+DS.highlight.register('ini', [['comment', /;[^\n]*/], ['property', /^[\w.]+(?=\s*=)/], ['string', /"[^"\n]*"/]], ['conf']);
+DS.highlight.use((code, language) => hljs.getLanguage(language) ? hljs.highlight(code, { language }).value : null);
+const view = DS.highlight.create(el, { language: 'sql', code: 'SELECT 1' });   // the controller data-ds-highlight makes
+view.set('SELECT id FROM devices');               // highlights the new code; ds:change { code, language }
+view.get();
+view.destroy();                                   // the plain text again
+```
+
+- `DS.highlight.tokenize(code, language)` covers every character of the code, in order: `kind` is one of
+  `DS.highlight.KINDS` or `null` for plain text. An unknown language gives one plain token.
+- `DS.highlight.highlight(code, language)` and `DS.highlight.lines(code, language)` escape every `&`, `<`, `>` and `"`
+  of the code, so their markup is safe to render: only the token spans are markup. `lines()` splits at `\n` (and
+  `\r\n`), so a code block can number and mark lines.
+- `DS.highlight.register(name, rules, aliases)` adds a language or replaces one: `rules` is a list of `[kind, RegExp]`
+  tried as one expression (the first rule that matches at the leftmost place wins); a kind may be a function
+  `(text, state, index, end)` that returns a kind, `null` or a list of `[kind, text]` sub-tokens. Or pass a function
+  `(code) => [kind, text][]` of your own.
+- **The hook for an external highlighter**: `DS.highlight.use(fn)`, where `fn(code, language)` returns markup (taken
+  as it comes: the page chose the highlighter and answers for its output) or `null` to leave the language to the
+  system; `DS.highlight.use(null)` goes back. Give its token classes the code roles in the page's CSS
+  (`.hljs-keyword { color: var(--ds-code-keyword); }`), so the theme still decides the colours. `lines()` splits its
+  markup at the line breaks, closing and reopening the spans open there.
+- `DS.highlight.create(el, { code, language })` returns the controller (`get`, `set`, `on('change')`, `destroy`);
+  `destroy()` puts the plain text back.
+
+**Speed.** One pass with one combined expression per language, linear in the code, long single lines included (it
+also colours untrusted code, a `DS.markdown` answer): 2,000 lines of JavaScript take a few tens of milliseconds; the
+code block (`DS.code`) renders only once per change.
+
+**Accessibility.** Colour only: the code reads the same to a screen reader, and nothing in it is a stop of its own.
+Every code role reaches 4.5:1 on `--ds-code-bg` in the light and the dark scheme, 7:1 under `themes/contrast.css`.
+
+**Forced colours.** Every token takes the system's text colour, so the code reads as plain text; the `+` and `-` of a
+diff stay.
+
+**Roles.** `--ds-code-keyword`, `--ds-code-string`, `--ds-code-number`, `--ds-code-comment`, `--ds-code-function`,
+`--ds-code-type`, `--ds-code-property`, `--ds-code-meta`, `--ds-code-inserted`, `--ds-code-deleted`, on
+`--ds-code-bg` ([tokens.md](tokens.md)). A theme sets the roles, never the token classes.
+
+<!-- changelog -->
+- Syntax highlighting (3.0, D13): `DS.highlight` (`data-ds-highlight`; `tokenize`, `highlight`, `lines`, `language`,
+  `languages`, `register`, `use`, `create`, `KINDS`) with tokenizers for json, js, ts, sh, html, xml, css, sql, yaml,
+  go, py and diff; the token classes `.ds-highlight__*`; the colour roles `--ds-code-keyword`, `--ds-code-string`,
+  `--ds-code-number`, `--ds-code-comment`, `--ds-code-function`, `--ds-code-type`, `--ds-code-property`,
+  `--ds-code-meta`, `--ds-code-inserted`, `--ds-code-deleted` (light, dark and contrast values). Linear time, long single
+  lines included.
+## Image
+
+A picture in a frame of a fixed shape, cropped or fitted, with a tint while it loads, words where it fails and a
+caption: a device photo, a thumbnail in a list, a screenshot in a ticket.
+
+```html
+<figure class="ds-image ds-image--wide">
+  <span class="ds-image__frame" data-ds-image>
+    <img src="printer-7.jpg" alt="Printer 7 by the window" loading="lazy" width="640" height="480">
+  </span>
+  <figcaption class="ds-image__caption">Printer 7, second floor</figcaption>
+</figure>
+```
+
+| Part or variant | Class | What |
+|---|---|---|
+| Image | `.ds-image` | a `<figure>` (or a `<div>` without a caption): the frame and its caption |
+| Frame | `.ds-image__frame` | the box of the picture: its shape, its corners and the tint behind it; the picture fills it |
+| Caption | `.ds-image__caption` | a `<figcaption>` under it, in the meta type |
+| Fallback | `.ds-image__fallback` | in the frame, shown where the picture failed; `DS.image` writes one (the image glyph and the alt text) when the frame has none |
+| Square | `.ds-image--square` | the frame 1 / 1 |
+| Photo | `.ds-image--photo` | the frame 4 / 3 |
+| Wide | `.ds-image--wide` | the frame 16 / 9 |
+| Contain | `.ds-image--contain` | the whole picture fitted on the tint, instead of cropped to fill the frame (cover, the default) |
+
+Without a shape modifier the frame takes the picture's own shape; any other ratio goes in `--ds-image-ratio`
+(`style="--ds-image-ratio: 21 / 9"`). A frame of its own shape keeps its place while the picture loads, so nothing
+below it moves: give a picture without one its `width` and `height` attributes. Lazy loading is the browser's:
+`loading="lazy"` (and `decoding="async"`) on the `<img>`.
+
+### Options
+
+On the image or any ancestor; each is computed in this component's own rules ([options.md](options.md)).
+
+| Option | Classes | Applies to | Effect |
+|---|---|---|---|
+| Shape | `.ds-shape-*` | the frame | its corners times `--ds-shape` |
+| Density | `.ds-density-*` | the image | the gap to the caption 1px per step |
+| Size, tone, touch | | | not read: a picture is as large as its place |
+
+### Behaviour: `data-ds-image`
+
+On the frame. `data-state` says where the picture is: `loading` until it is there, then `loaded`, or `error`. A
+picture that arrives after the start fades in; one from the cache shows at once. A failed picture tries
+`data-ds-image-fallback` (another source, such as a placeholder) once, then the frame shows its
+`.ds-image__fallback`. A new `src` or `srcset` (from `set()` or a re-render with `DS.dom.morphHtml`) starts again
+from `loading`. Without the module the picture shows as it loads, and a failed one shows the browser's own sign.
+
+### JS API
+
+- `DS.image.create(el, { src, fallback })`: the controller the attribute path makes, on the frame. `get()` gives
+  `{ state, src }`; `set(src)` loads another picture; `on('change', fn)` runs with `{ state, src }` on every state;
+  `update()` reads the picture again; `destroy()` takes `data-state` and the written fallback away. Events:
+  `ds:change` with `{ state, src }` once the picture is loaded or failed.
+
+### Accessibility
+
+The `<img>` carries the alt text: what the picture shows, or `alt=""` for decoration. Where it fails, the fallback
+shows that text (a screen reader reads it there; the glyph is hidden), and a decorative picture's fallback is hidden
+whole. A caption names the picture for the eye; the alt text still describes it. Nothing takes focus.
+
+### Forced colours
+
+The frame keeps a `CanvasText` edge; the fallback's glyph and words are `CanvasText`.
+
+### Hooks
+
+`--ds-image-ratio`, `--ds-image-radius`, `--ds-image-bg`: see [theming.md](theming.md).
+
+**Motion:** a picture that arrives fades in over `--ds-dur-medium` on `--ds-ease-in-out` (`data-state` from
+`loading` to `loaded`); a new one fades out over `--ds-dur-fast` while it loads. A transition, so a change mid-way
+continues from where it is.
+
+<!-- changelog -->
+- Image (new, `image`): `.ds-image` with `__frame`, `__caption`, `__fallback`, the shapes `--square`, `--photo`,
+  `--wide` (or `--ds-image-ratio`) and `--contain`; `data-ds-image` writes `data-state` (`loading`, `loaded`,
+  `error`), fades the picture in, tries `data-ds-image-fallback` and shows the fallback with the alt text;
+  `DS.image.create`; hooks `--ds-image-ratio`, `--ds-image-radius`, `--ds-image-bg`.
+## Diff view
+
+What changed in one or more files, from unified diff text (`git diff`, `git show`, `diff -u`): each file with its
+header and counts, hunk headers, two line-number gutters and the changed words marked, unified or side by side, long
+runs of unchanged lines folded.
+
+```html
+<div class="ds-diff" data-ds-diff data-ds-diff-view="unified" aria-label="Changes in this ticket">
+  <pre class="ds-diff__source">diff --git a/src/sync.js b/src/sync.js
+--- a/src/sync.js
++++ b/src/sync.js
+@@ -1,5 +1,6 @@ export function sync(device) {
+ import { fetch } from './net.js';
+-const RETRIES = 2;
++const RETRIES = 3;
+...</pre>
+</div>
+```
+
+The page writes the diff text into `.ds-diff__source`; `DS.init()` parses it and renders the files next to it
+(`.ds-diff__files`, the component's own), and hides the source. Without the script the source reads as a plain code
+block. A page that re-renders with `DS.dom.morphHtml` and changes the text gets the new diff rendered; the folds the
+person opened stay open while the text stays the same.
+
+**What it shows.**
+
+- A **file header** (`.ds-diff__head`) per file: a disclosure button (`.ds-diff__toggle`, `aria-expanded`) that
+  folds the whole file, the path as a heading (`.ds-diff__name`; a rename shows `old → new`), a status word
+  (`.ds-diff__status`: New file, Deleted, Renamed, Copied, Binary) and the counts (`.ds-diff__stat`, one
+  `.ds-diff__count` per kind: `+12 −3`, and "12 added, 3 removed" for screen readers). The path is a
+  `.ds-diff__path`; a rename shows the old one as `.ds-diff__path--old`, then an arrow (`.ds-diff__arrow`). The
+  header sticks while its file scrolls under it, at `--ds-diff-sticky-top`.
+- The **body** (`.ds-diff__body`) holds the file's `.ds-diff__table`, whose `.ds-diff__cols` row names the columns
+  for screen readers only.
+- **Large files**: a file with more than 1,000 lines in its hunks (a lockfile, generated code) starts folded, its
+  header and counts showing; its table renders once the reader opens it with the toggle. A folded file renders no
+  rows, and opening or folding a file, a fold or the lines loaded between hunks renders that file alone; the word
+  marks of a line pair are computed once per text.
+- **Hunk headers** (`.ds-diff__hunk`, its content in `.ds-diff__hunk-head`): the range (`@@ -1,5 +1,6 @@`,
+  `.ds-diff__range`) and the section git names after it (`.ds-diff__section`, a function).
+- **Lines** (`.ds-diff__line`) with two gutters in the unified view, old and new line number (`.ds-diff__num`), a
+  sign (`.ds-diff__sign`: `+` added, `−` removed, with the hidden words "Added" and "Removed") and the code
+  (`.ds-diff__code`). Every cell carries `data-kind` (`add`, `del`, `ctx`; `empty` for the blank side of a split row).
+  Numbers and signs are generated content: selecting lines copies only the code.
+- **Word marks**: a removed line and the added line that replaces it (the first removal of a block against the first
+  addition, and so on) mark the words that changed, `<del class="ds-diff__word">` and `<ins class="ds-diff__word">`.
+  Two lines that share less than about a third of their text are a rewrite and get no marks.
+- **Folds** (`.ds-diff__fold`): a run of unchanged lines that would hide at least four lines beyond the context on
+  each side becomes a button, "Show 14 unchanged lines" (`.ds-diff__expand`); pressing it shows them, moves the focus
+  to the first of them and says how many came.
+- "No newline at end of file" follows its line as a row of its own (`.ds-diff__note`).
+- A binary file, or a file with no hunks (a pure rename), shows a line of text instead (`.ds-diff__empty`). So does
+  text with no file at all ("No changes").
+
+| Attribute | Option | What |
+|---|---|---|
+| `data-ds-diff` | | marks the view; its `.ds-diff__source` holds the text |
+| `data-ds-diff-view` | `view` | `unified` (default), `split` (old on the left, new on the right; long lines wrap), or `auto`: split from `--ds-diff-split-min` (720px) of the view's own width, else unified |
+| `data-ds-diff-context` | `context` | the unchanged lines kept around a change before the rest folds (default 3); `all` never folds |
+| `data-ds-diff-lang` | `language` | the language of every file for the highlighter (default: each file's extension) |
+| `data-ds-diff-heading` | `heading` | the level of the file headings, 2 to 6 (default 3) |
+| `.ds-diff--wrap` | | long lines wrap in the unified view too (the split view always wraps) |
+
+The view writes `data-view` (`unified` or `split`, the one in force) on the element and on each table.
+
+**Options** ([options.md](options.md)): classes on the view or any ancestor.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Density | `.ds-density-*` | the lines and the file headers | 1px of block padding per step off each line (rows 24, 22, 20, 20px), 2px off the header's |
+| Size | `.ds-xs` ... `.ds-xl` | the lines; the header's buttons by their own rules | 1px of block padding per step on each line; the code keeps its role (`--ds-diff-font`) |
+| Shape | `.ds-shape-*` | each file block and the word marks | the corners times 0, .5, 1, 1.5 |
+| Touch | `.ds-touch` | the header's and the folds' buttons | they reach the touch target; the lines are no targets |
+| Tone | | | not read: the kinds of change are its colours, each with its sign and word |
+
+**Syntax highlighting.** The code of each line goes through a highlighter, `fn(code, language)` returning the markup
+of that line (escaped by the highlighter; the view takes it as it comes, since the page chose it). The word marks are
+laid over that markup by character. Which one applies:
+
+```js
+DS.diff.highlighter((code, language) => myHighlighter(code, language));   // the page's, for every view
+DS.diff.create(el, { highlight: false });                                // none for this view
+```
+
+1. the view's own `highlight` option (`false`: none);
+2. the page's, set once with `DS.diff.highlighter(fn)` (it renders every live view again; `null` takes it away);
+3. `DS.highlight.highlight` when the page loads the system's highlighter through `ds.js`;
+4. else the code stays plain text.
+
+Each line is highlighted on its own, so a construct that spans lines (a block comment) is coloured line by line.
+
+**Lines above a hunk.** The lines a diff leaves out between two hunks (or above the first) are not in its text. A page
+that can fetch them passes `load`: the hunk header then offers them (an icon button named "Show 34 unchanged lines"),
+and `load({ file, path, from, to })` (old-side line numbers, inclusive) returns the lines, or a promise of them. They
+show as unchanged lines in front of the hunk, the focus moves to the first of them, and they never fold again. A load
+that fails says "That did not work. Try again." and keeps the button.
+
+```js
+const view = DS.diff.create(el, {
+  text,                                       // or the .ds-diff__source inside
+  view: 'auto',
+  context: 3,
+  load: ({ path, from, to }) => fetch(`/files/${path}?from=${from}&to=${to}`).then((response) => response.json()),
+});
+view.set({ view: 'split' });                  // or new text: view.set(nextText)
+view.get();                                   // { text, view, mode, files }
+view.expand();                                // opens every fold
+view.on('change', ({ view, text }) => {});    // also a bubbling ds:change on the element
+view.on('expand', ({ file, count }) => {});   // also ds:expand
+```
+
+`DS.diff.create` returns the controller (`get`, `set`, `expand`, `on`, `refresh`, `destroy`); the attribute path makes
+the same one (`DS.core.get(el, 'diff')`). The data behind it is public for a page that shows changes its own way:
+
+- `DS.diff.parse(text)`: the files, each `{ oldPath, newPath, path, status, binary, additions, deletions, hunks }`, a
+  hunk `{ oldStart, oldLines, newStart, newLines, section, lines }`, a line `{ kind, text, old, new, noNewline }`.
+  Lines before the first file (a commit message) are left out; `\r\n` reads as `\n`.
+- `DS.diff.words(before, after)`: the changed ranges of two versions of a line, `{ removed, added }` (each a list of
+  `[start, end)`), or `null` for a rewrite or very long lines.
+- `DS.diff.rows(file, { view, context, expanded })`: the rows a view shows, folds included.
+- `DS.diff.highlighter(fn)`: above.
+
+**Accessibility.** Each file is a section (unnamed, so not a landmark of its own) under its heading; its toggle is a
+disclosure button named by the heading. The table has column headers for screen readers (old line, new line, change, code; in the split view before
+and after), and each changed line says "Added" or "Removed" through its sign cell, so the kind never rests on colour.
+The body of each file is a focusable region named by the file (the one landmark per file) that scrolls sideways with the arrow keys (`Tab`
+reaches it, then the next file's toggle). A fold's button opens its lines, the first of them takes the focus (a ring
+inside the row) and the count is announced politely ("14 more lines shown").
+
+**Forced colours.** The fills go; the signs and the hidden words stay, inserted words are underlined and removed
+words struck through, and a hunk row keeps a rule above it. The focus ring is the system's.
+
+**Hooks**: `--ds-diff-bg`, `--ds-diff-add-bg`, `--ds-diff-del-bg`, `--ds-diff-add-word`, `--ds-diff-del-word`,
+`--ds-diff-hunk-bg`, `--ds-diff-radius`, `--ds-diff-font`, `--ds-diff-sticky-top` and `--ds-diff-split-min` (720px;
+px, rem or em), the width from which `data-ds-diff-view="auto"` shows the split view ([theming.md](theming.md)). The script writes
+`--ds-diff-digits` (the digits of the highest line number) on each table, so the gutters fit the numbers.
+
+**Motion.** None of its own: a file's chevron turns with `.ds-chevron`, and a fold opens in one step (the rows
+appear, the focus follows).
+
+<!-- changelog -->
+- Diff view (`.ds-diff`, `DS.diff`): unified diff text parsed into files with headers, +/- counts, hunk headers, two
+  line-number gutters, word-level marks, folded unchanged lines with their buttons, unified, split and auto views, a
+  highlighter hook (`DS.diff.highlighter`, or `DS.highlight` from `ds.js`) and the lines between hunks through a
+  `load` callback. Files above 1,000 lines start folded and render when opened. New strings `diffAdded`, `diffRemoved`, `diffStats`, `diffFileAdded`, `diffFileDeleted`,
+  `diffFileRenamed`, `diffFileCopied`, `diffFileBinary`, `diffBinary`, `diffNoChanges`, `diffUntitled`,
+  `diffNoNewline`, `diffExpandOne`, `diffExpand`, `diffShownOne`, `diffShown`, `diffOldLine`, `diffNewLine`,
+  `diffChange`, `diffCode`, `diffOldCode`, `diffNewCode`.
+## Log viewer
+
+A long or live log (a device's output, a build, a job run) that stays light at 100,000 lines: only the lines near the
+viewport are in the page. ANSI colours map to theme roles, each level shows an icon and a word, and the reader can
+filter by level, search with next and previous, wrap long lines, hide the timestamps, copy one line or a range, and
+follow new lines as they arrive with a "Latest" pill to come back to the end.
+
+```html
+<div class="ds-logview" data-ds-logview aria-label="Log of device 42">
+  <pre class="ds-logview__source">2026-11-04T09:00:01.120Z INFO  Device 42 started (firmware 3.2.1)
+2026-11-04T09:00:02.348Z WARN  Battery at 15%
+2026-11-04T09:00:05.902Z ERROR Sync failed: timeout after 8000 ms
+    at sync (src/devices/sync.js:31)
+...</pre>
+</div>
+```
+
+The page writes the text into `.ds-logview__source`; `DS.init()` reads it, renders the view next to it and hides the
+source. Without the script the source reads as a plain block of text. Lines that arrive later go through
+`append()`; a page that re-renders the source with more text at its end gets the new lines appended, other text
+starts the log again. That holds for a re-render of the page around the view with `DS.dom.morphHtml` too: the bar and
+the scroller carry `data-ds-keep`, and the source's `hidden` and the element's `data-wrap` and `data-time` are owned
+state, so the morph leaves the view as it is and patches only the source.
+
+**What it shows** (rendered by the script; the page writes none of it):
+
+- The **bar** (`.ds-logview__bar`): the search (`.ds-logview__find`: a `.ds-search` field `.ds-logview__search`,
+  the count `.ds-logview__found`, "3 of 12", previous and next match, and "Only matching lines"), the view tools
+  (`.ds-logview__tools`: wrap, timestamps and copy, icon buttons with `aria-pressed` where they toggle) and the
+  filters (`.ds-logview__filters`): a filter chip per level that occurs (`.ds-chips.ds-logview__levels`, each
+  `.ds-logview__chip` with the level's icon `.ds-logview__glyph`, its word and its count `.ds-logview__tally`; shown
+  once two levels occur), and the line count (`.ds-logview__count`, "120 of 4,000 lines" while a filter hides lines).
+- The **lines** (`.ds-logview__scroller` around the listbox `.ds-logview__lines`): each `.ds-logview__line` has its
+  number (`.ds-logview__num`, not selectable or copied), its time (`.ds-logview__time`), its level
+  (`.ds-logview__level`: an icon and the word `.ds-logview__word`) and its text (`.ds-logview__text`), with the
+  ANSI runs as `.ds-logview__ansi` and the search matches as `<mark class="ds-logview__match">`
+  (`.ds-logview__match--current` for the one the count names). Error and fatal lines lie on an error tint, warnings
+  on a warning tint; the icon and the word say the level, never the colour alone.
+- The **"Latest" pill**: a `.ds-jump` with a `.ds-presence` around an elevated button, through
+  `DS.dom.followEnd()`. While the reader is at the end, new lines keep the view there; scrolling up lets go and
+  shows the pill; pressing it goes back to the end and follows again. Pressed from the keyboard, the focus moves to
+  the last line (the pill hides at once).
+- `.ds-logview__empty`: "No lines yet", or "No line matches the filters".
+
+**Lines.** A timestamp at the start (ISO 8601 such as `2026-11-04T09:00:01.120Z`, a time of day `09:00:01`, a
+syslog date `Nov  4 09:00:01`, bracketed or not) and the level after it (`[ERROR]`, `<warn>`, `ERROR`, `error:`) are
+read off the text and shown in their columns; a level as a field (`level=error`, `"level":"error"`) counts and stays
+in the text. A word that could start a sentence ("Error connecting") is no level unless it is bracketed, upper
+case or followed by a colon. Level words: fatal (`fatal`, `crit`, `critical`, `panic`, `emerg`, `alert`), error
+(`error`, `err`, `severe`), warn (`warn`, `warning`), info (`info`, `notice`), debug (`debug`, `dbg`, `fine`),
+trace (`trace`, `verbose`, `finest`). A line with neither a stamp nor a level continues the line before it (a stack
+trace): it takes that line's level for the filter and the tint, without an icon of its own. A carriage return keeps
+what came after it (a progress bar that redrew itself).
+
+**ANSI.** SGR escapes colour the text: the eight colours (`30`-`37`, bright `90`-`97`, and 256 or true colours, which
+take the nearest of the eight) read `--ds-logview-black` ... `--ds-logview-white`, whose defaults are theme roles, so
+every theme and both schemes keep them readable; backgrounds (`40`-`47`, `100`-`107`) are that colour at a fifth
+over the ground; bold, dim, italic, underline, strike and inverse are words of `data-sgr`. Every other escape
+(cursor moves, titles) is dropped. On a span: `data-fg`, `data-bg` (a colour name), `data-sgr`.
+
+| Attribute | Option | What |
+|---|---|---|
+| `data-ds-logview` | | marks the view; its `.ds-logview__source` holds the text |
+| `data-ds-logview-follow` | `follow` | `off`: no following and no pill (a finished log) |
+| `data-ds-logview-wrap` | `wrap` | long lines wrap (default: one line each, the view scrolls sideways) |
+| `data-ds-logview-time` | `time` | `time` (default: the time of day), `full` (the stamp as written) or `off` (no column) |
+| `data-ds-logview-limit` | `limit` | lines kept (default 100000; `0`: no limit): past it the oldest tenth goes at once, so a log at its limit does not shift on every line |
+| `data-ds-logview-tools` | `tools` | `off`: no bar (the API still works) |
+| `data-ds-logview-store` | `store` | a `DS.store` namespace that remembers wrap and timestamps; read once, when the view starts |
+
+A change of one of the other attributes (or of `aria-label`, the name of the lines) applies that option alone: the
+wrap and timestamps the reader chose stay until `data-ds-logview-wrap` or `data-ds-logview-time` itself changes.
+
+The view writes `data-wrap` and `data-time` on the element, `data-level` on the lines and chips, and the runtime
+properties `--ds-logview-chars`, `--ds-logview-digits`, `--ds-logview-time-chars` and `--ds-logview-level-chars` on
+the lines, so the columns line up.
+
+**Options** ([options.md](options.md)): classes on the view or any ancestor.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Density | `.ds-density-*` | the lines and the bar | 1px of block padding per step off each line (rows 24, 22, 20, 20px), 2px off the bar's |
+| Size | `.ds-xs` ... `.ds-xl` | the lines; the bar's controls by their own rules | 1px of block padding per step on each line; the text keeps its role (`--ds-logview-font`) |
+| Shape | `.ds-shape-*` | the frame and the match marks | the corners times 0, .5, 1, 1.5 |
+| Touch | `.ds-touch` | the bar's buttons, chips and field, and the pill | they reach the touch target; the lines stay compact |
+| Tone | | | not read: the levels are its colours, each with its icon and word |
+
+Under a width of 30rem (a container query) the level word hides (it is still read), the search takes a row of its
+own and the chips scroll sideways.
+
+```js
+const log = DS.logview.create(el, { lines: text, follow: true, limit: 50000, store: 'device-log' });
+socket.onmessage = (event) => log.append(event.data);       // text, or a list of lines or { text, level, time }
+log.set({ query: 'timeout', levels: ['fatal', 'error', 'warn'], wrap: true, time: 'full' });
+log.get();                         // { count, shown, query, levels, only, wrap, time, selected, lines }
+log.copy();                        // the selected lines that show, else the active one
+log.find('next');                  // or 'previous'
+log.latest();                      // back to the end, following again
+log.clear();
+log.on('change', ({ query, levels, shown, count }) => {});  // also ds:change on the element
+log.on('select', ({ lines }) => {});                        // also ds:select
+log.on('copy', ({ text, count }) => {});                    // also ds:copy
+```
+
+`DS.logview.create` returns the controller (`get`, `set`, `append`, `clear`, `copy`, `find`, `latest`, `on`,
+`update`, `destroy`); the attribute path makes the same one (`DS.core.get(el, 'logview')`). `append()` batches what
+arrives within a frame, so a fast stream costs one render per frame. A line given as an object takes its `level`
+and `time` (a `Date` or a timestamp is formatted through `DS.format.absolute`) from there. The data is public too:
+
+- `DS.logview.parse(line)`: `{ time, level, text, segments }`, the stamp as written, the level, the message and its
+  ANSI runs.
+- `DS.logview.ansi(text)`: the runs of a text, each `{ text, fg, bg, bold, dim, italic, underline, strike, inverse }`.
+
+**Search.** The search finds text in the messages, case-insensitive, as it is typed; the count says how many and
+which ("3 of 12"). Enter or F3 goes to the next match, Shift+Enter to the previous (or the buttons); the line of the
+match turns active and scrolls into view, sideways too. "Only matching lines" hides the others. Escape in the field
+clears it first.
+
+**Copy.** A click selects a line, Shift+click a range, Ctrl or Cmd+click one more; a second click on the only
+selected line lets it go. Ctrl+C (Cmd+C) or the copy button copies the selected lines that show, else the active
+line, as plain text: the lines as written, without the ANSI codes and without the line numbers. A text selection
+the reader dragged over the lines is the browser's own copy and leaves the line selection alone. The copy is
+announced ("Copied 3 lines").
+
+**Accessibility.** The lines are a multi-select listbox named by the view's `aria-label` (APG listbox): one tab stop,
+the arrow keys, Home, End, PageUp and PageDown move through the lines (`DS.virtual`, which tells their place with
+`aria-setsize` and `aria-posinset`); Space selects or lets go of a line, Shift+arrow and Shift+Space select a range,
+Ctrl+Shift+Home and End select to an end, Ctrl+A selects every line that shows, Escape clears the selection, Ctrl+C
+copies and Ctrl+F goes to the search. ArrowDown in the search goes to the lines. Each line's name is its time, its
+level word and its text. The search field is described by its count; a filter, a copy and a match are announced
+politely. New lines are not announced one by one (a log is no live region: it would talk over everything); the
+count in the bar shows them.
+
+**Forced colours.** The tints go; the icon and the word stay. A selected line is `SelectedItem` with its bar, a match
+`Mark` and the current match `Highlight`; the focus ring is the system's.
+
+**Hooks**: `--ds-logview-height`, `--ds-logview-bg`, `--ds-logview-radius`, `--ds-logview-font`,
+`--ds-logview-error-bg`, `--ds-logview-warn-bg`, `--ds-logview-match`, `--ds-logview-match-current` and the ANSI
+colours `--ds-logview-black`, `--ds-logview-red`, `--ds-logview-green`, `--ds-logview-yellow`, `--ds-logview-blue`,
+`--ds-logview-magenta`, `--ds-logview-cyan`, `--ds-logview-white` ([theming.md](theming.md)).
+
+**Motion.** The "Latest" pill comes and goes with `.ds-presence`; following the end is a scroll (smooth within one
+screen, else at once). Lines arrive in place, without motion.
+
+<!-- changelog -->
+- Log viewer (`.ds-logview`, `DS.logview`): a windowed log (`DS.virtual`, 100,000 lines by default) with ANSI colours
+  on theme roles (hooks `--ds-logview-black` ... `--ds-logview-white`), levels read from the text with an icon and a
+  word, level filter chips with counts, search with a count and next and previous, "Only matching lines", wrap,
+  timestamps (time of day, full or none), copy of a line or a range (a multi-select listbox), follow mode with the
+  "Latest" pill (`DS.dom.followEnd`), `append()` batched per frame, `DS.logview.parse` and `DS.logview.ansi`. New
+  strings `logName`, `logFatal`, `logError`, `logWarn`, `logInfo`, `logDebug`, `logTrace`, `logLevels`, `logSearch`,
+  `logSearchPlaceholder`, `logPrevious`, `logNext`, `logMatch`, `logMatchesOne`, `logMatches`, `logOnlyMatches`,
+  `logWrap`, `logTimestamps`, `logCopyLine`, `logCopyLines`, `logCopiedOne`, `logCopied`, `logSelected`,
+  `logLinesOne`, `logLines`, `logShown`, `logEmpty`, `logNoneShown`, `logLatest`, `logFollowing`.
+## Terminal frame
+
+The chrome around a terminal emulator the page brings (xterm.js or its own): a head with the title, the connection
+status and the page's actions, the screen the emulator mounts into, and a key bar with the keys a phone's keyboard
+lacks (Esc, Tab, Ctrl, Alt, the arrows). The emulator, the connection and what the keys do stay the page's; the frame
+says which bytes a key sends and gives the emulator the theme's colours.
+
+```html
+<div class="ds-terminal" data-ds-terminal data-ds-terminal-status="connecting" aria-label="Shell on device 42">
+  <div class="ds-terminal__head">
+    <span class="ds-terminal__title">ada@device-42: ~</span>
+    <span class="ds-terminal__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Full screen">(fullscreen)</button>
+    </span>
+  </div>
+  <div class="ds-terminal__screen"><!-- the emulator mounts here --></div>
+</div>
+```
+
+```js
+const el = document.querySelector('.ds-terminal');
+const term = new Terminal({ theme: DS.terminal.theme(el), fontFamily: getComputedStyle(el).getPropertyValue('font-family') });
+term.open(el.querySelector('.ds-terminal__screen'));
+const frame = DS.terminal.create(el, { send: (data) => socket.send(data) });
+term.onData((data) => socket.send(data));
+socket.onopen = () => frame.set({ status: 'connected' });
+socket.onclose = () => frame.set({ status: 'disconnected' });
+```
+
+**What it shows** (rendered by the script; the page writes none of it):
+
+- The **status** (`.ds-terminal__status`, a [status chip](#status-chip) `.ds-status` before the actions, a polite
+  live region): "Connecting" with the running spinner, "Connected" with a plug in the success tone, "Disconnected"
+  with a broken link, neutral. Never the colour alone; the chip stays while the status changes, so its colour glides.
+- The **key bar** (`.ds-terminal__keys`, a toolbar named "Terminal keys"): an outlined button per key
+  (`.ds-terminal__key`; the arrows icon buttons with their names), Ctrl and Alt as toggle buttons (`aria-pressed`).
+  It shows under a coarse pointer (a phone or a tablet) by default, always with `data-ds-terminal-bar="always"`, and
+  never with `off`.
+
+The page writes the head (`.ds-terminal__head` with `.ds-terminal__title` and `.ds-terminal__actions`, its own quiet
+icon buttons: reconnect, copy, full screen) and the screen (`.ds-terminal__screen`). Without an emulator (a replay, a
+read-only session) it writes a `<pre>` into the screen: spans with `data-fg` (`black`, `red`, `green`, `yellow`,
+`blue`, `magenta`, `cyan`, `white`) take the ANSI colours and `data-sgr="bold"` or `"dim"` the weight.
+
+| Attribute | Option | What |
+|---|---|---|
+| `data-ds-terminal` | | marks the frame |
+| `data-ds-terminal-keys` | `keys` | the keys of the bar by name, separated by spaces: `esc`, `tab`, `ctrl`, `alt`, `up`, `down`, `left`, `right`, `home`, `end`, `pgup`, `pgdn`, or one character (`\|`, `~`, `/`) sent as it is; default `esc tab ctrl alt left up down right` |
+| `data-ds-terminal-bar` | `bar` | `auto` (default: under a coarse pointer), `always`, `off` |
+| `data-ds-terminal-status` | `status` | `connecting`, `connected`, `disconnected`; none: no chip |
+| | `send` | `send(data)` gets the bytes of every key the frame sends |
+| | `title` | the text of `.ds-terminal__title` |
+
+The frame writes `data-bar` and `data-status` on itself, `role="group"` (unless it has a role) and, without an
+`aria-label` or `aria-labelledby` of the page's, an `aria-label` that is the title's text, kept in step when the title
+changes. It gives the title and the screen no id. All of it is owned state, and the key bar and the status chip carry
+`data-ds-keep`: a page that re-renders around the frame with `DS.dom.morphHtml` keeps them. A change of
+`data-ds-terminal-keys`, `-bar` or `-status` applies that option alone; the bar is rebuilt only when its keys change,
+and the key that had the focus keeps it.
+
+| Variant | Class | What |
+|---|---|---|
+| Default | `.ds-terminal` | the screen is `--ds-terminal-height` high (360px) |
+| Fill | `.ds-terminal--fill` | the frame takes its container's height and the screen the rest (a terminal page) |
+
+**Options** ([options.md](options.md)): classes on the frame or any ancestor.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the head; the keys by the button's rule | 8px of head height per step (48px at md); the screen keeps its type: the emulator sets its cells |
+| Density | `.ds-density-*` | the head, the screen, the bar | 4px of head height per step, 2px of block padding off the screen and the bar |
+| Shape | `.ds-shape-*` | the frame; the keys by the button's rule | the corners times 0, .5, 1, 1.5 |
+| Touch | `.ds-touch` | the keys | they reach the touch target |
+| Tone | | | not read: the status chip has its own, with its icon and word |
+
+Under a width of 20rem (a container query) the status word hides (the chip keeps its icon and is still read), the
+title ends with an ellipsis and the key bar scrolls sideways.
+
+**Keys.** A key of the bar sends its bytes through `send(data)` and the bubbling `ds:key` `{ key, data, ctrl, alt }`;
+the page passes them to its connection (or to the emulator's input). Ctrl and Alt are held for the next key (a second
+press lets go): a key of the bar, or the next character typed into the screen on the soft keyboard, which the frame
+takes before the emulator sees it and sends with the modifier (Ctrl, then `c`: `\x03`). The sequences are xterm's:
+the arrows `ESC [ A` ... `ESC [ D`, with a modifier `ESC [ 1 ; 5 A`; Home and End `ESC [ H`, `ESC [ F`; Page Up and
+Down `ESC [ 5 ~`, `ESC [ 6 ~`; Alt puts `ESC` before. A press on a key never takes the focus from the screen, so the
+soft keyboard stays up.
+
+```js
+const frame = DS.terminal.create(el, { send, keys: ['esc', 'tab', 'ctrl', 'up', 'down', '|', '~'], bar: 'always' });
+frame.set({ status: 'connected', title: 'ada@device-42: /var/log' });
+frame.get();                       // { status, title, keys, bar, ctrl, alt }
+frame.press('ctrl');               // as a tap: holds Ctrl
+frame.on('key', ({ key, data, ctrl, alt }) => {});   // also ds:key on the frame
+frame.on('change', ({ status, title }) => {});       // also ds:change
+DS.terminal.sequence('left', { alt: true });        // '\x1b[1;3D'
+DS.terminal.theme(el);             // { background, foreground, cursor, ..., red, ..., brightWhite }
+```
+
+`DS.terminal.create` returns the controller (`get`, `set`, `press`, `on`, `update`, `destroy`); the attribute path
+makes the same one (`DS.core.get(el, 'terminal')`), and `create` on a frame it already runs passes the options to
+that one. `DS.terminal.sequence(key, modifiers)` gives the bytes of a key (null for what cannot be sent).
+`DS.terminal.theme(el)` reads the colours of the place the frame sits (its scheme, theme and hooks) in xterm.js's
+`ITheme` shape: the background, foreground, cursor and selection, and the eight ANSI colours from roles (the bright
+ones the same), through a `.ds-terminal__probe` it adds to the screen for the moment it reads; read it again after
+the scheme changes and pass it to the emulator.
+
+**Accessibility.** The frame is a group named by its `aria-label`, else its title's text. The status chip is a polite live
+region. The key bar is a toolbar (APG toolbar): one tab stop, the arrow keys, Home and End move between the keys,
+Enter and Space press one; the arrow keys have names ("Arrow up"), Ctrl and Alt are toggle buttons whose hold and
+release are announced ("Ctrl held for the next key"). The screen shows the focus ring while the emulator inside has
+the focus; the emulator's own accessibility (xterm.js's screen reader mode) is the page's choice.
+
+**Forced colours.** The frame, the head and the bar keep their lines (`CanvasText`); the output's colours go, the
+status keeps its icon and word, a held modifier is `Highlight` (the button's toggle).
+
+**Hooks**: `--ds-terminal-height`, `--ds-terminal-bg`, `--ds-terminal-fg`, `--ds-terminal-cursor`,
+`--ds-terminal-selection`, `--ds-terminal-radius`, `--ds-terminal-font` and the ANSI colours `--ds-terminal-black`,
+`--ds-terminal-red`, `--ds-terminal-green`, `--ds-terminal-yellow`, `--ds-terminal-blue`, `--ds-terminal-magenta`,
+`--ds-terminal-cyan`, `--ds-terminal-white` ([theming.md](theming.md)); `DS.terminal.theme()` reads them too.
+
+**Motion.** The status chip's colour glides (`.ds-status`); the keys press as buttons. Nothing else moves.
+
+<!-- changelog -->
+- Terminal frame (`.ds-terminal`, `DS.terminal`, tier 2): the chrome around a terminal emulator the page brings: a
+  head with the title, a status chip (connecting, connected, disconnected) and the page's actions, the screen, and a
+  key bar (Esc, Tab, Ctrl, Alt, the arrows; more by name or character) shown under a coarse pointer, with Ctrl and
+  Alt held for the next key, also for a character typed on the soft keyboard. `DS.terminal.sequence` gives xterm's
+  bytes of a key, `DS.terminal.theme` the theme's colours for an emulator (hooks `--ds-terminal-*`); `--fill` for a
+  terminal page; plain output with `data-fg` spans. New strings `terminalKeys`, `terminalUp`, `terminalDown`,
+  `terminalLeft`, `terminalRight`, `terminalConnecting`, `terminalConnected`, `terminalDisconnected`,
+  `terminalHeld`, `terminalReleased`.
 ## Empty state
 
 Says that there is nothing to show and why, at the size of its place, or confirms that a job finished.
@@ -1914,6 +5184,85 @@ because of a user's action takes the role of the table above. Keyboard: no stop 
 **Forced colours.** The fill of the disc goes, the icon and the words stay; the done state's disc keeps an outline.
 
 **Motion:** [Data motion](motion.md#data-motion) in motion.md.
+## Result page
+
+The whole page, or a whole panel, says how a request ended when there is nothing else to show: done, not allowed
+(403), not found (404), failed (500), down for maintenance, offline. A disc with the cause's icon (or a picture),
+the code, a title that says what happened, one line of what to do, the way out and a reference for support.
+
+```html
+<main class="ds-result ds-result--not-found" aria-labelledby="result-title">
+  <span class="ds-result__disc" aria-hidden="true">[icon mapPin 32]</span>
+  <p class="ds-result__code">404</p>
+  <h1 class="ds-result__title" id="result-title" tabindex="-1">Page not found</h1>
+  <p class="ds-result__text">The address may be mistyped, or the page has moved.</p>
+  <div class="ds-result__actions">
+    <a class="ds-btn ds-btn--filled" href="/">Go to the overview</a>
+    <a class="ds-btn ds-btn--text" href="/search">Search</a>
+  </div>
+  <p class="ds-result__meta">Reference 9F2C-118A</p>
+</main>
+```
+
+An [empty state](#empty-state) says that a place has nothing to show; a result page replaces the page.
+
+| Cause | Class | Disc | Suggested icon, title and way out |
+|---|---|---|---|
+| Done | `.ds-result--success` | success container | `checkCircle`; "Device added"; open it, add another |
+| 403 | `.ds-result--forbidden` | neutral | `lock`; "You need access"; ask an administrator, go back |
+| 404 | `.ds-result--not-found` | the accent tint | `mapPin`; "Page not found"; the overview, search |
+| 500 | `.ds-result--error` | error container | `alert`; "Something went wrong"; try again, the status page; a reference |
+| Maintenance | `.ds-result--maintenance` | warning container | `wrench`; "Back at 14:00"; the status page |
+| Offline | `.ds-result--offline` | warning container | `wifiOff`; "You are offline"; try again |
+| Any other | `.ds-tone-*` on `.ds-result` | the tone's container | |
+
+| Part | Class | What |
+|---|---|---|
+| Disc | `.ds-result__disc` | the cause's icon (32px), `aria-hidden` |
+| Picture | `.ds-result__media` | an illustration in place of the disc, at most `--ds-result-media-size` high, `alt=""` |
+| Code | `.ds-result__code` | the status code, quiet: a figure for support, never the only word |
+| Title | `.ds-result__title` | what happened, in words (the page's `h1`) |
+| Text | `.ds-result__text` | one line of what to do |
+| Actions | `.ds-result__actions` | one filled button at most, and a text button; stacked full width on a phone |
+| Meta | `.ds-result__meta` | a reference or a time, selectable, for a support request |
+
+### Options
+
+On it or any ancestor, except the tone; each is computed in this component's own rules ([options.md](options.md)).
+
+| Option | Classes | Applies to | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the disc, the padding | 8px of disc and 8px of block padding per step; the type stays |
+| Density | `.ds-density-*` | the padding, the gaps | 4px of block padding and 1px of gap per step |
+| Shape | `.ds-shape-*` | the disc | its radius times `--ds-shape`: round at the default |
+| Tone | `.ds-tone-*` | the result itself | the disc's colours, over the cause's |
+| Touch | `.ds-touch` | its buttons | as everywhere |
+
+**Status never by colour alone.** The icon and the title say what happened; the colour and the code add nothing a
+word does not.
+
+### Accessibility
+
+One `h1`, the title, names the landmark (`aria-labelledby`); a result inside a panel takes the panel's heading level.
+After a request in a single-page app, move focus to the title (`tabindex="-1"`, `focus()`), so the result is read;
+it shows no ring, being no control. The disc and the picture are `aria-hidden`.
+
+### Forced colours
+
+The disc keeps a transparent outline that becomes its edge; its fill is dropped. The text and the buttons follow the
+system colours.
+
+### Hooks
+
+`--ds-result-disc-size`, `--ds-result-media-size`, `--ds-result-padding`: see [theming.md](theming.md).
+
+**Motion:** none of its own. A result that replaces content after a request comes in with `.ds-reveal`
+([motion.md](motion.md)).
+
+<!-- changelog -->
+- Result page (new, `result`): `.ds-result` with the causes `--success`, `--forbidden`, `--not-found`, `--error`,
+  `--maintenance`, `--offline` (or a tone) and the parts `__disc`, `__media`, `__code`, `__title`, `__text`,
+  `__actions`, `__meta`; hooks `--ds-result-disc-size`, `--ds-result-media-size`, `--ds-result-padding`.
 ## Status chip
 
 The state of one item, always with an icon and a word.
@@ -1975,6 +5324,160 @@ the shape). Forced colours draw a `CanvasText` outline. `.ds-tag--neutral` is **
 `.ds-tone-neutral`. Tag = words, badge = counts ([Badge](#badge)), status chip = a state with an icon.
 
 **Motion:** the "Status chip" row of [Feedback](motion.md#feedback) in motion.md.
+## State label
+
+The workflow state of one item in a bold, filled pill: open, in review, merged, closed, draft. One per item, in its
+head (a ticket's title row, a change request), where the state is the first thing to read.
+
+```html
+<h1 class="ds-page-head__title">Printer jams on the second floor
+  <span class="ds-lozenge ds-tone-success">[icon circleDot 16]<span>Open</span></span></h1>
+
+<span class="ds-lozenge ds-tone-primary">[icon gitPullRequest 16]<span>In review</span></span>
+<span class="ds-lozenge ds-tone-info">[icon gitMerge 16]<span>Merged</span></span>
+<span class="ds-lozenge ds-tone-error">[icon circleX 16]<span>Closed</span></span>
+<span class="ds-lozenge ds-tone-neutral">[icon pencil 16]<span>Draft</span></span>
+
+<!-- subtle: a list of many items -->
+<span class="ds-lozenge ds-lozenge--subtle ds-tone-success">[icon circleDot 16]<span>Open</span></span>
+```
+
+Which one: a **state label** says where an item stands in its workflow; a [status chip](#status-chip) (`.ds-status`)
+says how a thing is doing (synced, failing, running); a [tag](#status-chip) (`.ds-tag`) adds a word ("Beta"); a
+[badge](#badge) counts.
+
+| Variant | Class | Look |
+|---|---|---|
+| Filled | `.ds-lozenge` | the tone's colour with its on-colour: bold, for an item's head |
+| Subtle | `.ds-lozenge--subtle` | the tone's container pair, for a list of many items |
+
+Pick the tone per state once and keep it with its icon everywhere: the state is always a word and usually an icon,
+never the colour alone. Without a tone it is neutral.
+
+### Options
+
+On the lozenge or any ancestor, except the tone; each is computed in this component's own rules ([options.md](options.md)).
+
+| Option | Classes | Applies to | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the lozenge | 4px of height per step (20px to 36px; 28px at md), the side padding 2px per step; type and icon stay |
+| Shape | `.ds-shape-*` | the lozenge | its radius times `--ds-shape`: a pill at the default, never rounder than half its height |
+| Tone | `.ds-tone-*` | the lozenge itself; an inherited tone is ignored | the fill (or the container, `--subtle`) and its ink |
+| Density, touch | | | not read: a lozenge is no target and sits in a line |
+
+### Accessibility
+
+Plain text in the item's head, read with it; nothing takes focus. A state that changes while the page is open is
+announced by the page (`DS.a11y.announce('Closed')`), not by the label.
+
+### Forced colours
+
+A transparent outline becomes its `CanvasText` edge, the text `CanvasText`: the word and the icon carry the state.
+
+### Hooks
+
+`--ds-lozenge-height`, `--ds-lozenge-radius`: see [theming.md](theming.md).
+
+**Motion:** a state that changes glides its colours over `--ds-dur-medium`; re-render with `DS.dom.morphHtml`, so
+the element stays and the class change transitions.
+
+<!-- changelog -->
+- State label (new, `lozenge`): `.ds-lozenge` and `--subtle`, a bold workflow state in the tone of the class on it,
+  with a word and an icon; hooks `--ds-lozenge-height`, `--ds-lozenge-radius`.
+## Label group
+
+The tags of one item on one line, as many as fit, then a "+N" button that shows all of them in a popup: a ticket's
+labels in a table row, a device's groups in a card head.
+
+```html
+<div class="ds-label-group" data-ds-label-group>
+  <ul class="ds-label-group__list" aria-label="Labels of ticket 42">
+    <li><span class="ds-tag">Printer</span></li>
+    <li><span class="ds-tag ds-tone-warning">Waiting for parts</span></li>
+    <li><span class="ds-tag">Second floor</span></li>
+  </ul>
+</div>
+```
+
+The module writes the button and the popup after the list:
+
+```html
+<button class="ds-btn ds-btn--tonal ds-label-group__more" type="button" aria-haspopup="dialog"
+        aria-expanded="false" aria-controls="..." aria-label="+2 more, show all 3"><span aria-hidden="true">+2</span></button>
+<div class="ds-label-group__popup" id="..." role="dialog" aria-label="Labels of ticket 42" tabindex="-1" hidden>
+  <ul class="ds-label-group__all">...every tag again...</ul>
+</div>
+```
+
+| Part | Class | What |
+|---|---|---|
+| Group | `.ds-label-group` | one line: the list, then the button; give it its width (in a flex row: `min-width: 0` and room to grow) |
+| List | `.ds-label-group__list` | a named `<ul>` of `<li>`, each holding a [tag](#status-chip) (`.ds-tag`, with a tone and an icon if it has one); the tags that do not fit are `hidden` |
+| Button | `.ds-label-group__more` | a tonal [button](#button) as high as a tag, "+N" |
+| Popup | `.ds-label-group__popup` | every tag, wrapping, in a popup at the button |
+| All | `.ds-label-group__all` | the list in the popup |
+
+### Behaviour: `data-ds-label-group`
+
+On the group. It measures the tags, keeps those that fit on the line and hides the others, at most
+`data-ds-label-group-max` of them (a fixed number: "the first 3"); again when the group's width changes and when the
+page re-renders the list (`DS.dom.morphHtml`). Every group of the page is measured in one batch, reads before writes,
+and each tag's width is kept until the list changes, so a table column of a few hundred groups costs a layout or two
+per resize. One tag left alone in too little room ends in an ellipsis. The button
+opens the popup through `DS.overlay`: it grows from the button, focus moves into it, Escape closes it and focus goes
+back to the button; a pointerdown outside it or focus that leaves it (Tab on) closes it too. The popup is placed at the
+button: anchored in the top layer where the engine can, else by the script (`--ds-label-group-x`, `--ds-label-group-y`).
+
+The tags in the popup are copies without their ids: a page that acts on a tag (a link to a filter) uses links or
+listens on the document.
+
+### JS API
+
+- `DS.labelgroup.create(el, { max })`: the controller the attribute path makes, on the group (that one itself when
+  `DS.init()` already made it). `get()` gives
+  `{ total, hidden, open }`; `set(open)` opens or closes the popup (it opens only while tags are hidden);
+  `on('change', fn)` runs when the hidden count or the popup changes; `update()` measures again; `destroy()` shows
+  every tag and takes the button and the popup away. Events: `ds:change` with `{ total, hidden, open }` on the group.
+- `DS.labelgroup.visibleCount(widths, room, more, gap, max)`: the measuring alone: how many tags of `widths` fit in
+  `room` beside a button `more` wide, `gap` apart (at most `max`, at least one).
+
+### Options
+
+On the group or any ancestor; each is computed in this component's own rules ([options.md](options.md)).
+
+| Option | Classes | Applies to | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the button | 4px per step as the tags (24px at md), its side padding 2px per step |
+| Shape | `.ds-shape-*` | the button, the popup | the pill and the popup's corners times `--ds-shape` |
+| Touch | `.ds-touch` | the button | at least `--ds-touch-target` high |
+| Density, tone | | | not read: the tags carry their own tones and words |
+
+### Accessibility
+
+The list is a named `<ul>`: a screen reader hears how many tags it shows. The button's name says how many more and how
+many in all ("+3 more, show all 8"), starting with what it shows, so a voice command "click plus 3" finds it; it has
+`aria-haspopup="dialog"` and `aria-expanded`. The popup is a non-modal `role="dialog"` named like the list, focusable
+itself (`tabindex="-1"`), so focus lands in it and Tab moves on through its links or past the group. Strings:
+`labelGroupMore` and `labelGroupAll` ([install.md](install.md#language-and-locale)).
+
+### Forced colours
+
+The popup's transparent outline becomes its edge; the button is a button.
+
+### Hooks
+
+`--ds-label-group-gap`: see [theming.md](theming.md). The button follows `--ds-tag-height`.
+
+**Motion:** the popup is a popup of `DS.overlay`: it fades in over `--ds-dur-fast` and grows from the button
+(`--ds-scale-popup`, its clip opening from the button's edge) on `--ds-ease-spatial` over `--ds-dur-medium`; the exit
+only fades, over `--ds-dur-instant`. Transitions keyed on `data-state`, so a close mid-way turns back from where it is.
+Tags hide and show at once: a line that slid would move the row.
+
+<!-- changelog -->
+- Label group (new, `labelgroup`): `.ds-label-group` with `__list`, `__more`, `__popup` and `__all`;
+  `data-ds-label-group` (and `-max`) keeps the tags that fit on one line and writes a "+N" button that opens every tag
+  in a popup through `DS.overlay`; `DS.labelgroup.create`, `visibleCount`; hook `--ds-label-group-gap`; strings
+  `labelGroupMore`, `labelGroupAll`.
 ## Badge
 
 A count or a dot on a button, chip, tab or drawer item:
@@ -2012,8 +5515,24 @@ A count or a dot on a button, chip, tab or drawer item:
 - A dot without a tone on a filled button takes the fill's ink (`--ds-on-primary`), where primary would vanish.
 - Hooks: `--ds-badge-size`, `--ds-badge-dot-size`, `--ds-badge-radius`, `--ds-badge-bg`, `--ds-badge-color`
   ([theming.md](theming.md#component-hooks)).
-- A badge on an icon button's corner is not available yet: every ripple host clips while a ripple is inside. Put the
-  count next to the label of a button instead.
+
+**On an icon button's corner.** `.ds-badge--corner`, a direct child of the icon button (or of an avatar, or any
+positioned element), hangs a quarter of its height over the top end corner; a dot sits inside the corner, on the edge
+of a round host. A press on it presses the host, also where it hangs over the edge. The host's name carries the count, so the
+badge is `aria-hidden`:
+
+```html
+<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Notifications, 3 new" data-tip="Notifications">
+  [icon bell 20]<span class="ds-badge ds-badge--corner ds-tone-error" aria-hidden="true">3</span>
+</button>
+<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Messages, new ones">
+  [icon mail 20]<span class="ds-badge ds-badge--corner ds-badge--dot" aria-hidden="true"></span>
+</button>
+```
+
+A ripple host clips while a ripple is inside, which would cut the badge: a host that holds a `.ds-badge--corner` keeps
+no clip, and its ripple clips itself instead (a box over the host with the host's radius, following the press morph;
+[ripple](#ripple)). Keep the count short (`data-ds-badge-max="9"` gives `9+`) so it does not cover the icon.
 
 **A count with a maximum.** `data-ds-badge` holds the count and `data-ds-badge-max` the largest figure (default 99):
 past it the badge shows `99+`, at zero or below nothing, so it takes no room. `DS.init()` finds them, and a change of
@@ -2041,6 +5560,434 @@ visible; a tone changes nothing there, so the word carries the meaning.
 **Motion.** Colours glide on `--ds-dur-fast`. A count that appears pops in (`DS.motion.enter(badge, 'pop')`), one that
 goes pops out (`DS.motion.leave(badge, 'pop', { then: 'hide' })`), which the controller's `set()` does by itself; the
 number itself changes at once, and nothing plays on load ([motion.md](motion.md#a-count-badge)).
+
+<!-- changelog -->
+- Badge: `.ds-badge--corner` puts a count or a dot on the corner of an icon button (or an avatar, any positioned host); the host's ripple clips itself instead of the host, so the badge stays whole (catalogue D, reopened from after-2.0).
+## Presence
+
+Whether a person can be reached now: online, away, busy or offline, as a dot and a word.
+
+```html
+<span class="ds-presence-label"><span class="ds-presence-dot ds-presence-dot--online"></span>Online</span>
+<span class="ds-presence-label"><span class="ds-presence-dot ds-presence-dot--away"></span>Away</span>
+<span class="ds-presence-label"><span class="ds-presence-dot ds-presence-dot--busy"></span>Busy</span>
+<span class="ds-presence-label"><span class="ds-presence-dot ds-presence-dot--offline"></span>Offline</span>
+```
+
+Each state has a shape of its own as well as a colour, so the four stay apart without colour, and a word always says
+which one it is:
+
+| State | Class | Shape | Colour (hook) |
+|---|---|---|---|
+| Online | `.ds-presence-dot--online` | a filled disc | `--ds-presence-online` (`--ds-success`) |
+| Away | `.ds-presence-dot--away` | a ring, its lower half filled | `--ds-presence-away` (`--ds-warning`) |
+| Busy | `.ds-presence-dot--busy` | a filled disc with a bar across | `--ds-presence-busy` (`--ds-error`) |
+| Offline | `.ds-presence-dot--offline` | an empty ring | `--ds-presence-offline` (`--ds-outline`) |
+
+`.ds-presence-label` sets the dot before its word on one line; the word takes the type and ink around it, so it sits
+in a table cell, a persona or a menu as it is. On an avatar the dot goes in the corner and the avatar's label carries
+the word ([Avatar](#avatar)). The words are the strings `presenceOnline`, `presenceAway`, `presenceBusy` and
+`presenceOffline` of `DS.core.t()`, for a page that writes them from its data.
+
+A presence is not the motion utility `.ds-presence`, which fades toggled elements in and out ([Motion
+classes](#motion-classes)).
+
+**Options** ([options.md](options.md)):
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the dot or any ancestor | 2px per step, 6 to 14px around the 10px md dot (`--ds-presence-dot-size`); the stroke is a fifth of it |
+| Shape | | | not read: the dot is round at every shape, so the four shapes stay apart |
+| Tone, density, touch | | | not read: each state has its colour, and a dot is no target |
+
+**Accessibility.** The dot is decoration and needs no `aria-hidden` of its own (it has no content); the word carries the
+state. A dot without a visible word takes it in `.ds-sr` inside it, or in the label of what it sits on. A presence that
+changes while someone reads the page is not announced: it changes often, and a screen reader reads the word when it gets
+there. Every fill holds 3:1 on the surfaces.
+
+**Forced colours.** The shapes in `CanvasText` on `Canvas`: the filled disc, the half-filled ring, the disc with its bar
+and the empty ring stay apart without their colours.
+
+**Motion.** A state change glides the dot's colours on `--ds-dur-medium` (`--ds-ease-in-out`), as a status chip does;
+the shape changes at once.
+
+Hooks: `--ds-presence-dot-size`, `--ds-presence-ground` (the hollow of the away, busy and offline dots, `--ds-surface`:
+set it where the dot lies on another ground), `--ds-presence-online`, `--ds-presence-away`, `--ds-presence-busy`,
+`--ds-presence-offline` ([theming.md](theming.md#component-hooks)).
+
+<!-- changelog -->
+- Presence (3.0, new): `.ds-presence-dot` with `--online`, `--away`, `--busy` and `--offline`, each a shape of its own,
+  and `.ds-presence-label` (the dot with its word); the strings `presenceOnline`, `presenceAway`, `presenceBusy`,
+  `presenceOffline`.
+## Avatar
+
+A person as a disc, or an entity (a team, a device, a service) as a rounded square: a picture, initials or an icon.
+
+```html
+<span class="ds-avatar" role="img" aria-label="Ada Lovelace">AL</span>                     <!-- initials, the tint -->
+<span class="ds-avatar" data-ds-avatar="Ada Lovelace"></span>                               <!-- avatar.js: initials, hue, label -->
+<span class="ds-avatar ds-sm" aria-hidden="true">AL</span> Ada Lovelace                      <!-- next to the name -->
+<span class="ds-avatar" role="img" aria-label="Ada Lovelace"><img src="/people/ada.jpg" alt=""></span>
+<img class="ds-avatar" src="/people/ada.jpg" alt="">                                        <!-- a picture next to the name -->
+<span class="ds-avatar" role="img" aria-label="Unknown user">[icon user 20]</span>
+<span class="ds-avatar ds-avatar--square" role="img" aria-label="Build service">[icon server 20]</span>
+```
+
+A disc of `--ds-avatar-size` (32px at size md, 8px per size step: `.ds-xs` 16, `.ds-sm` 24, `.ds-lg` 40, `.ds-xl` 48px)
+on the tint (`--ds-avatar-bg` / `--ds-avatar-color`: `--ds-accent` / `--ds-on-accent`), the initials in the size's
+type role, a picture covering it, an icon at 60% of its side. The shape multiplies its radius: a disc from the default
+up, square at `.ds-shape-square`. An avatar next to the visible name is `aria-hidden` (or an `<img alt="">`); one alone
+names the person (`role="img"` and `aria-label`, or a button's or link's own name).
+
+### Colour from the name
+
+`.ds-avatar--hue-1`, `.ds-avatar--hue-2`, `.ds-avatar--hue-3`, `.ds-avatar--hue-4`, `.ds-avatar--hue-5` and `.ds-avatar--hue-6`
+give an avatar a colour of its own, so a list of people reads apart: a chart
+role (`--ds-chart-1` to `--ds-chart-4`, the neutral chart mark and a mix of the second and fourth) mixed into the surface
+(24%) behind the same role mixed into the text (60%). Every pair holds 4.5:1 in the default palette, the shipped themes
+and every preset, light and dark (tested). The hue follows the name, so a person has the same colour on every page:
+
+```js
+DS.avatar.hue('Ada Lovelace');       // 1 ... 6
+DS.avatar.initials('Ada Lovelace');  // 'AL'
+```
+
+`hue(name)` is FNV-1a (32 bit) over the UTF-8 bytes of the name (trimmed, NFC, lower case), modulo 6, plus 1, so a server
+that renders the class itself agrees with the script. `initials(name, max)` takes the first letter of the first and the
+last word, upper case (`max` 1: the first only, for `.ds-xs`); words in brackets are left out and an e-mail address
+counts by its local part (`ada.lovelace@...` gives `AL`).
+
+### Status, activity ring, corner badge
+
+```html
+<span class="ds-avatar" role="img" aria-label="Ada Lovelace, online">AL<span class="ds-presence-dot ds-presence-dot--online"></span></span>
+<span class="ds-avatar ds-avatar--ring" role="img" aria-label="Ada Lovelace, new activity">AL</span>
+<span class="ds-avatar ds-avatar--ring ds-tone-success" role="img" aria-label="Ada Lovelace, speaking">AL</span>
+<span class="ds-avatar" role="img" aria-label="Ada Lovelace, 3 unread">AL<span class="ds-badge">3</span></span>
+<span class="ds-avatar" role="img" aria-label="Ada Lovelace, new messages">AL<span class="ds-badge ds-badge--dot ds-tone-error"></span></span>
+```
+
+- **Status**: a `.ds-presence-dot` ([Presence](#presence)) at the bottom end corner, on the curve, on an edge ring of
+  `--ds-avatar-edge-color` (`--ds-surface`: set it where the avatar lies on another ground). Its four states differ in
+  shape, and the avatar's label carries the word ("Ada Lovelace, online"), never the colour alone.
+- **Activity ring** (`.ds-avatar--ring`): a ring of `--ds-avatar-ring-color` (`--ds-primary`; a `.ds-tone-*` class on
+  the avatar itself: that tone) beyond the edge ring. It says "something new" or "speaking": the label says which.
+- **Corner badge**: a `.ds-badge` ([Badge](#badge)) at the top end corner on the edge ring: a count centred on the
+  corner of the box (so it covers less of the initials), a dot on the curve; its word in the label.
+
+The avatar's overflow stays visible, so the corner parts are never cut; a picture inside clips itself to the radius.
+
+### Interactive avatars
+
+`<button class="ds-avatar">` or `<a class="ds-avatar" href>` opens something (a profile, the account menu): a state
+layer over the picture (hover inside `@media (hover: hover)`, the press in `--ds-dur-micro`, the focus layer with the
+ring), the focus ring that snaps in (`outline-offset`, `--ds-dur-fast`), and a hit area of `--ds-target-min` around the
+disc (`.ds-touch`: 48px), while the disc keeps its size. `:disabled` and `aria-disabled="true"` show the disabled model
+(`--ds-disabled-fill` and `--ds-disabled-ink`, a picture faded to `--ds-state-disabled`, on `--ds-dur-fast`) and no layer.
+
+No ripple and no morph: a ripple host clips while a ripple is inside, which would cut the status dot and the badge on the
+corner, so an interactive avatar presses through its state layer (the exception in `meta.json`), until each ripple clips
+itself. A disc is a face, not a pill: it never morphs.
+
+### Group
+
+```html
+<div class="ds-avatar-group" role="group" aria-label="Assigned to" data-ds-avatar-group data-ds-avatar-group-max="4">
+  <span class="ds-avatar" data-ds-avatar="Ada Lovelace"></span>
+  <span class="ds-avatar" data-ds-avatar="Grace Hopper"></span>
+  <a class="ds-avatar" href="/people/joan" data-ds-avatar="Joan Clarke"></a>
+  <span class="ds-avatar" data-ds-avatar="Alan Turing" data-ds-avatar-status="away"></span>
+  <span class="ds-avatar" data-ds-avatar="Katherine Johnson"></span>
+  <span class="ds-avatar" data-ds-avatar="Margaret Hamilton"></span>
+  <button class="ds-avatar ds-avatar-group__more" type="button" aria-haspopup="menu" aria-expanded="false"
+          aria-controls="people-more" data-ds-open="#people-more"></button>
+  <div class="ds-menu" role="menu" id="people-more" hidden></div>
+</div>
+```
+
+`.ds-avatar-group` stacks its avatars, each a quarter over the one before, every one on its edge ring
+(`--ds-avatar-edge-color`); `.ds-avatar-group--spread` sets them side by side. A size class on the group sizes them all.
+`.ds-avatar-group__more` is the neutral "+N" (`--ds-surface-high`, `--ds-text`).
+
+`data-ds-avatar-group` with `data-ds-avatar-group-max` (default 4): past the maximum the group shows `max - 1` avatars and
+"+N", so it never grows past `max` discs. It hides the rest (`hidden`, owned), writes the text of the "+N" button
+(`avatarOverflow`, "+3") and its name (`avatarMore`, "3 more"), and fills the menu the button opens (`aria-controls`, else
+`data-ds-open`) with one `.ds-menu__item` per hidden avatar: its face at `.ds-sm`, its name, its status word. A linked
+avatar becomes a link; any other a button that sends `ds:select` (`detail: { avatar, name }`) on the group and presses the
+avatar it stands for when that one is a button. Menu items are actions: when the avatars are neither links nor buttons,
+the page handles `ds:select` (open the person's profile, say), so an item never does nothing. It follows avatars added,
+removed or renamed. The menu opens and closes through `DS.overlay` (`data-ds-open`): the [Menu](#menu)'s keys, Escape
+and focus return. When the group shrinks while focus is on "+N" or in its menu, focus stays in the group: a menu with
+nothing left to list closes (`DS.overlay.close`) and focus goes to the last interactive avatar shown, else to the group
+itself (`tabindex="-1"`, owned); a focused item that goes passes focus to the item now at its place. Without the script,
+render the "+N" yourself.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the avatar, the group or any ancestor | 8px per step, 16 to 48px; the type role of the size; a status dot 2px per step (6 to 14px) |
+| Shape | `.ds-shape-*` | any container or the theme | multiplies the radius: a disc from the default up, square at 0; `--square` at most a quarter of the side; the corner parts follow the curve |
+| Touch | `.ds-touch` | any container | an interactive avatar's hit area grows to `--ds-target-min`; the disc keeps its size |
+| Tone | `.ds-tone-*` | on a `.ds-avatar--ring` itself | the ring's colour; the label says what it means |
+| Density | | | not read: an avatar is the size of a face; a dense row takes a smaller size class |
+
+`.ds-avatar--sm` and `.ds-avatar--lg` are **deprecated** (3.0, removed when 3.0 ships): `.ds-sm` and `.ds-lg`, also on any
+ancestor. Until then they keep the fixed 2.x discs (24 and 40px). The account avatar of the app frame
+(`.ds-account__avatar`) is the same disc.
+
+### Behaviour: `data-ds-avatar`
+
+`data-ds-avatar="<name>"` (with `DS.init()`): the initials go in where the markup has no content of its own (a picture,
+an icon, a text; `data-ds-avatar-initials="1"`: one letter), the hue class where it has none, and the name as the label
+where the avatar is no `aria-hidden` decoration: `role="img"` and `aria-label` (a button or link keeps its role; an
+`<img>` gets `alt`), the page's own `aria-label` kept as the name. `data-ds-avatar-status` (`online`, `away`, `busy`,
+`offline`) adds the status dot and its word: "Ada Lovelace, Online" (`avatarStatus`, `presenceOnline` ...). What it writes
+is owned, so a re-render with `DS.dom.morphHtml` keeps it; a page that renders the initials itself writes
+`DS.avatar.initials(name)` into its template.
+
+```js
+const ada = DS.avatar.create(el, { name: 'Ada Lovelace', status: 'online' });   // or DS.core.get(el, 'avatar')
+ada.set({ status: 'away' });           // a missing key stays; status: null takes the dot away
+ada.get();                             // { name: 'Ada Lovelace', status: 'away' }
+ada.on('change', ({ name, status }) => { /* also a bubbling ds:change on the avatar */ });
+
+const team = DS.avatar.group(groupEl, { max: 3 });                                // or DS.core.get(groupEl, 'avatar-group')
+team.get();                            // { max: 3, shown: 2, hidden: 4 }
+team.set(5);
+```
+
+| Export | What |
+|---|---|
+| `DS.avatar.initials(name, max)` | the initials of a name (default two letters) |
+| `DS.avatar.hue(name)` | the hue class of a name, 1 to 6 |
+| `DS.avatar.create(el, { name, status })` | the controller of one avatar: `get()`, `set(name or { name, status })`, `on('change')`, `destroy()` |
+| `DS.avatar.group(el, { max })` | the controller of a group: `get()` (`{ max, shown, hidden }`), `set(max)`, `on('change')`, `destroy()` |
+
+### Accessibility
+
+- One name per person: an avatar next to the visible name is `aria-hidden`; one alone has a label. A status, a ring or a
+  badge add their word to that label ("Ada Lovelace, online, 3 unread"): colour never says it alone.
+- A group is `role="group"` with a label ("Assigned to"); hidden avatars are out of the reading order, and the "+N" button
+  names how many more there are ("3 more") and opens a menu (`aria-haspopup="menu"`, `aria-expanded`) that lists them.
+- Keyboard: interactive avatars and the "+N" button are tab stops; `Enter` or `Space` presses them; in the menu
+  `ArrowUp`, `ArrowDown`, `Home`, `End` and type-ahead move, `Escape` closes back to the button.
+
+### Forced colours
+
+The disc keeps its edge (a transparent outline that turns visible); the state layer goes, the focus ring stays; a blocked
+avatar is `GrayText`; the activity ring becomes a `Highlight` outline beyond the edge. A status dot and a badge keep their own forced looks (the
+dot's shapes in `CanvasText`).
+
+### Motion
+
+None of its own: the state layer fades on `--ds-dur-fast` (the press in `--ds-dur-micro`), the ring snaps in; a badge on
+the corner pops in and out through `DS.badge`; a status dot glides its colours ([Presence](#presence)).
+
+Hooks: `--ds-avatar-size`, `--ds-avatar-bg`, `--ds-avatar-color`, `--ds-avatar-font`, `--ds-avatar-square-radius`,
+`--ds-avatar-edge-color`, `--ds-avatar-ring-color` ([theming.md](theming.md#component-hooks)).
+
+<!-- changelog -->
+- Avatar (3.0): `.ds-avatar` moves out of the app frame into a component of its own, with `.ds-avatar--hue-1` ... `-6`
+  (a colour from the name, 4.5:1 in every theme), `.ds-avatar--square` (entities), `.ds-avatar--ring` (activity), a
+  status dot (`.ds-presence-dot`) and a corner badge (`.ds-badge`) that are never cut, interactive avatars (state layer,
+  focus ring, touch hit area), and `.ds-avatar-group` with `--spread` and `__more`. `DS.avatar` (`initials`, `hue`,
+  `create`, `group`), `data-ds-avatar` and `data-ds-avatar-group`. New strings: `avatarStatus`, `avatarMore`,
+  `avatarOverflow`. An avatar's overflow is visible now (2.x clipped it); a picture inside clips itself.
+## Persona
+
+A person (or an entity) in one block: the [avatar](#avatar), the name, a role and a status. For a list row, a table
+cell, a card head or the owner of a ticket.
+
+```html
+<div class="ds-persona">
+  <span class="ds-avatar ds-avatar--hue-3" aria-hidden="true">AL<span class="ds-presence-dot ds-presence-dot--online"></span></span>
+  <span class="ds-persona__text">
+    <span class="ds-persona__name">Ada Lovelace</span>
+    <span class="ds-persona__role">Field engineer</span>
+    <span class="ds-persona__status">
+      <span class="ds-presence-label"><span class="ds-presence-dot ds-presence-dot--online"></span>Online</span>
+    </span>
+  </span>
+</div>
+
+<a class="ds-persona ds-pressable" href="/people/ada">                      <!-- opens the profile -->
+  <span class="ds-avatar" data-ds-avatar="Ada Lovelace" aria-hidden="true"></span>
+  <span class="ds-persona__text"><span class="ds-persona__name">Ada Lovelace</span><span class="ds-persona__role">ada@example.com</span></span>
+</a>
+
+<span class="ds-persona ds-persona--inline ds-sm">                          <!-- one line, in running text or a cell -->
+  <span class="ds-avatar" aria-hidden="true">AL</span>
+  <span class="ds-persona__text"><span class="ds-persona__name">Ada Lovelace</span><span class="ds-persona__role">Field engineer</span></span>
+</span>
+```
+
+| Part | What |
+|---|---|
+| `.ds-persona__text` | the column of lines; it may shrink, and each line ends in an ellipsis rather than wrap |
+| `.ds-persona__name` | the name, in the size's type role (`--ds-persona-name-font`), `--ds-text` |
+| `.ds-persona__role` | a role, a team or an address, in `--ds-font-meta` (`--ds-persona-role-font`), `--ds-text-2` |
+| `.ds-persona__status` | a status line in the role's type and ink, usually a `.ds-presence-label` ([Presence](#presence)) |
+
+| Variant | Class | Look |
+|---|---|---|
+| Default | | the avatar at the start, the lines beside it, centred on it |
+| Stacked | `.ds-persona--stacked` | the avatar above, the lines centred under it: the head of a profile card or a people grid |
+| Inline | `.ds-persona--inline` | one line: the name, then the role |
+| Interactive | `<a class="ds-persona ds-pressable">` or a `<button>` | opens something (a profile): the state layer, focus ring and ripple of `.ds-pressable` ([Utilities](#a-pressable-element-of-your-own)), a little room around its content, at least `--ds-target-min` high; `disabled` or `aria-disabled="true"` turn the text `--ds-disabled-ink` |
+
+**Options** ([options.md](options.md)):
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the persona or any ancestor | the avatar 16 to 48px, the name in the size's type role (`--ds-size-font`), the gap 2px per step (8 to 16px around `--ds-persona-gap`) |
+| Shape | `.ds-shape-*` | any container | the avatar's and the pressable's radius (theirs) |
+| Touch | `.ds-touch` | any container | an interactive persona is at least `--ds-target-min` high |
+| Density, tone | | | not read: a persona sits in a row that has its own density, and its status says itself in words |
+
+**Accessibility.** The avatar is `aria-hidden`: the name beside it names the person once. A status is a word, in
+`.ds-persona__status` or in a visible line; the avatar's dot alone never says it. An interactive persona is a link or a
+button whose name is its text ("Ada Lovelace Field engineer"); `Tab` reaches it, `Enter` (and `Space` on a button) opens
+it.
+
+**Forced colours.** The text takes the system colours by itself (`GrayText` when blocked); the avatar and the presence dot
+keep their own forced looks.
+
+**Motion.** None of its own: the pressable's state layer and focus snap.
+
+Hooks: `--ds-persona-gap`, `--ds-persona-name-font`, `--ds-persona-role-font` ([theming.md](theming.md#component-hooks)).
+
+<!-- changelog -->
+- Persona (3.0, new): `.ds-persona` with `__text`, `__name`, `__role` and `__status`, the variants `--stacked` and
+  `--inline`, and an interactive persona with `.ds-pressable`; hooks `--ds-persona-gap`, `--ds-persona-name-font`,
+  `--ds-persona-role-font`.
+## Media
+
+Files, photos, recordings or devices as thumbnails in a grid: each card opens, can be selected and carries its own
+actions.
+
+```html
+<ul class="ds-media-grid" aria-label="Photos" data-ds-media>
+  <li class="ds-media" data-ds-key="p1">
+    <span class="ds-media__thumb"><img src="/photos/pump-room.jpg" alt=""><span class="ds-media__tag">RAW</span></span>
+    <a class="ds-media__open" href="/photos/p1"><span class="ds-media__title">pump-room.jpg</span></a>
+    <span class="ds-media__meta">2.4 MB · JPEG</span>
+    <span class="ds-media__select"><input class="ds-checkbox ds-media__check" type="checkbox" aria-label="Select pump-room.jpg"></span>
+    <span class="ds-media__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="More for pump-room.jpg"
+              aria-haspopup="menu" aria-expanded="false" data-ds-open="#p1-menu">[icon moreVertical 20]</button>
+      <div class="ds-menu" role="menu" id="p1-menu" hidden> ... </div>
+    </span>
+  </li>
+  <li class="ds-media ds-media--wide" data-ds-key="v1">
+    <span class="ds-media__thumb">[icon video 32]<span class="ds-media__tag">0:42</span></span>
+    ...
+  </li>
+</ul>
+```
+
+| Part | What |
+|---|---|
+| `.ds-media__thumb` | the picture at the card's ratio (`--ds-media-ratio`, 4 / 3): an `<img>` or `<video>` covers it, else an icon (a file type, a device) on `--ds-surface-high` |
+| `.ds-media__tag` | a short fact over the picture's bottom end corner (a duration, a page count, "RAW"), `--ds-inverse` / `--ds-on-inverse` in the caption type |
+| `.ds-media__select` | the selection checkbox (`.ds-checkbox.ds-media__check`, [Form](#form)) on a disc over the picture's top start corner: it shows with the card's hover or focus, always once anything in the grid is selected, under a coarse pointer and in `.ds-touch` |
+| `.ds-media__open` | the main action, a link or a button around the title; its box stretches over the whole card, so the picture opens too, and carries the state layer; the focus ring goes round the card |
+| `.ds-media__title`, `.ds-media__meta` | the name and a second line (`--ds-font-meta`, `--ds-text-2`), each one line with an ellipsis |
+| `.ds-media__actions` | buttons at the end of the text, above the stretched action: a menu button ([Menu](#menu)) |
+
+| Variant | Class | Look |
+|---|---|---|
+| Default | | the picture at 4 / 3 above the text |
+| Square | `.ds-media--square` | 1 / 1 |
+| Wide | `.ds-media--wide` | 16 / 9 (video, screenshots) |
+| Bare | `.ds-media--bare` | the picture alone: the title and meta stay in the tree (read, not shown), the stretched action still covers the card, the actions sit over the picture on a disc |
+
+The parts come in this order, which is the tab order inside a card: the picture, the open control, the meta, the
+checkbox, the actions (the checkbox sits over the picture wherever it is in the markup).
+
+**Selected.** The checkbox is the truth (`:checked`): the card takes `--ds-media-selected-bg` (`--ds-accent`) with `--ds-on-accent` text and a static
+inset ring of `--ds-focus-width` in `--ds-selected-ring` (`--ds-primary`), so the focus ring stays free; the checked box is
+the mark that never relies on colour. Colours change on `--ds-dur-fast`, the ring at once. A card that cannot be
+selected leaves the checkbox out or disables it.
+
+**Grid.** `.ds-media-grid` fills columns of at least `--ds-media-min` (128px at md: two columns on a phone) and stretches them to the row; a list
+(`<ul>` of `<li class="ds-media">`) or any container of cards. An empty gallery is an [empty state](#empty-state), a
+loading one [skeletons](#loading).
+
+**Options** ([options.md](options.md)):
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the grid or any ancestor | the column minimum 32px per step (64 to 192px), the title in the size's type role |
+| Density | `.ds-density-*` | any container | the grid gap 4px per step (`--ds-media-gap`), the text padding 2px per step |
+| Shape | `.ds-shape-*` | any container | the card's and the picture's radius times `--ds-shape` |
+| Touch | `.ds-touch` | any container | the selection checkboxes always show; their halo is the form's, at least `--ds-target-min` |
+| Tone | | | not read: a card shows no status of its own; a status chip or badge inside says its word |
+
+### Behaviour: `data-ds-media`
+
+`data-ds-media` on the grid (with `DS.init()`), or `DS.media.create(grid)`, makes the gallery one tab stop with the
+selection of a file manager (the grid pattern of the WAI-ARIA practices, for cards):
+
+| Key | Does |
+|---|---|
+| `Tab` | enters at the current card's open control, then its checkbox and actions, then leaves the grid; the other cards' checkboxes and actions are out of the tab order (an owned `tabindex="-1"`) until their card is current |
+| `←` `→` | the card before or after |
+| `↑` `↓` | the nearest card of the row above or below |
+| `Home`, `End` | the first and the last card |
+| `Enter` | opens (the link or button itself) |
+| `Space` | on a card's open control: selects it or lets go |
+| `Shift` + `Space`, `Shift` + click on a checkbox | the range from the last card chosen |
+| `Ctrl` + `A` (`Cmd` + `A`) | every card |
+| `Escape` | lets go of every card; taken, so a dialog around the grid stays open (inside an open menu of a card, Escape is the menu's) |
+
+The controller sets the checkboxes without firing their own `change` and sends one `ds:change` (`detail: { selected }`,
+the keys in grid order) per action on the grid; a card's key is its `data-ds-key`, else its checkbox's `value`, else its
+index. A change from the keyboard, a range, all and none are announced ("4 selected", `mediaSelected`; "Selection
+cleared", `mediaSelectionCleared`); a plain checkbox speaks for itself.
+
+```js
+const photos = DS.media.create(grid);       // or DS.core.get(grid, 'media')
+photos.set(['p1', 'p4']);
+photos.get();                               // ['p1', 'p4']
+photos.selectAll();
+photos.clear();
+photos.on('change', ({ selected }) => toolbar.hidden = !selected.length);
+DS.media.between(items, from, to);          // the items from one to the other, both included
+```
+
+| Export | What |
+|---|---|
+| `DS.media.create(el)` | the controller of a grid: `get()`, `set(keys)`, `selectAll()`, `clear()`, `on('change')`, `destroy()` |
+| `DS.media.between(items, from, to)` | the items from `from` to `to` in list order, both included (the range of Shift) |
+
+A toolbar that acts on the selection ("3 selected", Download, Delete) is the page's: the table's `.ds-selection-bar`
+([Table](#bulk-selection-bar)) fits above the grid.
+
+### Accessibility
+
+- Name the grid (`aria-label`), each checkbox ("Select pump-room.jpg") and each action button ("More for pump-room.jpg"):
+  the title alone repeats on every card. The picture is decoration (`alt=""`) when the title names it.
+- The open control is a real link or button: `Enter` opens it, a screen reader lists it.
+- Selection is the checked box, never the tint alone.
+
+### Forced colours
+
+Every card keeps its border; a selected card is `Highlight` with `HighlightText` and a `Highlight` ring, its picture,
+checkbox and actions keep their forced looks; the focus ring is `CanvasText`; the tag keeps an edge.
+
+### Motion
+
+The state layer fades on `--ds-dur-fast` (the press in `--ds-dur-micro`), the focus ring snaps (`outline-offset`), the
+selection checkbox fades in on `--ds-dur-fast` and out on `--ds-dur-instant`, the selected colours change on
+`--ds-dur-fast`. Nothing moves or scales.
+
+Hooks: `--ds-media-min`, `--ds-media-gap`, `--ds-media-radius`, `--ds-media-border`, `--ds-media-bg`,
+`--ds-media-ratio`, `--ds-media-selected-bg`; reads `--ds-selected-ring` ([theming.md](theming.md#component-hooks)).
+
+<!-- changelog -->
+- Media (3.0, new): `.ds-media` cards (`__thumb`, `__tag`, `__select`, `__check`, `__open`, `__title`, `__meta`,
+  `__actions`; `--square`, `--wide`, `--bare`) in a `.ds-media-grid`; `DS.media` (`create`, `between`) and
+  `data-ds-media`: one tab stop, arrows in two dimensions, Space, Shift ranges, Ctrl+A and Escape. New strings:
+  `mediaSelected`, `mediaSelectionCleared`.
 ## Alert
 
 Tells the user something about a page or a section, in place, with an icon and a word; never colour alone.
@@ -2150,6 +6097,106 @@ does not morph. Its chevron turns 180deg with the list on the spring, like `.ds-
 the list opens and closes with the collapsible timing.
 
 **Motion:** the "Alert, tile, card" row of [Feedback](motion.md#feedback) and [Data motion](motion.md#data-motion) in motion.md.
+## Banner
+
+A system broadcast for the whole app (an outage, maintenance, offline): several messages in priority order in the
+[app frame's](#app-frame) `.ds-banner`, each dismissible, the dismissal remembered.
+
+```html
+<div class="ds-panel">
+  <div class="ds-banner" data-ds-banner>
+    <div class="ds-alert ds-tone-info" role="status" data-ds-banner-id="maintenance-1109">[icon info 20]
+      <span class="ds-alert__text">Maintenance on Sunday, 02:00 to 04:00. Devices stay online.</span>
+      <a class="ds-btn ds-btn--text ds-sm" href="/status">Details</a></div>
+    <div class="ds-alert ds-tone-error" role="alert" data-ds-banner-id="outage-1104">[icon alertCircle 20]
+      <span class="ds-alert__text">Sign-in is down for some people. We are on it.</span></div>
+    <div class="ds-alert ds-tone-warning" role="status">[icon wifiOff 20]
+      <span class="ds-alert__text">You are offline. Changes are saved when the connection is back.</span></div>
+  </div>
+  <main class="ds-view" id="main" tabindex="-1"> ... </main>
+</div>
+```
+
+What `DS.banner` makes of it (the error first, the others behind the more button):
+
+```html
+<div class="ds-banner" data-ds-banner>
+  <div class="ds-alert ds-tone-error" role="alert" data-ds-banner-id="outage-1104">[icon alertCircle 20]
+    <span class="ds-alert__text">Sign-in is down for some people. We are on it.</span>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm ds-banner__dismiss" type="button" aria-label="Dismiss" data-tip="Dismiss">[icon close 20]</button></div>
+  <div class="ds-alert ds-tone-warning" role="status" hidden> ... </div>
+  <div class="ds-alert ds-tone-info" role="status" data-ds-banner-id="maintenance-1109" hidden> ... (dismiss button) </div>
+  <button class="ds-btn ds-btn--text ds-sm ds-banner__more" type="button" aria-expanded="false" aria-controls="...">Show 2 more</button>
+</div>
+```
+
+### Options
+
+| Option | Attribute or class | Where it applies | Effect |
+|---|---|---|---|
+| Priority | `data-ds-banner-priority="<number>"` on an alert | one message | higher first; without it, by tone: error, warning, info, primary, the plain alert (neutral), success; equal ones keep the markup's order |
+| How many show | `data-ds-banner-max="1"` (default 1) | the banner | the others wait behind `.ds-banner__more` ("Show 2 more"), which shows them all and hides them again ("Show less"); a change applies at once and keeps the messages from data |
+| Dismissible | `data-ds-banner-id="<key>"` on an alert; `data-ds-banner-dismiss="off"` | one message | an alert with an id gets a `.ds-banner__dismiss` button (unless it has one); `off` keeps it without one. An alert without an id cannot be dismissed: there is nothing to remember |
+| Remembered | `data-ds-banner-remember="local"` (default), `"session"`, `"off"` | the banner | where the dismissal is kept: `DS.store` in `localStorage` (every tab, after a reload), `sessionStorage` (this tab), or memory (until the page reloads); a change switches the storage and keeps the messages from data |
+| Tone, size, density, shape, touch | those of the [alert](#alert) | each message | the alert's: the icon and the word carry the status; the dismiss button is an icon button at `.ds-sm` (size steps it, density does not; `.ds-touch` makes it a full target) |
+
+Messages under each other: only the first one shown keeps the panel's top corners; the next ones are square, a hairline
+(`--ds-line`) apart. A waiting or dismissed message is `hidden` and takes no room, also on a page without `.ds-base`. A
+banner with nothing to show is `hidden` itself.
+
+### Behaviour
+
+`DS.init()` finds `[data-ds-banner]`. From the page, or to broadcast from data:
+
+```js
+const banner = DS.banner.create(el, {
+  banners: [{ id: 'outage-1104', tone: 'error', title: 'Sign-in is down', text: 'We are on it.', action: { label: 'Status', href: '/status' } }],
+});
+banner.add({ id: 'offline', tone: 'warning', text: 'You are offline.', dismissible: false });
+banner.remove('offline');            // the page takes it back (the connection returned)
+banner.dismiss('outage-1104');       // as the dismiss button does
+banner.restore('outage-1104');       // forgets the dismissal: it shows again
+banner.expand();                     // every message; expand(false) folds them again
+banner.get();                        // the ids shown, in order
+banner.on('dismiss', ({ id }) => {}); // also a bubbling ds:dismiss on the banner
+DS.banner.order(list);               // the order of a list of { priority, tone }
+DS.banner.priorityOf({ tone: 'error' });
+```
+
+| Export | What |
+|---|---|
+| `create(el, { banners })` | the controller of a `.ds-banner`, the same one `data-ds-banner` makes; once per element (a second call adds `banners`). A message from data: `{ id, tone, title, text, icon, action: { label, href \| onClick(event, banner) }, priority, dismissible, role }`, built in the alert's markup (`role` only when given: it is announced instead; `href` only when [`DS.core.safeHref()`](core.md) accepts it, `http:`, `https:`, `mailto:`, `tel:` or relative, else the action is a button). The controller: `get()`, `set(banners)` (replaces the messages built from data; those of the markup stay), `add(banners)`, `remove(id)`, `dismiss(id)`, `restore(id)`, `expand(on)`, `on(type, fn)`, `update(names)` (core calls it when `data-ds-banner-max` or `-remember` changes), `destroy()` |
+| `order(banners)` | the order messages show in: `priorityOf()`, the highest first, equal ones in their given order |
+| `priorityOf(banner)` | a message's priority: the number of `priority`, else its tone's rank |
+
+- **Remembered.** A dismissal is kept under the namespace `banner` of [`DS.store`](core.md#dsstore-remembered-preferences),
+  key the message's id, so it stays away after a reload, and other tabs hide it at once (the store's `storage` event).
+  A new broadcast takes a new id (`maintenance-1109`, not `maintenance`); `restore(id)` brings one back.
+- **Focus.** Dismissing the message that holds focus moves focus to the next message's dismiss button, else to the
+  more button, else to the view (`.ds-view`, given `tabindex="-1"` when it has none), never to `<body>`.
+- **Events.** `ds:dismiss` (`{ id }`) and `ds:change` (`{ shown, hidden }`: the ids) on the banner.
+- **Screen readers.** An alert of the markup keeps the role the page gave it: `role="alert"` only for what is urgent,
+  `role="status"` for the rest. A message from data has no live role of its own: when `add()` or `set()` shows it, its
+  title and text are announced through the snackbar region's announcers (`DS.toast.announce()`; an error
+  assertively), so it is heard once, also above an open dialog. A message that waits behind the more button is not
+  announced. The more button says how many wait, and `aria-expanded` whether they show.
+
+### Keyboard and forced colours
+
+- `Tab` reaches each shown message's action and dismiss button, then the more button; `Enter` or `Space` presses them.
+- Forced colours: the alert's own; the hairline between messages is a border, so it becomes `CanvasText`.
+
+### Motion
+
+Shown, waiting and dismissed messages change inside `DS.motion.flip()` on the banner's parent (the `.ds-panel`): the
+view glides to its new place, and a message that appears fades in (`DS.motion.enter(alert, 'fade')`). Nothing
+animates a height. On load nothing plays.
+
+<!-- changelog -->
+- Banner (3.0): `DS.banner` (`create`, `order`, `priorityOf`) and `data-ds-banner` on the app frame's `.ds-banner`:
+  several messages in priority order (`data-ds-banner-priority`, else by tone), `data-ds-banner-max` with the
+  `.ds-banner__more` button, dismissal (`data-ds-banner-id`, `.ds-banner__dismiss`) remembered through `DS.store`
+  (`data-ds-banner-remember`); the string `bannerMore`.
 ## Table
 
 Records in columns, to compare, sort, select in bulk and act on per row. It stays a plain `<table>`: every option below
@@ -2511,6 +6558,331 @@ and a selected row its checkbox), and the selection bar keeps an outline.
 | `--ds-selection-bar-height` | 48px | the least height of `.ds-selection-bar`, which size and density step from |
 
 **Motion:** the "Table" row of [Feedback](motion.md#feedback) and [Data motion](motion.md#data-motion) in motion.md.
+## Data grid
+
+Everything a console table needs, on top of the [Table](#table): sort by several columns, choose, resize and move
+columns, select across pages, expand rows, tree rows and row groups with subtotals, edit in place, the keys of a
+spreadsheet, a context menu, ten thousand rows, export. `js/datagrid.js` (`DS.datagrid`) is the behaviour, and the table keeps
+its look: heights, hairlines, options, sticky rows, pinned columns, selection colours, expandable and stacked rows are
+the table's. Every option is opt-in: a table with `data-ds-datagrid` and no options renders as it was, and each option adds
+one thing. A table without `data-ds-datagrid` is never touched (the table stays plain).
+
+Why its own folder: the table is markup a page writes; the grid renders its rows from data. Keeping them apart keeps the
+plain table plain, and a page that needs only the look loads no grid code.
+
+```html
+<div class="ds-table-wrap">
+  <table class="ds-table ds-datagrid" id="devices" aria-label="Devices" data-ds-datagrid
+         data-ds-config='{"select":"multiple","focus":"cell","resize":true,"reorder":true,"multiSort":true,"persist":"devices"}'>
+    <thead><tr>
+      <th scope="col" data-ds-datagrid-col="name" data-ds-datagrid-sort>Device</th>
+      <th scope="col" data-ds-datagrid-col="model" data-ds-datagrid-sort>Model</th>
+      <th scope="col" class="ds-num" data-ds-datagrid-col="load" data-ds-datagrid-sort data-ds-datagrid-summary="avg" data-ds-datagrid-edit="number">Load</th>
+    </tr></thead>
+    <tbody>
+      <tr data-ds-key="d1"><td>LAPTOP-0100</td><td>Laptop 14</td><td class="ds-num" data-value="37">37</td></tr>
+      <tr data-ds-key="d2"><td>LAPTOP-0107</td><td>Laptop 13</td><td class="ds-num" data-value="74">74</td></tr>
+    </tbody>
+  </table>
+</div>
+```
+
+The declarative path reads the table once: a column per header cell (`data-ds-datagrid-col` its key, else `c0`, `c1` ...;
+`data-ds-datagrid-type` `number` or `date`, else `number` for a `.ds-num` cell; `data-ds-datagrid-sort` or a `.ds-table__sort`
+button makes it sortable; `aria-sort` the first sort; `data-ds-datagrid-summary` and `data-ds-datagrid-edit` below; a header
+cell without a visible label, such as an actions column, is locked in place and in view). A row per body row, keyed by
+its `data-ds-key`, its values from each cell's `data-value`, else its text, and its cells' markup as they are. A
+`.ds-table__detail` row after a row is its detail; `data-ds-datagrid-parent="<key>"` puts a row under another (tree rows).
+The markup holds the data columns only: the grid adds its selection, details and actions columns. Options go into
+`data-ds-config` (JSON).
+
+From script, with data:
+
+```js
+const grid = DS.datagrid.create(table, {
+  columns: [
+    { key: 'name', label: 'Device', sortable: true, render: (row) => `<a class="ds-link-btn" href="/devices/${row.id}">${esc(row.name)}</a>` },
+    { key: 'model', label: 'Model', sortable: true },
+    { key: 'load', label: 'Load', type: 'number', sortable: true, summary: 'avg', edit: { type: 'number', validate: (value) => (value > 100 ? 'At most 100.' : '') } },
+  ],
+  rows: devices,                         // or source: (query, { signal }) => fetch(...)
+  select: 'multiple', bar: '#bulk-bar',
+  focus: 'cell',
+  resize: true, reorder: true, chooser: '#columns-menu', persist: 'devices',
+  page: { size: 50 }, pager: '#devices-pages',
+});
+grid.on('select', ({ count }) => ...);
+grid.set({ filter: 'floor 2' });
+```
+
+### Options
+
+Each option adds one thing; none is on by default.
+
+| Option | Value | What it adds |
+|---|---|---|
+| `columns` | list of columns (below) | the columns, in their default order (the "Default" preset) |
+| `rows` | array | client data: the grid filters, sorts, groups and pages it |
+| `source` | `(query, { signal, export }) => result` | server data: `query` is `{ sort, filter, page }`; return (a promise of) `{ rows, total, summary }`. A newer query aborts the older one (`signal`). An export asks for every row: `page` is `null` and `export` is `true`. See [One data contract](#one-data-contract) |
+| `key` | property name or `(row, index) => key` | a row's key (default `id`) |
+| `label` | `(row) => text` | a row's name in checkbox labels and announcements (default its first column's text) |
+| `sortable`, `multiSort` | `true` | every column sorts (else only those with `sortable: true`); Shift adds a column to the sort |
+| `sort`, `filter`, `page` | `[{ key, dir }]`, text or function or `{ key: value }`, `{ size, index }` | the first state; `page` turns paging on |
+| `select` | `'multiple'`, `'single'` | a selection column; `bar` names the `.ds-selection-bar` it drives |
+| `focus` | `'cell'`, `'row'` | the APG grid: one tab stop and the keys below (`role="grid"`, or `treegrid` with tree rows or groups, which take `'row'` by default) |
+| `resize`, `reorder` | `true` | a separator and a grip in each header cell |
+| `chooser`, `presets` | a `.ds-menu`, `[{ id, label, columns }]` | the menu of presets and column boxes |
+| `persist` | a `DS.store` namespace | order, visibility, the widths a person set, sort and page size are remembered |
+| `detail` | `(row) => html` | a details column: an expandable row per row |
+| `tree` | `true` or `{ children }` | tree rows: `children` a property (default `children`) or a function |
+| `group` | a column key | row groups with a head row each, subtotals from the columns' `summary` |
+| `actions` | `(row) => html` | a `.ds-table__actions` column |
+| `menu` | a `.ds-menu` | the row's context menu: right click, Shift+F10 or the menu key, or a `[data-ds-datagrid-menu]` button in the row |
+| `edit` | `false` | turns every column's `edit` off |
+| `virtual` | `true` or `{ estimate, overscan }` | windowed rows (`DS.virtual`): only the rows near the viewport exist |
+| `pager` | a `.ds-pagination` | buttons with `data-ds-datagrid-page` (`first`, `previous`, `next`, `last`), the range text, a `select[data-ds-datagrid-size]` |
+| `foot`, `footLabel` | `false`, text | no summary row; its label (default "Total") |
+| `emptyText`, `loadingText`, `errorText`, `file` | text | the states' words, the CSV file's name |
+
+A column: `key`, `label`, `head` (header markup), `type` (`text`, `number`, `date`), `value(row)`, `sortValue(row)`,
+`format(value, row)`, `render(row)` (markup, escaped by the page), `set(row, value)`, `className`, `headClass`,
+`sortable`, `resizable`, `reorderable`, `hideable`, `hidden`, `filterable`, `export`, `exportValue(row)`, `width`,
+`minWidth` (56), `maxWidth` (960), `summary` (`sum`, `avg`, `min`, `max`, `count` or a function of the rows),
+`summaryFormat(value)` and `edit` (`true`, `'text'`, `'number'`, `'select'` or `{ type, options, required, validate }`).
+
+The table's own options apply as they do to any table ([Table](#table)): size, density, shape and touch on the table
+or a container, zebra, borders, sticky head and summary, pinned columns (a pinned column keeps its place: no grip),
+stacked rows (`data-label` is written on every cell). The grid adds:
+
+| Option | Classes | Where | What it does |
+|---|---|---|---|
+| Touch | `.ds-touch` | any container | the grip widens to a third of `--ds-target-min` (the header label moves aside for it), the separator to a quarter |
+| Shape | `.ds-shape-*` | any container | multiplies the radius of the grip and of the editor's message |
+
+### One data contract
+
+Client and server data take the same three things: `sort` (a list of `{ key, dir }`, `dir` `ascending` or
+`descending`), `filter` (text: a row whose formatted value in any `filterable` column contains it; a function of the row;
+or `{ key: value }`, a value, a list of values or a function per column) and `page` (`{ index, size }`, or `null`).
+With `rows` the grid applies them itself (`DS.datagrid.query()` is that pipeline, without a DOM); with `source` it sends them
+and shows what comes back. The summary row sums every row that passes the filter (client), or shows `result.summary`
+(server). Row groups and tree rows are arranged on the client in both cases, from the rows of the page.
+
+### States inside the grid
+
+The body holds one `.ds-datagrid__state` row while there is nothing to show: a loading line (`.ds-loading`, while the first
+data loads), the error state (`.ds-empty--error` with "Try again", `data-ds-datagrid-command="retry"`; the rows of an
+earlier page go), no results (`.ds-empty--no-results`, while a filter is set) or nothing yet (`.ds-empty--no-data`). A
+reload with rows on screen dims them (`.ds-stale` on the body after `--ds-delay-loader`) with `aria-busy="true"` on the
+table. Put a `<template data-ds-datagrid-state="empty|no-results|loading|error">` next to the table (in its wrapper) to use
+your own markup.
+
+### Selection
+
+`select: 'multiple'` adds a checkbox per row and a select-all box in the header (mixed for some, `indeterminate`). A
+click with Shift selects the range from the last row clicked. In the header box selects the page; once the page is
+selected and more rows exist, the selection bar offers "Select all N" (`.ds-datagrid__every`), which selects every row
+that passes the filter on every page (`all: true`; rows unchecked after it are listed in `except`). `'single'`: a radio
+per row (`.ds-radio-input`, one group per grid), and a click on a row (outside its controls) selects it alone. A selected row has `.ds-table__row--selected` (and its checked box), so
+the table colours it; in focus mode it also carries `aria-selected`.
+
+```html
+<div class="ds-toolbar"><div class="ds-swap">
+  <div class="ds-action-bar">...</div>                                   <!-- the toolbar while nothing is selected -->
+  <div class="ds-selection-bar" id="bulk-bar" role="toolbar" aria-label="Selected devices" hidden>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Clear selection" data-ds-datagrid-command="clear">[icon close 20]</button>
+    <p class="ds-selection-bar__count" aria-live="polite"></p>
+    <div class="ds-selection-bar__actions">...</div>
+  </div>
+</div></div>
+```
+
+With `bar`, the grid writes the count, adds and removes "Select all N", runs the bar's `data-ds-datagrid-command` buttons,
+and swaps the bar with the toolbar in their `.ds-swap` slot (`DS.motion.crossfade()`) when the count goes from 0 to 1
+and back, so the table never moves; a bar outside a slot shows and hides. "Clear selection" moves focus to the header
+box.
+
+### Columns
+
+- **Sort**: a sortable column's header holds a `.ds-table__sort` button. A click sorts by it (again: descending), with
+  `multiSort` a Shift+click adds it to the sort, turns it, then takes it off. The first sorted column carries `aria-sort`;
+  every sorted column shows its arrow (`data-ds-datagrid-dir` turns it), and with more than one a `.ds-datagrid__rank` figure
+  and hidden words ("sort 2, descending"). A sort is announced. Rows glide to their places (`DS.motion.flip`).
+- **Resize**: `.ds-datagrid__resize` is a `role="separator"` with `aria-valuenow` (px: the width set, else the width the
+  column is laid out at, measured after each render and on focus), `aria-valuemin` and `aria-valuemax`. Drag it, or
+  press ArrowLeft and ArrowRight (8px, the arrow toward the separator widens, so right to left ArrowLeft does; with
+  Shift, PageUp or PageDown 64px), Home and End
+  (the least and most width); Enter or a double click gives the column its natural width back. The first resize fixes
+  every column at its width (`data-ds-datagrid-layout="fixed"`, `table-layout: fixed`, the table as wide as its columns), so
+  only that column changes; long cells then end in an ellipsis. Only the widths a person (or the page, `width` and
+  `resize()`) set are remembered; once none is left, the automatic layout comes back.
+- **Reorder**: `.ds-datagrid__grip` (a `.ds-grip` button in the cell's start padding, shown on hover and focus) moves the
+  column through `DS.dnd`: drag it, or press Space, then ArrowLeft and ArrowRight, then Space (Escape cancels); every step
+  is announced. The rows follow on the drop. A pinned first or last column (`.ds-table--pin-first`, `.ds-table--pin-last`)
+  has no grip and keeps its place: no column drops before or after it.
+- **Chooser**: `chooser` names an empty `.ds-menu` (with a trigger, `aria-haspopup="menu"` and `data-ds-open`); the grid
+  fills it with the presets ("Default", "All columns", your `presets`) as `menuitemradio` items and a `menuitemcheckbox`
+  per column that can hide. A column box toggles and the menu stays open, as a list of boxes would; a preset applies and
+  closes it. The last column shown cannot hide.
+
+```html
+<button class="ds-btn ds-btn--quiet" type="button" aria-haspopup="menu" aria-expanded="false" data-ds-open="#devices-columns">[icon columns 18] Columns</button>
+<div class="ds-menu" role="menu" id="devices-columns" aria-label="Columns" data-ds-menu hidden></div>
+```
+
+### Rows
+
+- **Details** (`detail`): a `.ds-table__toggle` per row and a `.ds-table__detail` row, as in the table; the grid toggles
+  `aria-expanded` and `inert`.
+- **Tree rows** (`tree`): the first column holds a twist (`.ds-datagrid__twist`, its `.ds-datagrid__chevron` turns 90deg on the
+  spring) and the label, indented by `--ds-datagrid-indent` per level. The table is a `treegrid`; each row has `aria-level`,
+  `aria-setsize`, `aria-posinset` and, with children, `aria-expanded`. A filter keeps the ancestors of a match and opens
+  them; a sort orders siblings; paging counts the top rows.
+- **Row groups** (`group`): a `.ds-datagrid__group` head row per value (its label, the count and the subtotals of the
+  columns with a `summary`), collapsible like a tree row.
+- **Summary row**: with a column's `summary`, the grid writes the `<tfoot>` row (the label "Total" spans the columns
+  before the first figure). A page's own `<tfoot>` comes back on `destroy()`.
+- **Actions and the context menu**: `actions(row)` renders a `.ds-table__actions` cell. `menu` names one `.ds-menu` for
+  every row: a right click opens it at the pointer (`.ds-datagrid__point`), Shift+F10 or the menu key at the focused cell,
+  and a `data-ds-datagrid-menu` button in the row under itself. Before it opens, `ds:menu` (cancelable) tells the page which
+  row; an item's click sends `ds:action` with `{ action, key, row, keys, all, item }` (`action`: the item's
+  `data-ds-action`); focus goes back where it was.
+- **Inline edit**: a column with `edit` makes its cells `.ds-datagrid__editable`. Enter, F2 or a double click opens the
+  editor (`.ds-input.ds-datagrid__editor`, filling the cell, so the column keeps its width; a `select` for `type: 'select'`); Enter saves, Tab saves and goes to the next
+  editable cell (Shift+Tab: the previous one), Escape cancels, and leaving the cell saves a valid value. A value that
+  `validate` (or `required`, or a number column) refuses keeps the editor open with `aria-invalid` and a
+  `.ds-datagrid__message` (icon and words), announced. A changed value sends `ds:edit` (cancelable:
+  `{ key, row, column, value, previous }`); when the page lets it, the grid writes it (`column.set`, else
+  `row[key]`). Without focus mode an editable cell is a tab stop of its own.
+- **Virtual rows** (`virtual`): the rows go through `DS.virtual` in the table's wrapper, which must scroll: a
+  `.ds-table-wrap--fill`, or a `.ds-table--sticky-head` with `--ds-table-max-height`. The columns are fixed after the
+  first render. `aria-rowcount` and `aria-rowindex` tell the whole set; the keys move through every row.
+- **Stacked rows**: every cell carries `data-label`, so `.ds-table--stack` works as on any table.
+
+### Export
+
+`grid.csv(options)` returns CSV (RFC 4180) of the visible columns and every row that passes the filter, in order (with
+`selected: true` the selected ones); `grid.download(name)` saves it (UTF-8 with a byte-order mark); `grid.copy()` puts the
+selected rows (else all) on the clipboard as tab-separated text, ready for a spreadsheet, and announces it. Fields that a
+spreadsheet would run as a formula (`=`, `+`, `-`, `@`) start with an apostrophe; a figure (`-1,234.5`, `-12%`,
+`-€5`, grouped by spaces or apostrophes) stays a figure. With `source` the grid holds only the page on screen, so an
+export asks the source once more for every row that passes the filter (`page: null`, `{ export: true }` in its context;
+the selected ones are picked from those, unless every selected row is on the page): `grid.csv()` and
+`grid.download()` then return a promise of the text. Buttons outside the table run them by
+`data-ds-datagrid-command` (`csv`, `copy`, `clear`, `every`, `reset`, `retry`) and `aria-controls` naming the table:
+
+```html
+<button class="ds-btn ds-btn--quiet" type="button" data-ds-datagrid-command="csv" aria-controls="devices" data-ds-datagrid-file="devices.csv">[icon download 18] Export CSV</button>
+```
+
+### Keyboard
+
+Without `focus`, the table keeps its roles and Tab goes through its controls (sort buttons, separators, grips,
+checkboxes, toggles, links, editable cells). With `focus: 'cell'` or `'row'` the table is one tab stop (the APG grid
+pattern) and every control inside it waits at `tabindex="-1"`:
+
+| Key | Cell mode | Row mode |
+|---|---|---|
+| ArrowRight, ArrowLeft | the next, previous cell; on a tree row's first cell or a group's head: opens, closes, or goes to the parent | opens, closes (tree rows, groups, details), or goes to the parent |
+| ArrowDown, ArrowUp | the cell below, above (from the first row up to the header) | the next, previous row; with Shift extends the selection |
+| PageDown, PageUp | ten rows on | ten rows on |
+| Home, End | the row's first, last cell; with Ctrl the grid's first, last cell | the first, last row |
+| Enter | sorts a header cell (Shift: adds), edits an editable cell, enters a cell with several controls | follows the row link (`.ds-table__row-link`), else enters the row |
+| F2 | edits, or enters a cell; again (or Escape) goes back to the cell | enters the row |
+| Tab inside a cell | goes round its controls | goes round its controls |
+| Space | Shift+Space (or Space on a cell without a control) selects the row | selects the row |
+| Ctrl+A, Ctrl+C | selects the page; copies the selected rows, else the cell | selects the page; copies the selected rows, else the focused row |
+| Shift+F10, menu key | the row's context menu | the row's context menu |
+
+A cell with one control (a checkbox, a toggle, a link) takes the focus on that control. The focused cell or row shows
+the ring, inset, and the focus layer at once.
+
+### Accessibility
+
+- **Roles and names**: `role="grid"` (or `treegrid`) only in focus mode, with `aria-multiselectable`; give the table
+  a name (`aria-label` or a `<caption>`). Header cells keep `scope="col"`; a header with a grip or a separator is named
+  by its label alone (`aria-labelledby` on the sort button or a span), so neither joins its name; the selection, details and actions columns
+  have hidden names; every checkbox and toggle names its row. A paged or server table carries `aria-rowcount` and each
+  row its `aria-rowindex`.
+- **Announcements** (`DS.a11y.announce`): a sort, the number of rows a filter leaves, a page, a column shown or hidden,
+  a preset, a saved or refused edit, a refused value, a copy, "All N selected", a load that failed. The selection bar's
+  count is a live region of the page's markup.
+- **Status** never by colour alone: a selected row keeps its checked box, a sorted column its arrow and `aria-sort`, a
+  refused value its icon and words.
+
+### Parts
+
+The grid writes these itself; a page never adds them, but a theme or a test may name them.
+
+| Class | What |
+|---|---|
+| `.ds-datagrid` | on the table: the grid's own rules (the page adds it with `data-ds-datagrid` or before `create()`) |
+| `.ds-datagrid__select` | the selection column: a checkbox per row, the select-all box in the header |
+| `.ds-datagrid__toggle` | the details column, a `.ds-table__toggle` per row |
+| `.ds-datagrid__actions` | the header cell of the actions column (its body cells are `.ds-table__actions`) |
+| `.ds-datagrid__grip` | the `.ds-grip` that moves a column, in the header cell's start padding |
+| `.ds-datagrid__resize` | the separator at a header cell's end |
+| `.ds-datagrid__rank` | a sorted column's place in a multi-column sort |
+| `.ds-datagrid__tree` | a tree row's or group's first cell content: the twist and the label, indented by level |
+| `.ds-datagrid__twist`, `.ds-datagrid__chevron` | the toggle of a tree row or group and its chevron |
+| `.ds-datagrid__twist-room` | the twist's room on a tree row without children |
+| `.ds-datagrid__label`, `.ds-datagrid__count` | the label of a tree row or group, and a group's row count |
+| `.ds-datagrid__group` | a row group's head row |
+| `.ds-datagrid__state` | the one row of the empty, no-results, loading and error states |
+| `.ds-datagrid__editable` | a cell that edits |
+| `.ds-datagrid__editing`, `.ds-datagrid__field`, `.ds-datagrid__editor`, `.ds-datagrid__message` | the cell while it edits, around the field, the field, and a refused value's message |
+| `.ds-datagrid__every` | "Select all N" in the selection bar |
+| `.ds-datagrid__point` | the point a context menu opens at |
+
+### Forced colours
+
+Rings are outlines (system colours); the separator's line is a border (`CanvasText`, `Highlight` while dragged); a group
+row's tint goes, its label type and count stay; the editor's message keeps an edge; the table's own rules apply.
+
+### Hooks
+
+| Hook | Default | What |
+|---|---|---|
+| `--ds-datagrid-indent` | `--ds-space-6` | one level of tree rows |
+| `--ds-datagrid-group-bg` | `--ds-surface-low` | a row group's head row |
+
+Runtime properties (written by `js/datagrid.js`, never set them): `--ds-datagrid-width`, `--ds-datagrid-level`, `--ds-datagrid-point-x`,
+`--ds-datagrid-point-y`. Attributes written by the system: `data-ds-datagrid-layout`, `data-ds-datagrid-dir`,
+`data-ds-datagrid-resizing`, `data-ds-datagrid-row`, `data-ds-datagrid-group`, `data-ds-datagrid-stop`.
+
+### JS API
+
+`js/datagrid.js` (`DS.datagrid`):
+
+- `create(table, options)` returns the controller that `data-ds-datagrid` makes (a second call returns it and passes the
+  options to `set()`): `get()` (`{ sort, filter, page, selection, columns, expanded, total, status, rows }`),
+  `set({ rows, sort, filter, page, group, selected, expanded, columns })`, `on(type, fn)` (returns the unsubscribe),
+  `refresh()` (render again, or load again from `source`), `select(keys | 'all' | 'page' | 'none')`,
+  `expand(key, open)`, `edit(key, column)`, `focus(key, column)`, `sort(key, dir)`, `page(index)`, `preset(id)`,
+  `toggleColumn(key, show)`, `resize(key, width)`, `csv(options)`, `copy(options)`, `download(name, options)`,
+  `menu(key, { x, y, opener })` and `destroy()` (what the grid wrote goes, the page's markup stays).
+- `query(rows, options)`: the client pipeline without a DOM, `{ items, rows, total, filtered }`.
+- `csv(rows, columns, options)`: CSV text (`separator`, `header`, `safe`, `raw`, `locale`).
+- `summary(rows, column)`: one figure of a summary row.
+
+Events (bubbling, on the table, and through `on()`): `ds:sort` `{ sort }`, `ds:filter` `{ filter }`, `ds:page`
+`{ index, size, total, pages }`, `ds:select` `{ count, keys, all, except }`, `ds:expand` `{ key, open, kind }`,
+`ds:edit` (cancelable) `{ key, row, column, value, previous }`, `ds:columns` `{ order, hidden, widths }` (`widths`: only the columns a person or the page sized; the others keep their measured width), `ds:menu`
+(cancelable) `{ key, row, keys }`, `ds:action` `{ action, key, row, keys, all, item }`, `ds:load` `{ rows, total }`,
+`ds:error` `{ error }`.
+
+**Motion:** rows glide on a sort or filter through `DS.motion.flip` (the table's data motion), the details row opens as
+the table's, the twist's chevron turns on the spring (`--ds-dur-medium`, `--ds-ease-spatial`), the selection bar
+crosses with the toolbar (`DS.motion.crossfade()`), a moved column's header glides into place (`DS.dnd`). Nothing else
+moves; a resize follows the pointer.
+
+<!-- changelog -->
+- Added: the data grid, `.ds-datagrid` and `js/datagrid.js` (`DS.datagrid`): multi-column sort, column resize, reorder and
+  chooser with presets (remembered through `DS.store`), client or server data through one contract, selection with
+  Shift ranges and "Select all N" across pages with the selection bar, details, tree rows and row groups with subtotals,
+  a summary row, inline edit, the APG grid keys (cell or row), row actions and a context menu, windowed rows
+  (`DS.virtual`), the empty, loading and error states, CSV and clipboard export. Strings `datagrid*` in
+  `DS.core.config({ strings })`. Hooks `--ds-datagrid-indent`, `--ds-datagrid-group-bg`.
 ## Pagination
 
 Moves through the pages of a long table or list: the footer of a table whose records come in pages.
@@ -2623,6 +6995,736 @@ The current page is a choice in a set: `SelectedItem` and `SelectedItemText`, wi
 | `--ds-pagination-jump-width` | 72px | the jump field |
 
 **Motion:** a page change in [Data motion](motion.md#data-motion) in motion.md.
+## Load more and infinite scroll
+
+The end of a list that grows by pages: a status line and a "Load more" button. With `data-ds-loadmore-auto` the element
+is also the sentinel of an infinite scroll: the next page loads as it scrolls into view, a set number of times, and then
+only the button loads, so a footer under the list stays reachable. Use [pagination](#pagination) where people need to
+come back to a place in the list.
+
+```html
+<ul class="ds-list" id="devices" aria-label="Devices"> ... </ul>
+<div class="ds-loadmore" data-ds-loadmore data-ds-loadmore-for="#devices"
+     data-ds-loadmore-loaded="50" data-ds-loadmore-total="1234" data-ds-loadmore-auto="3">
+  <p class="ds-loadmore__status">[icon alertCircle 16 ds-loadmore__icon]<span class="ds-loadmore__text">Showing 50 of 1,234</span></p>
+  <button class="ds-btn ds-loadmore__button" type="button">
+    <span class="ds-btn__faces">
+      <span class="ds-btn__face">Load more devices</span>
+      <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Loading</span>
+    </span>
+  </button>
+</div>
+```
+
+```js
+// The page loads the next page and hands its promise over: { loaded, total, done }, or the number it added.
+document.querySelector('.ds-loadmore').addEventListener('ds:loadmore', (event) => {
+  event.detail.respond(api.devices({ after: event.detail.loaded }).then((page) => {
+    DS.motion.flip(list, (o) => DS.dom.morphHtml(list, rowsHtml(shown.concat(page.rows)), o), { items: 'li' });
+    shown = shown.concat(page.rows);
+    return { loaded: shown.length, total: page.total };
+  }));
+});
+```
+
+### Options
+
+| Option | Classes, attributes | Where it applies | Effect |
+|---|---|---|---|
+| Look | none (centred, the status over the button), `.ds-loadmore--inline` | `.ds-loadmore` | inline: the status at the start and the button at the end of one row, for the foot of a list in a card |
+| Counts | `data-ds-loadmore-loaded`, `data-ds-loadmore-total` | `.ds-loadmore` | the first counts; without a total the status says "Showing 50" and the end comes with `done` |
+| Infinite scroll | `data-ds-loadmore-auto` (empty: no limit; a number: at most that many automatic loads) | `.ds-loadmore` | loads as the element scrolls into view; then the button. Keep a limit where the page has a footer |
+| List | `data-ds-loadmore-for` (a selector) | `.ds-loadmore` | the list gets `aria-busy` while it loads |
+| Focus | `data-ds-loadmore-focus="new"` | `.ds-loadmore` | after a load from the button, focus moves to the first new item (default: it stays on the button, now after the new items) |
+| Scroller | `data-ds-loadmore-root` (a selector), `data-ds-loadmore-margin` (a rootMargin) | `.ds-loadmore` | what the sentinel watches: default the nearest scrolling ancestor, else the viewport; `0px 0px 25% 0px`, so a load starts a little before the end shows |
+| Size, shape, touch | `.ds-xs` ... `.ds-xl`, `.ds-shape-*`, `.ds-touch` | `.ds-loadmore` or any ancestor | reach the button, which computes them |
+| Density | `.ds-density-*` | `.ds-loadmore` or any ancestor | 2px per step of the block padding (`--ds-loadmore-padding`) and the gap; and the button's height |
+
+There is no tone: a failed load shows the error ink with an icon and words, never the colour alone.
+
+### Behaviour
+
+`js/loadmore.js` (`data-ds-loadmore`, or `DS.loadmore.create(el, options)`): one load at a time, from the button, the
+sentinel or `load()`. A load sends `ds:loadmore` (`{ loaded, total, auto, respond(promise) }`) on `.ds-loadmore`, unless
+`create()` was given `load`; the page renders the new items and hands its promise to `respond()` (or calls
+`set({ loaded, total, done })` when they arrived, `set({ error })` when they did not). While it loads the element has
+`data-state="loading"`, the button its busy face (after `--ds-delay-loader`, `DS.motion.busy()`; a fast page shows
+nothing) and the list `aria-busy`. Then:
+
+- **More to come.** The status says "Showing 100 of 1,234" and an announcement says "Loaded 50 more. Showing 100 of
+  1,234." A sentinel that still shows loads on (a short page fills the view), up to the limit.
+- **Done** (`done`, or `loaded` reached `total`): `data-state="done"`, the button goes, the status says "All 1,234 shown";
+  a button that had the focus hands it to the status (`tabindex="-1"`, owned).
+- **Failed:** `data-state="error"`, the status says "Could not load more." with the alert icon in the error ink, the button
+  says "Try again", and the infinite scroll waits for a press.
+- **A new query** (a filter, a sort): `reset({ loaded, total })` starts over, the automatic loads too. A load still
+  running is dropped: its answer, when it comes, changes nothing and sends no event, and the next load waits for nothing
+  but its own page.
+
+New items come in with the page's `DS.motion.flip()` and `DS.dom.morphHtml()` (keyed: the new rows fade in, nothing
+else moves). The `ds:loaded` event (`{ loaded, total, state, added }`) follows each load.
+
+### JS API
+
+```js
+const more = DS.loadmore.create(el, { load: ({ loaded }) => fetchPage(loaded) });   // the controller data-ds-loadmore makes
+more.get();                         // { loaded: 50, total: 1234, state: 'idle' }   (loading, error, done)
+more.load();                        // a load now, as the button
+more.set({ loaded: 100, total: 1234 });   // the answer to ds:loadmore, or new counts
+more.reset({ loaded: 50, total: 80 });    // a new query
+more.on('change', ({ loaded, total, state, added }) => {});
+DS.loadmore.statusText({ loaded: 50, total: 1234, state: 'idle' });   // 'Showing 50 of 1,234'
+```
+
+`DS.loadmore.create(el, options)` returns the controller (`get()`, `set(value)`, `load()`, `reset(value)`,
+`on('change', fn)`, `update()`, `destroy()`); on an element that has one it returns that one and hands it `load` and
+`status`. `options` are those of the attributes plus `load` (a function of `{ loaded, total, auto }` that returns, or
+resolves to, `{ loaded, total, done }` or the number of items it added) and `status` (a function of
+`{ loaded, total, state }` that returns the status text, for the page's own words: "Showing 50 of 1,234 devices").
+`DS.loadmore.statusText(state)` is the default status text.
+
+### Accessibility
+
+- **Names and roles.** The button names the action ("Load more devices"); the status is plain text, read in order after
+  the list. A list that grows by itself can take `role="feed"` (articles inside, `aria-busy` while it loads, as the
+  system sets it).
+- **Keyboard.** The button is always there for keyboards and screen readers, in automatic mode too; Enter or Space loads.
+  Focus stays on the button (now after the new items), or moves to the first new item with `focus: "new"`; when the
+  button goes, the status takes the focus.
+- **Announcements.** Polite: "Loading more" when the sentinel starts a load (nobody pressed anything), "Loaded 50 more.
+  Showing 100 of 1,234." after a load, "All 1,234 shown" at the end, "Could not load more." on a failure.
+- **Footers.** An infinite scroll keeps moving the end of the page away: give `data-ds-loadmore-auto` a limit (3 is
+  common) where the page has content below the list.
+- **Strings.** `loadMoreStatus`, `loadMoreStatusOpen`, `loadMoreDone`, `loadMoreLoaded`, `loadMoreLoading`,
+  `loadMoreFailed` and `tryAgain` of `DS.core.config()`.
+
+### Forced colours
+
+The icon and the status are text in the system colours; the failure still says so in words. The button keeps the
+button's model.
+
+### Hooks
+
+| Hook | Default | What |
+|---|---|---|
+| `--ds-loadmore-padding` | `--ds-space-4` | the block padding (and the side padding of `--inline`) at the comfortable density |
+| `--ds-loadmore-error-color` | `--ds-error` | the status of a failed load |
+
+**Motion:** none of its own: the button's busy face rolls (after `--ds-delay-loader`, held for `--ds-hold-loader`), the
+status changes at once, and the new items are the page's `DS.motion.flip()`.
+
+<!-- changelog
+- Load more and infinite scroll (`DS.loadmore`, `.ds-loadmore`, `.ds-loadmore--inline`, `.ds-loadmore__status`,
+  `.ds-loadmore__text`, `.ds-loadmore__icon`, `.ds-loadmore__button`, hooks `--ds-loadmore-padding`,
+  `--ds-loadmore-error-color`): a status line and a Load more button with its busy face, an IntersectionObserver
+  sentinel with a limit of automatic loads, `ds:loadmore` with `respond()`, `aria-busy` on the list, announcements, an
+  error state that tries again, focus kept when the button goes. Strings `loadMoreStatus`, `loadMoreStatusOpen`,
+  `loadMoreDone`, `loadMoreLoaded`, `loadMoreLoading`, `loadMoreFailed`, `tryAgain`.
+-->
+## Sort control
+
+The field and the direction of a list or a set of cards, outside a table (a [table](#table) sorts in its header). The
+direction is said in the field's own words ("A to Z", "Newest first"), never by the arrow alone.
+
+Inline: a label, a select of the fields and an order button.
+
+```html
+<div class="ds-sort" data-ds-sort role="group" aria-label="Sort devices">
+  <label class="ds-sort__label" for="sort-field">Sort by</label>
+  <select class="ds-input ds-sort__field" id="sort-field">
+    <option value="name" data-ds-sort-type="text">Name</option>
+    <option value="seen" data-ds-sort-type="date" data-ds-sort-default="descending" selected>Last seen</option>
+    <option value="storage" data-ds-sort-type="number">Storage</option>
+  </select>
+  <button class="ds-btn ds-btn--quiet ds-sort__order" type="button">[icon arrowUp 20 ds-sort__arrow]<span class="ds-sr">Order: </span>
+    <span class="ds-sort__words"><span class="ds-sort__word">Oldest first</span><span class="ds-sort__word">Newest first</span></span></button>
+</div>
+```
+
+Menu (`.ds-sort--menu`): one button that names the field and points the direction, and a [menu](#menu) of the fields
+and the two directions. It fits a toolbar or a phone.
+
+```html
+<div class="ds-sort ds-sort--menu" data-ds-sort data-ds-value="name">
+  <button class="ds-btn ds-sort__trigger" type="button" aria-haspopup="menu" aria-expanded="false" data-ds-open="#sort-menu">
+    [icon sort 20]<span class="ds-sr">Sort by </span><span class="ds-sort__value">Name</span><span class="ds-sr">, </span>
+    <span class="ds-sort__words ds-sr"><span class="ds-sort__word">A to Z</span><span class="ds-sort__word">Z to A</span></span>
+    [icon arrowUp 20 ds-sort__arrow]</button>
+  <div class="ds-menu" id="sort-menu" role="menu" aria-label="Sort" hidden>
+    <div role="group" aria-labelledby="sort-by">
+      <p class="ds-menu__heading" id="sort-by">Sort by</p>
+      <button class="ds-menu__item" role="menuitemradio" aria-checked="true" type="button" data-ds-sort-field="name" data-ds-sort-type="text">
+        [icon check 20 ds-menu__check]<span class="ds-menu__label">Name</span></button>
+      <button class="ds-menu__item" role="menuitemradio" aria-checked="false" type="button" data-ds-sort-field="seen" data-ds-sort-type="date" data-ds-sort-default="descending">
+        [icon check 20 ds-menu__check]<span class="ds-menu__label">Last seen</span></button>
+    </div>
+    <div class="ds-menu__divider" role="separator"></div>
+    <div role="group" aria-labelledby="sort-order">
+      <p class="ds-menu__heading" id="sort-order">Order</p>
+      <button class="ds-menu__item" role="menuitemradio" aria-checked="true" type="button" data-ds-sort-direction="ascending">
+        [icon check 20 ds-menu__check]<span class="ds-menu__label">A to Z</span></button>
+      <button class="ds-menu__item" role="menuitemradio" aria-checked="false" type="button" data-ds-sort-direction="descending">
+        [icon check 20 ds-menu__check]<span class="ds-menu__label">Z to A</span></button>
+    </div>
+  </div>
+</div>
+```
+
+### Options
+
+| Option | Classes, attributes | Where it applies | Effect |
+|---|---|---|---|
+| Look | none (inline), `.ds-sort--menu` | `.ds-sort` | a select and an order button, or one button with a menu |
+| Field type | `data-ds-sort-type` `text`, `number`, `date` | an option or a field item | the words of the two directions: "A to Z", "Lowest first", "Oldest first"; without one "Ascending" and "Descending" |
+| Own words | `data-ds-sort-asc`, `data-ds-sort-desc` | an option or a field item | the field's own words ("Smallest first") |
+| Start direction | `data-ds-sort-default` `ascending`, `descending` | an option or a field item | the direction a change to this field starts in (dates: newest first); without it the direction stays |
+| First state | `data-ds-value` (`name`, `-name`) | `.ds-sort` | else the selected option or checked items, ascending |
+| Size, density, shape, touch | `.ds-xs` ... `.ds-xl`, `.ds-density-*`, `.ds-shape-*`, `.ds-touch` | `.ds-sort` or any ancestor | reach the select and the buttons, which compute them; the gap steps 4px per size step. The label keeps its role |
+| Field width | `--ds-sort-field-width` | `.ds-sort` | the select's least width (160px) |
+
+There is no tone: a sort shows no meaning of its own. The inline look wraps at its gap; in a content area of at most
+480px its visible label goes (it still names the select).
+
+### Behaviour
+
+The system (`js/sort.js`, `data-ds-sort`) keeps the markup in step: `data-state="ascending"` or `"descending"` on
+`.ds-sort`, the words of every `.ds-sort__words` (two `.ds-sort__word` stacked in one cell, so the order button keeps its
+width; only the current one shows), the field's name in `.ds-sort__value`, and `aria-checked` and the direction words of
+the menu items. The order button flips the direction; the select and the field items change the field, which starts in
+its `data-ds-sort-default` direction. The page sorts: it listens for `ds:sort` and re-renders its list with
+`DS.dom.morphHtml` inside `DS.motion.flip()` (keyed rows glide to their places).
+
+### JS API
+
+```js
+const sort = DS.sort.create(el);           // the controller data-ds-sort makes
+sort.get();                                 // { field: 'seen', direction: 'descending' }
+sort.set('-name');                          // or { field: 'name', direction: 'descending' }; tells nothing
+sort.on('change', ({ field, direction, label, words }) => render());
+el.addEventListener('ds:sort', (event) => render(event.detail));
+DS.sort.parse('-seen');                     // { field: 'seen', direction: 'descending' }
+DS.sort.stringify({ field: 'seen', direction: 'descending' });   // '-seen'
+```
+
+`DS.sort.create(el)` returns the controller (`get()`, `set(value)`, `on('change', fn)`, `update()` after the fields
+changed, `destroy()`); `DS.sort.parse(text)` reads `name`, `-name`, `+name`, `name:asc` and `name:desc`, and
+`DS.sort.stringify(state)` writes what it reads (the form [saved views](#saved-views) put into the address). A change by
+the user sends `ds:sort` with `{ field, direction, label, words }` on `.ds-sort`; `set()` from the page sends nothing.
+
+### Accessibility
+
+- **Names and roles.** The inline look is a `role="group"` with a name; the select is named by its label (kept for
+  screen readers when it hides at narrow widths). The order button is named by its words ("Order: Newest first"):
+  a button whose name says the order now, not a toggle. The menu trigger says the field and the order ("Sort by Name,
+  A to Z"); the menu items are `menuitemradio` in two named groups.
+- **Keyboard.** Tab reaches the select and the order button; the select's own keys choose a field; Enter or Space on
+  the order button flips the order. The menu: ArrowDown or Enter opens it, the arrows, Home, End and type-ahead move,
+  Enter or Space chooses and closes, Escape closes ([Menu](#menu)).
+- **Announcements.** A change by the user is spoken politely: "Sorted by Last seen, Newest first" (the string
+  `sortAnnounce`).
+- **Strings.** `sortAscending`, `sortDescending`, `sortAscendingText`, `sortDescendingText`, `sortAscendingNumber`,
+  `sortDescendingNumber`, `sortAscendingDate`, `sortDescendingDate` and `sortAnnounce` of `DS.core.config()`.
+
+### Forced colours
+
+The arrow and the words are text in the system colours; the select and buttons keep theirs. Nothing of its own.
+
+### Hooks
+
+| Hook | Default | What |
+|---|---|---|
+| `--ds-sort-field-width` | 160px | the least width of the inline field select |
+
+**Motion:** the arrow turns 180deg on the spring (`--ds-dur-medium`, `--ds-ease-spatial`) when the direction changes,
+as the table's sort arrow; the words change at once. The list's reorder is the page's `DS.motion.flip()`.
+
+<!-- changelog
+- Sort control (`DS.sort`, `.ds-sort`, `.ds-sort--menu`, `.ds-sort__field`, `.ds-sort__label`, `.ds-sort__order`,
+  `.ds-sort__trigger`, `.ds-sort__value`, `.ds-sort__words`, `.ds-sort__word`, `.ds-sort__arrow`, hook
+  `--ds-sort-field-width`): the field and direction of a list or cards outside a table, inline or as a menu, with the
+  direction in the field's words, `ds:sort`, an announcement, and `parse()` / `stringify()` for addresses. Strings
+  `sortAscending`, `sortDescending`, `sortAscendingText`, `sortDescendingText`, `sortAscendingNumber`,
+  `sortDescendingNumber`, `sortAscendingDate`, `sortDescendingDate`, `sortAnnounce`.
+-->
+## Facet filter panel
+
+The filters of a list in a panel beside it: one facet per field, each option with its count, a search inside a long
+facet, ranges, the applied filters as chips with "Clear all". Where the layout cannot hold the panel beside the list
+it folds behind a "Filters" button that opens it in a [side sheet](#side-sheet) (from the bottom on phones). For a few
+filters above the list, use the [filter bar](#filter-bar).
+
+```html
+<div class="ds-facets-layout">
+  <section class="ds-facets" role="complementary" data-ds-facets data-ds-facets-sheet="#facets-sheet" aria-labelledby="facets-title">
+    <div class="ds-facets__head">
+      <h2 class="ds-facets__title" id="facets-title">Filters</h2>
+      <button class="ds-btn ds-btn--text ds-facets__clear" type="button">Clear all</button>
+    </div>
+    <div class="ds-facets__applied" hidden>
+      <div class="ds-chips ds-facets__chips" role="group" aria-label="Applied filters"></div>
+    </div>
+    <fieldset class="ds-facet">
+      <legend class="ds-facet__title">Status</legend>
+      <div class="ds-facet__options">
+        <label class="ds-check"><input type="checkbox" name="status" value="online"><span>Online</span><span class="ds-check__count">24</span></label>
+        <label class="ds-check"><input type="checkbox" name="status" value="offline"><span>Offline</span><span class="ds-check__count">3</span></label>
+      </div>
+    </fieldset>
+    <fieldset class="ds-facet" data-ds-facet-limit="4">
+      <legend class="ds-facet__title">Owner</legend>
+      <div class="ds-search ds-facet__search">[icon search 20]
+        <input class="ds-input" type="search" aria-label="Search owners" placeholder="Search owners"></div>
+      <div class="ds-facet__options"> ... </div>
+      <p class="ds-facet__empty" hidden></p>
+      <button class="ds-btn ds-btn--text ds-facet__more" type="button" hidden></button>
+    </fieldset>
+    <fieldset class="ds-facet">
+      <legend class="ds-facet__title">Last seen</legend>
+      <div class="ds-facet__options">
+        <label class="ds-check"><input type="radio" name="seen" value="" checked><span>Any time</span></label>
+        <label class="ds-check"><input type="radio" name="seen" value="24h"><span>Last 24 hours</span></label>
+      </div>
+    </fieldset>
+    <fieldset class="ds-facet" data-ds-filter-label="Storage">
+      <legend class="ds-facet__title">Storage (GB)</legend>
+      <div class="ds-facet__range">
+        <div class="ds-field"><label class="ds-field__label" for="storage-min">Min</label>
+          <input class="ds-input" id="storage-min" type="number" inputmode="numeric" name="storage" data-ds-filter-bound="min"></div>
+        <span class="ds-facet__dash" aria-hidden="true">–</span>
+        <div class="ds-field"><label class="ds-field__label" for="storage-max">Max</label>
+          <input class="ds-input" id="storage-max" type="number" inputmode="numeric" name="storage" data-ds-filter-bound="max"></div>
+      </div>
+    </fieldset>
+  </section>
+  <div class="ds-facets-layout__main">
+    <button class="ds-btn ds-facets__toggle" type="button" aria-haspopup="dialog">[icon filter 20]Filters<span class="ds-badge ds-facets__badge" hidden></span></button>
+    <div class="ds-facets__applied" hidden>                    <!-- optional: the applied chips while folded -->
+      <div class="ds-chips ds-facets__chips" role="group" aria-label="Applied filters"></div>
+      <button class="ds-btn ds-btn--text ds-facets__clear" type="button">Clear all</button>
+    </div>
+    <p class="ds-facets__count">27 results</p>
+    ... the list ...
+  </div>
+</div>
+
+<dialog class="ds-sheet" id="facets-sheet" aria-labelledby="facets-sheet-title">
+  <div class="ds-sheet__backdrop" data-ds-close></div>
+  <section class="ds-sheet__panel">
+    <div class="ds-sheet__head"><h2 class="ds-sheet__title" id="facets-sheet-title">Filters</h2>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>[icon close 20]</button></div>
+    <div class="ds-sheet__body" tabindex="0"></div>
+    <div class="ds-sheet__foot">
+      <button class="ds-btn ds-btn--filled ds-facets__results" type="button" data-ds-close>Show 27 results</button>
+    </div>
+  </section>
+</dialog>
+```
+
+### Options
+
+| Option | Classes, attributes | Where it applies | Effect |
+|---|---|---|---|
+| Sheet | `data-ds-facets-sheet` (a selector) | `.ds-facets` | the side sheet the folded panel opens in |
+| Zero counts | `data-ds-facets-zero` `disable` (default), `hide`, `show` | `.ds-facets` | an option counted 0 that is not checked is disabled, hidden or left as it is |
+| Limit | `data-ds-facet-limit="n"` | a `.ds-facet` | its first n options and every checked one show; `.ds-facet__more` shows the rest |
+| Scroll | `.ds-facet--scroll` | a `.ds-facet` | its options scroll on their own after `--ds-facet-max-height` (264px) |
+| Search | `.ds-facet__search` with an unnamed field | a `.ds-facet` | shows the options whose label holds the text; `.ds-facet__empty` says when none does |
+| Range | `data-ds-filter-bound` `min`, `max` in `.ds-facet__range` | two fields of one name | one filter `[min, max]` and one chip ("Storage: 256 to 1,024") |
+| Label of a filter | `data-ds-filter-label` | a control or any ancestor | the name on its chips; default the facet's legend |
+| Chip | `data-ds-filter-chip` `off`, `value` | a control or any ancestor | no chip, or the value alone |
+| Size, shape, touch | `.ds-xs` ... `.ds-xl`, `.ds-shape-*`, `.ds-touch` | the layout, the panel or any ancestor | reach the rows, fields, buttons and chips, which compute them; the gaps step 4px per size step |
+| Density | `.ds-density-*` | the layout, the panel or any ancestor | the gaps, 2px per step, and the rows' heights (4px per step) |
+| Widths | `--ds-facets-width`, `--ds-facets-main-min`, `--ds-facets-gap` | the layout | the panel (280px), the least share of the list (50%), the gap (24px) |
+
+There is no tone: a filter shows no meaning of its own. The titles keep the label role, counts and the count the meta
+role. A checked option's label takes the label weight, so the choice shows by more than its check.
+
+### Behaviour
+
+`js/facets.js` (`data-ds-facets`, or `DS.facets.create(el, options)`) reads the named controls with the
+[filter bar's](#filter-bar) rules and runs its engine (`DS.filterbar.filters()`):
+
+- **Filters and changes.** Checkboxes, radios (a radio of `value=""` is "Any": no filter), selects, fields and ranges
+  give `{ status: ['online'], storage: ['', '512'] }`. A change sends `ds:filter` (`{ filters, name, reason }`) on the
+  panel; the page filters, re-renders its list, and writes the counts with `counts()` and the total with `count()`.
+- **Applied chips and Clear all.** `.ds-facets__chips` gets an input chip per applied value ("Status: Online"); a chip
+  removes its value and the focus moves to the next chip, else the one before, else the first filter.
+  `.ds-facets__clear` empties every filter; it is `aria-disabled="true"` while nothing is applied, and
+  `.ds-facets__applied` hides. Removals are announced ("Removed Status: Online", "Filters cleared"). A second
+  `.ds-facets__applied` in `.ds-facets-layout__main` (optional, with its chips and Clear all) shows only while the
+  layout is folded, so on a phone the applied filters stay in sight and removable without opening the sheet; when its
+  last chip goes the focus moves to the toggle.
+- **Result count.** `count(27)` writes "27 results" in `.ds-facets__count` (in the main part, or in the panel without a
+  layout) and "Show 27 results" on `.ds-facets__results` at once. After a change by the user the count is announced
+  once the changes pause (`--ds-delay-tooltip`), through the page's announcer, which also speaks while the panel sits
+  in the modal sheet; the first count and `set()` stay quiet. `.ds-facets__count` is no live region of its own.
+- **Counts.** `counts({ status: { online: 24, offline: 0 } })` writes each option's `.ds-check__count` in the locale.
+  An option counted 0 that is not checked is disabled (or hidden, with `data-ds-facets-zero="hide"`), never while it has
+  the focus; a checked one stays, so it can be unchecked.
+- **Limit.** With `data-ds-facet-limit="4"` the first four options show, with every checked one, and
+  `.ds-facet__more` says "Show all 12" (`aria-expanded="false"`); then "Show fewer". The focus stays on the button.
+- **Search inside a facet.** Typing in the unnamed field of `.ds-facet__search` shows the options whose label holds the
+  text (case and accents aside), whatever the limit; `.ds-facet__empty` says "No match for “x”". Once typing pauses
+  (`--ds-delay-tooltip`) the number of matches is announced ("3 matches"). Escape empties the search first (a sheet
+  around it stays open), then closes the sheet.
+- **Folding.** In a `.ds-facets-layout` a `ResizeObserver` writes `data-folded` on the layout when the panel would wrap
+  above `.ds-facets-layout__main`: the panel hides and `.ds-facets__toggle` shows, its `.ds-facets__badge` counting the
+  applied filters ("Filters 2 applied" to a screen reader). The toggle opens the sheet with the panel moved into its
+  body (`DS.filterbar.fold()`: the panel keeps its values, search and focus; its own title hides, as the sheet has
+  one) and moves it back once the sheet closed. `.ds-facets__results` in the sheet's foot shows the count ("Show 27
+  results") and closes it. Without the script nothing folds: the panel wraps above the list.
+
+### JS API
+
+```js
+const panel = DS.facets.create(el);                       // the controller data-ds-facets makes
+panel.get();                                              // { status: ['online'], storage: ['', '512'] }
+panel.set({ owner: ['ada'] });                            // the controls follow; sends nothing
+panel.clear();                                            // every filter, silent (panel.clear('status=online'): one chip)
+panel.counts({ status: { online: 24, offline: 3 } });     // the counts of the options
+panel.count(27);                                          // "27 results", "Show 27 results"
+panel.open();                                             // the panel in its sheet now
+panel.on('change', ({ filters }) => render(filters));
+panel.update();                                           // after the page added or removed options
+
+DS.facets.visible(options, { query, limit, expanded, zero });   // which options show: { shown, matches, total, more }
+DS.facets.foldText('Ádá  Lovelace');                             // 'ada lovelace': the text a facet search compares
+```
+
+`DS.facets.create(el, options)` returns the controller (`get()`, `set(filters)`, `clear(key)`, `counts(map)`,
+`count(value, forms)`, `open()`, `on('change', fn)`, `update()`, `destroy()`); `options.sheet` and `options.zero` stand
+for the attributes. `DS.facets.visible(options, state)` and `DS.facets.foldText(text)` are its rules as pure
+functions.
+
+### Accessibility
+
+- **Names and roles.** The panel is a `<section role="complementary">` (a complementary landmark, as an `<aside>`
+  would be) named by its title. Each facet is a `<fieldset>` named by its `<legend>`, so a screen reader says "Status,
+  group" before its options; every option is a native checkbox or radio with its label (the count is part of the name:
+  "Online 24"). The facet search has an `aria-label`. The chips are buttons in a named group ("Remove filter Status:
+  Online"). The count is announced by the system (no `aria-live` on `.ds-facets__count`).
+- **Keyboard.** Tab walks the search, the options (radios: one stop, arrows choose), "Show all" and the fields; Space
+  checks. In the sheet focus starts on the first control, Tab stays inside, Escape closes it (after emptying a facet
+  search) and focus returns to "Filters".
+- **Announcements.** Removals and Clear all; the matches of a facet search; the page's count after a change, once
+  changes pause (also from the sheet).
+- **Strings.** `facetShowAll`, `facetShowFewer`, `facetNoMatch`, `facetMatchesOne`, `facetMatchesOther`, and the filter
+  bar's `removeFilter`, `filterRemoved`, `filtersCleared`, `filtersApplied`, `filterChip`, `resultsOne`,
+  `resultsOther`, `showResults`, `rangeMin`, `rangeMax`, `rangeBetween` (`DS.core.config()`).
+
+### Forced colours
+
+The rows, fields, buttons and chips keep their own forced-colours models; the hairlines between facets are borders,
+drawn in the system's text colour. A checked option keeps its check and its label weight.
+
+### Hooks
+
+| Hook | Default | What |
+|---|---|---|
+| `--ds-facets-width` | 280px | the panel beside the list |
+| `--ds-facets-main-min` | 50% | the least share of the row the list keeps; the panel folds when both do not fit |
+| `--ds-facets-gap` | `--ds-space-6` | the gap between the panel and the list at md, comfortable: 4px per size step, 2px per density step |
+| `--ds-facet-max-height` | 264px | where the options of a `.ds-facet--scroll` facet scroll |
+
+**Motion:** none of its own. Options show and hide at once; the chips are input chips; the sheet plays the side sheet's
+motion; the list's change is the page's `DS.motion.flip()`.
+
+<!-- changelog
+- Facet filter panel (`DS.facets`, `.ds-facets-layout`, `__main`, `.ds-facets`, `__head`, `__title`, `__clear`,
+  `__applied`, `__chips`, `__toggle`, `__badge`, `__count`, `__results`, `.ds-facet`, `--scroll`, `__title`,
+  `__options`, `__search`, `__empty`, `__more`, `__range`, `__dash`, `data-folded`, `data-ds-facets-sheet`,
+  `data-ds-facets-zero`, `data-ds-facet-limit`, hooks `--ds-facets-width`, `--ds-facets-main-min`, `--ds-facets-gap`,
+  `--ds-facet-max-height`): facets with counts, a search inside long facets, a limit with "Show all", ranges, applied
+  chips with Clear all, a side sheet when the layout is narrow; `counts()`, `count()`, `open()`, `visible()`,
+  `foldText()`; a second applied row in the main part while folded; the count announced once changes pause. Strings `facetShowAll`, `facetShowFewer`, `facetNoMatch`, `facetMatchesOne`, `facetMatchesOther`.
+- Filter bar: a radio of `value=""` is "Any" (no filter), and the one checked again once its filter is empty.
+-->
+## Filter bar
+
+A search and inline filters above a list, the applied filters as chips with "Clear all", and a result count. When the
+bar is too narrow for its filters, they fold behind a "Filters" button that opens them in a [side sheet](#side-sheet).
+For many filters with counts beside the list, use the [facet filter panel](#facet-filter-panel).
+
+```html
+<div class="ds-filterbar" data-ds-filterbar data-ds-filterbar-sheet="#filters-sheet" role="search" aria-label="Filter devices">
+  <div class="ds-filterbar__row">
+    <div class="ds-search ds-filterbar__search">[icon search 20]
+      <input class="ds-input" type="search" name="q" aria-label="Search devices" placeholder="Search devices"></div>
+    <div class="ds-filterbar__filters">
+      <div class="ds-field"><label class="ds-field__label" for="f-status">Status</label>
+        <select class="ds-input" id="f-status" name="status"><option value="">Any</option><option value="online">Online</option><option value="offline">Offline</option></select></div>
+      <div class="ds-field"><label class="ds-field__label" for="f-kind">Type</label>
+        <select class="ds-input" id="f-kind" name="kind"><option value="">Any</option><option value="laptop">Laptop</option></select></div>
+      <div class="ds-filterbar__range" role="group" aria-label="Storage in GB" data-ds-filter-label="Storage">
+        <div class="ds-field"><label class="ds-field__label" for="f-from">Storage from</label>
+          <input class="ds-input" id="f-from" type="number" inputmode="numeric" min="0" name="storage" data-ds-filter-bound="min"></div>
+        <div class="ds-field"><label class="ds-field__label" for="f-to">to</label>
+          <input class="ds-input" id="f-to" type="number" inputmode="numeric" min="0" name="storage" data-ds-filter-bound="max"></div>
+      </div>
+      <label class="ds-check"><input type="checkbox" name="mine" value="yes"><span>Only mine</span></label>
+    </div>
+    <button class="ds-btn ds-filterbar__more" type="button" aria-haspopup="dialog">[icon filter 20]Filters<span class="ds-badge ds-filterbar__badge" hidden></span></button>
+    <p class="ds-filterbar__count">48 results</p>
+  </div>
+  <div class="ds-filterbar__applied" hidden>
+    <div class="ds-chips ds-filterbar__chips" role="group" aria-label="Applied filters"></div>
+    <button class="ds-btn ds-btn--text ds-filterbar__clear" type="button">Clear all</button>
+  </div>
+</div>
+
+<dialog class="ds-sheet" id="filters-sheet" aria-labelledby="filters-title">
+  <div class="ds-sheet__backdrop" data-ds-close></div>
+  <section class="ds-sheet__panel">
+    <div class="ds-sheet__head"><h2 class="ds-sheet__title" id="filters-title">Filters</h2>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>[icon close 20]</button></div>
+    <div class="ds-sheet__body" tabindex="0"></div>
+    <div class="ds-sheet__foot">
+      <button class="ds-btn ds-btn--text ds-filterbar__clear" type="button">Clear all</button>
+      <button class="ds-btn ds-btn--filled ds-filterbar__results" type="button" data-ds-close>Show 48 results</button>
+    </div>
+  </section>
+</dialog>
+```
+
+### Options
+
+| Option | Classes, attributes | Where it applies | Effect |
+|---|---|---|---|
+| Sheet | `data-ds-filterbar-sheet` (a selector) | `.ds-filterbar` | the side sheet the folded filters open in; without one the filters wrap instead of folding |
+| Label of a filter | `data-ds-filter-label` | a control or any ancestor in the bar | the name on its chips; default the fieldset's legend (checkboxes, radios, a range) or the field's label |
+| Chip | `data-ds-filter-chip` `off`, `value` | a control or any ancestor | no chip, or the value alone ("Online"); a search field has none by default |
+| Range | `data-ds-filter-bound` `min`, `max`; `.ds-filterbar__range` around them | two fields of one name | one filter `[min, max]` and one chip ("Storage: 256 to 1,024"); the part sets the two fields side by side, `--ds-filterbar-range-width` (96px) each, sharing the row in the sheet |
+| Size, shape, touch | `.ds-xs` ... `.ds-xl`, `.ds-shape-*`, `.ds-touch` | the bar or any ancestor | reach the search, fields, buttons and chips, which compute them; the gaps step 4px per size step |
+| Density | `.ds-density-*` | the bar or any ancestor | the gaps, 2px per step, and the controls' heights |
+| Widths | `--ds-filterbar-search-min`, `--ds-filterbar-field-width`, `--ds-filterbar-range-width`, `--ds-filterbar-gap` | the bar | the search's least width (200px), an inline field (160px), a field of a range (96px), the gap (12px) |
+
+There is no tone: a filter shows no meaning of its own. The count keeps the meta role.
+
+### Behaviour
+
+`js/filterbar.js` (`data-ds-filterbar`, or `DS.filterbar.create(el, options)`):
+
+- **Filters** are the named form controls in the bar: checkboxes, radios, selects, text, search, number and date
+  fields. Each is a list of strings: the checked values, the selected options, a field's text; two fields of one name
+  with `data-ds-filter-bound="min"` and `"max"` are a range, `[min, max]` (`''` for an open end). Empty filters are
+  left out: `{ q: ['fan'], status: ['online'], storage: ['256', ''] }`.
+- **Changes.** Typing in a text field (every input), and a change of the others, sends `ds:filter`
+  (`{ filters, name, reason }`) on the bar once the filters changed. The page filters and re-renders its list with
+  `DS.dom.morphHtml` inside `DS.motion.flip()`, then writes the count with `count()`: it shows at once ("48 results",
+  "Show 48 results"), and after a change by the user it is announced once the changes pause (`--ds-delay-tooltip`, so
+  typing in the search says it once), through the page's announcer, which also speaks while the filters sit in the
+  modal sheet. The first count and `set()` stay quiet.
+- **Applied chips.** `.ds-filterbar__chips` gets an input chip per applied value ("Status: Online"; owned markup,
+  keyed). A chip removes its value, `.ds-filterbar__clear` every filter but the search text; both dispatch `input` and
+  `change` on the controls they changed (so the page's own listeners hear it), send one `ds:filter` and are announced
+  ("Removed Status: Online", "Filters cleared"). The focus goes to the next chip, else the one before, else the search.
+  `.ds-filterbar__applied` hides while nothing is applied (`hidden`, written); a Clear all button in the sheet takes
+  `aria-disabled="true"` then.
+- **Folding.** A `ResizeObserver` checks whether the search (at least `--ds-filterbar-search-min`), the filters and the
+  count fit in one row. When they do not, `data-folded` on the bar hides the filters and shows `.ds-filterbar__more`,
+  whose `.ds-filterbar__badge` counts the applied filters among them ("Filters 2 applied" to a screen reader). It opens
+  the sheet with the filters moved into its `.ds-sheet__body` (`DS.filterbar.fold()`; they keep their values and
+  state, and the filters in the sheet stack full width), and moves them back once the sheet closed. `.ds-filterbar__results`
+  in the sheet's foot shows the count ("Show 48 results") and closes it. When the bar is wide enough again it unfolds.
+  Without the script nothing folds: the row wraps.
+
+### JS API
+
+```js
+const bar = DS.filterbar.create(el);              // the controller data-ds-filterbar makes
+bar.get();                                         // { q: ['fan'], status: ['online'] }
+bar.set({ status: ['offline'] });                  // the controls follow; sends nothing
+bar.clear();                                       // as Clear all, silent (bar.clear('status=online'): one chip)
+bar.count(48);                                     // "48 results", "Show 48 results"
+bar.count(1, { one: '{count} device', other: '{count} devices' });
+bar.fold();                                        // fold and open the sheet now
+bar.on('change', ({ filters, name, reason }) => render(filters));
+
+DS.filterbar.read(form);                           // the filters of any container's named controls
+DS.filterbar.write(form, { status: ['online'] });  // sets them; returns the controls that changed
+DS.filterbar.applied(form);                        // [{ key, name, value, label, text, chip }]
+DS.filterbar.fold(part, sheet, { opener });        // opens the sheet with `part` in its body, back after it closed
+```
+
+`DS.filterbar.create(el, options)` returns the controller (`get()`, `set(filters)`, `clear(key)`, `count(value, forms)`,
+`fold()`, `on('change', fn)`, `update()`, `destroy()`); `options.sheet` is the sheet (a selector or an element).
+`DS.filterbar.read(root)`, `DS.filterbar.write(root, filters)` and `DS.filterbar.applied(root)` are the bar's rules for
+any container. `DS.filterbar.fold(part, sheet, options)` opens a sheet with a part of the page in its body (`options.into`:
+another element of the sheet) and puts it back when the sheet has closed (`options.back` runs then).
+`DS.filterbar.filters(el, options)` is the engine of the chips, Clear all and the count on any container (`chips`,
+`clear`, `applied`, `count`, `results` and `home` selectors, matched in the element and in the roots `extra()` returns;
+`fallback()` takes the focus when `home` finds nothing), which the [facet filter panel](#facet-filter-panel) builds on;
+its handle adds `count(value, forms)` and `watch(root, signal)` (chips and Clear all in a root outside the element).
+`destroy()` with the filters in the sheet moves them back and closes it.
+
+### Accessibility
+
+- **Names and roles.** The bar is `role="search"` with a name ("Filter devices"); every field has its label (a visible
+  `.ds-field__label`, or `aria-label` on the search). The chips are buttons in a named `role="group"`; each says what it
+  does ("Remove filter Status: Online"). The count is announced by the system after a change (no `aria-live` on
+  `.ds-filterbar__count`: the page around a modal sheet is inert, and a live region there would be silent).
+- **Keyboard.** Tab goes through the search, the filters (or the "Filters" button), the chips and Clear all; each
+  control keeps its own keys. Enter or Space on a chip removes it and the focus stays in the row. In the sheet focus
+  starts on the first filter, Tab stays inside, Escape closes it and focus returns to "Filters".
+- **Announcements.** "Removed Status: Online", "Filters cleared" (polite); the page's count follows once the changes
+  pause, from the bar and from the sheet.
+- **Strings.** `removeFilter`, `filterRemoved`, `filtersCleared`, `filtersApplied`, `filterChip`, `resultsOne`,
+  `resultsOther`, `showResults`, `rangeMin`, `rangeMax` and `rangeBetween` of `DS.core.config()`.
+
+### Forced colours
+
+The chips (input chips), fields and buttons keep their own forced-colours models; the bar adds no colour of its own.
+
+### Hooks
+
+| Hook | Default | What |
+|---|---|---|
+| `--ds-filterbar-gap` | `--ds-space-3` | the gaps at md, comfortable: 4px per size step, 2px per density step |
+| `--ds-filterbar-search-min` | 200px | the search's least width; the filters fold when it would not fit beside them |
+| `--ds-filterbar-field-width` | 160px | an inline filter field |
+| `--ds-filterbar-range-width` | 96px | each field of a `.ds-filterbar__range` in the row (they share the row in the sheet) |
+
+**Motion:** none of its own. Folding and unfolding change the row at once; the chips come and go at once (input chips);
+the sheet plays the side sheet's motion; the list's change is the page's `DS.motion.flip()`.
+
+<!-- changelog
+- Filter bar (`DS.filterbar`, `.ds-filterbar`, `.ds-filterbar__row`, `__search`, `__filters`, `__more`, `__badge`,
+  `__range`, `__count`, `__applied`, `__chips`, `__clear`, `__results`, `data-folded`, hooks `--ds-filterbar-gap`,
+  `--ds-filterbar-search-min`, `--ds-filterbar-field-width`, `--ds-filterbar-range-width`): inline filters that fold into a side sheet by the bar's
+  width, applied input chips with Clear all, a result count, `ds:filter`; `read()`, `write()`, `applied()`, `fold()` and
+  the `filters()` engine. Strings `removeFilter`, `filterRemoved`, `filtersCleared`, `filtersApplied`, `filterChip`,
+  `resultsOne`, `resultsOther`, `showResults`, `rangeMin`, `rangeMax`, `rangeBetween`.
+-->
+## Saved views
+
+Named sets of a list's filters, sort and columns, picked from a menu: the page's own views come built in, the user
+saves, renames and deletes theirs (remembered in the browser), one is the default, and a link carries the current view
+and state. It sits above a list or a [table](#table) with a [filter bar](#filter-bar) or a
+[facet filter panel](#facet-filter-panel) and a [sort control](#sort-control).
+
+```html
+<div class="ds-views" data-ds-views data-ds-views-key="devices" data-ds-views-url="sync">
+  <button class="ds-btn ds-views__trigger" type="button" aria-haspopup="menu" aria-expanded="false" data-ds-open="#views-menu">
+    [icon layers 20]<span class="ds-sr">View: </span><span class="ds-views__name">All devices</span>
+    <span class="ds-views__edited" hidden>Edited</span>[icon chevronDown 20 ds-views__chevron]</button>
+  <button class="ds-btn ds-btn--text ds-views__save" type="button" hidden>Save view</button>
+  <div class="ds-menu" id="views-menu" role="menu" aria-label="Views" hidden>
+    <div class="ds-views__list" role="group" aria-label="Views">
+      <button class="ds-menu__item" role="menuitemradio" aria-checked="false" type="button" data-ds-view="all" data-ds-view-default>
+        [icon check 20 ds-menu__check]<span class="ds-menu__label">All devices</span></button>
+      <button class="ds-menu__item" role="menuitemradio" aria-checked="false" type="button" data-ds-view="offline"
+              data-ds-view-state="status=offline&amp;sort=-seen">[icon check 20 ds-menu__check]<span class="ds-menu__label">Offline</span></button>
+    </div>
+    <div class="ds-menu__divider" role="separator"></div>
+    <button class="ds-menu__item" role="menuitem" type="button" data-ds-views-action="save">[icon save 20]<span class="ds-menu__label">Save changes</span></button>
+    <button class="ds-menu__item" role="menuitem" type="button" data-ds-views-action="create">[icon plus 20]<span class="ds-menu__label">Save as new view …</span></button>
+    <button class="ds-menu__item" role="menuitem" type="button" data-ds-views-action="rename">[icon pencil 20]<span class="ds-menu__label">Rename …</span></button>
+    <button class="ds-menu__item" role="menuitem" type="button" data-ds-views-action="default">[icon star 20]<span class="ds-menu__label">Make default</span></button>
+    <button class="ds-menu__item" role="menuitem" type="button" data-ds-views-action="share">[icon link 20]<span class="ds-menu__label">Copy link</span></button>
+    <div class="ds-menu__divider" role="separator"></div>
+    <button class="ds-menu__item ds-menu__item--danger" role="menuitem" type="button" data-ds-views-action="delete">[icon trash 20]<span class="ds-menu__label">Delete view</span></button>
+  </div>
+</div>
+```
+
+### Options
+
+| Option | Classes, attributes | Where it applies | Effect |
+|---|---|---|---|
+| Storage key | `data-ds-views-key` | `.ds-views` | the key of the user's views in `DS.store` (namespace `views`); one per list |
+| Address | `data-ds-views-url` `read` (default), `sync`, `off` | `.ds-views` | read the first view from the address; also write every change into it (`history.replaceState`); or leave it alone |
+| Prefix | `data-ds-views-prefix` (`d.`) | `.ds-views` | only parameters that start with it are read and written, so the page's other parameters stay its own |
+| Built-in view | `data-ds-view="<id>"`, `data-ds-view-state` (a query string), `data-ds-view-default` | a `menuitemradio` in `.ds-views__list` | a view of the page; it cannot be renamed, saved over or deleted |
+| Action | `data-ds-views-action` `save`, `create`, `rename`, `default`, `share`, `delete` | a menu item or a button | what it does (below); `aria-disabled` where it does not apply |
+| Size, density, shape, touch | `.ds-xs` ... `.ds-xl`, `.ds-density-*`, `.ds-shape-*`, `.ds-touch` | `.ds-views` or any ancestor | reach the buttons and the menu, which compute them; the gap steps 4px per size step |
+| Name width | `--ds-views-name-max` | `.ds-views` | the widest the view's name gets on the trigger (240px), then an ellipsis |
+
+There is no tone: a view shows no meaning of its own. Deleting is the menu's danger item, confirmed in a dialog whose
+filled button is in the error tone and names the consequence (D10).
+
+### Behaviour
+
+`js/views.js` (`data-ds-views`, or `DS.views.create(el, options)`):
+
+- **A state** is `{ filters, sort, columns }`: the filters as [`DS.filterbar.read()`](#filter-bar) gives them, the sort
+  as [`DS.sort.stringify()`](#sort-control) writes it (`-seen`), the columns as a list of names; each may be left out.
+  The page tells the current one with `set({ state })` after every change of its own; while it differs from the
+  current view the trigger says "Edited" (`.ds-views__edited`) and `.ds-views__save` shows.
+- **In the address** a state is a query string (`DS.views.toQuery()`, `DS.views.fromQuery()`): one parameter per
+  filter value (`status=online&status=offline`, a range `storage=&storage=512`), `sort=-seen`, `cols=name,status` and
+  `view=<id>`. Without a prefix every parameter but `view`, `sort` and `cols` is a filter; a page with parameters of its
+  own sets `data-ds-views-prefix`.
+- **The first view** comes from the address (unless `off`), else the stored default, else the built-in
+  `data-ds-view-default`, else the first. The page reads it with `get()` and applies `get().state`.
+- **Picking** a view from the menu sends `ds:view` (`{ id, name, state, reason: 'select' }`) for the page to apply,
+  and announces "View: Offline". The system writes `aria-checked` on the views, the star and "Default" on the default
+  one (`.ds-views__default`, at the row's end), the name on the trigger, and renders the user's views after the
+  built-in ones (owned markup).
+- **Actions.** `save` puts the state over the current view (a built-in one: as a new view); `create` asks a name (a
+  [prompt dialog](#dialog)) and saves a new view; `rename` asks a new one; `default` makes the current view the
+  default; `share` copies the link to the clipboard (else shows it in a dialog to copy); `delete` asks first and goes
+  back to the default view. Each changes the user's set in `DS.store` and sends `ds:views` (`{ views, default, reason }`);
+  saving and copying show a snackbar, every action is announced. Actions run once the menu has closed and given the
+  focus back; a dialog's focus returns to the trigger.
+- **Other tabs.** A view saved, renamed or deleted in another tab shows here at once (`DS.store`); a deleted current
+  view falls back to the default.
+
+### JS API
+
+```js
+const views = DS.views.create(el, { views: [{ id: 'mine', name: 'Mine', state: { filters: { owner: ['ada'] } } }] });
+views.get();          // { id: 'all', name: 'All devices', state: {}, edited: false, default: 'all', views: [...] }
+views.set({ state: { filters: bar.get(), sort: DS.sort.stringify(sort.get()), columns } });
+views.set('offline');                           // pick a view; sends nothing, the page applies get().state
+views.on('view', ({ state }) => apply(state));
+await views.save();  await views.create('Offline laptops');  await views.rename('Laptops');
+await views.setDefault();  await views.share();  await views.remove(true);   // true: ask first
+views.link();                                   // the address of the current view and state
+
+DS.views.toQuery({ filters: { status: ['online'] }, sort: '-seen' }, { view: 'all' });   // 'view=all&status=online&sort=-seen'
+DS.views.fromQuery('?status=online&sort=-seen');   // { view: null, state: { filters: { status: ['online'] }, sort: '-seen' } }
+```
+
+`DS.views.create(el, options)` returns the controller (`get()`, `set(value)`, `on(type, fn)`, `save()`,
+`create(name)`, `rename(name)`, `setDefault()`, `share()`, `remove(ask)`, `link()`, `update()`, `destroy()`);
+`options.key`, `options.url` and `options.prefix` stand for the attributes, `options.views` adds built-in views.
+`DS.views.toQuery(state, options)` and `DS.views.fromQuery(search, options)` are the address format alone.
+
+### Accessibility
+
+- **Names and roles.** The trigger is a menu button (`aria-haspopup="menu"`, `aria-expanded`) whose name says "View:
+  All devices", and "Edited" while edited. The views are `menuitemradio` items in a named group, the current one
+  `aria-checked="true"`; the default carries the word "Default", never the star alone. Actions that do not apply are
+  `aria-disabled="true"` and keep their place, so their names are read.
+- **Keyboard.** The [menu](#menu)'s: Enter, Space or ArrowDown opens it, the arrows move, Enter picks, Escape closes
+  and the focus returns to the trigger. In the name dialog Enter saves and Escape cancels.
+- **Announcements.** "View: Offline", "Saved Offline laptops", "Deleted Offline laptops", "Offline is the default view",
+  "Link copied".
+- **Strings.** `viewEdited`, `viewDefault`, `viewApplied`, `viewSaved`, `viewDeleted`, `viewDefaultSet`,
+  `viewLinkCopied`, `viewNameLabel`, `viewNewTitle`, `viewRenameTitle`, `viewSave`, `viewLinkTitle`, `viewDeleteTitle`,
+  `viewDeleteText`, `viewDeleteConfirm` (`DS.core.config()`). The menu's labels are the page's own.
+
+### Forced colours
+
+The words are text and the buttons, the menu and its checks keep their own models; the views add no colour.
+
+### Hooks
+
+| Hook | Default | What |
+|---|---|---|
+| `--ds-views-name-max` | 240px | the widest the view's name gets on the trigger |
+
+**Motion:** the trigger's chevron turns while its menu is open (`--ds-dur-medium`, `--ds-ease-spatial`); the menu,
+the dialogs and the snackbar play their own motion.
+
+<!-- changelog
+- Saved views (`DS.views`, `.ds-views`, `__trigger`, `__name`, `__edited`, `__chevron`, `__save`, `__list`,
+  `__default`, `data-ds-views-key`, `data-ds-views-url`, `data-ds-views-prefix`, `data-ds-view`, `data-ds-view-state`,
+  `data-ds-view-default`, `data-ds-views-action`, hook `--ds-views-name-max`): named filter, sort and column sets in a
+  menu, built-in and the user's own (in `DS.store`, followed across tabs), a default, "Edited" while the state differs,
+  a link that carries the view (`toQuery()`, `fromQuery()`, `history.replaceState` with `sync`), `ds:view` and
+  `ds:views`. Strings `viewEdited` ... `viewDeleteConfirm`.
+-->
 ## Horizontal scroller
 
 Content wider or taller than its room scrolls on its own, with a fade at each end that still has content to show.
@@ -2756,7 +7858,7 @@ radios and their cards, fieldsets and form sections, filters and an action bar. 
 | Variant | `.ds-field--outlined` (default), `.ds-field--filled`, `.ds-field--inset`; on one control `.ds-input--outlined`, `.ds-input--filled`, `.ds-input-group--filled` | the field, or one control | the look: an outline, the tonal fill, the tonal box with the label inside |
 | Size | `.ds-xs`, `.ds-sm`, `.ds-md`, `.ds-lg`, `.ds-xl` | a control, a field, a form | fields 24, 32, 40, 48, 56px high (8px per step), side padding 4px per step, the size's type role at the regular weight (16px on phones at every size); a `.ds-check` row and the halo 8px per step, the box 2px per step; labels and hints keep their roles |
 | Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container (the compact theme sets dense) | 4px less height per step (fields, groups, the inset box, `.ds-check` rows, halos); 2px less padding per step on cards; side padding and type stay |
-| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the radius of fields, the search pill, the composer, checkboxes, the check list and the cards times 0, .5, 1, 1.5; a card's press morph too. A radio stays round |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the radius of fields, the search pill, checkboxes, the check list and the cards times 0, .5, 1, 1.5; a card's press morph too. A radio stays round |
 | Touch | `.ds-touch` | the theme or a container | at least `--ds-touch-target` (48px) whatever the size and density, a minimum and no addition (`.ds-lg` stays 48px, `.ds-xl` 56px): fields, `.ds-check` rows, cards, halos; field text at `--ds-font-input`. A halo is painted: a bare `.ds-checkbox` or `.ds-radio-input` still takes a tap only on its box, so under touch give it a `.ds-check` label or an equally large label around it |
 | State | `aria-invalid="true"`, `.ds-field--warning`, `.ds-field--success`, `readonly`, `aria-readonly="true"`, `disabled` | the control, the field | the border and ring, always with a hint in words; there is no tone class on a field |
 
@@ -2814,7 +7916,7 @@ radios and their cards, fieldsets and form sections, filters and an action bar. 
 - Keyboard and names: native controls, so Tab reaches every field, checkbox and radio, Space toggles, the arrows move
   within a radio group and step a number. Every field has a `<label>` (`.ds-sr` when the design shows none) and its
   hint by `aria-describedby`; a group of radios a `role="radiogroup"` with a name.
-- Forced colours: a focused field (also an input group, a filled field and the composer) shows a `Highlight`
+- Forced colours: a focused field (also an input group and a filled field) shows a `Highlight`
   outline, since its inset ring is a shadow that forced colours drop; a selected card's edge and checked input are
   `Highlight`; blocked is `GrayText` (a disabled field or group, a disabled fieldset's legend, a blocked card's title
   and edge when checked); a warning or success field keeps the system's edge and its word says which.
@@ -2856,9 +7958,40 @@ radios and their cards, fieldsets and form sections, filters and an action bar. 
 - `.ds-field__optional` marks the few optional fields (the recommended way); where most fields are optional, mark
   the required ones with an `aria-hidden` `.ds-field__required` asterisk and `required` on the input (screen readers
   announce that).
-- `.ds-field__foot` puts the hint and a `.ds-field__counter` in one row (the counter at the end, tabular). The counter
-  is `aria-hidden` and the page updates it on `input`; near the limit the page announces what is left once. Past the
-  limit it takes `.ds-field__counter--over` (the figures say it, the error ink repeats it).
+- `.ds-field__foot` puts the hint and a `.ds-field__counter` in one row (the counter at the end, tabular). Past the
+  limit it takes `.ds-field__counter--over` (the figures say it, the error ink repeats it). `data-ds-counter` on the
+  input or textarea lets `DS.form` keep it (below); a page may also write it itself.
+
+**Counter (`DS.form`, 3.0).** `data-ds-counter` on the input or textarea: the limit is `maxlength`, else
+`data-ds-counter-max` (a soft limit: typing past it is allowed and shows). The counter is the field's
+`.ds-field__counter`, or the element whose id `data-ds-counter` names.
+
+```html
+<textarea class="ds-input" id="note" maxlength="200" data-ds-counter aria-describedby="note-hint"></textarea>
+<div class="ds-field__foot">
+  <small class="ds-field__hint" id="note-hint">Shown to the next person.</small>
+  <span class="ds-field__counter" aria-hidden="true"></span>
+</div>
+```
+
+- It reads "14 / 200" in the locale's digits (without a limit, "14"), counting what `maxlength` counts (UTF-16 code
+  units, so an emoji is 2), and takes `.ds-field__counter--over` past a soft limit.
+- The counter stays `aria-hidden`: a reader is told once when the text comes near the limit (at most
+  `data-ds-counter-warn` characters left, default a tenth of the limit, at least 5: "8 characters left") and once when
+  it goes past it ("3 characters too many"), never on each key (the strings `charactersLeft`, `charactersLeftOne`,
+  `charactersOver`, `charactersOverOne`).
+- `ds:change` with `{ length, max, remaining, over }` goes out on the field when the length changes. A form `reset`
+  counts again.
+
+```js
+const note = DS.form.counter(textarea);    // or DS.core.get(textarea, 'counter')
+note.get();                                // { length: 14, max: 200, remaining: 186, over: false }
+note.set('Dock in room B 2.14');
+DS.form.count('Dock in room B', 200);      // the same count, without a field
+```
+
+`DS.form.counter` returns the controller the attribute path makes (`get`, `set`, `on`, `update`, `destroy`);
+`DS.form.count` is the count behind it.
 
 **Search key**
 
@@ -3085,24 +8218,38 @@ const pill = DS.indicator.create(group, { active: '.ds-radio:has(input:checked)'
 group.addEventListener('change', () => pill.update()); // checking a radio changes no attribute
 ```
 
-**Growing textarea and the composer**
+**Growing textarea**
 
 ```html
 <textarea class="ds-input ds-input--grow" rows="1" aria-label="Note"></textarea>
-
-<form class="ds-composer">
-  <textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message" placeholder="Write a message"></textarea>
-  <button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send" data-tip="Send">[icon send 20]</button>
-</form>
 ```
 
 - `.ds-input--grow` starts one row tall (`--ds-input-height`) and grows with its text up to `--ds-input-grow-max`
-  (50vh), then scrolls. Where `field-sizing: content` is missing, call `DS.dom.autosize(textarea)` once; its height
-  then follows the text through the CSSOM (never animated).
-- `.ds-composer`: a filled shell (`--ds-composer-radius`) with the textarea and its actions, which stay at the
-  bottom while the text grows (up to `--ds-composer-max-height`, 220px). The ring follows the field model on the
-  shell: at once while the focus is inside, fading back on blur. Forced colours: the shell keeps a transparent border
-  (its edge there) and shows the outline while focused.
+  (50vh), then scrolls. Where `field-sizing: content` is missing, `DS.dom.autosize(textarea)` sets the height through
+  the CSSOM (never animated); since 3.0 `DS.init()` does it for every `textarea.ds-input--grow` (the behaviour
+  `autosize` of `DS.form`), so the page calls nothing. Where `field-sizing` exists it steps aside.
+- A message field with its actions, attachments, commands and mentions is the [composer](#composer).
+
+**Customizable select (`.ds-select`, progressive).**
+
+```html
+<select class="ds-input ds-select" id="kind">
+  <button><selectedcontent></selectedcontent></button>
+  <option value="laptop">[icon laptop 20]Laptop</option>
+  <option value="monitor">[icon monitor 20]Monitor</option>
+</select>
+```
+
+- Where `appearance: base-select` exists, the list opens as the engine's own picker on the menu's surface
+  (`--ds-surface-popover`, `--ds-elev-popover`, the corners of `--ds-radius-xs` times the shape), rows of the menu's
+  height (`--ds-menu-item-height` at every size and density, at least the touch target), a check before the chosen row
+  and its label weight, the hover and focus layers of every row; an option may hold an icon or a second line, and
+  `<selectedcontent>` shows the chosen one in the field. The chevron turns while it is open (`--ds-dur-medium` on the
+  spring); the list fades in on `--ds-dur-fast` and out on `--ds-dur-instant`.
+- Elsewhere it is the styled native select (the triangle, the platform's list); the `<button>` and
+  `<selectedcontent>` are ignored, and the option's icon is not shown. Keys, type-ahead, the value, `required` and
+  `:user-invalid` are the engine's either way.
+- Forced colours: the chosen row is `SelectedItem`, the focused one has a `CanvasText` ring, the list keeps an edge.
 
 **Actions that stay on a phone**
 
@@ -3161,6 +8308,1019 @@ follows, so the page's filter runs) and the next Escape closes the layer (2.0, `
 **Motion:** the check, radio, focus, validation, confirmation, changed dot, search key and radio tile rows of
 [Controls](motion.md#controls) in motion.md. A checkbox card moves as a radio card; a warning hint enters as an error
 hint does.
+
+<!-- changelog
+- Form: `DS.form` (3.0), the module of the field. `data-ds-counter` keeps a `.ds-field__counter` ("14 / 200", the
+  `--over` class past a soft `data-ds-counter-max`) and says once that the limit is near or passed (strings
+  `charactersLeft`, `charactersLeftOne`, `charactersOver`, `charactersOverOne`); `DS.form.counter()`,
+  `DS.form.count()`. Every `textarea.ds-input--grow` grows by itself where `field-sizing` is missing (the behaviour
+  `autosize`). `.ds-select`: a customizable select where `appearance: base-select` exists (the menu's surface and rows,
+  a check, rich options, `<selectedcontent>`), the styled native select elsewhere.
+-->
+## Number input
+
+A number, an amount or a quantity with a unit, typed in the page's locale or stepped: `DS.number` turns an input
+group of [Form](#form) into a WAI-ARIA spinbutton with stepper buttons, limits, a step, and a currency or unit
+written where the locale writes it.
+
+```html
+<div class="ds-field">
+  <label class="ds-field__label" for="quota">Quota (GB)</label>
+  <div class="ds-input-group ds-number" data-ds-number data-ds-number-min="0" data-ds-number-max="500" data-ds-number-step="5">
+    <input class="ds-input" id="quota" type="text" inputmode="numeric" autocomplete="off" value="50" aria-describedby="quota-hint">
+    <span class="ds-input-group__suffix" aria-hidden="true">GB</span>
+    <span class="ds-input-group__trailing ds-number__steps">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-number__step ds-number__down" type="button" tabindex="-1" aria-label="Decrease">[icon minimize 18]</button>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-number__step ds-number__up" type="button" tabindex="-1" aria-label="Increase">[icon plus 18]</button>
+    </span>
+    <input type="hidden" name="quota" value="50">
+  </div>
+  <small class="ds-field__hint" id="quota-hint">0 to 500, in steps of 5.</small>
+</div>
+
+<!-- an amount: the symbol goes where the locale writes it -->
+<div class="ds-input-group ds-number" data-ds-number data-ds-number-currency="EUR" data-ds-number-min="0">
+  <span class="ds-input-group__prefix" aria-hidden="true"></span>
+  <input class="ds-input" id="price" type="text" inputmode="decimal" autocomplete="off" value="19.9">
+  <span class="ds-input-group__suffix" aria-hidden="true"></span>
+  <input type="hidden" name="price" value="19.9">
+</div>
+
+<!-- a quantity: minus first, plus last, the figure centred -->
+<div class="ds-input-group ds-number ds-number--split" data-ds-number data-ds-number-min="1" data-ds-number-max="20">
+  <input class="ds-input" id="seats" type="text" inputmode="numeric" autocomplete="off" value="3">
+  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-number__step ds-number__down" type="button" tabindex="-1" aria-label="Fewer seats">[icon minimize 18]</button>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-number__step ds-number__up" type="button" tabindex="-1" aria-label="More seats">[icon plus 18]</button>
+</div>
+```
+
+The field is a text field (`type="text"`, `inputmode="decimal"` or `"numeric"`), not `type="number"`: only text can
+show `1.234,5` in German, and the wheel never changes it. The value a form posts is the plain one of the hidden input
+(`1234.5`); a plain first value goes there or into `data-ds-value` on the group, else the field's `value` is read in
+the locale.
+
+**Options** ([options.md](options.md)): the option classes on the group or any ancestor, the behaviour's options as
+attributes on the group (or as `DS.number.create()`'s options).
+
+| Option | Classes, attributes | Where it applies | Effect |
+|---|---|---|---|
+| Variant | `.ds-number--split` | the group | the minus at the start, the plus at the end, the figure centred (a quantity); default: both steppers at the end, in `.ds-number__steps` |
+| Size | `.ds-xs` ... `.ds-xl` | the group or a form | the field 24 to 56px (8px per step); the steppers 8px less than the field |
+| Density | `.ds-density-*` | any container | 4px per step, field and steppers |
+| Shape | `.ds-shape-*` | any container or the theme | the field's corners; the steppers are actions (a pill at the default, square at 0) |
+| Touch | `.ds-touch` | the theme or a container | field and steppers at least `--ds-touch-target` (48px) |
+| Limits | `data-ds-number-min`, `-max` | the group | typed values are kept within them; Home and End go to them; a stepper is off at its end |
+| Step | `data-ds-number-step` (default 1), `-page` (default ten steps) | the group | the arrows and the steppers take one step, PageUp and PageDown a page; typed values are rounded to a step the page gave, counted from the minimum (the default step moves only the keys and the steppers) |
+| Format | `data-ds-number-decimals`, `-grouping="off"` | the group | fraction digits shown (default the step's, or the currency's: 2 for EUR, 0 for JPY); no thousands separators |
+| Currency, unit | `data-ds-number-currency="EUR"`, `data-ds-number-unit="gigabyte"` | the group, with an empty `.ds-input-group__prefix` and `__suffix` | the symbol in the prefix or the suffix, where the locale writes it (`€` before the figure in English, after it in German); an Intl unit (`gigabyte`, `kilogram`, `percent` ...) its short form; another unit as written |
+
+There is no tone: the field shows its state through `aria-invalid="true"` and a hint in words, as every field.
+
+**Behaviour.** `DS.init()` finds `data-ds-number`; a change of an option attribute applies at once.
+
+- **Typing** is free while the field has the focus. Enter and blur commit: the text is read in the locale (its digits,
+  its separators, a full stop as the decimal where the locale has no other use for it, a minus sign, a unit or symbol
+  typed along), kept within the limits, rounded to a given step (else to the decimals) and written back formatted (`1234.5` becomes `1,234.5`).
+  Text that is no number goes back to the last value; empty text empties it.
+- **Keys** (the [APG spinbutton](https://www.w3.org/WAI/ARIA/apg/patterns/spinbutton/)): ArrowUp and ArrowDown step,
+  PageUp and PageDown take a page, Home and End go to the minimum and the maximum (where there are none, they move the
+  caret). A step goes on from the typed text; from a value off the step grid the first step lands on it (7 with a step
+  of 5: 5 or 10).
+- **Steppers** step once per press and repeat while held (after `--ds-delay-tooltip`, then every `--ds-dur-instant`);
+  a mouse or a pen steps on the press, a finger on its lift (or when the hold repeats), so a scroll that starts on a
+  stepper changes nothing; they keep the focus where it is, so a phone's keyboard does not open, and are `disabled` at their end and while the
+  field is disabled or read-only. They are out of the tab order (`tabindex="-1"`): the keys do the same from the field.
+  The value they reach is announced once they stop.
+- **Events**: every change dispatches `input` and `change` on the field (a page's dirty tracking hears a step as a
+  typed change) and `ds:change` with `{ value, text }` on the group. A form `reset` restores the field's default value.
+- **Locale**: `DS.core.config({ locale })` rewrites the figure and the affixes at once.
+
+**JS API.** `DS.number.create(el, options)` drives a group from the page and returns the controller the attribute
+path makes (`DS.core.get(el, 'number')`):
+
+```js
+const quota = DS.number.create(group, { min: 0, max: 500, step: 5, unit: 'gigabyte' });
+quota.set(120);            // or a text in the locale: quota.set('1.234,5')
+quota.step(-1);            // 115
+quota.get();               // 115, or null when empty
+quota.on('change', ({ value, text }) => save(value));
+DS.number.parse('1.234,5', { locale: 'de' });   // 1234.5 (null for empty text, NaN for no number)
+DS.number.format(1234.5, { decimals: 2 });      // '1,234.50'
+DS.number.clamp(13, { min: 0, max: 12, step: 5 });   // 10
+DS.number.symbols('de');   // { group: '.', decimal: ',', digits: ['0', ..., '9'] }
+```
+
+The controller: `get()`, `set(value)`, `step(count)`, `on('change', fn)`, `update()` and `destroy()`.
+`DS.number.parse`, `DS.number.format`, `DS.number.clamp` and `DS.number.symbols` are the pure functions behind it.
+
+**Accessibility.** The field takes `role="spinbutton"` with `aria-valuenow`, `aria-valuemin`, `aria-valuemax` and
+`aria-valuetext` (`50 gigabytes`, `19.90 euros`; owned state, so `DS.dom.morphHtml` keeps them). Its `<label>` names
+it; put the unit in the label too when it is no Intl unit. The steppers need a name (`aria-label`: "Fewer seats";
+default the strings `decrease` and `increase`) and point at the field (`aria-controls`, written). Say the limits in the
+hint ("0 to 500"): a value out of range is corrected, not refused, so tell people why it changed.
+
+**Forced colours.** The field keeps the system edge of every input group and a `Highlight` outline while focused;
+the steppers are buttons in the system colours, `GrayText` while disabled.
+
+**Hooks:** `--ds-number-step-size` (32px: the steppers at md, comfortable; 8px per size step, 4px per density step),
+and the field's hooks of [Form](#form) ([theming.md](theming.md#component-hooks)).
+
+**Motion:** none of its own. A value changes at once, never glides; the steppers press as buttons.
+
+<!-- changelog
+- Number input (`DS.number`, `.ds-number`, `.ds-number--split`, `.ds-number__step`, `.ds-number__steps`,
+  `.ds-number__down`, `.ds-number__up`, hook `--ds-number-step-size`): a spinbutton on an input group with steppers,
+  min, max, step and page, locale parsing and formatting through `DS.format`, currency and unit affixes from Intl,
+  a hidden input with the plain value. Strings `decrease`, `increase`.
+-->
+## Password
+
+A password to enter or to choose: `DS.password` adds the reveal, a strength meter and a caps-lock hint to a password
+field of [Form](#form), each where its markup is.
+
+```html
+<div class="ds-field" data-ds-password>
+  <label class="ds-field__label" for="pw">New password</label>
+  <div class="ds-input-group">
+    <input class="ds-input" id="pw" name="password" type="password" autocomplete="new-password" minlength="12"
+           aria-describedby="pw-strength pw-caps">
+    <span class="ds-input-group__trailing">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Show password" aria-pressed="false">
+        <span class="ds-icon-swap"><span class="ds-icon-swap__a">[icon eye 18]</span><span class="ds-icon-swap__b">[icon eyeOff 18]</span></span></button>
+    </span>
+  </div>
+  <div class="ds-password__meter" id="pw-strength">
+    <span class="ds-password__bars" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+    <span class="ds-password__strength"></span>
+  </div>
+  <small class="ds-field__hint ds-field__hint--warning ds-password__caps" id="pw-caps" hidden>[icon alert 16]Caps Lock is on.</small>
+</div>
+
+<!-- signing in: the reveal and the caps-lock hint, no meter -->
+<div class="ds-field" data-ds-password>
+  <label class="ds-field__label" for="current">Password</label>
+  <div class="ds-input-group">
+    <input class="ds-input" id="current" type="password" autocomplete="current-password" aria-describedby="current-caps">
+    <span class="ds-input-group__trailing"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Show password" aria-pressed="false">...</button></span>
+  </div>
+  <small class="ds-field__hint ds-field__hint--warning ds-password__caps" id="current-caps" hidden>[icon alert 16]Caps Lock is on.</small>
+</div>
+```
+
+**Options** ([options.md](options.md)).
+
+| Option | Classes, attributes | Where it applies | Effect |
+|---|---|---|---|
+| Parts | the reveal button (`aria-pressed`), `.ds-password__meter`, `.ds-password__caps` | inside `[data-ds-password]` | each is optional: a sign-in field has no meter |
+| Minimum length | `minlength` on the input, else `data-ds-password-min`, else `create()`'s `minLength` (default 8) | the input, the root | shorter scores Weak |
+| Size, density, shape, touch | the option classes | the field or any ancestor | the field and the reveal button as in [Form](#form) and [Button](#button); the bars' corners times `--ds-shape`; the meter's type stays `--ds-font-meta` |
+| Tone | | | none: the level is the meaning, in words and in the number of bars |
+
+**Behaviour.** `DS.init()` finds `data-ds-password`.
+
+- **Reveal**: the button with `aria-pressed` in the field's group toggles the input between `password` and `text`. Its
+  name stays "Show password" and `aria-pressed` says the state (the icon swap follows it); the caret and the selection
+  stay. While the text shows, spell checking and capitalisation are off (a spell checker may send what it reads to a
+  server). A submit of the form hides it again, so a password manager sees a password field. A button without a name
+  gets the string `showPassword`.
+- **Strength**: on every input the meter fills one to four bars and says the level: Weak (one bar, error colour), Fair
+  (two, warning), Good (three, success), Strong (four, success), as "Password strength: Fair"; empty, it shows nothing
+  and keeps its room. `data-level` (0 to 4) on the meter is written by the system. The score: shorter than the minimum
+  or a common password (with digits or marks around it) is Weak; else the length times the variety of characters, a
+  repeat or a run along the alphabet, the digits or a keyboard row counting a quarter. It is a guide, not a policy:
+  the server decides what it accepts, and a page with a dictionary-based estimator passes `score`.
+- **Caps lock**: while the field has the focus and Caps Lock is on, `.ds-password__caps` shows (the system removes
+  `hidden`) and is announced once; blur hides it. Without text of its own it says the string `capsLock`.
+- **Events**: `ds:change` with `{ strength, text }` on the root when the level changes, `ds:reveal` with
+  `{ revealed }`.
+
+**JS API.**
+
+```js
+const pw = DS.password.create(field, { minLength: 12, score: (value) => zxcvbn(value).score });
+pw.get();                       // { revealed: false, strength: 3, capsLock: false }
+pw.set({ revealed: true });
+pw.on('change', ({ strength, text }) => submit.toggleAttribute('aria-disabled', strength < 3));
+DS.password.strength('correct horse battery staple');   // 4
+```
+
+`DS.password.create` returns the controller the attribute path makes (`get`, `set`, `on`, `update`, `destroy`);
+`DS.password.strength` is the scoring behind the meter.
+
+**Accessibility.** The input's `aria-describedby` names the meter and the caps-lock hint, so the level and the
+warning are read with the field (the system takes the hint's id out while it is hidden, since a hidden description is
+still read, and puts it back while it shows); a changed level is also announced once typing pauses (`--ds-delay-tooltip`), the
+caps-lock warning at once. The bars are `aria-hidden`: the words carry the level. Use `autocomplete="new-password"`
+when choosing one and `current-password` when signing in, and never block pasting.
+
+**Forced colours.** A filled bar is `CanvasText`, an empty one a `CanvasText` outline; the word says the level. The
+reveal button is a system button with its pressed state in `Highlight`.
+
+**Hooks:** `--ds-password-meter-width` (240px), `--ds-password-bar-height` (4px)
+([theming.md](theming.md#component-hooks)).
+
+**Motion:** a bar's colour changes on `--ds-dur-fast`; the reveal's icons swap as every `.ds-icon-swap`.
+
+<!-- changelog
+- Password (`DS.password`, `[data-ds-password]`, `.ds-password__meter`, `.ds-password__bars`, `.ds-password__strength`,
+  `.ds-password__caps`, hooks `--ds-password-meter-width`, `--ds-password-bar-height`): reveal with the caret kept and
+  spell checking off, a four-level strength meter in words, a caps-lock hint. Strings `showPassword`, `capsLock`,
+  `passwordStrength`, `strengthWeak`, `strengthFair`, `strengthGood`, `strengthStrong`.
+-->
+## Secret field
+
+A value the server keeps and never sends back to the page (an API key, a token, the password of a mail server): the
+field says that one is set, without the value, and offers to replace or clear it. `DS.secret` switches its parts.
+
+```html
+<div class="ds-field ds-secret" data-ds-secret="set">          <!-- "set": one is stored; "": none yet -->
+  <label class="ds-field__label" for="key">API key</label>
+  <div class="ds-secret__stored">
+    <span class="ds-secret__mask" aria-hidden="true">••••••••</span>
+    <span class="ds-secret__status"></span>
+    <span class="ds-secret__actions">
+      <button class="ds-btn ds-btn--text ds-secret__replace" type="button">Replace</button>
+      <button class="ds-btn ds-btn--text ds-secret__clear" type="button">Clear</button>
+      <button class="ds-btn ds-btn--text ds-secret__undo" type="button">Undo</button>
+    </span>
+  </div>
+  <div class="ds-secret__entry">
+    <div class="ds-input-group"><input class="ds-input" id="key" name="api_key" type="password" autocomplete="off" spellcheck="false"></div>
+    <button class="ds-btn ds-btn--text ds-secret__cancel" type="button">Cancel</button>
+  </div>
+  <input type="hidden" name="api_key_action" data-ds-secret-action>
+</div>
+```
+
+The mask is the page's fixed text (never the real length). The field never holds the stored value: render
+`data-ds-secret="set"` and an empty input.
+
+**States.** `data-state` on `.ds-secret` is written by the system and decides which parts show:
+
+| State | Shows | The hidden input says |
+|---|---|---|
+| `empty` | the entry, without Cancel; the status "Not set" (for a reader) | `set` once something is typed, else `keep` |
+| `set` | the stored box: the mask, "Set", Replace and Clear | `keep` |
+| `replace` | the entry, empty, with Cancel | `set` once something is typed, else `keep` |
+| `clear` | the mask struck through, "Removed when you save" in the warning ink, Undo | `clear` |
+
+Before the script runs only the entry shows, so the field still works as a plain password field. The server reads
+`[data-ds-secret-action]` on save: `keep` leaves the stored value, `set` stores the field's value, `clear` removes it.
+After a save, render `data-ds-secret` again (a change applies at once) or call `set('set')`.
+
+**Options** ([options.md](options.md)).
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the field or any ancestor | the stored box like a field: 8px of height and 4px of padding per step; its text buttons 8px lower than the box |
+| Density | `.ds-density-*` | any container | 4px of height per step |
+| Shape | `.ds-shape-*` | any container or the theme | the box's corners (the field's radius) |
+| Touch | `.ds-touch` | the theme or a container | the box and its buttons at least `--ds-touch-target` |
+| Tone | | | none; the status is words |
+
+**Behaviour.** `DS.init()` finds `data-ds-secret`.
+
+- Replace shows the empty entry and moves the focus into it; Cancel or Escape in it goes back to `set` (Escape there
+  never closes a dialog around it) and focuses Replace.
+- Clear strikes the mask through and focuses Undo; Undo goes back to `set` and focuses Replace.
+- A change from `set()`, `update()` or a form reset that hides the part holding the focus (the page calls `set('set')`
+  after saving what was typed) moves the focus the same way: to Replace in `set`, Undo in `clear`, the field in
+  `replace` and `empty`.
+- Every change of state but Replace is announced with the status words (`secretSet`, `secretNotSet`,
+  `secretCleared`), and `ds:change` with `{ state, action }` goes out on the field. A form `reset` returns to the
+  first state.
+- The input is `disabled` while the stored box shows, so a form never posts an empty value for it.
+
+**JS API.**
+
+```js
+const key = DS.secret.create(field, { stored: true });   // or DS.core.get(field, 'secret')
+key.get();                  // { state: 'set', stored: true, action: 'keep' }
+key.set('clear');           // 'empty', 'set', 'replace' or 'clear'
+key.on('change', ({ state, action }) => markDirty());
+DS.secret.action('replace', 'ex_new_key');   // 'set'
+```
+
+`DS.secret.create` returns the controller (`get`, `set`, `on`, `update`, `destroy`); `DS.secret.action` is the rule
+behind the hidden input.
+
+**Accessibility.** Replace, Clear and Undo keep their short names; the system describes them by the field's label
+and the status (`aria-describedby`), so "Replace" says which secret and that it is set. The mask is `aria-hidden`.
+Give the input `autocomplete="off"` (or `new-password` for a service password) and `spellcheck="false"`.
+
+**Forced colours.** The stored box keeps a `CanvasText` edge (drawn over its content, so the buttons take its whole height); the struck mask and the words say the state.
+
+**Hooks:** the field's (`--ds-input-height`, `--ds-input-padding-x`, `--ds-input-radius`, `--ds-input-font`) and
+`--ds-field-warning-color` of [Form](#form).
+
+**Motion:** none; the parts of a state show at once and the focus moves with them.
+
+<!-- changelog
+- Secret field (`DS.secret`, `.ds-secret` with `__stored`, `__mask`, `__status`, `__actions`, `__replace`, `__clear`,
+  `__undo`, `__entry`, `__cancel`): set, replace and clear states that never show the value, a hidden
+  `[data-ds-secret-action]` of keep, set or clear for the server. Strings `secretSet`, `secretNotSet`,
+  `secretCleared`.
+-->
+## Code field (one-time code, PIN)
+
+A one-time code from a text message or an authenticator app, or a PIN: one cell per character, with auto-advance,
+paste and the browser's one-time-code autofill. `DS.otp` runs the cells.
+
+```html
+<div class="ds-field">
+  <span class="ds-field__label" id="code-l">Verification code</span>
+  <div class="ds-otp" role="group" aria-labelledby="code-l" aria-describedby="code-hint" data-ds-otp>
+    <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="one-time-code">
+    <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="off">
+    <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="off">
+    <span class="ds-otp__sep" aria-hidden="true"></span>
+    <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="off">
+    <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="off">
+    <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="off">
+    <input type="hidden" name="code">
+  </div>
+  <small class="ds-field__hint" id="code-hint">We sent it to the phone ending in 42.</small>
+</div>
+```
+
+The number of cells is the length of the code. The hidden input holds the code for the form; the cells carry no
+`name`. `.ds-otp__sep` is an optional gap between two groups of cells (3 + 3, 4 + 4).
+
+**Options** ([options.md](options.md)).
+
+| Option | Classes or attributes | Where it applies | Effect |
+|---|---|---|---|
+| Type | `data-ds-otp-type="numeric"` (default) or `"alphanumeric"` | the group | which characters a cell takes; alphanumeric upper-cases letters |
+| PIN | `data-ds-otp-mask` | the group | the cells become password fields |
+| Submit when complete | `data-ds-otp-submit` | the group | the form is submitted (`requestSubmit()`) once every cell is full |
+| Error | `aria-invalid="true"` | the group | copied to every cell, which takes the field's error look; add an error hint in words |
+| Disabled | `disabled` | every cell, or a disabled fieldset | the field's disabled look |
+| Size | `.ds-xs` ... `.ds-xl` | the group or any ancestor | 8px of height and 8px of width per step (40 by 40px at md); in a narrow container a cell gives up to 40% of its width, and on a phone the gaps are 4px, so the code stays on one line |
+| Density | `.ds-density-*` | any container | 4px of height per step, 2px less gap |
+| Shape | `.ds-shape-*` | any container or the theme | the cells' corners (the field's radius) |
+| Touch | `.ds-touch` | the theme or a container | cells at least `--ds-touch-target` high and as wide where there is room (60% of it in a narrow row, so eight cells fit a phone at 360px) |
+| Tone | | | none: an error shows through `aria-invalid` and a hint in words |
+
+**Behaviour.** `DS.init()` finds `data-ds-otp`.
+
+- A character the type allows fills the cell and moves the focus to the next; any other is ignored. A cell selects its
+  character when it gets the focus, so typing replaces it.
+- **Backspace** in a filled cell clears it; in an empty one it clears the cell before and moves there. **Delete** clears
+  the cell and stays. **Left** and **Right** move by one cell, **Home** and **End** to the first and the last.
+- **Paste and autofill**: several characters arriving in one cell (a paste, the code a phone offers for
+  `autocomplete="one-time-code"`) are cleaned (spaces, dashes and characters the type does not allow go; digits of
+  other scripts count as digits) and spread from that cell on, or from the first when they fill every cell. Only the
+  first cell carries `one-time-code`, so the browser offers the code once.
+- The system names every cell that has no name of its own: "Digit 3 of 6" (the strings `otpDigit` and, on an
+  alphanumeric code, `otpCharacter`), sets `autocapitalize`, `autocorrect` and spell checking off and, on a PIN, the
+  type `password`.
+- Events on the group: `ds:change` with `{ value, complete }` after each change, `ds:complete` with `{ value }` when
+  the last empty cell is filled. A form `reset` empties the hidden value too.
+
+**JS API.**
+
+```js
+const code = DS.otp.create(group);        // or DS.core.get(group, 'otp')
+code.get();                               // '1234'
+code.set('123456');
+code.clear();                             // every cell empty, the first focused (after a wrong code)
+code.focus();                             // the first empty cell
+code.on('complete', ({ value }) => verify(value));
+DS.otp.clean('12 34-56', { type: 'numeric', length: 6 });   // '123456'
+```
+
+`DS.otp.create` returns the controller the attribute path makes (`get`, `set`, `clear`, `focus`, `on`, `update`,
+`destroy`); `DS.otp.clean` is the cleaning behind paste and `set()`.
+
+**Accessibility.** The group is `role="group"` named by the field's label (`aria-labelledby`) and described by the
+hint, so a reader hears "Verification code, group, Digit 1 of 6, edit text". Never move the focus on its own after a
+wrong code: say so in an error hint (`aria-invalid` on the group) and let the person clear it, or call `clear()` from
+the action they took. A code that expires says when in its hint, not in a countdown that is read aloud.
+
+**Forced colours.** The cells are fields of [Form](#form): the system's edge, a `Highlight` outline on focus; the
+separator is a `CanvasText` dash.
+
+**Hooks:** `--ds-otp-cell-width` (40px), `--ds-otp-gap` (8px), `--ds-otp-font` (`--ds-font-subtitle`), and the
+field's `--ds-input-focus-color` for the caret ([theming.md](theming.md#component-hooks)).
+
+**Motion:** none of its own; a cell's focus ring is the field's.
+
+<!-- changelog
+- Code field (`DS.otp`, `.ds-otp`, `.ds-otp__cell`, `.ds-otp__sep`, `[data-ds-otp]` with `-type`, `-mask` and `-submit`,
+  hooks `--ds-otp-cell-width`, `--ds-otp-gap`, `--ds-otp-font`): one-time codes and PINs in n cells, auto-advance,
+  paste and one-time-code autofill spread over the cells, the keys of a split field. Strings `otpDigit`,
+  `otpCharacter`.
+-->
+## Search field
+
+The search pill of [Form](#form) with what a search needs around it: a shortcut that reaches it, a clear button, the
+number of results shown and spoken, and the recent searches. `DS.search` runs it.
+
+```html
+<div class="ds-search" data-ds-search data-ds-search-recent="devices" data-ds-search-count="dev-count">
+  [icon search 20]
+  <input class="ds-input" id="q" type="search" aria-label="Search devices" placeholder="Search devices"
+         autocomplete="off" data-ds-hotkey="/">
+  <kbd class="ds-kbd ds-search__key" aria-hidden="true"></kbd>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-search__clear" type="button" hidden>[icon close 18]</button>
+</div>
+<span class="ds-search__count" id="dev-count"></span>
+```
+
+Each part is optional: leave out the key, the clear button, `data-ds-search-recent` or the count. The count lives
+wherever the page shows it (beside the search, at the end of a toolbar), named by its id.
+
+**Options** ([options.md](options.md)).
+
+| Option | Attribute or class | Where it applies | Effect |
+|---|---|---|---|
+| Shortcut | `data-ds-hotkey="/"` (or `mod+k` ...) | the input | the system's hotkey focuses and selects the field ([core.md](core.md#hotkeys)); its first combo is written into an empty `.ds-search__key` as the platform says it ("/", "Ctrl+K", "⌘K") |
+| Recent searches | `data-ds-search-recent="<key>"`, `data-ds-search-recent-max` (5) | the root | the searches kept in `DS.store` (namespace `search`, under the key) and offered in an empty field |
+| Count | `data-ds-search-count="<id>"` | the root | the element that shows the count |
+| Size | `.ds-xs` ... `.ds-xl` | the search or any ancestor | the pill 8px per step (form.css); the clear button 8px lower than the pill at every size |
+| Density | `.ds-density-*` | any container | 4px per step on the pill and the clear button |
+| Shape | `.ds-shape-*` | any container or the theme | the pill and the clear button (actions: a pill at the default, square at 0) |
+| Touch | `.ds-touch` | the theme or a container | pill and clear button at least `--ds-touch-target`; the key never shows on a touch screen |
+| Tone | | | none |
+
+**Behaviour.** `DS.init()` finds `data-ds-search`.
+
+- **Clear**: the button shows while the field has a value (the system sets `hidden`), empties it, sends an `input`
+  event (the page's filter runs) and gives the focus back to the field. Escape in a filled field does the same in every
+  engine and keeps a dialog around it open; the next Escape closes the dialog. The engine's own clear glyph goes while
+  the button is there. A button without a name is called by the string `clear`.
+- **Shortcut**: `data-ds-hotkey` on the input is the system's hotkey; the key shows while the field rests empty
+  ([Form](#form), "Search key"), and the field keeps room for it whatever its width (`--ds-search-key-room`, written by
+  the system).
+- **Count**: `set({ count })` writes "12 results" (the strings `searchResultsOne` and `searchResultsMany`, chosen by
+  the locale's plural rules; 0 is `noResults`) into the count, adds it to the field's description and says it once
+  typing pauses (`--ds-delay-tooltip`). `set({ count: null })` empties it.
+- **Recent searches**: Enter in a filled field (or `remember(value)`) keeps the search at the head of the list; an
+  earlier copy goes, in any case. In an empty field a click, **Down** or **Alt+Down** opens the list under the pill
+  (through `DS.overlay`, as the combobox's list): **Up** and **Down** move the active row, **Enter** takes it (the value,
+  an `input` event and `ds:search`), **Delete** forgets it, **Escape** or **Alt+Up** closes the list, and typing closes
+  it too. "Clear recent searches" (the string `clearRecent`) under the list forgets them all. While the list exists
+  the field is a `combobox` with `aria-controls` and `aria-activedescendant`; the list is a `listbox` named "Recent
+  searches" (`recentSearches`).
+- **Events** on the root: `ds:search` with `{ value, source }` (`'enter'` or `'recent'`). The input's own `input`
+  event is the change.
+
+**JS API.**
+
+```js
+const search = DS.search.create(root);    // or DS.core.get(root, 'search')
+search.set({ count: rows.length });
+search.get();                             // { value: 'lap', count: 12, recent: ['laptop', 'router'] }
+search.remember('laptop');
+search.forget();
+search.on('search', ({ value, source }) => load(value));
+DS.search.remember(['router'], 'Laptop', { max: 5 });   // ['Laptop', 'router']
+```
+
+`DS.search.create` returns the controller the attribute path makes (`get`, `set`, `remember`, `forget`, `on`,
+`update`, `destroy`); `DS.search.remember` is the rule behind the list.
+
+**Accessibility.** Name the input (`aria-label`, or a label) and keep `type="search"`; put `role="search"` on the
+form or region around it when it searches the page. The key is `aria-hidden`: the hotkey writes `aria-keyshortcuts`.
+The count is the field's description and is announced politely, once typing pauses, so a fast typist hears it once.
+Recent searches are kept on this device only (`localStorage`): never offer the list on a shared device for searches
+that reveal private data, and offer "Clear recent searches".
+
+**Forced colours.** The clear button is a system button; the list is the combobox's (its edge, the active row in
+`Highlight`); the foot's rule is `CanvasText`.
+
+**Hooks:** `--ds-search-clear-size` (32px) ([theming.md](theming.md#component-hooks)); the list takes the
+combobox's.
+
+**Motion:** the list opens and closes as the combobox's (`DS.overlay`); the key fades as in [Form](#form).
+
+<!-- changelog
+- Search field (`DS.search`, `[data-ds-search]` with `-recent`, `-recent-max` and `-count`, `.ds-search__clear`,
+  `.ds-search__count`, the list's `.ds-search__popup`, `.ds-search__history`, `.ds-search__foot`,
+  `.ds-search__forget`, hook `--ds-search-clear-size`): a clear button and Escape in every engine, the shortcut's key
+  as the platform writes it, a result count shown and spoken, recent searches through `DS.store`. Strings
+  `recentSearches`, `clearRecent`, `searchResultsOne`, `searchResultsMany`.
+-->
+## Inline edit
+
+One value changed where it is shown: the text turns into a field in place, Enter saves and Escape leaves it. For a
+whole record use a form; for a single name, a room or a note in a list of facts, this. `DS.inlineedit` runs it.
+
+```html
+<div class="ds-inlineedit" data-ds-inlineedit>
+  <div class="ds-inlineedit__view">
+    <span class="ds-inlineedit__value">LAPTOP-0042</span>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm ds-inlineedit__edit" type="button" aria-label="Edit device name">[icon pencil 18]</button>
+  </div>
+  <div class="ds-inlineedit__form">
+    <input class="ds-input ds-inlineedit__input" aria-label="Device name" required maxlength="40">
+    <span class="ds-inlineedit__actions">
+      <button class="ds-btn ds-btn--tonal ds-sm ds-inlineedit__save" type="button">
+        <span class="ds-btn__faces"><span class="ds-btn__face">Save</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Saving</span></span>
+      </button>
+      <button class="ds-btn ds-btn--text ds-sm ds-inlineedit__cancel" type="button">Cancel</button>
+    </span>
+  </div>
+  <small class="ds-field__hint ds-field__hint--error ds-inlineedit__error" hidden></small>
+</div>
+```
+
+```js
+root.addEventListener('ds:save', (event) => event.detail.wait(api.rename(device.id, event.detail.value)));
+```
+
+The field may be an input, a textarea or a select. Keep the buttons `type="button"` and the parts out of a `<form>` of
+their own, so the component can sit inside a page's form.
+
+**Options** ([options.md](options.md)).
+
+| Option | Attribute or class | Where it applies | Effect |
+|---|---|---|---|
+| Value | `data-ds-value` | the root | the value the field gets, when the shown text differs (a formatted figure); the system keeps it after a save, and the shown text is the page's (below) |
+| Blur | `data-ds-inlineedit-blur="keep"` (default), `"save"`, `"cancel"` | the root | what happens when the focus leaves the whole component while the field is open |
+| Trim | `data-ds-inlineedit-trim` | the root | compares and saves without the outer spaces |
+| Size | `.ds-xs` ... `.ds-xl` | the component or any ancestor | the view as high as the field (8px per step); the field and buttons follow their own models |
+| Density | `.ds-density-*` | any container | 4px per step |
+| Shape | `.ds-shape-*` | any container or the theme | the field and the buttons |
+| Touch | `.ds-touch` | the theme or a container | the view, the field and the buttons at least `--ds-touch-target` |
+| Tone | | | none: an error shows in words |
+
+**Behaviour.** `DS.init()` finds `data-ds-inlineedit`. `data-state` (`view`, `edit`) and `aria-busy` on the root are
+written by the system; the view or the form shows by them (before the script runs, the view).
+
+- **Open**: the edit button, or a click on the value, shows the field with the value selected and focused
+  (`ds:edit` with `{ value }`).
+- **Save**: Enter in an input (Ctrl+Enter or Cmd+Enter in a textarea), or Save. An unchanged value only closes. A field
+  that fails its own constraints (`required`, `pattern`, `maxlength` ...) shows its validation message as the error and
+  stays open. Otherwise `ds:save` goes out, cancelable, with `{ value, previous, wait(promise) }`: hand the save's
+  promise to `wait()` and the save button is busy (`DS.motion.busy`) and the field read-only until it settles. Resolved
+  (or no promise): the new value shows, the focus returns to the edit button and "Saved" is announced (the string
+  `saved`). Rejected: the field stays open with the error (the error's message, else the string `actionFailed`) in
+  `.ds-inlineedit__error`, linked to the field (`aria-describedby`), announced at once, the field focused again;
+  typing takes the error away. `preventDefault()` keeps the field open without an error (the page shows its own).
+- **Formatted values** (`data-ds-value`): a save writes the new value into `data-ds-value`, and the shown text only when
+  the page gives it: a save's promise that resolves to `{ text }` (`wait(api.save(v).then(() => ({ text: fmt(v) })))`)
+  or `set(value, { text })`. Without one the page rewrites `.ds-inlineedit__value` itself, so a formatted figure never
+  turns into the raw value. Without `data-ds-value` the shown text is the value.
+- **Cancel**: Escape in the field (a dialog around it stays open) or Cancel: the value stays, the focus returns to the
+  edit button (`ds:cancel` with `{ value }`).
+- Names: an edit button without a name is called "Edit" (the string `edit`) and described by the value; a save button
+  without words is called "Save" (`save`).
+
+**JS API.**
+
+```js
+const name = DS.inlineedit.create(root);    // or DS.core.get(root, 'inlineedit')
+name.get();                                 // { value: 'LAPTOP-0042', editing: false, busy: false }
+name.set('LAPTOP-0043');                    // another value from the server
+price.set('1300', { text: '1,300.00 €' });  // with data-ds-value: the value and its shown text
+name.edit();  name.save();  name.cancel();
+name.on('save', ({ value }) => api.rename(device.id, value));   // a returned promise counts as wait()
+DS.inlineedit.decide(' Room B ', 'Room A', { trim: true });     // { action: 'save', value: 'Room B' }
+```
+
+`DS.inlineedit.create` returns the controller the attribute path makes (`get`, `set`, `edit`, `save`, `cancel`, `on`,
+`destroy`); `DS.inlineedit.decide` is the rule of a save.
+
+**Accessibility.** Name the edit button by what it edits ("Edit device name") and the field like its label
+(`aria-label`, or a `<label for>` outside the component). The edit button always shows: one that appears on hover
+cannot be reached on a touch screen. The value is plain text for a reader; the button carries the action. Focus never
+gets lost: it moves into the field and back to the edit button.
+
+**Forced colours.** The field and the buttons are [Form](#form)'s and [Button](#button)'s; the error is words with
+an icon.
+
+**Hooks:** `--ds-inlineedit-field-min` (12rem), and the field's `--ds-input-height` for the view's height
+([theming.md](theming.md#component-hooks)).
+
+**Motion:** none of its own: the view and the field swap at once and the focus moves with them; the save button's
+busy face is `DS.motion.busy`'s, the error message enters as every field error.
+
+<!-- changelog
+- Inline edit (`DS.inlineedit`, `.ds-inlineedit` with `__view`, `__value`, `__edit`, `__form`, `__actions`, `__error`,
+  `[data-ds-inlineedit]` with `-blur` and `-trim`, hook `--ds-inlineedit-field-min`): a value that turns into a field
+  in place, Enter and Escape, an async save through `ds:save` and `wait()` with a busy button and an error in words.
+  Strings `edit`, `save`, `saved`.
+-->
+## Type-to-confirm
+
+A destructive action that waits until the name of what goes has been typed: for what cannot be undone and hits more
+than a click should (a device with its history, a project, a key in use). It sits in a confirm dialog whose confirm
+button is the one red button D10 allows. `DS.typeconfirm` runs it.
+
+```html
+<button class="ds-btn ds-btn--outlined" type="button" data-ds-open="#del-dialog">Delete device</button>
+
+<dialog class="ds-dialog" id="del-dialog" role="alertdialog" aria-labelledby="del-title" aria-describedby="del-text">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <form class="ds-dialog__box ds-typeconfirm" data-ds-typeconfirm="LAPTOP-0042">
+    <h2 class="ds-dialog__title" id="del-title">Delete LAPTOP-0042?</h2>
+    <p class="ds-dialog__text" id="del-text">Its history and its 3 open tickets go with it. This cannot be undone.</p>
+    <div class="ds-field">
+      <label class="ds-field__label ds-typeconfirm__label" for="del-name"></label>
+      <input class="ds-input ds-typeconfirm__input" id="del-name" autocomplete="off" spellcheck="false" autocapitalize="off">
+      <small class="ds-field__hint ds-field__hint--error ds-typeconfirm__error" hidden></small>
+    </div>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-ds-close autofocus>Cancel</button>
+      <button class="ds-btn ds-btn--filled ds-tone-error ds-typeconfirm__confirm" type="submit">
+        <span class="ds-btn__faces"><span class="ds-btn__face">Delete device</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Deleting</span></span>
+      </button>
+    </div>
+  </form>
+</dialog>
+```
+
+```js
+dialog.addEventListener('ds:confirm', (event) => event.detail.wait(api.removeDevice(device.id)));
+```
+
+**The red button (D10).** `.ds-btn--filled.ds-tone-error` is allowed only here and in the confirm dialog of
+[Dialog](#dialog), never on a page; its label names the consequence ("Delete device", never "OK"). Cancel comes first
+and takes the first focus.
+
+**Options** ([options.md](options.md)).
+
+| Option | Attribute | Where it applies | Effect |
+|---|---|---|---|
+| Name | `data-ds-typeconfirm="<name>"` | the root | what must be typed; a change applies at once |
+| Case | `data-ds-typeconfirm-case="insensitive"` | the root | the case does not count (the default: it does) |
+| Size, density, shape, touch | the option classes | the dialog or any ancestor | the field and the buttons, as in [Form](#form) and [Button](#button); the name keeps the label's size |
+| Tone | | | none of its own: the confirm button's error tone is the D10 exception |
+
+**Behaviour.** `DS.init()` finds `data-ds-typeconfirm`.
+
+- An empty `.ds-typeconfirm__label` gets "Type LAPTOP-0042 to confirm" (the string `typeToConfirm`), the name in a
+  `.ds-typeconfirm__name` (monospace, a pointer selects it whole). A label with words of its own stays.
+- The confirm button is `aria-disabled="true"` (written by the system) until the field holds the name (exact but for
+  the outer spaces): it stays in the tab order and the action guard of `DS.motion` blocks it. A submit before that
+  (Enter in the field) marks the field `aria-invalid`, keeps the focus there and never reaches the page's own `submit`
+  handler. Pasting is allowed.
+- Confirm: `ds:confirm` goes out on the root, cancelable, with `{ name, wait(promise) }`. Without a promise, or once it
+  resolves, the dialog closes (`DS.overlay.close(dialog, { reason: 'confirm' })`); while it runs the confirm button is
+  busy (`DS.motion.busy`) and the field read-only. A rejection keeps the dialog open with the error's message (else
+  `actionFailed`) in `.ds-typeconfirm__error`, linked to the field and announced at once. `preventDefault()` keeps the
+  dialog open (the page shows its own message).
+- Each time the dialog opens or closes, the field empties and the button waits again. `ds:change` with `{ match }`
+  goes out when the match changes.
+
+**JS API.**
+
+```js
+const guard = DS.typeconfirm.create(box);   // or DS.core.get(box, 'typeconfirm')
+guard.get();                                 // { name: 'LAPTOP-0042', typed: 'LAPTOP', match: false }
+guard.set('ROUTER-7');                       // another name
+guard.reset();
+guard.on('confirm', () => api.removeDevice(device.id));   // a returned promise counts as wait()
+DS.typeconfirm.matches(' LAPTOP-0042 ', 'LAPTOP-0042');   // true
+```
+
+`DS.typeconfirm.create` returns the controller the attribute path makes (`get`, `set`, `reset`, `on`, `update`,
+`destroy`); `DS.typeconfirm.matches` is the rule of the match.
+
+**Accessibility.** `role="alertdialog"` with the title and the consequence as its name and description; the label
+says what to type, so a reader hears it on the field. The blocked button keeps its name and is announced as
+unavailable; once the name matches it is available. Never block pasting: copying the name is a legitimate way to type
+it.
+
+**Forced colours.** The dialog, the field and the buttons are those of [Dialog](#dialog), [Form](#form) and
+[Button](#button): the blocked button `GrayText`, the active one a system button; the name is `CanvasText`.
+
+**Hooks:** none of its own.
+
+**Motion:** none of its own: the dialog opens and closes through `DS.overlay`, the busy face is `DS.motion.busy`'s.
+
+<!-- changelog
+- Type-to-confirm (`DS.typeconfirm`, `[data-ds-typeconfirm]` with `-case`, `.ds-typeconfirm` with `__label`, `__name`,
+  `__input`, `__error`, `__confirm`): a destructive confirmation in a dialog whose filled error button (D10) waits until
+  the name is typed, with an async action through `ds:confirm` and `wait()`. String `typeToConfirm`.
+-->
+## Error summary
+
+The problems of a form after a submit, at its top: a title that counts them and a link per problem to its field. It
+takes the focus, so a reader starts there and a sighted person sees all of it at once. `DS.errorsummary` builds it from
+the fields' own constraints and from `aria-invalid`.
+
+```html
+<form class="ds-form" novalidate>
+  <div class="ds-alert ds-tone-error ds-errorsummary" data-ds-errorsummary tabindex="-1" hidden>
+    [icon alertCircle 20]
+    <div class="ds-alert__text">
+      <h2 class="ds-alert__title ds-errorsummary__title"></h2>
+      <ul class="ds-errorsummary__list"></ul>
+    </div>
+  </div>
+  <div class="ds-field">
+    <label class="ds-field__label" for="dev-name">Device name</label>
+    <input class="ds-input" id="dev-name" required>
+    <small class="ds-field__hint ds-field__hint--error" hidden></small>
+  </div>
+  <!-- more fields, then the actions -->
+</form>
+```
+
+Put it first in the form (or give it `data-ds-errorsummary="<form id>"` elsewhere). The `hidden` error hint of a field
+is optional: where it is there and empty, the summary writes the message at the field too.
+
+**Options** ([options.md](options.md)).
+
+| Option | Attribute or class | Where it applies | Effect |
+|---|---|---|---|
+| Form | inside it, or `data-ds-errorsummary="<form id>"` | the summary | the form whose fields it checks |
+| Size, density, shape | the option classes | the summary or any ancestor | the alert's padding and corners ([Alert](#alert)) |
+| Touch | `.ds-touch` | the theme or a container | each link at least `--ds-touch-target` high |
+| Tone | `.ds-tone-error` | the summary | always the error's, with the icon and the words |
+
+**Behaviour.** `DS.init()` finds `data-ds-errorsummary`.
+
+- **Which fields**: those of the form that fail their own constraints (`required`, `type`, `pattern`, `min`, `max`,
+  `maxlength` ...: `checkValidity()`) and those the page marked `aria-invalid="true"` (a check of its own), in the
+  form's order. Disabled fields count for nothing. The radios of a name are one problem: one line, named by the group
+  (the `role="radiogroup"`'s `aria-labelledby` or `aria-label`, else the fieldset's `<legend>`), linked to the checked
+  radio or the first, every radio marked and unmarked together.
+- **The words**: a field's visible error hint (`.ds-field__hint--error` with text: the page's message), else its label
+  and the browser's validation message ("Device name: Please fill out this field.", the string `errorSummaryField`).
+  Write your own messages for anything a person reads often: the browser's are generic and in the browser's language.
+- **On submit** (capture: a submit with problems never reaches the page's handler): the submit stops; every field with
+  a problem gets `aria-invalid="true"` (the system's while the problem lasts) and, in an empty hidden error hint, the
+  message with its icon, linked by `aria-describedby`; the title says "There are 2 problems" (`errorSummaryOne`,
+  `errorSummaryMany`); the list holds a link per problem; the summary shows and takes the focus (`tabindex="-1"`; the
+  focus ring after a submit from the keyboard, and after a click where the engine honours
+  `focus({ focusVisible: true })`). A link moves the focus into its field (the first control of a group) and brings it into view.
+- **While fixing**: as a field is fixed (`input`, `change`) its problem leaves the list and its marks go; the summary
+  hides once none is left. A field that had no problem in the list joins only on the next submit, `validate()` or
+  `set()`, never while someone types. A form `reset` takes everything back.
+- `novalidate` on the form (set by the system) keeps the browser's own bubbles away: the summary replaces them.
+- **Events** on the summary: `ds:invalid` with `{ errors }` when it shows, `ds:change` with `{ errors }` when the list
+  changes (`errors`: `[{ id, text }]`).
+
+**JS API.**
+
+```js
+const summary = DS.errorsummary.create(el);   // or DS.core.get(el, 'errorsummary')
+summary.validate();                           // false, and the summary shows (focus: false keeps the focus)
+summary.set([{ field: 'serial', text: 'This serial number is taken.' }]);   // a server's answer
+summary.get();                                // { errors: [{ id: 'serial', text: 'This serial number is taken.' }] }
+summary.clear();
+DS.errorsummary.title(3);                     // 'There are 3 problems'
+```
+
+`DS.errorsummary.create` returns the controller the attribute path makes (`get`, `set`, `validate`, `clear`, `on`,
+`destroy`); `DS.errorsummary.title` is its title.
+
+**Accessibility.** The summary is a named group (`role="group"`, `aria-labelledby` its title, both set when missing)
+that takes the focus after a failed submit: a reader hears the title and moves through the links. Never show it
+while someone types (only on submit, `validate()` or `set()`); the list shrinks as fields are fixed, without moving
+the focus. Each field keeps its own message, so a person who follows a link hears what is wrong there.
+
+**Forced colours.** The alert keeps its edge ([Alert](#alert)); the links are `LinkText`; the focus ring is the
+system's.
+
+**Hooks:** none of its own; the alert's.
+
+**Motion:** none of its own: the summary shows at once and its focus ring snaps as every ring does.
+
+<!-- changelog
+- Error summary (`DS.errorsummary`, `.ds-errorsummary`, `__title`, `__list`, `[data-ds-errorsummary]`): the problems
+  of a form at its top after a submit, from the fields' constraints and `aria-invalid`, a link per problem to its field,
+  focused; messages written into empty error hints; the list follows the fixes. Strings `errorSummaryOne`,
+  `errorSummaryMany`, `errorSummaryField`.
+-->
+## Key combos
+
+A keyboard shortcut written as the keys of the user's platform: `⇧ ⌘ K` on Apple systems, `Ctrl + Shift + K`
+elsewhere, one [`.ds-kbd`](#utilities) per key, and read out in words. A single key in running text stays a plain
+`<kbd class="ds-kbd">Esc</kbd>`.
+
+```html
+<kbd class="ds-kbd-combo" data-ds-kbd="mod+k"></kbd>               <!-- ⌘ K, or Ctrl + K -->
+<kbd class="ds-kbd-combo" data-ds-kbd="mod+shift+p"></kbd>         <!-- ⇧ ⌘ P, or Ctrl + Shift + P -->
+<kbd class="ds-kbd-combo" data-ds-kbd="g i"></kbd>                 <!-- G then I: a sequence -->
+<kbd class="ds-kbd-combo" data-ds-kbd="alt+arrowup" data-ds-kbd-platform="other"></kbd>   <!-- always Alt + ↑ -->
+```
+
+The combo is [`DS.hotkeys`](core.md#hotkeys)' own syntax: modifiers and one key joined by `+`, `mod` Command on
+Apple systems and Control elsewhere; combos separated by spaces are a sequence. So the shortcut a page registers and
+the keys it shows come from one string:
+
+```js
+const combo = 'mod+k';
+DS.hotkeys.register(combo, openSearch, { description: 'Search' });
+button.setAttribute('aria-keyshortcuts', DS.kbd.keys(combo).aria);   // Meta+K or Control+K
+```
+
+`DS.init()` writes the keys into the element: a `.ds-kbd` per key in a `.ds-kbd-combo__keys` group that is
+`aria-hidden`, each combo in a `.ds-kbd-combo__combo` that never breaks, `.ds-kbd-combo__plus` ("+") between keys where the platform writes it (not on Apple systems),
+`.ds-kbd-combo__then` ("then", the string `kbdThen`) between the combos of a sequence, and one `.ds-sr` text with the
+keys in words ("Shift Command K"; the strings `kbdCommand`, `kbdOption`, `kbdControl`, `keyShift`, `keyCtrl` ...).
+`data-ds-kbd-platform="apple"` or `"other"` pins the platform, for a page that documents both. A combo `DS.hotkeys`
+cannot read leaves the element's text alone and reports the error.
+
+### JS API
+
+- `DS.kbd.create(el, { combo, platform })`: the controller the attribute path makes. `get()` gives
+  `{ combo, spoken, aria }`, `set(combo)` writes another one (and `data-ds-kbd`) and emits `ds:change`,
+  `on('change', fn)`, `update()`, `destroy()` (the keys stay).
+- `DS.kbd.keys(combo, { apple })`: the keys alone: `combos` (`keys` and `text` per combo), `spoken`, `aria` and
+  `apple`.
+
+### Options
+
+None read: the combo takes the type of where it stands (a menu item's meta, a tooltip, a sentence); the keys keep
+the code font and the shape of `.ds-kbd` (`.ds-shape-*` multiplies its radius).
+
+### Accessibility
+
+The keys are hidden from assistive technology and said once in words, so a screen reader never spells "⌘". The
+combo describes a shortcut; the control the shortcut presses carries `aria-keyshortcuts` (`DS.kbd.keys(combo).aria`).
+Nothing here takes focus.
+
+### Forced colours
+
+The keys keep their edge (a border); the separators take the text colour.
+
+<!-- changelog -->
+- Key combos (new, `kbd`): `data-ds-kbd` writes a shortcut as the keys of the platform (`.ds-kbd-combo`,
+  `__keys`, `__combo`, `__plus`, `__then`) with the words in `.ds-sr`; `DS.kbd.create`, `keys`; strings `kbdCommand`,
+  `kbdOption`, `kbdControl`, `kbdThen`.
+## Truncate
+
+A text too long for its place, cut at its end, its start or its middle with an ellipsis. While it is cut it shows
+whole in a tooltip; a screen reader always reads it whole.
+
+```html
+<span class="ds-truncate" data-ds-truncate="end">Replace the toner of every printer on floor 2</span>
+<span class="ds-truncate" data-ds-truncate="middle">inventory-export-2026-11-04-final.csv</span>
+<a class="ds-truncate" data-ds-truncate="start" href="/devices/7">/devices/north/floor-2/printer-7</a>
+<p class="ds-truncate ds-truncate--lines">A description of up to two lines, then cut at its end.</p>
+```
+
+| Position | `data-ds-truncate` | Keeps | For |
+|---|---|---|---|
+| End | `end` (default) | the start | titles, names, sentences: CSS cuts it (`text-overflow`) |
+| Start | `start` | the end | paths, the last part of a breadcrumb |
+| Middle | `middle` | both ends | file names with their extension, IDs that differ at the end |
+| Lines | `.ds-truncate--lines` | the first `--ds-truncate-lines` (2) lines | a description in a card; CSS alone, no tooltip |
+
+For `start` and `middle` the module cuts the text itself on every resize, as many characters as fit, between
+graphemes, so an emoji or an accented letter stays whole. It writes what shows into `.ds-truncate__shown`
+(`aria-hidden`) and keeps the whole text in a `.ds-sr` beside it. It sizes the candidates on a canvas in the element's
+font, and every text of the page that needs measuring (when it starts, on a resize, after a re-render) goes in one
+batch with one `ResizeObserver`, so a table of a few hundred file names costs a few layouts per resize, not one per
+candidate. The whole text is the element's text when it starts,
+or `data-ds-truncate-text`; a re-render with `DS.dom.morphHtml` that writes a new text is taken as the new whole text.
+
+While the text is cut, `data-tip` holds the whole text (owned state, so a re-render keeps it), and the tooltips of
+`DS.overlay` show it on hover and on keyboard focus; a tip the page wrote itself stays. A link or a button may be the
+`.ds-truncate` itself: its name stays whole and focusing it shows the tooltip. In a flex row the element shrinks
+(`min-width: 0`); give the row's other parts `flex: none`. A grid track needs `minmax(0, 1fr)`, else the text widens it.
+
+### JS API
+
+- `DS.truncate.create(el, { position, text })`: the controller the attribute path makes. `get()` gives
+  `{ text, shown, cut }`, `set(text)` writes a new whole text and emits `ds:change`, `on('change', fn)` runs when the
+  cut changed, `update()` measures again, `destroy()` puts the whole text back.
+- `DS.truncate.cut(text, keep, position)`: the text with `keep` graphemes around the ellipsis.
+- `DS.truncate.fit(text, position, fits)`: the longest cut for which `fits(shown)` is true (a binary search).
+
+### Options
+
+None read: it takes the type of where it stands.
+
+### Accessibility
+
+The whole text is always in the accessibility tree: the element's own text at the end, the `.ds-sr` copy at the start
+and in the middle. The tooltip is the element's description while it is cut; where the whole text matters to a
+keyboard user and the element is no link or button, give it `tabindex="0"`.
+
+### Forced colours
+
+Nothing of its own: the text follows the system colours.
+
+### Hooks
+
+`--ds-truncate-lines`: see [theming.md](theming.md).
+
+<!-- changelog -->
+- Truncate (new, `truncate`): `data-ds-truncate` (`end`, `start`, `middle`) cuts a text with an ellipsis, whole in an
+  owned tip while cut and in `.ds-sr` for screen readers; `.ds-truncate--lines`; `DS.truncate.create`, `cut`, `fit`;
+  hook `--ds-truncate-lines`.
+## Expandable text
+
+A long text shows its first lines and a "Show more" button that reveals the rest: a description, a comment, a log
+message in a list. The button shows only while the text is longer than those lines.
+
+```html
+<div class="ds-expandable" data-ds-expandable>
+  <div class="ds-expandable__text">Every printer on the second floor reports low toner ...</div>
+</div>
+
+<!-- two lines, open at the start -->
+<div class="ds-expandable" data-ds-expandable="open" style="--ds-expandable-lines: 2"> ... </div>
+```
+
+`DS.init()` gives the text an id (unless it has one) and adds the toggle after it:
+`<button class="ds-link-btn ds-expandable__toggle" type="button" aria-expanded="false" aria-controls="...">`, labelled
+with the strings `showMore` and `showLess`. It writes `data-state` on the element: `closed` clamps the text to
+`--ds-expandable-lines` (3), `open` shows it whole; a text that fits gets neither and no toggle. Without the script the
+whole text shows. Whether the text is longer than its lines is measured again when its width or its text changes, so
+a phone may show the toggle where a wide screen does not. Every expandable text of the page is measured in one batch
+(reads before writes), so a page of hundreds costs one layout per resize.
+
+| Part | Class | What |
+|---|---|---|
+| Block | `.ds-expandable` | the text and its toggle; `data-ds-expandable` (`"open"` starts open) |
+| Text | `.ds-expandable__text` | the text, clamped while closed |
+| Toggle | `.ds-expandable__toggle` | added by the module: an inline text link ([`.ds-link-btn`](#button)) |
+
+### JS API
+
+- `DS.expandable.create(el, { open })`: the controller the attribute path makes. `get()` gives whether it is open,
+  `set(open)` opens or closes it and emits `ds:change` with `{ open }`, `on('change', fn)`, `update()` measures
+  again, `destroy()` removes the toggle and the state.
+- `DS.expandable.overflows(fullHeight, lineHeight, lines)`: whether a text that tall hides some of its lines.
+
+### Options
+
+None read: the text takes the type of where it stands; the lines are the hook.
+
+### Accessibility
+
+The toggle is a real button after the text, with `aria-expanded` and `aria-controls`; `Enter` or `Space` opens and
+closes it, and focus stays on it. The clamp is visual: a screen reader reads the whole text in both states.
+
+### Forced colours
+
+Nothing of its own: the toggle is a text link in the system's link colour.
+
+### Hooks
+
+`--ds-expandable-lines`: see [theming.md](theming.md).
+
+**Motion:** none. The text opens and closes at once: its height pushes the layout, and a clamp has no height to
+glide between.
+
+<!-- changelog -->
+- Expandable text (new, `expandable`): `data-ds-expandable` clamps `.ds-expandable__text` to `--ds-expandable-lines`
+  and adds a `.ds-expandable__toggle` ("Show more", "Show less") only while the text is longer; `DS.expandable.create`,
+  `overflows`.
+## Search hits
+
+The hits of a search marked in a text: a list filtered by a search field, search results, a log. Each hit is a
+`<mark class="ds-hit">`, matched ignoring case and accents.
+
+```html
+<input class="ds-input" type="search" aria-label="Search tickets" aria-controls="tickets">
+<ul class="ds-list" id="tickets" data-ds-hits="">...</ul>
+
+<!-- marked by the server -->
+<p>Replace the <mark class="ds-hit">toner</mark> on floor 2</p>
+```
+
+```js
+search.addEventListener('input', () => DS.get(list, 'hits').set(search.value));
+```
+
+`data-ds-hits` holds the query: its words, each marked wherever it occurs, or the whole query as one with
+`data-ds-hits-mode="phrase"`. "cafe" finds "Café", and the mark covers what the text shows; hits that touch or
+overlap are one mark. Only text is marked: never inside `<script>`, `<style>`, form fields, the page's own marks or
+anything under `[data-ds-hits-skip]`. A new query takes the old marks out first. A re-render of the container
+with `DS.dom.morphHtml` is marked again before paint.
+
+### JS API
+
+- `DS.hits.create(el, { query, mode })`: the controller the attribute path makes. `get()` gives
+  `{ query, count }`, `set(query)` marks another query (empty: none; it writes `data-ds-hits` when the element
+  has it) and emits `ds:change` with `{ query, count }`, `on('change', fn)`, `update()`, `destroy()` takes every
+  mark out.
+- `DS.hits.ranges(text, query, { mode })`: the hits alone, as `[start, end)` pairs.
+
+### Options
+
+Shape only: the mark's corners times `--ds-shape`. It takes the type of its text.
+
+### Accessibility
+
+A `<mark>`; some screen readers say "highlight" around it. The marks say nothing about how many matched: the page
+announces the count where it matters (`DS.a11y.announce('3 tickets match')`), next to its search field. A mark is not a
+status, so its colour needs no word.
+
+### Forced colours
+
+The system's `Mark` and `MarkText`. Printed, the background stays.
+
+### Hooks
+
+`--ds-hit-bg`, `--ds-hit-color`: see [theming.md](theming.md).
+
+**Motion:** none: a hit that faded in would trail the typing.
+
+<!-- changelog -->
+- Search hits (new, `hits`): `data-ds-hits` marks the hits of a query in a container's text as `.ds-hit`
+  (case and accents folded, words or `phrase` mode); `DS.hits.create`, `ranges`; hooks `--ds-hit-bg`,
+  `--ds-hit-color`.
 ## Chips
 
 Small pills that filter a list, pick a few options or hold entered values.
@@ -3608,6 +9768,73 @@ block their keys: the page sets `disabled` on each chip as well. A disabled sele
 into the disabled ink. An option both chosen and blocked keeps its tint and weight in the disabled ink. Without a `.ds-combo__toggle` the field keeps only its
 own end padding.
 
+**Behaviour by the system** (`data-ds-combobox`, `DS.combobox`). The same markup; with the attribute the system does what
+the page's script did above, on the list engine of the [Listbox](#listbox). Without it a combobox stays the page's, as
+in 2.x.
+
+```html
+<div class="ds-combo" data-ds-combobox data-ds-combobox-creatable>
+  <input class="ds-input ds-combo__input" id="model" role="combobox" aria-expanded="false" aria-controls="model-list" aria-autocomplete="list">
+  <button class="ds-combo__clear" type="button" aria-label="Clear model" hidden>[icon close 20]</button>
+  <button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all">[icon chevronDown 20]</button>
+  <div class="ds-combo__popup" hidden>
+    <ul class="ds-combo__list" id="model-list" role="listbox">
+      <li class="ds-combo__option" role="option" aria-selected="false" data-value="l14"><span class="ds-combo__name">Laptop 14</span></li>
+    </ul>
+    <p class="ds-combo__status" role="status"></p>
+  </div>
+</div>
+```
+
+```js
+const people = DS.combobox.create(el, {
+  source: (query, { signal }) => fetch(`/api/people?q=${encodeURIComponent(query)}`, { signal }).then((r) => r.json()),
+});
+people.on('change', ({ value, item }) => save(value));
+DS.combobox.open(el);  DS.combobox.close(el);   // DS.overlay on its popup
+```
+
+- **Filter.** Without `items` or a `source` the system works on the markup itself (the value is `data-value`, else the
+  name's text): it sets `hidden` on the options that do not match, so each option keeps its content (a `.ds-progress`,
+  an icon), its id and its place, and groups with no match go with their heading. `items` (as `DS.listbox`) are rendered
+  instead, best first. As the field changes the list keeps what matches `DS.listbox.fuzzy()`: every word of the text, in
+  any order, as a substring or as its letters in order ("lp 16" finds "Laptop 16"), case and accents aside. The matched
+  letters are marked in a `.ds-combo__match` (the label weight and an underline, not colour alone). The chevron shows
+  every option while the field shows the choice; typed text stays a filter.
+- **A search elsewhere** (`source(query, { signal })`, a Promise of items): asked once the typing paused for
+  `--ds-delay-loader` (`debounce` or `data-ds-combobox-debounce` in ms instead) and from `minLength` letters on
+  (`data-ds-combobox-min`, default 1; with 0, opening the list asks for the empty field at once). While it runs the
+  status line shows a spinner and "Loading" and the list `aria-busy="true"`; a newer query aborts the older one through
+  `signal`; the results keep their order and show the matched letters; a failure says "That did not work. Try again.".
+  `ds:search` (`{ query }`, cancelable) comes first. Choosing asks nothing: the field shows the choice, not a query.
+- **Nothing found.** The list part hides and the status line says "No results"; the list stays open. Otherwise the status
+  line counts the results ("3 results").
+- **Creatable** (`data-ds-combobox-creatable`, `creatable`): while no option has the typed name, a last option
+  `.ds-combo__option--create` says "Create “Tower 9”" (the markup's own, or one the system adds at the end of the list).
+  Choosing it sends `ds:create` (`{ text }`, cancelable: the text stays typed), adds the value (with markup, a new option
+  before the create one) and chooses it.
+- **Clearable**: a `.ds-combo__clear` shows while the field has text or a value; it empties both and gives the focus
+  back to the field.
+- **Several values** (`.ds-combo--multi`): each chosen value becomes an input chip before the field (`Remove` and its
+  name for a screen reader); choosing leaves the list open and empties the field; a press on a chip, or Backspace in the
+  empty field, removes one. "Added Laptop 14" and "Removed Laptop 14" are announced.
+- **Select-only** (`.ds-combo--select`): Enter, Space, ArrowDown and ArrowUp open the list on the chosen option, Home
+  and End open it on the first or the last one, letters jump to a name, Enter or Space chooses, Tab chooses the active
+  option and moves on (the WAI select-only pattern); the button shows the value and its meta. No status line.
+- **Long lists**: `items` and the results of a source are windowed from `DS.listbox.VIRTUAL_FROM` on (`virtual`,
+  `data-ds-combobox-virtual`). The markup's options are the page's and stay as they are: pass a long list as `items`.
+- **Value.** One value, or a list with several. A single field that loses the focus shows the chosen name again; an
+  emptied field chooses nothing. `data-ds-value` (a value, or a JSON list) or `value` sets the first one, else the options
+  marked `aria-selected="true"`; `data-ds-combobox-name` (`name`) writes hidden inputs for a form.
+
+The controller: `get()`, `set(value)` (no event), `on('change' | 'create' | 'search', fn)`, `setItems(items)`, `open()`,
+`close()`, `list` (the engine, `DS.listbox`'s controller) and `destroy()`. `ds:change` (`{ value, item }`) bubbles from
+the `.ds-combo` when the user chose. `item` is the chosen option's item (with markup: `{ value, label, description, meta, group, disabled }`).
+`DS.combobox.create(el, options)` makes it, `DS.combobox.open(el)` and
+`DS.combobox.close(el)` open and close the list through `DS.overlay`. Keys: as above (the WAI combobox), plus Alt+ArrowDown
+opens without moving, Alt+ArrowUp closes, PageDown and PageUp move ten options, Tab closes without choosing (select-only:
+chooses the active option first).
+
 **Options** ([options.md](options.md)): classes on the `.ds-combo` or any ancestor; the nearest wins.
 
 | Option | Classes | Where it applies | Effect on the combobox |
@@ -3648,6 +9875,1262 @@ several values too: `--ds-input-border`, `--ds-input-bg`, `--ds-input-radius`, `
 and `data-ds-ripple` (off for a part: [Ripple](#ripple)) are described above.
 
 **Motion:** the "Combobox list" row of [Overlays](motion.md#overlays) in motion.md.
+
+<!-- changelog -->
+- Combobox: `data-ds-combobox` and `DS.combobox` (`create`, `open`, `close`): the behaviour by the system on the same
+  markup, through the list engine of `DS.listbox`: fuzzy filter with scoring and `.ds-combo__match`, an async `source`
+  with debounce, abort and a loading state, creatable (`ds:create`), clearable, several values with chips, nothing
+  found, windowed long lists, select-only keys. A page's own script keeps working without the attribute.
+- Combobox: `--ds-scroll-edge-start` and `--ds-scroll-edge-end` are registered once in `tokens.css` (no longer in
+  `scroller.css`), so the list's cut edges fade when `combobox.css` is linked without `scroller.css`.
+## Listbox
+
+A list of options to choose one or several from, always in view: the WAI listbox pattern, with groups, descriptions,
+type-ahead and thousands of options. `DS.listbox` is also the list engine of the [Combobox](#combobox) and the
+[Select panel](#select-panel). For a few plain values a native `<select>` or radios stay simpler.
+
+```html
+<span class="ds-field__label" id="device-label">Device</span>
+<div class="ds-listbox" role="listbox" aria-labelledby="device-label" data-ds-listbox>
+  <div class="ds-listbox__option" role="option" aria-selected="true" data-value="laptop-14">
+    <span class="ds-listbox__name">Laptop 14</span>
+    <span class="ds-listbox__description">For most desks: light, with a full day of battery.</span>
+    <span class="ds-listbox__check" aria-hidden="true">[icon check 16]</span>
+  </div>
+  <div class="ds-listbox__group" role="group" aria-labelledby="desktops">
+    <div class="ds-listbox__heading" id="desktops" role="presentation">Desktops</div>
+    <div class="ds-listbox__option" role="option" aria-selected="false" data-value="mini">
+      <span class="ds-listbox__name">Mini desktop</span><span class="ds-listbox__meta">Desktop, 2023</span>
+      <span class="ds-listbox__check" aria-hidden="true">[icon check 16]</span>
+    </div>
+  </div>
+</div>
+```
+
+Several values: `aria-multiselectable="true"` on the listbox. The `.ds-listbox__check` is then a box at the start that
+fills in the primary colour and draws its check, as a checkbox does; with one value it is a check at the end of the
+chosen option. The chosen options take the tint and the label weight too, so the choice never shows by colour alone.
+
+```js
+const devices = DS.listbox.create(list, {
+  items: rows.map((row) => ({ value: row.id, label: row.name, meta: row.site, group: row.kind })),
+  multiple: true,
+});
+devices.get();                                 // ['d-14', 'd-52']
+devices.set(['d-14']);                         // from the page: no event
+devices.on('change', ({ value }) => save(value));
+devices.filter('lap 14');                      // shows the matches, marks the letters; returns how many
+```
+
+**Markup or data.** With `data-ds-listbox`, `DS.init()` takes the options of the markup (`role="option"`; the value is
+`data-value`, else the name's text; `aria-selected="true"` the first choice, or `data-ds-value`, a value or a JSON list).
+`DS.listbox.create(el, { items })` renders data instead, through `DS.dom.morphHtml`: strings, or objects with `value`,
+`label`, `description`, `meta`, `group` and `disabled`; each rendered option carries its value in `data-value`. Groups follow in the order they first appear; give a data list
+with groups a `div` as its listbox. From `DS.listbox.VIRTUAL_FROM` items on (100), or with `virtual: true`
+(`data-ds-listbox-virtual`), only the options near the viewport exist (`DS.virtual`): the active one always does, and
+each carries `aria-setsize` and `aria-posinset`. A windowed list has no group headings: put the group in the meta line.
+
+| Option | Attribute | What |
+|---|---|---|
+| `items` | | data to render; without it the markup's options |
+| `multiple` | `aria-multiselectable="true"` | several values |
+| `value` | `data-ds-value` | the first value (else the options marked `aria-selected="true"`) |
+| `virtual` | `data-ds-listbox-virtual` | `true`, `false`, or the number of items from which a data list is windowed |
+| `name` | `data-ds-listbox-name` | hidden inputs of this name, after the listbox, carry the value in a form |
+| `follow` | | one choice follows the active option (default on, as in a native `<select size>`) |
+| `focus` | | the element that keeps the focus and `aria-activedescendant` (a combobox's field); default the listbox |
+| `scroller` | | what scrolls, default the listbox |
+| `prefix`, `check`, `render(item, name)`, `wrap`, `pinned(option)` | | for an engine user: the class block of the parts (default `ds-listbox`), the check mark, the inner markup of a data option (`name` with the matched letters marked), arrows that go round, a markup option that comes last whatever the query (`true`, or a function of the query and the number of matches: a "Create" option) |
+
+**The controller** (`DS.listbox.create()`, or `DS.get(el)` of `data-ds-listbox`): `get()` (one value or `null`; several
+as a list), `set(value)` (from the page, no event), `on('change', fn)`, `setItems(items)` (new data, the query kept),
+`filter(text)`, `shown()` and `entries()` (`{ value, label, item, disabled, ... }`), `active()`, `activate(value |
+'first' | 'last' | null)`, `move(step)`, `pick(value?)` (as a press would), `key(event)` (a key a field passes on; `true`
+when it was the list's), `refresh()` (the page changed the markup's options) and `destroy()`. `ds:change`
+(`{ value, item, selected }`) bubbles from the listbox when the user changed the choice.
+
+**Matching.** `DS.listbox.fuzzy(query, text)` gives `{ score, ranges }` or `null`: every word of the query must be in
+the text, as a substring (better at the start and at a word start; the whole text best) or as its letters in order;
+case and accents do not count. `DS.listbox.filter(items, query, { label, limit })` returns the matches best first
+(`{ item, index, score, ranges }`); `DS.listbox.highlight(text, ranges, className)` the text as escaped markup with the
+ranges in `<mark class="ds-listbox__match">`. A filter keeps the order of a markup list and sorts a data list best
+first; the matched letters take the label weight and an underline.
+
+**Options** ([options.md](options.md)): classes on the listbox or any ancestor; the nearest wins.
+
+| Option | Classes | Where it applies | Effect on the listbox |
+|---|---|---|---|
+| Variant | `.ds-listbox--plain` | the listbox | no box and no height cap of its own, for a panel that has both |
+| Size | `.ds-xs` ... `.ds-xl` | the listbox or a group | an option 24 to 56px (40px at md, 8px per step), the name's type role, the check box 2px per step |
+| Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container | an option 4px less per step, its block padding 2px less; side padding and type stay |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the box's radius and the check box's, times 0, .5, 1, 1.5 |
+| Touch | `.ds-touch` | the theme or a container | every option at least `--ds-touch-target` (48px) |
+| Tone | none | | a listbox shows no status of its own |
+
+**States.** `aria-disabled="true"` on an option draws it in the disabled ink and the keys pass it by; on the listbox it
+blocks every option and the listbox leaves the tab order. `hidden` on an option hides it, and a group with none left goes
+with its heading.
+
+**Keyboard and names** (WAI listbox). The listbox is one tab stop; `aria-activedescendant` names the active option
+(`data-active`). ArrowDown and ArrowUp move, Home and End go to the ends, PageDown and PageUp ten options, blocked options
+are passed by. One value: the choice follows the active option. Several: Space toggles the active option, Shift with
+ArrowDown or ArrowUp moves and toggles, Ctrl+A (Cmd+A) chooses every option that shows, or none when all are chosen, and
+a Shift-click adds. Typing letters moves to the next option whose name starts with them (`--ds-delay-tooltip` between
+letters). On focus the first chosen option is active, else the first one. Name the listbox with `aria-labelledby` (or
+`aria-label`), a group with its heading.
+
+**Forced colours.** The box keeps its border; a chosen option is `SelectedItem` / `SelectedItemText` (a `CanvasText`
+ring inside while it is active), the active one has a `Highlight` outline while the listbox has the focus, a blocked one
+`GrayText`; the check box keeps a `CanvasText` edge and fills with `SelectedItemText`.
+
+**Hooks:** `--ds-listbox-option-height` (40px), `--ds-listbox-max-height` (264px, about six options; `none` shows them
+all), `--ds-listbox-radius` (`--ds-radius-field`), `--ds-check-size` (the box of several values) and `--ds-scroll-fade`
+(the cut edges, which `DS.dom.scrollEdges()` reports through `data-ds-edges`, `data-ds-overflow-start` and
+`data-ds-overflow-end`) ([theming.md](theming.md#component-hooks)).
+
+**Motion:** the active option's layer fades in over `--ds-dur-micro` and goes at once, so a held arrow key leaves no
+trail; the check box fills over `--ds-dur-fast` while its check is drawn from left to right over `--ds-dur-medium`; the
+end check of one value fades over `--ds-dur-fast`.
+
+<!-- changelog -->
+- Listbox (3.0): `.ds-listbox` with `DS.listbox` (`data-ds-listbox`): one or several values, groups, descriptions,
+  type-ahead, data rendered and windowed through `DS.virtual`, fuzzy matching with marked letters
+  (`DS.listbox.fuzzy`, `filter`, `highlight`); the list engine of the combobox and the select panel.
+## Tag input
+
+Free values typed into one field box, each an input chip before the typing field: labels, recipients, keywords. For
+values from a known list use the [Combobox](#combobox) with several values (`data-ds-combobox-creatable` lets it take
+new ones too).
+
+```html
+<div class="ds-field">
+  <label class="ds-field__label" for="labels">Labels</label>
+  <div class="ds-taginput" data-ds-taginput data-ds-taginput-max="8" data-ds-value='["printer","floor-2"]'>
+    <input class="ds-input ds-taginput__input" id="labels" aria-describedby="labels-hint">
+  </div>
+  <p class="ds-field__hint" id="labels-hint">Enter or a comma adds a label. Up to 8.</p>
+</div>
+```
+
+```js
+const labels = DS.taginput.create(el, { validate: (text) => /^[a-z0-9-]+$/.test(text) || 'Use small letters, digits and -' });
+labels.get();                          // ['printer', 'floor-2']
+labels.set(['printer']);               // from the page: no event, no check
+labels.add('lab, shared');             // as the user would: checked, announced, ds:change
+labels.on('change', ({ value, added, removed }) => save(value));
+```
+
+The module writes the chips (`button.ds-chip.ds-chip--input`, with "Remove" and the name for a screen reader) before
+the field, and a `.ds-taginput__message` (`role="status"`) after the box, which the field names through
+`aria-describedby`.
+
+- **Adding.** Enter or a separator (a comma; `separators`, `data-ds-taginput-separators`) turns the typed text into a
+  tag. A pasted text with line breaks, tabs, semicolons or separators becomes several tags at once. Leaving the field
+  adds what is typed (`addOnBlur: false` keeps it); the arrow keys into the chips do not. An empty Enter submits the form, as in a field.
+- **Checks.** Each tag is trimmed; an empty one is dropped. Refused: a repeat (case aside; `unique: false` allows
+  them), one that does not match `data-ds-taginput-pattern` (`pattern`, the whole text), one that `validate(text,
+  value)` turns down (`false`, or a message of its own), and every tag past the maximum (`data-ds-taginput-max`,
+  `max`). A refused text stays typed, the field takes `aria-invalid="true"` and the message says why with an icon
+  ("printer is in the list already", "Up to 8 items"), until the text changes. A pasted list adds what passes and keeps
+  the rest typed.
+- **Removing.** A press on a chip (Enter or Space on it), Backspace in the empty field (the last tag), Backspace or
+  Delete on a focused chip. Each change is announced: "Added printer", "Removed printer".
+- **At the maximum** the box takes `.ds-taginput--full`: the field stays, so Backspace still removes, and its
+  placeholder goes.
+- **Value.** `data-ds-value` (a JSON list or comma-separated) or `value`; `data-ds-taginput-name` (`name`) writes hidden
+  inputs for a form. `DS.taginput.split(text, separators)` and `DS.taginput.check(text, value, rules)` are the parsing
+  and the checks alone.
+
+The controller (`DS.taginput.create(el, options)`, or `DS.get(el)` of `data-ds-taginput`): `get()`, `set(value)`
+(no event, no check), `add(text)` (returns the refused text), `remove(tag)`, `on('change' | 'add', fn)` and
+`destroy()`. `ds:add` (`{ text }`, cancelable: the text stays typed) comes before each tag, `ds:change`
+(`{ value, added, removed }`) after the user changed the tags.
+
+**Options** ([options.md](options.md)): classes on the `.ds-taginput` or any ancestor; the nearest wins.
+
+| Option | Classes | Where it applies | Effect on the tag input |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the box or any ancestor | the box 24 to 56px (40px at md, 8px per step), as a field; the chips follow their own size |
+| Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container | the box 4px less per step |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the box's radius times 0, .5, 1, 1.5 |
+| Touch | `.ds-touch` | the theme or a container | the box at least `--ds-touch-target` (48px) |
+| Tone | none | | a refused tag is `aria-invalid` with its message, never a colour |
+
+**States.** `disabled` on the field greys the box, disables the chips and takes their pointer; `readonly` shows the
+read-only look and the tags as plain chips (no cross, no "Remove", no pointer); `aria-invalid="true"` (the page's, or the module's for a refused tag) draws the
+error edge.
+
+**Keyboard and names.** The field is the one tab stop; the chips are reached by the arrows: ArrowLeft at the start of
+the field goes to the last chip, ArrowLeft and ArrowRight walk the chips, ArrowRight past the last one and End go back
+to the field, Home to the first chip. On a chip Enter, Space, Backspace and Delete remove it; the focus goes to the
+neighbouring chip (Backspace: the one before), else the field. Label the field with its `<label>`; the chips' names say
+"Remove printer".
+
+**Forced colours.** The box keeps its border and takes the 2px `Highlight` outline of a focused field; a disabled one
+is `GrayText`; the input chips keep their edge; the message is `CanvasText` with its icon.
+
+**Hooks:** the field's `--ds-input-height`, `--ds-input-border`, `--ds-input-bg`, `--ds-input-radius` and
+`--ds-input-focus-color` ([Form](#form)).
+
+**Motion:** a new chip fades in, and a chip that goes leaves while the others glide into its place (`DS.motion.flip`,
+the chip rows of [Controls](motion.md#controls)); the message fades in over `--ds-dur-fast`.
+
+<!-- changelog -->
+- Tag input (3.0): `.ds-taginput` with `DS.taginput` (`data-ds-taginput`): free tags as input chips, Enter, a comma or a
+  pasted list, checks (unique, pattern, `validate`, max) with a message, removal by Backspace, Delete or a press, the
+  arrow keys across the chips, announcements; `DS.taginput.split` and `DS.taginput.check`.
+## Choice list
+
+Several of a set of options as checkboxes, with what a long set needs: a "select all" box that shows all, none or
+some, a count, a filter, columns and a box that scrolls on its own. The rows are the [Form](#form)'s `.ds-check` rows,
+native checkboxes, so forms, labels and the keyboard stay native. For a short set a plain `.ds-check` list is enough;
+for a set in a popover use the [Select panel](#select-panel).
+
+```html
+<fieldset class="ds-field">
+  <legend class="ds-field__label">Sites</legend>
+  <div class="ds-choices ds-choices--columns ds-choices--scroll" data-ds-choices>
+    <div class="ds-choices__tools">
+      <input class="ds-input ds-choices__search" type="search" aria-label="Filter sites" placeholder="Filter">
+      <label class="ds-check"><input type="checkbox" data-ds-choices-all><span>Select all</span></label>
+      <span class="ds-choices__count"></span>
+    </div>
+    <div class="ds-choices__list" role="group" aria-label="Sites">
+      <label class="ds-check"><input type="checkbox" name="site" value="north" checked><span>North building</span></label>
+      <label class="ds-check"><input type="checkbox" name="site" value="lab"><span>Lab</span></label>
+    </div>
+    <p class="ds-choices__empty" role="status" hidden>No sites match.</p>
+  </div>
+</fieldset>
+```
+
+| Variant | What |
+|---|---|
+| `.ds-choices--columns` | the rows flow into columns of at least `--ds-choices-column-width` (180px), at most `--ds-choices-columns` (4), row by row, so the Tab order follows the eye; one column where there is no room for two |
+| `.ds-choices--scroll` | the list is an outlined box that scrolls on its own beyond `--ds-choices-max-height` (264px, about six rows); its cut edges fade (`DS.dom.scrollEdges()` writes `data-ds-edges`, `data-ds-overflow-start` and `data-ds-overflow-end`) |
+
+The parts are optional: a list alone gets the checked rows' weight and `ds:change`; add the tools a set needs.
+
+- **Select all** (`input[data-ds-choices-all]`, anywhere in the `.ds-choices`): acts on the rows that show and are not
+  blocked. All of them checked turns them off, else on. It is checked when all of them are, indeterminate when some are,
+  disabled when none can change. Each box it changes sends its own `input` and `change`, then the list one `ds:change`;
+  the new count is announced. Name it for what it does ("Select all", "All sites").
+- **Count** (`.ds-choices__count`): "3 selected" or "All selected", empty with none (the strings `selectedCount` and
+  `allSelected`).
+- **Filter** (`.ds-choices__search`, a search field): the rows that do not match `DS.listbox.fuzzy()` (words in any
+  order, letters in order, case and accents aside) are `hidden`, the matched letters marked in a `.ds-choices__match`
+  (weight and a line, never colour alone). `.ds-choices__empty` shows when none match (the module makes one that says
+  "No results" when the markup has none). Escape in a filled filter clears it and goes no further.
+- A checked row's label takes the label weight, so the choice shows by more than the box.
+
+```js
+const sites = DS.choices.create(el);     // or DS.get(el) of data-ds-choices
+sites.get();                             // ['north']
+sites.set(['north', 'lab']);             // from the page: no event
+sites.filter('lab');                     // returns how many rows show
+sites.on('change', ({ value }) => save(value));
+DS.choices.summary(boxes);               // 'all', 'none' or 'some' of { checked, disabled }
+```
+
+The controller: `get()`, `set(value)`, `on('change', fn)`, `filter(text)`, `refresh()` (the page added or removed rows)
+and `destroy()`. `ds:change` (`{ value }`) bubbles from the `.ds-choices` when the user changed a box. `DS.choices.create`
+takes `value` (the checked values to start with) and `count: false` (leave the count to the page).
+
+**Options** ([options.md](options.md)): the rows are `.ds-check` rows, which compute size, density and touch
+themselves.
+
+| Option | Classes | Where it applies | Effect on the choice list |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the list or any ancestor | the rows (8px per step) and their type, as every `.ds-check` |
+| Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container | the rows 4px less per step; the scrolling box's padding 2px less |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the boxes' and the scrolling box's radius |
+| Touch | `.ds-touch` | the theme or a container | every row at least `--ds-touch-target` (48px) |
+| Tone | none | | a choice list shows no status of its own |
+
+**Keyboard and names.** Native checkboxes: Tab reaches each box (row by row in columns), Space toggles. Put the list in a
+`fieldset.ds-field` with its legend, or give `.ds-choices__list` `role="group"` and a name; label the filter
+(`aria-label` or a `<label>`). A blocked row: `disabled` or `aria-disabled="true"` on its box (form.css), left out of
+"select all".
+
+**Forced colours.** The boxes are form.css's; the scrolling box keeps its border in `CanvasText`; the marks keep their
+line.
+
+**Hooks:** `--ds-choices-column-width` (180px), `--ds-choices-columns` (4), `--ds-choices-max-height` (264px) and
+`--ds-scroll-fade` ([theming.md](theming.md#component-hooks)).
+
+**Motion:** the boxes' own (form.css: the check wipes in, the dash of "some" grows from the centre); the scrolling
+box's fades glide over `--ds-dur-fast`.
+
+<!-- changelog -->
+- Choice list (3.0): `.ds-choices` with `DS.choices` (`data-ds-choices`): "select all" with the indeterminate state, a
+  count, a fuzzy filter that marks its letters, columns (`.ds-choices--columns`) and a scrolling box
+  (`.ds-choices--scroll`) for long sets; `DS.choices.summary`.
+## Select panel
+
+A button that opens a popover with a filter, a list of options to check and an apply foot: labels, assignees, filters
+of a table. Nothing changes until Apply, so a long pick is one decision. The list is a [Listbox](#listbox) and
+`DS.listbox` its engine; for a value typed into a form field use the [Combobox](#combobox).
+
+```html
+<div class="ds-selectpanel" data-ds-selectpanel>
+  <button class="ds-btn ds-btn--outlined ds-selectpanel__trigger" type="button">
+    [icon tag 20]Labels <span class="ds-selectpanel__summary"></span>[icon chevronDown 20]
+  </button>
+  <div class="ds-selectpanel__panel" role="dialog" aria-label="Labels" hidden>
+    <div class="ds-selectpanel__head">
+      <input class="ds-input ds-selectpanel__search" type="search" aria-label="Filter labels" placeholder="Filter labels">
+    </div>
+    <div class="ds-listbox ds-listbox--plain ds-selectpanel__list" role="listbox" aria-multiselectable="true" aria-label="Labels">
+      <div class="ds-listbox__option" role="option" aria-selected="false" data-value="bug">
+        <span class="ds-listbox__check" aria-hidden="true">[icon check 16]</span><span class="ds-listbox__name">Bug</span>
+      </div>
+    </div>
+    <p class="ds-selectpanel__status" role="status"></p>
+    <div class="ds-selectpanel__foot">
+      <button class="ds-btn ds-btn--text" type="button" data-ds-selectpanel-clear>Clear</button>
+      <button class="ds-btn ds-btn--filled" type="button" data-ds-selectpanel-apply>Apply</button>
+    </div>
+  </div>
+</div>
+```
+
+```js
+const labels = DS.selectpanel.create(el, { items: rows.map((row) => ({ value: row.id, label: row.name, meta: row.count })) });
+labels.get();                                   // ['bug', 'docs']
+labels.set(['bug']);                            // from the page: no event
+labels.on('change', ({ value }) => filterTable(value));
+DS.selectpanel.open(el);  DS.selectpanel.close(el, { commit: true });
+```
+
+- **Open and close** through `DS.overlay`: the button opens and closes the panel (and ArrowDown or ArrowUp on it opens
+  it); Escape closes it, the first Escape in a filled filter clears the filter instead; the focus goes back to the
+  button. Where the top layer and anchor positioning exist the panel opens as `popover="manual"` (`data-anchored`),
+  so no scrolling box clips it, below the button or above it (`data-placement="top"`), never taller than the room on
+  that side; elsewhere it stands under the button inside its boxes (`DS.position`).
+- **Pending until Apply** (`data-ds-selectpanel-apply`): Escape, a press outside and the focus leaving the panel
+  discard what changed since it opened; Apply (or Ctrl+Enter, Cmd+Enter) applies it, closes the panel, sends
+  `ds:change` (`{ value }`) and announces the summary. `data-ds-selectpanel-clear` unchecks every option (pending).
+  Without an Apply button each change applies at once; one value (no `aria-multiselectable`) applies and closes on the
+  choice.
+- **Filter.** `.ds-selectpanel__search` keeps the focus while the arrows move the active option
+  (`aria-activedescendant`); Enter checks or unchecks it. It matches with `DS.listbox.fuzzy()` and marks the letters;
+  `.ds-selectpanel__status` says "No results" (the module makes one when the markup has none). Without a filter the
+  list itself is the tab stop with the keys of a listbox.
+- **Summary.** `.ds-selectpanel__summary` in the button says what is applied: one or two names ("Bug and Docs"), else
+  "3 selected", or "All selected" (`DS.selectpanel.summarize(names, total)`); nothing with none.
+- **Data and value** as `DS.listbox`: the markup's options, or `items` (windowed from `DS.listbox.VIRTUAL_FROM`,
+  `data-ds-selectpanel-virtual`); `data-ds-value` (a JSON list) or `value`, else the options marked
+  `aria-selected="true"`; `data-ds-selectpanel-name` (`name`) writes hidden inputs of the applied value for a form.
+
+The controller (`DS.selectpanel.create(el, options)`, or `DS.get(el)` of `data-ds-selectpanel`): `get()`, `set(value)`
+(no event), `on('change', fn)`, `setItems(items)`, `open()`, `close(commit)`, `list` (the engine) and `destroy()`.
+`DS.selectpanel.open(el)` and `DS.selectpanel.close(el, { commit })` do the same from outside.
+
+**Options** ([options.md](options.md)): classes on the `.ds-selectpanel` or any ancestor; the panel inherits them
+through the DOM, also in the top layer.
+
+| Option | Classes | Where it applies | Effect on the select panel |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the select panel or any ancestor | the button (a `.ds-btn`) and the options (listbox options, 8px per step) |
+| Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container | the options 4px less per step, head and foot padding 2px less |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the panel's radius; the button's pill as every action |
+| Touch | `.ds-touch` | the theme or a container | the button and every option at least `--ds-touch-target` (48px) |
+| Tone | none | | a select panel shows no status of its own |
+
+**Keyboard and names.** The button says `aria-haspopup="dialog"`, `aria-controls` and `aria-expanded`; name the panel
+(`role="dialog"`, `aria-label`) and the list. Tab moves from the filter to Clear and Apply; leaving the panel discards.
+A chosen option shows by the check, the tint and the label weight.
+
+**Forced colours.** The panel keeps a transparent outline that becomes its edge; the options are the listbox's.
+
+**Hooks:** `--ds-selectpanel-width` (320px), `--ds-selectpanel-list-max-height` (320px), `--ds-selectpanel-radius`
+(`--ds-radius-xs`) ([theming.md](theming.md#component-hooks)).
+
+**Motion:** the panel grows from the button as a menu does: its clip opens and it scales on `--ds-ease-spatial` over
+`--ds-dur-medium` while it fades in over `--ds-dur-fast`; it leaves with a fade in `--ds-dur-instant`, and a close
+mid-way turns back from where it is.
+
+<!-- changelog -->
+- Select panel (3.0): `.ds-selectpanel` with `DS.selectpanel` (`create`, `open`, `close`, `summarize`;
+  `data-ds-selectpanel`): a popover through `DS.overlay` with a filter, a listbox to check and an apply foot; pending
+  until Apply, discarded by Escape or a press outside; the button's summary; anchored in the top layer where the engine
+  can.
+## Ordered choice
+
+A multi-select whose order matters: the columns of a table, the order of fallbacks, priorities. Every option is a row
+with a grip and a checkbox; the value is the checked ones in the order of the rows, and each checked row shows its
+place. Rows move by drag and by keys through `DS.dnd` ([core.md](core.md#dsdnd-pointer-and-keyboard-drag)). For a
+plain set use the [Choice list](#choice-list).
+
+```html
+<ol class="ds-orderedchoice" data-ds-orderedchoice data-ds-orderedchoice-max="5" aria-label="Columns">
+  <li class="ds-orderedchoice__item">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move Name">[icon grip 20]</button>
+    <label class="ds-check"><input type="checkbox" name="column" value="name" checked><span>Name</span></label>
+    <span class="ds-orderedchoice__rank"></span>
+  </li>
+  <li class="ds-orderedchoice__item">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move Status">[icon grip 20]</button>
+    <label class="ds-check"><input type="checkbox" name="column" value="status"><span>Status</span></label>
+    <span class="ds-orderedchoice__rank"></span>
+  </li>
+</ol>
+```
+
+```js
+const columns = DS.orderedchoice.create(list);  // or DS.get(list) of data-ds-orderedchoice
+columns.get();                                  // ['name', 'status']: checked, in order
+columns.order();                                // every value, in order
+columns.set(['status', 'name']);                // checked, in this order, first (no event)
+columns.move('status', 0);                      // as a drop: announced, ds:change
+columns.on('change', ({ value, order }) => save(value));
+```
+
+`DS.orderedchoice.create(list, options)` returns the controller that `data-ds-orderedchoice` makes (`DS.get(list)`
+finds it): `get()`, `order()`, `set(value)`, `move(value, index)`, `on('change', fn)` and `destroy()`.
+
+- **Moving.** The grip drags its row (`DS.dnd`): by the pointer, or Space or Enter to lift, the arrows to move, Space to
+  drop and Escape to cancel, each step announced ("Moved Status to position 1 of 6."). Alt+ArrowUp and Alt+ArrowDown on
+  a row's checkbox or grip move it one place at once, Alt+Home and Alt+End to the ends; the focus stays. The rows glide
+  to their places. Name each grip by its action ("Move Status").
+- **Checking.** The native boxes. A checked row's label takes the label weight and its place shows at the end in a
+  `.ds-orderedchoice__rank` disc (the module writes the number and, for a screen reader, "Position 2", which the box
+  names through `aria-describedby`); an unchecked row shows none. The module adds the rank when a row has none.
+- **Maximum** (`data-ds-orderedchoice-max`, `max`): with that many checked, the unchecked boxes are disabled and a
+  `.ds-orderedchoice__status` after the list says "Up to 5 items"; a box the page disabled stays so.
+- **Value.** The markup's `checked` and row order, or `value`; the boxes' `name` and `value` go with a form in the order
+  of the rows. `ds:change` (`{ value, order }`) bubbles from the list after the user changed a box or the order.
+  `DS.orderedchoice.arrange(order, value)` and `DS.orderedchoice.ranks(order, checked)` are the layout of `set()` and the
+  places, without a DOM.
+
+The controller: `get()`, `set(value)`, `order()`, `on('change', fn)`, `move(value, index)`, `refresh()` (the page added
+or removed rows) and `destroy()`.
+
+**Options** ([options.md](options.md)): the rows are `.ds-check` rows and the grips `.ds-btn` icon buttons, which
+compute size, density and touch themselves.
+
+| Option | Classes | Where it applies | Effect on the ordered choice |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the list or any ancestor | the rows and grips (8px per step), the rank disc 4px per step |
+| Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container | the rows 4px less per step, their block padding 2px less (never below 0) |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the radii of the box, the boxes and the rank disc |
+| Touch | `.ds-touch` | the theme or a container | rows and grips at least `--ds-touch-target` (48px) |
+| Tone | none | | an ordered choice shows no status of its own |
+
+**Keyboard and names.** Tab reaches each grip and each box; the keys above move. The list is an `<ol>` with a name
+(`aria-label` or `aria-labelledby`); the place is in words for a screen reader, never only a number in a disc.
+
+**Forced colours.** The box keeps its border in `CanvasText`, the rank disc an edge; the row being moved is drag.css's
+`Highlight` outline.
+
+**Hooks:** `--ds-orderedchoice-radius` (`--ds-radius-card`) ([theming.md](theming.md#component-hooks)).
+
+**Motion:** rows glide to their places (`DS.dnd` through `DS.motion.flip`, on `--ds-ease-spatial`); a lifted row is
+raised with the dragged state layer, nothing scales; the rank disc fades in over `--ds-dur-fast` and out in
+`--ds-dur-instant`.
+
+<!-- changelog -->
+- Ordered choice (3.0): `.ds-orderedchoice` with `DS.orderedchoice` (`data-ds-orderedchoice`): checked rows in an order
+  of their own, moved by `DS.dnd` (pointer and keys) and by Alt with the arrows, Home and End; the place of each checked
+  row in a disc and in words; a maximum; `DS.orderedchoice.arrange` and `DS.orderedchoice.ranks`.
+## Transfer list
+
+Two lists side by side, the available options and the chosen ones, with buttons that move the marked options across:
+the permissions of a role, the devices of a group. Each side is a [Listbox](#listbox) of several values with an
+optional filter. For a short set a [Choice list](#choice-list) is quicker; to pick in a popover use the
+[Select panel](#select-panel).
+
+```html
+<div class="ds-transfer" data-ds-transfer>
+  <div class="ds-transfer__side" data-ds-transfer-side="source">
+    <span class="ds-transfer__title" id="avail">Available</span>
+    <input class="ds-input ds-transfer__search" type="search" aria-label="Filter available" placeholder="Filter">
+    <div class="ds-listbox ds-transfer__list" role="listbox" aria-multiselectable="true" aria-labelledby="avail">
+      <div class="ds-listbox__option" role="option" aria-selected="false" data-value="read">
+        <span class="ds-listbox__check" aria-hidden="true">[icon check 16]</span><span class="ds-listbox__name">Read devices</span>
+      </div>
+    </div>
+  </div>
+  <div class="ds-transfer__actions" role="group" aria-label="Move">
+    <button class="ds-btn ds-btn--outlined ds-btn--icon" type="button" data-ds-transfer-add aria-label="Add the marked" data-tip="Add the marked">[icon arrowRight 20]</button>
+    <button class="ds-btn ds-btn--outlined ds-btn--icon" type="button" data-ds-transfer-remove aria-label="Remove the marked" data-tip="Remove the marked">[icon arrowLeft 20]</button>
+  </div>
+  <div class="ds-transfer__side" data-ds-transfer-side="target">
+    <span class="ds-transfer__title" id="chosen">Chosen</span>
+    <div class="ds-listbox ds-transfer__list" role="listbox" aria-multiselectable="true" aria-labelledby="chosen"></div>
+  </div>
+</div>
+```
+
+```js
+const role = DS.transfer.create(el, { items: permissions, value: ['read'] });  // or DS.get(el) of data-ds-transfer
+role.get();                         // ['read', 'restart']: the target, in the order they came
+role.set(['read']);                 // from the page: no event
+role.move(['restart']);             // as the add button: announced, ds:change; move(values, false) goes back
+role.on('change', ({ value }) => save(value));
+```
+
+`DS.transfer.create(el, options)` returns the controller that `data-ds-transfer` makes (`DS.get(el)` finds it):
+`get()`, `set(value)`, `move(values, toTarget)`, `on('change', fn)` and `destroy()`.
+
+- **Marking** is each list's own choice (`DS.listbox`: Space, Shift with an arrow, Ctrl+A, a press, a Shift-press).
+- **Moving.** `data-ds-transfer-add` moves the source's marked options to the end of the target, `data-ds-transfer-remove`
+  the target's back to the source, in their first order. Enter in a list moves its marked options, else the active one,
+  and leaves the focus in that list; a double-click moves the option under the pointer. A button is disabled while its
+  side has nothing marked; moved options stay marked on their new side, so a move back is one press. Each move is
+  announced ("Moved 3 to Chosen", the side's `.ds-transfer__title`) and sends `ds:change` (`{ value }`). A blocked
+  option (`disabled`) stays where it is.
+- **Data.** The options of both lists' markup (the value is the target's), or `items` (as `DS.listbox`) and `value`; a
+  long side is windowed (`DS.virtual` through `DS.listbox`, `virtual`). `DS.transfer.move(from, to, moving, all)` is the
+  arithmetic of a move.
+- **Filter.** A `.ds-transfer__search` in a side filters its list (`DS.listbox.fuzzy`, the letters marked).
+
+The controller: `get()`, `set(value)`, `on('change', fn)`, `move(values, toTarget)`, `lists` (`{ source, target }`, the
+engines) and `destroy()`.
+
+**Layout.** Both lists take one height (`--ds-transfer-list-height`, 264px), the buttons between them. Where the
+transfer is 560px wide or less (a container query on itself) the sides stack and the buttons stand in a row between
+them, their arrows a quarter turned.
+
+**Options** ([options.md](options.md)): the lists are listboxes and the buttons icon buttons, which compute size,
+density, shape and touch themselves; the transfer adds only gaps. No tone.
+
+**Keyboard and names.** Tab: the filter, the list, the buttons, the other side. Name each list by its title
+(`aria-labelledby`), each button by its action (and a `data-tip`), the button row with `role="group"`.
+
+**Forced colours.** The lists are the listbox's; the buttons the button's.
+
+**Hooks:** `--ds-transfer-list-height` (264px) ([theming.md](theming.md#component-hooks)).
+
+**Motion:** none of its own: the options change sides at once, as a listbox renders new data; the check boxes are the
+listbox's.
+
+<!-- changelog -->
+- Transfer list (3.0, tier 2): `.ds-transfer` with `DS.transfer` (`data-ds-transfer`): two listboxes of the
+  `DS.listbox` engine, add and remove buttons, Enter and a double-click to move, filters, windowed data, announcements;
+  stacks below 560px; `DS.transfer.move`.
+## Calendar
+
+The month grid every date picker shares, and the date engine under it: a day or a range to pick in one or two months,
+inline on a page or inside a picker's popover. Everything a reader sees comes from `Intl` in the page's locale
+(`DS.core.config()`): month titles, weekday heads, the first day of the week, week numbers and the full date that names
+each day.
+
+```html
+<div class="ds-calendar" data-ds-calendar data-ds-value="2026-11-04" aria-label="Delivery date"></div>
+<div class="ds-calendar" data-ds-calendar data-ds-calendar-mode="range" data-ds-calendar-months="2"
+     data-ds-value="2026-11-01/2026-11-07"></div>
+<div class="ds-calendar" data-ds-calendar data-ds-calendar-min="2026-11-03" data-ds-calendar-max="2026-12-20"
+     data-ds-calendar-disabled="6,7,2026-11-12" data-ds-calendar-weeks data-ds-calendar-first-day="1"></div>
+```
+
+The element is empty in the markup; `DS.calendar` renders into it:
+
+```html
+<div class="ds-calendar__months">
+  <div class="ds-calendar__month">
+    <div class="ds-calendar__caption">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-calendar__nav" type="button" aria-label="Previous month">[icon chevronLeft 20]</button>
+      <span class="ds-calendar__title" id="ds-cal-1-t0" aria-live="polite">November 2026</span>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-calendar__nav" type="button" aria-label="Next month">[icon chevronRight 20]</button>
+    </div>
+    <table class="ds-calendar__grid" role="grid" aria-labelledby="ds-cal-1-t0">
+      <thead><tr><th class="ds-calendar__week" scope="col" abbr="week">wk</th><th scope="col" abbr="Monday">M</th> ...</tr></thead>
+      <tbody><tr><th class="ds-calendar__week" scope="row" aria-label="week 45">45</th>
+        <td></td>
+        <td aria-selected="true"><button class="ds-calendar__day" type="button" tabindex="0" data-date="2026-11-04"
+            aria-label="Wednesday, November 4, 2026" aria-current="date">4</button></td> ...
+```
+
+With two months, the first caption holds the button to the month before and the last the one to the month after; a
+`.ds-calendar__spacer` stands in for a button, so each title stays centred.
+
+### Options
+
+| Option | Attribute (`create()` option) | Effect |
+|---|---|---|
+| Value | `data-ds-value` (`value`) | ISO text, `2026-11-04`; in range mode `2026-11-01/2026-11-07` |
+| Mode | `data-ds-calendar-mode` (`mode`) | `single` (default) or `range` |
+| Months | `data-ds-calendar-months` (`months`) | `1` (default) or `2` side by side (they wrap under each other when the room is narrow) |
+| Limits | `data-ds-calendar-min`, `data-ds-calendar-max` (`min`, `max`) | the first and last day that may be picked; the month buttons stop there |
+| Blocked days | `data-ds-calendar-disabled` (`disabled`) | ISO dates, ranges (`2026-12-24/2026-12-26`) and ISO weekdays (`6,7`: the weekend), comma separated; in JS also a function of the plain date |
+| Week numbers | `data-ds-calendar-weeks` (`weeks`) | a column of week numbers, in the locale's numbering (ISO 8601 where the locale counts so) |
+| First day | `data-ds-calendar-first-day` (`firstDay`) | `1` (Monday) ... `7` (Sunday); default the locale's |
+| Show | `data-ds-calendar-show` (`show`) | the month to show first; default the value's, else today's |
+| Size | `.ds-xs` ... `.ds-xl` on it or an ancestor | a day 8px per step from `--ds-calendar-cell` (40px); the type of the size |
+| Density | `.ds-density-*` | a day 4px per step |
+| Shape | `.ds-shape-*` | the radius of a day (round at the default, square at `.ds-shape-square`) |
+| Touch | `.ds-touch` | a day at least `--ds-touch-target` |
+
+`create()` also takes `locale` (else the page's), `onSelect(value)` (after each pick) and `silent` (no `ds:` events on
+the element; a picker around it sends its own).
+
+### Behaviour
+
+- **Keyboard** (the grid of the WAI-ARIA date picker dialog): one tab stop, the focused day. ArrowLeft and ArrowRight move
+  a day (in the writing direction), ArrowUp and ArrowDown a week, Home and End go to the start and end of the week, PageUp
+  and PageDown a month, Shift+PageUp and Shift+PageDown a year, Enter or Space picks. Moving past the months on screen
+  turns the page; the focus never leaves `min` and `max`.
+- **Blocked days** (`aria-disabled="true"`) stay focusable, so their name is read, take the disabled ink and no press, and
+  are never picked.
+- **Range.** The first pick starts the range (`ds:input`, `{ start, end: '' }`); the pointer and the focus preview it
+  (`data-preview` on the cells: `start`, `middle`, `end`); the second pick ends it in either order. The committed range is
+  `data-range` on its cells, every cell of it `aria-selected="true"`, and the grid `aria-multiselectable="true"`.
+- **Today** is `aria-current="date"`: a ring in the action colour (`--ds-calendar-today`).
+- **Events** on the element: `ds:change` with `{ value }` (single) or `{ value, start, end }` (range) after a pick,
+  `ds:input` when a range starts.
+- **Locale.** Another locale through `DS.core.config({ locale })` renders it again at once (`ds:config`).
+
+### JS API
+
+`js/calendar.js` (`DS.calendar`). `create(el, options)` returns the controller that `data-ds-calendar` makes, once per
+element: `get()` (ISO text, `''` while none; a range `start/end`), `set(value)` (no event; shows its month),
+`show(date)` (shows the month of a date and makes it the tab stop), `focus(date)`, `view()` (`{ start, months, focus }`),
+`update(options)`, `on(type, fn)` and `destroy()`.
+
+The engine, for the other pickers and for pages, on plain dates `{ year, month, day }` (month 1-12) computed in UTC day
+numbers, so no daylight saving change moves a day:
+
+| Export | What |
+|---|---|
+| `parse(value)` | a plain date from ISO text (a date-time keeps its date), a `Date` (its local date) or a plain date; `null` for anything else or a day that does not exist |
+| `iso(date)` | the ISO text, `''` for none |
+| `today({ timeZone, now })` | today's plain date, locally or in a zone |
+| `add(date, { years, months, days })` | moved in that order; a month step keeps the day where the month has it (January 31 plus a month is February 28) |
+| `compare(a, b)` | negative before, 0 the same day, positive after |
+| `daysIn(year, month)` | the days of a month |
+| `weekInfo(locale, { firstDay })` | `{ firstDay, minimalDays }` of a locale: `Intl.Locale` week info, else a table of regions (CLDR) |
+| `weekNumber(date, info)` | the week of the year in that numbering (default ISO 8601) |
+| `grid(year, month, firstDay)` | six whole weeks of plain dates around a month |
+| `available(date, { min, max, disabled })` | whether a day may be picked |
+| `label(date, options)` | a plain date for people (default the full date), `Intl.DateTimeFormat` options plus `locale` |
+| `rangeLabel(start, end, options)` | a range for people through `formatRange` ("Nov 1 – 7, 2026") |
+
+### Accessibility
+
+The grid is a `table` with `role="grid"`, named by its month title; the weekday heads carry the full name in `abbr`;
+each day is a button named by its full date, with `aria-current="date"` for today and `aria-disabled` for a blocked day;
+a picked day's cell is `aria-selected="true"`, and since the focus sits on the button, not on the cell, the button's
+name ends on the string `selected` as well ("Wednesday, November 4, 2026, selected"). The month title is a polite live
+region, so a turned page is heard; the month buttons keep the focus while they turn the page (a blocked one hands it to
+the focused day). The two month buttons are named by the strings `previousMonth` and `nextMonth`
+([install.md](install.md#language-and-locale)).
+Status is never colour alone: every state is an attribute, today has a ring, a picked day a fill.
+
+### Forced colours
+
+A picked day and the band of a range are `SelectedItem` / `SelectedItemText`; the ends of a range carry a `CanvasText`
+ring inside the fill; the preview a dashed edge; today keeps its ring (a border); a blocked day is `GrayText`; a focused
+picked day has a `CanvasText` ring.
+
+### Hooks
+
+`--ds-calendar-cell`, `--ds-calendar-font`, `--ds-calendar-today`, `--ds-calendar-selected-bg`,
+`--ds-calendar-selected-color`, `--ds-calendar-range-bg` ([theming.md](theming.md#component-hooks)).
+
+### Motion
+
+A turned page slides in from its side: `DS.motion.enter(month, 'slide')` (`ds-fade-in` and `ds-shift-in` on the spring),
+its `--ds-motion-distance` set from `data-turn` (`next`, `back`; mirrored right to left). The band and the fills change
+colour over `--ds-dur-fast`; a day presses as every action (`--ds-dur-micro`, the ripple, the press morph).
+
+<!-- changelog -->
+- Calendar (3.0): `.ds-calendar` and `DS.calendar`, the month grid of every date picker and its date engine (`parse`,
+  `iso`, `add`, `compare`, `weekInfo`, `weekNumber`, `grid`, `available`, `label`, `rangeLabel`): one or two months, a
+  day or a range with a preview, min and max, blocked days, week numbers, the locale's first day through `Intl`.
+## Date field
+
+A date, a time, a date and a time, or a range of dates, typed part by part in the order, separators and hour cycle of
+the page's locale (the WAI-ARIA spinbutton pattern, one spinbutton per part). It draws the box of a text field and
+reads the input's hooks, so a theme that styles fields styles it too. The date, time and range pickers put their
+button at its end.
+
+```html
+<span class="ds-field__label" id="due-label">Due date</span>
+<div class="ds-datefield" role="group" aria-labelledby="due-label" data-ds-datefield data-ds-value="2026-11-04"></div>
+
+<div class="ds-datefield" role="group" aria-labelledby="window-label" data-ds-datefield
+     data-ds-datefield-type="datetime" data-ds-datefield-zone="local" data-ds-value="2026-11-04T22:00"></div>
+
+<div class="ds-datefield ds-datefield--filled" role="group" aria-labelledby="loan-label" data-ds-datefield
+     data-ds-datefield-type="range" data-ds-datefield-min="2026-01-01" data-ds-datefield-name="loan"></div>
+```
+
+The element holds at most a `.ds-datefield__leading` icon and the button of a picker; `DS.datefield` renders the rest:
+
+```html
+<span class="ds-datefield__input">
+  <span class="ds-datefield__segment" role="spinbutton" contenteditable="true" inputmode="numeric" aria-label="month"
+        aria-valuemin="1" aria-valuemax="12" aria-valuenow="11" aria-valuetext="11 – November">11</span>
+  <span class="ds-datefield__literal" aria-hidden="true">/</span> ...
+</span>
+<span class="ds-datefield__zone" id="ds-field-1-zone" data-tip="Central European Standard Time">GMT+1</span>
+<input type="hidden" name="loan" value="2026-11-02/2026-11-13">
+```
+
+A range has two `.ds-datefield__group` (`role="group"`, named by the strings `rangeStart` and `rangeEnd`) with a
+`.ds-datefield__literal.ds-datefield__between` between them. An empty part shows the first letter of its name ("mm",
+"dd", "yyyy") and carries `data-placeholder`.
+
+### Options
+
+| Option | Attribute (`create()` option) | Effect |
+|---|---|---|
+| Type | `data-ds-datefield-type` (`type`) | `date` (default), `time`, `datetime`, `range` |
+| Value | `data-ds-value` (`value`) | ISO text of the type: `2026-11-04`, `09:30` (`09:30:15` with seconds), `2026-11-04T09:30` (a wall time), `2026-11-01/2026-11-07` |
+| Limits | `data-ds-datefield-min`, `data-ds-datefield-max` (`min`, `max`) | ISO text of the type; outside them the field is invalid |
+| Seconds | `data-ds-datefield-seconds` (`seconds`) | a part for the seconds |
+| Hour cycle | `data-ds-datefield-hour-cycle` (`hourCycle`) | `h12` or `h23`; default the locale's |
+| Zone | `data-ds-datefield-zone` (`zone`) | a datetime's zone, `local` or an IANA name (`UTC`): its offset shows at the end (`.ds-datefield__zone`), its long name is the field's description and tooltip, and `instant()` reads the wall time in it |
+| Form | `data-ds-datefield-name` (`name`) | a hidden input of that name carries the value |
+| Variant | `.ds-datefield--outlined` (default), `.ds-datefield--filled` | the outlined box, or the tonal fill (also inside a `.ds-field--filled`) |
+| Width | `.ds-datefield--block` | the whole width of its container |
+| Size | `.ds-xs` ... `.ds-xl` | 8px of height per step from `--ds-input-height` (40px), 4px of side padding per step, the type of the size |
+| Density | `.ds-density-*` | 4px of height per step; type and side padding stay |
+| Shape | `.ds-shape-*` | multiplies the box's radius and a part's |
+| Touch | `.ds-touch` | at least `--ds-touch-target` high |
+
+`create()` also takes `locale` (else the page's), `disabled` (blocked days as `DS.calendar.available()` reads them:
+dates, ranges and weekdays; a date, a date and time's day or a range's end on such a day is invalid, so a day the
+picker's calendar blocks cannot be typed or pasted either; the pickers pass theirs), `invalid` (the page's own verdict: `aria-invalid` holds whatever the
+value, as for a range checked across two fields) and `silent` (no `ds:` events on the element; a picker around it
+sends its own). On a phone (600px or less) the type is `--ds-font-input` (16px), so iOS does not zoom.
+
+### States
+
+- **Invalid**: outside `min` and `max`, on a blocked day (`disabled`), a day the month does not have, a range that ends before it starts, or a value
+  left half typed: the script sets `aria-invalid="true"` on the group and its parts, which draws the error border. Show
+  the reason under the field (`.ds-field__hint.ds-field__hint--error` with its icon, linked by `aria-describedby`), so the colour is never alone.
+- **Disabled**: `aria-disabled="true"` on the group: the disabled look, no part takes focus.
+- **Read-only**: `aria-readonly="true"`: the read-only look; the parts take focus and are read, nothing changes.
+
+### Behaviour
+
+- **Keyboard** (each part): ArrowUp and ArrowDown step it, wrapping (an empty part starts from now); PageUp and PageDown
+  take a bigger step (10 years, 3 months, a week, 3 hours, 15 minutes); Home and End go to its least and greatest
+  value; digits type it and move on once no further digit fits (`1` waits for a second digit in a month, `4` does
+  not); a separator (`/`, `.`, `-`, `:`, space) moves on; Backspace and Delete clear it, and on an empty part go back;
+  ArrowLeft and ArrowRight move between parts in the writing direction. A day period takes the first letter of its
+  words (`a`, `p`). A two-digit year becomes this century's (or the last one's, beyond twenty years ahead).
+- **Pointer**: a press on the box outside the parts, or on the label, focuses the first empty part.
+- **Paste**: a whole value (ISO text, or the digits in the field's order) fills every part.
+- **Phones**: each part is `contenteditable` with `inputmode="numeric"`, so the number pad opens; the script writes
+  every character itself, so nothing else can be typed.
+- **Events**: `ds:change` with `{ value, valid }` on the field whenever the value changes, also to `''` while a part
+  is cleared.
+- **Locale**: `DS.core.config({ locale })` lays the parts out again at once (`ds:config`).
+
+### JS API
+
+`js/datefield.js` (`DS.datefield`). `create(el, options)` returns the controller that `data-ds-datefield` makes, once
+per element: `get()` (ISO text, `''` while a part is missing), `set(value, { emit })` (no event unless `emit: true`),
+`valid()`, `instant()` (the value as a `Date`: a datetime's wall time in its zone, a date's local midnight),
+`focus(key)` (a part: `day`, `end.month`; else the first empty one), `update(options)`, `on(type, fn)` and `destroy()`.
+
+| Export | What |
+|---|---|
+| `hourCycle(locale, wanted)` | `'h12'` or `'h23'` for a locale (`h11` and `h24` fold into them); `wanted` overrides it |
+| `layout(type, locale, { hourCycle, seconds })` | the parts in the locale's order: `{ type }` per part, `{ type: 'literal', value }` between them |
+| `zoneName(timeZone, { locale, at })` | `{ id, short, long }`: the offset ("GMT+1") and the long name of a zone |
+| `toInstant(value, timeZone)` | the `Date` of a wall time in a zone; a time that a change of clocks skips moves forward with it |
+| `typeDigit({ min, max, typed, digit, size })` | one digit typed into a part: `{ value, typed, done }` |
+
+### Accessibility
+
+The field is a `role="group"` named by its label (`aria-labelledby`); each part is a `spinbutton` named by its field
+name from `Intl.DisplayNames` ("month", "Monat"), with `aria-valuemin`, `aria-valuemax`, `aria-valuenow` and an
+`aria-valuetext` that says the month's name or "Empty" (the string `empty`). The separators are `aria-hidden`. A
+range's two groups are named "Start" and "End". The zone's long name is the field's description.
+
+### Forced colours
+
+The box keeps its border (`CanvasText`, `Highlight` when focused); the focused part is `Highlight` / `HighlightText`; a
+placeholder and a disabled field are `GrayText`.
+
+### Hooks
+
+The input's: `--ds-input-height`, `--ds-input-radius`, `--ds-input-padding-x`, `--ds-input-border`, `--ds-input-bg`,
+`--ds-input-font`, `--ds-input-weight`, `--ds-input-focus-color` ([theming.md](theming.md#component-hooks)).
+
+### Motion
+
+Border, fill and ink change over `--ds-dur-fast`; the focus ring and the focused part show at once, as on every field.
+
+<!-- changelog -->
+- Date field (3.0): `.ds-datefield` and `DS.datefield`, a date, time, date-time or range typed part by part in the
+  locale's order and hour cycle (`create`, `hourCycle`, `layout`, `zoneName`, `toInstant`, `typeDigit`), with min and
+  max, paste, a hidden input for forms and the zone of a wall time.
+## Date picker
+
+One date, or a date and a time: typed into a segmented date field, or chosen in a calendar in a popover (the WAI-ARIA
+date picker dialog). With type `datetime` the field takes the time as well, the popover a list of times beside the
+calendar, and the field can name the zone of its wall time.
+
+```html
+<span class="ds-field__label" id="due-label">Due date</span>
+<div class="ds-picker" data-ds-datepicker data-ds-value="2026-11-07">
+  <div class="ds-datefield" role="group" aria-labelledby="due-label">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-datefield__toggle" type="button" aria-label="Choose date">[icon calendar 20]</button>
+  </div>
+</div>
+
+<div class="ds-picker" data-ds-datepicker data-ds-datepicker-type="datetime" data-ds-datepicker-zone="UTC"
+     data-ds-datepicker-hour-cycle="h23" data-ds-value="2026-11-07T02:30">...</div>
+```
+
+The field is a [date field](#date-field); `DS.datepicker` renders the popover inside the root: a
+[calendar](#calendar), for a date and time a `.ds-datepicker__times` pane with a [list of times](#time-picker) beside
+it, and a foot with "Today" (or "Now") and "Clear":
+
+```html
+<div class="ds-picker__popover" role="dialog" aria-modal="true" aria-label="Choose date" hidden>
+  <div class="ds-picker__panes">
+    <div class="ds-picker__pane"><div class="ds-calendar">...</div></div>
+    <div class="ds-picker__pane ds-picker__pane--scroll ds-datepicker__times"><div class="ds-timepicker__list">...</div></div>
+  </div>
+  <div class="ds-picker__foot">
+    <button class="ds-btn ds-btn--text" type="button">Today</button><span class="ds-picker__spacer"></span>
+    <button class="ds-btn ds-btn--text" type="button">Clear</button>
+  </div>
+</div>
+```
+
+The list of times is as tall as the calendar beside it and scrolls inside; on a phone (600px or less) it goes under the
+calendar.
+
+### Options
+
+| Option | Attribute (`create()` option) | Effect |
+|---|---|---|
+| Type | `data-ds-datepicker-type` (`type`) | `date` (default) or `datetime` |
+| Value | `data-ds-value` (`value`) | `2026-11-04`, or `2026-11-04T09:30` (a wall time) |
+| Limits | `data-ds-datepicker-min`, `data-ds-datepicker-max` (`min`, `max`) | ISO text of the type; the calendar stops there and the field is invalid outside |
+| Blocked days | `data-ds-datepicker-disabled` (`disabled`) | dates, ranges and weekdays, as the calendar's (`6,7` is the weekend); the calendar never picks them, and typed or pasted the field is invalid |
+| Week numbers | `data-ds-datepicker-weeks` (`weeks`) | the calendar's column of week numbers |
+| Zone | `data-ds-datepicker-zone` (`zone`) | a date and time's zone, `local` or an IANA name: its offset at the field's end |
+| Step | `data-ds-datepicker-step` (`step`) | minutes between the listed times, default 30 |
+| Hour cycle | `data-ds-datepicker-hour-cycle` (`hourCycle`) | `h12` or `h23`; default the locale's |
+| Form | `data-ds-datepicker-name` (`name`) | a hidden input carries the value |
+| Size, density, shape, touch | the option classes | those of the field, the calendar and the popover, each computed in its own component; the date picker adds none |
+
+`create()` also takes `locale` (else the page's). States are the field's: `aria-invalid`, `aria-disabled` (the button
+too) and `aria-readonly` (the calendar shows the value, nothing changes it, the foot is hidden) on the `.ds-datefield`.
+
+### Behaviour
+
+- **Open**: the button, or Alt+ArrowDown in the field. Focus goes to the chosen day (else today, within min and max).
+- **Calendar**: its keys (arrows a day or a week, Home and End the week's ends, PageUp and PageDown a month, with Shift
+  a year); Enter, Space or a click picks the day, puts it into the field and closes the popover; focus is back on the
+  button. A date and time picks the day (the popover stays, focus goes to the list) and then the time (it closes).
+- **Foot**: "Today" (a date) or "Now" (a date and time) picks that at once; it is `aria-disabled` when today is
+  blocked. "Clear" empties the field.
+- **Escape** closes without a change.
+- **Events**: `ds:change` with `{ value, valid }` on the root, whether the value was typed or picked (the field inside
+  sends none of its own).
+
+### JS API
+
+`js/datepicker.js` (`DS.datepicker`). `create(root, options)` returns the controller that `data-ds-datepicker` makes,
+once per root: `get()`, `set(value)` (no event), `instant()` (the value as a `Date`, a datetime's wall time in its
+zone), `open()`, `close()`, `on(type, fn)` (`change`, `open`, `close`) and `destroy()`.
+
+### Accessibility
+
+The button is named "Choose date" (the string `chooseDate`, or its own `aria-label`) and says `aria-haspopup="dialog"`
+and `aria-expanded`; the popover is a modal dialog with that name. "Today" and "Now" come from
+`Intl.RelativeTimeFormat` in the locale, "Clear" from the string `clear`. The calendar and the field are accessible
+as described in their sections.
+
+### Forced colours
+
+The parts' own: the field's border and focused part, the calendar's `SelectedItem` days, the list's chosen row, the
+popover's edge.
+
+### Motion
+
+The popover grows from the button (the picker's); a turned month slides in from its side (the calendar's).
+
+<!-- changelog -->
+- Date picker (3.0): `DS.datepicker` (`create`), a date or date-time field with a calendar (and a list of times) in a
+  popover: min, max, blocked days, week numbers, today, clear, the zone of a wall time, all in the locale through
+  `Intl`.
+## Time picker
+
+A time of day: typed into a segmented time field or chosen from a list of times in a popover, in the hour cycle of the
+page's locale (12 or 24 hours) unless the markup names one.
+
+```html
+<span class="ds-field__label" id="backup-label">Daily backup at</span>
+<div class="ds-picker" data-ds-timepicker data-ds-value="02:30" data-ds-timepicker-step="30">
+  <div class="ds-datefield" role="group" aria-labelledby="backup-label">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-datefield__toggle" type="button" aria-label="Choose time">[icon clock 20]</button>
+  </div>
+</div>
+```
+
+The field is a [date field](#date-field) of type `time`; `DS.timepicker` renders it and the popover inside the root:
+
+```html
+<div class="ds-picker__popover ds-timepicker__popover" role="dialog" aria-modal="true" aria-label="Choose time" hidden>
+  <div class="ds-picker__pane ds-picker__pane--scroll">
+    <div class="ds-timepicker__list" role="listbox" tabindex="0" aria-label="Choose time" aria-activedescendant="ds-times-1-5">
+      <div class="ds-timepicker__option" role="option" id="ds-times-1-5" data-value="02:30" aria-selected="true" data-active>2:30 AM</div> ...
+    </div>
+  </div>
+</div>
+```
+
+### Options
+
+| Option | Attribute (`create()` option) | Effect |
+|---|---|---|
+| Value | `data-ds-value` (`value`) | `HH:mm` (`HH:mm:ss` with seconds), 24-hour |
+| Step | `data-ds-timepicker-step` (`step`) | minutes between the listed times, default 30; any minute can be typed |
+| Limits | `data-ds-timepicker-min`, `data-ds-timepicker-max` (`min`, `max`) | the list starts and ends there; a typed time outside them is invalid |
+| Hour cycle | `data-ds-timepicker-hour-cycle` (`hourCycle`) | `h12` or `h23`; default the locale's (the field and the list alike) |
+| Seconds | `data-ds-timepicker-seconds` (`seconds`) | a part for the seconds; a time from the list has `:00` |
+| Form | `data-ds-timepicker-name` (`name`) | a hidden input carries the value |
+| Size | `.ds-xs` ... `.ds-xl` | the field's; a row of the list 8px per step from `--ds-timepicker-option-height` (40px), the type of the size |
+| Density | `.ds-density-*` | the field's; a row 4px per step |
+| Shape | `.ds-shape-*` | the field's and the popover's; multiplies a row's radius |
+| Touch | `.ds-touch` | a row at least `--ds-touch-target` high |
+
+States are the field's: `aria-invalid`, `aria-disabled` (the button too, `disabled`) and `aria-readonly` on the
+`.ds-datefield`.
+
+### Behaviour
+
+- **Field**: the keys of the [date field](#date-field) (the arrows step the hour, the minute and the day period, `a`
+  and `p` set it); Alt+ArrowDown opens the list.
+- **List** (the WAI-ARIA listbox pattern, focus on the list, `aria-activedescendant` on the active option): opening
+  shows the chosen time in the middle (else the one nearest to now); ArrowUp and ArrowDown move, Home and End go to the
+  ends, PageUp and PageDown move an hour, digits jump to the first time that starts with them; Enter, Space or a click
+  picks the time, puts it into the field and closes the popover; focus is back on the button. Escape closes without a
+  change.
+- **Events**: `ds:change` with `{ value, valid }` on the root, whether the time was typed or picked (the field inside
+  sends none of its own).
+
+### JS API
+
+`js/timepicker.js` (`DS.timepicker`). `create(root, options)` returns the controller that `data-ds-timepicker` makes,
+once per root: `get()`, `set(value)` (no event), `open()`, `close()`, `on(type, fn)` (`change`, `open`, `close`) and
+`destroy()`. `list(el, options)` makes the list alone (the date-time picker's pane, or a page's own), with
+`get()`, `set()`, `update()`, `focus()`, `reveal()` and `destroy()`, and `onSelect(value)` among its options.
+`times({ step, min, max })` lists the times of a day as `HH:mm`.
+
+### Accessibility
+
+The popover is a modal dialog named "Choose time" (the string `chooseTime`, or the button's `aria-label`); the list a
+`listbox` with the same name, each time an `option` whose text is the time in the locale's words; the chosen one is
+`aria-selected="true"`. The chosen row has the tint and the label weight, so it is not told by colour alone.
+
+### Forced colours
+
+The chosen row is `SelectedItem` / `SelectedItemText`; the active row carries a `Highlight` ring (`CanvasText` on the
+chosen one).
+
+### Hooks
+
+`--ds-timepicker-option-height` ([theming.md](theming.md#component-hooks)); the field's and the popover's.
+
+### Motion
+
+The popover's (it grows from the button). The active row's layer comes in over `--ds-dur-micro` and goes at once, so a
+held arrow key leaves no trail. A row picks and closes the popover, so it takes no ripple; its layer is the feedback.
+
+<!-- changelog -->
+- Time picker (3.0): `DS.timepicker` (`create`, `list`, `times`), a segmented time field and a list of times in a
+  popover, in the locale's hour cycle, with step, min, max and seconds.
+## Date range picker
+
+A range of dates, typed into a field of two dates or chosen in a popover with presets ("Today", "Last 7 days", "This
+month" ...) and two months side by side that preview the range under the pointer and the keys. A preset is a relative
+range: saved as `last-7-days`, it is the last seven days tomorrow too.
+
+```html
+<span class="ds-field__label" id="period-label">Report period</span>
+<div class="ds-picker" data-ds-daterange data-ds-value="last-7-days">
+  <div class="ds-datefield" role="group" aria-labelledby="period-label">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-datefield__toggle" type="button" aria-label="Choose dates">[icon calendarRange 20]</button>
+  </div>
+</div>
+```
+
+The field is a [date field](#date-field) of type `range`; `DS.daterange` adds the preset in force inside it, a quiet tag
+that is also the field's description, and renders the popover: the presets, a [calendar](#calendar) in range mode
+(two months on a wide screen, one on a phone) and a foot that says the range in words.
+
+```html
+<span class="ds-daterange__preset" id="ds-range-preset-1">Last 7 days</span>
+<div class="ds-picker__popover" role="dialog" aria-modal="true" aria-label="Choose dates" hidden>
+  <div class="ds-picker__panes">
+    <div class="ds-picker__presets" role="group" aria-label="Presets">
+      <button class="ds-picker__preset" type="button" data-preset="last-7-days" aria-current="true">Last 7 days</button> ...
+    </div>
+    <div class="ds-picker__pane"><div class="ds-calendar">...</div></div>
+  </div>
+  <div class="ds-picker__foot">
+    <span class="ds-daterange__summary" aria-live="polite">Oct 29 – Nov 4, 2026</span>
+    <span class="ds-picker__spacer"></span><button class="ds-btn ds-btn--text" type="button">Clear</button>
+  </div>
+</div>
+```
+
+At 480px or less (the window or the `ds-content` container) the tag steps aside, so the two dates fit a phone; the
+preset stays the field's description and the current row of the list.
+
+### Options
+
+| Option | Attribute (`create()` option) | Effect |
+|---|---|---|
+| Value | `data-ds-value` (`value`) | `2026-11-01/2026-11-07`, or a preset |
+| Presets | `data-ds-daterange-presets` (`presets`) | the keys offered, comma separated; empty for none. Default `today, yesterday, last-7-days, last-30-days, this-month, last-month, this-year` |
+| Limits | `data-ds-daterange-min`, `data-ds-daterange-max` (`min`, `max`) | the first and last day of any range |
+| Blocked days | `data-ds-daterange-disabled` (`disabled`) | days that cannot start or end a range, as the calendar's; typed or pasted as an end, the field is invalid |
+| Week numbers | `data-ds-daterange-weeks` (`weeks`) | the calendar's column of week numbers |
+| Form | `data-ds-daterange-name` (`name`) | a hidden input carries the range (`start/end`) |
+| Size, density, shape, touch | the option classes | those of the field, the calendar and the popover; the tag follows the field's type |
+
+The preset keys: `today`, `yesterday`, `last-<n>-days` (today and the n - 1 days before), `this-week`, `last-week`,
+`this-month`, `last-month`, `this-year`, `last-year` (`this-*` from the period's start to today, `last-*` the whole
+period before). Weeks start on the locale's first day. States are the field's (`aria-invalid`, `aria-disabled`,
+`aria-readonly` on the `.ds-datefield`).
+
+### Behaviour
+
+- **Open**: the button, or Alt+ArrowDown in the field. Focus goes to the range's first day (else today).
+- **Presets**: a click or Enter applies one at once and closes the popover.
+- **Calendar**: the first pick starts the range, the pointer or the arrow keys preview it (`data-preview`), the second
+  pick ends it in either order, puts it into the field and closes the popover; focus is back on the button. The foot
+  says the range being chosen.
+- **Typing** into the field changes the range too; no preset holds then.
+- **Escape** closes without a change.
+- **Events**: `ds:change` with `{ value, start, end, preset, valid }` on the root (`value` is the preset when one
+  holds, else `start/end`).
+
+### JS API
+
+`js/daterange.js` (`DS.daterange`). `create(root, options)` returns the controller that `data-ds-daterange` makes,
+once per root: `get()` (the preset in force, else `start/end`, `''` while none), `set(value)` (a range or a preset, no
+event), `range()` (`{ start, end, preset }`, a preset resolved today), `open()`, `close()`, `on(type, fn)` and
+`destroy()`. `resolve(preset, { today, locale, firstDay })` returns the `{ start, end }` a preset stands for (`null`
+for none), `presetLabel(preset, { locale })` its name ("Last 7 days" through the string `lastSpan` and
+`Intl.NumberFormat`, the others through `Intl.RelativeTimeFormat`).
+
+### Accessibility
+
+The button is named "Choose dates" (the string `chooseDates`); the presets are a group named "Presets" (`presets`),
+the one in force `aria-current="true"` with the tint and the label weight. The summary is a polite live region, so the
+range being chosen is heard. In the calendar the range is `aria-selected` on its days and the grid
+`aria-multiselectable`.
+
+### Forced colours
+
+The tag keeps a `CanvasText` border; the preset in force is `SelectedItem`; the calendar's band and preview are its own.
+
+### Motion
+
+The popover's and the calendar's; the band and its preview change colour over `--ds-dur-fast`.
+
+<!-- changelog -->
+- Date range picker (3.0): `DS.daterange` (`create`, `resolve`, `presetLabel`), a field of two dates and a popover with
+  presets, relative ranges that resolve against today and two months with a hover preview.
+## Time range
+
+The range control of a monitoring view: a button names the range ("Last 1 hour") and opens a popover with quick
+relative ranges, an absolute from and to and the ranges used recently; beside it a refresh button and an auto-refresh
+interval that sends `ds:refresh`. The values are short and readable, so the range belongs in the address:
+`?from=now-1h&to=now&refresh=30s`.
+
+```html
+<div class="ds-timerange" data-ds-timerange data-ds-timerange-from="now-1h" data-ds-timerange-to="now"
+     data-ds-timerange-refresh="30s" data-ds-timerange-store="devices" aria-label="Time range"></div>
+```
+
+`DS.timerange` renders everything inside the element:
+
+```html
+<div class="ds-timerange" role="group" aria-label="Time range">
+  <div class="ds-picker ds-timerange__range">
+    <button class="ds-btn ds-timerange__trigger" type="button" aria-haspopup="dialog" aria-expanded="false">
+      [icon clock 16]<span class="ds-btn__label ds-timerange__label">Last 1 hour</span>[icon chevronDown 16, .ds-timerange__chevron]
+    </button>
+    <div class="ds-picker__popover" role="dialog" aria-modal="true" aria-label="Time range" hidden>
+      <div class="ds-picker__panes">
+        <div class="ds-picker__presets ds-timerange__quick" role="group" aria-labelledby="...">
+          <p class="ds-picker__heading">Quick ranges</p>
+          <button class="ds-picker__preset" type="button" data-from="now-1h" data-to="now" aria-current="true">Last 1 hour</button> ...
+        </div>
+        <div class="ds-picker__pane ds-timerange__absolute">
+          <p class="ds-picker__heading">Absolute time range</p>
+          <span class="ds-timerange__field-label">From</span><div class="ds-datefield ds-datefield--block">...</div>
+          <span class="ds-timerange__field-label">To</span><div class="ds-datefield ds-datefield--block">...</div>
+          <p class="ds-timerange__error" role="alert"></p>
+          <button class="ds-btn ds-btn--filled ds-timerange__apply" type="button">Apply</button>
+          <p class="ds-picker__heading">Recently used</p>
+          <div class="ds-picker__presets" role="group">...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="ds-btn ds-btn--icon" type="button" aria-label="Refresh">[icon refresh 20]</button>
+  <span class="ds-timerange__interval" data-on>
+    <select class="ds-timerange__select" aria-label="Auto refresh"><option value="">Off</option><option value="30s">30s</option> ...</select>
+    [icon chevronDown 16, .ds-timerange__chevron]
+  </span>
+</div>
+```
+
+### Values
+
+| Value | Means |
+|---|---|
+| `now` | the moment it is read |
+| `now-15m`, `now+1h` | now moved by units: `s`, `m`, `h`, `d`, `w`, `M` (months), `y` |
+| `now/d`, `now-1d/d` | rounded to the start of the unit (as a "to": its end), weeks from the locale's first day; `now/d` to `now/d` is today |
+| `2026-11-04`, `2026-11-04T09:00` | a wall time in the zone of the time range |
+| `2026-11-04T09:00:00Z`, `...+01:00` | an instant as it stands (Apply writes absolute ranges so) |
+| `1762246800000` | milliseconds since 1970 |
+| refresh `5s`, `1m`, `1h` | the auto-refresh interval; `''` is off |
+
+### Options
+
+| Option | Attribute (`create()` option) | Effect |
+|---|---|---|
+| Range | `data-ds-timerange-from`, `data-ds-timerange-to` (`from`, `to`) | default `now-1h` and `now` |
+| Refresh | `data-ds-timerange-refresh` (`refresh`) | the interval in force; `off` or empty for none |
+| Intervals | `data-ds-timerange-intervals` (`intervals`) | the choices of the select, default `5s,10s,30s,1m,5m,15m,30m,1h` |
+| Quick ranges | `data-ds-timerange-quick` (`quick`) | the "from" of each quick range (its "to" is `now`, or for a rounded one the same expression); default from `now-5m` to `now-90d`, today, yesterday, this week and this month |
+| Recent ranges | `data-ds-timerange-store` (`store`) | the key under which `DS.store` remembers the last five ranges that are not quick ones (per browser, namespace `timerange`); default `recent` |
+| Zone | `data-ds-timerange-zone` (`zone`) | the zone of absolute times: `local` (default) or an IANA name (`UTC`); relative days, weeks, months and years and every rounding follow its calendar (`now/d` in UTC is the UTC day) |
+| Size, density, shape, touch | the option classes | the trigger and the refresh button are buttons; the interval pill computes the same height (`--ds-btn-height`, 8px per size step, 4px per density step, at least `--ds-target-min`) and radius (the pill times `--ds-shape`) |
+
+`create()` also takes `locale` (else the page's). Tone: none.
+
+### Behaviour
+
+- **Open**: the trigger (Enter, Space, a click, or Alt+ArrowDown). Focus goes to the quick range in force, else the
+  "From" field.
+- **Popover**: Tab cycles through the quick ranges, the two fields, Apply and the recent ranges; a range applies on
+  Enter or a click and closes the popover; focus is back on the trigger. Apply takes the two fields (date and time,
+  typed part by part): an unfinished field is marked invalid and takes the focus; a "from" not before the "to" is
+  refused with the reason under the fields (`.ds-timerange__error`, an alert with an icon and the string
+  `rangeOrder`). Escape closes without a change.
+- **Refresh**: the button sends `ds:refresh` at once; an interval sends it on the page's one clock
+  (`DS.format.clock`), asleep while the tab is hidden. While an interval runs the pill takes the tint (`data-on`) and
+  says the interval, so not by colour alone.
+- **Announcements**: a new range is said through `DS.a11y.announce()` ("Last 6 hours").
+- **Events** on the root: `ds:change` with `{ from, to, start, end, label, query }` when the range or the interval
+  changes (`refresh` too, for the interval); `ds:refresh` with `{ from, to, start, end, reason }` whenever the page
+  should load again: `change` (a new range), `manual` (the button), `interval` (the clock). `start` and `end` are ISO
+  instants resolved at that moment.
+
+### JS API
+
+`js/timerange.js` (`DS.timerange`). `create(root, options)` returns the controller that `data-ds-timerange` makes,
+once per root: `get()` (`{ from, to, refresh }`), `set(value)` (`{ from, to, refresh }` or a "from" alone; no event),
+`resolve()` (the instants now), `query()`, `refresh()` (sends `ds:refresh`, reason `manual`), `open()`, `close()`,
+`on(type, fn)` (`change`, `refresh`) and `destroy()`.
+
+| Export | What |
+|---|---|
+| `parse(value, { now, roundUp, timeZone, firstDay })` | the `Date` a value stands for, `null` for none |
+| `resolve({ from, to }, options)` | `{ start, end }` at `now`; a rounded "to" ends with its unit |
+| `label({ from, to }, { locale, now, timeZone })` | the range for people: "Last 15 minutes" (`lastSpan` and `Intl.NumberFormat`), "Today", "Yesterday", "This week" (`Intl.RelativeTimeFormat`), else the two instants (`formatRange`) |
+| `query({ from, to, refresh })` | `from=now-1h&to=now&refresh=30s`, through `URLSearchParams` |
+| `spanMs(span)` | the milliseconds of `30s`, `5m`, `1h`, `1d`, `1w`; 0 for none |
+
+### Accessibility
+
+The root is a `role="group"` named "Time range" (the string `timeRange`, or its own label). The trigger says
+`aria-haspopup="dialog"` and `aria-expanded`; the popover is a modal dialog; the quick and recent ranges are groups of
+buttons named by their headings ("Quick ranges", "Recently used"), the one in force `aria-current="true"`. The two
+fields are named "From" and "To"; the error is the "To" field's description. The refresh button is named "Refresh",
+the select "Auto refresh" with "Off" as its first choice. Strings: `timeRange`, `absoluteRange`, `rangeFrom`,
+`rangeTo`, `apply`, `recentRanges`, `quickRanges`, `refresh`, `autoRefresh`, `off`, `lastSpan`, `rangeOrder`.
+
+### Forced colours
+
+The interval pill keeps its border (`ButtonBorder`) and the system's select colours, `Highlight` / `HighlightText`
+while on; the popover and its presets are the picker's.
+
+### Hooks
+
+It reads `--ds-btn-height` for the pill, so it lines up with the buttons beside it.
+
+### Motion
+
+The popover's; the chevron of the trigger turns with it (`aria-expanded`, `rotate` on the spring, a named exception of
+disclosure chevrons); the interval pill's tint over `--ds-dur-fast`.
+
+<!-- changelog -->
+- Time range (3.0): `.ds-timerange` and `DS.timerange` (`create`, `parse`, `resolve`, `label`, `query`, `spanMs`),
+  the range control of a monitoring view: quick relative ranges, absolute from and to, recent ranges remembered through
+  `DS.store`, an auto-refresh interval that sends `ds:refresh`, URL-friendly values.
+## Duration input
+
+A length of time typed the way people write it ("1h 30m", "90 min", "1:30", "1.5h", "2 days 4 hours") and kept as ISO
+8601 (`PT1H30M`). Once the field is left it shows the value in the locale's short form; the arrow keys step it.
+
+```html
+<span class="ds-field__label" id="timeout-label">Session timeout</span>
+<input class="ds-input ds-duration" type="text" aria-labelledby="timeout-label" data-ds-duration
+       data-ds-value="PT1H30M" data-ds-duration-step="15m" data-ds-duration-min="5m" data-ds-duration-max="1d">
+```
+
+The box is the text field of the [form](#form)'s `.ds-input`: its look, states, hooks and options. `DS.duration` makes it a
+`spinbutton` and, with a name, adds a hidden input with the ISO value after it.
+
+### Options
+
+| Option | Attribute (`create()` option) | Effect |
+|---|---|---|
+| Value | `data-ds-value` (`value`) | text, ISO 8601 or (in JS) ms |
+| Step | `data-ds-duration-step` (`step`) | what ArrowUp and ArrowDown add and take, as a duration (`15m`); default a minute; PageUp and PageDown take ten |
+| Limits | `data-ds-duration-min`, `data-ds-duration-max` (`min`, `max`) | durations; outside them the field is invalid, the keys stop there, Home and End go there |
+| Bare numbers | `data-ds-duration-unit` (`unit`) | what a number without a unit counts: `d`, `h`, `m` (default), `s` |
+| Rounding | `data-ds-duration-smallest` (`smallest`) | the unit the value rounds to: `day`, `hour`, `minute`, `second` (default) |
+| Form | `data-ds-duration-name` (`name`) | a hidden input of that name carries the ISO value |
+| Size, density, shape, touch | the option classes | the text field's, computed in its own rule |
+
+`create()` also takes `locale` (else the page's). It reads: a number with a unit each, in any order, with or without
+spaces, the locale's unit words (through `Intl`: "h", "hr", "hours", "Std.", "Stunden") and the English ones (`w`,
+`d`, `h`, `m`, `s`, `ms` and their words), joined by spaces, commas or the locale's "and"; a bare number after a unit
+counts the next smaller one ("1h 30"); a clock (`1:30`, `1:30:15`); ISO 8601 (`P1DT2H30M`); decimals with a point or a
+comma.
+
+### Behaviour
+
+- **Keys** (the WAI-ARIA spinbutton): ArrowUp and ArrowDown add and take a step, PageUp and PageDown ten, Home and End
+  go to min and max when they are set; never below zero. Enter writes the value back.
+- **Writing back**: on leaving the field, Enter or a step, the text becomes the locale's narrow form ("1h 30m", "1 Std.,
+  30 Min."). Text that does not read stays as typed, and the field turns `aria-invalid`; so does a value outside min and
+  max. Typing a readable value clears the error at once; the error is never set mid-word.
+- **Events**: `ds:change` with `{ value, ms, text, valid }` once the value changed (`value` is ISO 8601, `''` while
+  empty or unreadable).
+- **Locale**: `DS.core.config({ locale })` writes the value again in the new locale's words (`ds:config`).
+
+### JS API
+
+`js/duration.js` (`DS.duration`). `create(el, options)` returns the controller that `data-ds-duration` makes, once per
+element: `get()` (ISO 8601), `ms()`, `set(value, { emit })`, `valid()`, `update(options)`, `on(type, fn)` and
+`destroy()`. `parse(text, { unit, locale })` returns the milliseconds of a text (`null` when nothing in it reads),
+`iso(ms)` the ISO 8601 text (`PT0S` for zero), `format(ms, { style, smallest, locale })` the words through
+`DS.format.duration` (`narrow` by default, `short`, `long`).
+
+### Accessibility
+
+A `spinbutton` named by its label, with `aria-valuemin` and `aria-valuemax` (seconds), `aria-valuenow` (seconds) and
+`aria-valuetext` in long words ("1 hour, 30 minutes"), so a step is heard as a sentence. Give the format in a hint
+under the field ("For example 1h 30m"), and the reason of an error in a `.ds-field__hint--error` with its icon.
+
+### Forced colours
+
+The text field's: its border, `Highlight` when focused.
+
+<!-- changelog -->
+- Duration input (3.0, tier 2): `.ds-duration` and `DS.duration` (`create`, `parse`, `iso`, `format`), a text field
+  that reads "1h 30m", "90 min", "1:30" and ISO 8601 in the locale's words, steps with the arrow keys, keeps ISO 8601.
 ## Menu
 
 Actions for one item, or the overflow of a toolbar, opened from a button:
@@ -3742,6 +11225,61 @@ as in 2.x.
   <button class="ds-menu__item" role="menuitem" type="button">[icon copy 20]<span class="ds-menu__label">Copy link</span><span class="ds-menu__meta">Ctrl C</span></button>
   ```
 
+- **Submenus.** An item with `aria-haspopup="menu"`, `aria-expanded="false"` and `aria-controls` naming another
+  `.ds-menu` opens it beside itself; the submenu sits inside its parent menu, right after its item, and a
+  `.ds-menu__chevron` at the item's end shows that it leads on:
+
+  ```html
+  <button class="ds-menu__item" role="menuitem" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="move-to">
+    [icon folder 20]<span class="ds-menu__label">Move to</span>[icon chevronRight 20 ds-menu__chevron]</button>
+  <div class="ds-menu" role="menu" id="move-to" aria-label="Move to" hidden>
+    <button class="ds-menu__item" role="menuitem" type="button"><span class="ds-menu__label">Storage room</span></button>
+  </div>
+  ```
+
+  `DS.menu` places it in the top layer at `--ds-menu-x` and `--ds-menu-y`, after the item with its first item level
+  with it, before the item when there is no room after it (`data-placement="end"` or `"start"`), and it grows out of
+  the item. ArrowRight, Enter and Space open it with focus on its first item; ArrowLeft and Escape close it and focus
+  its item (mirrored right to left). A click opens it; a mouse or pen resting on the item opens it after
+  `--ds-delay-submenu` and leaves focus where it is. Hover intent: a pointer that moves on to another item closes
+  it after `--ds-delay-submenu-close` unless it reaches the submenu first, so a diagonal path across the items keeps
+  it. Its item keeps the hover layer while it shows. Choosing an item in a submenu closes the whole chain and focus
+  goes back to the first trigger; Tab does too, and a menu that closes takes its submenus with it.
+- **Search.** A long menu takes a search field at its top. A menu holds only items, groups and separators, so the
+  `.ds-menu` that opens is then a plain container (no role, no name) and the items sit in a `.ds-menu__list` with
+  `role="menu"` and the name; the field names that list in `aria-controls`:
+
+  ```html
+  <div class="ds-menu" id="assign" hidden>
+    <div class="ds-menu__search">[icon search 20]<input type="search" aria-label="Search people" aria-controls="assign-list" placeholder="Search" autocomplete="off"></div>
+    <div class="ds-menu__list" role="menu" id="assign-list" aria-label="Assign to">
+      <button class="ds-menu__item" role="menuitem" type="button"><span class="ds-menu__label">Ada Lovelace</span></button>
+      …
+    </div>
+  </div>
+  ```
+
+  Opening focuses the field; typing hides the items whose label and description do not hold the text (and the
+  groups, headings and dividers left empty), and when nothing matches the system writes `.ds-menu__empty` with the
+  string `noResults` and announces it. ArrowDown and ArrowUp go from the field to the first and last item and back
+  (the field is one more stop above the first item), Enter chooses the first match, a letter typed on an item goes on
+  in the field, and the first Escape clears a filled field (the second closes). The field is pinned at the top while
+  the items scroll, and the menu's next open starts unfiltered.
+- **Context menu.** `data-ds-contextmenu="<selector or id>"` on a row, a tile or a region opens that menu at the pointer
+  on a right click, at the finger after a long press of `--ds-delay-long-press` on a touch screen (a move of more than
+  10px is a scroll; the click and the native menu the press would end in never happen, and the platform's callout and
+  text selection stay off the target), and under the focused element on Shift+F10 or the ContextMenu key. The target
+  gets a cancelable `ds:contextmenu` first (`detail: { menu, x, y }`): fit the items to the row there, or call
+  `preventDefault()` to keep the browser's own menu. The focused control inside the target (else the target) is the
+  opener: focus goes back to it on close, and it gets no `aria-expanded`. A press anywhere outside the menu closes it,
+  on its own row too. One menu serves every row:
+
+  ```html
+  <tr tabindex="0" data-ds-contextmenu="#row-actions">…</tr>
+  <div class="ds-menu" role="menu" id="row-actions" aria-label="Device actions" hidden>…</div>
+  ```
+
+  `DS.menu.openAt(menu, { x, y, opener })` opens it at a point from a script.
 - **Type-ahead.** A printable key moves focus to the next item whose label starts with the letters typed so far;
   they reset after `--ds-delay-tooltip` (`DS.overlay`).
 - **Placement.** Below the trigger from its start edge, flipped towards the start edge when there is no room; above
@@ -3768,19 +11306,142 @@ as in 2.x.
 ### Names and forced colours
 
 - Names and roles: the trigger has `aria-haspopup="menu"`, `aria-expanded` (kept in step) and `aria-controls`; the menu
-  `role="menu"` and a name; its rows `role="menuitem"`, `menuitemcheckbox` or `menuitemradio` with `aria-checked`; a
-  group `role="group"` with `aria-labelledby` its heading.
+  `role="menu"` and a name (with a search, its `.ds-menu__list` does); its rows `role="menuitem"`, `menuitemcheckbox` or `menuitemradio` with `aria-checked`; a
+  group `role="group"` with `aria-labelledby` its heading. An item that opens a submenu has `aria-haspopup="menu"`,
+  `aria-expanded` (kept in step) and `aria-controls`; the search field has a name (`aria-label`). A context target that
+  takes focus (a row with `tabindex="0"`) says so in its own words, as a hint (`aria-describedby`): "Shift+F10 for
+  actions".
 - Forced colours: the transparent outline becomes its edge, the focused item keeps its ring, a blocked item is
-  `GrayText`, the edge shades go; a danger item keeps the system's text, its label says what it does.
+  `GrayText`, the edge shades go; a danger item keeps the system's text, its label says what it does; an item whose
+  submenu shows is `Highlight` on `HighlightText`.
 
 ### Hooks
 
 `--ds-menu-item-height`, `--ds-menu-font`, `--ds-menu-padding`, `--ds-menu-radius`, `--ds-menu-danger-color`
 ([theming.md](theming.md#component-hooks)). `data-ds-menu` marks a menu that `DS.get(el, 'menu')` serves.
 
-**JS API.** `js/menu.js` (`DS.menu`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`; `create(el)` returns the controller that `data-ds-menu` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`).
+**JS API.** `js/menu.js` (`DS.menu`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`; `openAt(el, options)` opens a menu at a point (`x`, `y`, `opener`, `returnTo`: a context menu; without a point, under the opener); `create(el)` returns the controller that `data-ds-menu` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`).
 
-**Motion:** the "Menu" row of [Overlays](motion.md#overlays) in motion.md.
+**Motion:** the "Menu", "Submenu" and "Context menu" rows of [Overlays](motion.md#overlays) in motion.md.
+
+<!-- changelog
+- Menu: submenus (an item with `aria-haspopup="menu"` and `aria-controls`, `.ds-menu__chevron`; beside the item in
+  the top layer, ArrowRight / ArrowLeft, hover intent, the chain closes together), a search at the top of a long menu
+  (`.ds-menu__search` over the items in a `.ds-menu__list`, `.ds-menu__empty` written with the string `noResults`), and context menus
+  (`data-ds-contextmenu`: right click, long press, Shift+F10 and the ContextMenu key; `ds:contextmenu`;
+  `DS.menu.openAt()`). The items, check and radio items of a menu ignore those of a submenu inside it. New motion
+  tokens for them: `--ds-delay-submenu` (100ms, hover intent), `--ds-delay-submenu-close` (300ms, the grace) and
+  `--ds-delay-long-press` (500ms, the touch that opens a context menu). A searchable menu puts its items in a
+  `.ds-menu__list` with `role="menu"`, since a menu owns only items.
+-->
+## Popover
+
+A small panel next to the control that opened it: a filter form, a share box, the details of a value. It is
+non-modal: the page stays usable, and a press outside it, Escape or focus leaving it close it.
+
+```html
+<button class="ds-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="share"
+        data-ds-popover="#share">[icon share 16]Share</button>
+<div class="ds-popover ds-popover--arrow" id="share" role="dialog" aria-labelledby="share-title" hidden>
+  <div class="ds-popover__head">
+    <h2 class="ds-popover__title" id="share-title">Share LAPTOP-0042</h2>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-popover__close" type="button" aria-label="Close" data-ds-close>[icon close 20]</button>
+  </div>
+  <div class="ds-popover__body">
+    <div class="ds-field"><label class="ds-field__label" for="share-to">Send to</label><input class="ds-input" id="share-to" type="email"></div>
+  </div>
+  <div class="ds-popover__foot">
+    <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
+    <button class="ds-btn ds-btn--filled" type="button">Send</button>
+  </div>
+</div>
+```
+
+Put the popover right after its trigger in the markup: it shows in the top layer, but the Tab order follows the
+markup, so its controls come next after the trigger. Inside a dialog or side sheet it goes inside that dialog.
+
+### Options
+
+| Option | Classes or attributes | Where it applies | Effect |
+|---|---|---|---|
+| Arrow | `.ds-popover--arrow` | the popover | a point on the edge that faces the anchor, at the anchor's centre (kept clear of the corners); the popover centres on its anchor by default |
+| Help card | `.ds-popover--tip` | the popover | the card of a [toggletip](#toggletip), a rich tooltip and a hover card: at most `--ds-popover-tip-width` (320px) wide, tighter, its title in the label role and its text in the meta role |
+| Placement | `data-ds-popover-placement="bottom \| top \| start \| end"` | the trigger | the side of the anchor (default `bottom`); it takes the other side when it does not fit there and that side has more room |
+| Alignment | `data-ds-popover-align="start \| center \| end"` | the trigger | along that side (default `start`, `center` with an arrow); flips to the other edge when it would leave the viewport |
+| Hover card | `data-ds-popover-trigger="hover"` | the trigger | opens on hover and keyboard focus instead of a click (below) |
+| Density | `.ds-density-*` | the popover or any ancestor | the padding of its parts, 2px per step |
+| Shape | `.ds-shape-*` | the popover or any ancestor | multiplies its radius (`--ds-popover-radius`) |
+| Size, tone | none | | a popover holds the page's own content, which carries its own size; it shows no status |
+
+### Behaviour
+
+`data-ds-popover="<selector or id>"` on a trigger toggles the popover it names on a click (the second click of a
+double click toggles nothing). `DS.init()` wires it; `DS.get(trigger, 'popover')` is its controller. By hand:
+
+```js
+DS.popover.open(popover, { opener: button, placement: 'top', align: 'center' });   // a Promise: the entrance settled
+DS.popover.close(popover);
+DS.popover.open(popover, { anchor: { x: event.clientX, y: event.clientY }, opener: chart });   // at a point
+```
+
+- **Placement** (`DS.position`): on the side asked for, aligned as asked, `--ds-space-2` inside the viewport, never
+  taller than the room on its side (`.ds-popover__body` scrolls). It goes into the top layer as `popover="manual"`,
+  so no scrolling or clipping box cuts it and it shows over a modal dialog; the script writes `--ds-popover-x`,
+  `--ds-popover-y` and `--ds-popover-arrow`, sets `data-placement` (`top`, `start`, `end`; none below) and follows
+  scrolling and resizing. One popover can serve several triggers: opened from another one, it moves there.
+- **Focus.** Opening moves focus in: `[autofocus]`, else the first control that is no close button, else the close
+  button, else the panel itself (`tabindex="-1"`, written while it shows). Tab past the last control closes it and
+  moves on from the trigger; Shift+Tab before the first closes it onto the trigger. `open(el, { focus: false })`
+  leaves focus where it is (a toggletip, a hover card).
+- **Closing** goes through `DS.overlay`: Escape closes the topmost layer (a menu opened inside the popover first)
+  and focus goes back to the trigger when it was inside; a pointerdown outside the popover, its trigger and the
+  layers above it, and focus moving out of them close it and leave focus where it went; `[data-ds-close]` inside
+  closes it; the trigger's `aria-expanded` follows (a trigger without one, such as a hover card's link, is left
+  without it). `ds:open` and `ds:close` (`detail.reason`) bubble from it.
+- **Hover card** (`data-ds-popover-trigger="hover"`, with `.ds-popover--tip`): a preview of a person or an object.
+  A mouse or pen resting on the trigger opens it after `--ds-delay-tooltip`, keyboard focus at once; it never takes
+  focus (Tab from the trigger reaches its links, since it follows the trigger in the markup), and it closes
+  `--ds-delay-tooltip-skip` after the pointer and keyboard focus left the trigger and the card, so the pointer may
+  cross onto it (WCAG 1.4.13). Touch has no hover: the trigger keeps its own action (a link opens its page), so the
+  card adds, never hides, information.
+
+```html
+<a href="#user-ada" data-ds-popover="#card-ada" data-ds-popover-trigger="hover" aria-describedby="card-ada">Ada Lovelace</a>
+<div class="ds-popover ds-popover--tip ds-popover--arrow" id="card-ada" role="group" aria-label="Ada Lovelace" hidden>…</div>
+```
+
+**JS API.** `js/popover.js` (`DS.popover`): `open(el, options)` (`opener`, `anchor`: an element or a point `{ x, y }`,
+`placement`, `align`, `focus`, `returnTo`) places it and calls `DS.overlay.open()`; `close(el, options)` is
+`DS.overlay.close()`; `create(el)` returns its controller (`get()`, `set(value, options)`, `on(type, fn)`,
+`destroy()`), the one a `data-ds-popover` trigger makes for the popover it names.
+
+### Accessibility
+
+- A popover with controls is `role="dialog"` (non-modal: no `aria-modal`) with a name (`aria-labelledby` its title);
+  its trigger has `aria-haspopup="dialog"`, `aria-expanded` (kept in step) and `aria-controls`.
+- A hover card is `role="group"` with a name, and the trigger points `aria-describedby` at it, or the card only
+  repeats what its target page says. Its trigger gets no `aria-expanded`: a link to a person is no disclosure.
+- Keyboard: Enter or Space on the trigger opens it and moves focus in; Tab and Shift+Tab move through it and out of
+  it (closing it); Escape closes it and focus goes back to the trigger.
+- Forced colours: its transparent outline becomes its edge; the arrow goes.
+
+### Hooks
+
+`--ds-popover-width`, `--ds-popover-tip-width`, `--ds-popover-padding`, `--ds-popover-tip-padding`,
+`--ds-popover-radius` ([theming.md](theming.md#component-hooks)).
+
+**Motion:** as a menu, it grows out of its anchor (the arrow's tip): a fade over `--ds-dur-fast` while it grows from
+`--ds-scale-popup` and its clip opens from the anchor's edge over `--ds-dur-medium` on `--ds-ease-spatial`; it leaves
+with a fade over `--ds-dur-instant`, and a popover closed mid-way turns back from where it is. The "Popover" and
+"Help card" rows of [Overlays](motion.md#overlays) in motion.md.
+
+<!-- changelog
+- Popover (`.ds-popover`, `js/popover.js`, `DS.popover`): an anchored non-modal panel with an optional arrow
+  (`.ds-popover--arrow`), a help card variant (`.ds-popover--tip`), placement and alignment
+  (`data-ds-popover-placement`, `data-ds-popover-align`), the top layer as `popover="manual"`, light dismiss
+  through `DS.overlay`, and the hover card (`data-ds-popover-trigger="hover"`). Hooks `--ds-popover-width`,
+  `--ds-popover-tip-width`, `--ds-popover-padding`, `--ds-popover-tip-padding`, `--ds-popover-radius`.
+-->
 ## Dialog
 
 A modal box for a decision or a short task: the page waits until it is done.
@@ -3825,6 +11486,8 @@ sheet and a menu too. `data-close` is the **deprecated** 2.x name of `data-ds-cl
 | Full screen | `.ds-dialog--full`; `.ds-dialog--full-narrow` | the dialog | the box fills the window; `--full-narrow` only at 600px and below |
 | Action sheet | `.ds-dialog--bottom` | the dialog | the box sits at the bottom edge |
 | Contained | `.ds-dialog--contained` | the dialog, div markup | it covers its positioned container |
+| Scroll outside | `.ds-dialog--scroll-outside` | the dialog | the window scrolls the whole box, which keeps its content's height; without it only `.ds-dialog__body` scrolls (scroll inside) |
+| Non-modal | `.ds-dialog__box--modeless` | the box alone, without the frame | floats at the end of the window over a page that stays usable ([below](#non-modal-dialog)) |
 | Density | `.ds-density-*` | the dialog or any ancestor | the box's padding and the gap of its parts (2px per step), the full-screen head's height (4px per step) |
 | Shape | `.ds-shape-*` | the dialog or any ancestor | multiplies the box's radius |
 | Touch | `.ds-touch` | the dialog or any ancestor | reaches the controls inside; the box itself has no target |
@@ -3951,6 +11614,71 @@ search.addEventListener('input', () => {
 `DS.motion.enter(body, 'swap')`, focus the second step's primary action and announce the step (a `.ds-sr` live
 region, or a snackbar); remove the height once the second step settled.
 
+### Scroll inside or outside
+
+By default a box taller than the window keeps its title and actions and scrolls only its `.ds-dialog__body` (scroll
+inside). `.ds-dialog--scroll-outside` lets the window scroll the whole box instead (scroll outside): the box keeps its
+content's height and sits at the top of the frame with `--ds-space-8` above and below, the frame scrolls (a thin
+scrollbar, contained, so the page under it never scrolls), the scrim stays still. Use it for a long read (terms, a
+change log) where the actions belong after the text.
+
+```html
+<dialog class="ds-dialog ds-dialog--lg ds-dialog--scroll-outside" aria-labelledby="terms-title">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <div class="ds-dialog__box">
+    <h2 class="ds-dialog__title" id="terms-title">Terms of the service contract</h2>
+    <div class="ds-dialog__body"> ... long text ... </div>
+    <div class="ds-dialog__actions"> ... </div>
+  </div>
+</dialog>
+```
+
+### Stacked dialogs
+
+A dialog may open from inside another (a confirmation from a form dialog, a picker from a full-screen dialog): each
+open goes on the overlay stack. The upper one takes input while the lower one stays inert, its scrim is the lighter
+`--ds-scrim-nested` (`.ds-dialog--nested`, set by `DS.overlay`), Escape closes only the top one, and focus goes back to
+the control in the lower dialog that opened it. Over a native dialog, the upper one (native or div) moves inside it
+while it shows. Keep it to two levels; a flow with more steps is a [tearsheet](#tearsheet).
+
+```html
+<dialog class="ds-dialog ds-dialog--lg" id="edit" aria-labelledby="edit-title"> ...
+  <button class="ds-btn ds-btn--text" type="button" data-ds-open="#discard">Discard changes</button> ...
+</dialog>
+<dialog class="ds-dialog ds-dialog--sm" id="discard" role="alertdialog" aria-labelledby="discard-title"> ... </dialog>
+```
+
+### Non-modal dialog
+
+`.ds-dialog__box--modeless` is the box alone, without the frame and the backdrop: it floats at the end of the window,
+`--ds-dialog-modeless-inset` from its edges, on `--ds-z-popover`, and the page under it stays usable (a running export,
+a compose window, a short form beside the record). It takes `role="dialog"` without `aria-modal`, a name, and `hidden`
+until it opens.
+
+```html
+<button class="ds-btn" type="button" data-ds-open="#export" aria-haspopup="dialog" aria-expanded="false">Export</button>
+<section class="ds-dialog__box ds-dialog__box--modeless" id="export" role="dialog" aria-labelledby="export-title" hidden>
+  <div class="ds-dialog__head">
+    <h2 class="ds-dialog__title" id="export-title">Export devices</h2>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>[icon close 20]</button>
+  </div>
+  <div class="ds-dialog__body"> ... </div>
+  <div class="ds-dialog__actions"> ... </div>
+</section>
+```
+
+- `DS.overlay.open(box, { opener })` (or `data-ds-open`) opens it as a non-modal layer: no trap, nothing inert, no
+  scroll lock. `DS.init()` installs what moves focus into it once it opened (`autofocus`, else its first focusable
+  control, else the box) and watches its body's scroll for the hairline.
+- Tab leaves it for the page and comes back as to any region. Escape closes it while it is the top layer (a menu
+  opened inside it closes first) and focus is inside it, on its opener or nowhere: Escape in a page field stays that
+  field's (WAI-ARIA APG, non-modal dialog). `[data-ds-close]` closes it; focus goes back to the opener when it was
+  inside.
+- Motion: it fades and grows from `--ds-scale-enter` while it rises `--ds-distance-md` on the spring over
+  `--ds-dur-slow`, from an origin towards its opener; it leaves the same way in `--ds-dur-base`, accelerating. At 600px
+  and below it sits `--ds-space-2` from the edges and decelerates instead of springing.
+- Forced colours: its transparent border becomes its edge, as for the modal box.
+
 ### Full screen and the action sheet
 
 `.ds-dialog--full` fills the window (no padding around the box, radius `--ds-dialog-full-radius`, 0; safe areas on
@@ -4016,6 +11744,27 @@ const ok = await DS.overlay.confirm({
 const name = await DS.overlay.prompt({ title: 'Rename', label: 'Name', value: device.name, opener: button });
 await DS.overlay.alert({ title: 'Export ready', text: 'The file is in your downloads.', opener: button });
 ```
+
+`lines` (a list of strings: the items it concerns, in a `.ds-dialog__lines` list) and `facts` (`[term, value]` pairs, a
+`.ds-dialog__facts` list) show what the question is about under its text, in `confirm()`, `alert()` and `prompt()`:
+
+```js
+await DS.overlay.confirm({
+  title: 'Archive 2 devices?', text: 'They leave every list but stay in the archive.',
+  lines: ['LAPTOP-0042', 'LAPTOP-0043'], confirmLabel: 'Archive devices', opener: button,
+});
+await DS.dialog.alert({ title: 'Ticket closed', facts: [['Ticket', '#1042'], ['Closed by', 'Ada Lovelace']], opener: button });
+```
+
+What they build, under the text (write the same in a dialog of your own):
+
+```html
+<ul class="ds-dialog__lines"><li>LAPTOP-0042</li><li>LAPTOP-0043</li></ul>
+<dl class="ds-dialog__facts"><div><dt>Ticket</dt><dd>#1042</dd></div> ... </dl>
+```
+
+The presets: neutral (`confirm()`), destructive (`confirm({ destructive: true })`), an alert (`alert()`), one value
+(`prompt()`) and type-to-confirm (the pattern below).
 
 `destructive: true` makes it an `alertdialog` whose first focus is Cancel, and its confirm button filled in the error
 tone (`.ds-btn--filled.ds-tone-error`, D10: the one red button, and only here and in the type-to-confirm pattern); the
@@ -4104,12 +11853,464 @@ Android Back can still force a native close (it follows with reason `escape`); n
 
 `--ds-dialog-width`, `--ds-dialog-width-sm`, `--ds-dialog-width-lg`, `--ds-dialog-width-xl`, `--ds-dialog-padding`,
 `--ds-dialog-radius`, `--ds-dialog-head-height`, `--ds-dialog-height`, `--ds-dialog-border`, `--ds-dialog-shadow`,
-`--ds-dialog-scrim`, `--ds-dialog-full-radius` ([theming.md](theming.md#component-hooks)). `data-ds-dialog` marks a
+`--ds-dialog-scrim`, `--ds-dialog-full-radius`, `--ds-dialog-modeless-inset` ([theming.md](theming.md#component-hooks)). `data-ds-dialog` marks a
 dialog that `DS.get(el, 'dialog')` serves.
 
 **JS API.** `js/dialog.js` (`DS.dialog`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`; `confirm(options)`, `alert(options)` and `prompt(options)` are also `DS.overlay.confirm()`, `alert()` and `prompt()`; `form(el, { onSubmit, errorText })` runs a form dialog's submit; `create(el)` returns the controller that `data-ds-dialog` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`).
 
 **Motion:** the "Scrim", "Dialog", "Nested dialog", "Dialog on a phone", "Full-screen dialog" and "Action sheet" rows of [Overlays](motion.md#overlays) in motion.md.
+
+<!-- changelog
+- Dialog: `.ds-dialog--scroll-outside` (the window scrolls the whole box; the body scrolling inside stays the default),
+  a non-modal box `.ds-dialog__box--modeless` (no frame or scrim, the page stays usable; DS.overlay's non-modal layer,
+  focus moved in by `DS.dialog` once it opened; hook `--ds-dialog-modeless-inset`), and `lines` and `facts` on
+  `confirm()`, `alert()` and `prompt()` (`.ds-dialog__lines`, `.ds-dialog__facts`). Stacked dialogs documented.
+-->
+## Tearsheet
+
+A tall create or edit flow over the page (a new device with its network and owner, a bulk edit): taller than a
+dialog, with its own head, steps and foot. It is a modal [dialog](#dialog) anchored to the bottom of the window with a
+gap above, so the page still shows that the work happens over it.
+
+```html
+<button class="ds-btn ds-btn--filled" type="button" data-ds-open="#add-device">Add a device</button>
+
+<dialog class="ds-dialog ds-tearsheet" id="add-device" aria-labelledby="add-title" data-ds-tearsheet>
+  <div class="ds-dialog__backdrop"></div>
+  <form class="ds-dialog__box ds-tearsheet__box" novalidate>
+    <div class="ds-tearsheet__head">
+      <div class="ds-tearsheet__heading">
+        <p class="ds-tearsheet__label">Devices</p>
+        <h2 class="ds-dialog__title" id="add-title">Add a device</h2>
+        <p class="ds-tearsheet__description">Register it, connect it and hand it over.</p>
+        <p class="ds-tearsheet__progress"></p>
+      </div>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>[icon close 20]</button>
+    </div>
+    <div class="ds-tearsheet__main">
+      <nav class="ds-tearsheet__steps" aria-label="Steps">
+        <ol class="ds-steps ds-steps--vertical">
+          <li class="ds-steps__step" aria-current="step"><span class="ds-steps__mark">1</span><span class="ds-steps__label">Device</span></li>
+          <li class="ds-steps__step"><span class="ds-steps__mark">2</span><span class="ds-steps__label">Network</span></li>
+          <li class="ds-steps__step"><span class="ds-steps__mark">3</span><span class="ds-steps__label">Owner</span></li>
+        </ol>
+      </nav>
+      <div class="ds-tearsheet__body">
+        <section class="ds-tearsheet__step" aria-labelledby="add-s1">
+          <h3 id="add-s1" tabindex="-1">Device</h3>
+          <div class="ds-field"><label class="ds-field__label" for="add-name">Name</label>
+            <input class="ds-input" id="add-name" name="name" required></div>
+        </section>
+        <section class="ds-tearsheet__step" aria-labelledby="add-s2" hidden> ... </section>
+        <section class="ds-tearsheet__step" aria-labelledby="add-s3" hidden> ... </section>
+      </div>
+    </div>
+    <div class="ds-tearsheet__foot">
+      <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
+      <button class="ds-btn ds-btn--outlined" type="button" data-ds-tearsheet-back>Back</button>
+      <button class="ds-btn ds-btn--filled" type="button" data-ds-tearsheet-next>Next</button>
+      <button class="ds-btn ds-btn--filled" type="submit" data-ds-tearsheet-submit>
+        <span class="ds-btn__faces"><span class="ds-btn__face">Add device</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Adding</span></span>
+      </button>
+    </div>
+  </form>
+</dialog>
+```
+
+```js
+sheet.addEventListener('ds:submit', (event) => event.detail.wait(api.addDevice(Object.fromEntries(event.detail.data))));
+```
+
+The div markup works as for the dialog (`<div class="ds-dialog ds-tearsheet" hidden>`, the box with `role="dialog"`,
+`aria-modal="true"` and the name). The backdrop has no `data-ds-close`: a stray click never loses a half-filled form.
+
+### Options
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Width | the default, `.ds-tearsheet--narrow` | the tearsheet | `--ds-tearsheet-width` (1200px) or `--ds-tearsheet-width-narrow` (640px, a short form, usually without a rail), never wider than the window less `--ds-space-8` on each side |
+| Steps | `.ds-tearsheet__steps` with a vertical [steps](#steps) list, or none | the main area | a rail of `--ds-tearsheet-rail-width` (256px) at the start; without it the progress line says where the flow is |
+| Stacked | none: `data-stacked`, written by the system | a tearsheet under another | the lower box recedes; the upper one sits `--ds-space-4` lower, so the edge below shows |
+| Density | `.ds-density-*` | the tearsheet or any ancestor | the padding of head, rail, body and foot and the gap of a step's fields (2px per step) |
+| Shape | `.ds-shape-*` | the tearsheet or any ancestor | multiplies the radius of the box's top corners |
+| Size, touch | `.ds-sm` ..., `.ds-touch` | the tearsheet or any ancestor | reach the controls inside; the box keeps its size |
+
+There is no tone. At 600px and below the box fills the window (no gap, no radius, safe areas on head and foot) and
+the rail gives way to the progress line in the head.
+
+### Parts
+
+- `.ds-tearsheet__head`: `.ds-tearsheet__heading` with an optional `.ds-tearsheet__label` (what it belongs to), the
+  `.ds-dialog__title`, an optional `.ds-tearsheet__description` and the `.ds-tearsheet__progress` line that the system
+  writes ("Step 2 of 4: Network"; shown where no rail says it), then the close icon button. A hairline under it.
+- `.ds-tearsheet__main`: the optional rail `.ds-tearsheet__steps` (a `<nav>` with a name around a
+  `.ds-steps--vertical` list) on `--ds-surface-low`, and `.ds-tearsheet__body`, the one part that scrolls.
+- `.ds-tearsheet__step`: a section per step in the body, a column of the page's fields at a readable width, its
+  heading `tabindex="-1"` (focus lands there on a step change). Only the current one shows.
+- `.ds-tearsheet__foot`: the actions at the end above a hairline; the first of several (Cancel, or a `.ds-meta` line)
+  takes the start. `[data-ds-tearsheet-back]`, `[data-ds-tearsheet-next]` and `[data-ds-tearsheet-submit]` are shown
+  and hidden by the system. One filled button shows at a time (Next, or the submit on the last step).
+
+### Behaviour
+
+`data-ds-tearsheet` (`DS.init()`) or `DS.tearsheet.create(el)` runs it; open and close it with `data-ds-open` and
+`data-ds-close`, or `DS.tearsheet.open(el, { opener })` and `DS.tearsheet.close(el)`.
+
+- **Opening.** Through `DS.overlay`: the page is inert, the scroll locked, Escape is on the stack. Each open starts
+  clean at the first step; focus goes to `[autofocus]`, else the first control of the first step.
+- **Steps.** Next checks the current step: the constraint validation of its controls (the first invalid one reports
+  its message and takes focus; the rail marks the step `data-status="error"`, with its icon and a hidden word), then a
+  cancelable `ds:step` (`{ from, to }`) that the page may refuse with its own check. A change shows the next section
+  (it enters with `DS.motion.enter(section, 'swap')`), scrolls the body to its top, focuses the section's heading and
+  says "Step 2 of 4: Network" politely. The rail follows: `aria-current="step"` on the current item, `data-status="done"`
+  with a drawn check and a hidden ", done" on those before it, the number on the others (`data-status="optional"` stays).
+  Back never checks. `ds:change` (`{ step, total }`) follows each change. Enter in a field of a form box goes on to the
+  next step, and submits on the last.
+- **Submit.** The last step's submit sends a cancelable `ds:submit` (`{ form, data, wait(promise) }`, `data` a
+  `FormData` of a form box). A promise given to `wait()` runs with `DS.motion.busy()` on the submit button and
+  `data-ds-busy` on the tearsheet (Escape and Cancel wait); a rejection keeps it open with an error snackbar
+  (`errorText`, else the string `actionFailed`) and focus on the button. Done, or without `wait()`, it closes with
+  reason `submit`. `preventDefault()` keeps it open: the page shows its own message.
+- **Unsaved changes.** An `input` or `change` in it (outside `[data-ds-tearsheet-ignore]`) makes it dirty
+  (`ds:dirty`, `{ dirty }`). While dirty, the user's closes (Escape, the native cancel, a `[data-ds-close]` in it) ask
+  first in a destructive confirm dialog over it: "Discard your changes?", Discard (the one red button, D10) closes it
+  with reason `discard`, Keep editing returns to where the user was. Leaving the page asks the browser's own question
+  (`beforeunload`). `DS.tearsheet.close(el)` asks too; `close(el, { force: true })` and `DS.overlay.close(el)` do not.
+  After a draft was saved, `set({ dirty: false })`.
+- **Stacked.** A tearsheet opened from inside another goes on the overlay stack over it: the lighter nested scrim, the
+  lower one inert and receding (`data-stacked`), Escape closes only the top one (asking first when it has changes),
+  and focus goes back into the lower one. `data-stacked` goes as soon as the upper one starts to close.
+
+**JS API.** `js/tearsheet.js` (`DS.tearsheet`):
+
+- `create(el, { discard, errorText })` returns the controller that `data-ds-tearsheet` makes: `get()` (`{ step, total,
+  dirty, open }`), `set(n)` (a step, without checking) or `set({ step, dirty })`, `next()` and `back()` (resolve whether
+  they moved), `close({ force })`, `on(type, fn)` (`step`, `change`, `submit`, `dirty`, `open`, `close`) and `destroy()`.
+  `discard` holds the texts of the question (`title`, `text`, `confirmLabel`, `cancelLabel`).
+- `open(el, { opener, step })` opens it (at `step`, else the first); `close(el, { force, reason })` closes it, asking
+  first while dirty, and resolves whether it closed.
+- `stepIndex(to, total)` and `statuses(total, current, errors)` are the arithmetic of the steps and the rail.
+
+### Keyboard, names and forced colours
+
+- Keyboard: focus moves in at once and Tab stays inside; Escape closes (asking first with changes); Enter in a field
+  goes to the next step; the heading of a new step takes focus, so the reading starts there.
+- Names and roles: `aria-labelledby` the title on the `<dialog>` (or the div markup's box); the rail is a `<nav>` with
+  a name and its list says the current step with `aria-current="step"`; each step section is labelled by its heading.
+- Forced colours: the box keeps the dialog's transparent border as its edge; the hairlines of head, rail and foot are
+  borders and stay; the rail's marks take the [steps](#steps) system colours.
+
+### Hooks
+
+`--ds-tearsheet-width`, `--ds-tearsheet-width-narrow`, `--ds-tearsheet-gap`, `--ds-tearsheet-padding`,
+`--ds-tearsheet-rail-width`, `--ds-tearsheet-radius` ([theming.md](theming.md#component-hooks)), and the dialog's
+`--ds-dialog-scrim`, `--ds-dialog-border` and `--ds-dialog-shadow`.
+
+**Motion:** the scrim fades in while the box rises its full height from the bottom edge over `--ds-dur-long` on
+`--ds-ease-out` (a box as tall as the window would show the page under it if it sprang past its rest), fading in over
+`--ds-dur-fast`; it drops back in `--ds-dur-base`, accelerating. A tearsheet that becomes stacked recedes to
+`--ds-scale-enter` and up by `--ds-distance-lg` on the spring over `--ds-dur-slow`, and comes back the same way. A step
+enters with the swap of `DS.motion.enter()`. By hand (no `data-state`) the keyframes `ds-lift-in` and `ds-drop-out`
+with the fades.
+
+<!-- changelog
+- Tearsheet (`DS.tearsheet`, `[data-ds-tearsheet]`, `.ds-tearsheet` with `--narrow`, `__box`, `__head`, `__heading`,
+  `__label`, `__description`, `__progress`, `__main`, `__steps`, `__body`, `__step`, `__foot`; the buttons
+  `[data-ds-tearsheet-back]`, `-next`, `-submit`): a tall create or edit flow in a modal dialog with steps checked one
+  by one, a submit with `wait()`, unsaved changes guarded by a destructive question (and `beforeunload`), and stacking
+  (`data-stacked`). Hooks `--ds-tearsheet-width`, `-width-narrow`, `-gap`, `-padding`, `-rail-width`, `-radius`.
+  Strings `stepOf`, `stepDone`, `stepError`, `discardTitle`, `discardText`, `discard`, `keepEditing`.
+-->
+## Command palette
+
+One search field over every command of the app, in a dialog: Ctrl+K (Command+K on Apple systems) opens it, typing finds
+a command, Enter runs it.
+
+```html
+<button class="ds-btn" type="button" data-ds-open="#palette">[icon search 16]Search</button>
+<dialog class="ds-dialog ds-command" id="palette" data-ds-command aria-label="Command palette">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <div class="ds-dialog__box">
+    <div class="ds-command__search">[icon search 20]
+      <input class="ds-command__input" type="text" aria-label="Search commands" placeholder="Search or run a command">
+      <kbd class="ds-kbd">Esc</kbd>
+      <button class="ds-btn ds-btn--text ds-command__close" type="button" data-ds-close>Cancel</button>
+    </div>
+    <div class="ds-command__list" aria-label="Commands">
+      <div class="ds-command__group">
+        <div class="ds-command__heading">Devices</div>
+        <div class="ds-command__item" data-ds-command-id="add-device" data-ds-command-shortcut="mod+shift+a" data-ds-command-keywords="new create">
+          [icon plus 20]<span class="ds-command__label">Add a device</span></div>
+        <div class="ds-command__item" data-ds-command-href="/devices">[icon laptop 20]<span class="ds-command__label">Open devices</span></div>
+      </div>
+    </div>
+    <div class="ds-command__foot">
+      <span><kbd class="ds-kbd">↑</kbd><kbd class="ds-kbd">↓</kbd> Move <kbd class="ds-kbd">Enter</kbd> Run <kbd class="ds-kbd">Esc</kbd> Close</span>
+    </div>
+  </div>
+</dialog>
+```
+
+The options in the markup are read once, as data: their label, group heading, `data-ds-command-id`,
+`-keywords`, `-shortcut` and `-href`, an icon and a `.ds-command__description`. From then on `command.js` renders the
+list. A rendered option holds its icon (`.ds-command__icon`), then `.ds-command__content` with the label and the
+description, then its shortcut's keys and, for a page, the chevron:
+
+```html
+<div class="ds-command__item" role="option" id="o1" aria-selected="true" data-active aria-keyshortcuts="Control+Shift+A">
+  [icon plus 20 ds-command__icon]
+  <span class="ds-command__content"><span class="ds-command__label"><mark class="ds-command__match">Add</mark> a device</span>
+    <span class="ds-command__description">Register a laptop, tablet or phone</span></span>
+  <span class="ds-command__shortcut" aria-hidden="true"><kbd class="ds-kbd">Ctrl</kbd><kbd class="ds-kbd">Shift</kbd><kbd class="ds-kbd">A</kbd></span></div>
+```
+
+Most apps give the commands as data instead:
+
+```js
+const palette = DS.command.create(document.querySelector('#palette'), {
+  commands: [
+    { id: 'add-device', label: 'Add a device', group: 'Devices', icon: DS.icons.plus, shortcut: 'mod+shift+a',
+      keywords: ['new', 'create'], run: () => openNewDevice() },
+    { id: 'theme', label: 'Change the theme', group: 'Settings', icon: DS.icons.palette, children: [
+      { id: 'light', label: 'Light', run: () => setTheme('light') },
+      { id: 'dark', label: 'Dark', run: () => setTheme('dark') },
+    ] },
+    { id: 'tickets', label: 'Search tickets', prefix: '#', placeholder: 'Ticket number or title',
+      children: (query, { signal }) => fetch(`/api/tickets?q=${encodeURIComponent(query)}`, { signal }).then((r) => r.json()) },
+  ],
+  providers: [{ group: 'Devices', minLength: 2, search: (query, { signal }) => findDevices(query, signal) }],
+});
+palette.on('select', ({ command }) => track(command.id));
+```
+
+### Options
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` … `.ds-xl` | the dialog or any ancestor | the search row and an option 8px per step, the option's type |
+| Density | `.ds-density-*` | the dialog or any ancestor | the search row and an option 4px per step, the list's padding 2px per step; type stays |
+| Shape | `.ds-shape-*` | the dialog or any ancestor | the box's radius (the dialog's) and an option's radius |
+| Touch | `.ds-touch` | the dialog or any ancestor | an option at least `--ds-target-min` tall |
+| Tone | none | | a palette states no status |
+
+Phones (600px and below): the box fills the window, the key hints of the foot and the field go, and
+`.ds-command__close` (a text button, hidden above 600px) is the way out without an Escape key.
+
+### Commands
+
+| Key | What |
+|---|---|
+| `id` | what the recent list and `run(id)` know it by (default its label) |
+| `label`, `description` | its name (searched, the matched letters marked with `.ds-command__match`) and a line under it |
+| `group` | the heading it sits under |
+| `keywords` | more words that find it (a list, or a text) |
+| `icon` | a glyph of `DS.icons` |
+| `shortcut` | a combo of `DS.hotkeys` (or a list): shown as keys (`.ds-command__shortcut`, `aria-keyshortcuts` on the option) and registered with `DS.hotkeys` while the palette lives, so it works without the palette and shows on the [shortcut sheet](#shortcut-sheet) (`shortcuts: false` leaves them out) |
+| `href`, `run(command, palette)` | what it does: the palette closes (focus goes back to its opener), then it runs. An `href` is followed only when [`DS.core.safeHref()`](core.md) accepts it (`http:`, `https:`, `mailto:`, `tel:` or relative); otherwise nothing happens and the error goes to `reportError` |
+| `children` | makes it a page: a list, or a function `(query, { signal })` that returns one or a promise of one (a search on the server); the option shows `.ds-command__chevron` |
+| `prefix`, `placeholder` | a page's character that, typed first, enters it (`>`, `#`); the field's placeholder there |
+| `disabled` | shown with `aria-disabled`, reachable, never run |
+| `keepOpen` | runs without closing the palette |
+
+### Behaviour
+
+- **Opening.** `data-ds-command` (or `DS.command.create()`) registers Ctrl+K with `DS.hotkeys` (the combo of
+  `data-ds-command-hotkey`; `"off"` registers none); the same combo closes the open palette, and it passes while
+  another overlay is open. A `[data-ds-open]` button opens it too, and gets `aria-keyshortcuts`. It opens on the first
+  page with an empty field, wherever it was left.
+- **Search.** Every word typed must match the label, letters in order with gaps allowed (`adddev` finds "Add a
+  device"), or a keyword; case and accents aside. Word starts and runs of letters score higher; groups follow their
+  best match. `DS.command.fuzzy(query, text)` and `DS.command.rank(commands, query)` are the same search for a page's
+  own lists.
+- **Recent.** The last commands run (`recent`, default 5; 0: none) lead the empty field under "Recent", remembered
+  through [`DS.store`](core.md#dsstore-remembered-preferences) (namespace `command`, the dialog's id as key). Only
+  the palette's own `commands` and the items of their list pages are remembered: a provider's result or an item of a
+  page function is data of the moment, so it never takes a Recent slot.
+- **Pages.** A command with `children` opens in place: its label shows before the field (`.ds-command__back`, a
+  button that goes back), the list holds its children. Backspace in an empty field and Escape go back one page; on
+  the first page Escape closes the palette.
+- **Providers.** `providers` (each `{ group, search(query, { signal, page }), minLength }`) and a page's function
+  are asked --ds-dur-fast after the last key; a newer query aborts the older call (its `signal`). Meanwhile the list
+  has `aria-busy="true"` and the status line a `.ds-spinner` (after `--ds-delay-loader`); a failure says so there.
+- **Empty.** Nothing found: the list hides (the field's `aria-expanded` turns `false`) and `.ds-command__empty` says
+  `No results for "…"` (`commandEmpty`).
+
+### JS API
+
+`js/command.js` (`DS.command`):
+
+- `create(el, options)` returns the controller (the one `data-ds-command` makes; a second call sets `commands` and
+  `providers`): `get()` (`{ open, query, page, active }`), `set({ commands, providers, query })`, `on('select' |
+  'query', fn)`, `open({ opener, query, page })`, `close()`, `back()`, `run(id)`, `refresh()` and `destroy()`.
+  Options: `commands`, `providers`, `recent`, `hotkey`, `shortcuts`.
+- `open(el, options)` and `close(el)`.
+- `fuzzy(query, text)` returns `{ score, ranges }` or `null`; `rank(commands, query)` the matching commands, best first.
+- Events on the dialog: `ds:select` (`{ command, query }`), `ds:query` (`{ query, page }`), and the dialog's
+  `ds:open` and `ds:close`.
+
+### Accessibility
+
+- The WAI-ARIA combobox in a modal dialog: the field is `role="combobox"` with `aria-expanded` (`true` while the list
+  has options, `false` while nothing matches), `aria-controls` and `aria-activedescendant` (written by `command.js`), the list a `role="listbox"` of options in
+  `role="group"`s named by their headings. The active option carries `aria-selected="true"` and `data-active`. Name the
+  dialog (`aria-label`) and the field.
+- Keys: ArrowDown and ArrowUp move the active option (wrapping), PageDown and PageUp go to the next or previous group,
+  Enter runs it; Home, End and the letters stay the field's. Focus never leaves the field; Tab reaches the dialog's
+  other controls.
+- The status line (`.ds-command__status`, `role="status"`) says how many results there are once typing pauses, "Loading"
+  while providers answer, and when they failed.
+- Status is never colour alone: the active option has the hover layer, a match the label's weight.
+
+### Forced colours
+
+The active option takes a `Highlight` ring, a match its underline, blocked options `GrayText`; the field's line turns
+`Highlight` while it has focus.
+
+### Hooks
+
+`--ds-command-width` (640px), `--ds-command-top` (the room above the box, `min(12vh, 96px)`), `--ds-command-height`
+(480px at most), `--ds-command-search-height` (56px) and `--ds-command-item-height` (48px), the md comfortable bases,
+`--ds-command-item-radius` (`--ds-radius-sm`).
+
+### Motion
+
+The dialog's entrance and exit (`DS.overlay`). The active option's layer fades in over `--ds-dur-micro` and goes at
+once, so a held arrow key leaves no trail. Results change in place, without motion.
+
+<!-- changelog -->
+- Command palette (3.0): `.ds-command` in a `.ds-dialog`, `DS.command` (`create`, `open`, `close`, `fuzzy`, `rank`),
+  `data-ds-command`; Ctrl+K through `DS.hotkeys`, groups, recent commands through `DS.store`, fuzzy search with
+  marks, shortcuts, pages and prefixes, async providers.
+## Lightbox
+
+The images of a record (the photos of a device, the screenshots of a ticket) one at a time over the whole window, with
+thumbnails, the arrow keys, zoom and pan, a caption and swipe on touch. The page writes a gallery of links to the full
+images; `DS.lightbox` builds the viewer, a modal [dialog](#dialog) that `DS.overlay` opens and closes.
+
+```html
+<ul class="ds-lightbox__gallery" aria-label="Photos of LAPTOP-0042" data-ds-lightbox>
+  <li><a class="ds-lightbox__item" href="photos/lid.jpg" data-caption="The lid, scratched on the left">
+    <img src="photos/lid-small.jpg" alt="The lid of LAPTOP-0042"></a></li>
+  <li><a class="ds-lightbox__item" href="photos/ports.jpg" data-caption="The ports on the right side">
+    <img src="photos/ports-small.jpg" alt="The ports of LAPTOP-0042"></a></li>
+</ul>
+```
+
+Without JavaScript the links still open the full images. Each item is a `.ds-lightbox__item` (or any element with
+`data-ds-lightbox-item`): its `href` or `data-src` is the full image, `data-caption` the line under it, the `alt` of its
+`<img>` what it shows (else its `aria-label`), and that `<img>` the thumbnail. A `<button>` works as an item too.
+
+The viewer `DS.lightbox` builds (DOM APIs, inside the gallery's `.ds-theme`):
+
+```html
+<dialog class="ds-dialog ds-lightbox" aria-label="Photos of LAPTOP-0042">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <div class="ds-dialog__box ds-lightbox__box">
+    <div class="ds-lightbox__bar">
+      <p class="ds-lightbox__count">Image 2 of 6</p>
+      <button class="ds-btn ds-btn--ghost ds-btn--icon" type="button" aria-label="Zoom out">[icon minimize 20]</button>
+      <button class="ds-btn ds-btn--ghost ds-btn--icon" type="button" aria-label="Zoom in">[icon plus 20]</button>
+      <button class="ds-btn ds-btn--ghost ds-btn--icon" type="button" aria-label="Close" data-ds-close>[icon close 20]</button>
+    </div>
+    <div class="ds-lightbox__stage">
+      <button class="ds-btn ds-btn--ghost ds-btn--icon ds-lightbox__nav ds-lightbox__nav--prev" type="button" aria-label="Previous">[icon chevronLeft 20]</button>
+      <figure class="ds-lightbox__figure">
+        <div class="ds-lightbox__frame">
+          <img class="ds-lightbox__image" alt="The ports of LAPTOP-0042">
+          <span class="ds-spinner" aria-hidden="true"></span>
+          <p class="ds-lightbox__error">[icon alertCircle 20]The image could not be loaded.</p>
+        </div>
+        <figcaption class="ds-lightbox__caption">The ports on the right side</figcaption>
+      </figure>
+      <button class="ds-btn ds-btn--ghost ds-btn--icon ds-lightbox__nav ds-lightbox__nav--next" type="button" aria-label="Next" autofocus>[icon chevronRight 20]</button>
+    </div>
+    <div class="ds-lightbox__thumbs" role="group" aria-label="Images">
+      <button class="ds-lightbox__thumb" type="button" aria-label="Image 1 of 6: The lid of LAPTOP-0042"><img alt=""></button>
+      <button class="ds-lightbox__thumb" type="button" aria-label="Image 2 of 6: The ports of LAPTOP-0042" aria-current="true"><img alt=""></button>
+    </div>
+  </div>
+</dialog>
+```
+
+### Options
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Gallery | `.ds-lightbox__gallery`, `--ds-lightbox-item-size` | the list of items | a grid of square thumbnails, columns of at least 120px; a gallery of your own (a row in a card) works as well |
+| Density | `.ds-density-*` | any container | the gallery's gap (1px per step) and the viewer bar's padding (2px per step) |
+| Shape | `.ds-shape-*` | any container or the theme | multiplies the radius of the gallery's items and the thumbnails |
+| Size, touch | `.ds-sm` ..., `.ds-touch` | any container | reach the viewer's buttons; under `.ds-touch` a thumbnail is at least the touch target |
+
+There is no tone. The viewer is dark in both colour schemes (`--ds-lightbox-bg`, `--ds-lightbox-ink`: the inverse
+surface in the light scheme, the backdrop in the dark one), so the images keep their colours; its buttons are ghost
+buttons in that ink. At 600px and below the arrows lie over the image's sides and the thumbnails are 48px.
+
+### Behaviour
+
+`data-ds-lightbox` on the gallery (`DS.init()`) or `DS.lightbox.create(gallery)`: a click on an item opens the viewer
+at that image (a click with Ctrl, Cmd or Shift keeps the link's own behaviour), with the item as the opener.
+
+- **Opening.** Through `DS.overlay.open()`: the page is inert, the scroll locked, focus on Next (with one image: Close),
+  Escape on the stack, and focus back on the item when it closes. "Image 2 of 6" and the caption are said. The viewer
+  sits at the `.ds-theme`, outside the gallery's containers, so each time it opens it takes the size, density, shape
+  and touch values of the gallery's region (inline on its dialog).
+- **Moving.** The arrows (wrapping round), a thumbnail, ArrowLeft and ArrowRight, Home and End. In the row of
+  thumbnails the arrow keys move between them (one tab stop, `DS.a11y.roving()`) and show the image at once; the
+  current one has `aria-current="true"`, its ring and the full opacity. A change says "Image 3 of 6" and the caption
+  (else the alt), and the image enters with the swap of `DS.motion.enter()`. `ds:change` (`{ index, total }`) follows.
+- **Zoom.** The buttons, `+` (or `=`) and `-` step 1, 2 and 4; `0` goes back to the fit; a double click (a double tap)
+  zooms to 2 at that point and back; Ctrl with the wheel (a trackpad pinch) and two fingers zoom freely up to 4. A
+  zoomed image pans with a drag and the arrow keys, never further than the image covers the frame. Escape first goes
+  back to the fit, then closes. `ds:zoom` (`{ zoom }`) follows.
+- **Swipe.** Unzoomed, a finger swiped sideways leads the image; past a fifth of the frame it goes to the next or the
+  previous image, else it glides back.
+- **Loading and errors.** A spinner shows after `--ds-delay-loader` while an image loads; one that fails shows an icon
+  and "The image could not be loaded." in its place (`data-failed`).
+- **A list without a gallery.** `DS.lightbox.show([{ src, alt, caption, thumb }], { index, opener, label })` opens a
+  viewer for images the page has as data; it goes once it closed.
+
+**JS API.** `js/lightbox.js` (`DS.lightbox`):
+
+- `create(gallery, { images, label, home })` returns the controller that `data-ds-lightbox` makes: `get()` (`{ open,
+  index, total, zoom }`), `set(index)` or `set({ index, zoom })`, `open(index, opener)`, `close()`, `next()`, `prev()`,
+  `on(type, fn)` (`open`, `close`, `change`, `zoom`, on the gallery) and `destroy()` (removes the viewer). `images` (a
+  function returning the list) replaces the gallery's items.
+- `open(gallery, { index, opener })` and `close(gallery)`; `show(images, { index, opener, label })`.
+- `nextZoom(zoom, direction)`, `clampPan(x, y, size, frame, zoom)` and `MAX_ZOOM` (4) are its arithmetic.
+
+### Keyboard, names and forced colours
+
+- Keyboard: Tab stays in the viewer (the bar, the arrows, the row of thumbnails); ArrowLeft and ArrowRight move (pan
+  when zoomed), ArrowUp and ArrowDown pan, Home and End, `+`, `-`, `0`; Escape takes the zoom back, then closes.
+- Names and roles: the viewer is a dialog named by the gallery's `aria-label` (else the string `images`); each button
+  has a name (the strings `zoomIn`, `zoomOut`, `close`, `previous`, `next`); the image has the item's alt; the row of
+  thumbnails is a group named "Images", each thumbnail named "Image 2 of 6: ..." with `aria-current` on the current
+  one; the count is visible text.
+- Forced colours: the gallery's items and the thumbnails keep a `CanvasText` edge, the current thumbnail a
+  `SelectedItem` ring (a choice in a set), the error its `CanvasText` icon and words.
+
+### Hooks
+
+`--ds-lightbox-bg`, `--ds-lightbox-ink`, `--ds-lightbox-thumb-size`, `--ds-lightbox-item-size`,
+`--ds-lightbox-radius` ([theming.md](theming.md#component-hooks)). `--ds-lightbox-zoom`, `--ds-lightbox-x` and
+`--ds-lightbox-y` are runtime properties of the frame: never set them.
+
+**Motion:** the viewer opens and closes as a dialog (the box fades and grows from `--ds-scale-enter` on the spring over
+`--ds-dur-slow`, leaves in `--ds-dur-base`); a new image enters with the swap of `DS.motion.enter()`; zoom and pan glide
+over `--ds-dur-medium` on `--ds-ease-out` (it fills the frame, so it never overshoots); a drag and a swipe follow the
+pointer (direct manipulation, as the drag of `DS.dnd`), and a swipe that does not go far enough glides back.
+
+<!-- changelog
+- Lightbox (`DS.lightbox`, `[data-ds-lightbox]` with `[data-ds-lightbox-item]`, `.ds-lightbox__gallery`, `__item`, and
+  the viewer `.ds-lightbox` with `__box`, `__bar`, `__count`, `__stage`, `__nav` (`--prev`, `--next`), `__figure`,
+  `__frame`, `__image`, `__caption`, `__error`, `__thumbs`, `__thumb`): images one at a time in a modal dialog, with
+  thumbnails, keys, zoom and pan (buttons, keys, double click, wheel, pinch), a caption, swipe on touch, loading and
+  error states; `create()`, `open()`, `close()`, `show()`, `nextZoom()`, `clampPan()`, `MAX_ZOOM`. Hooks
+  `--ds-lightbox-bg`, `-ink`, `-thumb-size`, `-item-size`, `-radius`. Strings `imageOf`, `images`, `zoomIn`, `zoomOut`,
+  `imageFailed`. Integrator: the glyphs `zoomIn` and `zoomOut` (a magnifier with plus and minus) would read better than
+  `plus` and `minimize` in the bar.
+-->
 ## Side sheet
 
 Details or a form beside the page, in a panel that slides in from the side (from the bottom on phones).
@@ -4159,6 +12360,8 @@ thin scrollbar; a lone `.ds-btn` directly in it keeps its own width.
 | Option | Classes | Where it applies | Effect |
 |---|---|---|---|
 | Width | `.ds-sheet__panel--wide`, `--ds-sheet-width` | the panel | 720px instead of 560px; the whole width at 600px and below |
+| Mode | the modal sheet (`.ds-sheet`), `.ds-sheet__panel--push`, `.ds-sheet__panel--inspector` | the panel | over the page with a scrim (overlay); beside the content, which narrows (push); beside a list that stays usable (inspector) ([below](#push-and-inspector)) |
+| Resizable | `.ds-sheet__resize` in the panel, `data-ds-sheet-remember` | the panel | a separator on the panel's inner edge; the width is remembered ([below](#resizing)) |
 | Density | `.ds-density-*` | the sheet or any ancestor | the padding of head, body and foot (2px per step), the head's height (4px per step) |
 | Shape | `.ds-shape-*` | the sheet or any ancestor | multiplies the radius of the panel's leading corners |
 | Size, touch | `.ds-sm` ..., `.ds-touch` | the sheet or any ancestor | reach the controls inside; the panel itself keeps its size |
@@ -4210,6 +12413,84 @@ under the top bar) gets the usual entrance instead: its group would paint the hi
 While its action runs (a save in the sheet's foot), `data-ds-busy` on the sheet keeps it open, as for the
 [Dialog](#dialog); `ds:close` tells why it closed.
 
+### Push and inspector
+
+Next to the content instead of over it: a docked panel sits in a `.ds-sheet__layout`, after the `.ds-sheet__main` that
+holds the page's content (a list, a table, a board). It has no scrim and no radius, a hairline (`--ds-sheet-docked-border`)
+instead of the shadow, and `--ds-sheet-docked-width` (400px). Give the layout the height it should fill (the view of the
+app frame, or a row of a grid); in a taller page the panel sticks in view.
+
+```html
+<div class="ds-sheet__layout">
+  <div class="ds-sheet__main"> ... the list ... </div>
+  <section class="ds-sheet__panel ds-sheet__panel--push" id="filters" aria-labelledby="filters-title" hidden>
+    <div class="ds-sheet__head">
+      <h2 class="ds-sheet__title" id="filters-title">Filters</h2>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>[icon close 20]</button>
+    </div>
+    <div class="ds-sheet__body"> ... </div>
+  </section>
+</div>
+<button class="ds-btn" type="button" data-ds-open="#filters" aria-expanded="false" aria-controls="filters">Filters</button>
+```
+
+- **Push** (`.ds-sheet__panel--push`): opened from a button, the content beside it narrows while the panel's width
+  opens from 0 over `--ds-dur-long` on `--ds-ease-out` (a size that pushes never overshoots); its parts keep their width
+  and are uncovered from the inline end. It gives the width back in `--ds-dur-base` on `--ds-ease-exit`. Focus moves
+  in once it opened (`autofocus`, else its first focusable control).
+- **Inspector** (`.ds-sheet__panel--inspector`): the detail of the chosen row of a list or table, beside it. It opens
+  like the push panel, but focus stays in the list, which stays usable: the arrow keys, the selection and the other
+  rows' actions keep working. Choosing another row swaps the panel's content with `DS.dom.morphHtml` (no second
+  entrance); a title that changes is said by an `aria-live="polite"` subtitle, or announce it with
+  `DS.a11y.announce()`. Closing it gives focus back to the row only when focus was inside the panel.
+- Both open and close through `DS.overlay.open(panel, { opener })` and `DS.overlay.close(panel)` (or `data-ds-open`,
+  `data-ds-close`) as a non-modal layer: no trap, nothing inert, no scroll lock; Escape closes the top layer (a menu
+  inside it first) when focus is in its `.ds-sheet__layout` (the panel, or the list beside an inspector), on its opener
+  or nowhere: Escape in a page field outside stays that field's. `aria-expanded` on an opener that carries it follows. `DS.init()` installs the focus move of the
+  push panel and watches the body's scroll for the head's hairline (`data-scrolled`).
+- Short of room (the layout under 720px, a container query) the panel lies over the main column with the overlay
+  elevation; under 480px it takes the layout's whole width, without a separator.
+- Use a `<section>` with `aria-labelledby` the title: a region with a name, which a screen reader lists among the
+  landmarks. Never put the docked panel inside the `.ds-sheet` frame.
+
+```js
+table.addEventListener('click', (event) => {
+  const row = event.target.closest('[data-ds-key]');
+  if (!row) return;
+  DS.dom.morphHtml(inspectorBody, detailHtml(row.dataset.dsKey));
+  DS.overlay.open(inspector, { opener: row });     // already open: nothing moves
+});
+```
+
+### Resizing
+
+A `.ds-sheet__resize` as the first child of the panel makes it resizable, on the modal sheet (its left edge) and on a
+docked panel (its inline start edge). `DS.init()` wires it on an element with `data-ds-sheet` (the sheet, or the
+docked panel itself), or call `DS.sheet.resizable(panel, { remember })`.
+
+```html
+<section class="ds-sheet__panel ds-sheet__panel--inspector" id="device" aria-labelledby="device-title" hidden
+         data-ds-sheet data-ds-sheet-remember="devices-inspector">
+  <div class="ds-sheet__resize" aria-label="Resize the details"></div>
+  ...
+</section>
+```
+
+- It is a `role="separator"` with `aria-orientation="vertical"`, a tab stop, `aria-valuenow`, `aria-valuemin` and
+  `aria-valuemax` (the width in pixels) and `aria-controls` the panel (written by the system; a name of the page's own
+  in `aria-label`, else the string `resizePanel`).
+- Pointer: the width follows the pointer (`data-resizing` on the panel holds its transitions); a double click goes back
+  to the default width. Keyboard (the window splitter pattern): ArrowLeft and ArrowRight move the edge by
+  `--ds-space-4` (with Shift four times that), Home and End go to the narrowest and the widest.
+- The width is the runtime property `--ds-sheet-size` on the panel, between `data-ds-sheet-min` (280px) and
+  `data-ds-sheet-max` (default: what leaves the page or the main column 280px), and is remembered through `DS.store`
+  (namespace `sheet`) under `data-ds-sheet-remember`, so it comes back on the next visit. Without the attribute it
+  holds until the page reloads. `ds:resize` (`{ width }`) follows a drag that ended and each key.
+- The separator shows a pill on hover, focus and while it drags (`--ds-primary`), and always on a screen without
+  hover; at 600px and below the modal sheet takes the whole width and has none. With `.ds-touch` its hit strip is the
+  touch target wide.
+- Forced colours: the pill is `CanvasText`, `Highlight` while focused or dragged.
+
 ### Keyboard, names and forced colours
 
 - Keyboard: focus moves in at once (`autofocus`, else the first focusable element, else the panel); Tab stays inside;
@@ -4221,12 +12502,117 @@ While its action runs (a save in the sheet's foot), `data-ds-busy` on the sheet 
 ### Hooks
 
 `--ds-sheet-width`, `--ds-sheet-width-wide`, `--ds-sheet-padding`, `--ds-sheet-head-height`, `--ds-sheet-radius`,
-`--ds-sheet-foot-border` ([theming.md](theming.md#component-hooks)). `data-ds-sheet` marks a sheet that
+`--ds-sheet-foot-border`, `--ds-sheet-docked-width`, `--ds-sheet-docked-border`
+([theming.md](theming.md#component-hooks)). `data-ds-sheet` marks a sheet that
 `DS.get(el, 'sheet')` serves.
 
-**JS API.** `js/sheet.js` (`DS.sheet`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`; `create(el)` returns the controller that `data-ds-sheet` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`).
+**JS API.** `js/sheet.js` (`DS.sheet`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`, for the modal sheet and the docked panels; `create(el)` returns the controller that `data-ds-sheet` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`), resizable when the panel has a separator; `resizable(el, { remember, min, max })` returns the controller of the width (`get()` the width in px or `null` at the default, `set(px)`, `on('resize', fn)`, `destroy()`); `clampWidth(width, bounds)` and `dragWidth(start, delta, side, bounds)` are the arithmetic it uses, and `MIN_WIDTH` (280) its narrowest width.
 
 **Motion:** the "Scrim", "Side sheet" and "Side sheet on a phone" rows of [Overlays](motion.md#overlays) in motion.md.
+A docked panel opens its width over `--ds-dur-long` on `--ds-ease-out` and gives it back in `--ds-dur-base` on
+`--ds-ease-exit`, through the registered `--ds-sheet-reveal` (0 to 1, internal: never set it); a drag follows the
+pointer.
+
+<!-- changelog
+- Side sheet: docked panels in a `.ds-sheet__layout` beside its `.ds-sheet__main`, `.ds-sheet__panel--push` (the
+  content narrows, focus moves in) and `.ds-sheet__panel--inspector` (beside a list that stays usable, focus stays in
+  the list), non-modal layers of `DS.overlay`; resizing with `.ds-sheet__resize` (a separator: pointer and keys, the
+  width remembered through `DS.store` under `data-ds-sheet-remember`, bounded by `data-ds-sheet-min` and `-max`,
+  `ds:resize`), `DS.sheet.resizable()`, `clampWidth()`, `dragWidth()`, `MIN_WIDTH`; hooks `--ds-sheet-docked-width`
+  and `--ds-sheet-docked-border`; string `resizePanel`. The separator's pill stays shown on a screen without hover.
+-->
+## Bottom sheet
+
+A panel that rises from the bottom edge, for a phone first (filters, the details of a row, a short choice), with a
+drag handle, heights it rests at (detents) and a drag to dismiss. It is a modal [side sheet](#side-sheet) laid out at
+the bottom at every width: the whole width on a phone, at most 640px and centred on a wider screen.
+
+```html
+<button class="ds-btn" type="button" data-ds-open="#filters" aria-haspopup="dialog" aria-expanded="false">Filters</button>
+
+<dialog class="ds-sheet ds-bottomsheet" id="filters" aria-labelledby="filters-title" data-ds-bottomsheet data-ds-bottomsheet-detents="0.5 1">
+  <div class="ds-sheet__backdrop" data-ds-close></div>
+  <section class="ds-sheet__panel ds-bottomsheet__panel">
+    <button class="ds-bottomsheet__handle" type="button" aria-label="Resize the sheet"></button>
+    <div class="ds-sheet__head">
+      <h2 class="ds-sheet__title" id="filters-title">Filters</h2>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>[icon close 20]</button>
+    </div>
+    <div class="ds-sheet__body" tabindex="0"> ... </div>
+    <div class="ds-sheet__foot"> ... </div>
+  </section>
+</dialog>
+```
+
+The div markup works as for the side sheet (`<div class="ds-sheet ds-bottomsheet" role="dialog" aria-modal="true"
+aria-labelledby="..." hidden>`). Head, body and foot are the side sheet's parts.
+
+### Options
+
+| Option | Attribute, classes | Where it applies | Effect |
+|---|---|---|---|
+| Detents | `data-ds-bottomsheet-detents="0.5 1"` | the sheet | the heights it rests at, as fractions of its full height (the window less `--ds-bottomsheet-gap`); it opens at the smallest. Without the attribute it is as tall as its content (at most the full height) and rests fully up |
+| Width | `--ds-bottomsheet-width` | the sheet | at most 640px, centred; the whole width on a phone |
+| Density | `.ds-density-*` | the sheet or any ancestor | as the side sheet: the padding of head, body and foot, the head's height |
+| Shape | `.ds-shape-*` | the sheet or any ancestor | multiplies the radius of the top corners (`--ds-bottomsheet-radius`) |
+| Size, touch | `.ds-sm` ..., `.ds-touch` | the sheet or any ancestor | reach the controls inside; the handle is at least the touch target |
+
+There is no tone.
+
+### Behaviour
+
+`data-ds-bottomsheet` (`DS.init()`) or `DS.bottomsheet.create(el)`; open and close it with `data-ds-open` and
+`data-ds-close`, `DS.overlay.open()` and `close()`, or `DS.bottomsheet.open(el, { opener, detent })` (at that detent).
+
+- **Modal.** Through `DS.overlay`: the page is inert, the scroll locked, focus moves in (the handle, unless a control
+  has `autofocus`), Escape closes it, focus goes back to the opener.
+- **Detents.** The panel is as tall as its full height and rests lower by `--ds-bottomsheet-offset` (a runtime property
+  of the panel, never set it), so each detent shows its share; the part below the window is padding
+  (`--ds-bottomsheet-rest`, runtime too), so the foot sits at the window's edge and the body scrolls within what shows
+  at every detent; `data-detents` on the sheet says it has them. A change
+  springs there, says "Sheet at 50 percent of the screen" politely and sends `ds:detent` (`{ detent, index }`). A
+  change of the attribute takes effect at once.
+- **Drag.** A pointer on the handle or on the head (not on a control in it) drags the panel: it follows the finger
+  (`data-dragging` holds its transition; the named motion exception of the bottom sheet), never above its full height.
+  On release the throw (the speed of the last moves, projected over `--ds-dur-medium`) picks the nearest detent; thrown
+  below half of the smallest detent the sheet closes, with reason `drag`. A press without a move is a click.
+- **The handle** is a button: a click, Enter or Space go to the next detent (from the largest back to the smallest),
+  ArrowUp and ArrowDown to the larger and the smaller one. With one detent it does nothing but take focus; the drag
+  still dismisses.
+- **Above the keyboard.** With `DS.dom.followViewport()` the full height ends above the on-screen keyboard.
+
+**JS API.** `js/bottomsheet.js` (`DS.bottomsheet`): `open(el, { opener, detent, returnTo })` and `close(el, { reason })`
+are `DS.overlay.open()` and `close()` (at a detent); `create(el)` returns the controller that `data-ds-bottomsheet` makes:
+`get()` (`{ open, detent, index }`), `set(true | false)`, `set(detent)` or `set({ index })`, `on(type, fn)` (`detent`,
+`open`, `close`), `want(index)` (the detent of the next open) and `destroy()`; `parseDetents(value)` and
+`settleDetent(detents, shown, velocity, projection)` are its arithmetic.
+
+### Keyboard, names and forced colours
+
+- Keyboard: focus moves in and Tab stays inside; on the handle, Enter, Space, ArrowUp and ArrowDown change the height;
+  Escape closes.
+- Names and roles: the sheet is a dialog named by its title; the handle is a button with a name (the string
+  `resizeSheet` when it has none of its own); a height change is said.
+- Forced colours: the panel keeps the side sheet's edge; the handle's pill is `CanvasText`, `Highlight` while it has
+  focus or drags.
+
+### Hooks
+
+`--ds-bottomsheet-width`, `--ds-bottomsheet-gap`, `--ds-bottomsheet-radius` ([theming.md](theming.md#component-hooks)),
+and the side sheet's.
+
+**Motion:** the scrim fades while the panel rises its full height on the spatial spring over `--ds-dur-long` (a strip
+of its own background below it covers the overshoot); a detent change springs there over `--ds-dur-long`; a drag
+follows the finger, the named exception of conventions section 8; it drops back down in `--ds-dur-base`, accelerating.
+By hand (no `data-state`): `ds-lift-in`, and `ds-drop-out` its full height with `ds-fade-out`.
+
+<!-- changelog
+- Bottom sheet (`DS.bottomsheet`, `[data-ds-bottomsheet]` with `data-ds-bottomsheet-detents`, `.ds-bottomsheet` with
+  `__panel` and `__handle`, on the side sheet's markup): a modal sheet at the bottom edge with detents, a handle (click
+  and keys), drag that follows the finger (the named motion exception) and drag to dismiss (reason `drag`);
+  `open()`, `close()`, `create()`, `parseDetents()`, `settleDetent()`. Hooks `--ds-bottomsheet-width`, `-gap`,
+  `-radius`. Strings `resizeSheet`, `sheetDetent`.
+-->
 ## Snackbar
 
 A short message about something that just happened, at the bottom of the content panel, with an optional action.
@@ -4341,22 +12727,230 @@ system's string `close`, is its label and its tooltip).
   page: `transition()` lifts the name of a further one, which then crossfades with the page.
 - `.ds-toast--info` uses the plain text colour for its icon, like `--error`. `.ds-toast--shown` is runtime state:
   `toast()` marks a message whose entrance has played, so a region that moves never replays it.
-- Hooks: `--ds-toast-action-color`, `--ds-toast-close-size` (the close button, 36px), `--ds-toast-radius`
-  ([theming.md](theming.md#component-hooks)).
+- Hooks: `--ds-toast-action-color`, `--ds-toast-close-size` (the close button, 36px), `--ds-toast-radius`,
+  `--ds-toast-stack-width` (a stacking region, 400px) ([theming.md](theming.md#component-hooks)).
 - **Removed in 2.0:** the region with `role="status" aria-live="polite"` and `role="alert"` on messages (`toast()` now
   takes the attributes off and announces once: use `<div class="ds-toasts"></div>`); showing messages by hand with
   `setTimeout(() => DS.motion.leave(toast), 4000)` (`toast()` times them); the hand recipe that moved messages into a
   side sheet with a page-set `--ds-toast-shift` (`DS.overlay.open(sheet)` moves and glides the region).
 
+### Waiting, progress and the stack (3.0)
+
+```js
+DS.toast.promise(null, save(record), { pending: 'Saving LAPTOP-0042', success: 'Saved LAPTOP-0042.', error: (reason) => reason.message });
+const upload = DS.toast.progress(null, 'Uploading 3 files', { value: 0 });
+upload.set(0.4);                        // the bar glides, the share shows at the end
+upload.set(0.8, 'Uploading the last file');
+upload.done('3 files uploaded.');      // or upload.fail('The upload stopped.')
+```
+
+```html
+<div class="ds-toasts ds-toasts--stack" data-ds-toast-limit="5"></div>
+```
+
+What `promise()` and `progress()` build (the close button as on any message that stays):
+
+```html
+<div class="ds-toast" aria-busy="true"><span class="ds-spinner ds-toast__spinner" aria-hidden="true"></span>
+  <span class="ds-toast__text">Saving LAPTOP-0042</span> (close button)</div>
+<div class="ds-toast ds-toast--progress">
+  <div class="ds-toast__body"><span class="ds-toast__text" id="t1">Uploading 3 files</span>
+    <div class="ds-progress ds-progress--flat"><div class="ds-progress__track" role="progressbar" aria-labelledby="t1"
+      aria-valuemin="0" aria-valuemax="100" aria-valuenow="40"><div class="ds-progress__bar"></div></div></div></div>
+  <span class="ds-toast__value" aria-hidden="true">40%</span> (close button)</div>
+```
+
+- **Promise toast.** `promise(region, work, options)` shows a message with a spinner (`.ds-toast__spinner`, in the
+  icon's place) and the `pending` text (default the system's string `loading`) while `work` runs (a promise, or a
+  function that returns one; what it throws counts as a failure). It stays and has the close button. When the work
+  ends, the same message turns, in place, into the `success` text (default the system's string `done`; it then closes
+  by itself on the usual timer, or stays with `persistent: true`) or the `error` text (default `actionFailed`; it
+  stays and is announced at once). `success` and `error` may be functions of the value or the reason; one that
+  returns nothing (`null`, `false`, `''`) closes the message instead. A message the person closed while the work ran
+  still announces how it ended. The other options are those of `toast()` (`key`, `timeout`, `closeLabel`,
+  `reserve`). It returns the message's handle; the work's own promise stays the page's to await.
+- **Progress toast.** `progress(region, text, options)` shows `text` over a flat [progress bar](#progress)
+  (`.ds-toast--progress`, `.ds-toast__body`), named by the text, with the share at the end of the row
+  (`.ds-toast__value`, through `DS.format.percent`, hidden from assistive tech since the bar says it). `value` (0 to
+  1, or `null`: not known yet, the bar runs) is the first share. The handle adds `set(value, text)` (the bar glides;
+  a new text replaces the old one; neither is spoken, so a fast upload does not chatter), `done(text, { timeout,
+  persistent })` and `fail(text)`, which end it in place as `promise()` does.
+- **Queue.** `data-ds-toast-limit="1"` to `"5"` on a region sets how many messages show at once (default 3,
+  `TOAST_LIMIT`); the others wait in order, as before.
+- **Stack.** `.ds-toasts--stack` on the region keeps its messages one behind the other: the newest in front, at most
+  two edges of the older ones showing above it (`--ds-toast-front`, the front's height, is written by `toast.js`).
+  The stack is `--ds-toast-stack-width` wide (400px; the full width on phones). Focus inside the region (Tab reaches
+  every message's buttons) or a click on a message expands it into the list (`data-expanded`, written by `toast.js`):
+  the messages glide apart (`DS.motion.flip()`), and the timers pause while it is open. Hover never expands it. It
+  collapses when focus leaves the region (with no pointer over it), on a press outside and once one message is left.
+  A collapsed stack hides the content of the messages behind the front, but they stay announced as they arrive; a
+  message on its way out (`data-ds-leaving`, written by `DS.motion.leave()`) no longer counts as one of the edges.
+- **Above every modal.** Waiting, progress and stacked messages are messages like the others: they move into an
+  open dialog or sheet with their region, stay usable and are announced there.
+
 ### Keyboard and forced colours
 
 - Keyboard: a message's buttons are in the tab order, where the region sits; focus inside pauses its timer. It never
   takes focus by itself, and an error is announced, not focused.
-- Forced colours: a message's transparent outline becomes its edge.
+- Keyboard on a stack: focus entering the region expands it, so every message and its buttons are reachable; it
+  collapses when focus leaves.
+- Forced colours: a message's transparent outline becomes its edge; a waiting message's spinner and a progress
+  message's bar take `Highlight` (the track `GrayText`).
 
-**JS API.** `js/toast.js` (`DS.toast`): `toast(region, content, options)`, `closeToasts(region, filter)`, `announce(text, options)` and `toastRegion(doc)`, the same functions as under `DS.overlay`.
+**JS API.** `js/toast.js` (`DS.toast`): `toast(region, content, options)`, `closeToasts(region, filter)`, `announce(text, options)` and `toastRegion(doc)`, the same functions as under `DS.overlay`; and (3.0) `promise(region, work, options)` and `progress(region, text, options)`, above.
 
 **Motion:** the "Snackbar" row of [Overlays](motion.md#overlays) in motion.md.
+
+<!-- changelog -->
+- Snackbar (3.0): `DS.toast.promise()` (a waiting message with a spinner that turns into its outcome in place) and
+  `DS.toast.progress()` (a message with a progress bar: `set()`, `done()`, `fail()`); `.ds-toasts--stack`, a
+  collapsed stack that expands on focus or a click (never on hover), with the hook `--ds-toast-stack-width`;
+  `data-ds-toast-limit` on a region (1 to 5 messages at once). New classes `.ds-toast--progress`, `.ds-toast__body`,
+  `.ds-toast__spinner`, `.ds-toast__value`; the system's string `done`.
+## Notification centre
+
+What happened for someone while they worked: a bell with the unread count in the top bar opens a [side
+sheet](#side-sheet) of notifications, grouped by day, to read, act on and mark read.
+
+```html
+<span class="ds-notifications__bell">
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" data-ds-open="#inbox" aria-label="Notifications" data-tip="Notifications">[icon bell 20]</button>
+</span>
+
+<dialog class="ds-sheet ds-notifications" id="inbox" data-ds-notifications aria-labelledby="inbox-title">
+  <div class="ds-sheet__backdrop" data-ds-close></div>
+  <section class="ds-sheet__panel">
+    <div class="ds-sheet__head">
+      <div class="ds-sheet__heading">
+        <h2 class="ds-sheet__title" id="inbox-title">Notifications</h2>
+        <p class="ds-sheet__subtitle"></p>
+      </div>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="/settings/notifications" aria-label="Notification settings" data-tip="Notification settings">[icon settings 20]</a>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>[icon close 20]</button>
+    </div>
+    <div class="ds-notifications__bar">
+      <label class="ds-switch"><input type="checkbox" role="switch" data-ds-notifications-unread-only>
+        <span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Only unread</span></label>
+      <button class="ds-btn ds-btn--text ds-sm" type="button" data-ds-notifications-read-all>Mark all as read</button>
+    </div>
+    <div class="ds-sheet__body ds-notifications__feed" tabindex="0"></div>
+  </section>
+</dialog>
+```
+
+```js
+const centre = DS.notifications.create(document.querySelector('#inbox'), { items });
+centre.add({ id: 'n9', title: 'LAPTOP-0042 is offline', text: 'Last seen in Building A.', time: new Date(),
+  tone: 'warning', icon: DS.icons.wifiOff, href: '/devices/42', actions: [{ id: 'ticket', label: 'Open a ticket' }] });
+centre.on('action', ({ item, action }) => { /* also a bubbling ds:action on the sheet */ });
+centre.on('read', ({ ids, read }) => saveReadState(ids, read));
+```
+
+What it renders into the feed, per group (the rows keyed, patched in place):
+
+```html
+<section class="ds-notifications__group" aria-labelledby="h1">
+  <h3 class="ds-notifications__heading" id="h1">Today</h3>
+  <ul class="ds-notifications__list" role="list">
+    <li class="ds-notifications__item" data-ds-key="n9" data-unread>
+      <span class="ds-notifications__icon ds-tone-warning" aria-hidden="true">[icon wifiOff 20]</span>
+      <div class="ds-notifications__content">
+        <p class="ds-notifications__title" id="t1"><a class="ds-notifications__link" href="/devices/42">LAPTOP-0042 is offline</a></p>
+        <p class="ds-notifications__text">Last seen in Building A.</p>
+        <p class="ds-notifications__meta"><span class="ds-notifications__dot" aria-hidden="true"></span><span class="ds-sr">Unread, </span><time datetime="2026-11-05T13:27:00.000Z">3 minutes ago</time></p>
+        <div class="ds-notifications__actions"><button class="ds-btn ds-btn--text ds-sm" type="button" data-ds-key="ticket">Open a ticket</button></div>
+      </div>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm ds-notifications__toggle" type="button" aria-label="Mark as read" aria-describedby="t1" data-tip="Mark as read">[icon mailOpen 20]</button>
+    </li>
+  </ul>
+</section>
+<div class="ds-empty ds-notifications__empty" hidden>
+  <span class="ds-empty__disc" aria-hidden="true">[icon bell 24]</span><p class="ds-empty__title">No notifications</p></div>
+```
+
+A page that renders on the server writes the same rows (with `data-ds-key`, `data-unread`, the title, its link, the
+text and `<time datetime>`) and `DS.init()` reads them as the first notifications. Its own `.ds-empty` in the feed (a
+title and a sentence: "You are all caught up") replaces the built one.
+
+### Options
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Tone | `tone` of a notification (`.ds-tone-*` on its icon) | one notification's icon | the disc takes the tone's container pair; the glyph carries the meaning: without an `icon` of its own it is the tone's (`alertCircle` for error, `alert` for warning, `checkCircle` for success, else `info`), and pick one that says it when you name one (`wifiOff`). Error, warning and success add their word for screen readers ("Error", `notificationsError`; `notificationsWarning`, `notificationsSuccess`) before the time. A tone on an ancestor is ignored |
+| Size | `.ds-xs` ... `.ds-xl` | the sheet or any ancestor | a row's padding 4px per step (8px of height), the disc 8px per step (`--ds-notifications-icon-size`, 40px at md); type stays |
+| Density | `.ds-density-*` | any container | a row's padding 2px per step (`--ds-notifications-item-padding`, 12px at comfortable), the bar's height 4px per step; the sheet's padding follows the sheet |
+| Shape | `.ds-shape-*` | any container or the theme | the disc's radius times `--ds-shape` (round at the default) |
+| Touch | `.ds-touch` | the theme or a container | the read button and the actions grow to `--ds-touch-target`; the bell's button too |
+
+### Behaviour
+
+- **A notification** is `{ id, title, text, time, read, icon, tone, href, group, actions }`: `time` a `Date`, a timestamp
+  or an ISO text, shown as a relative time that stays current ([`DS.format.time`](core.md#relative-time-data-ds-time),
+  the absolute date in its tooltip); `icon` a glyph of `DS.icons` (default: the tone's glyph, else `info`); `href` links the title (following
+  it marks the notification read and dispatches `ds:select`) when [`DS.core.safeHref()`](core.md) accepts it
+  (`http:`, `https:`, `mailto:`, `tel:` or relative; a `javascript:` or `data:` URL leaves the title plain text); `group` a heading of its own instead of the day;
+  `actions` a list of `{ id, label, run(item, centre) }`, text buttons under the text (`ds:action`, then `run`).
+- **Groups.** Today, Yesterday and Earlier by the calendar day of `time` (the strings `notificationsToday`,
+  `notificationsYesterday`, `notificationsEarlier`), or the notification's `group`; newest first inside a group, the
+  groups in the order of their newest notification.
+- **Read and unread.** An unread notification shows a dot before its time, its title in the label weight and the word
+  "Unread" for screen readers (`data-unread` on the row), never colour alone. Its read button (`.ds-notifications__toggle`,
+  named "Mark as read" or "Mark as unread", described by the title) toggles it. `[data-ds-notifications-read-all]` marks
+  all read and announces it ("All notifications marked as read."); it is `aria-disabled` while nothing is unread. An
+  unread-only switch (`[data-ds-notifications-unread-only]`) hides what was read; a row that leaves while it holds
+  focus (read there, or removed) hands focus to the next row's first control, else the previous row's, else the feed. Read state is the page's to keep:
+  save it on `ds:read`.
+- **The count.** Every button with `data-ds-open="#<id>"` inside a `.ds-notifications__bell` (or the `bell` option)
+  gets the unread count as a `.ds-badge` on its corner ([badge](#badge): `99+` past 99, gone at zero, popping in and
+  out), outside the button so its ripple never clips it, and the accessible name "Notifications, 3 unread"
+  (`notificationsCount`, from the button's own label). The sheet's `.ds-sheet__subtitle` says "3 unread".
+- **Arrivals.** `add(items)` puts new notifications at the top and announces "New notification: LAPTOP-0042 is
+  offline" (several in one task: "3 new notifications"), politely, through the snackbar region's announcers, so it is
+  heard above an open dialog too; `{ announce: false }` adds quietly (a backlog on load). A notification with the id
+  of one on screen replaces it.
+- **Settings and the empty state.** The settings link is the page's, in the head; with nothing to show (or nothing
+  unread under the switch) the feed shows its empty state.
+- **Open and close** through `DS.overlay`, as every sheet: the bell's `data-ds-open`, `data-ds-close` inside,
+  `DS.notifications.open(el, { opener })`. Focus returns to the bell.
+
+| Export | What |
+|---|---|
+| `create(el, { items, bell })` | the centre of a `.ds-sheet.ds-notifications`, the same controller `data-ds-notifications` makes; once per element (a second call sets `items`). The controller: `get()`, `set(items)`, `add(items, { announce })`, `update(id, patch)`, `remove(id)`, `read(id, read)`, `readAll()`, `unread()`, `open({ opener })`, `close()`, `refresh()`, `on(type, fn)`, `destroy()` |
+| `open(el, { opener })` | opens the centre through `DS.overlay` (made on first use) |
+| `close(el)` | closes it through `DS.overlay` |
+| `groupByDay(items, { now })` | the groups as rendered: `[{ key, day, items }]` |
+| `dayOf(value, now)` | `'today'`, `'yesterday'` or `'earlier'` for a time |
+
+Events on the sheet: `ds:change` (`{ items, unread }`), `ds:read` (`{ ids, read }`), `ds:action` (`{ item, action }`),
+`ds:select` (`{ item }`), and the sheet's `ds:open` and `ds:close`.
+
+### Keyboard and forced colours
+
+- The bell is a button: `Enter` or `Space` opens the sheet with focus on the feed (`notifications.js` writes
+  `autofocus` there unless the markup puts it elsewhere) and Tab stays inside (`DS.overlay`); `Escape` closes it and
+  focus returns to the bell.
+- In the feed, `Tab` goes through each notification's link, its actions and its read button, in reading order; the
+  feed itself is a stop (`tabindex="0"`) so it can scroll by keys. Removing the notification that holds focus moves
+  focus to the next one's first control.
+- Forced colours: the unread dot takes `CanvasText`, the icon disc keeps a `CanvasText` edge, links are `LinkText`.
+
+### Hooks
+
+`--ds-notifications-icon-size` (40px), `--ds-notifications-item-padding` (12px), `--ds-notifications-dot-size` (8px);
+the bar reads the sheet's `--ds-sheet-padding` ([theming.md](theming.md#component-hooks)).
+
+### Motion
+
+The sheet's own (DS.overlay). With the sheet open, an arriving notification fades in (`DS.motion.enter(row, 'fade')`)
+while the others glide down (`DS.motion.flip()`); the unread switch glides the rows that stay. The unread dot comes in
+over `--ds-dur-fast` and goes at once. The badge pops in and out ([badge](#badge)).
+
+<!-- changelog -->
+- Notification centre (3.0): `.ds-notifications` on a `.ds-sheet`, `.ds-notifications__bell` with its count badge,
+  `DS.notifications` (`create`, `open`, `close`, `groupByDay`, `dayOf`), `data-ds-notifications`: groups by day,
+  read and unread, mark all read, actions per notification, an unread-only switch, the empty state and a live
+  announcement on arrival. Hooks `--ds-notifications-icon-size`, `--ds-notifications-item-padding`,
+  `--ds-notifications-dot-size`; the `notifications*` strings.
 ## Tooltip
 
 A short text that names an icon button or explains a control, on hover and on focus.
@@ -4364,7 +12958,9 @@ A short text that names an icon button or explains a control, on hover and on fo
 ```html
 <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-tip="Copy link">[icon link 20]</button>
 <td><a href="#device-42" data-tip="LAPTOP-0042-FINANCE-BACKUP">LAPTOP-0042-FINANCE-BACKUP</a></td>   <!-- shows only while cut off -->
-<button class="ds-btn" type="button" data-tip="Search the list" data-tip-shortcut="Ctrl K">Search</button>   <!-- the shortcut slot -->
+<button class="ds-btn" type="button" data-tip="Search the list" data-tip-shortcut="Ctrl K" aria-keyshortcuts="Control+K">Search</button>   <!-- the shortcut slot -->
+<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Zoom in" data-tip="Zoom in"
+        data-tip-placement="end" data-tip-delay="short">[icon plus 20]</button>   <!-- beside it, sooner -->
 ```
 
 ```js
@@ -4373,7 +12969,9 @@ const tips = DS.overlay.tooltips(document);   // one call per page (or per root 
 
 | Option | Where it applies | Effect |
 |---|---|---|
-| `data-tip-shortcut` | the trigger | the shortcut slot: `.ds-tooltip__shortcut` after the text, in the code face; the tip then shows also when its text repeats the trigger's |
+| `data-tip-shortcut` | the trigger | the shortcut slot: `.ds-tooltip__shortcut` after the text, in the code face; the tip then shows also when its text repeats the trigger's. Say the same keys to a screen reader with `aria-keyshortcuts` on the trigger |
+| `data-tip-placement="bottom \| top \| start \| end"` | the trigger | the side of the trigger (default `bottom`); on the other side when it does not fit there and fits there |
+| `data-tip-delay="none \| short \| long"` | the trigger | how long a mouse or pen rests before it shows: `none` at once (a chart's points), `short` `--ds-delay-tooltip-skip`, `long` twice `--ds-delay-tooltip`; default `--ds-delay-tooltip`. Keyboard focus always shows it at once |
 | `.ds-shape-*` | the theme | multiplies the radius (`--ds-tooltip-radius`) |
 | Size, density, tone | none | one tooltip serves the whole theme, whatever its trigger's size, and it shows no status |
 
@@ -4406,11 +13004,12 @@ handle; a trigger inside nested roots (a host page's `document` and a widget's r
   The opener of an open layer (a menu button while its menu shows) shows no tip at all (2.1.1).
 - **Description.** While it shows, the trigger gets `aria-describedby` pointing at it, unless the trigger's accessible
   name already says the same (an icon button whose `aria-label` equals the tip is not described twice).
-- **Placement.** Below the trigger and centred on it, above it when there is no room, 8px from the viewport edges.
-  Where popover and CSS anchor positioning exist, the tooltip is a `popover="manual"` in the top layer, anchored to
-  the trigger (`data-anchored`); elsewhere the script writes `--ds-tooltip-x` and `--ds-tooltip-y` and sets
-  `data-placement="top"` above. It fades in and grows from `--ds-scale-tooltip` at the side of the trigger, and
-  leaves with a quick fade.
+- **Placement.** Below the trigger and centred on it (or on the side `data-tip-placement` asks for, written on the
+  tooltip as `data-side`), on the opposite side when there is no room, 8px from the viewport edges. Where popover
+  and CSS anchor positioning exist, the tooltip is a `popover="manual"` in the top layer, anchored to the trigger
+  (`data-anchored`); elsewhere the script writes `--ds-tooltip-x` and `--ds-tooltip-y`. `data-placement` says the
+  side it took (`top`, `start`, `end`; none below). It fades in and grows from `--ds-scale-tooltip` at the side of
+  the trigger, and leaves with a quick fade.
 - On a [switch](#switch) the `data-tip` goes on its input, which covers the track.
 
 Placing a `.ds-tooltip` yourself: set `--ds-tooltip-x` and `--ds-tooltip-y` (or `top` and `left`) on it, remove
@@ -4425,6 +13024,197 @@ a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-orig
 **JS API.** `js/tooltip.js` (`DS.tooltip`): `tooltips(root)`, the same function as `DS.overlay.tooltips()`; `DS.init()` serves every root it initialises.
 
 **Motion:** the "Tooltip" and "Tooltip warm-up" rows of [Overlays](motion.md#overlays) in motion.md.
+
+For a help text with a title, a link or anything to click, use a [toggletip](#toggletip) (on a click or tap) or a
+hover card ([popover](#popover), `data-ds-popover-trigger="hover"`): a tooltip holds text only and never takes focus.
+
+<!-- changelog
+- Tooltip: `data-tip-placement` (bottom, top, start, end; the tooltip carries the asked side as `data-side`, and
+  `data-placement` now also says `start` and `end`) and `data-tip-delay` (none, short, long) on the trigger. The
+  shortcut slot (`data-tip-shortcut`) is documented with `aria-keyshortcuts`.
+-->
+## Picker popover
+
+The popover the date and time pickers open from their button: a small modal dialog (the WAI-ARIA date picker dialog)
+that grows from the button, keeps Tab inside, and closes on Escape, a choice or a press outside. A page may use it for a
+panel of its own: presets beside a pane, a foot with actions.
+
+```html
+<div class="ds-picker" data-ds-picker>
+  <button class="ds-btn" type="button" data-ds-picker-toggle>Status: Any</button>
+  <div class="ds-picker__popover" aria-labelledby="status-title" hidden>
+    <div class="ds-picker__panes">
+      <div class="ds-picker__presets" role="group" aria-labelledby="status-title">
+        <p class="ds-picker__heading" id="status-title">Show devices that are</p>
+        <button class="ds-picker__preset" type="button" aria-current="true">Any status<span class="ds-picker__meta">128</span></button>
+        <button class="ds-picker__preset" type="button">Online<span class="ds-picker__meta">96</span></button>
+        <button class="ds-picker__preset" type="button" aria-disabled="true">Retired<span class="ds-picker__meta">5</span></button>
+      </div>
+      <div class="ds-picker__pane">...</div>
+    </div>
+    <div class="ds-picker__foot">
+      <button class="ds-btn ds-btn--text" type="button">Reset</button>
+      <span class="ds-picker__spacer"></span>
+      <button class="ds-btn ds-btn--filled" type="button">Done</button>
+    </div>
+  </div>
+</div>
+```
+
+`DS.picker` gives the panel `role="dialog"` and `aria-modal="true"` (a panel with a role of its own keeps it), and the
+button `aria-haspopup="dialog"`, `aria-controls` and `aria-expanded`.
+
+| Part | What |
+|---|---|
+| `.ds-picker` | the root: the field or button and its popover; inline, `.ds-picker--block` takes the whole width |
+| `.ds-picker__popover` | the panel; `hidden` while closed, `data-state` (`open`, `closed`) and `data-placement="top"` written by the system |
+| `.ds-picker__panes` | panes side by side (stacked at 600px or less) |
+| `.ds-picker__pane` | one pane (a calendar, a list); `.ds-picker__pane--scroll` scrolls within `--ds-picker-pane-height` |
+| `.ds-picker__presets` | a column of `.ds-picker__preset` row buttons (a wrapping row at 600px or less); the one in force has `aria-current="true"`: the tint and the label weight |
+| `.ds-picker__heading` | a small heading over a group |
+| `.ds-picker__meta` | secondary text at a preset's end (a count, a range) |
+| `.ds-picker__foot` | the actions under the panes; `.ds-picker__spacer` pushes what follows to the end |
+
+### Options
+
+| Option | Classes | Where it applies |
+|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | a preset row 8px per step from `--ds-picker-preset-height` (40px), the type of the size; the content follows its own components |
+| Density | `.ds-density-*` | a preset row 4px per step; the popover's padding 2px per step |
+| Shape | `.ds-shape-*` | multiplies the popover's radius and a preset's (the pill at the default, square at `.ds-shape-square`) |
+| Touch | `.ds-touch` | a preset at least `--ds-touch-target` high |
+| Tone | none | |
+
+### Behaviour
+
+- **Open**: a click on the button (`data-ds-picker-toggle`, or `.ds-picker__toggle`), or Alt+ArrowDown in the root (a
+  field around the button). Focus moves into the panel: what the picker names (the chosen day of a calendar), else
+  `[autofocus]`, else the first tabbable element.
+- **Inside**: Tab and Shift+Tab cycle through the panel.
+- **Close**: Escape (the top layer only, after the page's own handlers) and focus is back on the button; a choice (the
+  pickers close after a pick); a press outside, which leaves focus where the press put it. Through `DS.overlay`: the
+  stack, the Escape order, the focus return, `ds:open` and `ds:close` (with its `reason`) on the panel, bubbling.
+- **Placement**: fixed and, where the engine has popovers, in the top layer (`popover="manual"`), so no scrolling,
+  clipping or transformed box cuts it off: below the root from its start edge (towards its end edge when there is no
+  room), above it when it does not fit below and there is more room there (`data-placement="top"`), never taller
+  than the room on its side (it scrolls inside), 8px from the window's edges. `DS.position.place()` writes its
+  coordinates, `--ds-picker-x` and `--ds-picker-y` (runtime properties, never set them), and follows the button
+  through scrolling and resizing while it is open.
+
+### JS API
+
+`js/picker.js` (`DS.picker`). `create(root, options)` returns the controller that `data-ds-picker` makes, once per root:
+`get()` (true while open), `set(open)`, `open()`, `close(reason)`, `place()` (again, after the content changed size),
+`on(type, fn)` (`open`, `close`) and `destroy()`. Options: `toggle`, `panel` (made when there is none), `anchor` (what
+it is placed at, default the root), `label` (the panel's name when it has none), `focus()` (what takes focus on open),
+`onOpen()` and `onClose(reason)`. `open(root)` and `close(root, { reason })` work on a root's controller.
+
+### Accessibility
+
+A modal dialog named by its label (`aria-label` or `aria-labelledby`); the button says `aria-haspopup="dialog"` and
+`aria-expanded`. Presets are buttons; the one in force is `aria-current="true"` and bolder, so not by colour alone; a
+preset that cannot apply is `aria-disabled="true"` and stays focusable.
+
+### Forced colours
+
+The popover keeps an edge (its transparent outline becomes visible); the preset in force is `SelectedItem` /
+`SelectedItemText` with a `CanvasText` ring when focused; a blocked preset is `GrayText`.
+
+### Hooks
+
+`--ds-picker-padding`, `--ds-picker-radius`, `--ds-picker-pane-height`, `--ds-picker-preset-height`
+([theming.md](theming.md#component-hooks)).
+
+### Motion
+
+As a menu: it fades in over `--ds-dur-fast` while its clip opens from the button's edge (`--ds-clip-from`) and it grows
+from `--ds-scale-popup` at the button (`--ds-motion-origin`), both over `--ds-dur-medium` on the spring; it leaves with
+a fade over `--ds-dur-instant`. Transitions keyed on `data-state`, so a picker closed mid-way turns back from where it
+is; shown by hand (no `data-state`) it plays `ds-fade-in` and `ds-clip-in` once. A preset presses as every action
+(`--ds-dur-micro`, the ripple, the press morph).
+
+<!-- changelog -->
+- Picker popover (3.0): `.ds-picker` and `DS.picker` (`create`, `open`, `close`), the popover of the date and time
+  pickers, also for a page's own panel: a modal dialog through `DS.overlay`, in the top layer, placed below its field,
+  with presets, panes and a foot.
+## Toggletip
+
+An info button "i" next to a field label, a heading or a figure that opens a help card on a click or a tap: a title,
+a text and a link. Unlike a [tooltip](#tooltip) it never opens on hover, it works on touch, its card may hold a link,
+and a screen reader hears its text when it opens.
+
+```html
+<div class="ds-field">
+  <label class="ds-field__label" for="serial">Serial number</label>
+  <button class="ds-toggletip" type="button" aria-label="About the serial number" aria-expanded="false"
+          aria-controls="serial-help" data-ds-toggletip="#serial-help">[icon info 16]</button>
+  <div class="ds-popover ds-popover--tip ds-popover--arrow" id="serial-help" role="group" aria-label="Serial number" hidden>
+    <div class="ds-popover__head"><h3 class="ds-popover__title">Serial number</h3></div>
+    <div class="ds-popover__body"><p>On the sticker under the device: 8 to 12 letters and digits.</p></div>
+    <div class="ds-popover__foot"><a class="ds-link-btn" href="#help-serial">Where to find it</a></div>
+  </div>
+  <input class="ds-input" id="serial" type="text">
+</div>
+```
+
+In a `.ds-field` the label and the button share the first row when the button comes right after the label; the card
+(hidden, then in the top layer) takes no room. Anywhere else the button sits inline, centred on the line:
+
+```html
+<h2>Uptime <button class="ds-toggletip" type="button" aria-label="About uptime" aria-expanded="false"
+                   aria-controls="uptime-help" data-ds-toggletip="#uptime-help">[icon info 16]</button></h2>
+<div class="ds-popover ds-popover--tip ds-popover--arrow" id="uptime-help" role="group" aria-label="Uptime" hidden>…</div>
+```
+
+### Options
+
+| Option | Classes or attributes | Where it applies | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the button or any ancestor | the button, 4px per step from `--ds-toggletip-size` (24px), and its glyph with it; density leaves it (an icon-only control) |
+| Touch | `.ds-touch` | the button or any ancestor | its hit area grows to `--ds-touch-target` around the glyph, without moving the label |
+| Shape | `.ds-shape-*` | the button or any ancestor | multiplies its radius: a circle at the default, a rounded square at `soft`, a square at `square` |
+| Placement | `data-ds-toggletip-placement="bottom \| top \| start \| end"` | the button | the card's side (default `bottom`), flipped when there is no room |
+| Card | `.ds-popover--tip`, `.ds-popover--arrow` | the card | the [popover](#popover)'s help card and its arrow |
+| Tone | none | | it explains, it shows no status |
+
+### Behaviour
+
+`data-ds-toggletip="<selector or id>"` names the card; empty (`data-ds-toggletip`), the card is the button's next
+sibling `.ds-popover`. `DS.init()` wires it; `DS.get(button, 'toggletip')` is its controller.
+
+- **Opens** on a click, a tap, Enter or Space; again, it closes. Focus stays on the button, and the card follows it in
+  the markup, so the next Tab reaches its link.
+- **Announced.** Opening says the card's text politely (`DS.a11y.announce()`), and the button's `aria-expanded` turns
+  `true` (`DS.overlay`), so a screen reader hears both the state and the help.
+- **Closes** on Escape (focus stays on the button), a press outside button and card, focus that moves out of both, or
+  a second click. Through `DS.popover` and `DS.overlay`: placement, the top layer and the stack are theirs.
+- A button without a name gets the system's string `moreInfo` ("More information") as its `aria-label`; name it after
+  what it explains instead ("About the serial number").
+
+**JS API.** `js/toggletip.js` (`DS.toggletip`): `create(el)` returns the controller of a toggletip button (`get()`,
+`set(value)`, `on(type, fn)`, `destroy()`), the one `data-ds-toggletip` makes. Its `ds:change` (`detail: { open, card }`)
+tells that the card opened; `on('open' | 'close', fn)` hears the card's own events.
+
+### Accessibility
+
+- The button is a `<button type="button">` with a name and `aria-expanded`; `aria-controls` points at its card.
+- The card is `role="group"` with a name (or `role="note"`); its text is announced when it opens, so it needs no live
+  region of its own.
+- Forced colours: an open button is `Highlight` on `HighlightText` (an open disclosure button), a disabled one
+  `GrayText`; the card keeps the popover's edge.
+
+### Hooks
+
+`--ds-toggletip-size` ([theming.md](theming.md#component-hooks)); the card's are the popover's.
+
+**Motion:** the card is a popover: it grows out of the button (the arrow's tip) and leaves with a fade. The button
+morphs on press like every pill. The "Help card" row of [Overlays](motion.md#overlays) in motion.md.
+
+<!-- changelog
+- Toggletip (`.ds-toggletip`, `js/toggletip.js`, `DS.toggletip`): the info button that opens a help card
+  (`.ds-popover--tip`) on a click or a tap and announces its text; sits on the label row of a `.ds-field`. Hook
+  `--ds-toggletip-size`. New string `moreInfo` ("More information").
+-->
 ## Save bar
 
 A bar with the unsaved edits of a view and the actions that save or discard them, or the actions of a long form kept in
@@ -4534,6 +13324,208 @@ shape), `--ds-savebar-bg` (`--ds-surface-popover`; in the flow `--ds-surface`), 
 `data-ds-savebar`, `data-ds-savebar-rest` and `data-toast-reserve` are the system's. Print: hidden.
 
 **Motion:** the "Save bar" row of [Feedback](motion.md#feedback) in motion.md.
+## Unsaved-changes guard
+
+Keeps a form's edits from getting lost: it knows what changed, shows it in a [Save bar](#save-bar), saves on Ctrl+S
+(Command+S on Apple systems), warns before the page unloads and asks before an in-app navigation throws the edits away.
+
+```html
+<main class="ds-view" id="main" tabindex="-1">
+  <div class="ds-content">
+    <form class="ds-form" data-ds-unsaved aria-labelledby="device-title">
+      <div class="ds-field">
+        <label class="ds-field__label" for="name">Device name <span class="ds-field__changed ds-sr">(changed)</span></label>
+        <input class="ds-input" id="name" name="name" value="LAPTOP-0042">
+      </div>
+      ...
+    </form>
+  </div>
+  <div class="ds-savebar">
+    <div class="ds-savebar__bar ds-presence" role="region" aria-label="Unsaved changes" hidden>
+      <p class="ds-savebar__text ds-unsaved__count" data-ds-unsaved-count></p>
+      <div class="ds-savebar__actions">
+        <button class="ds-btn ds-btn--text" type="button" data-ds-unsaved-discard>Discard</button>
+        <button class="ds-btn ds-btn--filled" type="button" data-ds-unsaved-save><span class="ds-btn__faces"> ... </span></button>
+      </div>
+    </div>
+  </div>
+</main>
+<nav data-ds-unsaved-link> <a href="/devices">Devices</a> ... </nav>   <!-- links that ask first -->
+```
+
+```js
+form.addEventListener('ds:save', (event) => event.detail.waitUntil(api.saveDevice(new FormData(form))));
+form.addEventListener('ds:discard', () => tags.set(savedTags));          // what the page holds itself
+DS.unsaved.navigate(() => router.go('/devices'));                       // asks first while something is unsaved
+const guard = DS.get(form, 'unsaved');                                  // or DS.unsaved.create(form, options)
+```
+
+- **What changed.** The values of the form's fields when the guard starts are the baseline; every `input`, `change`
+  and `ds:change` inside the form (a [key-value editor](#key-value-editor), a combobox) compares the fields with it.
+  Buttons and fields with `data-ds-unsaved-ignore` stay out; hidden inputs count. A change undone by hand is no change.
+  `check()` compares again after a script set a value.
+- **Shown.** The number of changed fields (a radio group counts once) goes into every `[data-ds-unsaved-count]` of the
+  form and its bar ("2 unsaved changes"; with `.ds-unsaved__count`, in tabular figures, so it keeps its width). The `.ds-field` of a changed control takes Form's
+  `.ds-field--changed` (a dot after the label, "(changed)" in the label's name; the guard adds the
+  `.ds-field__changed` word where the label has none); `data-ds-unsaved-marks="off"` leaves the fields alone.
+- **The save bar** shows through `DS.overlay.savebar()` while something is changed and hides once nothing is. It is
+  `data-ds-unsaved-savebar` (a selector; `off` for none), else a `.ds-savebar` inside the form, else the one of the
+  form's `.ds-view`. Without one, the count still shows where the page put it.
+- **Save.** `[data-ds-unsaved-save]`, Ctrl+S (`data-ds-unsaved-hotkey`: another combo of
+  [DS.hotkeys](core.md#hotkeys), or `off`) and `save()` send a cancelable `ds:save` (`{ changed, waitUntil(promise) }`).
+  Hand the save to `waitUntil()` (or the option `onSave`): the save button shows its busy face
+  (`DS.motion.busy()`, [Button](#button)); when the promise resolves, the values become the new baseline, the bar hides
+  and "Changes saved." is spoken; when it rejects, everything stays and "Not saved. Your changes are still here." is
+  spoken at once. Without either, the form is submitted (`requestSubmit()`, with the browser's own checks) and the page
+  calls `commit()` once it saved. The shortcut counts while the form is on screen, also from its fields; with several
+  guards on screen, the one the focus is in takes it.
+- **Discard.** `[data-ds-unsaved-discard]` and `discard()` put every field back to the baseline, send `ds:discard`
+  (`{ changed }`) for what the page holds outside the fields, hide the bar and say "Changes discarded."; focus goes back
+  into the form (the save bar's `focusTarget`: the first field).
+- **Leaving.** While something is unsaved the browser asks before the page unloads (`beforeunload`, listened to only
+  while something is unsaved, so the page keeps its back-forward cache otherwise). A native submit that goes through
+  leaves without the question. `DS.unsaved.navigate(go, options)` asks in a dialog first (`DS.overlay.confirm()`:
+  "Leave without saving?", "Discard changes" in the error tone (D10), "Keep editing" with the first focus) and runs
+  `go()` when the person agrees or nothing is unsaved; it resolves whether it went. Once `go()` resolved, the guards it
+  asked for drop their changes quietly (`ds:discard`, no focus move): a route that keeps the form shows it clean and
+  without the bar, and the next edit warns again before an unload. A link inside
+  `[data-ds-unsaved-link]` does the same by itself (a plain click; a new tab, a download or another target goes as it
+  is).
+
+**JS API.** `DS.get(form, 'unsaved')` or `DS.unsaved.create(form, { savebar, hotkey, marks, onSave })` return the
+controller: `get()` (`{ dirty, count, changed }`), `set(false)` (what the fields hold is saved, as `commit()`),
+`set(true)` (unsaved whatever the fields say, for a change the guard cannot see), `check()`, `commit()`, `discard()`,
+`save()` (resolves whether it saved), `on(type, fn)` (`change`, `save`, `saved`, `discard`, `error`) and `destroy()`
+(also when the form leaves the page: a bar outside the form hides, unless another guard that shares it holds
+changes).
+Events on the form: `ds:change` (`{ dirty, count, changed }`) when the changes change, `ds:save` (cancelable),
+`ds:saved`, `ds:discard` and `ds:error` (`{ error }`). `data-ds-dirty` on the form says that something is unsaved. The
+helpers: `DS.unsaved.isDirty(root)` (whether a guard in `root` holds changes), `DS.unsaved.navigate(go, options)`
+(`root`, `opener`, `title`, `text`, `confirmLabel`, `cancelLabel`), `DS.unsaved.snapshot(form)` (the fields' state) and
+`DS.unsaved.diff(before, after)` (what differs).
+
+**Options** ([options.md](options.md)): the guard draws nothing of its own.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Size, density, shape, touch | the usual classes | any container | the bar, fields and buttons compute their own ([Save bar](#save-bar), [Form](#form), [Button](#button)) |
+| Tone | none | | a changed field shows a dot and the word "(changed)"; the bar says the count in words |
+
+**Keyboard and names.** Ctrl+S or Command+S saves from anywhere in the form or its bar (the shortcut sheet lists it as
+"Save changes"); Tab reaches the bar's buttons after the form. The bar is a `role="region"` named "Unsaved changes"; a
+changed field's label adds "(changed)" to its name; save, failure and discard are spoken through the announcer
+([DS.a11y](core.md#accessibility-helpers)). The dialog of `navigate()` is an alertdialog whose first focus is "Keep
+editing"; Escape keeps editing.
+
+**Forced colours.** The bar, the changed dot and the buttons are their components': the bar keeps its edge, the dot
+turns `CanvasText`.
+
+**Motion:** the save bar rises on the spring and leaves faster (`.ds-presence`), a changed field's dot fades in on
+`--ds-dur-fast` and out on `--ds-dur-instant` (Form), and a save plays the button's busy and done faces.
+
+**Strings:** `unsavedOne`, `unsavedMany`, `unsavedSaveKey`, `unsavedSaved`, `unsavedFailed`, `unsavedDiscarded`,
+`unsavedLeaveTitle`, `unsavedLeaveText`, `unsavedLeave`, `unsavedStay` and `unsavedChangedWord`
+([install.md](install.md#language-and-locale)).
+
+<!-- changelog -->
+- Unsaved-changes guard (`data-ds-unsaved`, `DS.unsaved`): dirty tracking of a form against its baseline, the count
+  and Form's changed dots, the Save bar shown and hidden, save through a cancelable `ds:save` with `waitUntil()` (busy
+  face, new baseline, spoken result), discard, Ctrl or Command+S through `DS.hotkeys`, `beforeunload` only while
+  dirty, and a guarded in-app navigation (`navigate()`, `[data-ds-unsaved-link]`); `isDirty()`, `snapshot()`, `diff()`.
+## Form wizard
+
+A long form split into steps, each checked before the next, with Back and Next and a summary to review before sending.
+It is built on [Steps](#steps).
+
+```html
+<form class="ds-wizard" data-ds-wizard aria-labelledby="report-title">
+  <ol class="ds-steps ds-wizard__steps" aria-label="Report a problem"></ol>     <!-- or ds-steps--bar, --vertical -->
+  <section class="ds-wizard__panel" aria-labelledby="step-device">
+    <h3 class="ds-wizard__title" id="step-device">Device</h3>
+    <div class="ds-field"><label class="ds-field__label" for="serial">Serial number</label><input class="ds-input" id="serial" name="serial" required></div>
+  </section>
+  <section class="ds-wizard__panel" aria-labelledby="step-problem" hidden> ... </section>
+  <section class="ds-wizard__panel" data-ds-wizard-optional aria-labelledby="step-photos" hidden> ... </section>
+  <section class="ds-wizard__panel" data-ds-wizard-summary aria-labelledby="step-review" hidden>
+    <h3 class="ds-wizard__title" id="step-review">Review</h3>
+    <div class="ds-wizard__summary"></div>
+  </section>
+  <div class="ds-wizard__actions">
+    <button class="ds-btn ds-wizard__back" type="button">Back</button>
+    <button class="ds-btn ds-btn--filled ds-wizard__next" type="button">Next</button>
+    <button class="ds-btn ds-btn--filled ds-wizard__submit" type="submit" hidden>Send report</button>
+  </div>
+</form>
+```
+
+```js
+form.addEventListener('submit', (event) => { event.preventDefault(); send(new FormData(form)); });   // every step valid
+form.addEventListener('ds:validate', (event) => { if (!serialFree()) event.preventDefault(); });      // the page's own rules
+const wizard = DS.get(form, 'wizard');        // or DS.wizard.create(form)
+```
+
+- **Steps.** Each `.ds-wizard__panel` is a step, named by `data-ds-wizard-label` or its `.ds-wizard__title`. The module
+  writes the `.ds-wizard__steps` list (a [Steps](#steps) `<ol>`: numbers, the check of a done step that draws itself,
+  `aria-current="step"`, "Optional" for a `data-ds-wizard-optional` step, the alert icon and "Needs attention" for a
+  step in error) through `DS.dom.morphHtml`, and names a `.ds-steps--bar` "Step 2 of 4".
+- **Next** checks the current step: the browser's constraint validation of its fields (`required`, `type`, `pattern`,
+  `min` ...), then a cancelable `ds:validate` (`{ index, panel, invalid }`) for the page's own rules (call
+  `preventDefault()` and show the error yourself). Each invalid field gets `aria-invalid="true"` and an error hint in
+  words (Form's `.ds-field__hint--error`, with the class `.ds-wizard__error`, named in its `aria-describedby`; a group of
+  radios or checkboxes gets one, in its fieldset); the first one takes the focus, the step turns to error and "2 fields
+  need attention" is spoken. The count takes in the fields the page marked `aria-invalid="true"` itself; a refusal
+  that marks none says only "Needs attention". A field put right loses its error at once. A valid step turns done and the next one opens:
+  it plays `.ds-enter--swap`, its title takes the focus (`tabindex="-1"`, written once) and "Step 2 of 4: Problem" is
+  spoken.
+- **Back** never checks. Back is hidden on the first step, Next on the last, where the submit button shows instead.
+- **Submit.** A submit before the last step (Enter in a field) moves on instead. On the last step every step is checked
+  again; the first invalid one opens with its errors and the page's submit handlers never see the event. The wizard sets
+  `novalidate` on the form, since it checks itself.
+- **Summary.** A panel with `data-ds-wizard-summary` lists every step before it when it opens: a `.ds-wizard__group`
+  per step with its head (`.ds-wizard__group-head`: the `.ds-wizard__group-title` and an Edit button,
+  `.ds-wizard__edit`, "Edit Device", going back to that step), then a [facts list](#lists) (`.ds-facts--rows`) of each named field's label and value: a select's option text,
+  the label of a chosen radio or of the ticked checkboxes, Yes or No for a lone checkbox, file names, a password as dots,
+  "Not given" when empty. `data-ds-wizard-summary="off"` on a field leaves it out; `data-ds-wizard-label` names it.
+
+**JS API.** `DS.get(form, 'wizard')` or `DS.wizard.create(form)` return the controller: `get()` (`{ index, count, step,
+panel, status }`), `set(index)` and `go(index)` (forward checks every step on the way; returns whether it got there),
+`next()`, `back()`, `validate(index)` (checks a step and shows its errors), `on(type, fn)` (`step`, `validate`) and
+`destroy()`. Events on the form: `ds:step` (`{ index, from, direction, panel }`) after a step opened, and
+`ds:validate` (cancelable) before a step counts as valid. The helpers `DS.wizard.fieldLabel(field)` and
+`DS.wizard.fieldValue(field, scope)` give a field's label and value as the summary reads them.
+
+**Options** ([options.md](options.md)): classes on the wizard or any ancestor; the nearest wins.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Variant | the steps' own: row (default), `.ds-steps--vertical`, `.ds-steps--bar` | the `.ds-wizard__steps` | how the steps show |
+| Size | `.ds-xs`, `.ds-sm`, `.ds-md`, `.ds-lg`, `.ds-xl` | the wizard or a group | steps, fields and buttons step themselves |
+| Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container | the room between the steps, the panel and the actions, inside a panel and in the summary 2px less per step |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the parts follow |
+| Touch | `.ds-touch` | the theme or a container | fields and buttons at least `--ds-touch-target` (48px) |
+| Tone | none | | a step's status is the steps' `data-status`, with its icon and word |
+
+**Keyboard and names.** Tab goes through the fields of the open step, then Back and Next. Enter in a field goes on (a
+submit). The steps are no tab stops (Steps). The title of each panel names it (`aria-labelledby`) and takes the focus
+when it opens; step changes and errors are spoken through the announcer ([DS.a11y](core.md#accessibility-helpers)).
+On a phone the row of steps shows only the current label (Steps); the actions wrap.
+
+**Forced colours.** The steps, fields, hints and buttons are their components'; the hairline over the actions stays.
+
+**Hooks:** `--ds-wizard-gap` (`--ds-space-6`), `--ds-wizard-panel-gap` (`--ds-space-4`)
+([theming.md](theming.md#component-hooks)).
+
+**Motion:** the panel that opens plays `.ds-enter--swap` (`DS.motion.enter`); a done step's check draws itself and its
+connector turns ([Steps](#steps)).
+
+**Strings:** `wizardDone`, `wizardFix`, `wizardStepOf`, `wizardStep`, `wizardError`, `wizardErrors`, `wizardEmpty`,
+`wizardEdit`, `wizardEditShort`, `wizardYes`, `wizardNo`, `optional` and `valueRequired`
+([install.md](install.md#language-and-locale)).
+
+<!-- changelog -->
+- Form wizard (`.ds-wizard`, `DS.wizard`): a form in steps on Steps, each checked before the next (constraint
+  validation and a cancelable `ds:validate`), Back and Next, errors in words with focus on the first, and a summary
+  step with an Edit button per step; `fieldLabel()` and `fieldValue()`.
 ## Loading
 
 Holds the place of content that is loading: the app start, a loading line, skeleton presets and the page's load bar.
@@ -4732,6 +13724,104 @@ turns. For a section, a sheet or the app start; a small spot keeps the [spinner]
 
 **Motion:** the loader rows of [Feedback](motion.md#feedback) in motion.md: `ds-loader-morph` and `ds-loader-turn` on
 `--ds-loop-loader`, always at their token speed.
+## Loading overlay
+
+Blocks one region of the page (a card, a table, a form, a pane) while work on it runs, with a spinner and a message;
+the rest of the page stays usable. Not for the whole page (the app's start is `.ds-boot`, [Loading](#loading)) and not
+for content that is still to come (a skeleton).
+
+```html
+<section class="ds-card" aria-labelledby="dev-title" style="position: relative">
+  <h2 class="ds-card__title" id="dev-title">LAPTOP-0042</h2>
+  ... the content ...
+  <div class="ds-loadingoverlay" hidden data-ds-loadingoverlay>
+    <div class="ds-loadingoverlay__box" role="status">
+      <span class="ds-spinner" aria-hidden="true"></span>
+      <p class="ds-loadingoverlay__message">Saving LAPTOP-0042 ...</p>
+      <p class="ds-loadingoverlay__detail">3 of 12 settings</p>
+      <button class="ds-btn ds-btn--text" type="button" data-ds-loadingoverlay-cancel>Cancel</button>
+    </div>
+  </div>
+</section>
+```
+
+```js
+await DS.loadingoverlay.wait(card, api.saveDevice(form), { message: 'Saving LAPTOP-0042 ...', done: 'Saved' });
+```
+
+Without markup, `DS.loadingoverlay.show(region, { message, cancel })` builds the overlay as the region's last child
+(DOM APIs; `cancel: true` adds a Cancel button with the string `cancel`). The region must be positioned; a static one
+gets `position: relative` from the script while the overlay shows (an inline style it owns and gives back), so give it
+yourself to keep the script out of your layout.
+
+### Options
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Veil | the default, `.ds-loadingoverlay--opaque` | the overlay | the surface at `--ds-state-stale` over the content (it shows through, dimmed), or the plain surface (content that must not show while it changes) |
+| Progress | a `.ds-spinner--determinate` ring instead of the arc, `set({ progress })` | the box | a known share as a ring ([Spinner](#spinner)); keep the figure in the detail line too |
+| Size | `.ds-xs` ... `.ds-xl` | the region, the overlay or any ancestor | the spinner's size step (from `--ds-loadingoverlay-spinner-size`, 32px at md) and the message's type role |
+| Density | `.ds-density-*` | any container | the box's padding and gap, 2px per step |
+| Shape | `.ds-shape-*` | any container or the theme | multiplies the box's radius |
+| Touch | `.ds-touch` | any container | reaches the cancel button |
+
+No tone: waiting is no status. The overlay takes the region's radius (`border-radius: inherit`).
+
+### Behaviour
+
+`data-ds-loadingoverlay` (`DS.init()`) or `DS.loadingoverlay.create(el)` runs it.
+
+- **While it shows** the veil takes the pointer at once, the region's other children are inert
+  (`DS.a11y.inert()`), the region carries `aria-busy="true"`, and focus that was inside the region moves to the cancel
+  button (else the box, `tabindex="-1"`), so it never sits on an inert control.
+- **No flash.** It becomes visible only after `--ds-delay-loader` (a quick save shows nothing, though the region is
+  blocked from the first frame); once visible it stays for `--ds-hold-loader` at least (`DS.motion.loaderHoldMs()`),
+  then fades out.
+- **Announced.** The message (and the detail) is said politely once it can be seen; a new message while it shows is
+  said again; `done` ("Saved") is said as it goes. The box is a `role="status"`.
+- **Hiding** gives the region back at once (inert, `aria-busy`), returns focus to where it was when focus is still in
+  the overlay, and sets `hidden` once the fade settled.
+- **Cancel.** `[data-ds-loadingoverlay-cancel]`, or Escape while focus is in an overlay that has one, sends a
+  cancelable `ds:cancel` on the overlay; not cancelled, the overlay hides. Stop the work in the listener.
+- `ds:show` and `ds:hide` (`{ region }`) follow each change. What it writes (`data-state`, `hidden`, the region's
+  `aria-busy` and `position`) is owned, so a re-render with `DS.dom.morphHtml` keeps it.
+
+**JS API.** `js/loadingoverlay.js` (`DS.loadingoverlay`):
+
+- `show(region, { message, detail, progress, cancel })` shows the region's overlay (built when it has none) and
+  returns its controller; `hide(region, { done })` hides it and resolves once it is hidden; `wait(region, promise,
+  options)` shows it until the promise settles and resolves or rejects with it.
+- `create(el)` returns the controller that `data-ds-loadingoverlay` makes: `get()` (`{ shown, message, detail }`),
+  `set(true | false | { shown, message, detail, progress, done })`, `wait(promise, options)`, `on(type, fn)` (`show`,
+  `hide`, `cancel`) and `destroy()` (an overlay that shows goes at once: `hidden`, the region's `aria-busy`, its
+  inertness and the position it may have needed are given back, and a pending hide does nothing).
+- `holdMs(shownAt, now, { delay, minVisible })` is the arithmetic of the hold.
+
+### Keyboard, names and forced colours
+
+- Keyboard: nothing inside the region takes focus while it is blocked; focus that was there is on the cancel button
+  (Enter, Space, or Escape cancel) or on the box, and comes back after.
+- Names and roles: the box is a `role="status"` with the message; the spinner is `aria-hidden` (a determinate ring is a
+  `role="progressbar"` with a name); the region says `aria-busy="true"`.
+- Forced colours: the veil is `Canvas` (the content under it is blocked anyway); the box keeps its edge (a transparent
+  border that becomes visible); the spinner takes its system colours.
+
+### Hooks
+
+`--ds-loadingoverlay-veil`, `--ds-loadingoverlay-radius`, `--ds-loadingoverlay-padding`,
+`--ds-loadingoverlay-spinner-size` ([theming.md](theming.md#component-hooks)).
+
+**Motion:** after `--ds-delay-loader` the veil and the box fade in over `--ds-dur-fast` while the box rises
+`--ds-distance-sm` on `--ds-ease-out`; it leaves over `--ds-dur-instant` (falling back on `--ds-ease-in`), after
+`--ds-hold-loader` of being visible. By hand (no `data-state`): `ds-fade-in` after the delay.
+
+<!-- changelog
+- Loading overlay (`DS.loadingoverlay`, `[data-ds-loadingoverlay]` with `[data-ds-loadingoverlay-cancel]`,
+  `.ds-loadingoverlay` with `--opaque`, `__box`, `__message`, `__detail`): blocks one region with a spinner and a message
+  (the region inert and `aria-busy`, focus kept, the message announced, no flash through `--ds-delay-loader` and
+  `--ds-hold-loader`, a cancel); `show()`, `hide()`, `wait()`, `create()`, `holdMs()`. Hooks
+  `--ds-loadingoverlay-veil`, `-radius`, `-padding`, `-spinner-size`.
+-->
 ## Progress
 
 Shows how far a known or unknown amount of work has come.
@@ -4800,11 +13890,301 @@ DS.motion.countUp(label, 30, { format: (value) => `${Math.round(value)}%` });   
 meaning. Print: the bar keeps its colours, so the share shows on paper.
 
 **Motion:** the "Progress" row of [Feedback](motion.md#feedback) in motion.md.
+## Level meter
+
+The live level of a microphone (or any signal) as a bar, with a peak mark that holds and falls, and a word when it is
+too loud. For a microphone check before a call, a recording, a voice note.
+
+```html
+<div class="ds-levelmeter" data-ds-levelmeter>
+  <span class="ds-levelmeter__label" id="mic-label">Microphone</span>
+  <div class="ds-levelmeter__track" role="meter" aria-labelledby="mic-label"
+       aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <span class="ds-levelmeter__fill"></span>
+    <span class="ds-levelmeter__peak"></span>
+  </div>
+  <span class="ds-levelmeter__note" aria-live="polite"></span>
+</div>
+```
+
+```js
+const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+const context = new AudioContext();
+const analyser = context.createAnalyser();
+context.createMediaStreamSource(stream).connect(analyser);
+const meter = DS.levelmeter.create(el, { analyser });     // or DS.core.get(el, 'levelmeter').listen(analyser)
+```
+
+| Part | What |
+|---|---|
+| `.ds-levelmeter__label` | the name, above the track |
+| `.ds-levelmeter__track` | the meter (`role="meter"`), the track in `--ds-levelmeter-track` (`--ds-accent`); the script writes `aria-valuenow` (0 to 100) and `aria-valuetext` ("-18 dB", `levelmeterValue`) at most once per `--ds-hold-status` |
+| `.ds-levelmeter__fill` | the level, scaled from the start of the track by `--ds-levelmeter-level` (0 to 1, the script's, every frame), in `--ds-levelmeter-fill` (`--ds-primary`) |
+| `.ds-levelmeter__peak` | the highest recent level (`--ds-levelmeter-peak`): it holds `--ds-hold-status`, then falls; `hidden` while nothing was heard |
+| `.ds-levelmeter__note` | a word for the state: "Too loud" (`levelmeterLoud`) while the level clips; `aria-live="polite"` says it |
+
+| Variant | Class | Look |
+|---|---|---|
+| Bar | | one bar |
+| Segmented | `.ds-levelmeter--segmented` | the track cut into segments of `--ds-levelmeter-segment` (6px) with a 2px gap |
+| Vertical | `.ds-levelmeter--vertical` | upright, the level grows upwards over `--ds-levelmeter-length` (96px) |
+
+**States.** `data-state="loud"` (the script's, on `.ds-levelmeter`) while the signal clips, a sample peak at -1 dBFS
+or above, and for `--ds-hold-status` after: the fill and the peak in `--ds-error`, and the note says it in words. `aria-disabled="true"` on the
+track (the page's: a muted microphone) shows the disabled model and no level; say "Muted" in the label or the note.
+
+**The level.** `DS.levelmeter.level(samples)` is the RMS of a block of samples in dBFS, mapped from -60 dB (0) to 0 dB (1),
+so speech sits in the middle of the track and silence at its start; `decibels(value)` maps back. The meter rises at once and
+falls over `--ds-dur-glide` per full scale; the peak holds `--ds-hold-status`, then falls the same way. Clipping is decided
+on the sample peak (`DS.levelmeter.peak(samples)`, the largest |x|), not on the RMS: a full-scale sine reads -3 dB on the
+bar and clipped speech far less, but their peaks reach -1 dBFS (about 0.891). A page with its own level (a server's value, a
+recorder's) calls `set(value, { peak })` instead; without `peak` the level itself decides (loud from -1 dBFS on the meter's
+scale). The meter runs left to right in either writing direction, like its scale.
+
+| Export | What |
+|---|---|
+| `DS.levelmeter.create(el, { analyser, floor })` | the controller of a meter: `get()` (`{ level, peak, loud }`), `set(value, { peak })`, `listen(analyser)` (returns a function that lets go), `on('change')` (`{ loud }`, also `ds:change` on `.ds-levelmeter`, only when the loud state changes), `destroy()` |
+| `DS.levelmeter.level(samples, { floor })` | the level (0 to 1) of a block of samples (floats from -1 to 1, `getFloatTimeDomainData()`) |
+| `DS.levelmeter.peak(samples)` | the sample peak (0 to 1) of a block of samples; from about 0.891 (-1 dBFS) the meter is loud |
+| `DS.levelmeter.decibels(value, { floor })` | the dBFS of a level, rounded; `-Infinity` at 0 |
+
+The loop runs only while an analyser is attached or the bar still falls, and stops on `destroy()`. Stopping the
+microphone (`track.stop()` of the stream) is the page's.
+
+**Options** ([options.md](options.md)):
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the meter or any ancestor | the thickness 2px per step (2 to 10px around the 6px md, `--ds-levelmeter-height`) |
+| Shape | `.ds-shape-*` | any container | the ends of the track times `--ds-shape`: round at the default, square at 0 |
+| Density | `.ds-density-*` | any container | the label's and the note's distance from the track, 2px per step |
+| Tone | `.ds-tone-*` | on `.ds-levelmeter` itself | the fill in `--ds-tone`, the track in `--ds-tone-container`; loud still wins |
+| Touch | | | not read: a meter is no target |
+
+**Accessibility.** `role="meter"` with a name (the label) and the value in words ("-18 dB"), updated a few times a second at
+most, so a screen reader reads it when asked and is never flooded. "Too loud" is a word in a polite live region; the red is
+never alone. A muted microphone is `aria-disabled="true"` plus a word.
+
+**Forced colours.** The track keeps a `CanvasText` outline on `Canvas`, the level is `Highlight`, the peak `CanvasText`;
+loud stays a word.
+
+**Motion.** The level is live data and moves every frame without a transition: the meter's ballistics (rise at once, fall over
+`--ds-dur-glide` per full scale, the peak's hold of `--ds-hold-status`). The loud colour comes and goes on `--ds-dur-fast`.
+
+Hooks: `--ds-levelmeter-height`, `--ds-levelmeter-fill`, `--ds-levelmeter-track`, `--ds-levelmeter-segment`,
+`--ds-levelmeter-length` ([theming.md](theming.md#component-hooks)).
+
+<!-- changelog -->
+- Level meter (3.0, new): `.ds-levelmeter` with `__label`, `__track`, `__fill`, `__peak` and `__note`, the variants
+  `--segmented` and `--vertical`; `DS.levelmeter` (`create`, `level`, `peak`, `decibels`) and `data-ds-levelmeter`: reads a
+  page-supplied AnalyserNode every frame, peak hold, "Too loud" in words when the sample peak reaches -1 dBFS. New strings: `levelmeterValue`, `levelmeterLoud`.
 ## Charts
 
-Meters, columns and legends, drawn from the chart roles ([tokens.md](tokens.md#chart-colours)): `--ds-chart-1` to
+`DS.chart` draws dependency-free SVG charts from a table or a spec: line, area and stacked area (time series with
+gaps), column and bar (grouped, stacked, horizontal, 100%), combo (columns and a line on two axes), sparkline (line,
+area, bar), donut, pie and ring, gauge and bar gauge. Below it, the CSS-only marks of 2.x stay: meters, columns and
+legends. Everything draws from the chart roles ([tokens.md](tokens.md#chart-colours)): `--ds-chart-1` to
 `--ds-chart-4` (four series in a fixed order), `--ds-chart-neutral`, `--ds-chart-track`, `--ds-chart-warning` and
 `--ds-chart-error`.
+
+### DS.chart
+
+A `<figure class="ds-chart">` with `data-ds-chart`: either a type, and the data is the page's `<table>` inside (the
+chart's text equivalent as well), or the whole spec as JSON. `DS.init()` finds it; `DS.chart.create(el, spec)` does the
+same from a script and returns the same controller.
+
+```html
+<figure class="ds-chart" data-ds-chart="line">
+  <figcaption>Requests per hour</figcaption>
+  <table class="ds-table">
+    <thead><tr><th>Hour</th><th>Requests</th><th data-ds-chart-mark="area">Errors</th></tr></thead>
+    <tbody>
+      <tr><th><time datetime="2026-11-04T09:00">09:00</time></th><td>420</td><td>3</td></tr>
+      <tr><th><time datetime="2026-11-04T10:00">10:00</time></th><td>–</td><td></td></tr>   <!-- a gap -->
+    </tbody>
+  </table>
+</figure>
+
+<figure class="ds-chart" data-ds-chart='{"type":"column","stack":"normal","labels":["Mon","Tue","Wed"],
+  "series":[{"name":"Opened","values":[12,9,14]},{"name":"Closed","values":[8,11,10]}]}'>
+  <figcaption>Tickets per day</figcaption>
+</figure>
+```
+
+```js
+const chart = DS.chart.create(el, { type: 'area', labels, series, stack: 'normal', curve: 'monotone' });
+chart.set({ labels: next, series: nextSeries });   // the lines morph, the bars glide, the figures count
+chart.toggle('Errors');                            // hides or shows a series (a donut's slice), never the last one
+chart.view('table');                               // the table in place of the plot
+chart.on('select', ({ index, series, key, label }) => openDetail(key));
+```
+
+**The table.** The header row names the x axis and the series; each body row is one point, its first cell the x (a
+`<time datetime>`, `data-value` or the text: a date, a number or a category), an empty cell or a dash a gap. A header
+cell may carry `data-ds-chart-mark` (`line`, `area`, `column`), `data-ds-chart-axis` (`end`) and `data-ds-chart-tone`.
+The module watches the table: a page that re-renders its rows (with `DS.dom.morphHtml`) updates the chart, which
+morphs to the new data. `DS.chart.parse(table)` gives the spec it reads.
+
+**The spec** (the JSON of `data-ds-chart`, the second argument of `create()`, also through `data-ds-config`):
+
+| Key | Values | What |
+|---|---|---|
+| `type` | `line`, `area`, `column`, `bar`, `combo`, `sparkline`, `donut`, `pie`, `ring`, `gauge`, `bargauge` | the chart; `bar` is horizontal |
+| `labels` | dates (ISO text, `Date`), numbers or categories | the x of each point: all dates make a time axis (ticks on whole hours, days, Mondays, months, in the page's locale), all numbers a linear one, anything else categories |
+| `series` | `[{ name, values, mark, axis, tone, visible }]` | one per series, in their fixed colour order; `null`, a blank or a dash is a gap; `mark` `line`, `area` or `column` mixes marks; `axis: 'end'` puts it on the second axis; `tone` a single-series meaning (with its name) |
+| `stack` | `true` / `'normal'`, `'percent'` | stacks columns with columns and lines or areas with each other, per axis; `percent` to 100% |
+| `curve` | `linear`, `monotone`, `step` | the path of lines and areas; `monotone` never overshoots a point |
+| `markers` | `'auto'`, `true`, `false` | a marker on every point (auto: where points are 24px apart or more); a lone point between gaps always shows one |
+| `patterns` | `true` | series 2 to 4 of bars, slices and stacked areas hatched, as in forced colours (`.ds-chart--patterns`) |
+| `x` | `{ type, label, format }` | `type` `time`, `linear`, `band` overrides the guess; `format` Intl options of the tooltip and the table |
+| `y`, `y2` | `{ type: 'log', min, max, label, zero, format }` | the value axes (`y2`: a combo's line); `zero: false` lets a line chart's axis leave out zero; `label` titles the axis |
+| `format` | `'bytes'`, `'percent'`, Intl.NumberFormat options | the values in the tooltip, the table, the centre figure (`DS.format`) |
+| `thresholds` | `[{ value }]` or `[{ from, to }]`, with `label`, `tone`, `axis` | a dashed line at a value, or a band of values, with its word |
+| `annotations` | `[{ at }]` or `[{ from, to }]`, with `label`, `tone` | the same along x (a deploy, an incident window) |
+| `min`, `max`, `zones` | numbers; `[{ to, tone, label }]` | a gauge's, ring's or bar gauge's scale and its zones; the zone's word goes with the value |
+| `value`, `name` | a number, text | a gauge's one value, instead of `series` |
+| `legend`, `table`, `tooltip` | `false` | leave them out (a sparkline has none by default; `tooltip: true` gives it one) |
+| `label`, `title` | text | the words under a donut's, ring's or gauge's figure; the chart's name where the figure has no caption |
+
+The module writes its parts after the caption, each `data-ds-keep` (so `DS.dom.morphHtml` of the figure keeps them):
+`.ds-chart__tools` with the table toggle, `.ds-chart__legend` of `.ds-chart__key` toggles (`.ds-chart__swatch` with
+`.ds-chart__swatch-line`, `.ds-chart__swatch-marker` or `.ds-chart__swatch-fill`, `.ds-chart__key-name`,
+`.ds-chart__key-value` for a slice's share or a ring's value), `.ds-chart__frame` (the tab stop) with `svg.ds-chart__svg` and its
+layers, `.ds-chart__centre` (`.ds-chart__figure`, `.ds-chart__caption`), the tooltip `.ds-chart__tip`
+(`.ds-chart__tip-title`, `.ds-chart__tip-row`, `.ds-chart__tip-key`, `.ds-chart__tip-key-bar`, `.ds-chart__tip-gap`,
+`.ds-chart__tip-value`, `.ds-chart__tip-name`), the hidden `.ds-chart__hint` and `.ds-chart__probe` (the lengths the
+stylesheet computes from the options, read back), the bar gauge's `.ds-chart__rows` (`.ds-chart__row`,
+`.ds-chart__row-head`, `.ds-chart__row-label`, `.ds-chart__row-status`, `.ds-chart__row-value`,
+`.ds-chart__row-bar`), and for a JSON chart `.ds-chart__table` (with `.ds-chart__table-caption`). The plot's marks:
+`.ds-chart__gridline`, `.ds-chart__baseline`, `.ds-chart__tick` (`.ds-chart__tick--category`),
+`.ds-chart__axis-title`, `.ds-chart__band` (`.ds-chart__band--on`: the hovered category), `.ds-chart__cursor`
+(`.ds-chart__cursor--on`: the crosshair), `.ds-chart__bar` (`.ds-chart__bar--down` below zero, `.ds-chart__bar--inner`
+inside a stack, square, `.ds-chart__bar--on` resting on another, with the seam), `.ds-chart__line`,
+`.ds-chart__area`, `.ds-chart__marker`, `.ds-chart__dot` (the cursor's point), `.ds-chart__track`,
+`.ds-chart__slice` (`.ds-chart__slice--active`), `.ds-chart__lines`, `.ds-chart__value-arc`, `.ds-chart__zone-arc`,
+`.ds-chart__rule`, `.ds-chart__zone`, `.ds-chart__rule-label`, and the hatchings (`.ds-chart__pattern-ground`,
+`.ds-chart__pattern-ink`). A series part carries `.ds-chart__series` and `.ds-chart__series--s2`,
+`.ds-chart__series--s3`, `.ds-chart__series--s4` or `.ds-chart__series--other` (the neutral: the fifth series and
+later, and a donut's "Other" slice), or its tone; `.ds-chart__series--dim` while the keyboard picks another. The
+figure gets `data-state` (`chart` or `table`, written) and the modifiers of its spec: `.ds-chart--line` and the other
+types (`.ds-chart--bar`, `.ds-chart--sparkline`, `.ds-chart--donut`, `.ds-chart--pie`, `.ds-chart--ring`,
+`.ds-chart--gauge`, `.ds-chart--bargauge` are styled), `.ds-chart--stacked`, `.ds-chart--patterns`, and `.ds-chart--empty` when no series has a value: the frame then
+shows "No data" (`.ds-chart__empty`) instead of empty axes, and is named so. The module writes
+`--ds-share` and `--ds-chart-from` on each bar (registered numbers: the bar is clipped between them, so it glides),
+`--ds-chart-pattern-2`, `--ds-chart-pattern-3` and `--ds-chart-pattern-4` on the SVG (its hatchings), and `--ds-chart-cx`, `--ds-chart-cy` and
+`--ds-chart-hole` on the centre figure; never set them.
+
+**Series apart without colour.** Lines of series 2 to 4 are dashed (`--ds-chart-dash-2` to `--ds-chart-dash-4`; a
+theme may set `none`), every series has its marker shape (circle, square, triangle, diamond) in the plot, the legend
+and the tooltip, a legend is there from two series on, and the table holds every value. `patterns: true` hatches the
+fills of series 2 to 4 at 45, 135 and 90 degrees, as forced colours always do. At most four series take colours; more
+take the neutral, and a donut folds its fifth slice and later into "Other". Text never takes a series colour.
+
+**Combo.** Columns and a line; with `y2` the line reads the second axis at the end. Two scales invite a false reading
+of where the marks cross: label both axes (`y.label`, `y2.label`) and prefer two charts where the measures do not
+belong together.
+
+**Gauge and bar gauge.** A gauge is a 240° arc from `min` to `max` (default 0 to 100) with its value as a figure in
+the middle; `zones` (`[{ to: 70, tone: 'success', label: 'Normal' }, { to: 90, tone: 'warning', label: 'High' }, ...]`)
+draw a thin band outside the arc, colour the value arc by the zone it is in and put the zone's word under the figure.
+A bar gauge (`bargauge`) is one labelled meter per label, the zone's word next to the value.
+
+**Ring.** One ring per series (at most four), its first value of `max` (default 100), the first series' value in the
+middle, each ring's value in the legend. **Donut and pie** show one series, a slice per label, each slice's share in the legend.
+
+### Options
+
+| Option | Classes | Applies to | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | `.ds-chart` | the plot 40px per step (radial and gauge 24px), the widest bar 4px, the marker 2px, the legend keys 4px of height; a sparkline stays 32px |
+| Density | `.ds-density-*` | `.ds-chart` | the plot 16px per step (radial and gauge 8px), the gaps between the parts and the legend keys |
+| Shape | `.ds-shape-*` | `.ds-chart` | the radius of a bar's data end, the legend keys (pills at the default), the tooltip, a bar gauge's meters |
+| Touch | `.ds-touch` | `.ds-chart__key` | every legend key at least `--ds-touch-target` high |
+| Tone | `tone` of a series, a threshold, a zone | the mark | `neutral`, `warning` and `error` take their chart roles, the others the tone; always with the series' or zone's name |
+| Width | (container) | `.ds-chart` | under 480px of chart width the plot is 3/4 as high and category ticks take the caption font; from 480px a donut's, pie's or ring's legend stands beside it as a column with the shares (it narrows to 10rem rather than wrap) |
+
+### Behaviour and keyboard
+
+- **Cursor.** Pointing at the plot snaps a crosshair to the nearest x (columns: the category's band), with a dot on
+  each line and the tooltip: the x, then each visible series' value with its key, a stacked chart's total. Columns
+  snap to their category (the tooltip and `ds:select` take every series there, `series: -1`); a slice is its own
+  target. Touch shows it on a tap.
+- **Keyboard** (the plot is one tab stop, `role="application"` with `aria-roledescription` "chart", the chart's name
+  and a hint, so a screen reader in browse mode passes the arrow keys to it; a plot without keys, a chart without data
+  or a sparkline without a tooltip, stays `role="img"`): `←` `→` move along the points (a horizontal bar chart's bars
+  and a donut's slices also `↑` `↓`, with a hint of their own), `↑` `↓` go through the series at that point and back
+  to all of them, `Home` and `End` go to the ends, `Page Up` and `Page Down` jump a tenth, `Enter` emits `ds:select`, `Escape`
+  hides the cursor (and keeps an overlay around the chart open). Each move shows the crosshair and the tooltip and is
+  announced ("09:00: Requests 420, Errors 3", `DS.a11y.announce`).
+- **Legend.** Each key is a toggle button (`aria-pressed`): it hides or shows its series (a slice of a donut), which
+  is announced ("Errors hidden"); the last visible series stays. A hidden key is hollow with its name struck through.
+- **Table view.** The toggle (`aria-pressed`, "Show as table") shows the table in place of the plot and the legend; the
+  table is there for screen readers all along (visually hidden while the chart shows).
+- **Gauge**: `role="meter"` with `aria-valuenow` and `aria-valuetext` (the value and the zone's word); each bar of a
+  bar gauge the same. **Sparkline**: `role="img"` named by a summary ("Requests: from 120 to 340, lowest 98, highest
+  360"); with `tooltip: true` it is a tab stop as well.
+- **Responsive.** The chart lays out at the size of its frame and again when that changes (a `ResizeObserver`):
+  ticks thin out to what fits, labels never overlap, a label at an edge moves in. A resize redraws the plot only; the
+  table is written again when the data changes.
+- **Large data.** A line or area with more than two points per pixel draws, per pixel column, the first, lowest,
+  highest and last point (so every peak and gap stays); the tooltip, the keyboard and the table keep every point.
+- **Events** (bubbling, on the figure; the controller's `on()` gets the same detail): `ds:change` `{ spec }` after
+  `set()`, `ds:toggle` `{ series, name, visible }`, `ds:view` `{ view }`, `ds:point` `{ index, series, key, label }`
+  when the cursor moves to another point, `ds:select` the same on a click or `Enter`.
+
+### JS API
+
+- `DS.chart.create(el, spec)`: draws the chart; returns the controller: `get()` (the spec with each series'
+  visibility), `set(spec)` (merged over the current one), `on(type, fn)`, `toggle(series, visible)` (a series by index
+  or name; on a donut or pie a slice by index or label, as its legend key does; never the last one), `view(mode)`,
+  `focus(index, series)`, `update()` (reads the attributes and the table again), `destroy()`. On the attribute path
+  `DS.core.get(el, 'chart')` returns it.
+- The engine, pure functions a page may use for a chart of its own: `DS.chart.scale(type, domain, range, options)`
+  (`linear`, `log`, `time`, `band`: `map`, `invert`, `ticks`, `bandwidth`), `DS.chart.ticks(min, max, count)` (round
+  steps of 1, 2 or 5), `DS.chart.timeTicks(min, max, count)` (whole seconds to years of local time),
+  `DS.chart.path(points, { curve, area })` (SVG path data with gaps; areas close along their `y0`),
+  `DS.chart.stack(series, { offset })` (`[lo, hi]` per value, negatives downwards, `percent`),
+  `DS.chart.nearest(positions, value)` (hit testing), `DS.chart.parse(table)` and
+  `DS.chart.layout(spec, width, height, metrics)` (where everything goes, without a DOM; each series' `points`, and
+  `drawn`, the points its path draws).
+
+### Accessibility
+
+Every chart keeps its text equivalent: the page's table, or the one the module writes from JSON, read by screen
+readers while the chart shows and shown by the table view. The plot is named by the caption (or `title`, or the
+figure's `aria-label`; give one of them: without, it is named by its series' names) and says how to move; each step is announced with its values. Status is never by colour alone:
+zones and tones come with their word, hidden series with a hollow key and a struck name, series with their dash and
+marker.
+
+### Forced colours
+
+Lines, markers and fills take `CanvasText`, series 2 to 4 keep their dashes and their fills a hatching of their own
+(45, 135 and 90 degrees); gridlines and the crosshair `GrayText`, the hovered band `Highlight`; the tooltip and a
+gauge's track get a `CanvasText` edge, the active slice a `Highlight` one; a shown legend key is `Highlight` /
+`HighlightText` (an on/off toggle), a hidden one plain `CanvasText` with its name struck through.
+
+### Hooks
+
+`--ds-chart-height` (240px), `--ds-chart-radial-height` (200px), `--ds-chart-gauge-height` (160px),
+`--ds-chart-spark-height` (32px), `--ds-chart-bar` (24px), `--ds-chart-radius` (`--ds-radius-xs`), `--ds-chart-stroke`
+(2px), `--ds-chart-marker` (8px), `--ds-chart-grid` (`--ds-line`), `--ds-chart-area-opacity` (`--ds-state-dragged`),
+`--ds-chart-stack-opacity` (`--ds-state-stale`), `--ds-chart-dash-2`, `--ds-chart-dash-3`, `--ds-chart-dash-4`: see
+[theming.md](theming.md).
+
+### Motion
+
+A line or area morphs its path (`d`) to new data: the named exception of D14, on `--ds-ease-value` over
+`--ds-dur-glide`, points matched by their x so a sliding time window slides; an interrupted morph continues from the
+frame it shows, and a point that is new grows out of the line drawn so far. Bars are value bars (`--ds-share` and
+`--ds-chart-from` glide on the same curve and time, so bars and lines land together); the first render fills them from
+zero (`DS.motion.enterAll(bars, 'fill')`) and draws the lines up from the baseline. Slices, rings and a gauge's arc
+morph their angles the same way, and the figures count (`DS.motion.countUp`). The morph's clock is an animation
+without keyframes on the SVG named `ds-chart-morph`, so `DS.motion.settled(el, { subtree: true, names:
+['ds-chart-morph'] })` waits for it. The
+crosshair, the hover band and the tooltip fade in on `--ds-dur-fast` and out on `--ds-dur-instant`; nothing moves on
+hover.
+
+### Meters, columns and legends (CSS only)
 
 ```html
 <span class="ds-meter" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="78" aria-valuetext="78% used"></span>
@@ -4882,10 +14262,10 @@ Meters, columns and legends, drawn from the chart roles ([tokens.md](tokens.md#c
   its own), series 2 to 4 a hatching of their own (45, 135 and 90 degrees), as do the legend keys.
 - **Accessibility**: every chart has a text equivalent: its caption plus a table or a key-value list, or the values
   as text.
-- **When to draw your own**: lines, areas, scatter plots and stacked bars are the project's, with the chart roles and
-  `--ds-share`.
+- **When to draw your own**: scatter plots, heatmaps and the like are the project's for now, with the chart roles and
+  `--ds-share`; lines, areas and stacked bars are `DS.chart`.
 
-### Options
+#### Options of the marks
 
 On the mark or any ancestor; each is computed in the component's own rule ([options.md](options.md)).
 
@@ -4901,23 +14281,386 @@ On the mark or any ancestor; each is computed in the component's own rule ([opti
 
 The type stays the meta font at every size.
 
-### Keyboard and names
+#### Keyboard and names of the marks
 
 Only a column that opens takes focus: `Tab` reaches it, `Enter` follows or presses it, `Space` presses a button, and its
 `aria-label` says the category and the value ("Tuesday: 38 devices"). A `.ds-scroll-x` around grouped columns is a tab
 stop of its own when nothing inside takes focus. A meter with its own figure is `role="meter"` with a name,
 `aria-valuenow` and `aria-valuetext`.
 
-### Hooks
+#### Hooks of the marks
 
 `--ds-meter-height`, `--ds-meter-track`, `--ds-meter-color`, `--ds-columns-height`, `--ds-columns-radius`,
 `--ds-columns-group-min`, `--ds-chart-color`, `--ds-legend-key-size`, `--ds-chart-forced-ink`: see
 [theming.md](theming.md).
 
 **Motion:** the "Charts" row of [Feedback](motion.md#feedback) in motion.md.
-## File upload
 
-A drop zone and a file field: files by drop, the file dialog or paste.
+<!-- changelog -->
+<!--
+- Added: `DS.chart` (`chart.js`), dependency-free SVG charts on `.ds-chart`: line, area and stacked area (time series
+  with gaps), column and bar (grouped, stacked, horizontal, 100%), combo with two axes, sparkline, donut, pie, ring,
+  gauge and bar gauge, from a `<table>` or JSON in `data-ds-chart`, or `DS.chart.create(el, spec)`. A cursor with a
+  crosshair and a tooltip, a legend that toggles series, keyboard navigation along the points with announcements, a
+  table view, thresholds and annotations, container-driven layout, dashes, markers and hatchings that tell series
+  apart without colour; lines and areas morph to new data (D14), bars glide, figures count. The engine is exported:
+  `scale`, `ticks`, `timeTicks`, `path`, `stack`, `nearest`, `parse`, `layout`.
+- Added: hooks `--ds-chart-height`, `--ds-chart-radial-height`, `--ds-chart-gauge-height`, `--ds-chart-spark-height`,
+  `--ds-chart-bar`, `--ds-chart-radius`, `--ds-chart-stroke`, `--ds-chart-marker`, `--ds-chart-grid`,
+  `--ds-chart-area-opacity`, `--ds-chart-stack-opacity`, `--ds-chart-dash-2` to `--ds-chart-dash-4`; strings
+  `chartTableView`, `chartRole`, `chartKeys`, `chartKeysBars`, `chartKeysSlices`, `chartPoint`, `chartSummary`,
+  `chartTotal`, `chartOther`, `chartShown`, `chartHidden`, `chartEmpty`.
+-->
+## Meter variants
+
+A share of a known whole (disk used, a quota, a score, a load) beyond the thin [`.ds-meter`](#charts): a segmented bar,
+threshold marks, a ring, a gauge and a bar gauge. Each is a `role="meter"` that says its value in words.
+
+```html
+<!-- linear, with a threshold mark (the limit at 80%) -->
+<span class="ds-meter" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62"
+      aria-valuetext="62% used, limit 80%" style="--ds-share: .62">
+  <span class="ds-meter__threshold" style="--ds-share: .8" aria-hidden="true"></span>
+</span>
+
+<!-- segmented: a score in steps -->
+<span class="ds-meter ds-meter--segmented ds-tone-success" role="meter" aria-label="Password strength"
+      aria-valuemin="0" aria-valuemax="5" aria-valuenow="4" aria-valuetext="Strong" style="--ds-share: .8"></span>
+
+<!-- ring, and a gauge (an arc of 240 degrees) -->
+<div class="ds-gauge" role="meter" aria-label="Storage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="72"
+     aria-valuetext="72% used" style="--ds-share: .72">
+  <span class="ds-gauge__value" aria-hidden="true">72%</span>
+  <span class="ds-gauge__label" aria-hidden="true">Storage</span>
+</div>
+<div class="ds-gauge ds-gauge--arc ds-tone-warning" role="meter" aria-label="CPU" aria-valuemin="0" aria-valuemax="100"
+     aria-valuenow="86" aria-valuetext="86%, high: above the 80% limit" style="--ds-share: .86">
+  <span class="ds-gauge__threshold" style="--ds-share: .8" aria-hidden="true"></span>
+  <span class="ds-gauge__value" aria-hidden="true">86%</span>
+  <span class="ds-gauge__label" aria-hidden="true">CPU</span>
+</div>
+
+<!-- bar gauge: cells, zones from 70% (warning) and 90% (error) -->
+<div class="ds-bar-gauge" role="meter" aria-labelledby="mem-label" aria-valuemin="0" aria-valuemax="100"
+     aria-valuenow="84" aria-valuetext="84%, high" style="--ds-share: .84; --ds-bar-gauge-warning: .7; --ds-bar-gauge-error: .9">
+  <span class="ds-bar-gauge__label" id="mem-label">Memory</span>
+  <span class="ds-bar-gauge__value" aria-hidden="true">84%</span>
+  <span class="ds-bar-gauge__track" aria-hidden="true"></span>
+  <span class="ds-bar-gauge__note" aria-hidden="true">[icon alert 16]High</span>
+</div>
+```
+
+| Variant | Class | What it shows |
+|---|---|---|
+| Linear | [`.ds-meter`](#charts) | a thin bar; the default |
+| Segmented | `.ds-meter--segmented` on a `.ds-meter` | the bar in `--ds-meter-segments` (5) equal parts, `--ds-meter-segment-gap` (2px) apart: a score in steps. Set a share that ends on a part (`4 / 5`) |
+| Threshold | `.ds-meter__threshold` in a `.ds-meter`, `.ds-gauge__threshold` in a `.ds-gauge` | a mark across the track at its own `--ds-share` (a limit, a target), in `--ds-meter-threshold` (`--ds-text`) with a hairline of the surface, so it reads on the fill and on the track. Not in a segmented meter, whose gaps would cut it |
+| Ring | `.ds-gauge` | a full ring with the figure (`.ds-gauge__value`) and a label (`.ds-gauge__label`) inside |
+| Gauge | `.ds-gauge.ds-gauge--arc` | an arc of 240 degrees, open at the bottom, with round ends |
+| Bar gauge | `.ds-bar-gauge` | a label and the figure on one row, a thick track of `--ds-bar-gauge-cells` (20) cells under them, an optional `.ds-bar-gauge__note` (an icon and a word) below. The cells past `--ds-bar-gauge-warning` and `--ds-bar-gauge-error` (shares set on the element with the data; default none) take the warning and error colours, lit up to the share and faint beyond it, so the zones show on the track as well |
+
+The share is the registered `--ds-share` (0 ... 1) that every chart mark reads, set on the meter with
+`style.setProperty('--ds-share', ...)` (a strict CSP allows it). A new share glides there on `--ds-ease-value` over
+`--ds-dur-glide`, and the figure goes through `DS.motion.countUp()` in the same task, so both land on the same frame.
+The first render fills from zero: `DS.motion.enterAll(meters, 'fill', { stagger: false })` (`.ds-enter--fill`). A
+threshold mark keeps its own share and never moves with the value.
+
+**Status never by colour alone.** A tone or a zone colour says nothing by itself: `aria-valuetext` says the state in
+words ("86%, high: above the 80% limit"), and a gauge or bar gauge shows the figure and, where the state matters, a
+word (`.ds-bar-gauge__note` with an icon, or the label). The page decides when a value is high and sets the tone.
+
+### Options
+
+On the meter or any ancestor, except the tone; each is computed in this component's own rules ([options.md](options.md)).
+
+| Option | Classes | Applies to | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | `.ds-gauge`, `.ds-bar-gauge`, `.ds-meter--segmented` | a gauge 16px per step (64 to 128px) and its ring 2px per step (4 to 12px), its figure with it; a bar gauge's track 2px per step (8 to 16px); a segmented meter 1px per step, as `.ds-meter` |
+| Density | `.ds-density-*` | `.ds-bar-gauge` | the gap between its rows 1px per step, and between bar gauges in a column 2px per step; the gauges keep their size |
+| Shape | `.ds-shape-*` | the threshold marks | their ends times `--ds-shape`; a ring and an arc stay round, a bar gauge's cells stay square |
+| Tone | `.ds-tone-*` | the meter itself; an inherited tone is ignored | a gauge's fill: primary, info and success the tone, neutral, warning and error the chart roles; a bar gauge's first zone (primary, info, success, neutral) |
+| Touch | | | not read: nothing here is a target |
+
+### Accessibility
+
+Each meter is `role="meter"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow` and an `aria-valuetext` in words,
+and a name (`aria-label`, or `aria-labelledby` the bar gauge's label). The figure, the label inside a gauge, the
+marks and the note are `aria-hidden`: the meter says them. None of them takes focus.
+
+### Forced colours
+
+The fill is `CanvasText` and the track `Canvas` with a `CanvasText` edge (a gauge: `CanvasText` on `GrayText`); the
+threshold marks are `CanvasText` with a `Canvas` hairline. The mask of a segmented meter and of a bar gauge cuts any
+edge away, so their unlit parts are `GrayText`: "2 of 5" still shows the 5. A bar gauge's warning zone is hatched at 45
+degrees and its error zone at 135 degrees, on lit (`CanvasText`) and unlit (`GrayText`) cells alike, so the zones stay
+apart without colour. Printed, the fills keep their colours.
+
+### Hooks
+
+`--ds-meter-segments`, `--ds-meter-segment-gap`, `--ds-meter-threshold`, `--ds-gauge-size`, `--ds-gauge-thickness`,
+`--ds-gauge-color`, `--ds-gauge-track`, `--ds-bar-gauge-height`, `--ds-bar-gauge-cells`, `--ds-bar-gauge-warning`,
+`--ds-bar-gauge-error`: see [theming.md](theming.md). The last two are data, set on the element next to its share.
+
+**Motion:** the share glides on `--ds-ease-value` over `--ds-dur-glide` (the "Data motion" rules of
+[motion.md](motion.md#data-motion)); the first render fills with `.ds-enter--fill`.
+
+<!-- changelog -->
+- Meter variants (new, `meter`): `.ds-meter--segmented` and `.ds-meter__threshold` on the chart meter, the ring and
+  gauge `.ds-gauge` (`--arc`, `__value`, `__label`, `__threshold`) and the bar gauge `.ds-bar-gauge` with warning and
+  error zones, all on `--ds-share`.
+## Bar list
+
+Ranked rows of a label and a figure, each on a bar as long as its share of the largest value: tickets per device
+type, top pages, errors per service. A few categories at a glance, where a chart would be too much.
+
+```html
+<ol class="ds-bar-list" aria-label="Open tickets per device type">
+  <li class="ds-bar-list__item" style="--ds-share: 1">
+    <span class="ds-bar-list__label">[icon printer 16]<span>Printers</span></span>
+    <span class="ds-bar-list__value">412</span>
+  </li>
+  <li class="ds-bar-list__item" style="--ds-share: .42">
+    <a class="ds-bar-list__label" href="/tickets?type=laptop"><span>Laptops</span></a>
+    <span class="ds-bar-list__value">173</span>
+  </li>
+  <li class="ds-bar-list__item ds-tone-error" style="--ds-share: .12">
+    <span class="ds-bar-list__label">[icon alert 16]<span>Routers, 3 failing</span></span>
+    <span class="ds-bar-list__value">49</span>
+  </li>
+</ol>
+```
+
+The page sorts the rows and sets each row's `--ds-share` (0 ... 1, the value over the largest one) with
+`style.setProperty('--ds-share', ...)`. The bar sits behind the label and is clipped at the share, so its corners
+keep their shape. A label that does not fit ends in an ellipsis on its bar, and the figure is never cut. A row
+that opens something holds an `<a class="ds-bar-list__label">`: the link takes focus, not the row.
+
+| Part or variant | Class | What |
+|---|---|---|
+| List | `.ds-bar-list` | an `<ol>` (ranked) or `<ul>` with a name; a grid, so every figure lines up at the end |
+| Row | `.ds-bar-list__item` | the bar behind the label, the figure after it; `--ds-share` is the bar's length |
+| Label | `.ds-bar-list__label` | an optional 16px icon and the words (in a `<span>`), or a link |
+| Figure | `.ds-bar-list__value` | tabular figures, never cut |
+| Plain | `.ds-bar-list--plain` | the bars in the track colour, for a list where a tint would be loud |
+
+### Options
+
+On the list or any ancestor, except the tone; each is computed in this component's own rules ([options.md](options.md)).
+
+| Option | Classes | Applies to | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | a row | 8px of height per step (16px to 48px; 32px at md) |
+| Density | `.ds-density-*` | a row, the list | 4px of height per step, the gap between rows 1px per step |
+| Shape | `.ds-shape-*` | the bar | its corners times `--ds-shape`, never above half the row |
+| Tone | `.ds-tone-*` | the row itself; an inherited tone is ignored | the bar takes the tone's container, the label its ink |
+| Touch | `.ds-touch` | a row with a link | at least `--ds-target-min` high |
+
+**Status never by colour alone.** A tone marks a row that stands out, and its words say why ("Routers, 3 failing",
+an icon): the tint adds nothing of its own.
+
+### Accessibility
+
+A list with a name (`aria-label`, or `aria-labelledby` its heading). Each row reads its label and its figure; the bar
+is a background and says nothing. A unit or a context the figure needs ("173 tickets") goes into the words, or as a
+`.ds-sr` span. Only a link in a label takes focus, with the inset ring.
+
+### Forced colours
+
+Each bar becomes an outline of `CanvasText` that ends, closed, at its share, the text `CanvasText`, so the lengths
+still compare.
+Printed, the bars keep their colours.
+
+### Hooks
+
+`--ds-bar-list-height`, `--ds-bar-list-bar`, `--ds-bar-list-ink`: see [theming.md](theming.md).
+
+**Motion:** a new share glides on `--ds-ease-value` over `--ds-dur-glide`; the first render fills from zero with
+`.ds-enter--fill` (`DS.motion.enterAll(rows, 'fill')`); a figure counts with `DS.motion.countUp()`; reorders go through
+`DS.motion.flip()` (the "Data motion" rules of [motion.md](motion.md#data-motion)).
+
+<!-- changelog -->
+- Bar list (new, `bar-list`): `.ds-bar-list` with `__item`, `__label`, `__value` and `--plain`, ranked rows on
+  bars clipped at `--ds-share`, tones per row, links in labels; hooks `--ds-bar-list-height`, `--ds-bar-list-bar`,
+  `--ds-bar-list-ink`.
+## Category bar
+
+The parts of a whole on one bar, with a legend that names each part and its figure: tickets by status, storage by
+kind, a budget spent per team. A segmented meter of unequal parts.
+
+```html
+<figure class="ds-category-bar">
+  <figcaption class="ds-category-bar__head">
+    <span class="ds-category-bar__label">Tickets by status</span>
+    <span class="ds-category-bar__total">240</span>
+  </figcaption>
+  <div class="ds-category-bar__track" role="img"
+       aria-label="Open 120 (50%), in progress 72 (30%), closed 48 (20%); target 80% handled">
+    <span class="ds-category-bar__part" style="--ds-share: .5"></span>
+    <span class="ds-category-bar__part ds-category-bar__part--s2" style="--ds-share: .3"></span>
+    <span class="ds-category-bar__part ds-category-bar__part--s3" style="--ds-share: .2"></span>
+    <span class="ds-category-bar__marker" style="--ds-share: .8"></span>
+  </div>
+  <ul class="ds-legend" aria-hidden="true">
+    <li><span class="ds-legend__key"></span>Open <span class="ds-category-bar__value">120</span></li>
+    <li><span class="ds-legend__key ds-legend__key--s2"></span>In progress <span class="ds-category-bar__value">72</span></li>
+    <li><span class="ds-legend__key ds-legend__key--s3"></span>Closed <span class="ds-category-bar__value">48</span></li>
+  </ul>
+</figure>
+```
+
+Each part is as wide as its `--ds-share` of the whole (0 ... 1, set by the page). The parts are 2px apart, so two
+close colours stay apart. The legend is the chart's [`.ds-legend`](#charts): give each key the series or the tone
+of its part.
+
+| Part or variant | Class | What |
+|---|---|---|
+| Bar | `.ds-category-bar` | a `<figure>`: the head, the track, the legend |
+| Head | `.ds-category-bar__head` | a `<figcaption>`: `.ds-category-bar__label` and `.ds-category-bar__total` on one line |
+| Track | `.ds-category-bar__track` | `role="img"` with a label that names every part and its figure |
+| Part | `.ds-category-bar__part` | a part of `--ds-share` of the whole; `.ds-category-bar__part--s2`, `.ds-category-bar__part--s3`, `.ds-category-bar__part--s4` the series colours, or a `.ds-tone-*` on the part |
+| Marker | `.ds-category-bar__marker` | a mark across the bar at its own share: a target, a limit |
+| Figure | `.ds-category-bar__value` | a figure in a legend entry, tabular |
+| Rest | `.ds-category-bar--rest` | shares that add up to less than 1 leave the track showing: a budget not spent yet |
+
+Leave out a part of no share: it would still take a gap.
+
+### Options
+
+On the bar or any ancestor, except the tone; each is computed in this component's own rules ([options.md](options.md)).
+
+| Option | Classes | Applies to | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the track | 2px per step (4px to 12px; 8px at md); the legend keys follow their own steps |
+| Density | `.ds-density-*` | the bar | the gap between head, track and legend 1px per step |
+| Shape | `.ds-shape-*` | the track's ends, the marker | times `--ds-shape`, never above half the track |
+| Tone | `.ds-tone-*` | a part itself; an inherited tone is ignored | neutral, warning and error the chart roles, the others the tone |
+| Touch | | | not read: nothing here is a target |
+
+**Status never by colour alone.** Every part is named in the legend and in the track's label; a tone on a part
+(errors, warnings) is named there in words too.
+
+### Accessibility
+
+The track is `role="img"` with an `aria-label` that names every part with its figure and share, and the marker in
+words; the legend repeats it for the eye and is `aria-hidden="true"`. Or the other way round: the track
+`aria-hidden="true"` and the legend read as a list. One of the two, never both. Nothing takes focus.
+
+### Forced colours
+
+The parts are `CanvasText`, series 2 to 4 hatched as their legend keys (45, 135 and 90 degrees), with `Canvas` gaps
+and a `CanvasText` edge round the track; the marker is `CanvasText` with a `Canvas` hairline. Printed, the parts keep
+their colours.
+
+### Hooks
+
+`--ds-category-bar-height`, `--ds-category-bar-gap`: see [theming.md](theming.md).
+
+**Motion:** the shares glide on `--ds-ease-value` over `--ds-dur-glide` (the widths follow); the first render fills
+from zero with `.ds-enter--fill` on the parts; the legend's figures count with `DS.motion.countUp()`.
+
+<!-- changelog -->
+- Category bar (new, `category-bar`): `.ds-category-bar` with `__head`, `__label`, `__total`, `__track`, `__part`
+  (`--s2` ... `--s4`, tones), `__marker`, `__value` and `--rest`, parts on `--ds-share` with the chart legend;
+  hooks `--ds-category-bar-height`, `--ds-category-bar-gap`.
+## Tracker
+
+A row of status cells, one per day, run or check: the uptime of a device over 90 days, the last 30 runs of a job.
+Each state has a shape of its own, the date and state of every cell are in its tooltip, and a summary says in words
+what the row adds up to.
+
+```html
+<figure class="ds-tracker">
+  <figcaption class="ds-tracker__head">
+    <span class="ds-tracker__label">Printer 7</span>
+    <span class="ds-tracker__summary">99.2% uptime, 2 failures in 90 days</span>
+  </figcaption>
+  <div class="ds-tracker__cells" role="group" aria-label="Printer 7, last 90 days" data-ds-tracker>
+    <span class="ds-tracker__cell ds-tracker__cell--success" role="img" aria-label="Nov 3: up" data-tip="Nov 3: up"></span>
+    <span class="ds-tracker__cell ds-tracker__cell--error" role="img" aria-label="Nov 4: down 42 min" data-tip="Nov 4: down 42 min"></span>
+    <!-- one cell per day -->
+  </div>
+  <div class="ds-tracker__axis"><span>90 days ago</span><span>Today</span></div>
+  <ul class="ds-tracker__legend" aria-hidden="true">
+    <li><span class="ds-tracker__cell ds-tracker__cell--success"></span>Up</li>
+    <li><span class="ds-tracker__cell ds-tracker__cell--error"></span>Down</li>
+  </ul>
+</figure>
+```
+
+| Part or state | Class | What |
+|---|---|---|
+| Tracker | `.ds-tracker` | a `<figure>`: the head, the row, the axis and the legend |
+| Head | `.ds-tracker__head` | a `<figcaption>`: `.ds-tracker__label` and `.ds-tracker__summary` (the row in words) |
+| Row | `.ds-tracker__cells` | `role="group"` with a name; `data-ds-tracker` makes it one tab stop |
+| Cell | `.ds-tracker__cell` | `role="img"`, named with its date and state, the same words in `data-tip` |
+| Success | `.ds-tracker__cell--success` | low (60% of the row), solid: up, passed |
+| Info | `.ds-tracker__cell--info` | low, dashed: maintenance, skipped |
+| Warning | `.ds-tracker__cell--warning` | full height, dashed: degraded, flaky |
+| Error | `.ds-tracker__cell--error` | full height, solid: down, failed |
+| Empty | `.ds-tracker__cell--empty` | a stub at the foot: no data |
+| Axis | `.ds-tracker__axis` | the span under the row: its first and last date |
+| Legend | `.ds-tracker__legend` | the states named, each with a small cell of its shape |
+
+**Status never by colour alone.** Problems stand to the full height and the calm states stay low; the doubtful ones
+are dashed. Every cell's name and tooltip say its state in words, and the summary says what the row adds up to
+("2 failures in 90 days"). The whole cell answers the pointer, also where its shape is low. Below 480px of row the
+gap closes to 1px, so 90 cells fit a phone.
+
+### Options
+
+On the tracker or any ancestor; each is computed in this component's own rules ([options.md](options.md)).
+
+| Option | Classes | Applies to | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the row | 4px per step (24px to 40px; 32px at md) |
+| Density | `.ds-density-*` | the tracker | the gap between head, row and axis 1px per step |
+| Shape | `.ds-shape-*` | the cells | their corners times `--ds-shape` |
+| Tone | | | not read: the state classes carry the meaning, each with its shape |
+| Touch | | | not read: the row is one tab stop, and a tap on a cell shows its tooltip |
+
+### Behaviour: `data-ds-tracker`
+
+On the row: the arrow keys, Home and End move focus between the cells, which are one tab stop (it starts on the last
+cell, the most recent); a focused cell shows its tooltip at once. A cell with a `data-tip` and no `aria-label` gets the
+tip as its name, and `role="img"` when it has no role. A re-render with `DS.dom.morphHtml` keeps both.
+
+### JS API
+
+- `DS.tracker.create(el)`: the controller the attribute path makes, on the row. `get()` gives
+  `{ cells: [{ state, label }], counts }`; `set(list)` renders the cells from `[{ state, label }]` (state `success`,
+  `info`, `warning`, `error` or `empty`), reusing the cells in order so focus stays (when the focused cell is one that
+  goes, focus and the tab stop move to the nearest cell that stays), and emits `ds:change` with
+  `{ cells, counts }`; `on('change', fn)`; `update()` names the cells again; `destroy()` lets go of the keys.
+- `DS.tracker.counts(cells)`: how many of each state, and `total`, from states or `{ state }` objects: the figures of
+  the summary, which stays the page's words.
+
+### Accessibility
+
+The row is a named group of `role="img"` cells, each named with its date and state ("Nov 4: down 42 min"). A screen
+reader meets the summary first, then may walk the cells with the arrow keys. The legend repeats the states for the eye
+and is `aria-hidden="true"`. A state that changes while the page is open is announced by the page
+(`DS.a11y.announce`), not by the tracker.
+
+### Forced colours
+
+The cells are `CanvasText` with their shapes (the dashed ones cut with `Canvas`), the empty stub `GrayText`, the focus
+ring `Highlight`. Printed, the cells keep their colours.
+
+### Hooks
+
+`--ds-tracker-height`, `--ds-tracker-gap`: see [theming.md](theming.md).
+
+**Motion:** none: a cell that changes state takes its new shape at once. The focus ring snaps as everywhere.
+
+<!-- changelog -->
+- Tracker (new, `tracker`): `.ds-tracker` with `__head`, `__label`, `__summary`, `__cells`, `__cell` (`--success`,
+  `--info`, `--warning`, `--error`, `--empty`, each with its own shape), `__axis` and `__legend`; `data-ds-tracker`
+  makes the row one tab stop with the arrow keys; `DS.tracker.create`, `counts`; hooks `--ds-tracker-height`,
+  `--ds-tracker-gap`.
+## Drop zone and file field
+
+A drop zone and a file field: files by drop, the file dialog or paste. For the whole upload (the chosen files with their
+progress, retry and remove, previews, limits and resized pictures) wrap the zone in a [File upload](#file-upload).
 
 ```html
 <label class="ds-dropzone">
@@ -4953,7 +14696,8 @@ DS.dom.dropzone(chatPane, { onFiles: attach, accept: 'image/*', input: null }); 
 - **The file field** `.ds-input[type="file"]`: the field box, the chosen file's name in `--ds-text-2`, and the browser's
   button as a small tonal pill (`--ds-accent`, 32px) with the hover and press mixed into its fill and the press
   morph. It has no ripple (a native field part).
-- **The chosen files** are the page's: a [Row list](#row-list) (`.ds-list`, without `--interactive`) with a
+- **The chosen files**: a [File upload](#file-upload) renders them, with their progress, retry, remove and limits. A
+  page that renders its own uses a [Row list](#row-list) (`.ds-list`, without `--interactive`) with a
   `.ds-progress` and a remove button in each row, rendered through `DS.motion.flip()` (a removed row fades out, focus
   moves to the next remove button). The bar has no width of its own in a row: give it its share in the page's CSS
   (`flex: 0 1 160px; min-width: 80px`).
@@ -5029,6 +14773,447 @@ DS.motion.sortable(steps, { onChange: (order) => save(order.map((row) => row.dat
   leaves it alone, as every icon button. The row's look has no option of its own.
 
 **Motion:** `sortable()` in [DS.motion](motion.md#dsmotion-jsmotionjs); the row glides like every `flip()` item.
+
+<!-- changelog -->
+- Drag and files: the section of the drop zone is now "Drop zone and file field"; `#file-upload` names the new [File upload](#file-upload), which renders the chosen files around the same zone.
+## Formatted values and relative time
+
+Figures and times in the page's locale, through `Intl`: a number, a count in short form, a percentage, an amount of
+money, a size in bytes, a length of time, and a time relative to now that keeps itself current. Where the text rounds
+the value, the exact value shows in a tooltip.
+
+```html
+<span data-ds-format="bytes" data-ds-value="1536"></span>                         <!-- 1.5 kB (tip: 1,536 bytes) -->
+<span data-ds-format="compact">1284902</span>                                     <!-- 1.3M (tip: 1,284,902) -->
+<span data-ds-format="currency" data-ds-format-currency="EUR">1234.5</span>       <!-- €1,234.50 -->
+<span data-ds-format="percent" data-ds-format-signed>0.042</span>                 <!-- +4.2% -->
+<span data-ds-format="duration" data-ds-format-style="clock">3725000</span>       <!-- 1:02:05 -->
+<span data-ds-format="number" data-ds-format-digits="1">1234.56</span>            <!-- 1,234.6 -->
+
+<time data-ds-time datetime="2026-11-04T09:00:00Z">Nov 4, 09:00</time>          <!-- 3 minutes ago (tip: Nov 4, 2026, 9:00 AM) -->
+```
+
+**The raw value** is `data-ds-value`, else the element's own text when the behaviour starts, so a page that renders
+the raw figure on the server keeps working without script. A re-render with `DS.dom.morphHtml` that writes a new
+raw figure (in the text or `data-ds-value`) is formatted before paint. `DS.init()` finds both attributes.
+
+| Attribute | Values | What |
+|---|---|---|
+| `data-ds-format` | `number` (default), `compact`, `percent`, `currency`, `bytes`, `duration` | the kind; a percentage is a share (0.42 is 42%), a duration is in ms |
+| `data-ds-value` | a number | the raw value; without it, the text |
+| `data-ds-format-currency` | an ISO 4217 code | the currency (default `USD`) |
+| `data-ds-format-digits` | 0 ... 20 | the most fraction digits |
+| `data-ds-format-base` | `1024` | binary sizes (KiB, MiB) for `bytes` |
+| `data-ds-format-style` | `short`, `long`, `narrow`, `clock`; `long` | a duration's style; a compact count's (`1.3 million`) |
+| `data-ds-format-signed` | (present) | a sign on gains too: deltas |
+| `data-ds-format-tip` | `off` | no tooltip with the exact value |
+
+**Relative time** is `data-ds-time` of the core ([core.md](core.md#relative-time-data-ds-time)): the date comes from
+`data-ds-time`, else `datetime`; the text ("3 minutes ago", "yesterday") ticks on one shared clock for the whole page,
+which waits as long as the soonest change allows and sleeps while the page is hidden; the absolute date goes into the
+tooltip. Its options are `data-ds-time-style`, `-numeric`, `-smallest`, `-largest` and `-tip="off"`.
+
+The locale is `DS.config({ locale })`'s, else the `lang` of `<html>`; a new locale rewrites every value and time at
+once. A value or time with a tooltip of its own (`data-tip` written by the page) keeps it.
+
+`.ds-value--plain` drops the dotted underline that marks a value with a tip (a column full of them); the tip still
+shows. Both take tabular figures and never break inside.
+
+### JS API
+
+- `DS.formatted.create(el, options)`: the controller the attribute path makes, with `options` (`kind`, `value`,
+  `currency`, `digits`, `base`, `style`, `signed`, `tip`, `locale`) before the attributes. `get()` gives
+  `{ value, text }`, `set(value)` writes a new raw value (and `data-ds-value`, when the element has it) and emits
+  `ds:change`, `on('change', fn)`, `update()`, `destroy()`.
+- `DS.formatted.text(value, options)`: the text alone (`''` for what is no number).
+- `DS.formatted.exact(value, options)`: the exact value of the tip, or `''` where the text is exact already.
+- Relative time: `DS.format.time(el, options)` and `DS.format.relative(value, options)` ([core.md](core.md)).
+
+### Options
+
+None read: a value takes the type of where it stands, and never a tone. Its meaning is in its words or its column.
+
+### Accessibility
+
+The text is read. The exact value or the absolute date is the tooltip's description, shown on hover and on keyboard
+focus; where it matters to a keyboard user (a single figure in a page head), give the element `tabindex="0"`. A table
+full of times needs no stops: the column head says what they are.
+
+### Forced colours
+
+The dotted underline takes the text colour.
+
+**Motion:** none. A figure that should count to its new value goes through `DS.motion.countUp()` with
+`format: (v) => DS.formatted.text(v, options)` instead.
+
+<!-- changelog -->
+- Formatted value (new, `formatted`): `data-ds-format` (`number`, `compact`, `percent`, `currency`, `bytes`,
+  `duration`) with `data-ds-value` and `data-ds-format-*` options, the exact value in a tooltip; `DS.formatted.create`,
+  `text`, `exact`; `.ds-value--plain`. Relative time (`data-ds-time` of the core) documented beside it, with its
+  dotted underline and tabular figures.
+## File upload
+
+Files by drop, the file dialog or paste, with their progress, retry and remove, previews, limits that say what is wrong,
+and pictures made smaller before they go. The page uploads; `DS.upload` shows it.
+
+```html
+<div class="ds-upload" data-ds-upload data-ds-upload-max-size="10 MB" data-ds-upload-max-files="5" data-ds-upload-resize="1600">
+  <label class="ds-dropzone">
+    <input class="ds-dropzone__input" type="file" accept="image/*,.pdf" multiple>
+    <span class="ds-dropzone__disc" aria-hidden="true">[icon upload 24]</span>
+    <span class="ds-dropzone__title">
+      <span class="ds-dropzone__idle">Drop photos or PDFs here or <span class="ds-dropzone__browse">browse</span></span>
+      <span class="ds-dropzone__over" aria-hidden="true">Release to add the files</span>
+    </span>
+    <span class="ds-dropzone__hint">Up to 10 MB each, at most 5 files</span>
+  </label>
+  <ul class="ds-list ds-upload__list" aria-label="Files"></ul>          <!-- or <ul class="ds-upload__grid" aria-label="Photos"> -->
+</div>
+```
+
+```js
+el.addEventListener('ds:files', ({ detail }) => detail.entries.forEach((entry) => send(entry)));
+const upload = DS.get(el, 'upload');
+function send(entry) {
+  const request = new XMLHttpRequest();
+  request.upload.onprogress = (event) => upload.progress(entry.id, event.loaded / event.total);
+  request.onload = () => (request.status < 300 ? upload.done(entry.id) : upload.fail(entry.id, 'The server refused it.'));
+  request.onerror = () => upload.fail(entry.id);
+  request.open('POST', '/files');
+  request.send(entry.file);
+}
+el.addEventListener('ds:retry', ({ detail }) => send(detail.entry));
+```
+
+The zone is the [drop zone](#drop-zone-and-file-field) of Drag and files, unchanged: a `<label>` around its visually
+hidden input, so Tab, Enter and Space open the file dialog. `DS.upload` takes its picks, drops on the whole
+`.ds-upload` and files pasted while focus is inside it, then:
+
+1. **Checks the limits** in this order: the type (`accept`), then (after a resize) the room left (`maxFiles`, counting
+   the files shown) and the size (`maxSize`; an empty file is refused too). A refused file is not added: the input takes
+   `aria-invalid="true"` (the zone's error edge) and the `.ds-upload__error` line under the zone says why, with an icon
+   and words ("report.pdf is larger than 10 MB."), named in the input's `aria-describedby` and spoken at once. The next
+   pick or a removal clears it.
+2. **Resizes pictures** (`resize`): a JPEG, PNG or WebP larger than the box is drawn smaller on a canvas, its
+   orientation kept (GIF and SVG stay as they are); a result that would be larger keeps the original.
+3. **Adds a row** per file (`data-status="queued"`: "Waiting", no bar yet), says "Added devices.csv" and sends
+   `ds:files` with the new entries: the page starts each upload there.
+
+Then the page reports: `progress(id, share)` (`uploading`, the bar glides to the share and the meta says the percent),
+`done(id)` (the check and "Uploaded") or `fail(id, reason)` (the alert icon and the reason in the error ink, Retry
+shows; a failure is spoken). Retry sets the entry back to waiting and sends `ds:retry`; Remove takes the row out on
+`DS.motion.flip()` (focus moves to the next row's Remove, else the zone), sends `ds:remove` so the page aborts its
+request, and frees the preview.
+
+**Rows or previews.** The list is a [row list](#row-list) (`.ds-list.ds-upload__list`): the thumbnail of a picture or
+a file icon, the name, the size and the status with the bar under them, then Retry and Remove (quiet icon buttons with
+tooltips), which keep the first line down to a phone's width. The
+grid (`ul.ds-upload__grid`) shows a tile per file: the preview (4:3, the picture cropped to fill it, else a large file
+icon), the name on one line and the meta, the bar, and tonal Retry and Remove over the preview's top corner, so they
+read on any picture. Tiles fill the row in columns of at least `--ds-upload-tile` (144px). Without either list the
+module adds a `.ds-upload__list`; without an error line it adds one after the zone.
+
+**Parts**, written by the module: a row `li.ds-list__item.ds-upload__item` (a tile `li.ds-upload__tile`) with
+`data-status`; its picture `.ds-upload__thumb` (a tile's `.ds-upload__preview`, with a `.ds-upload__glyph` for a file
+that is no picture); `.ds-upload__name`; `.ds-upload__meta` with a `.ds-upload__status-icon` and the words in
+`.ds-upload__status`; in a tile both in `.ds-upload__caption`; the bar `.ds-upload__bar` (a flat
+[Progress](#progress)); and `.ds-upload__actions` with `.ds-upload__retry` (shown on a failure) and
+`.ds-upload__remove`. The error line `.ds-upload__error` holds an icon and `.ds-upload__error-text`.
+
+**Attributes** (on the `.ds-upload`; a change applies to the next pick):
+
+| Attribute | Option | What |
+|---|---|---|
+| `data-ds-upload` | | the behaviour |
+| `data-ds-upload-accept` | `accept` | the types it takes, as `accept` (default the input's `accept`) |
+| `data-ds-upload-max-size` | `maxSize` | the largest file: bytes or `10 MB`, `500 kB`, `2 MiB` |
+| `data-ds-upload-max-files` | `maxFiles` | the most files it holds |
+| `data-ds-upload-resize` | `resize` | `1600` (the longer edge at most 1600px) or `1600x1200` |
+| `data-ds-upload-quality` | `resize.quality` | 0 to 1 (default 0.9) |
+| `data-ds-upload-resize-type` | `resize.type` | `image/webp`, `image/jpeg` or `image/png` (default the picture's own) |
+| `data-ds-upload-paste` | `paste` | `off`: no paste |
+
+Say the limits in the zone's hint ("Up to 10 MB each, at most 5 files"), so nobody learns them from an error.
+
+**JS API.** `DS.get(el, 'upload')` or `DS.upload.create(el, options)` (the options of the table, which win over the
+attributes) return the controller:
+
+| Member | What |
+|---|---|
+| `get()` | the entries `{ id, file, name, size, type, status, progress, error, url }` |
+| `set(entries)` | shows these instead: files already stored (`{ id, name, size, type, url }`, status `done` unless given) |
+| `add(files)` | checks, resizes and adds files as a drop does; resolves with the entries added |
+| `progress(id, share)` | 0 to 1: the entry is uploading |
+| `done(id, { url })` | uploaded; `url` gives a preview the file had none of |
+| `fail(id, reason)` | failed, with the reason in words (default "Upload failed") |
+| `retry(id)`, `remove(id)`, `clear()` | what the buttons do; `remove()` resolves after the row left |
+| `on(type, fn)` | `files`, `reject`, `retry`, `remove` or `change`; returns the unsubscribe |
+| `destroy()` | stops listening and frees the previews |
+
+| Event, on the `.ds-upload` | Detail | When |
+|---|---|---|
+| `ds:files` | `{ entries }` | files were added: upload them |
+| `ds:reject` | `{ rejected: [{ file, reason, limit }] }` | files were refused: `type`, `count`, `size` or `empty` |
+| `ds:retry` | `{ entry }` | Retry: upload it again |
+| `ds:remove` | `{ entry }` | Remove: abort its request, delete what was stored |
+| `ds:change` | `{ entries }` | the entries changed |
+
+The helpers, for a page that checks or shrinks files by itself:
+
+- `DS.upload.accepts(file, accept)`: whether a file matches an accept list (extensions, MIME types, `image/*`).
+- `DS.upload.validate(files, { accept, maxSize, minSize, maxFiles, count })`: `{ accepted, rejected }`, each refused
+  file with its `reason` and `limit`.
+- `DS.upload.parseSize(text)`: `10 MB` in bytes (kB, MB, GB at 1000; KiB, MiB, GiB at 1024), else `null`.
+- `DS.upload.fitSize(width, height, { maxWidth, maxHeight })`: the size inside the box, never larger.
+- `DS.upload.resizeImage(file, { maxWidth, maxHeight, quality, type })`: a Promise of the smaller file, or the file
+  itself.
+
+The rows are the module's own: render the `.ds-upload` once and leave its list alone in a re-render (or give the page's
+`DS.dom.morphHtml` a template without the list's children only while nothing is chosen).
+
+**Options** ([options.md](options.md)): classes on the upload or any ancestor; the nearest wins.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Variant | `ul.ds-upload__grid` instead of `.ds-upload__list` | the list | previews in tiles |
+| Size | `.ds-xs`, `.ds-sm`, `.ds-md`, `.ds-lg`, `.ds-xl` | the upload or a group | a tile's least width 16px per step (112 to 176px, never under 96px) and the name's type role; the rows follow the [row list](#row-list), the zone the drop zone |
+| Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container | the room between the parts, between the tiles and the caption's padding 2px less per step; rows follow the list |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | a tile's radius (its preview's top corners follow) times 0, .5, 1, 1.5 |
+| Touch | `.ds-touch` | the theme or a container | the buttons and the zone take `--ds-touch-target` (48px) |
+| Tone | none | | a file's status is `data-status`, with its icon and word |
+
+**Keyboard and names.** Tab reaches the zone's input (Enter or Space opens the file dialog; Ctrl or Cmd+V pastes files
+while focus is inside the upload), then each row's Retry and Remove, named after the file ("Remove devices.csv"). A
+row's bar is a `progressbar` named "Upload of devices.csv" with its value; a busy row has `aria-busy="true"`. Additions,
+removals, completions and failures are spoken through the announcer ([DS.a11y](core.md#accessibility-helpers)), refusals
+at once (assertive). Name the list (`aria-label`).
+
+**Forced colours.** Tiles and previews keep their edges in `CanvasText`, a failed tile a 2px edge; the status words and
+icons carry the meaning; the bar is Progress's; the zone is Drag and files'.
+
+**Hooks:** `--ds-upload-tile` (144px), `--ds-upload-radius` (`--ds-radius-card`), `--ds-upload-gap` (`--ds-space-3`);
+the error line and a failed row read `--ds-field-error-color` ([theming.md](theming.md#component-hooks)). The attribute
+`data-status` on a row or tile is the module's.
+
+**Motion:** rows and tiles come and go through `DS.motion.flip()` (they fade in over `--ds-dur-fast`, the others glide);
+the bar glides on `--ds-ease-value` (Progress); the error line fades in (`ds-fade-in`, `--ds-dur-fast`).
+
+**Strings:** `uploadWaiting`, `uploadDone`, `uploadFailed`, `uploadRetry`, `uploadRemove`, `uploadProgress`,
+`uploadWrongType`, `uploadTooMany`, `uploadTooLarge`, `uploadEmpty`, `uploadAdded`, `uploadAddedCount`,
+`uploadRemoved`, `uploadDoneAnnounce`, `uploadFailedAnnounce` and `retry`, `remove`
+([install.md](install.md#language-and-locale)).
+
+<!-- changelog -->
+- File upload (`.ds-upload`, `DS.upload`): the drop zone grows into a full upload: rows or a preview grid with progress
+  per file, retry and remove, paste, limits on type, size and count with errors in words, and pictures resized in the
+  browser (`resize`). The page uploads through `ds:files` and reports with `progress()`, `done()` and `fail()`.
+## Key-value editor
+
+Pairs of a key and a value (environment variables, labels, request headers): add and remove rows, paste `KEY=value`
+lines, a warning on a key that comes twice, secret values hidden until revealed, and the whole as an object.
+
+```html
+<fieldset class="ds-kveditor ds-kveditor--code" data-ds-kveditor data-ds-kveditor-name="env"
+          data-ds-kveditor-secret="TOKEN|SECRET|PASSWORD"
+          data-ds-value='{"API_URL":"https://api.example.test","API_TOKEN":"s3cr3t"}'>
+  <legend class="ds-fieldset__legend">Environment variables</legend>
+  <div class="ds-kveditor__head" aria-hidden="true"><span>Key</span><span>Value</span></div>
+  <ul class="ds-kveditor__rows"></ul>
+  <div class="ds-kveditor__foot">
+    <button class="ds-btn ds-btn--text ds-kveditor__add" type="button">[icon plus 18] Add variable</button>
+  </div>
+</fieldset>
+```
+
+```js
+const editor = DS.get(el, 'kveditor');               // or DS.kveditor.create(el, { value, secret: /TOKEN/i })
+el.addEventListener('ds:change', ({ detail }) => save(detail.value));   // { rows, value, duplicates }
+editor.toObject();                                   // { API_URL: 'https://api.example.test', API_TOKEN: 's3cr3t' }
+```
+
+The rows are the module's: `li.ds-kveditor__row` with a `.ds-kveditor__key` field, the value in `.ds-kveditor__value`
+(its field `.ds-kveditor__input`), a `.ds-kveditor__remove` icon button and a `.ds-kveditor__hint` under them. The page
+gives the frame: a `<fieldset>` with a legend names the group and disables every field at once; the column labels
+`.ds-kveditor__head` (hidden from screen readers, the fields have names of their own); the `.ds-kveditor__rows` list;
+and a `.ds-kveditor__foot` with its `.ds-kveditor__add` button (made, "Add row", when the markup has none).
+
+- **The value.** `data-ds-value` (JSON: an object, or a list of `{ key, value, secret }`; KEY=value text also reads) at
+  the start; `set(value)` from the page. With `data-ds-kveditor-name` a hidden input of that name carries the object as
+  JSON, or KEY=value lines with `data-ds-kveditor-format="env"`, so a plain form submits it.
+- **Add and remove.** Add appends an empty row and focuses its key; Remove takes a row out on `DS.motion.flip()` (the
+  others glide) and says so. Focus moves to the next row's Remove, else the one before, else Add.
+- **Paste.** Pasting text with `KEY=value` lines into a key, or several such lines into a value, fills that row (when
+  empty) and adds the others after it, as `DS.kveditor.parse()` reads them: blank lines and `#` comments skipped,
+  `export ` dropped, quotes and escapes read as a `.env` file has them. "Pasted 4 rows" is spoken. Into a value, text
+  whose lines do not all assign (a certificate, a JSON document) is not split: it stays that value, as the field takes
+  it.
+- **Duplicates.** A key that comes twice gives every row of it `data-status="warning"`: the key takes the warning edge
+  and the hint says which rows share it, with an icon ("API_URL is also on row 3: the last one counts"), named in the
+  key's `aria-describedby`. A value without a key warns too. Warnings never block: `toObject()` keeps the last row of a
+  key.
+- **Secrets.** A row whose key matches `data-ds-kveditor-secret` (a pattern, case-insensitive), or one given with
+  `secret: true`, masks its value (`type="password"`) inside an [input group](#form) with a reveal button
+  (`.ds-kveditor__reveal`, `aria-pressed`, "Show the value of API_TOKEN"). The secret stays in the page's memory as
+  typed: masking hides it from onlookers, not from scripts.
+- **Keys.** Enter in a key goes to its value; Enter in a value goes to the next row's key, or adds a row after the last
+  one when it has a key. Tab goes through key, value, reveal and Remove of each row.
+
+**JS API.** `DS.get(el, 'kveditor')` or `DS.kveditor.create(el, { value, name, format, secret })` (the options win
+over the attributes) return the controller: `get()` (the rows `{ key, value, secret }`), `set(value)`,
+`add(row, index)` (returns the new row element), `remove(index)`, `toObject()`, `toText()` (KEY=value lines),
+`on('change', fn)` and `destroy()`. `ds:change` on the editor carries `{ rows, value, duplicates }` after every edit.
+
+The helpers: `DS.kveditor.parse(text)` (KEY=value lines as rows), `DS.kveditor.stringify(rows)` (rows as lines,
+quoting values with blanks, quotes, `#` or line breaks), `DS.kveditor.duplicates(rows)` (a `Map` of each key that comes
+more than once to its row indices) and `DS.kveditor.toObject(rows)` (the last row of a key wins, rows without a key
+left out).
+
+**Options** ([options.md](options.md)): classes on the editor or any ancestor; the nearest wins.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Variant | `.ds-kveditor--code` | the editor | keys and values in the monospace family (`--ds-font-mono`), at the field's size |
+| Size | `.ds-xs`, `.ds-sm`, `.ds-md`, `.ds-lg`, `.ds-xl` | the editor or a group | the fields and buttons step themselves ([Form](#form), [Button](#button)) |
+| Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container | the room between rows and inside a row 2px less per step (never under 4px); the fields 4px per step |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the fields and buttons follow |
+| Touch | `.ds-touch` | the theme or a container | fields and buttons at least `--ds-touch-target` (48px) |
+| Tone | none | | a warning is `data-status`, with its icon and words |
+
+**Narrow.** Under 480px of the editor (a container query) the key and Remove share the first line, the value takes the
+second, a hairline parts the rows and the column labels go.
+
+**Keyboard and names.** A `<fieldset>` with its legend names the group. Each field has a name with its row: "Key, row
+2", "Value of API_URL"; Remove and reveal name the key they act on. Additions, removals and pastes are spoken through
+the announcer ([DS.a11y](core.md#accessibility-helpers)); a warning is in the key's description, read when it takes
+focus.
+
+**Forced colours.** A warning key keeps a 2px `CanvasText` edge, the hint its icon and words; fields and buttons are
+Form's and Button's.
+
+**Hooks:** `--ds-kveditor-key-width` (2fr: the key's share beside the value's 3fr), `--ds-kveditor-gap`
+(`--ds-space-2`); the hint reads `--ds-field-warning-color` ([theming.md](theming.md#component-hooks)). The attributes
+`data-status` and `data-secret` on a row are the module's.
+
+**Motion:** rows come and go through `DS.motion.flip()` (a new row fades in over `--ds-dur-fast`, the others glide);
+a hint fades in (`ds-fade-in`, `--ds-dur-fast`).
+
+**Strings:** `kvAdd`, `kvKeyLabel`, `kvValueLabel`, `kvValueOf`, `kvRemove`, `kvRemoveRow`, `kvShow`, `kvShowRow`,
+`kvDuplicate`, `kvNoKey`, `kvRemoved`, `kvRemovedRow`, `kvPasted` and `remove` ([install.md](install.md#language-and-locale)).
+
+<!-- changelog -->
+- Key-value editor (`.ds-kveditor`, `DS.kveditor`): rows of a key and a value with add and remove, paste of
+  `KEY=value` lines, a warning on duplicate keys, secret values with reveal, a hidden input for plain forms and
+  `toObject()`; the helpers `parse()`, `stringify()`, `duplicates()` and `toObject()`.
+## Query input
+
+A search field whose filters become tokens, such as `status:open` or `priority:>2`, with suggestions for keys,
+operators and values, saved queries and keyboard editing of the tokens. It sends a structured query.
+
+```html
+<div class="ds-query" data-ds-query data-ds-query-store="tickets" data-ds-query-name="q"
+     data-ds-query-keys='[{ "key": "status", "label": "Status", "values": ["open", "pending", "closed"] },
+                          { "key": "priority", "label": "Priority", "type": "number" },
+                          { "key": "assignee", "label": "Assignee", "values": ["Ada Lovelace", "Grace Hopper"] }]'>
+  <label class="ds-field__label" for="ticket-query">Filter tickets</label>
+  <div class="ds-query__row">
+    <div class="ds-combo ds-combo--multi ds-query__box">
+      <span class="ds-query__icon" aria-hidden="true">[icon search 20]</span>
+      <input class="ds-input ds-combo__input ds-query__input" id="ticket-query" placeholder="status:open printer">
+      <button class="ds-combo__clear" type="button" hidden>[icon close 20]</button>
+      <div class="ds-combo__popup" hidden>
+        <div class="ds-combo__list"></div>
+        <p class="ds-combo__status" role="status"></p>
+      </div>
+    </div>
+    <button class="ds-btn ds-btn--icon ds-query__save" type="button" data-tip="Save this query">[icon bookmark 20]</button>
+  </div>
+</div>
+```
+
+```js
+el.addEventListener('ds:change', ({ detail }) => loadTickets(detail.filters, detail.text));
+const query = DS.get(el, 'query');           // or DS.query.create(el, { keys, values, store, name, value })
+query.set('status:open assignee:"Ada Lovelace"');
+query.get();   // { terms, filters: [{ key: 'status', op: 'is', values: ['open'] }, ...], text: '', invalid: [], value: '...' }
+```
+
+The parts are other components': the box is Combobox's box of several values (`.ds-combo--multi`), the list its
+grouped list, a token an input chip of [Chips](#chips) (`.ds-chip--input`). The module writes the tokens into
+`.ds-query__tokens` (a run without a box of its own, made when the markup has none), the list, the status line, the
+names (`role="combobox"`, `aria-controls`, `aria-activedescendant`, the clear and save buttons' `aria-label` when the
+markup has none) and, with `data-ds-query-name`, a hidden input with the text for a plain form.
+
+- **The language.** `key:value`; several values `key:a,b` (any of them); quotes for spaces, `key:"two words"`; `-key:value`
+  or `key:!value` for "is not"; `key:>3`, `key:>=3`, `key:<3`, `key:<=3` for keys that compare. The other words are
+  the free text. `data-ds-query-keys` (JSON, or the option `keys`) names the keys: `key`, `label`, `description`, `type`
+  (`text`, `number` or `date`: ISO dates), `values` (texts, or `{ value, label, description }`), `operators` (default `is`
+  and `not`; numbers and dates all six) and `free` (a value outside `values` is fine). A filter of a key the page did not
+  name, a value outside its list, a number or date that is none, or an operator its key does not take makes an
+  **invalid token**: the error tone on the chip, the alert icon and the reason in its name and tooltip; it stays out of
+  `filters`.
+- **Suggestions.** Typing opens the list: the keys whose name or label fits (with the saved queries above them while the
+  field is empty), then after `key:` the operators the key compares with and its values (what is typed narrows them;
+  values already in the filter leave). Words that are no filter offer `Search for "printer"`. The status line counts
+  the suggestions, or says that there are none. The option `values(key, typed)` may return a key's values, or a promise
+  of them, as the person types (the list is `aria-busy` meanwhile; a late answer to an older text is dropped).
+- **Tokens.** Choosing a value, Space after a complete filter, or Enter turns the typed text into tokens (free words join
+  the free text there is, one phrase). A token reads `Status: open`, `Priority ≥ 2`, `Status ≠ closed`: the key
+  (`.ds-query__key`, at the label weight, with the colon for "is"), the operator (`.ds-query__op`) and the value
+  (`.ds-query__value`), all hidden from screen readers; its name says it in words ("Remove filter Priority at least
+  2"), its description how to edit it.
+- **Saved queries.** `.ds-query__save` (`aria-disabled` while there are no tokens) asks for a name (`DS.overlay.prompt()`)
+  and keeps the query in [DS.store](core.md#dsstore-remembered-preferences) (namespace `query`, the key
+  `data-ds-query-store`; without it, for this page only). The list shows them while the field is empty: choosing one
+  applies it, Delete on one removes it.
+- **Events** on the `.ds-query`: `ds:change` with the query after every change of the tokens, `ds:submit` with it on
+  Enter in the empty field, `ds:saved` (`{ name, value }`) after a save.
+
+**JS API.** `DS.get(el, 'query')` or `DS.query.create(el, options)` return the controller: `get()` (the query:
+`terms`, `filters`, `text`, `invalid`, `value`), `set(value)` (text or terms), `add(value)` (text, a term or terms;
+returns whether any came of it), `remove(index)` (the focus stays where it is, unless it was on that token: then the
+field takes it), `clear()`, `setKeys(keys)`, `saved()`, `save(label)`,
+`on(type, fn)` (`change`, `submit`, `saved`) and `destroy()`. `data-ds-value` is the first query. The helpers:
+`DS.query.parse(text, keys)` (terms `{ key, op, values, invalid }`), `DS.query.stringify(terms)`,
+`DS.query.toQuery(terms)` (the structured query) and `DS.query.suggest(typed, keys)` (what the list would offer).
+
+**Options** ([options.md](options.md)): classes on the query or any ancestor; the nearest wins.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Size | `.ds-xs`, `.ds-sm`, `.ds-md`, `.ds-lg`, `.ds-xl` | the query or a container | the box, tokens, list and save button step themselves; the glyph's room 4px per step |
+| Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container | the box, tokens and options (Combobox, Chips) |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the box, tokens, list and button |
+| Touch | `.ds-touch` | the theme or a container | box, tokens, options and the save button at least `--ds-touch-target` (48px) |
+| Tone | none | | an invalid token takes the error tone with its icon and words |
+
+**Keyboard and names.** The field is a combobox (the WAI pattern): ArrowDown and ArrowUp open the list and move the
+active suggestion (`aria-activedescendant`), Enter takes it (a key goes into the field, a value or a saved query makes
+tokens), Escape closes the list and then empties the field, Tab leaves it. Enter without an active suggestion turns the
+text into tokens, and in the empty field sends `ds:submit`. Backspace in the empty field takes the last token back into
+it to edit. ArrowLeft at the field's start moves to the tokens (`tabindex="-1"`: the field is the one tab stop): the
+arrows, Home and End move, End and Escape go back to the field, Backspace removes and moves left, Delete removes and
+moves right, F2 edits, and a press (Enter, Space, a click) removes, as on every input chip. Additions, removals, edits
+and saved queries are spoken through the announcer ([DS.a11y](core.md#accessibility-helpers)). The field needs a label;
+the list is named "Suggestions" unless the markup names it.
+
+**Forced colours.** The box, list, tokens and button are their components': the box keeps its border and the focus
+outline, the active option a `Highlight` outline, a token its edge; the glyph is `CanvasText`.
+
+**Motion:** the list's ([Combobox](#combobox)): it grows out of the box on the spring and leaves with a fade. Tokens
+come and go at once.
+
+**Strings:** `queryIs`, `queryNot`, `queryGt`, `queryGte`, `queryLt`, `queryLte`, `queryOr`, `queryText`, `queryRemove`,
+`queryTokenHint`, `queryUnknownKey`, `queryBadOp`, `queryBadValue`, `querySuggestions`, `queryKeys`, `queryOperators`,
+`querySaved`, `querySearch`, `querySearchFor`, `queryOne`, `queryMany`, `queryNoMatch`, `queryUnknown`,
+`querySavedHint`, `queryAdded`, `queryRemoved`, `queryEditing`, `queryCleared`, `queryApplied`, `queryClear`,
+`querySave`, `querySaveTitle`, `querySaveName`, `querySaveConfirm`, `querySavedAs` and `querySavedRemoved`
+([install.md](install.md#language-and-locale)).
+
+<!-- changelog -->
+- Query input (`.ds-query`, `DS.query`): filters as tokens (`key:value`, several values, quotes, `-key:` and `!`,
+  `>`, `>=`, `<`, `<=`), suggestions for keys, operators and values (static or from `values()`), invalid tokens in the
+  error tone with the reason, keyboard editing of the tokens, saved queries in `DS.store`, a hidden input and a
+  structured query in `ds:change`; `parse()`, `stringify()`, `toQuery()`, `suggest()`.
 ## Ripple
 
 A press on an action grows a circle of the content colour from the pointer (Enter or Space: from the centre) and
@@ -5062,7 +15247,7 @@ ripples.release(host);                        // end a running press by hand (no
   link (`.ds-brand`: the home link in the top bar is identity, not a control, so like a link in text it has no state
   layer, ripple or morph) and the skip link (`.ds-skip`: keyboard-only, shown while focused; its focus ring is the
   feedback). Each host positions itself in its own stylesheet (`[data-ds-ripple]` is made `position: relative`
-  with zero specificity), and it is clipped and isolated while a ripple is inside (at rest a host looks as without `.ds-ripples`). Disabled, `aria-disabled`, `aria-busy` and `.ds-btn--done` hosts (a chip or radio card
+  with zero specificity), and it is clipped and isolated while a ripple is inside (at rest a host looks as without `.ds-ripples`). A host that holds a [corner badge](#badge) (`> .ds-badge--corner`, an icon button with a count) is isolated but never clipped, so the badge over its edge stays whole: its ripple clips itself, a box over the host with the host's radius (it follows the press morph) and the circle as its `::before`, as a tab's or a table row's ripple. Disabled, `aria-disabled`, `aria-busy` and `.ds-btn--done` hosts (a chip or radio card
   whose input is disabled, also by its `<fieldset>`, or `.ds-radio--disabled`) get no ripple, and neither does a press with a pointer button other than the primary one (a right or middle click) or from a non-primary pointer (a second finger).
 - The ripple is `<span class="ds-press-ripple" aria-hidden="true" data-ds-keep>` with the runtime properties
   `--ds-ripple-x`, `--ds-ripple-y` (its centre) and `--ds-ripple-r` (the distance to the farthest corner). It
@@ -5111,6 +15296,9 @@ Forced colours show no ripple (`display: none`); the host's own forced-colours r
 `--ds-ripple-color`: [theming.md](theming.md#component-hooks).
 
 **Motion:** the press rows of [Controls](motion.md#controls) in motion.md, and "Pointer ripple" in the Motion Lab.
+
+<!-- changelog -->
+- Ripple: a host that holds a `.ds-badge--corner` is isolated but no longer clipped while it ripples; its ripple clips itself (a box over the host with the host's radius, the circle as its `::before`), as a tab's and a table row's did. Every other host clips as before.
 ## Indicator
 
 One pill behind the items of a track that glides to the active item, instead of each item painting its own background.
@@ -5270,11 +15458,25 @@ hover moves nothing. Name each button with its row ("Edit LAPTOP-0042").
 <hr class="ds-divider ds-divider--inset">
 <span class="ds-divider ds-divider--vertical" role="separator" aria-orientation="vertical"></span>
 <div class="ds-divider ds-divider--label" role="separator"><span>Today</span></div>
+<div class="ds-divider ds-divider--label ds-divider--start" role="separator"><span>Earlier</span></div>
+<div class="ds-divider ds-divider--vertical ds-divider--label" role="separator" aria-orientation="vertical"><span>or</span></div>
 ```
 
-A hairline in `--ds-line` with no margin; `--inset` starts at `--ds-space-4`; `--vertical` stands between items of a
-row; `--label` draws hairlines on both sides of a caption in the meta font and `--ds-text-2`. They are borders, so
-they stay in forced colours.
+| Class | Effect |
+|---|---|
+| `.ds-divider` | a hairline across, in `--ds-divider-color` (`--ds-line`), with no margin: space it with the layout around it |
+| `.ds-divider--inset` | starts at `--ds-space-4` (a list's text column); upright, it stops `--ds-space-2` short of the row's top and bottom |
+| `.ds-divider--vertical` | upright between the items of a row (a flex or grid row: it takes the row's height, at least `1em`) |
+| `.ds-divider--label` | hairlines on both sides of a caption in the meta font and `--ds-text-2` ("Today", "or") |
+| `.ds-divider--start`, `.ds-divider--end` (with `--label`) | the caption near that end, after a short lead hairline (`--ds-space-4`) |
+| `.ds-divider--vertical.ds-divider--label` | upright around a caption: "or" between two columns (sign in with a passkey or a password) |
+
+- Names: a divider that separates content is `role="separator"` (an `<hr>` is one by itself); an upright one adds
+  `aria-orientation="vertical"`. A purely visual one in a toolbar may be `aria-hidden="true"` instead. The caption is
+  its text, read once.
+- Options: `--inset` is the only spacing; size, density, shape and tone are not read (a hairline has no height or
+  meaning).
+- They are borders, so they stay in forced colours (`CanvasText`).
 
 ### Keys
 
@@ -5282,11 +15484,1652 @@ they stay in forced colours.
 `--ds-space-5` wide. For a shortcut write each key in its own `kbd` (`<kbd class="ds-kbd">Ctrl</kbd> <kbd
 class="ds-kbd">K</kbd>`).
 
-Hooks: `--ds-pressable-radius`, `--ds-pressable-layer`, `--ds-kbd-border`, `--ds-kbd-bg`
+Hooks: `--ds-pressable-radius`, `--ds-pressable-layer`, `--ds-kbd-border`, `--ds-kbd-bg`, `--ds-divider-color`
 ([theming.md](theming.md#component-hooks)). Forced colours: `.ds-pressable` shows no layer and keeps its ring; dividers
 and keys are borders, so they stay.
 
 **Motion:** `.ds-stale`: the "Loading bar" row of [Feedback](motion.md#feedback) in motion.md.
+
+<!-- changelog -->
+- Added: `.ds-divider--start` and `.ds-divider--end` (a caption near one end), the upright divider around a caption
+  (`.ds-divider--vertical.ds-divider--label`), the upright inset divider, and the hook `--ds-divider-color`.
+## Layout
+
+The layout primitives: a row that wraps, a side and main column, equal parts, a centred column, a full-height cover,
+a media frame and an auto-fit grid. Each sizes itself by its content and its own width, with no media query and no
+container, so the same markup fits a phone, a side sheet and a wide page.
+
+```html
+<div class="ds-cluster">                               <!-- a row that wraps: buttons, chips, filters -->
+  <button class="ds-btn" type="button">Export</button>
+  <button class="ds-btn ds-btn--filled ds-push" type="button">Add device</button>  <!-- pushed to the end -->
+</div>
+<div class="ds-cluster ds-cluster--between">…title…, …actions…</div>
+
+<div class="ds-split">                                 <!-- side beside main; stacked when main gets narrow -->
+  <section class="ds-split__side" aria-label="Filters">…filters…</section>
+  <div class="ds-split__main">…results…</div>
+</div>
+
+<div class="ds-switcher">…three key figures…</div>     <!-- one row of equal parts, or one column -->
+<div class="ds-measure">…a form or text…</div>         <!-- centred at the reading measure -->
+
+<div class="ds-cover" style="--ds-cover-min: 320px">   <!-- fills its height, __main in the middle -->
+  <p class="ds-meta">Step 2 of 3</p>
+  <div class="ds-cover__main">…sign-in card…</div>
+  <p class="ds-meta">Need help?</p>
+</div>
+
+<div class="ds-frame ds-frame--4-3"><img src="device.jpg" alt="LAPTOP-0042, front"></div>
+<div class="ds-grid">…cards…</div>                     <!-- auto-fit columns of at least 16rem -->
+<div class="ds-grid ds-grid--max-3">…tiles…</div>       <!-- the same, never more than three -->
+```
+
+The one-column stack is `.ds-stack` of [Page](#page); space any of them with the `.ds-gap-*` classes of
+[Spacing](#spacing).
+
+| Primitive | Classes | What it does |
+|---|---|---|
+| Cluster | `.ds-cluster`, `.ds-cluster--end`, `.ds-cluster--center`, `.ds-cluster--between`, `.ds-cluster--top`, `.ds-cluster--baseline`, `.ds-cluster--nowrap` | a row that wraps, items centred across; `--nowrap` keeps one line: a `.ds-truncate` title (or the item that holds one, such as a heading around it) shrinks and is cut, every other item keeps its width, an icon button or an avatar too; without a `.ds-truncate` the items shrink to their longest word |
+| Push | `.ds-push` | an item of a cluster (or any flex row) that goes to the end of its line with everything after it |
+| Split | `.ds-split`, `.ds-split__side`, `.ds-split__main`, `.ds-split--stretch` | the side at `--ds-split-side` beside main; once main would be narrower than `--ds-split-min` of the row, both stack at full width. The side may come first or second in the markup; both start at the top unless `--stretch` |
+| Switcher | `.ds-switcher`, `.ds-switcher--top` | equal parts on one row while the switcher is at least `--ds-switcher-at` wide, else each on a row of its own (never two above one); five or more parts always stack |
+| Measure (center) | `.ds-measure`, `.ds-measure--wide`, `.ds-measure--intrinsic` | a column centred at most `--ds-measure-max` wide (the reading measure; `--wide`: `--ds-content-max`); `--intrinsic` centres each child at its own width |
+| Cover | `.ds-cover`, `.ds-cover__main`, `.ds-cover--screen` | at least `--ds-cover-min` high (`--screen`: the dynamic viewport), `__main` vertically centred, the parts before and after it at the edges |
+| Frame | `.ds-frame`, `.ds-frame--square`, `.ds-frame--4-3`, `.ds-frame--3-4`, `.ds-frame--16-9`, `.ds-frame--21-9` | an aspect ratio (`--ds-frame-ratio`, 16 / 9) that crops an `img`, `video`, `iframe`, `canvas` or `picture` to cover it; anything else is centred on `--ds-surface-low` |
+| Grid | `.ds-grid`, `.ds-grid--fill`, `.ds-grid--max-2`, `.ds-grid--max-3`, `.ds-grid--max-4`, `.ds-grid--max-6` | as many columns as fit at `--ds-grid-min` (one on a phone); `--fill` keeps the empty tracks, so a lone card stays one column wide; `--max-n` never more than n, whatever the gap |
+
+| Option | Applies to | Effect |
+|---|---|---|
+| `.ds-density-*` | the gaps of cluster, split, switcher and grid | 2px less per step (the padding of blocks), never below 0 |
+| `.ds-gap-*` ([Spacing](#spacing)) | every primitive | an exact gap on the space scale, whatever the density |
+| `.ds-shape-*` | `.ds-frame` | multiplies its radius |
+| Size, tone, touch | not read | a primitive has no height or meaning; its children compute their own |
+
+- Behaviour: none; plain CSS. Nothing moves: a primitive never animates its layout.
+- Accessibility: the visual order is the markup order everywhere (no `order`, no reversed direction), so reading and
+  Tab order follow what is seen. `.ds-split` stacks the side where it stands in the markup: put a filter side first,
+  a details side last. A frame's media keeps its own `alt` or label.
+- Forced colours: the primitives draw nothing; a frame keeps a transparent outline that becomes its edge.
+- Hooks: `--ds-cluster-gap`, `--ds-split-gap`, `--ds-switcher-gap`, `--ds-grid-gap`, `--ds-split-side`,
+  `--ds-split-min`, `--ds-switcher-at`, `--ds-measure-max`, `--ds-measure-pad`, `--ds-cover-min`, `--ds-cover-pad`,
+  `--ds-frame-ratio`, `--ds-frame-radius`, `--ds-grid-min` ([theming.md](theming.md#component-hooks)); set them on the
+  element (`style="--ds-grid-min: 12rem"`) or in the theme.
+
+<!-- changelog -->
+- Added: Layout, the layout primitives `.ds-cluster`, `.ds-push`, `.ds-split`, `.ds-switcher`, `.ds-measure`
+  (center), `.ds-cover`, `.ds-frame` and the auto-fit grid `.ds-grid` (`--ds-grid-min`, `--max-n`, `--fill`), with
+  their hooks.
+## Container presets
+
+Three widths a region can have (compact, medium, expanded), as classes that query the nearest container instead of
+the window: a part of the page reacts to the room it has, in a side sheet, a card or beside an open drawer.
+
+```html
+<section class="ds-container">                                      <!-- a container (inline size) -->
+  <div class="ds-cluster ds-stack-compact">                         <!-- a row; a column of full-width items when compact -->
+    <button class="ds-btn" type="button">Export</button>
+    <button class="ds-btn ds-btn--filled" type="button">Add device</button>
+  </div>
+  <span class="ds-meta ds-hide-compact">Last synced 09:12</span>     <!-- not when compact -->
+  <span class="ds-meta ds-only-compact">09:12</span>                 <!-- only when compact -->
+</section>
+```
+
+| Size | Container width | Typical region |
+|---|---|---|
+| compact | narrower than 600px | a phone, a side sheet, a narrow card |
+| medium | 600px to 839px | a tablet, a page beside an open drawer |
+| expanded | 840px and wider | a desktop page |
+
+| Class | Effect |
+|---|---|
+| `.ds-container` | makes the element a container (`container-type: inline-size`) |
+| `.ds-hide-compact`, `.ds-hide-medium`, `.ds-hide-expanded` | hidden at that size |
+| `.ds-only-compact`, `.ds-only-medium`, `.ds-only-expanded` | shown at that size only |
+| `.ds-stack-compact` | a flex row (a `.ds-cluster`, a head's actions) that turns into a column of full-width items when compact; a `.ds-push` item drops its auto margin there |
+
+- Below or above a size: combine two. Hidden below expanded: `.ds-hide-compact.ds-hide-medium`; hidden above compact:
+  `.ds-hide-medium.ds-hide-expanded`.
+- The nearest container decides: a `.ds-container`, the page's content area (`.ds-content`; the styleguide stage
+  too) or a component that is one (a tile). With no container around, no query matches: everything shows and
+  nothing stacks.
+- `.ds-container` takes inline-size containment: its width no longer follows its content. Use it on a block, or on
+  a flex or grid item that has a width of its own (a `.ds-split__main`), never on a shrink-to-fit item.
+- Hiding is `display: none !important`, like the `hidden` attribute: the element leaves the layout and the
+  accessibility tree, whatever `display` a component gives it. Keep every action and name reachable at every size: an
+  action that hides when compact moves into a menu that shows only then, and an icon button keeps its `aria-label`.
+- Options: none read; these classes have no look.
+- Forced colours: nothing of their own. Print: a container keeps querying its own width on paper (the content of an
+  A4 page in portrait is about 720px wide: medium); hide what paper does not need with `.ds-print-hide`
+  ([Print](#print)).
+
+<!-- changelog -->
+- Added: Container presets, `.ds-container` and the visibility classes `.ds-hide-compact`, `.ds-hide-medium`,
+  `.ds-hide-expanded`, `.ds-only-compact`, `.ds-only-medium`, `.ds-only-expanded` and `.ds-stack-compact` on the
+  container sizes compact (under 600px), medium (600-839px) and expanded (840px and up).
+## Spacing
+
+The gap between the parts of a flex or grid container and, for the rare case, a top margin, both on the space
+scale (a 4px grid).
+
+```html
+<div class="ds-stack ds-gap-2">…</div>          <!-- 8px between the parts -->
+<div class="ds-cluster ds-gap-6">…</div>        <!-- 24px -->
+<div class="ds-grid ds-gap-0">…</div>           <!-- none -->
+<p class="ds-mt-4">…</p>                          <!-- 16px above -->
+<section class="ds-card" style="display: flex; flex-direction: column">
+  …
+  <div class="ds-card__links ds-mt-auto">…</div> <!-- pushed to the foot -->
+</section>
+```
+
+| Class | Value |
+|---|---|
+| `.ds-gap-0` | `gap: 0px` |
+| `.ds-gap-1`, `.ds-gap-2`, `.ds-gap-3`, `.ds-gap-4`, `.ds-gap-5`, `.ds-gap-6`, `.ds-gap-8`, `.ds-gap-10`, `.ds-gap-12` | `gap: --ds-space-<n>` (4, 8, 12, 16, 20, 24, 32, 40, 48px) |
+| `.ds-mt-0` | `margin-block-start: 0px` |
+| `.ds-mt-1`, `.ds-mt-2`, `.ds-mt-3`, `.ds-mt-4`, `.ds-mt-5`, `.ds-mt-6`, `.ds-mt-8`, `.ds-mt-10`, `.ds-mt-12` | `margin-block-start: --ds-space-<n>` |
+| `.ds-mt-auto` | `margin-block-start: auto`: in a flex column, this block and what follows go to the end |
+
+- Space between parts is the container's gap: set it on the stack, cluster, grid or row, never as margins on the
+  children. A margin is for what a container cannot give: one block set apart in flowing text, or an item pushed to
+  the end of a column (`.ds-mt-auto`; across a row it is `.ds-push` of [Layout](#layout)).
+- They come after every component but the ripple in the cascade, so they set the gap of a stack, a cluster, a card's
+  rows or a form row whatever the component gives it. Unlayered project CSS still wins over them.
+- An exact step: density does not change it. The primitives' own default gaps follow density instead
+  ([Layout](#layout)).
+- Options, forced colours, motion: none; these classes set space only.
+
+<!-- changelog -->
+- Added: Spacing, the gap classes `.ds-gap-0` to `.ds-gap-12` and the top margins `.ds-mt-0` to `.ds-mt-12` and
+  `.ds-mt-auto`, on the space scale.
+## Text utilities
+
+How a run of text wraps, cuts and sets its figures: clamp, break, mono, tabular, balance. One line cut with an
+ellipsis at its end, start or middle is [Truncate](#truncate).
+
+```html
+<p class="ds-clamp-2">A description that shows at most two lines, then an ellipsis.</p>
+<p class="ds-clamp" style="--ds-clamp-lines: 7">At most seven lines.</p>
+<code class="ds-break">sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08</code>
+<span class="ds-mono">SN 4C1-77Q</span>
+<span class="ds-tabular">1,284</span>
+<h2 class="ds-balance">Pair a new device with the console in three steps</h2>
+<p class="ds-pretty">A paragraph that ends without a lone last word.</p>
+<span class="ds-nowrap">512 GB</span>                 <!-- Utilities -->
+```
+
+| Class | Effect |
+|---|---|
+| `.ds-clamp-1`, `.ds-clamp-2`, `.ds-clamp-3`, `.ds-clamp-4`, `.ds-clamp-5` | at most so many lines, then an ellipsis; a long word breaks anywhere; in a flex or grid row that stretches its items it keeps its own height (`align-self: start`), so no line shows past the ellipsis |
+| `.ds-clamp` | the same for `--ds-clamp-lines` lines (2) |
+| `.ds-break` | long tokens (hashes, URLs, serial numbers) break anywhere instead of widening their column |
+| `.ds-mono` | the code family (`--ds-font-mono`) at the size of the text around it, without ligatures |
+| `.ds-tabular` | figures of one width, so counts and times line up (`.ds-num` also aligns them to the end) |
+| `.ds-balance` | lines of even length: headings, short leads |
+| `.ds-pretty` | no lone last word: paragraphs (progressive, below) |
+| `.ds-nowrap` | keeps a value and its unit together ([Utilities](#utilities)) |
+
+- Cut text stays complete for everyone: the clipped text is still in the accessibility tree, but someone who reads
+  the screen needs a way to the full text too, such as a tooltip (`data-tip` with the full text: a tip that repeats
+  the visible text shows only while the text is cut, [Tooltip](#tooltip)), a details view or the page the item opens. A truncated link or row keeps its full name.
+- Options: none read. The text keeps the type role of where it stands; size changes type through the components.
+- Print: the clamps print in full (paper is as wide as it is).
+- Forced colours: nothing of their own; the ellipsis is text.
+- Progressive: `.ds-pretty` (`text-wrap: pretty`) wraps as usual where it is missing. `.ds-balance` is at the floor.
+- Hooks: `--ds-clamp-lines` ([theming.md](theming.md#component-hooks)), on the element.
+
+<!-- changelog -->
+- Added: Text utilities, `.ds-clamp-1` to `.ds-clamp-5`, `.ds-clamp` (`--ds-clamp-lines`),
+  `.ds-break`, `.ds-mono`, `.ds-tabular`, `.ds-balance` and `.ds-pretty`.
+## Sticky
+
+A head, a foot or a side that stays in view while its scroller moves, with a raised edge (a hairline and a shadow
+towards the content) once content passes under it.
+
+```html
+<div class="x-ticket-list" style="overflow: auto; max-block-size: 24rem">     <!-- any scroller, or the page -->
+  <header class="ds-sticky ds-sticky--head">Tickets · 12 open</header>
+  <ul class="ds-list">…</ul>
+  <div class="ds-sticky ds-sticky--foot">3 selected …actions…</div>
+</div>
+
+<div class="ds-split">
+  <nav class="ds-split__side ds-sticky ds-sticky--side" aria-label="On this page">…</nav>   <!-- stays beside long content -->
+  <div class="ds-split__main">…</div>
+</div>
+
+<div class="x-wide-board" style="overflow-x: auto">
+  <div class="x-row"><span class="ds-sticky ds-sticky--start">LAPTOP-0042</span> …columns…</div>
+</div>
+```
+
+| Class | Sticks to | Edge |
+|---|---|---|
+| `.ds-sticky--head` | the top of its scroller (block start) | below it, once rows pass under it |
+| `.ds-sticky--foot` | the bottom (block end) | above it, while rows are hidden under it |
+| `.ds-sticky--start` | the inline start of a sideways scroller | at its end side, once columns pass under it |
+| `.ds-sticky--end` | the inline end | at its start side, while columns are hidden under it |
+| `.ds-sticky--side` | the top, as a side column beside long content | none: no fill and no edge, nothing passes under it; it keeps its own height in a flex or grid row (`align-self: start`) |
+| `.ds-sticky--flat` | (with one of the above) | never |
+
+Every box needs `.ds-sticky` and one placement. It is opaque (`--ds-sticky-bg`, the surface) and above what scrolls
+under it (`--ds-z-sticky`); a table has sticky rows and pinned columns of its own ([Table](#table)).
+
+**The raised edge.** A layer under the box's content carries the hairline (`--ds-sticky-line`) on the side that
+faces the content and the shadow (`--ds-sticky-shadow`) beyond it. Where scroll-driven animations exist it follows
+the scroller's scroll timeline: the head and the start column raise it over the first `--ds-space-2` of scroll, the
+foot and the end column lower it over the last `--ds-space-2`. Elsewhere it shows over `--ds-dur-fast` from
+attributes the page attaches once through `DS.dom`:
+
+```js
+DS.dom.watchScrolled(list, head);                  // head: data-scrolled on the head (or watchScrolled(list): on the list, the head a child of it)
+DS.dom.scrollEdges(list, { axis: 'block' });       // foot: data-ds-overflow-end on the list
+DS.dom.scrollEdges(board);                         // start and end: data-ds-overflow-start, data-ds-overflow-end
+```
+
+Watch a scroller on the axis its boxes stick on (the attributes of both axes have the same names). Both paths read
+the scroller, not the box: a head that sits lower in its scroller raises its edge from the first scrolled pixel, before
+it sticks, so put a head first in its scroller.
+
+- `--ds-sticky-offset` (0px) is the distance from the scroller's edge: a page that scrolls under a fixed top bar
+  sets it to the bar's height, a second head below a first to the first one's height.
+- Keyboard: focus that moves under a head or a foot scrolls clear of it only if the scroller keeps room: give it
+  `scroll-padding-block-start` (the head's height) and `scroll-padding-block-end` (the foot's).
+- Accessibility: the box stays where it is in the reading and Tab order; make a head a `header` (or a heading in
+  it), a foot a `footer`, a side a landmark with its name (`nav aria-label="On this page"`).
+- Options: none read. The box is a frame; its controls compute their own size, density and touch.
+- Forced colours: the box is Canvas, the shadow goes and the hairline stays (a border).
+- Print: nothing sticks; the box prints where it stands, with no edge.
+- Progressive: scroll-driven animations (the edge on the scroller's scroll timeline); without them the `DS.dom`
+  attributes above, or no edge.
+- Hooks: `--ds-sticky-offset`, `--ds-sticky-bg`, `--ds-sticky-line`, `--ds-sticky-shadow`
+  ([theming.md](theming.md#component-hooks)).
+
+**Motion:** the edge fades on `ds-scroll-fade` along the scroll position, or on `--ds-dur-fast` in the fallback;
+the box itself never moves on its own.
+
+<!-- changelog -->
+- Added: Sticky, `.ds-sticky` with `--head`, `--foot`, `--start`, `--end`, `--side` and `--flat`: a raised edge
+  once content passes under the box, on the scroller's scroll timeline or through `DS.dom.watchScrolled()` and `DS.dom.scrollEdges()`. Hooks
+  `--ds-sticky-offset`, `--ds-sticky-bg`, `--ds-sticky-line`, `--ds-sticky-shadow`.
+## Print
+
+What goes on paper and how it breaks into sheets. Every component already prints itself sensibly: the app frame's
+bars and drawer stay off, scrollers unroll, tables repeat their header row and keep rows whole, open overlays stay
+off. These classes are for the page's own content.
+
+```html
+<div class="ds-cluster ds-print-hide">…filters and actions…</div>        <!-- screen only -->
+<p class="ds-meta ds-print-only">Printed on 2026-11-04 by Ada Lovelace</p>  <!-- paper only -->
+<section class="ds-print-break-before">…</section>                        <!-- starts a new sheet -->
+<figure class="ds-print-avoid">…</figure>                                  <!-- never split -->
+<div class="ds-print-exact">…a chart whose fills carry meaning…</div>
+<div class="ds-print-urls">…links print their address…</div>
+
+<section class="ds-print-page">                                            <!-- a printable report or invoice -->
+  <header class="ds-cluster ds-cluster--between">…</header>
+  <table class="ds-table">…</table>
+</section>
+<button class="ds-btn ds-print-hide" type="button">[icon printer 16] Print</button>              <!-- the page calls print() -->
+```
+
+| Class | Screen | Paper |
+|---|---|---|
+| `.ds-print-only` | hidden | shown |
+| `.ds-print-hide` | shown | hidden |
+| `.ds-print-break-before`, `.ds-print-break-after` | – | a new sheet before or after it |
+| `.ds-print-avoid` | – | never split across two sheets (a figure, a card, a total with its last rows) |
+| `.ds-print-exact` | – | fills and colours print as shown; the browser drops backgrounds to save ink otherwise |
+| `.ds-print-urls` | – | every `http(s)` link inside prints its address after its text, inline, also where a component lays the link's `::after` out as a box (the stretched link of an interactive card) |
+| `.ds-print-page` | a sheet: `--ds-print-page-width` (210mm, A4) wide, centred, `--ds-print-page-pad` inside, the surface and a soft shadow | the paper's full width, no frame; the light scheme of the theme (its `light-dark()` roles); headings kept with what follows them, figures, images, code and quotes whole, no line alone at the top or foot of a sheet |
+
+- Hiding is `display: none !important`, like the `hidden` attribute, whatever `display` a component gives the
+  element.
+- Paper keeps the browser's page margins (the print dialog sets them); `.ds-print-page` adds none of its own in print.
+- A page that prints in a dark theme file of its own (`themes/dark.css`, which sets dark values rather than
+  `light-dark()`) prints dark inside `.ds-print-page` too: load the light theme for print where that matters.
+- Status on paper: tones are colour, and colour may not print; the icon and the word of a status chip or an alert
+  still carry the meaning. Use `.ds-print-exact` where a fill carries meaning (a chart, a heat map).
+- Options: shape multiplies the sheet's radius on screen; size, density, tone and touch are its content's own.
+- Forced colours: the sheet keeps a transparent outline that becomes its edge.
+- Hooks: `--ds-print-page-width`, `--ds-print-page-pad` ([theming.md](theming.md#component-hooks)).
+
+<!-- changelog -->
+- Added: Print, `.ds-print-only`, `.ds-print-hide`, `.ds-print-break-before`, `.ds-print-break-after`,
+  `.ds-print-avoid`, `.ds-print-exact`, `.ds-print-urls` and the printable sheet `.ds-print-page`
+  (`--ds-print-page-width`, `--ds-print-page-pad`).
+## Wheel
+
+A live status line that says what is running right now ("Thinking", "Running npm test", "Writing"), readable at every
+step and quiet enough to stay in the background: a new line pushes the old one out, like the drum of a counter. Put
+a `.ds-shimmer` on the line for "something is at work".
+
+```html
+<span class="ds-wheel">
+  <span class="ds-wheel__line" data-ds-key="Thinking">Thinking</span>
+</span>
+
+<!-- or: the module draws the lines, a change of the attribute rolls -->
+<span class="ds-wheel" data-ds-wheel="Thinking" data-ds-wheel-shimmer></span>
+```
+
+Two ways to draw the lines, never both on one slot:
+
+- **The page renders them** and re-renders with `DS.dom.morphHtml(container, markup, DS.wheel.hooks)`. Key each line by
+  what it says (`data-ds-key`): a new text is a new key, so the morph inserts a line and removes the old one, and the
+  hooks turn them. The same key with other children (a figure that ticks inside the line) is patched in place and does
+  not roll. Merge the hooks with `DS.motion.flip()`'s or the page's own where both are needed.
+- **The module renders them**: `data-ds-wheel` holds the text (`DS.init()` finds it, and a change of the attribute
+  rolls), or `DS.wheel.roll(slot, text)` and `DS.wheel.create(slot, options)` from a script. Its lines carry
+  `data-ds-keep`, so a re-render around the slot keeps them: render the slot empty and change only the attribute.
+  `data-ds-wheel-shimmer` (or `shimmer: true`) makes every new line a `.ds-shimmer`.
+
+```js
+DS.dom.morphHtml(status, `<span class="ds-wheel"><span class="ds-wheel__line" data-ds-key="${esc(step)}">${esc(step)}</span></span>`, DS.wheel.hooks);
+DS.wheel.roll(slot, 'Running npm test', { shimmer: true });   // a line of its own; resolves when it rests
+const line = DS.wheel.create(slot, { text: 'Thinking', shimmer: true });   // or DS.core.get(slot, 'wheel')
+line.set('Writing');                                          // rolls; ds:change { text } on the slot
+line.get();                                                   // 'Writing'
+line.on('change', ({ text }) => {});
+DS.wheel.turnAt(restAt, now, hold, shown);                    // the hold's arithmetic (the ms a turn starts at)
+```
+
+| Export | What |
+|---|---|
+| `hooks` | `{ onInsert, onRemove }` for `DS.dom.morphHtml()`: a line inserted into a `.ds-wheel` rolls in, one removed rolls out (kept as a pending removal until then); other nodes are left to the morph |
+| `roll(slot, text, { shimmer })` | rolls the slot to a line of its own with `text`; an empty slot shows it at once; the same text again changes nothing (`shimmer` switches the current line's shimmer). Returns a promise that resolves when the new line rests |
+| `create(slot, { text, shimmer })` | the controller (below) of a slot the module draws; its first text shows at once |
+| `turnAt(restAt, now, hold, shown)` | when the next turn starts: after the hold of the line that showed last, at once for the first turn, and at its own time when the last line never showed |
+
+The controller: `get()` (the text), `set(text, { shimmer })` (rolls), `on('change', fn)` (returns the unsubscribe) and
+`destroy()`; `ds:change` with `{ text }` bubbles from the slot after a `set()` that changed the text.
+
+**Options.** None of its own: it takes the type, colour and line height of where it sits (a status row, a summary), so
+size and density reach it through its host; shape and tone have nothing to act on. Each line is as wide as its text,
+capped at the slot, and cut with an ellipsis.
+
+**Accessibility.** The leaving line is `aria-hidden` and `inert` (the morph's pending removal, or the module's own).
+The slot is no live region of its own: a page that wants the changes announced puts the slot in one
+(`aria-live="polite"`) and keeps ticking figures (an elapsed time, a count) out of it, so only a new step is spoken.
+
+**Forced colours.** Nothing of its own: the soft edge is a mask, a shape, so it stays.
+
+**Hooks.** `--ds-wheel-travel` (100%: how far a line glides, one line, its own height), `--ds-wheel-fade`
+(`--ds-space-3`: the soft edge above and below the slot, given back by a negative margin)
+([theming.md](theming.md#component-hooks)).
+
+**Motion.** Both lines glide together, one `--ds-wheel-travel` apart, on `--ds-dur-slow` and `--ds-ease-in-out`: the
+old line up and out through the slot's soft top edge, the new one up from below through the bottom edge. Each line's
+opacity runs on its glide's curve, so a line is only as visible as it is inside the slot. Only translate and opacity:
+on the standard curve, never 3D and never a blur, so the text stays as sharp in motion as at rest.
+
+- **Hold.** Every line shows for at least `--ds-hold-status` from the start of its roll. A change during the hold
+  waits (its line hidden in the delay of its entrance; the old line's exit waits as long); a later change takes the
+  waiting line's place, and the waiting line goes at once without ever showing. A quick run of changes rolls once, to
+  the last, and never flickers. A line that has not shown holds nothing: the line that replaces it takes its time.
+- **Interruption.** A line removed during its own entrance glides out from where it is (its computed transform and
+  opacity), held there through any delay; when its exit waits out a hold that outlasts the entrance, the entrance
+  first runs to its end, so the line never jumps. The line that goes and the line that comes in one task share the turn's delay.
+- **First render.** A slot that is new shows its line at once; only a line inserted into a slot that was already there
+  rolls.
+
+<!-- changelog -->
+- Wheel (`.ds-wheel`, `DS.wheel`): a live status line whose new line pushes the old one out, with a hold so a quick run
+  of changes rolls once; morph hooks (`DS.wheel.hooks`), `DS.wheel.roll()`, `DS.wheel.create()` and `data-ds-wheel`.
+  Hooks `--ds-wheel-travel`, `--ds-wheel-fade`. The reference implementation of plans/wheel-and-shimmer.md, as a
+  component module (`DS.wheel.hooks` and `DS.wheel.roll` stand for the plan's `DS.motion.wheelHooks` and
+  `DS.motion.wheel`).
+## Shimmer
+
+"Something is at work" on the words themselves: a soft glint travels over the text of a status line, left to right, a
+pass and a pause, and nothing else on the line moves. No spinner or bar beside the text.
+
+```html
+<span class="ds-shimmer" data-shimmer="Running npm test">Running npm test</span>
+<span class="ds-wheel"><span class="ds-wheel__line ds-shimmer" data-shimmer="Thinking">Thinking</span></span>
+```
+
+`data-shimmer` is the text as it reads (the same words and spaces). The text keeps its own colour; the wave is a copy
+of it on top in the line's own type, so it lies on the letters and is cut with the same ellipsis. Give the whole line
+one weight (`<strong class="ds-shimmer">`): a bold word inside a regular line would be wider than its copy. Remove the class or the
+attribute when the work ends: the glint goes at once, the text stays. A `.ds-wheel` line takes it from
+`DS.wheel.roll(slot, text, { shimmer: true })` or `data-ds-wheel-shimmer` ([Wheel](#wheel)).
+
+- The copy is in `--ds-shimmer-glint` (white in every theme: over dark text it reads as a faint sheen passing, over
+  light text in the dark theme as a soft glint), shown through a horizontal mask only in a soft band: transparent to
+  32%, `--ds-shimmer-peak` at 50% (only its alpha counts: 55% of the text at the crest, a sheen in the background,
+  never wiping the words out), transparent from 68% of a tile `--ds-shimmer-length` (480px) long, repeated along the
+  line.
+- It is one line: `white-space: nowrap` with an ellipsis, as wide as its text and at most its container.
+- **Options.** None: it takes the type and colour of its text; size, density, shape and tone have nothing to act on.
+
+**Accessibility.** The copy's alternative text is empty (`content: attr(data-shimmer) / ""`), so the accessible name
+is the text's own, said once. The glint carries no meaning: say the state in the words ("Running", "Thinking").
+
+**Forced colours.** The copy is left out (`content: none`); the text stays.
+
+**Hooks and roles.** `--ds-shimmer-length` (480px, one tile: the band and the pause after it;
+[theming.md](theming.md#component-hooks)). The colour roles `--ds-shimmer-glint` (white in light and dark; the text
+colour in the contrast theme) and `--ds-shimmer-peak` (`color-mix(in srgb, var(--ds-text) 55%, transparent)`).
+
+**Motion.** The mask tile travels one `--ds-shimmer-length` per `--ds-loop-shimmer` (4.55s, the shape loader's round;
+`--ds-loop-loader` until that token is in the theme), linear and endless, on the progress wave's keyframe
+(`ds-progress-wave`, with `--ds-progress-wave-length` set to the tile): about 105px/s, so a short text sees one slow
+pass and a pause. Nothing else animates; the mask is the only repaint.
+
+<!-- changelog -->
+- Shimmer (`.ds-shimmer`, `data-shimmer`): a soft glint that travels over the words of a status line, on
+  `ds-progress-wave`. Hook `--ds-shimmer-length`; colour roles `--ds-shimmer-glint` and `--ds-shimmer-peak` and the
+  loop `--ds-loop-shimmer` requested (until then: a `light-dark()` of `--ds-surface` and
+  `--ds-on-primary-container`, and `--ds-loop-loader`).
+## Thinking indicator
+
+What an assistant or an agent is doing right now, while it works: the step it is on (a [wheel](#wheel) line with the
+[shimmer](#shimmer)), its current thought, how long it has been at it and how many tokens it used. It stays in the
+background: a new step rolls in and is spoken once; the time and the tokens tick quietly.
+
+```html
+<div class="ds-thinking" data-ds-thinking="Reading the device list"
+     data-ds-thinking-since="2026-11-05T09:00:00Z" data-ds-thinking-tokens="1240">
+  <span class="ds-thinking__icon"><!-- sparkle, 20px --></span>
+  <span class="ds-thinking__step" aria-live="polite"><span class="ds-wheel"></span></span>
+  <span class="ds-thinking__meta"><time class="ds-thinking__time"></time><span class="ds-thinking__tokens"></span></span>
+  <p class="ds-thinking__thought">Comparing the warranty dates of 40 devices</p>
+</div>
+```
+
+| Part | What |
+|---|---|
+| `.ds-thinking__icon` | optional: a glyph before the step, in `--ds-thinking-icon-color`; the module hides it from assistive tech |
+| `.ds-thinking__step` | the step: a `.ds-wheel` the module rolls (made when missing), its line a `.ds-shimmer` while it works. Make it the polite live region (`aria-live="polite"`), so each new step is spoken once |
+| `.ds-thinking__meta` | the elapsed time (`.ds-thinking__time`, a `<time>` gets an ISO 8601 `datetime`) and the tokens (`.ds-thinking__tokens`), quiet and tabular, joined by a dot; an empty one takes no room |
+| `.ds-thinking__thought` | optional: the current thought, two lines at most, cut with an ellipsis |
+
+The meta follows the step on its line; when both do not fit, the meta wraps under the step (a narrow column, a
+phone). The icon hangs before the first line, so what wraps lines up with the step.
+
+**Behaviour** (`DS.init()`; a change of an attribute is read again):
+
+| Attribute | What |
+|---|---|
+| `data-ds-thinking` | the step |
+| `data-ds-thinking-since` | when it started: a date text or a timestamp in ms (default: when the module found it) |
+| `data-ds-thinking-tokens` | the tokens used so far: `1.2K tokens` (the strings `tokensOne`, `tokensOther`) |
+| `data-ds-thinking-done` | present: it ended, the time stops, the shimmer goes, and `data-state="done"` is written; a value in ms is the total time |
+
+The time shows whole seconds, narrow (`12s`, `1m 5s`), on the page's one clock (`DS.format.clock()`), and stops at the
+end. The module writes the step, the time and the tokens; the page writes the thought, or `set({ thought })`.
+
+```js
+const status = DS.thinking.create(el, { step: 'Thinking', since: Date.now() });   // or DS.core.get(el, 'thinking')
+status.set({ step: 'Running npm test', tokens: 2048, thought: 'Comparing versions' });
+status.set({ done: true });                       // the time stops; set({ done: true, total: 12000 }) gives it
+status.get();                                     // { step, thought, tokens, elapsed, done }
+status.on('change', (state) => {});               // also ds:change with the state, after a set() that changed something
+DS.thinking.elapsedText(65000);                   // '1m 5s'
+DS.thinking.tokensText(1240);                     // '1.2K tokens'
+DS.thinking.isoDuration(65000);                   // 'PT1M5S'
+DS.thinking.sinceOf('2026-11-05T09:00:00Z');      // a timestamp in ms, or null
+```
+
+Exports: `DS.thinking.create(el, options)` (the controller), `DS.thinking.elapsedText(ms)` (the time as the line shows it), `DS.thinking.isoDuration(ms)` (the `datetime` of its `<time>`), `DS.thinking.tokensText(count)` (the compact count, string `tokensOne` / `tokensOther`) and `DS.thinking.sinceOf(value)` (a start as a timestamp: a number, a `Date` or an ISO string).
+
+`set()` drives it from the page and never writes the attributes: use one path per indicator.
+
+**Options.**
+
+| Option | Classes | Effect |
+|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the step's type (`--ds-size-font`) and the icon, 4px per step; the meta and the thought keep their roles |
+| Density | `.ds-density-*` | the room between the parts, 2px per step |
+| Shape, tone, touch | | not read: it is no target and shows no meaning of its own (an error is the message's) |
+
+**Accessibility.** Only the step is a live region, so a screen reader hears each new step once and never the ticking
+time. Say the state in the words ("Thinking", "Running npm test", "Done"); the shimmer carries no meaning.
+
+**Forced colours.** The icon takes `CanvasText`; the shimmer's copy goes, the text stays.
+
+**Hooks.** `--ds-thinking-font`, `--ds-thinking-gap` (`--ds-space-2`, the base the density applies to),
+`--ds-thinking-icon-color` ([theming.md](theming.md#component-hooks)).
+
+**Motion.** The wheel's turn and the shimmer's travel; nothing else moves.
+
+<!-- changelog -->
+- Thinking indicator (`.ds-thinking`, `DS.thinking`, `data-ds-thinking`): the step on a wheel with the shimmer, the
+  thought, the elapsed time and the tokens. Strings `tokensOne`, `tokensOther`.
+## Reasoning disclosure
+
+An assistant's thinking, collapsed under one summary line: "Thinking" with the [shimmer](#shimmer) while it runs,
+"Thought for 12s" (or the page's own summary) once it is done; the thoughts are a press away. It is a plain
+[disclosure](#disclosure), so its summary presses, focuses and opens like one.
+
+```html
+<details class="ds-collapsible ds-disclosure ds-reasoning" data-ds-reasoning
+         data-ds-reasoning-since="2026-11-05T09:00:00Z" data-ds-reasoning-auto>
+  <summary>
+    <span class="ds-reasoning__icon"><!-- sparkle, 18px --></span>
+    <span class="ds-reasoning__summary"></span> <time class="ds-reasoning__time"></time>
+    <!-- chevronDown, 20px, class ds-chevron -->
+  </summary>
+  <div class="ds-disclosure__body ds-reasoning__body">
+    <div class="ds-reasoning__text" tabindex="0" aria-label="Thoughts">
+      <p>The request asks which laptops leave warranty this year.</p>
+      <p>Forty laptops; eleven end before March.</p>
+    </div>
+  </div>
+</details>
+```
+
+| Part | What |
+|---|---|
+| `.ds-reasoning__icon` | optional: a glyph before the line, hidden from assistive tech |
+| `.ds-reasoning__summary` | the line. Leave it empty and the module writes it: `Thinking` (the string `reasoningRunning`) with the shimmer while it runs, `Thought for 12s` (`reasoningDone`) at the end. A summary of the page's own stays, with the shimmer while it runs |
+| `.ds-reasoning__time` | optional: the time while it runs; at the end the total, only beside a summary of the page's own |
+| `.ds-reasoning__body` | on the `.ds-disclosure__body`: the room above the thoughts |
+| `.ds-reasoning__text` | the thoughts: quiet body type on a rail, scrolling past `--ds-reasoning-max-height`. Give it `tabindex="0"` and a name, so the keyboard can scroll it. While it runs it stays at its end as thoughts come in (`DS.dom.followEnd()`); scrolling up lets go |
+
+**Behaviour** (`data-ds-reasoning`, `DS.init()`; a change of an attribute is read again):
+
+| Attribute | What |
+|---|---|
+| `data-ds-reasoning-since` | when it started: a date text or a timestamp in ms (default: when the module found it) |
+| `data-ds-reasoning-done` | present: it ended; a value in ms is the total time. The module writes `data-state` (`running`, `done`) |
+| `data-ds-reasoning-auto` | open while it runs, close at the end, unless the reader opened or closed it meanwhile |
+
+```js
+const thinking = DS.reasoning.create(details, { since: Date.now(), auto: true });   // or DS.core.get(details, 'reasoning')
+thinking.set({ done: true });                                          // 'Thought for 12s'
+thinking.set({ summary: 'Compared the warranty of 40 laptops' });      // the page's own line ('' gives it back)
+thinking.get();                                                        // { done, elapsed, open }
+thinking.on('change', (state) => {});                                  // also ds:change on the element
+DS.reasoning.summaryText(12000, true);                                 // 'Thought for 12s'
+```
+
+Exports: `DS.reasoning.create(el, options)` (the controller) and `DS.reasoning.summaryText(ms, done)` (the line it writes: strings `reasoningRunning` and `reasoningDone`).
+
+**Options.** The summary is the plain disclosure's: size (8px of height per step and its type), density (4px of
+height per step, and 2px of room above the thoughts), shape (its radius, the press morph) and touch (its target). Tone
+is not read: it shows no meaning.
+
+**Accessibility.** The summary is the disclosure's button (Tab, Enter or Space); its name is the line and the time.
+The line is no live region: the reply that follows says the result, and a page that wants the end spoken announces
+it. The shimmer's copy is left out of the name.
+
+**Forced colours.** The rail stays (a border); the line keeps its words and the shimmer's copy goes.
+
+**Hooks.** `--ds-reasoning-max-height` (320px), `--ds-reasoning-rail` (`--ds-line`)
+([theming.md](theming.md#component-hooks)).
+
+**Motion.** The disclosure's (the body opens as a `.ds-collapsible`, the chevron turns), the shimmer on the running
+line; with `data-ds-reasoning-auto` it opens when it starts and closes when it ends.
+
+<!-- changelog -->
+- Reasoning disclosure (`.ds-reasoning`, `DS.reasoning`, `data-ds-reasoning`): thinking collapsed under a summary line
+  ("Thinking" with the shimmer, then "Thought for 12s" or the page's own), the thoughts following their end while they
+  stream, an optional auto open and close. Strings `reasoningRunning`, `reasoningDone`.
+## Tool call
+
+One call an assistant or agent made (a command, a search, a request to an API), as a row that opens: its name and
+arguments, its status with a word and how long it took; opened, its input, its output and the calls it made itself.
+It is a [disclosure](#disclosure) row in a frame, so it presses, focuses and opens like one.
+
+```html
+<div class="ds-toolcall-list">
+  <details class="ds-collapsible ds-disclosure ds-disclosure--row ds-toolcall" data-status="done"
+           data-ds-toolcall data-ds-toolcall-duration="1240">
+    <summary>
+      <span class="ds-toolcall__icon"><!-- terminal, 20px --></span>
+      <span class="ds-disclosure__title ds-toolcall__title">
+        <span class="ds-toolcall__name">run_tests</span> <span class="ds-toolcall__args">npm test -- devices</span>
+      </span>
+      <span class="ds-toolcall__status"><span class="ds-toolcall__mark"><!-- checkCircle, 16px --></span><span class="ds-toolcall__word">Done</span></span>
+      <time class="ds-toolcall__time"></time>
+      <!-- chevronDown, 20px, class ds-chevron -->
+    </summary>
+    <div class="ds-disclosure__body ds-toolcall__body">
+      <div class="ds-toolcall__part">
+        <p class="ds-toolcall__label">Input</p>
+        <pre class="ds-toolcall__code" tabindex="0" aria-label="Input"><code>{ "script": "test", "filter": "devices" }</code></pre>
+      </div>
+      <div class="ds-toolcall__part">
+        <p class="ds-toolcall__label">Output</p>
+        <pre class="ds-toolcall__code" tabindex="0" aria-label="Output"><code>42 passing (1s)</code></pre>
+      </div>
+    </div>
+  </details>
+</div>
+```
+
+| Part | What |
+|---|---|
+| `.ds-toolcall-list` | optional: calls one under the other, `--ds-space-2` apart |
+| `.ds-toolcall__icon` | the tool's glyph, quiet |
+| `.ds-toolcall__name` | the tool's name, in the code type |
+| `.ds-toolcall__args` | a one-line summary of the arguments, quiet, cut with an ellipsis |
+| `.ds-toolcall__status` | the status: `.ds-toolcall__mark` (the spinner or a 16px glyph) and `.ds-toolcall__word` (the word) |
+| `.ds-toolcall__time` | the duration, tabular; a `<time>` gets an ISO 8601 `datetime` |
+| `.ds-toolcall__body` | on the `.ds-disclosure__body`: the parts, `--ds-space-3` apart (2px per density step) |
+| `.ds-toolcall__part`, `.ds-toolcall__label` | a labelled block of the body: input, output, a diff |
+| `.ds-toolcall__code` | the input or output in the code type, scrolling past `--ds-toolcall-code-max-height`. Give it `tabindex="0"` and a name (`aria-label`), so the keyboard can scroll it. A code block of the system may stand in its place |
+| `.ds-toolcall__part--error` | an output that failed: its label and edge in `--ds-error` (the word of the status says so too) |
+| `.ds-toolcall__calls` | the calls this one made: rows on a rail under the icon, without a frame of their own |
+
+**Status** (`data-status`, always an icon and a word, never colour alone):
+
+| `data-status` | Mark | Word (the page's) |
+|---|---|---|
+| `pending` | hourglass | "Waiting", "Needs approval" |
+| `running` | the spinner (`.ds-spinner`) | "Running" |
+| `done` | check in a circle, `--ds-success` | "Done" |
+| `failed` | alert circle; mark and word in `--ds-error` | "Failed" |
+| `cancelled` | ban | "Cancelled" |
+
+**Behaviour** (`data-ds-toolcall`, `DS.init()`; a change of one of these attributes is read again, so a page that
+re-renders the row with `DS.dom.morphHtml` just writes them):
+
+| Attribute | What |
+|---|---|
+| `data-status` | the status above |
+| `data-ds-toolcall-since` | when it started: a date text or a timestamp in ms. While it runs, the time ticks every second (`DS.format.clock()`) |
+| `data-ds-toolcall-duration` | the duration in ms, once known; it wins over `since`. Without it, an ended call shows the time it ran until it ended |
+| `data-ds-toolcall-announce="off"` | no announcement |
+
+The time shows the milliseconds under a second (`240ms`), else whole seconds, narrow (`12s`, `1m 5s`). When a call
+turns from pending or running to done, failed or cancelled, it says so once through `DS.a11y.announce()`: the string
+`toolStatus` (`{name}: {status}`) with its name and its word, so a closed row needs no live region.
+
+```js
+const call = DS.toolcall.create(row, { status: 'running', since: Date.now() });   // or DS.core.get(row, 'toolcall')
+call.set({ status: 'done', label: 'Done', duration: 1240 });   // data-status, the mark, the word, the time
+call.get();                                                   // { status: 'done', duration: 1240 }
+call.on('change', ({ status, duration }) => {});              // also ds:change on the row, after a set() that changed the status
+DS.toolcall.durationText(240);                                // '240ms'
+DS.toolcall.STATUSES;                                         // ['pending', 'running', 'done', 'failed', 'cancelled']
+```
+
+Exports: `DS.toolcall.create(el, options)` (the controller), `DS.toolcall.durationText(ms)` (the duration as the summary shows it) and `DS.toolcall.STATUSES` (the statuses `data-status` takes).
+
+`set()` writes the mark (the spinner, or `hourglass`, `checkCircle`, `alertCircle`, `ban` of `DS.icons`) and, with a
+`label`, the word; a page that renders the row writes them in its markup.
+
+**Options.**
+
+| Option | Classes | Effect |
+|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the summary's height (8px per step) and type; the code keeps its role |
+| Density | `.ds-density-*` | the summary's height (4px per step) and the room of the body (2px per step) |
+| Shape | `.ds-shape-*` | the frame's and the code's corners |
+| Touch | `.ds-touch` | the summary is at least `--ds-touch-target` high |
+| Tone | | not read: the status shows the meaning, with its word |
+
+A row narrower than 360px (each row is its own container) lets the time go; the arguments are cut shorter.
+
+**Accessibility.** The summary is the disclosure's button: Tab reaches it, Enter or Space opens and closes it, and its
+name is its text (name, arguments, status word, time: keep a space between the parts in the markup, so they are read
+apart); the icon, the mark and the chevron are hidden. The code blocks
+take focus to scroll by keyboard. The end of a call is announced once.
+
+**Forced colours.** The frame and the code's edges stay; the icon and the mark take `CanvasText`, every status keeps
+its word, and the spinner takes its system colours.
+
+**Hooks.** `--ds-toolcall-height` (40px), `--ds-toolcall-radius` (`--ds-radius-card`),
+`--ds-toolcall-code-max-height` (240px), `--ds-toolcall-code-bg` (`--ds-surface-low`)
+([theming.md](theming.md#component-hooks)). It sets the disclosure's `--ds-disclosure-row-height` and
+`--ds-disclosure-row-padding` on its rows.
+
+**Motion.** The disclosure's: the body opens as a `.ds-collapsible` and the chevron turns. A new status swaps its
+mark at once.
+
+<!-- changelog -->
+- Tool call (`.ds-toolcall`, `DS.toolcall`, `data-ds-toolcall`): a disclosure row in a frame with the call's name,
+  arguments, status (icon and word), live duration, input, output and nested calls; announces its end. String
+  `toolStatus`.
+## Sources and citations
+
+Where a generated answer's facts come from: numbered markers in the text that open a card with their source (on
+hover, like a hover card, and on a press), and the list of every source under the answer.
+
+```html
+<p>Eleven laptops leave warranty before March<button class="ds-cite" type="button" aria-controls="src-1-card"
+   aria-label="Source 1: Warranty register 2026" data-ds-cite>1</button>.</p>
+
+<div class="ds-cite__card" id="src-1-card" popover="manual" hidden>
+  <p class="ds-cite__source"><img class="ds-cite__icon" src="/favicon.png" alt="">example.com</p>
+  <a class="ds-cite__title" href="https://example.com/warranty">Warranty register 2026</a>
+  <p class="ds-cite__snippet">The warranty of LAPTOP-0042 ends on 28 February 2027 ...</p>
+</div>
+
+<ol class="ds-cite-list" aria-label="Sources">
+  <li class="ds-cite-list__item">
+    <span class="ds-cite-list__number">1</span>
+    <span class="ds-cite-list__body"><a class="ds-cite__title" href="https://example.com/warranty">Warranty register 2026</a>
+      <span class="ds-cite__source">example.com</span></span>
+  </li>
+</ol>
+```
+
+| Part | What |
+|---|---|
+| `.ds-cite` | the marker: a `<button>` with the number, right after the words it backs (no space before it). Its name says the source (`aria-label="Source 1: Warranty register 2026"`), `aria-controls` names its card. A small pill in the caption type on `--ds-cite-bg`, a little raised; its hit area reaches at least 24px (`--ds-target-min` under `.ds-touch`) without moving the line. Open, it turns `--ds-accent` |
+| `.ds-cite__card` | the card: `popover="manual"` and `hidden` in the markup (the module writes `popover` when missing). Several markers may share one card |
+| `.ds-cite__source` | the site, in the meta type, with an optional `.ds-cite__icon` (a 16px favicon with `alt=""`, or a glyph) |
+| `.ds-cite__title` | the link to the source, in the label type |
+| `.ds-cite__snippet` | optional: the quoted passage, three lines at most |
+| `.ds-cite-list` | the sources in order: `.ds-cite-list__item` with a `.ds-cite-list__number` (the marker's pill) and a `.ds-cite-list__body` (the title and the source) |
+
+**Behaviour** (`data-ds-cite`, `DS.init()`). The card is a popup of `DS.overlay`: in the top layer, on the Escape
+stack, `aria-expanded` on its marker, growing from the marker. It is placed under the marker, above it without room
+(`DS.position.place()`, writing `--ds-cite-x` and `--ds-cite-y`), and placed again on scroll and resize while it is
+open.
+
+- **Pointer.** Resting on the marker for `--ds-delay-tooltip` opens the card; it stays while the pointer is on the
+  marker or the card and closes `--ds-delay-tooltip-hide` after it left both, so the pointer can cross to the card
+  (WCAG 1.4.13). A press opens it pinned: it stays until a press outside, Escape, or another press on the marker.
+- **Keyboard.** Enter or Space opens it pinned and moves focus to its first link; Escape closes it and focus returns
+  to the marker; Tab past the card's end closes it and moves on from the marker (Shift+Tab from its first link lands on
+  the marker). Nothing opens on focus alone: the marker's name says the source.
+- **Touch.** A tap is a press.
+
+```js
+const marker = DS.cite.create(button);   // or DS.core.get(button, 'cite')
+marker.set(true);                        // opens its card, pinned; set(false) closes it
+marker.get();                            // whether its card is open
+marker.on('change', ({ open }) => {});   // also ds:change with { open } on the marker
+DS.cite.cardOf(button);                  // the card its aria-controls names, or null
+```
+
+Exports: `DS.cite.create(marker)` (the controller) and `DS.cite.cardOf(marker)` (the card its `aria-controls` names).
+
+**Options.**
+
+| Option | Classes | Effect |
+|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the marker and the list's numbers, 2px per step (18px at md); their type stays the caption |
+| Density | `.ds-density-*` | the room between the list's rows, 2px per step |
+| Shape | `.ds-shape-*` | the corners of the marker (a pill at the default) and the card |
+| Touch | `.ds-touch` | the marker's hit area is `--ds-target-min` |
+| Tone | | not read: a source shows no meaning |
+
+**Accessibility.** The marker is a button with `aria-expanded` (the disclosure pattern) and the source in its name;
+the card holds a real link, reached by Enter or Space, so nothing needs hover. Like a text link, the marker has no
+ripple and no press morph; it has the state layer and the focus ring.
+
+**Forced colours.** The marker and the numbers keep a `CanvasText` edge (open: `Highlight` with `HighlightText`, the
+toggle model), the card its transparent outline as its edge.
+
+**Hooks.** `--ds-cite-size` (18px), `--ds-cite-bg` (`--ds-surface-high`), `--ds-cite-card-width` (320px),
+`--ds-cite-card-radius` (`--ds-radius-card`) ([theming.md](theming.md#component-hooks)).
+
+**Motion.** The card enters and leaves as the popups do (transitions keyed on `data-state`, so a close mid-way turns
+back from where it is): it fades in on `--ds-dur-fast` and grows from `--ds-scale-popup` at the marker on the spring
+over `--ds-dur-medium`, and fades out in `--ds-dur-instant`. The marker's layers fade on `--ds-dur-fast`.
+
+<!-- changelog -->
+- Sources and citations (`.ds-cite`, `.ds-cite__card`, `.ds-cite-list`, `DS.cite`, `data-ds-cite`): numbered markers
+  that open a source card on hover (WCAG 1.4.13: hoverable, dismissible) and on a press (focus moves into it), through
+  `DS.overlay` in the top layer, placed by `DS.position`; and the list of sources.
+## Plan card
+
+A plan an assistant or an agent proposes before it acts: what it will do, step by step, and the person's decision.
+Nothing happens until someone approves; the card then says who decided what, and its steps can follow the work as
+a [task list](#tasks).
+
+```html
+<section class="ds-plan" data-ds-plan aria-labelledby="plan-title">
+  <div class="ds-plan__head">
+    <span class="ds-plan__icon"><!-- clipboardCheck, 20px --></span>
+    <h3 class="ds-plan__title" id="plan-title">Replace the swollen batteries</h3>
+    <span class="ds-plan__state"></span>
+  </div>
+  <p class="ds-plan__lead">Three laptops, one ticket each. Nothing changes until you approve.</p>
+  <ol class="ds-tasks ds-plan__steps" aria-label="Steps">
+    <li class="ds-tasks__item" data-status="pending"><span class="ds-tasks__mark"></span>
+      <span class="ds-tasks__text">Find the laptops with a battery ticket</span></li>
+    <li class="ds-tasks__item" data-status="pending"><span class="ds-tasks__mark"></span>
+      <span class="ds-tasks__text">Order three batteries</span></li>
+  </ol>
+  <div class="ds-plan__actions">
+    <button class="ds-btn ds-btn--filled" type="button" data-ds-plan-action="approve">Approve</button>
+    <button class="ds-btn" type="button" data-ds-plan-action="reject">Reject</button>
+    <button class="ds-btn ds-btn--text" type="button">Edit the plan</button>
+  </div>
+  <p class="ds-plan__note">Proposed by the assistant at 09:12</p>
+</section>
+```
+
+| Part | What |
+|---|---|
+| `.ds-plan__head` | an optional `.ds-plan__icon` (hidden from assistive tech by the module), the `.ds-plan__title` and the `.ds-plan__state`, which the module fills with a 16px `.ds-plan__glyph` and the word |
+| `.ds-plan__lead` | optional: what the plan does and what it leaves alone |
+| `.ds-plan__steps` | on a `.ds-tasks` list: the steps, `data-status="pending"` while it waits; once approved the page moves each step on (running, done, failed) as the work goes |
+| `.ds-plan__actions` | the decision: one filled Approve (`data-ds-plan-action="approve"`), Reject (`data-ds-plan-action="reject"`) and any action of the page's own (Edit the plan) |
+| `.ds-plan__note` | optional, quiet: who proposed or decided, and when |
+
+**State** (`data-state`, written by the module; never colour alone):
+
+| State | Shows |
+|---|---|
+| `waiting` | the hourglass and `Waiting for approval` (string `planWaiting`); the actions |
+| `approved` | a check in a circle (`--ds-success`) and `Approved` (`planApproved`); the actions go |
+| `rejected` | a crossed circle and `Rejected` (`planRejected`); the actions go and the steps turn quiet |
+
+**Behaviour** (`data-ds-plan`, `DS.init()`). `data-ds-plan-state` gives the state of a plan rendered from history
+(default `waiting`; a change is read again). A press on an action first emits `ds:decide` (cancelable, with
+`{ decision }`): a page that calls `preventDefault()` keeps the plan waiting and decides later with `set()`, once its
+own request went through (wrap the button in `DS.motion.busy()` meanwhile). Otherwise the card takes the state, writes
+the word, lets the actions go (focus moves to the title first, which gets `tabindex="-1"`), announces the word and
+emits `ds:change` with `{ state }`. Back to `waiting`, the actions come back.
+
+```js
+const plan = DS.plan.create(el);                 // or DS.core.get(el, 'plan')
+el.addEventListener('ds:decide', (event) => {     // optional: decide after the server agreed
+  event.preventDefault();
+  send(event.detail.decision).then(() => plan.set(event.detail.decision));
+});
+plan.set('approved');                            // or 'rejected', 'waiting'; the verbs approve and reject count too
+plan.get();                                      // { state: 'approved' }
+plan.on('change', ({ state }) => {});            // also ds:change on the card
+DS.plan.planState('approve');                    // 'approved'
+DS.plan.PLAN_STATES;                             // ['waiting', 'approved', 'rejected']
+```
+
+Exports: `DS.plan.create(el, options)` (the controller), `DS.plan.planState(value)` (a state as the card takes it)
+and `DS.plan.PLAN_STATES`.
+
+**Options.**
+
+| Option | Classes | Effect |
+|---|---|---|
+| Density | `.ds-density-*` | the padding and the room between the parts, 2px per step; the steps and the buttons follow their own |
+| Shape | `.ds-shape-*` | the frame's corners; the buttons follow their own |
+| Size, touch | `.ds-xs` ... `.ds-xl`, `.ds-touch` | the buttons and the steps follow their own; the title keeps its role |
+| Tone | | not read: the state shows the meaning, with its word |
+
+**Accessibility.** The card is a `<section>` named by its title (a region); the decision is two real buttons, so Tab and
+Enter or Space work as everywhere. The state is a word next to its glyph, announced once when it changes; focus never
+falls to the page when the actions go. Keep the step texts plain: they are what the person approves.
+
+**Forced colours.** The frame keeps its border; the glyph follows the word's forced text colour; the word stays.
+
+**Hooks.** `--ds-plan-padding` (`--ds-space-4`, the base the density applies to), `--ds-plan-radius`
+(`--ds-radius-card`), `--ds-plan-bg` (`--ds-surface`), `--ds-plan-border` (`--ds-line`)
+([theming.md](theming.md#component-hooks)).
+
+**Motion.** Once decided, the actions leave (`DS.motion.leave()`, `.ds-leave`); back to waiting they enter
+(`.ds-enter`). The word and the glyph change in place; the steps move as the task list does.
+
+<!-- changelog -->
+- Plan card (`.ds-plan`, `DS.plan`, `data-ds-plan`): a proposed plan with its steps (a `.ds-tasks` list) and the
+  decision, approve or reject, with a cancelable `ds:decide`, the state as an icon and a word, announced. Strings
+  `planWaiting`, `planApproved`, `planRejected`.
+## Question card
+
+A question an assistant or an agent asks while it works: options to choose (one or several), an answer of one's
+own, and Answer and Skip. Once answered, the choice stays in view and a line says it.
+
+```html
+<form class="ds-question" data-ds-question aria-labelledby="q-title">
+  <div class="ds-question__head">
+    <span class="ds-question__icon"><!-- helpCircle, 20px --></span>
+    <h3 class="ds-question__title" id="q-title">Which laptops should get new batteries?</h3>
+  </div>
+  <p class="ds-question__hint">The assistant waits for your answer.</p>
+  <div class="ds-radios ds-question__options" role="radiogroup" aria-labelledby="q-title">
+    <label class="ds-radio"><input type="radio" name="q1" value="all">
+      <span><strong>All three</strong><small>LAPTOP-0007, -0019 and -0031</small></span></label>
+    <label class="ds-radio"><input type="radio" name="q1" value="worst">
+      <span><strong>Only LAPTOP-0007</strong><small>Its battery swells</small></span></label>
+    <label class="ds-radio"><input type="radio" name="q1" value="other">
+      <span><strong>Something else</strong></span></label>
+  </div>
+  <div class="ds-field ds-question__other">
+    <label class="ds-field__label" for="q-other">Your answer</label>
+    <input class="ds-input" id="q-other" name="other" autocomplete="off">
+  </div>
+  <p class="ds-field__hint ds-field__hint--error ds-question__error" hidden></p>
+  <div class="ds-question__actions">
+    <button class="ds-btn ds-btn--filled" type="submit">Answer</button>
+    <button class="ds-btn ds-btn--text" type="button" data-ds-question-skip>Skip</button>
+  </div>
+  <p class="ds-question__answer" hidden></p>
+</form>
+```
+
+| Part | What |
+|---|---|
+| `.ds-question__head` | an optional `.ds-question__icon` (hidden from assistive tech by the module) and the `.ds-question__title` |
+| `.ds-question__hint` | optional: why it asks, what happens next |
+| `.ds-question__options` | the choices: radio cards (`.ds-radios`, `role="radiogroup"`) for one, checkbox cards (`.ds-check-cards`, `role="group"`) for several, named by the title |
+| `.ds-question__other` | optional: a `.ds-field` for an answer of one's own; typing picks the radio whose value is `other` |
+| `.ds-question__error` | on a `.ds-field__hint--error`, empty and `hidden`: the module writes the message of an answer without a choice |
+| `.ds-question__actions` | Answer (the form's submit, the one filled button) and Skip (`data-ds-question-skip`) |
+| `.ds-question__answer` | empty and `hidden`: once decided, the module writes a 16px `.ds-question__glyph` and `Answered: All three` or `Skipped` |
+
+**State** (`data-state`, written by the module; never colour alone): `waiting`, `answered` (the check in a circle in
+`--ds-success` and the words), `skipped` (a crossed-out circle and `Skipped`).
+
+**Behaviour** (`data-ds-question`, `DS.init()`). The submit never leaves the page (the module sets `novalidate` and
+answers in place):
+
+- **Without a choice** and without text, the error shows `Choose an answer.` (string `questionRequired`) with an icon,
+  the options get `aria-invalid` and `aria-describedby`, and focus goes to the first option. A choice clears it.
+- **With one**, the card emits `ds:answer` (cancelable) with `{ values, labels, other, skipped: false }`. A page that
+  calls `preventDefault()` keeps it open and settles it later with `set({ state: 'answered' })`. Otherwise the controls
+  are disabled (the choice stays in view), the actions go, the answer line says `Answered: All three` (string
+  `questionAnswered`; several labels as a list, `DS.format.list()`), takes the focus (`tabindex="-1"`) and is
+  announced; `ds:change` follows with `{ state }`.
+- **Skip** does the same with `skipped: true` and `Skipped` (string `questionSkipped`).
+- `set({ state: 'waiting' })` opens it again.
+- `data-ds-question-state="answered"` (or `"skipped"`) renders a question from history decided at once, with its
+  choice checked in the markup: no motion, no announcement, no events.
+
+**Keyboard.** Tab reaches the options, the field and the actions. In a radio group the arrows move and choose (the
+native group); Space checks a checkbox. With focus in the card outside the text field, `1` to `9` pick the option of
+that number and focus it; Enter on an option answers, as Enter in the text field does.
+
+```js
+const question = DS.question.create(form);       // or DS.core.get(form, 'question')
+form.addEventListener('ds:answer', (event) => send(event.detail));   // { values, labels, other, skipped }
+question.set({ value: 'all' });                  // picks; { values: [...] } for checkboxes, { other: 'text' }
+question.get();                                  // { state, values, labels, other }
+question.on('answer', (detail) => {});           // also on('change', ({ state }) => {})
+DS.question.answerText('answered', ['All three']);   // 'Answered: All three'
+DS.question.optionIndex({ key: '2' });           // 1
+DS.question.QUESTION_STATES;                     // ['waiting', 'answered', 'skipped']
+```
+
+Exports: `DS.question.create(form)` (the controller), `DS.question.answerText(state, labels)` (the answer line),
+`DS.question.optionIndex(event)` (the option a digit key picks) and `DS.question.QUESTION_STATES`.
+
+**Options.**
+
+| Option | Classes | Effect |
+|---|---|---|
+| Density | `.ds-density-*` | the padding and the room between the parts, 2px per step; the cards, the field and the buttons follow their own |
+| Shape | `.ds-shape-*` | the frame's corners; the cards and the buttons follow their own |
+| Size, touch | `.ds-xs` ... `.ds-xl`, `.ds-touch` | the cards, the field and the buttons follow their own; the title keeps its role |
+| Tone | | not read: the state shows the meaning, with its word |
+
+**Accessibility.** A `<form>` named by its title; the options are a radio group (or a group of checkboxes) named by
+the same title, so a screen reader hears the question with each option. The error is tied to the group and the
+answer is announced once; focus never falls to the page when the actions go.
+
+**Forced colours.** The frame keeps its border; the glyph follows the line's forced text colour; the cards are the
+form's.
+
+**Hooks.** `--ds-question-padding` (`--ds-space-4`, the base the density applies to), `--ds-question-radius`
+(`--ds-radius-card`), `--ds-question-bg` (`--ds-surface`), `--ds-question-border` (`--ds-line`)
+([theming.md](theming.md#component-hooks)).
+
+**Motion.** Once decided the actions leave (`DS.motion.leave()`, `.ds-leave`) and the answer line fades in
+(`ds-fade-in`, `--ds-dur-fast`); opened again the actions enter (`.ds-enter`).
+
+<!-- changelog -->
+- Question card (`.ds-question`, `DS.question`, `data-ds-question`): a question with radio or checkbox cards, an
+  answer of one's own, Answer and Skip; keys 1 to 9, a cancelable `ds:answer`, the answer kept in view and announced.
+  Strings `questionAnswered`, `questionSkipped`, `questionRequired`.
+## Usage meter
+
+What an assistant or an agent used against a budget: tokens, what they cost, or both, as a [meter](#charts) with its
+figures. Near the budget and past it, a status with an icon and a word says so, and it is announced once.
+
+```html
+<section class="ds-usage" data-ds-usage data-ds-usage-used="182400" data-ds-usage-budget="250000"
+         data-ds-usage-cost="3.12" data-ds-usage-cost-budget="5" data-ds-usage-currency="USD"
+         aria-labelledby="usage-title">
+  <div class="ds-usage__head">
+    <h3 class="ds-usage__title" id="usage-title">Tokens this month</h3>
+    <span class="ds-usage__status" hidden></span>
+  </div>
+  <span class="ds-meter ds-usage__meter" role="meter" aria-labelledby="usage-title"></span>
+  <p class="ds-usage__figures"><span class="ds-usage__value"></span><span class="ds-usage__cost"></span></p>
+  <p class="ds-usage__note">Resets on 1 December.</p>
+</section>
+```
+
+| Part | What |
+|---|---|
+| `.ds-usage__head` | the `.ds-usage__title` and the `.ds-usage__status` (empty and `hidden` while the usage is comfortable; the module writes a 16px `.ds-usage__icon` and the word into it) |
+| `.ds-usage__meter` | on a `.ds-meter` (role `meter`, named by the title): the share of the budget, its tone near and over it |
+| `.ds-usage__figures` | the tokens (`.ds-usage__value`, `182.4K of 250K tokens`) and the cost (`.ds-usage__cost`, `$3.12 of $5.00`), tabular, on one line that wraps; leave out the one you do not show |
+| `.ds-usage__note` | optional: when it resets, what the budget covers |
+| `.ds-usage--inline` | one row: the title, the meter (at most `--ds-usage-inline-meter` wide) and the figures, for a composer's foot or a toolbar; it wraps when the row is too narrow |
+
+**Behaviour** (`DS.init()`; a change of an attribute is read again):
+
+| Attribute | What |
+|---|---|
+| `data-ds-usage-used` | the tokens used |
+| `data-ds-usage-budget` | the token budget |
+| `data-ds-usage-cost` | what they cost |
+| `data-ds-usage-cost-budget` | the money budget |
+| `data-ds-usage-currency` | ISO 4217 (default `USD`), formatted for the page's locale |
+| `data-ds-usage-warn` | the share from which it is near the budget (default `0.8`) |
+| `data-ds-usage-announce="off"` | no announcement when the state gets worse |
+
+The share is the larger of the token share and the cost share (each only with its budget). The module writes it as
+`--ds-share` on the meter with `aria-valuenow` (0 to 100) and `aria-valuetext` (`73% used`, past the budget `112%
+used`), the figures, and `data-state="near"` (from the warn share) or `"over"` (past the budget) on the root. Then the
+status shows an icon and the word (`Near the budget`, `Over budget`; strings `usageNear`, `usageOver`), the meter takes
+`.ds-meter--warning` or `.ds-meter--error`, and the word is announced once when the state gets worse. Without a budget
+there is no share and no status: the figures alone.
+
+```js
+const usage = DS.usage.create(el, { used: 182400, budget: 250000, cost: 3.12, costBudget: 5 });   // or DS.core.get(el, 'usage')
+usage.set({ used: 241000, cost: 4.1 });      // the meter glides; near the budget the status shows and is announced
+usage.get();                                 // { used, budget, cost, costBudget, currency, share, state }
+usage.on('change', (state) => {});           // also ds:change with the state, after a set() that changed something
+DS.usage.shareOf({ used: 241000, budget: 250000 });   // 0.964
+DS.usage.stateOf(0.964);                     // 'near'
+DS.usage.usageText(182400, 250000);          // '182.4K of 250K tokens'
+DS.usage.costText(3.12, 5, 'USD');           // '$3.12 of $5.00'
+```
+
+Exports: `DS.usage.create(el, options)` (the controller), `DS.usage.shareOf(values)` (the share of the budget, or
+null), `DS.usage.stateOf(share, warn)` (`'ok'`, `'near'` or `'over'`), `DS.usage.usageText(used, budget)` and
+`DS.usage.costText(cost, costBudget, code)` (the figures; string `usageOf`). `set()` drives it from the page and
+never writes the attributes: use one path per meter.
+
+**Options.**
+
+| Option | Classes | Effect |
+|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the meter's thickness, 1px per step (the meter's own); the type stays |
+| Density | `.ds-density-*` | the room between the parts, 2px per step |
+| Shape | `.ds-shape-*` | the meter's ends |
+| Tone, touch | | not read: the status shows the meaning, with its word, and nothing in it is a target |
+
+**Accessibility.** The meter is `role="meter"` named by the title, its value in words (`73% used`). The status is never
+colour alone: an icon and a word, and the meter's tone only repeats it. Only a change for the worse is announced (once
+per state), never the figures as they climb.
+
+**Forced colours.** The meter takes its system colours; the icon follows the word's forced text colour and the word
+stays.
+
+**Hooks.** `--ds-usage-gap` (`--ds-space-2`, the base the density applies to), `--ds-usage-inline-meter` (160px)
+([theming.md](theming.md#component-hooks)).
+
+**Motion.** The meter's share glides on `--ds-ease-value` over `--ds-dur-glide` (the meter's own); the figures and
+the status change in place.
+
+<!-- changelog -->
+- Usage meter (`.ds-usage`, `DS.usage`, `data-ds-usage`): tokens and cost against a budget on a meter, with an icon
+  and a word near and over it (announced once). Strings `usageOf`, `usageShare`, `usageNear`, `usageOver`.
+## Composer
+
+The message field of a conversation: a filled shell with a textarea that grows with its text, attachments as chips,
+a slash-command palette and @-mentions at the caret, send and stop, a slot for a microphone and a remembered draft.
+
+```html
+<form class="ds-composer" data-ds-composer data-ds-composer-draft="ticket-42">
+  <ul class="ds-composer__attachments" aria-label="Attachments"></ul>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Attach files" data-tip="Attach files" data-ds-composer-attach>[icon paperclip 20]</button>
+  <input class="ds-composer__picker" type="file" multiple hidden>
+  <textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message" placeholder="Message"></textarea>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Dictate" aria-pressed="false" data-tip="Dictate">[icon mic 20]</button>
+  <button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send" data-tip="Send">
+    <span class="ds-icon-swap" data-swap="a"><span class="ds-icon-swap__a">[icon send 20]</span><span class="ds-icon-swap__b">[icon square 20]</span></span>
+  </button>
+  <div class="ds-composer__palette" role="listbox" aria-label="Commands" data-ds-composer-trigger="/" popover="manual" hidden>
+    <div class="ds-composer__option" role="option" data-value="/summarize">[icon sparkles 20]
+      <span class="ds-composer__option-label">/summarize</span><span class="ds-composer__option-hint">Sum up the ticket</span></div>
+    <div class="ds-composer__option" role="option" data-value="/assign">[icon userPlus 20]
+      <span class="ds-composer__option-label">/assign</span><span class="ds-composer__option-hint">Give the ticket to someone</span></div>
+  </div>
+  <div class="ds-composer__palette" role="listbox" aria-label="People" data-ds-composer-trigger="@" popover="manual" hidden>
+    <div class="ds-composer__option" role="option" data-value="@Ada Lovelace" data-id="u-1">[icon user 20]
+      <span class="ds-composer__option-label">Ada Lovelace</span><span class="ds-composer__option-hint">Support</span></div>
+  </div>
+</form>
+```
+
+The simple markup still works and looks as in 2.x: a textarea and a send button in `.ds-composer`, without the
+attribute (no behaviour) or with it (Enter sends, the button blocks while empty).
+
+**Options** ([options.md](options.md)): classes on the composer or any ancestor.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | the composer or any ancestor | the field row 8px per step (from `--ds-input-height`, 40px), the text of the size's role; attachment chips and palette rows 8px per step. The buttons follow their own rule |
+| Density | `.ds-density-*` | any container | 4px less per step: the field row, the chips, the palette rows; the palette's padding 2px |
+| Shape | `.ds-shape-*` | any container or the theme | the shell's, the chips' and the palette's radius times 0, .5, 1, 1.5 |
+| Touch | `.ds-touch` | the theme or a container | the field row, the chips and the palette rows at least `--ds-touch-target` (48px) |
+| Tone | | | none: a composer means nothing by colour |
+
+- **Field**: `.ds-composer__input` (`rows="1"`) grows with its text (`field-sizing: content`; elsewhere the module
+  calls `DS.dom.autosize()`) up to `--ds-composer-max-height` (220px), then scrolls; the buttons stay at the bottom.
+  The ring follows the field model on the shell (`--ds-input-focus-color`), at once while focus is inside. Field text
+  is `--ds-font-input` (16px) on screens up to 600px. A disabled textarea dims the shell.
+- **Attachments**: `.ds-composer__attachments` (a `<ul>`, empty in the markup; it takes no room while empty) sits on
+  a line of its own above the text. `data-ds-composer-attach` on a button opens `.ds-composer__picker` (a hidden file
+  input; its `accept` and `multiple` apply); files dropped on the composer or pasted into it are attached too
+  (`DS.dom.dropzone()`: `data-ds-dragover` shows a dashed ring and the drop tint). Each file is a
+  `.ds-composer__attachment` chip: a file glyph, `.ds-composer__attachment-name` (an ellipsis past
+  `--ds-composer-chip-max-width`), `.ds-composer__attachment-size` (`DS.format.bytes()`) and a remove button named
+  "Remove *name*". Uploading is the page's: it reads the files from `ds:attach` or the send.
+- **Microphone**: the slot is a quiet icon button between the field and Send, with `aria-pressed` while it records;
+  recording and the transcription are the page's (`composer.set({ text })` puts the words in).
+- **Send and stop**: the submit button. Enter sends, Shift+Enter breaks the line, Ctrl/Cmd+Enter always sends.
+  `data-ds-composer-enter="newline"` makes Enter a line break (the default on a device without a fine pointer: an
+  on-screen keyboard has no Shift+Enter), `"send"` keeps it sending. While busy (`set({ busy: true })` or
+  `data-ds-composer-busy` on the composer; `data-state="busy"` is the system's) the button is Stop: its
+  `.ds-icon-swap` shows face b (a square), its name and tooltip turn to the string `stop`, and a press dispatches
+  `ds:stop`; Enter does not send meanwhile. With nothing to send the button is `aria-disabled="true"`.
+- **Commands and mentions**: a `.ds-composer__palette` (`role="listbox"`, `aria-label`, `popover="manual"`, `hidden`)
+  per trigger character in `data-ds-composer-trigger`: `/` counts at the very start of the message, any other trigger
+  (`@`, `#`) at the start or after a space. Typing it opens the palette at the caret, above it (below without room; `--ds-composer-palette-x` and
+  `--ds-composer-palette-y` are the script's coordinates, never set them), and while it is open it stays next to the
+  caret as filtering changes its height, the page scrolls and the window or the on-screen keyboard resizes;
+  the text after the trigger filters the `.ds-composer__option` rows by their label (`data-label`, else
+  `.ds-composer__option-label`). `data-ds-composer-filter="off"` on a palette leaves filtering to the page, which
+  renders the options on `ds:query` (`{ trigger, query }`, also sent while the module filters). `.ds-composer__empty`
+  shows "No results" (written by the module when the palette has none). Choosing inserts `data-value` (else the
+  label) and a space.
+- **Drafts**: `data-ds-composer-draft="<key>"` remembers the text through `DS.store` (namespace `composer`) while
+  typing, gives it back when the page opens with an empty field, and drops it on send. One key per conversation: a
+  composer reused across conversations changes the attribute, and the text typed so far stays under the old key, the
+  field, the attachments and the chosen mentions are cleared, and the new key's draft comes back.
+
+**Behaviour and API.** `data-ds-composer` on the shell (a `<form>`, or any element: a submit button inside acts the
+same) attaches it on `DS.init()`; `data-ds-composer-busy`, `-draft` and `-enter` are read again when they change (only
+the one that changed: a busy state set through `set({ busy })` outlives a new draft key).
+
+```js
+const composer = DS.composer.create(form, { draft: 'ticket-42', enter: 'send' });  // or DS.core.get(form, 'composer')
+composer.on('send', ({ text, attachments, mentions, command }) => post(text, attachments));
+composer.set({ busy: true });          // a reply runs: Send turns into Stop
+composer.on('stop', () => request.abort());
+composer.set({ busy: false, text: '' });
+composer.add(files);                   // attach File objects; composer.remove(id) takes one off
+composer.get();                        // { text, attachments, busy }
+DS.composer.query('/sum', 4);          // { trigger: '/', query: 'sum', start: 0, end: 4 }
+```
+
+| Event | When | `detail` |
+|---|---|---|
+| `ds:send` | Enter, Ctrl/Cmd+Enter, the submit button or `send()`, with text or files; cancelable: `preventDefault()` keeps the text and the files | `{ text, attachments, mentions, command }`: `attachments` `{ id, name, size, type, file }`, `mentions` the chosen ones still in the text `{ value, id }`, `command` the chosen `/` command the text starts with, else `null` |
+| `ds:stop` | the submit button while busy | `{}` |
+| `ds:attach` | files were added | `{ files, attachments }` |
+| `ds:remove` | an attachment was removed | `{ attachment }` |
+| `ds:command`, `ds:mention` | an option of the `/` palette, of any other | `{ value, id, option }` (`id`: `data-id`, else the value) |
+| `ds:query` | the word after a trigger changed | `{ trigger, query }` |
+
+`DS.composer.create(el, options)` returns the controller (`get`, `set`, `on`, `send`, `add`, `remove`, `focus`,
+`destroy`), the one the attribute path makes; `on(type, fn)` takes the event names without `ds:`.
+`DS.composer.query(text, caret, triggers)` is the pure function that finds the word a palette serves.
+
+**Accessibility.** The textarea keeps its label (`aria-label` or a `<label>`). Focus stays in the field while a palette
+is open. A textarea cannot take `role="combobox"`, so the field is no full APG combobox: it exposes
+`aria-autocomplete="list"`, `aria-controls` while a palette is open and `aria-activedescendant` on the active option
+(`aria-selected="true"`), and the module announces the number of matches when the palette opens and whenever filtering
+changes it ("Results: 3", the string `resultCount`; "No results" for none). Down and Up move the active option (round at the
+ends), Enter or Tab inserts it, Escape closes the palette (`DS.overlay`, the top layer first) and it stays closed for
+that word; a press outside, leaving the field or moving the caret out of the word closes it. The active option shows
+the focus layer and a bar on its start edge, so it reads without colour. Attachments are a named list; adding and
+removing one is announced ("Attached report.pdf", "Removed report.pdf") and a removed chip hands the focus to the next
+remove button, else the field. Give the send, attach and microphone buttons names (`aria-label`) and tooltips.
+
+**Forced colours.** The shell and the chips keep their edge (a transparent border becomes `CanvasText`), the focused
+shell a `Highlight` outline, the drop state a dashed `Highlight` edge, the palette a transparent outline as its edge;
+the active option is `SelectedItem` / `SelectedItemText`, a blocked one `GrayText`.
+
+**Hooks**: `--ds-composer-radius` (`--ds-radius-2xl`), `--ds-composer-max-height` (220px), `--ds-composer-bg`
+(`--ds-surface-high`), `--ds-composer-chip-height` (40px), `--ds-composer-chip-max-width` (200px),
+`--ds-composer-palette-width` (320px), `--ds-composer-palette-radius` (`--ds-radius-xs`), `--ds-composer-option-height`
+(40px); it reads `--ds-input-height`, `--ds-input-focus-color`, `--ds-input-font` and `--ds-input-weight` of the field
+([theming.md](theming.md#component-hooks)).
+
+**Motion.** The palette fades in on `--ds-dur-fast` and grows from `--ds-scale-popup` at the caret on the spring
+(`--ds-dur-medium`); it leaves in `--ds-dur-instant`, fading only. Its transitions are keyed on `data-state`
+(`DS.overlay`), so a palette closed mid-way turns back from where it is. Chips pop in and out
+(`DS.motion.enter` / `leave`, `'pop'`); the send icon swaps to stop through `.ds-icon-swap`. The field's height follows
+the text at once, never animated.
+
+<!-- changelog -->
+- Composer (3.0): `.ds-composer` moves out of the form into a folder of its own, with a behaviour module
+  (`DS.composer`, `data-ds-composer`): attachments as chips (`.ds-composer__attachments`, `.ds-composer__attachment`,
+  `.ds-composer__picker`, drop and paste), a slash-command and mention palette at the caret (`.ds-composer__palette`,
+  `.ds-composer__option`), send and stop (`data-ds-composer-busy`), Enter / Shift+Enter, remembered drafts
+  (`data-ds-composer-draft`). New hooks `--ds-composer-bg`, `--ds-composer-chip-height`,
+  `--ds-composer-chip-max-width`, `--ds-composer-palette-width`, `--ds-composer-palette-radius`,
+  `--ds-composer-option-height`. The 2.x markup keeps its look.
+## Message
+
+One turn of a conversation: the user's own message, the assistant's reply, a system line or a tool result, with
+its state while a reply streams in, stops or fails, and the actions under it.
+
+```html
+<article class="ds-message ds-message--user" data-ds-message aria-labelledby="m1-author">
+  <div class="ds-message__main">
+    <header class="ds-message__head"><span class="ds-message__author" id="m1-author">Ada Lovelace</span>
+      <time class="ds-message__time" datetime="2026-11-04T09:40:00Z">09:40</time></header>
+    <div class="ds-message__content">Why does laptop 4 lose its charge overnight?</div>
+    <footer class="ds-message__footer" role="group" aria-label="Message actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Edit" data-tip="Edit" data-ds-message-action="edit">[icon pencil 18]</button>
+    </footer>
+  </div>
+</article>
+
+<article class="ds-message ds-message--assistant" data-ds-message="streaming" aria-labelledby="m2-author">
+  <div class="ds-message__avatar" aria-hidden="true">[icon bot 20]</div>
+  <div class="ds-message__main">
+    <header class="ds-message__head"><span class="ds-message__author" id="m2-author">Assistant</span></header>
+    <div class="ds-message__content ds-prose ds-prose--compact"><p>The battery report shows</p></div>
+    <footer class="ds-message__footer" role="group" aria-label="Message actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Copy" data-tip="Copy" data-ds-message-action="copy">
+        <span class="ds-icon-swap" data-swap="a"><span class="ds-icon-swap__a">[icon copy 18]</span><span class="ds-icon-swap__b">[icon check 18]</span></span></button>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Retry" data-tip="Retry" data-ds-message-action="retry">[icon refresh 18]</button>
+      <div class="ds-feedback" ...>...</div>   <!-- thumbs: see Feedback -->
+    </footer>
+  </div>
+</article>
+
+<div class="ds-message ds-message--system"><div class="ds-message__main">
+  <p class="ds-message__content">[icon userPlus 16] Grace Hopper joined the ticket</p></div></div>
+
+<article class="ds-message ds-message--tool" aria-label="Tool result: battery_report">
+  <div class="ds-message__avatar" aria-hidden="true">[icon wrench 20]</div>
+  <div class="ds-message__main">
+    <header class="ds-message__head"><span class="ds-message__author">battery_report</span></header>
+    <pre class="ds-message__content">cycles: 812, capacity: 61%</pre>
+  </div>
+</article>
+```
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Role (variant) | `.ds-message--assistant` (the default look), `.ds-message--user`, `.ds-message--system`, `.ds-message--tool` | the message | the assistant's reply runs the full width with an avatar at the start; the user's sits in a bubble at the end side (`--ds-message-user-bg`, at most `--ds-message-user-max` wide, line breaks kept), its avatar at the end; a system line is centred and quiet (meta type, `--ds-text-2`), without avatar or footer; a tool result is framed (`--ds-message-tool-bg`, a line, code type) |
+| Size | `.ds-xs` ... `.ds-xl` | the message or any ancestor | the avatar 8px per step (32px at md); the text keeps the body role, a conversation reads at one size |
+| Density | `.ds-density-*` | any container | 2px less per step between head, content, note and footer, and of the bubble's and the tool frame's padding |
+| Shape | `.ds-shape-*` | any container or the theme | the bubble's and the tool frame's radius times 0, .5, 1, 1.5; the avatar stays round |
+| Touch | `.ds-touch` | the theme or a container | the footer's buttons follow the button's rule (48px targets) |
+| Tone | | | none: the role is the variant; a failed reply shows the error ink with its icon and word |
+
+**Parts.** `.ds-message__avatar` (a round slot for an icon, initials or an `<img>`; `aria-hidden` when the head names
+the author), `.ds-message__main` (the column), `.ds-message__head` (`.ds-message__author`, `.ds-message__time`, an
+[AI label](#ai-label)), `.ds-message__content` (plain text, or `.ds-prose .ds-prose--compact` for rendered markdown),
+`.ds-message__note` (a line with an icon and a word under the content) and `.ds-message__footer` (quiet icon buttons
+and a [feedback](#feedback) pair; at the end side for the user). A message is an `<article>` named by its author
+(`aria-labelledby`), so a screen reader can move from one to the next.
+
+**States.** `data-ds-message="streaming"`, `"partial"`, `"error"` or empty (complete) is the state the page renders;
+`DS.message` writes `data-state` from it (none when complete), so the page never sets `data-state` itself:
+
+| State | Shows | ARIA |
+|---|---|---|
+| `streaming` | a block cursor at the end of the text (after the last paragraph, heading or list item, or alone in an empty content); the footer keeps its room but stays invisible, so nothing moves when it comes | `aria-busy="true"` on the message, so a screen reader waits for the whole reply |
+| `partial` | a note "Stopped" with a stop icon (the string `messageStopped`) | |
+| `error` | a note in the error ink with an alert icon: the text of `set({ error })`, else "Not completed" (the string `messageFailed`); put a Retry in the footer | |
+| complete | the reply as it is | |
+
+The module writes its note (`.ds-message__note`, marked `data-ds-message-note`) after the content and removes it when
+the state changes; a `.ds-message__note` of the page's own replaces it.
+
+**Behaviour and API.** `data-ds-message` attaches `DS.message` on `DS.init()` and is read again when it changes.
+
+```js
+const message = DS.message.create(article);   // or DS.core.get(article, 'message'): the same controller
+message.set('streaming');
+message.append('The battery report shows ');   // plain text at the end of the content
+message.set({ state: 'error', error: 'The connection was lost.' });
+message.set({ state: 'done' });
+message.on('retry', () => regenerate());
+message.on('edit', ({ text }) => composer.set({ text }));
+DS.message.state('Partial');                     // 'partial': what a value means
+```
+
+- `get()` gives `{ state, text }`; `set(state)` or `set({ state, text, error, copy })` (`text` replaces the content's
+  text); `append(text)` streams plain text in (into the last paragraph when the content ends in one); `copy()`
+  copies as the button does; `on(type, fn)` for `change`, `copy`, `retry`, `edit` and `action` returns the unsubscribe;
+  `destroy()`. Rich content is the page's: re-render it with `DS.dom.morphHtml(content, html)` while it streams.
+- `DS.message.create(el, { state, error, copy })`: `copy` is the text the copy action writes (a string, or a function
+  of the message: the markdown source, say), else the content's rendered text.
+- `DS.message.state(value)`: the state a value names (`'done'` for anything unknown).
+- Footer actions are buttons with `data-ds-message-action`: `copy` writes to the clipboard, shows face b of its
+  `.ds-icon-swap` (a check) and the string `copied` as its name and tooltip for `--ds-hold-status`, announces "Copied"
+  and dispatches `ds:copy` (`{ text }`); `retry` dispatches `ds:retry`; `edit` dispatches `ds:edit` (`{ text }`); any
+  other value `ds:action` (`{ action }`). A blocked or busy button does nothing. Regenerating, editing (put the text
+  into the [composer](#composer), or swap the content for a field) and sending feedback are the page's.
+- `ds:change` (`{ state, previous }`) bubbles on every change of state; the [transcript](#transcript) announces a reply
+  once it is complete. The [feedback](#feedback) pair in a footer dispatches a `ds:change` of its own (`{ value,
+  previous }`) that bubbles through the message too: a listener on the message takes only `event.target === message`
+  (or uses the controller's `on('change')`).
+- The clipboard is progressive: where `navigator.clipboard.writeText` is missing or refused, nothing changes and
+  `copy()` resolves `false`.
+
+**Accessibility.** Give the footer `role="group"` and a name, every icon button a name (`aria-label`) and a tooltip.
+The cursor is drawn by CSS and never read; the note is text. A reply is announced by the transcript once it is complete,
+never word by word. The user's bubble keeps line breaks (`white-space: pre-wrap`).
+
+**Forced colours.** The bubble and the tool frame keep their edge (a transparent border); the cursor is `CanvasText`; the
+error note keeps its icon and word in the system colours.
+
+**Hooks**: `--ds-message-avatar-size` (32px), `--ds-message-gap` (`--ds-space-2`), `--ds-message-user-bg`
+(`--ds-surface-high`), `--ds-message-user-color` (`--ds-text`), `--ds-message-user-max` (80%), `--ds-message-radius`
+(`--ds-radius-xl`), `--ds-message-tool-bg` (`--ds-surface-low`) ([theming.md](theming.md#component-hooks)).
+
+**Motion.** None of its own: the text that streams in is the motion, so the cursor stands still. The copy button swaps
+its icon through `.ds-icon-swap`. Print leaves the footer and the cursor out.
+
+<!-- changelog -->
+- Message (3.0, new): `.ds-message` with the roles `--assistant`, `--user`, `--system` and `--tool`, its parts
+  (`__avatar`, `__main`, `__head`, `__author`, `__time`, `__content`, `__note`, `__footer`), the states streaming
+  (a cursor, `aria-busy`), partial and error (a note), and `DS.message` (`data-ds-message`, `create`, `state`) with the
+  footer actions copy, retry and edit. Hooks `--ds-message-avatar-size`, `--ds-message-gap`, `--ds-message-user-bg`,
+  `--ds-message-user-color`, `--ds-message-user-max`, `--ds-message-radius`, `--ds-message-tool-bg`. Strings
+  `messageStopped`, `messageFailed`.
+## Transcript
+
+The scrolling log of a conversation: it sticks to its end while the reader is there, offers a "Latest" jump with the
+count of new messages once they scrolled up, separates the days and loads earlier messages without moving what is on
+screen.
+
+```html
+<div class="ds-transcript" data-ds-transcript role="region" aria-label="Conversation" tabindex="0">
+  <div class="ds-transcript__earlier">
+    <button class="ds-btn ds-btn--text" type="button" data-ds-transcript-earlier>Load earlier messages</button>
+  </div>
+  <div class="ds-transcript__list" role="log" aria-label="Messages">
+    <h3 class="ds-transcript__day">Yesterday</h3>
+    <article class="ds-message ds-message--user" ...>...</article>
+    <h3 class="ds-transcript__day">Today</h3>
+    <article class="ds-message ds-message--assistant" data-ds-message ...>...</article>
+  </div>
+  <!-- optional: the module writes this pill when the markup has none -->
+  <div class="ds-jump"><div class="ds-presence" hidden>
+    <button class="ds-btn ds-btn--tonal ds-transcript__latest" type="button">[icon arrowDown 20]<span>Latest</span> <span class="ds-transcript__unread"></span></button>
+  </div></div>
+</div>
+<form class="ds-composer" data-ds-composer>...</form>
+```
+
+The page gives the transcript its block size: a flex child (`flex: 1; min-height: 0`) of a column that ends in the
+[composer](#composer), or a height. It scrolls on the block axis; a short conversation rests at the bottom, next to the
+composer.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Density | `.ds-density-*` | any container | 4px less between messages per step (`--ds-transcript-gap`, 24px), 2px less of the list's padding |
+| Size, shape, touch | `.ds-xs` ... `.ds-xl`, `.ds-shape-*`, `.ds-touch` | any container | reach the messages and buttons inside; the log has no height, radius or target of its own |
+| Tone | | | none |
+
+**Parts.** `.ds-transcript__list` holds the messages and days in a column at most `--ds-transcript-max-width` (768px)
+wide, centred (`role="log"` and a name). `.ds-transcript__day` is a day separator, its text centred between two lines:
+make it a heading of the right level, so a reader can jump from day to day, and write its text with
+`DS.transcript.day(date)`. `.ds-transcript__earlier` is the row of the button that loads earlier messages. The "Latest"
+pill is a `.ds-jump` ([scroller](#horizontal-scroller)) with a `.ds-transcript__latest` button (a raised tonal pill)
+and its `.ds-transcript__unread` count ("3 new"), gone while empty.
+
+**Behaviour.** `data-ds-transcript` attaches `DS.transcript` on `DS.init()`:
+
+- **Sticks to the end** (`DS.dom.followEnd()`): it opens at the end, and while the reader is within 16px of it, new
+  messages and a reply that grows keep it there. Scrolled up, it stays put and the pill shows; every message that
+  arrives at the end meanwhile counts (not the user's own, `.ds-message--user`), as the string `unreadCount`. The pill,
+  or `stick()`, goes back to the end, smoothly within one screen, else at once, and the count goes. A pill pressed
+  from the keyboard hands the focus to the transcript before it hides. Call `stick()` after the user sends.
+- **Load earlier**: a press on `[data-ds-transcript-earlier]` dispatches `ds:earlier` once and holds the button busy
+  (`DS.motion.busy()`) until the page calls `loaded({ more })`; `data-ds-transcript-earlier="auto"` loads when the
+  button comes into view, and again after `loaded({ more: true })` while it is still in view (what loaded was too
+  short to push it out). The page puts the older messages at the top of the list; the message on screen stays exactly
+  where it was in every engine (the transcript sets `overflow-anchor: none` and keeps it in place itself, since the
+  engines' own anchoring stops at the very top). `loaded()` announces "Earlier messages loaded" (the string
+  `earlierLoaded`); `more: false` hides `.ds-transcript__earlier` (focus on it moves to the transcript).
+- **Announcements that do not spam**: the list gets `aria-live="off"` (unless the markup set `aria-live`), and the
+  transcript announces politely (`DS.a11y.announce()`) each message that arrives at the end complete, and a streaming
+  reply once it is complete or failed (`ds:change` of [DS.message](#message)), as its author and its text, never word
+  by word, never the user's own and never what loads above. `data-ds-transcript-announce="live"` leaves it to the
+  log's own politeness (a streaming message is `aria-busy`), `"off"` says nothing.
+
+```js
+const log = DS.transcript.create(el);   // or DS.core.get(el, 'transcript'): the same controller
+el.addEventListener('ds:earlier', async () => {
+  const older = await fetchOlder();
+  el.querySelector('.ds-transcript__list').prepend(...render(older));
+  log.loaded({ more: older.hasMore });
+});
+composer.on('send', ({ text }) => { appendUserMessage(text); log.stick(); });
+log.get();                                // { atEnd: true, unread: 0 }
+DS.transcript.day('2026-11-03T18:00');    // 'Yesterday' (the locale of DS.core.config())
+```
+
+`DS.transcript.create(el)` returns the controller: `get()` (`{ atEnd, unread }`), `set({ more })`, `stick()`,
+`loaded({ more })`, `on('earlier', fn)` (the unsubscribe) and `destroy()`. `DS.transcript.day(value, { now, locale })`
+labels a day: "Today" and "Yesterday" in `Intl`'s words, the weekday within the last week, else the date (with the year
+when it is another).
+
+**Accessibility.** The transcript is a named region and the tab stop that scrolls (`tabindex="0"`; its ring is inset);
+the list a named `role="log"`; each message an `<article>`. Keyboard: Tab reaches the transcript, the arrow keys and
+Page Up / Page Down scroll it, Tab goes on through the messages' buttons, "Load earlier" at the top and the "Latest"
+pill when it shows.
+
+**Forced colours.** The focused transcript shows the system ring, the day lines are `CanvasText`, the unread count keeps
+an edge.
+
+**Hooks**: `--ds-transcript-max-width` (768px), `--ds-transcript-gap` (24px), `--ds-transcript-pad` (`--ds-space-4`)
+([theming.md](theming.md#component-hooks)).
+
+**Motion.** The pill comes and goes as a `.ds-presence`; "Latest" scrolls smoothly within one screen. Loading earlier
+messages moves nothing on screen. Print shows the whole log, without the pill and the load row.
+
+<!-- changelog -->
+- Transcript (3.0, new): `.ds-transcript` with `__list`, `__day`, `__earlier`, `__latest` and `__unread`, and
+  `DS.transcript` (`data-ds-transcript`, `create`, `day`): sticks to the end, the "Latest" pill with an unread count,
+  load earlier in place (`data-ds-transcript-earlier`, `ds:earlier`, `loaded()`), polite announcements of complete
+  replies (`data-ds-transcript-announce`). Hooks `--ds-transcript-max-width`, `--ds-transcript-gap`,
+  `--ds-transcript-pad`. Strings `latest`, `unreadCount`, `earlierLoaded`.
+## Suggestions
+
+Follow-up prompts as a row of action chips, under a reply or over the composer: one row that scrolls sideways and a
+mouse can drag, or chips that wrap. A press fills (or sends) the composer.
+
+```html
+<div class="ds-suggestions ds-scroll-x" role="group" aria-label="Suggested questions"
+  data-ds-suggestions data-ds-suggestions-for="composer-1">
+  <button class="ds-chip" type="button" data-value="Show the battery report of laptop 4">
+    <span class="ds-chip__body">[icon sparkles 18 ds-chip__icon]<span class="ds-chip__label">Battery report</span></span></button>
+  <button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">Open a ticket</span></span></button>
+</div>
+<form class="ds-composer" id="composer-1" data-ds-composer>...</form>
+```
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Variant | default (add `.ds-scroll-x`), `.ds-suggestions--wrap` | the row | one row that scrolls sideways, with the thin scrollbar and the end fades of the [horizontal scroller](#horizontal-scroller); or the chips wrap onto more lines (then leave `.ds-scroll-x` out) |
+| Size, density, shape, touch, tone | the option classes | the row or any ancestor | reach the chips ([chip](#chips)); the row's gap takes 2px less per density step (`--ds-suggestions-gap`) |
+
+**Behaviour.** `data-ds-suggestions` attaches `DS.suggestions` on `DS.init()`:
+
+- A press on a chip (a button or link of the row that is not blocked) dispatches the cancelable `ds:select`
+  (`{ value, label, chip }`): `value` is the chip's `data-value`, else its label. With
+  `data-ds-suggestions-for="<id>"` the value goes into that [composer](#composer)'s field, with the focus; with
+  `data-ds-suggestions-send` as well it is sent at once. `preventDefault()` on `ds:select` leaves the composer alone.
+- **Drag to scroll**: a mouse or pen pressed on the row and moved more than 4px sideways scrolls it with the pointer
+  (`data-state="dragging"`: the grabbing cursor, no press on the chips), and the click that ends the drag presses
+  nothing. Touch scrolls natively; the keyboard brings each chip into view as Tab reaches it.
+- `DS.dom.scrollEdges()` writes `data-ds-overflow-start` and `data-ds-overflow-end`: the fades of `.ds-scroll-x` and
+  the grab cursor (fine pointers) follow them.
+
+```js
+const row = DS.suggestions.create(el);      // or DS.core.get(el, 'suggestions'): the same controller
+row.set(['Battery report', { value: 'Open a ticket for laptop 4', label: 'Open a ticket', icon: DS.icons.ticket }]);
+row.on('select', ({ value }) => ask(value));
+row.get();                                  // [{ value, label }, ...]
+DS.suggestions.items(['Battery report']);   // [{ value: 'Battery report', label: 'Battery report', icon: null }]
+```
+
+`DS.suggestions.create(el)` returns the controller: `get()`, `set(items)` (new chips from texts or
+`{ value, label, icon }`, `icon` a glyph of `DS.icons`), `on('select', fn)` (the unsubscribe) and `destroy()`.
+`DS.suggestions.items(list)` normalises a list the way `set()` reads it.
+
+**Accessibility.** The row is a named `role="group"` of buttons; Tab goes from chip to chip and each scrolls into view
+clear of the fades. A chip's label is what it asks; a longer value goes in `data-value`. Remove the row (or replace its
+chips) once the conversation moved on.
+
+**Forced colours.** The chips keep their edges ([chip](#chips)); the fades are a mask and stay.
+
+**Hooks**: `--ds-suggestions-gap` (`--ds-space-2`) ([theming.md](theming.md#component-hooks)).
+
+**Motion.** None of its own: a drag follows the pointer one to one.
+
+<!-- changelog -->
+- Suggestions (3.0, new): `.ds-suggestions` (a row of action chips that scrolls sideways with `.ds-scroll-x`, or
+  `.ds-suggestions--wrap`) and `DS.suggestions` (`data-ds-suggestions`, `-for`, `-send`, `create`, `items`): drag to
+  scroll, `ds:select`, filling or sending a composer. Hook `--ds-suggestions-gap`.
+## Feedback
+
+Thumbs up and down on a reply, with an optional dialog that asks why: two quiet icon toggles whose thumb fills while
+pressed.
+
+```html
+<div class="ds-feedback" role="group" aria-label="Rate this answer" data-ds-feedback data-ds-feedback-reason="reason-dialog">
+  <span class="ds-feedback__label" aria-hidden="true">Helpful?</span>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-pressed="false" aria-label="Helpful" data-tip="Helpful"
+    data-ds-feedback-value="up">[icon thumbUp 18 ds-icon--fillable]</button>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-pressed="false" aria-label="Not helpful" data-tip="Not helpful"
+    data-ds-feedback-value="down">[icon thumbDown 18 ds-icon--fillable]</button>
+  <span class="ds-feedback__status"></span>
+</div>
+
+<dialog class="ds-dialog" id="reason-dialog" aria-labelledby="reason-title">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <form class="ds-dialog__box">
+    <h2 class="ds-dialog__title" id="reason-title">What went wrong?</h2>
+    <fieldset class="ds-chips"><legend class="ds-sr">Reasons</legend>
+      <label class="ds-chip"><input class="ds-chip__input" type="checkbox" name="reason" value="wrong">
+        <span class="ds-chip__body">[icon check 18 ds-chip__check]<span>Not correct</span></span></label>
+      ...
+    </fieldset>
+    <div class="ds-field"><label class="ds-field__label" for="reason-comment">Anything else? (optional)</label>
+      <textarea class="ds-input ds-input--grow" id="reason-comment" name="comment" rows="2"></textarea></div>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-ds-close>Skip</button>
+      <button class="ds-btn ds-btn--filled" type="submit">Send feedback</button>
+    </div>
+  </form>
+</dialog>
+```
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Size, shape, touch | `.ds-xs` ... `.ds-xl`, `.ds-shape-*`, `.ds-touch` | the buttons or any ancestor | the buttons' own rule ([button](#button)); `.ds-sm` suits a message footer |
+| Density | `.ds-density-*` | any container | 1px less between the buttons per step |
+| Tone | | | none: the pressed look and the filled thumb say which |
+
+**Parts.** `.ds-feedback__label` (an optional question, meta type in `--ds-text-2`; hide it from screen readers when the
+group's name says the same) and `.ds-feedback__status` (where the module writes its thanks; empty, it takes no room).
+The thumbs take `.ds-icon--fillable`, so the chosen one fills ([utilities](#utilities)): the on state never shows by
+colour alone.
+
+**Behaviour.** `data-ds-feedback` attaches `DS.feedback` on `DS.init()`:
+
+- The buttons with `data-ds-feedback-value` (`up`, `down`, or any value) are toggles: a press turns its `aria-pressed`
+  on and the others off; a press on the one that is on turns it off. Each change dispatches `ds:change`
+  (`{ value, previous }`, `value` `null` when none is on) on the `.ds-feedback`. It bubbles, so in a message footer it
+  also reaches the [message](#message), whose own `ds:change` has `{ state, previous }`: a listener above both checks
+  `event.target` (or listens for `ds:feedback`, or uses the controller's `on('change')`).
+- A value that turns on is feedback: `ds:feedback` (`{ value, reasons, comment }`) follows, "Thanks for the feedback"
+  (the string `feedbackThanks`) is announced and written into `.ds-feedback__status`. With `data-ds-feedback-lock`
+  both buttons turn `aria-disabled` once it is given: a choice made once, the chosen one keeps its on look.
+- **The reason dialog**: `data-ds-feedback-reason="<id>"` names a [dialog](#dialog) with a form. It opens for `down`
+  (`data-ds-feedback-reason-for="up"`, `"down"` or `"both"`), its form reset, with the pressed button as its opener
+  (focus goes back there). Its submit is taken by the module (no `data-ds-dialog-form` needed, nothing is sent
+  anywhere): the checked `reason` fields and the `comment` field go into `ds:feedback`, and it closes. Closed without
+  a submit (Skip, Escape), `ds:feedback` comes with no reasons: the thumb still counts.
+
+```js
+el.addEventListener('ds:feedback', ({ detail }) => save(messageId, detail.value, detail.reasons, detail.comment));
+const thumbs = DS.feedback.create(el);    // or DS.core.get(el, 'feedback'): the same controller
+thumbs.set('up');                         // shows a stored choice; no ds:feedback
+thumbs.get();                             // { value: 'up' }
+DS.feedback.toggle('up', 'up');           // null: a second press turns it off
+DS.feedback.asks('down', 'both');         // true: the dialog opens for this value
+```
+
+`DS.feedback.create(el)` returns the controller: `get()`, `set(value)`, `on(type, fn)` for `change` and `feedback`
+(the unsubscribe) and `destroy()`. `DS.feedback.toggle(current, pressed)` and `DS.feedback.asks(value, when)` are the
+rules as pure functions.
+
+**Accessibility.** The pair is a named `role="group"`; each button has a name and `aria-pressed`. The dialog follows the
+dialog's contract: focus moves into it and returns to the thumb. The thanks are announced once.
+
+**Forced colours.** The pressed button is `Highlight` / `HighlightText` (the button's toggle model) and its thumb stays
+filled.
+
+**Hooks**: none of its own; the buttons read the button's.
+
+**Motion.** The thumb fills on `--ds-dur-fast` (`.ds-icon--fillable`); the dialog opens and closes through
+`DS.overlay`.
+
+<!-- changelog -->
+- Feedback (3.0, new): `.ds-feedback` (`__label`, `__status`) and `DS.feedback` (`data-ds-feedback`,
+  `data-ds-feedback-value`, `-reason`, `-reason-for`, `-lock`; `create`, `toggle`, `asks`): thumbs as exclusive toggles,
+  `ds:change` and `ds:feedback`, an optional reason dialog. String `feedbackThanks`.
+## AI label
+
+Marks content a model generated, with an icon and a word, and optionally a toggletip that explains it: a small pill
+in a message head, next to a summary, or by a field a model filled in.
+
+```html
+<span class="ds-ailabel">[icon sparkles 16]<span>AI generated</span></span>
+
+<button class="ds-ailabel" type="button" aria-expanded="false" aria-controls="ai-tip-1" data-ds-ailabel>
+  [icon sparkles 16]<span>AI</span><span class="ds-sr">: about this content</span></button>
+<div class="ds-ailabel__tip" id="ai-tip-1" role="dialog" aria-labelledby="ai-tip-1-title" popover="manual" hidden>
+  <p class="ds-ailabel__title" id="ai-tip-1-title">[icon sparkles 16] Generated by AI</p>
+  <p>A language model wrote this answer from the device data. It can be wrong: check what matters.</p>
+  <a href="/help/assistant">How the assistant works</a>
+</div>
+```
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Variant | default (tonal), `.ds-ailabel--outlined`, `.ds-ailabel--plain`, `.ds-ailabel--icon` | the label | the tonal pill (`--ds-ailabel-bg`, `--ds-ailabel-color`: the primary container pair); a line without fill; no box, the icon and word in `--ds-text-2`; the icon alone in a round pill (the word goes into its name: `aria-label`, or a `.ds-sr` span) |
+| Size | `.ds-xs` ... `.ds-xl` | the label or any ancestor | 16, 20, 24, 28, 32px high (4px per step, `--ds-ailabel-height`), the icon 2px per step; caption type |
+| Density | `.ds-density-*` | any container | 2px less height per step, never below 16px |
+| Shape | `.ds-shape-*` | any container or the theme | the radius times the shape (at most half the height), the tip's too |
+| Touch | `.ds-touch` | the theme or a container | the button's target reaches `--ds-touch-target` through an invisible margin; the pill keeps its size |
+| Tone | | | none: the icon and the word say "generated" |
+
+**The toggletip.** `data-ds-ailabel` on a `button.ds-ailabel` attaches `DS.ailabel` on `DS.init()`. A press opens the
+`.ds-ailabel__tip` its `aria-controls` names, a second press closes it. The tip opens through `DS.overlay` as a popup
+(`aria-expanded` on the button, the Escape stack, the motion keyed on `data-state`), as `popover="manual"` in the top
+layer, under the button (above without room; `--ds-ailabel-x` and `--ds-ailabel-y` are the script's coordinates, never
+set them), placed again as the page scrolls. The focus moves into the tip (`tabindex="-1"` when it has none), so a screen
+reader reads it as a non-modal dialog; Escape closes it and gives the focus back to the button, and a press outside it
+or a focus that leaves it closes it too. `.ds-ailabel__title` is its first line, at the label weight; keep the rest
+short, with a link to more.
+
+```js
+const label = DS.ailabel.create(button);   // or DS.core.get(button, 'ailabel'): the same controller
+label.set(true);                            // opens the explainer; set(false) closes it
+label.get();                                // { open: true }
+label.on('toggle', ({ open }) => track(open));
+```
+
+`DS.ailabel.create(el)` returns the controller: `get()`, `set(open)`, `on('toggle', fn)` (`ds:toggle` on the button,
+`{ open }`; the unsubscribe) and `destroy()`.
+
+**Accessibility.** A static label is text: its word is read in place. As a button its name says what it opens
+(": about this content" in a `.ds-sr` span); the icon is `aria-hidden`. The button shows the state layer (hover, focus,
+press in `--ds-dur-micro`, the pressed layer while open) and the focus ring; like an inline link it has no ripple and no
+press morph. Never mark content as generated by colour alone: the word, or the name of an icon-only label, says it.
+
+**Forced colours.** The pill keeps its edge (a transparent border), the open button is `Highlight` / `HighlightText`, the
+tip keeps a transparent outline as its edge.
+
+**Hooks**: `--ds-ailabel-height` (24px), `--ds-ailabel-bg` (`--ds-primary-container`), `--ds-ailabel-color`
+(`--ds-on-primary-container`), `--ds-ailabel-tip-width` (320px) ([theming.md](theming.md#component-hooks)).
+
+**Motion.** The tip fades in on `--ds-dur-fast` and grows from `--ds-scale-popup` at the label on the spring
+(`--ds-dur-medium`); it leaves in `--ds-dur-instant`, fading only, and a tip closed mid-way turns back from where it is.
+Print keeps the label and leaves the tip out.
+
+<!-- changelog -->
+- AI label (3.0, new): `.ds-ailabel` (`--outlined`, `--plain`, `--icon`) with its toggletip `.ds-ailabel__tip`
+  (`__title`) and `DS.ailabel` (`data-ds-ailabel`, `create`), opened through `DS.overlay`. Hooks `--ds-ailabel-height`,
+  `--ds-ailabel-bg`, `--ds-ailabel-color`, `--ds-ailabel-tip-width`.
 ## Motion classes
 
 Documented in [motion.md](motion.md): `.ds-enter` with `.ds-enter--fade`, `.ds-enter--scale`, `.ds-enter--slide`,
@@ -5354,6 +17197,8 @@ the ones the page sets for it. The project check reads this table.
 | `data-toast-reserve` (with `--ds-toast-reserve`) | both: `DS.overlay.toast()` by default, the page only with `reserve: false` | `.ds-view`, `.ds-sheet__body`, `.ds-dialog` | the layer keeps room at its end for snackbars that stay ([Snackbar](#snackbar)) |
 | `data-ds-savebar` (with `--ds-savebar-height`) | the system (`DS.overlay.savebar()`) | `.ds-view` | the save bar shows: scroll padding and the content's end keep its room ([Save bar](#save-bar)) |
 | `data-ds-savebar-rest` | the system (`DS.overlay.savebar()`) | `.ds-view` | the bar hid at the end of the page: its room stays until the page scrolls away from the end ([Save bar](#save-bar)) |
+| `data-ds-filtered` | the system (`DS.shell`, `data-ds-drawer`) | an item, row, group or the "No results" note of a `.ds-drawer` | the drawer's filter hides it ([App frame](#filter-remembered-groups-and-badges)) |
+| `data-ds-collapsed` | the system (`DS.shell`, `data-ds-breadcrumbs`) | a crumb of a `.ds-breadcrumbs` or its "more" crumb | folded into the menu, or the "more" crumb hidden while every crumb fits |
 | `data-ds-busy` | the page | `.ds-dialog`, `.ds-sheet`, `.ds-drawer` | keeps the overlay open while its action runs: the user's close attempts do nothing, `DS.overlay.close()` still closes ([Dialog](#dialog), "While its action runs") |
 | `data-ds-open` | the page | a button | `DS.init()`: a click, or a menu's ArrowDown and ArrowUp, opens the overlay it names (a selector or an id), with the button as its opener ([Dialog](#dialog)) |
 | `data-ds-close` | the page | a control or a backdrop | without a value closes the overlay around it; with a selector or an id closes that overlay, leaving the one around it open ([Dialog](#dialog)) |
@@ -5369,7 +17214,7 @@ the ones the page sets for it. The project check reads this table.
 | `data-icon-size` | the page | an element with `data-icon` | the glyph size in px for `DS.icons.fill()` (default 20) |
 | `data-icon-place` | the page | an element with `data-icon` | `start` or `end`: `DS.icons.fill()` puts the glyph first or last and keeps the content (without it the glyph replaces the content; [icons.md](icons.md)) |
 | `data-ds-shown` | the page | a `.ds-presence--keep` element, a `.ds-hover-actions` host or its actions | shown (`.ds-presence--keep`: without it hidden, keeping its box; `.ds-hover-actions`: the actions show without hover or focus, [Utilities](#actions-on-demand)) |
-| `data-drawer-collapsed` | the page | `.ds-app` | the docked drawer is a rail (above 900px; [App frame](#the-rail)) |
+| `data-drawer-collapsed` | both: the page, or `DS.shell` with `data-ds-shell` | `.ds-app` | the docked drawer is a rail (above 900px; [App frame](#the-rail)) |
 | `data-label` | the page | `.ds-segmented__option`, `.ds-tabs__tab` | the option's text again: keeps the width of the selected weight |
 | `data-label` | the page | a cell of `.ds-table--stack` / `--stack-wide` | the label shown above the cell's content while the rows stack ([Stacked rows](#stacked-rows)) |
 | `data-status` | the page | `.ds-steps__step` | `done`, `error` or `optional`: the state of a step ([Steps](#steps)) |

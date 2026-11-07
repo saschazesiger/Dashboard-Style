@@ -1,7 +1,7 @@
 {
   "name": "sticky",
   "group": "layout",
-  "order": 430,
+  "order": 580,
   "docsOrder": 360,
   "need": "Keep a head, a foot or a side in view while its list scrolls, raised once content passes under it",
   "tier": 1,

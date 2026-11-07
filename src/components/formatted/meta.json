@@ -1,8 +1,8 @@
 {
   "name": "formatted",
   "group": "data",
-  "order": 850,
-  "docsOrder": 332,
+  "order": 980,
+  "docsOrder": 331,
   "need": "Show a number, bytes, a duration, money, a percentage or a relative time in the page's locale",
   "tier": 1,
   "status": "beta",

@@ -1,7 +1,7 @@
 {
   "name": "lightbox",
   "group": "overlays",
-  "order": 1120,
+  "order": 1140,
   "docsOrder": 258,
   "need": "Look at the images of a record one at a time over the whole window, with thumbnails, zoom and a caption",
   "tier": 1,

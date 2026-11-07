@@ -1,7 +1,7 @@
 {
   "name": "taginput",
   "group": "forms",
-  "order": 620,
+  "order": 840,
   "docsOrder": 232,
   "need": "Type free values as tags: labels, recipients, keywords; paste a list, check each, cap the count",
   "tier": 1,

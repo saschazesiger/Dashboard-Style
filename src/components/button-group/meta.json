@@ -1,7 +1,7 @@
 {
   "name": "button-group",
   "group": "actions",
-  "order": 530,
+  "order": 710,
   "docsOrder": 53,
   "need": "Join related actions or toggles into one pill outline",
   "tier": 1,

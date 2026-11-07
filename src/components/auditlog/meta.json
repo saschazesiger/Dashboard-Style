@@ -1,7 +1,7 @@
 {
   "name": "auditlog",
   "group": "data",
-  "order": 620,
+  "order": 820,
   "docsOrder": 101,
   "need": "Show who changed what and when, with the old and new values, filtered and grouped by day",
   "tier": 1,

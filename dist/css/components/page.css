@@ -47,6 +47,23 @@
  * in the meta role over its value in the body role with tabular figures; it
  * wraps, and stays on paper. .ds-page-head__tabs: the record's tabs as the
  * head's last row, the head's gap plus --ds-space-3 above them, 16px in all.
+ *
+ * .ds-page-head--sticky: the head sticks --ds-page-head-top (0px) below the
+ * top of its scroller on --ds-page-head-bg (--ds-backdrop), --ds-space-3
+ * above and below; a hairline under it shows while the content scrolls
+ * under it. With page.js (data-ds-page-head) it condenses once the reader
+ * has scrolled past what folds: data-scrolled (written by the module) hides
+ * the back link or breadcrumbs, the lead, the status and the key facts, the
+ * title takes --ds-font-title on one line (an ellipsis when short of room)
+ * and the actions sit at its end, also on a narrow page; what folded
+ * keeps its room as a bottom margin (--ds-page-head-fold, written by the
+ * module), so the content stays where it was. The actions fold into a More menu by width: the module writes
+ * .ds-page-head__more (a quiet icon button) and its .ds-menu after them,
+ * hides the actions that do not fit the row (the filled one last) and
+ * lists them in the menu.
+ *
+ *   <header class="ds-page-head ds-page-head--sticky" data-ds-page-head> ... </header>
+ *
  * Breadcrumbs
  * are inline links (underlined, no ripple, the link ring) with a chevron
  * between them; at 600px of the content only the parent shows. A docked
@@ -79,20 +96,26 @@
  * a stack of cards directly in the page, or .ds-stack--page anywhere),
  * --ds-page-head-text-basis (320px), --ds-page-head-title-line (32px),
  * --ds-breadcrumbs-item-max (240px), --ds-breadcrumbs-font (the size's
- * role), --ds-auth-width (400px).
+ * role), --ds-auth-width (400px), --ds-page-head-top (0px: where a sticky
+ * head stops), --ds-page-head-bg (--ds-backdrop: under a sticky head).
  *
- * Forced colours: the breadcrumb chevrons paint in CanvasText.
+ * Forced colours: the breadcrumb chevrons and the hairline under a sticky
+ * head paint in CanvasText.
  *
  * Print: the page fills the paper; the back link and the head's actions
- * stay off it.
+ * stay off it, and a sticky head prints in place, whole.
  *
  * Progressive:
+ * - scroll-driven animations (animation-timeline: scroll(), animation-range;
+ *   the hairline under a sticky head fades in over the first --ds-space-2
+ *   of scroll with ds-scroll-fade): without them data-scrolled shows it
+ *   over --ds-dur-fast.
  * - text-wrap (the lead avoids a lone last word): without it the line
  *   wraps as usual.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
+@layer ds.components.global, ds.components.layout, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.calendar, ds.components.container, ds.components.loadmore, ds.components.popover, ds.components.splitpane, ds.components.upload, ds.components.datefield, ds.components.kveditor, ds.components.listdetail, ds.components.sort, ds.components.text, ds.components.toggletip, ds.components.dashpanel, ds.components.filterbar, ds.components.picker, ds.components.spacing, ds.components.wizard, ds.components.facets, ds.components.sticky, ds.components.timepicker, ds.components.unsaved, ds.components.datepicker, ds.components.print, ds.components.query, ds.components.views, ds.components.datagrid, ds.components.daterange, ds.components.timerange, ds.components.duration, ds.components.link, ds.components.toggle, ds.components.button-group, ds.components.menubutton, ds.components.splitbutton, ds.components.copy, ds.components.prioritybar, ds.components.listbox, ds.components.number, ds.components.tree, ds.components.choices, ds.components.jsonview, ds.components.password, ds.components.auditlog, ds.components.secret, ds.components.taginput, ds.components.otp, ds.components.selectpanel, ds.components.inlineedit, ds.components.orderedchoice, ds.components.transfer, ds.components.typeconfirm, ds.components.errorsummary, ds.components.search, ds.components.meter, ds.components.bar-list, ds.components.category-bar, ds.components.lozenge, ds.components.result, ds.components.formatted, ds.components.kbd, ds.components.truncate, ds.components.expandable, ds.components.hits, ds.components.tracker, ds.components.labelgroup, ds.components.image, ds.components.composer, ds.components.message, ds.components.transcript, ds.components.suggestions, ds.components.feedback, ds.components.ailabel, ds.components.tearsheet, ds.components.loadingoverlay, ds.components.lightbox, ds.components.bottomsheet, ds.components.highlight, ds.components.markdown, ds.components.code, ds.components.toc, ds.components.backtop, ds.components.diff, ds.components.logview, ds.components.object, ds.components.terminal, ds.components.shimmer, ds.components.wheel, ds.components.thinking, ds.components.toolcall, ds.components.reasoning, ds.components.cite, ds.components.plan, ds.components.question, ds.components.usage, ds.components.presence, ds.components.avatar, ds.components.persona, ds.components.media, ds.components.levelmeter, ds.components.command, ds.components.shortcuts, ds.components.banner, ds.components.notifications, ds.components.ripple;
 
 @layer ds.components.page {
   .ds-content {
@@ -258,6 +281,102 @@
   .ds-page-head__tabs {
     min-width: 0;
     margin-top: var(--ds-space-3);
+  }
+
+  /* Sticky: the head stays at the top of its scroller on the page's
+     ground, its hairline hidden until the content scrolls under it. */
+  .ds-page-head--sticky {
+    position: sticky;
+    top: var(--ds-page-head-top, 0px);
+    z-index: var(--ds-z-sticky);
+    padding-block: var(--ds-space-3);
+    background: var(--ds-page-head-bg, var(--ds-backdrop));
+  }
+
+  .ds-page-head--sticky::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    height: 1px;
+    background: var(--ds-line);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  .ds-page-head--sticky[data-scrolled]::after {
+    opacity: 1;
+  }
+
+  /* Where scroll timelines exist, the hairline follows the scroll itself
+     over its first --ds-space-2 (data-scrolled, the fallback, changes
+     nothing then). ds-scroll-fade names both ends, so a scroller without
+     overflow keeps the hairline's own opacity 0. The shorthand comes
+     first: it resets animation-timeline. */
+  @supports (animation-timeline: scroll()) {
+    .ds-page-head--sticky::after {
+      animation: ds-scroll-fade linear both;
+      animation-timeline: scroll(nearest block);
+      animation-range: 0 var(--ds-space-2);
+    }
+  }
+
+  /* Condensed (data-scrolled, written by page.js on a sticky head), on the
+     screen only (a head printed while condensed prints whole): the way back,
+     the lead, the status and the key facts fold away, the title takes the
+     title role and the actions sit on its centre line. The module writes the
+     height that folded as --ds-page-head-fold, which the head keeps as a
+     bottom margin, so the content stays where it was. */
+  @media screen {
+    .ds-page-head--sticky[data-scrolled] > :is(.ds-page-head__back, .ds-breadcrumbs, .ds-page-head__details),
+    .ds-page-head--sticky[data-scrolled] .ds-page-head__text > :is(.ds-page-head__lead, .ds-page-head__status) {
+      display: none;
+    }
+
+    /* What folded keeps its room in the flow: the content stays put. */
+    .ds-page-head--sticky[data-scrolled] {
+      margin-bottom: calc(var(--ds-space-1) + var(--ds-page-head-fold, 0px));
+    }
+
+    /* One line: the title (ellipsis when short of room) and the actions at
+       its end, also on a narrow page, where the whole head stacks them. */
+    .ds-page-head--sticky[data-scrolled] .ds-page-head__title {
+      overflow: hidden;
+      font: var(--ds-font-title);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ds-page-head--sticky[data-scrolled] .ds-page-head__row {
+      flex-wrap: nowrap;
+      align-items: center;
+    }
+
+    .ds-page-head--sticky[data-scrolled] .ds-page-head__text {
+      flex: 1 1 0;
+    }
+
+    .ds-page-head--sticky[data-scrolled] .ds-page-head__actions {
+      flex: 0 1 auto;
+      justify-content: flex-end;
+      margin-block: 0;
+      margin-inline-start: auto;
+    }
+
+    .ds-page-head--sticky[data-scrolled] .ds-page-head__tabs {
+      margin-top: 0;
+    }
+  }
+
+  /* Actions that fold (page.js writes .ds-page-head__more): one line, the
+     ones that do not fit hidden and listed in the More menu. */
+  .ds-page-head__actions:has(> .ds-page-head__more) {
+    flex-wrap: nowrap;
+  }
+
+  .ds-page-head__actions > [hidden] {
+    display: none;
   }
 
   /* A folded .ds-btn--adaptive (button.css: outside a content panel, by
@@ -471,6 +590,12 @@
       forced-color-adjust: none;
       background: CanvasText;
     }
+
+    /* A hairline is a background, which forced colours would turn to Canvas. */
+    .ds-page-head--sticky::after {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
   }
 
   /* Print: the page fills the paper, without the panel's padding and width
@@ -487,6 +612,14 @@
 
     .ds-page-head__back,
     .ds-page-head__actions {
+      display: none;
+    }
+
+    .ds-page-head--sticky {
+      position: static;
+    }
+
+    .ds-page-head--sticky::after {
       display: none;
     }
   }

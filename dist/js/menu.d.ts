@@ -8,3 +8,5 @@ export declare function open(element: Element, options?: OpenOptions): Promise<v
 export declare function close(element: Element, options?: { reason?: CloseReason }): Promise<void>;
 /** The controller of a menu, the one [data-ds-menu] makes. */
 export declare function create(element: Element): OverlayController;
+/** Opens a menu at a point (a context menu), or under the opener without one. */
+export declare function openAt(element: Element, options?: { x?: number; y?: number; opener?: Element | null; returnTo?: () => Element | null | undefined }): Promise<void>;

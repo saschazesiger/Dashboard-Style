@@ -1,7 +1,7 @@
 {
   "name": "meter",
   "group": "data",
-  "order": 800,
+  "order": 930,
   "docsOrder": 323,
   "need": "Show a share of a known whole as a segmented bar, a ring, a gauge or a bar gauge, with thresholds",
   "tier": 1,

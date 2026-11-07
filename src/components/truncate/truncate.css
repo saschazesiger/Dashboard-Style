@@ -20,7 +20,7 @@
  * itself: its name stays whole, and focusing it shows the tooltip.
  *
  * Options: none read; it takes the type of where it stands. Forced
- * colours: nothing of its own. No motion.
+ * colours: nothing of its own. No motion. On paper it prints in full.
  *
  * Hooks: --ds-truncate-lines (2).
  */
@@ -50,5 +50,13 @@
     line-clamp: var(--ds-truncate-lines, 2);
     white-space: normal;
     overflow-wrap: anywhere;
+  }
+
+  /* Paper is as wide as it is: cut text prints in full. */
+  @media print {
+    .ds-truncate {
+      overflow: visible;
+      white-space: normal;
+    }
   }
 }

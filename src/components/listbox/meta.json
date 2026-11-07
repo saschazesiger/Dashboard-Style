@@ -1,7 +1,7 @@
 {
   "name": "listbox",
   "group": "forms",
-  "order": 600,
+  "order": 760,
   "docsOrder": 231,
   "need": "Choose one or several options from a visible list: groups, descriptions, type-ahead, thousands of options",
   "tier": 1,

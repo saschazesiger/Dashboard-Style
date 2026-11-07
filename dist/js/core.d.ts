@@ -96,3 +96,5 @@ export declare function emit(el: EventTarget, type: string, detail?: unknown, op
 export declare function config(options?: ConfigOptions): Settings;
 /** The system's string `key`, with {name} placeholders from `vars`. */
 export declare function t(key: string, vars?: Record<string, unknown>): string;
+/** `value` when it is safe as an href from data (http, https, mailto, tel or relative), else null. */
+export declare function safeHref(value: unknown): string | null;

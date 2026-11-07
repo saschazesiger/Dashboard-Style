@@ -2,7 +2,7 @@
   "name": "calendar",
   "group": "forms",
   "order": 400,
-  "docsOrder": 232,
+  "docsOrder": 237,
   "need": "Show a month and let someone pick a day or a range in it, in the page's locale",
   "tier": 1,
   "status": "beta",

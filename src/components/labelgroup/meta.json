@@ -1,7 +1,7 @@
 {
   "name": "labelgroup",
   "group": "feedback",
-  "order": 910,
+  "order": 1040,
   "docsOrder": 142,
   "need": "Show the tags of one item on one line, with \"+N\" for the rest and all of them in a popup",
   "tier": 1,

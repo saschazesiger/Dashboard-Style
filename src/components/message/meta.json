@@ -1,7 +1,7 @@
 {
   "name": "message",
   "group": "content",
-  "order": 940,
+  "order": 1070,
   "docsOrder": 930,
   "need": "Show one turn of a conversation: user, assistant, system or tool, streaming, stopped or failed, with copy, retry, edit and feedback",
   "tier": 1,

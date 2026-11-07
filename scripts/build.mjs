@@ -910,7 +910,7 @@ export function verifyComponents(list = components()) {
     else orders.set(meta.order, name);
     // The ripple's box must beat every host's rules on its children: its sublayer is the last one.
     const ripple = list.find((entry) => entry.name === 'ripple');
-    if (ripple && name !== 'ripple' && meta.order > ripple.meta.order) problems.push(`${where}: "order" ${meta.order} comes after ripple's (${ripple.meta.order}): ripple's sublayer is the last one (plans/3.0-conventions.md, "Ripple hosts")`);
+    if (ripple && name !== 'ripple' && meta.order > ripple.meta.order) problems.push(`${where}: "order" ${meta.order} comes after ripple's (${ripple.meta.order}), the last sublayer: order ${name} before it (plans/3.0-conventions.md, "Ripple hosts")`);
     if (md === null && meta.docsOrder !== null) problems.push(`${where}: "docsOrder" is null without ${name}.md`);
     if (md !== null && meta.docsOrder === null) problems.push(`${where}: "docsOrder" is an integer (${name}.md has a place in docs/components.md)`);
     else if (md !== null && docOrders.has(meta.docsOrder)) problems.push(`${where}: "docsOrder" ${meta.docsOrder} is also ${docOrders.get(meta.docsOrder)}'s`);

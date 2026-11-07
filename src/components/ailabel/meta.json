@@ -1,7 +1,7 @@
 {
   "name": "ailabel",
   "group": "content",
-  "order": 980,
+  "order": 1110,
   "docsOrder": 970,
   "need": "Mark content a model generated, with an icon and a word, and a toggletip that explains it",
   "tier": 1,

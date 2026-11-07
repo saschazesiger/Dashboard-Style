@@ -72,7 +72,7 @@ controller):
 - **Save.** Submitting a section's form (its submit button, Enter in a field) sends `ds:save` on the section:
   `{ section, id, form, values }` (`values`: the form's entries, a repeated name as a list). Unless a listener cancels
   it, the view comes back, the focus goes to the section's edit action and a screen reader hears "General saved" (the
-  string `saved`). A page that saves on a server cancels `ds:save`, shows the busy state on the submit button
+  string `sectionSaved`). A page that saves on a server cancels `ds:save`, shows the busy state on the submit button
   (`DS.motion.busy()`), and calls `done(section)` once saved; an error stays in the form ([Form](#form)). A form
   with `novalidate` (the system's error hints instead of the browser's) validates in that listener: it cancels
   `ds:save`, marks the fields (`aria-invalid="true"` and a `.ds-field__hint--error`), focuses the first and does not

@@ -1,7 +1,7 @@
 {
   "name": "splitbutton",
   "group": "actions",
-  "order": 550,
+  "order": 730,
   "docsOrder": 55,
   "need": "Offer one main action with its variants or related actions in a menu, as one pill with two targets",
   "tier": 1,

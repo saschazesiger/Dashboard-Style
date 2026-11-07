@@ -83,6 +83,182 @@
       state: atLast,
       toggle: function (stage, on, sg) { return goTo(stage, on, sg); },
     });
+
+    /*
+     * The top bar's layers: the phone search sheet, the app launcher and the
+     * account menu. Each opens and closes through DS.overlay, so a close mid-way
+     * turns back from where it is.
+     */
+    function glyphs(stage) {
+      stage.querySelectorAll('[data-glyph]').forEach(function (slot) {
+        slot.replaceWith(DS.icons.iconElement(DS.icons[slot.getAttribute('data-glyph')], Number(slot.getAttribute('data-size') || 20)));
+      });
+    }
+
+    function opened(el) { return el.getAttribute('data-state') === 'open'; }
+
+    function layerTo(el, on, opener) {
+      if (on) return opened(el) ? Promise.resolve() : DS.overlay.open(el, { opener: opener });
+      return el.hasAttribute('data-state') ? DS.overlay.close(el) : Promise.resolve();
+    }
+
+    function hold(sg) { return new Promise(function (resolve) { setTimeout(resolve, sg.slow(400)); }); }
+
+    /* The sheet is fixed to the window in a page; layout containment makes the
+       stage its window here, a phone's width. The breakpoint and the inert page
+       around it are DS.shell.searchSheet()'s (labExempt): the lab plays the motion. */
+    SG_LAB.add({
+      id: 'shell-search-sheet',
+      group: 'overlays',
+      title: 'Top bar: the phone search sheet',
+      note: 'At 720px and below the top bar\'s search is a sheet over the whole frame: it fades in while it slides down by <code>--ds-distance-md</code> on the spring over <code>--ds-dur-medium</code>, and leaves faster (<code>--ds-dur-fast</code>, accelerating). <code>data-state</code> drives it, so a close mid-way turns back from where it is.',
+      shows: ['.ds-topbar__search', '.ds-topbar__search-open', '.ds-topbar__search-back', '.ds-topbar__results', 'DS.overlay.open', 'DS.overlay.close', '--ds-dur-medium', '--ds-dur-fast', '--ds-distance-md', '--ds-ease-spatial', '--ds-ease-in'],
+      html: '<div style="position: relative; contain: layout paint; inline-size: 360px; max-inline-size: 100%; block-size: 300px; margin-inline: auto; overflow: hidden; border-radius: var(--ds-radius-card); background: var(--ds-backdrop);">' +
+        '<div class="ds-topbar" style="padding-inline: var(--ds-space-4) var(--ds-space-2);"><span class="ds-brand"><span class="ds-brand__name">Product</span></span>' +
+          '<div class="ds-topbar__search" data-lab-sheet hidden>' +
+            '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__search-back" type="button" aria-label="Close search" data-ds-close><span data-glyph="arrowLeft"></span></button>' +
+            '<div class="ds-search"><span data-glyph="search"></span><input class="ds-input" type="search" aria-label="Search devices" placeholder="Search devices" value="lap"></div>' +
+            '<div class="ds-topbar__results"><ul class="ds-list" aria-label="Devices"><li class="ds-list__item"><span class="ds-list__text"><span class="ds-list__title">LAPTOP-0042</span></span></li><li class="ds-list__item"><span class="ds-list__text"><span class="ds-list__title">LAPTOP-0017</span></span></li></ul></div>' +
+          '</div>' +
+          '<div class="ds-topbar__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Search" data-lab-open><span data-glyph="search"></span></button></div>' +
+        '</div></div>',
+      height: 320,
+      setup: function (stage) {
+        glyphs(stage);
+        var sheet = stage.querySelector('[data-lab-sheet]');
+        var opener = stage.querySelector('[data-lab-open]');
+        opener.addEventListener('click', function () { layerTo(sheet, !opened(sheet), opener); });
+      },
+      subject: function (stage) { return stage.querySelector('[data-lab-sheet]'); },
+      play: function (stage, sg) {
+        var sheet = stage.querySelector('[data-lab-sheet]');
+        var opener = stage.querySelector('[data-lab-open]');
+        return layerTo(sheet, true, opener).then(function () { return hold(sg); }).then(function () { return layerTo(sheet, false); });
+      },
+      state: function (stage) { return opened(stage.querySelector('[data-lab-sheet]')); },
+      toggle: function (stage, on) { return layerTo(stage.querySelector('[data-lab-sheet]'), on, stage.querySelector('[data-lab-open]')); },
+    });
+
+    function app(glyph, label, current) {
+      return '<a class="ds-menu__item ds-launcher__app" role="menuitem" href="#overlays"' + (current ? ' aria-current="true"' : '') + '>' +
+        '<span class="ds-launcher__icon"><span data-glyph="' + glyph + '" data-size="24"></span></span><span class="ds-launcher__label">' + label + '</span></a>';
+    }
+
+    SG_LAB.add({
+      id: 'shell-launcher',
+      group: 'overlays',
+      title: 'Top bar: the app launcher',
+      note: 'The app switcher is a menu laid out as a grid: it grows out of its button like every menu (<code>DS.shell.launcher(menu).set(true)</code> opens it), and the arrow keys move in two dimensions over it. The current app keeps its tinted disc and the label weight.',
+      shows: ['DS.shell.launcher', '.ds-launcher', '.ds-launcher__app', '--ds-scale-popup', '--ds-dur-medium', '--ds-dur-instant', '--ds-ease-spatial'],
+      html: '<div style="display: flex; justify-content: center; align-items: flex-start; align-self: start; inline-size: 100%; min-block-size: 248px; padding-block-start: var(--ds-space-2);"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Apps" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-launcher" data-lab-apps><span data-glyph="apps"></span></button>' +
+        '<div class="ds-menu ds-launcher" role="menu" id="sg-lab-launcher" aria-label="Apps" hidden>' +
+          app('laptop', 'Devices', true) + app('ticket', 'Tickets') + app('users', 'People') + app('barChart', 'Reports') + app('calendar', 'Schedule') + app('mail', 'Mail') +
+        '</div></div>',
+      height: 300,
+      setup: function (stage) {
+        glyphs(stage);
+        var menu = stage.querySelector('.ds-launcher');
+        var trigger = stage.querySelector('[data-lab-apps]');
+        stage.__launcher = DS.shell.launcher(menu);
+        trigger.addEventListener('click', function () { layerTo(menu, !opened(menu), trigger); });
+        menu.addEventListener('click', function (event) { if (event.target.closest('a')) event.preventDefault(); });
+      },
+      subject: function (stage) { return stage.querySelector('.ds-launcher'); },
+      play: function (stage, sg) {
+        var menu = stage.querySelector('.ds-launcher');
+        var trigger = stage.querySelector('[data-lab-apps]');
+        return layerTo(menu, true, trigger).then(function () { return hold(sg); }).then(function () { return layerTo(menu, false); });
+      },
+      state: function (stage) { return opened(stage.querySelector('.ds-launcher')); },
+      toggle: function (stage, on) { return layerTo(stage.querySelector('.ds-launcher'), on, stage.querySelector('[data-lab-apps]')); },
+    });
+
+    SG_LAB.add({
+      id: 'shell-account',
+      group: 'overlays',
+      title: 'Top bar: the account menu',
+      note: 'The avatar opens a menu with the name and email at its head, the theme switch and sign out. It moves as every menu does; choosing a theme changes the colours at once, nothing moves.',
+      shows: ['.ds-account__trigger', '.ds-account__menu', '.ds-account__head', '--ds-scale-popup', '--ds-dur-medium', '--ds-dur-instant'],
+      html: '<div class="ds-account" style="justify-content: center; align-items: flex-start; align-self: start; inline-size: 100%; min-block-size: 248px; margin: 0; padding-block-start: var(--ds-space-2);"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-account" data-lab-account><span class="ds-account__avatar" aria-hidden="true">A</span></button>' +
+        '<div class="ds-menu ds-account__menu" role="menu" id="sg-lab-account" aria-labelledby="sg-lab-account-name sg-lab-account-email" hidden>' +
+          '<div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="sg-lab-account-name">Ada Lovelace</div><div class="ds-account__email" id="sg-lab-account-email">ada@example.org</div></div>' +
+          '<div class="ds-menu__divider" role="separator"></div>' +
+          '<button class="ds-menu__item" role="menuitem" type="button"><span data-glyph="logout"></span><span class="ds-menu__label">Sign out</span></button>' +
+        '</div></div>',
+      height: 280,
+      setup: function (stage) {
+        glyphs(stage);
+        var menu = stage.querySelector('.ds-account__menu');
+        var trigger = stage.querySelector('[data-lab-account]');
+        trigger.addEventListener('click', function () { layerTo(menu, !opened(menu), trigger); });
+      },
+      subject: function (stage) { return stage.querySelector('.ds-account__menu'); },
+      play: function (stage, sg) {
+        var menu = stage.querySelector('.ds-account__menu');
+        var trigger = stage.querySelector('[data-lab-account]');
+        return layerTo(menu, true, trigger).then(function () { return hold(sg); }).then(function () { return layerTo(menu, false); });
+      },
+      state: function (stage) { return opened(stage.querySelector('.ds-account__menu')); },
+      toggle: function (stage, on) { return layerTo(stage.querySelector('.ds-account__menu'), on, stage.querySelector('[data-lab-account]')); },
+    });
+  }());
+
+  // ── components/page/page.lab.js
+  (function () {
+    /*
+     * Motion Lab: the page head. A sticky head condenses once its box is
+     * scrolled: the folded parts leave in one frame and keep their room, and
+     * the hairline under it fades in with the scroll (or over --ds-dur-fast
+     * where scroll timelines are missing).
+     */
+    /* The icons go in at setup: the entries are built before ds.js has run. */
+    function glyphs(stage) {
+      stage.querySelectorAll('[data-lab-glyph]').forEach(function (slot) {
+        slot.replaceWith(DS.icons.iconElement(DS.icons[slot.getAttribute('data-lab-glyph')], Number(slot.getAttribute('data-size'))));
+      });
+    }
+
+    function pageHeadMarkup() {
+      var cards = '';
+      for (var index = 0; index < 6; index += 1) cards += '<div class="ds-card" style="min-block-size: 80px;"><p class="ds-muted" style="margin: 0;">Card ' + (index + 1) + '</p></div>';
+      return '<div data-lab="page-head" style="block-size: 260px; inline-size: 420px; overflow-y: auto; padding: 0 var(--ds-space-3) var(--ds-space-3); background: var(--ds-backdrop);">' +
+        '<header class="ds-page-head ds-page-head--sticky"><a class="ds-btn ds-btn--text ds-sm ds-page-head__back" href="#"><span data-lab-glyph="arrowLeft" data-size="18"></span>Devices</a>' +
+        '<div class="ds-page-head__row"><div class="ds-page-head__text"><h3 class="ds-page-head__title">LAPTOP-0042</h3><p class="ds-page-head__lead">Laptop 14 · Ada Lovelace</p></div>' +
+        '<div class="ds-page-head__actions"><button class="ds-btn" type="button">Retire</button><button class="ds-btn ds-btn--filled" type="button">Edit</button></div></div>' +
+        '<dl class="ds-page-head__details"><div class="ds-page-head__detail"><dt>Site</dt><dd>Building B</dd></div><div class="ds-page-head__detail"><dt>Last sync</dt><dd>Today, 09:12</dd></div></dl></header>' +
+        '<div class="ds-stack">' + cards + '</div></div>';
+    }
+
+    SG_LAB.add({
+      id: 'page-head-condense',
+      group: 'navigation',
+      title: 'Page head: condenses on scroll',
+      note: 'Scrolled past what folds, the head takes <code>data-scrolled</code>: the back link, the lead and the key facts fold away in one frame and keep their room as a margin, so the cards stay in place. The hairline fades in with the scroll (<code>ds-scroll-fade</code>), or over <code>--ds-dur-fast</code>.',
+      shows: ['DS.page.create', '.ds-page-head--sticky', 'ds-scroll-fade', '--ds-dur-fast'],
+      html: pageHeadMarkup(),
+      height: 280,
+      wide: true,
+      setup: function (stage) {
+        glyphs(stage);
+        stage.dsPage = DS.page.create(stage.querySelector('.ds-page-head'));
+      },
+      play: function (stage, sg) {
+        var box = stage.querySelector('[data-lab="page-head"]');
+        box.scrollTo({ top: 260, behavior: 'smooth' });
+        return sg.frames(30).then(function () { return DS.motion.settled(stage.querySelector('.ds-page-head')); });
+      },
+      reset: function (stage, sg) {
+        var box = stage.querySelector('[data-lab="page-head"]');
+        box.scrollTop = 0;
+        return sg.frames(2);
+      },
+      state: function (stage) { return stage.dsPage.get(); },
+      toggle: function (stage, on, sg) {
+        var box = stage.querySelector('[data-lab="page-head"]');
+        box.scrollTo({ top: on ? 260 : 0, behavior: 'smooth' });
+        return sg.frames(30);
+      },
+    });
   }());
 
   // ── components/tabs/tabs.lab.js
@@ -134,6 +310,61 @@
       state: function (stage) { return current(stage) === NAMES.length - 1; },
       toggle: function (stage, on, sg) { return goTo(stage, on ? NAMES.length - 1 : 0, sg); },
     });
+
+    /* DS.tabs: a row the module drives. A selection change enters the new panel
+       (swap) while the indicator glides; a tab that closes hands the selection to
+       its neighbour, and the indicator glides there. */
+    var MONTHS = ['March', 'April', 'May'];
+
+    function moduleRow() {
+      return '<div class="ds-tabs__bar"><div class="ds-tabs" role="tablist" aria-label="Reports">' + MONTHS.map(function (name, index) {
+        return '<span class="ds-tabs__item" role="none"><button class="ds-tabs__tab" role="tab" type="button" id="lab-tab-' + index + '" aria-controls="lab-panel-' + index + '" aria-selected="' + (index === 0) + '"' + (index ? ' tabindex="-1"' : '') + ' aria-keyshortcuts="Delete" data-label="' + name + '">' + name + '</button>' +
+          '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-xs ds-tabs__close" type="button" tabindex="-1" aria-hidden="true">' + DS.icons.icon(DS.icons.close, 16) + '</button></span>';
+      }).join('') + '</div></div>' + MONTHS.map(function (name, index) {
+        return '<div class="ds-tabs__panel" role="tabpanel" id="lab-panel-' + index + '" aria-labelledby="lab-tab-' + index + '"' + (index ? ' hidden' : '') + ' style="padding-block-start: var(--ds-space-3);"><p class="ds-muted">The report for ' + name + '.</p></div>';
+      }).join('');
+    }
+
+    function moduleSettled(stage, sg) {
+      return sg.frames(2).then(function () {
+        return Promise.all([stage.querySelector('.ds-tabs__indicator'), stage.querySelector('.ds-tabs__panel:not([hidden])')].map(function (el) { return DS.motion.settled(el); }));
+      });
+    }
+
+    function moduleStart(stage) {
+      var host = stage.querySelector('[data-lab="tabs-module"]');
+      if (stage.dsTabs) stage.dsTabs.destroy();
+      var template = document.createElement('template');
+      template.innerHTML = moduleRow();
+      host.replaceChildren(template.content);
+      stage.dsTabs = DS.tabs.create(host.querySelector('.ds-tabs'));
+    }
+
+    SG_LAB.add({
+      id: 'tabs-module',
+      group: 'navigation',
+      title: 'Tabs: DS.tabs selects and closes',
+      note: 'Replay closes the selected tab: its neighbour takes the selection, its panel enters with <code>swap</code> and the indicator glides there. The toggle selects the last tab and the first: the indicator continues from where it is.',
+      shows: ['DS.tabs.create', 'DS.motion.enter', '.ds-tabs__bar', '.ds-tabs__close', '--ds-dur-medium', '--ds-ease-spatial'],
+      html: '<div data-lab="tabs-module" style="inline-size: 320px;"></div>',
+      height: 200,
+      setup: function (stage) { moduleStart(stage); },
+      play: function (stage, sg) {
+        if (stage.querySelectorAll('[role="tab"]').length < 2) return Promise.resolve();
+        stage.dsTabs.close(stage.querySelector('[aria-selected="true"]'));
+        return moduleSettled(stage, sg);
+      },
+      reset: function (stage, sg) {
+        moduleStart(stage);
+        return sg.frames(2);
+      },
+      state: function (stage) { return stage.querySelector('[role="tab"]:last-of-type[aria-selected="true"], .ds-tabs__item:last-child > [aria-selected="true"]') !== null; },
+      toggle: function (stage, on, sg) {
+        var all = stage.querySelectorAll('[role="tab"]');
+        stage.dsTabs.set(on ? all[all.length - 1] : all[0]);
+        return moduleSettled(stage, sg);
+      },
+    });
   }());
 
   // ── components/steps/steps.lab.js
@@ -178,6 +409,324 @@
       state: function (stage) { return at(stage) === 1; },
       toggle: function (stage, on, sg) { return goTo(stage, on ? 1 : 0, sg); },
     });
+
+    /*
+     * A stage path whose current stage moves (DS.steps): the stages change
+     * their fill and ink on --ds-dur-medium; the page sets data-status, the
+     * module aria-current.
+     */
+    /* The icons go in at setup: the entries are built before ds.js has run. */
+    function glyphs(stage) {
+      stage.querySelectorAll('[data-lab-glyph]').forEach(function (slot) {
+        slot.replaceWith(DS.icons.iconElement(DS.icons[slot.getAttribute('data-lab-glyph')], Number(slot.getAttribute('data-size'))));
+      });
+    }
+
+    var STAGE_NAMES = ['New', 'Triaged', 'In progress', 'Resolved'];
+
+    function stages(current) {
+      return STAGE_NAMES.map(function (label, index) {
+        var done = index < current;
+        return '<li class="ds-steps__step"' + (done ? ' data-status="done"' : '') + (index === current ? ' aria-current="step"' : '') + '>' +
+          '<span class="ds-steps__mark">' + (done ? '<span data-lab-glyph="check" data-size="16"></span>' : String(index + 1)) + '</span>' +
+          '<span class="ds-steps__label">' + label + '</span></li>';
+      }).join('');
+    }
+
+    function moveStage(stage, current, sg) {
+      var list = stage.querySelector('.ds-steps');
+      Array.from(list.children).forEach(function (step, index) {
+        if (index < current) step.setAttribute('data-status', 'done');
+        else step.removeAttribute('data-status');
+      });
+      stage.dsSteps.set(current);
+      return sg.frames(2).then(function () {
+        return Promise.all(Array.from(list.children).map(function (step) { return DS.motion.settled(step, { transitions: true }); }));
+      });
+    }
+
+    SG_LAB.add({
+      id: 'steps-path',
+      group: 'navigation',
+      title: 'Steps: a stage path moving on',
+      note: 'The current stage moves: <code>DS.steps</code> moves <code>aria-current</code> (and announces the stage), the page sets the done one; fills and inks change on <code>--ds-dur-medium</code>. Toggle fast: each colour continues from where it is.',
+      shows: ['DS.steps.create', '.ds-steps--path', '--ds-dur-medium', '--ds-ease-in-out'],
+      html: '<ol class="ds-steps ds-steps--path" aria-label="Ticket stages" style="inline-size: 420px;">' + stages(1) + '</ol>',
+      height: 120,
+      setup: function (stage) {
+        glyphs(stage);
+        stage.dsSteps = DS.steps.create(stage.querySelector('.ds-steps'));
+      },
+      play: function (stage, sg) { return moveStage(stage, 2, sg); },
+      reset: function (stage, sg) { return moveStage(stage, 1, sg); },
+      state: function (stage) { return stage.dsSteps.get() === 2; },
+      toggle: function (stage, on, sg) { return moveStage(stage, on ? 2 : 1, sg); },
+    });
+  }());
+
+  // ── components/toc/toc.lab.js
+  (function () {
+    /*
+     * Motion Lab: jump links. A jump marks its link at once and the bar glides
+     * there on the indicator's spring while the section scrolls into view; the
+     * reader's own scrolling moves the mark the same way.
+     */
+    var SECTIONS = ['Overview', 'Hardware', 'Network', 'History'];
+
+    function tocMarkup() {
+      return '<div data-lab="toc" style="display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: var(--ds-space-4); block-size: 200px; overflow-y: auto; inline-size: 360px;">' +
+        '<nav class="ds-toc ds-toc--sticky" aria-label="On this page" style="--ds-toc-top: 0px;"><ol class="ds-toc__list">' + SECTIONS.map(function (name, index) {
+          return '<li><a class="ds-toc__link" href="#lab-toc-' + index + '">' + name + '</a></li>';
+        }).join('') + '</ol></nav><div>' + SECTIONS.map(function (name, index) {
+          return '<h4 id="lab-toc-' + index + '" style="margin: 0; padding-block: var(--ds-space-2); font: var(--ds-font-subtitle);">' + name + '</h4><p class="ds-muted" style="margin: 0; block-size: 160px;">The ' + name.toLowerCase() + ' of the device.</p>';
+        }).join('') + '</div></div>';
+    }
+
+    function tocSettled(stage, sg) {
+      return sg.frames(2).then(function () { return DS.motion.settled(stage.querySelector('.ds-toc__indicator')); });
+    }
+
+    SG_LAB.add({
+      id: 'toc-jump',
+      group: 'navigation',
+      title: 'Jump links: the mark follows the section',
+      note: 'A jump marks its link at once; the bar glides there on <code>--ds-ease-spatial</code> while the section scrolls to the top. Toggle back and forth: the bar continues from where it is.',
+      shows: ['DS.toc.create', '.ds-toc__indicator', '.ds-toc--sticky', '--ds-ease-spatial', '--ds-dur-medium'],
+      html: tocMarkup(),
+      height: 220,
+      setup: function (stage) {
+        stage.dsToc = DS.toc.create(stage.querySelector('.ds-toc'), { hash: false });
+      },
+      play: function (stage, sg) {
+        stage.dsToc.set('lab-toc-2');
+        return tocSettled(stage, sg);
+      },
+      reset: function (stage, sg) {
+        stage.dsToc.set('lab-toc-0');
+        return tocSettled(stage, sg);
+      },
+      state: function (stage) { return stage.dsToc.get() === 'lab-toc-3'; },
+      toggle: function (stage, on, sg) {
+        stage.dsToc.set(on ? 'lab-toc-3' : 'lab-toc-0');
+        return tocSettled(stage, sg);
+      },
+    });
+  }());
+
+  // ── components/backtop/backtop.lab.js
+  (function () {
+    /*
+     * Motion Lab: back to top. The button scales in once the box is scrolled
+     * down and out again at the top; toggled fast, it continues from where it is.
+     */
+    /* The icons go in at setup: the entries are built before ds.js has run. */
+    function glyphs(stage) {
+      stage.querySelectorAll('[data-lab-glyph]').forEach(function (slot) {
+        slot.replaceWith(DS.icons.iconElement(DS.icons[slot.getAttribute('data-lab-glyph')], Number(slot.getAttribute('data-size'))));
+      });
+    }
+
+    function backtopMarkup() {
+      var rows = '';
+      for (var index = 0; index < 24; index += 1) rows += '<p style="margin: 0; padding-block: var(--ds-space-2);">Event ' + (index + 1) + '</p>';
+      return '<div data-lab="backtop" style="block-size: 200px; inline-size: 320px; overflow-y: auto; padding: 0 var(--ds-space-3) var(--ds-space-3); border: 1px solid var(--ds-line);">' + rows +
+        '<button class="ds-btn ds-btn--elevated ds-btn--icon ds-backtop" type="button" hidden><span data-lab-glyph="arrowUp" data-size="20"></span></button></div>';
+    }
+
+    SG_LAB.add({
+      id: 'backtop-show',
+      group: 'navigation',
+      title: 'Back to top: appears after a scroll',
+      note: 'Scrolled past the threshold, the button enters with <code>.ds-enter--scale</code>; back at the top it leaves with <code>.ds-leave--scale</code> (0.3-0.8 of the entrance). Toggle fast: it continues from where it is.',
+      shows: ['DS.backtop.create', '.ds-backtop', 'ds-grow-in', 'ds-shrink-out', '--ds-dur-medium'],
+      html: backtopMarkup(),
+      height: 220,
+      setup: function (stage) {
+        glyphs(stage);
+        stage.dsBacktop = DS.backtop.create(stage.querySelector('.ds-backtop'), { after: 80 });
+      },
+      play: function (stage) {
+        var box = stage.querySelector('[data-lab="backtop"]');
+        box.scrollTop = 0;
+        stage.dsBacktop.set(true);
+        return DS.motion.settled(stage.querySelector('.ds-backtop'));
+      },
+      reset: function (stage) {
+        stage.dsBacktop.set(false);
+        return DS.motion.settled(stage.querySelector('.ds-backtop'));
+      },
+      state: function (stage) { return stage.dsBacktop.get(); },
+      toggle: function (stage, on) {
+        stage.dsBacktop.set(on);
+        return DS.motion.settled(stage.querySelector('.ds-backtop'));
+      },
+    });
+  }());
+
+  // ── components/object/object.lab.js
+  (function () {
+    /*
+     * Motion Lab: the object page. Edit swaps a section's view for its form,
+     * Cancel swaps it back; toggled fast, each face continues from where it is.
+     */
+    function objectMarkup() {
+      return '<div class="ds-object" style="inline-size: 360px;" data-lab="object"><section class="ds-card ds-object__section" id="lab-object-general" aria-labelledby="lab-object-title">' +
+        '<div class="ds-object__head"><h4 class="ds-object__title" id="lab-object-title">General</h4><button class="ds-btn ds-btn--text ds-sm ds-object__edit" type="button" data-ds-object-edit>Edit</button></div>' +
+        '<div class="ds-object__view"><dl class="ds-facts ds-facts--rows"><div><dt>Name</dt><dd>LAPTOP-0042</dd></div><div><dt>Site</dt><dd>Building B</dd></div></dl></div>' +
+        '<form class="ds-form ds-object__form" hidden><div class="ds-field"><label class="ds-field__label" for="lab-object-name">Name</label><input class="ds-input" id="lab-object-name" name="name" value="LAPTOP-0042"></div>' +
+        '<div class="ds-form-actions"><button class="ds-btn" type="button" data-ds-object-cancel>Cancel</button><button class="ds-btn ds-btn--filled" type="submit">Save</button></div></form></section></div>';
+    }
+
+    SG_LAB.add({
+      id: 'object-edit',
+      group: 'navigation',
+      title: 'Object page: a section turns into its form',
+      note: 'Edit hides the view and the form enters with <code>.ds-enter--swap</code>; Cancel brings the view back the same way. Toggle fast: each face continues from where it is.',
+      shows: ['DS.object.create', '.ds-object__section', '.ds-object__form', '.ds-enter--swap', '--ds-dur-medium'],
+      html: objectMarkup(),
+      height: 240,
+      setup: function (stage) {
+        stage.dsObject = DS.object.create(stage.querySelector('.ds-object'));
+      },
+      play: function (stage) {
+        stage.dsObject.edit('lab-object-general');
+        return DS.motion.settled(stage.querySelector('.ds-object__form'));
+      },
+      reset: function (stage) {
+        stage.dsObject.cancel('lab-object-general');
+        return DS.motion.settled(stage.querySelector('.ds-object__view'));
+      },
+      state: function (stage) { return stage.dsObject.get().length > 0; },
+      toggle: function (stage, on) {
+        if (on) stage.dsObject.edit('lab-object-general');
+        else stage.dsObject.cancel('lab-object-general');
+        return DS.motion.settled(stage.querySelector(on ? '.ds-object__form' : '.ds-object__view'));
+      },
+    });
+  }());
+
+  // ── components/shortcuts/shortcuts.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.shortcuts: the sheet opens and closes with the
+     * dialog's motion; its list is written before the entrance starts.
+     */
+    var sheet = null;
+
+    function sheetOf() {
+      if (sheet) return sheet;
+      var host = document.createElement('div');
+      host.innerHTML = '<dialog class="ds-dialog ds-dialog--lg ds-shortcuts" id="sg-lab-shortcuts" aria-labelledby="sg-lab-shortcuts-title" data-ds-shortcuts-hotkey="off">' +
+        '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box">' +
+        '<div class="ds-dialog__head"><h2 class="ds-dialog__title" id="sg-lab-shortcuts-title">Keyboard shortcuts</h2>' +
+        '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>' + DS.icons.icon(DS.icons.close, 20) + '</button></div>' +
+        '<div class="ds-dialog__body ds-shortcuts__list"></div></div></dialog>';
+      sheet = host.firstChild;
+      document.body.append(sheet);
+      DS.shortcuts.create(sheet);
+      return sheet;
+    }
+
+    SG_LAB.add({
+      id: 'shortcuts-open',
+      group: 'overlays',
+      title: 'Shortcut sheet through DS.shortcuts',
+      note: 'The dialog\'s motion; the list of DS.hotkeys is written before the entrance, so nothing moves inside the box.',
+      shows: ['DS.shortcuts.open', 'DS.shortcuts.close', 'DS.shortcuts.create', '--ds-dur-slow', '--ds-dur-base', '--ds-ease-spatial', '--ds-ease-exit'],
+      html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-lab-open>Open the sheet</button></div>',
+      height: 120,
+      setup: function (stage) {
+        stage.querySelector('[data-lab-open]').addEventListener('click', function (event) {
+          DS.shortcuts.open(sheetOf(), { opener: event.currentTarget });
+        });
+      },
+      subject: function () { return sheetOf(); },
+      state: function () { return sheetOf().getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var dialog = sheetOf();
+        return DS.shortcuts.open(dialog, { opener: stage.querySelector('[data-lab-open]') })
+          .then(function () { return DS.shortcuts.close(dialog); })
+          .then(function () { return DS.motion.settled(dialog.querySelector('.ds-dialog__box')); });
+      },
+      toggle: function (stage, on) {
+        var dialog = sheetOf();
+        return on ? DS.shortcuts.open(dialog, { opener: stage.querySelector('[data-lab-open]') }) : DS.shortcuts.close(dialog);
+      },
+    });
+  }());
+
+  // ── components/menubutton/menubutton.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.menubutton: the menu grows out of the button
+     * (DS.menu's entrance) while the chevron turns on the spring; closed
+     * mid-way, both turn back from where they are.
+     */
+    SG_LAB.add({
+      id: 'menubutton-open',
+      group: 'overlays',
+      title: 'Menu button opens its menu',
+      note: '<code>DS.menubutton.open()</code> and <code>close()</code>: the menu grows out of the button on the spring, the chevron (<code>.ds-chevron</code>) turns over <code>--ds-dur-medium</code>; the menu leaves with a quick fade and the chevron turns back.',
+      shows: ['DS.menubutton.open', 'DS.menubutton.close', '.ds-menu-btn', '.ds-chevron', '--ds-dur-medium', '--ds-ease-spatial', '--ds-dur-instant'],
+      html: '<div class="sg-popup-stage"><button class="ds-btn ds-menu-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-menubutton" data-lab-open>Sort: <span class="ds-menu-btn__value">Name</span>' +
+        '<span data-lab-chevron></span></button>' +
+        '<div class="ds-menu" role="menu" id="sg-lab-menubutton" aria-label="Sort by" data-ds-menu-checks hidden>' +
+        '<button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="true" value="name"><span class="ds-menu__label">Name</span></button>' +
+        '<button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="false" value="seen"><span class="ds-menu__label">Last seen</span></button>' +
+        '<button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="false" value="owner"><span class="ds-menu__label">Owner</span></button></div></div>',
+      height: 220,
+      setup: function (stage) {
+        // The system's own glyph, as a real menu button draws it.
+        var slot = stage.querySelector('[data-lab-chevron]');
+        slot.replaceWith(DS.icons.iconElement(DS.icons.chevronDown, 16, 'ds-chevron ds-menu-btn__chevron'));
+        DS.menubutton.create(stage.querySelector('[data-lab-open]'), { menu: stage.querySelector('.ds-menu') });
+      },
+      subject: function (stage) { return stage.querySelector('.ds-menu'); },
+      state: function (stage) { return stage.querySelector('[data-lab-open]').getAttribute('aria-expanded') === 'true'; },
+      play: function (stage) {
+        var button = stage.querySelector('[data-lab-open]');
+        return DS.menubutton.open(button)
+          .then(function () { return DS.menubutton.close(button); })
+          .then(function () { return DS.motion.settled(stage.querySelector('.ds-menu')); });
+      },
+      toggle: function (stage, on) {
+        var button = stage.querySelector('[data-lab-open]');
+        return on ? DS.menubutton.open(button) : DS.menubutton.close(button);
+      },
+    });
+  }());
+
+  // ── components/copy/copy.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.copy: the feedback after a copy, on an icon
+     * button (the icon swap) and on a labelled button (the done face rolls in,
+     * its check draws itself), held for --ds-hold-status, then back.
+     */
+    SG_LAB.add({
+      id: 'copy-feedback',
+      group: 'controls',
+      title: 'Copy button says "Copied"',
+      note: '<code>DS.copy.create()</code>: after a copy the icon swaps to the check, the done face rolls in and its check draws itself; after <code>--ds-hold-status</code> both go back. The copy itself is skipped here (<code>done()</code>), so the clipboard is left alone.',
+      shows: ['DS.copy.create', '.ds-copy', '.ds-copy__done', '.ds-icon-swap', '.ds-btn--done', '--ds-hold-status', '--ds-dur-fast'],
+      html: '<div class="sg-row"><span class="ds-copy"><code class="ds-copy__value">LAPTOP-0042</code>' +
+        '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy the serial number" data-lab-copy="icon">' +
+        '<span class="ds-icon-swap"><span class="ds-icon-swap__a" data-icon="copy"></span><span class="ds-icon-swap__b" data-icon="check"></span></span></button></span>' +
+        '<button class="ds-btn" type="button" data-lab-copy="faces"><span class="ds-btn__faces"><span class="ds-btn__face"><span data-icon="link" data-icon-size="16"></span>Copy link</span>' +
+        '<span class="ds-btn__face ds-btn__face--done" aria-hidden="true"><span data-icon="check" data-icon-size="16"></span><span class="ds-copy__done"></span></span></span></button></div>',
+      height: 120,
+      setup: function (stage) {
+        DS.icons.fill(stage);
+        stage.copies = Array.prototype.map.call(stage.querySelectorAll('[data-lab-copy]'), function (button) { return DS.copy.create(button, { text: 'LAPTOP-0042' }); });
+      },
+      play: function (stage) {
+        stage.copies.forEach(function (copy) { copy.done(); });
+        var buttons = stage.querySelectorAll('[data-lab-copy]');
+        var hold = DS.motion.motionDuration(buttons[0], '--ds-hold-status');
+        return new Promise(function (resolve) { setTimeout(resolve, hold); })
+          .then(function () { return DS.motion.settled(stage, { subtree: true }); });
+      },
+    });
   }());
 
   // ── components/card/card.lab.js
@@ -202,6 +751,78 @@
         var card = stage.querySelector('.ds-card');
         card.setAttribute('aria-pressed', String(on));
         return DS.motion.settled(card, { transitions: true, subtree: true });
+      },
+    });
+  }());
+
+  // ── components/splitpane/splitpane.lab.js
+  (function () {
+    /* A split pane's pane collapses and comes back: its registered size glides on the decelerating curve, reversible mid-way. */
+    SG_LAB.add({
+      id: 'splitpane-collapse',
+      group: 'utilities',
+      title: 'Split pane collapses',
+      note: '<code>DS.splitpane.create()</code>: a collapsible pane glides its size (<code>--ds-splitpane-size</code>, registered) to nothing and back over <code>--ds-dur-medium</code> on <code>--ds-ease-out</code>: a size that pushes layout never overshoots. Reversed mid-way it turns from where it is. A drag and the keys move at once.',
+      shows: ['DS.splitpane.create', '.ds-splitpane', '.ds-splitpane__pane', '.ds-splitpane__divider', '--ds-splitpane-size', '--ds-dur-medium', '--ds-ease-out'],
+      html: '<div class="ds-splitpane ds-splitpane--outlined" style="--ds-splitpane-height: 160px" data-lab-split>' +
+        '<section class="ds-splitpane__pane" aria-label="Devices" data-ds-splitpane-collapsible style="--ds-splitpane-size: 45%; --ds-splitpane-min: 96px"><div class="ds-splitpane__body"><p class="ds-muted">Devices</p></div></section>' +
+        '<div class="ds-splitpane__divider" role="separator" tabindex="0" aria-label="Resize the devices"></div>' +
+        '<section class="ds-splitpane__pane ds-splitpane__pane--fill" aria-label="Record"><div class="ds-splitpane__body"><p class="ds-muted">LAPTOP-0042</p></div></section></div>',
+      height: 180,
+      setup: function (stage) {
+        stage.split = DS.splitpane.create(stage.querySelector('[data-lab-split]'));
+      },
+      play: function (stage) {
+        var pane = stage.querySelector('.ds-splitpane__pane');
+        stage.split.toggle(0);
+        return DS.motion.settled(pane, { transitions: true });
+      },
+      state: function (stage) {
+        return Boolean(stage.split && stage.split.get().collapsed[0]);
+      },
+      toggle: function (stage, on) {
+        var pane = stage.querySelector('.ds-splitpane__pane');
+        if (on) stage.split.collapse(0);
+        else stage.split.expand(0);
+        return DS.motion.settled(pane, { transitions: true });
+      },
+      reset: function (stage) {
+        stage.split.expand(0);
+        return DS.motion.settled(stage.querySelector('.ds-splitpane__pane'), { transitions: true });
+      },
+    });
+  }());
+
+  // ── components/listdetail/listdetail.lab.js
+  (function () {
+    /* A list-detail layout at a phone's width: the record slides in from the end, back slides the list in from the start. */
+    SG_LAB.add({
+      id: 'listdetail-level',
+      group: 'navigation',
+      title: 'List-detail: one column',
+      note: '<code>DS.listdetail.create()</code> at 360px: the column that comes slides in and fades (<code>DS.motion.enter(column, \'slide\')</code>: <code>ds-shift-in</code> over <code>--ds-dur-slow</code> on <code>--ds-ease-spatial</code>, <code>ds-fade-in</code>), from the end going deeper and from the start going back; the column that goes is gone at once.',
+      shows: ['DS.listdetail.create', '.ds-listdetail', '.ds-listdetail__list', '.ds-listdetail__detail', '.ds-enter--slide', 'ds-shift-in', 'ds-fade-in', '--ds-dur-slow', '--ds-ease-spatial', '--ds-distance-xl'],
+      html: '<div class="ds-listdetail ds-listdetail--outlined" style="--ds-listdetail-height: 200px; inline-size: 360px; max-inline-size: 100%" data-lab-ld>' +
+        '<section class="ds-listdetail__list" aria-label="Devices"><header class="ds-listdetail__head"><h3 class="ds-listdetail__title">Devices</h3></header><div class="ds-listdetail__body"><p class="ds-muted">LAPTOP-0042</p></div></section>' +
+        '<section class="ds-listdetail__detail" aria-label="Record"><header class="ds-listdetail__head"><h3 class="ds-listdetail__title">LAPTOP-0042</h3></header><div class="ds-listdetail__body"><p class="ds-muted">Ada Lovelace</p></div></section></div>',
+      height: 220,
+      setup: function (stage) {
+        stage.layout = DS.listdetail.create(stage.querySelector('[data-lab-ld]'));
+      },
+      play: function (stage) {
+        var layout = stage.layout;
+        layout.set(layout.get() === 'list' ? 'detail' : 'list', { focus: false });
+        return DS.motion.settled(stage.querySelector(layout.get() === 'list' ? '.ds-listdetail__list' : '.ds-listdetail__detail'));
+      },
+      state: function (stage) {
+        return Boolean(stage.layout && stage.layout.get() === 'detail');
+      },
+      toggle: function (stage, on) {
+        stage.layout.set(on ? 'detail' : 'list', { focus: false });
+        return DS.motion.settled(stage.querySelector(on ? '.ds-listdetail__detail' : '.ds-listdetail__list'));
+      },
+      reset: function (stage) {
+        stage.layout.set('list', { animate: false, focus: false });
       },
     });
   }());
@@ -233,6 +854,244 @@
         stage.querySelectorAll('details')[on ? 1 : 0].open = true;
         return DS.motion.settled(stage, { transitions: true, subtree: true });
       },
+    });
+  }());
+
+  // ── components/tree/tree.lab.js
+  (function () {
+    /* A tree folder opens and closes: the group's height where interpolate-size runs, the chevron's quarter turn on the spring. */
+    SG_LAB.add({
+      id: 'tree-folder',
+      group: 'data',
+      title: 'A tree folder opens and closes',
+      note: '<code>DS.tree.create()</code> on a <code>.ds-tree</code>: the folder\'s <code>.ds-tree__group</code> opens with its height over <code>--ds-dur-medium</code> on <code>--ds-ease-out</code> (where <code>interpolate-size</code> runs; elsewhere at once) and closes faster on <code>--ds-dur-base</code>, accelerating; the chevron of <code>.ds-tree__toggle</code> turns a quarter on <code>--ds-ease-spatial</code>. A reversal continues from where the height and the turn are.',
+      shows: ['DS.tree.create', '.ds-tree', '.ds-tree__group', '.ds-tree__toggle', '--ds-dur-medium', '--ds-dur-base', '--ds-ease-out', '--ds-ease-spatial'],
+      html: '<ul class="ds-tree" role="tree" aria-label="Files" style="max-width:320px">' +
+        '<li class="ds-tree__item" role="treeitem" aria-expanded="false" data-ds-key="docs"><div class="ds-tree__row"><span class="ds-tree__toggle" aria-hidden="true" data-lab-chevron></span><span class="ds-tree__label">Documents</span><span class="ds-tree__meta">3 files</span></div>' +
+        '<ul class="ds-tree__group" role="group">' +
+        '<li class="ds-tree__item" role="treeitem" aria-selected="false"><div class="ds-tree__row"><span class="ds-tree__label">Rollout plan.pdf</span></div></li>' +
+        '<li class="ds-tree__item" role="treeitem" aria-selected="false"><div class="ds-tree__row"><span class="ds-tree__label">Device inventory.xlsx</span></div></li>' +
+        '<li class="ds-tree__item" role="treeitem" aria-selected="false"><div class="ds-tree__row"><span class="ds-tree__label">Lease agreement.pdf</span></div></li>' +
+        '</ul></li>' +
+        '<li class="ds-tree__item" role="treeitem" aria-selected="false"><div class="ds-tree__row"><span class="ds-tree__label">Notes.txt</span></div></li></ul>',
+      height: 240,
+      setup: function (stage) {
+        stage.querySelector('[data-lab-chevron]').insertAdjacentHTML('beforeend', DS.icons.icon(DS.icons.chevronRight, 16));
+        stage.tree = DS.tree.create(stage.querySelector('.ds-tree'));
+      },
+      play: function (stage) {
+        var folder = stage.querySelector('[data-ds-key="docs"]');
+        stage.tree = stage.tree || DS.tree.create(stage.querySelector('.ds-tree'));
+        stage.tree.expand('docs', folder.getAttribute('aria-expanded') !== 'true');
+        return DS.motion.settled(folder, { transitions: true, subtree: true });
+      },
+      state: function (stage) { return stage.querySelector('[data-ds-key="docs"]').getAttribute('aria-expanded') === 'true'; },
+      toggle: function (stage, on) {
+        var folder = stage.querySelector('[data-ds-key="docs"]');
+        stage.tree = stage.tree || DS.tree.create(stage.querySelector('.ds-tree'));
+        stage.tree.expand('docs', on);
+        return DS.motion.settled(folder, { transitions: true, subtree: true });
+      },
+    });
+  }());
+
+  // ── components/auditlog/auditlog.lab.js
+  (function () {
+    /* A new event arrives in an audit log: set() draws it through DS.motion.flip; the next press takes it away again. */
+    SG_LAB.add({
+      id: 'auditlog-arrive',
+      group: 'data',
+      title: 'An audit log takes a new event',
+      note: '<code>DS.auditlog.create()</code> on a <code>.ds-auditlog</code>; its <code>set()</code> re-renders through <code>DS.motion.flip</code>: the new entry fades in at the top (<code>--ds-dur-fast</code>) while the entries below glide down on <code>--ds-ease-spatial</code>; taken away, it fades out while the rest closes the gap. A live log holds the reorder while the pointer is over it.',
+      shows: ['DS.auditlog.create', '.ds-auditlog', '.ds-auditlog__diff', 'DS.motion.flip', '--ds-dur-fast', '--ds-ease-spatial'],
+      html: '<section class="ds-auditlog" aria-label="Audit log" style="max-width:560px"><ol class="ds-timeline ds-timeline--activity" role="list" aria-label="Events"></ol></section>',
+      height: 340,
+      setup: function (stage) {
+        var base = [
+          { id: 'b2', at: '2026-10-12T11:42:00', actor: 'Grace Hopper', action: 'signed in to', target: 'the console' },
+          { id: 'b1', at: '2026-10-12T09:15:00', actor: 'Alan Turing', action: 'changed', target: 'PRINTER-0003', changes: [{ field: 'Location', before: 'Floor 1', after: 'Floor 2' }] },
+        ];
+        stage.base = base;
+        stage.log = DS.auditlog.create(stage.querySelector('.ds-auditlog'), { entries: base, now: '2026-10-12T16:00:00', live: false });
+      },
+      state: function (stage) { return stage.log.get().length > stage.base.length; },
+      toggle: function (stage, on) {
+        var fresh = { id: 'n1', at: '2026-10-12T14:05:00', actor: 'Ada Lovelace', action: 'changed', target: 'LAPTOP-0042', changes: [{ field: 'Owner', before: 'Grace Hopper', after: 'Ada Lovelace' }] };
+        return stage.log.set(on ? [fresh].concat(stage.base) : stage.base);
+      },
+      play: function (stage) {
+        var on = stage.log.get().length === stage.base.length;
+        var fresh = { id: 'n1', at: '2026-10-12T14:05:00', actor: 'Ada Lovelace', action: 'changed', target: 'LAPTOP-0042', changes: [{ field: 'Owner', before: 'Grace Hopper', after: 'Ada Lovelace' }] };
+        return stage.log.set(on ? [fresh].concat(stage.base) : stage.base);
+      },
+    });
+  }());
+
+  // ── components/code/code.lab.js
+  (function () {
+    /* A folded code block: Show more glides the height open on --ds-ease-out, Show less folds it back faster on --ds-ease-in, from wherever it is. */
+    SG_LAB.add({
+      id: 'code-fold',
+      group: 'data',
+      title: 'Code block folds',
+      note: '<code>DS.code.create()</code> on a <code>.ds-code</code> with <code>data-ds-code-max="4"</code>: the block\'s height opens over <code>--ds-dur-medium</code> on <code>--ds-ease-out</code> (it pushes the page, so it never overshoots) and folds over <code>--ds-dur-base</code> on <code>--ds-ease-in</code>, set from the height it has, so a reversal continues. The fade and the chevron follow.',
+      shows: ['DS.code.create', '.ds-code', '.ds-code__foot', '.ds-code__expand-label', '.ds-chevron', '--ds-dur-medium', '--ds-dur-base', '--ds-ease-out', '--ds-ease-in', '--ds-dur-fast'],
+      html: '<figure class="ds-code ds-code--lines" data-lab-code data-ds-code-max="4" style="inline-size: min(100%, 420px)"><pre class="ds-code-block" tabindex="0" aria-label="Schedule" data-ds-code-lang="yaml"><code>schedule:\n  at: "02:00"\n  retries: 3\n  notify: true\ndevices:\n  - LAPTOP-0042\n  - PRINTER-7\n  - TABLET-12\nowner: Ada Lovelace</code></pre>' +
+        '<div class="ds-code__foot"><button class="ds-btn ds-btn--text" type="button" data-ds-code-expand aria-expanded="false"><span class="ds-code__expand-label">Show more</span></button></div></figure>',
+      height: 300,
+      setup: function (stage) {
+        stage.querySelector('[data-ds-code-expand]').insertAdjacentHTML('beforeend', DS.icons.icon(DS.icons.chevronDown, 20, 'ds-chevron'));
+        stage.code = DS.code.create(stage.querySelector('[data-lab-code]'));
+      },
+      play: function (stage) {
+        var el = stage.querySelector('[data-lab-code]');
+        stage.code = stage.code || DS.code.create(el);
+        stage.code.expand(el.getAttribute('data-state') !== 'expanded');
+        return DS.motion.settled(el, { transitions: true, subtree: true });
+      },
+      toggle: function (stage, on) {
+        var el = stage.querySelector('[data-lab-code]');
+        stage.code = stage.code || DS.code.create(el);
+        stage.code.expand(on);
+        return DS.motion.settled(el, { transitions: true, subtree: true });
+      },
+      state: function (stage) {
+        return stage.querySelector('[data-lab-code]').getAttribute('data-state') === 'expanded';
+      },
+      reset: function (stage) {
+        var el = stage.querySelector('[data-lab-code]');
+        if (stage.code) stage.code.expand(false);
+        return DS.motion.settled(el, { transitions: true, subtree: true });
+      },
+      subject: function (stage) {
+        return stage.querySelector('.ds-code-block');
+      },
+    });
+  }());
+
+  // ── components/image/image.lab.js
+  (function () {
+    /* Image: a picture that arrives fades in; a new one fades out while it loads. */
+    (function () {
+      var PICTURE = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480"><rect width="640" height="480" fill="#cfe3f7"/><rect y="330" width="640" height="150" fill="#5b8fc4"/><rect x="200" y="170" width="240" height="160" rx="12" fill="#26415e"/></svg>');
+
+      SG_LAB.add({
+        id: 'image-load',
+        group: 'data',
+        title: 'Image',
+        note: 'The frame holds its place on the tint while the picture loads (<code>data-state="loading"</code>); once it is there it fades in over <code>--ds-dur-medium</code>, and a new picture fades out over <code>--ds-dur-fast</code>. Transitions, so a change mid-way turns back from where it is.',
+        shows: ['.ds-image', '.ds-image__frame', 'DS.image.create', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-in-out'],
+        html: '<figure class="ds-image ds-image--photo" style="inline-size: 200px; margin: auto"><span class="ds-image__frame"><img src="' + PICTURE + '" alt="Printer 7"></span><figcaption class="ds-image__caption">Printer 7</figcaption></figure>',
+        height: 220,
+        setup: function (stage) {
+          var frame = stage.querySelector('.ds-image__frame');
+          if (!DS.get(frame, 'image')) DS.image.create(frame);
+        },
+        play: function (stage) {
+          var frame = stage.querySelector('.ds-image__frame');
+          var img = frame.querySelector('img');
+          // From the loading state at once, as a picture not there yet starts.
+          img.style.transition = 'none';
+          frame.setAttribute('data-state', 'loading');
+          getComputedStyle(img).opacity;
+          img.style.removeProperty('transition');
+          getComputedStyle(img).opacity;
+          frame.setAttribute('data-state', 'loaded');
+          return DS.motion.settled(img);
+        },
+        toggle: function (stage, on) {
+          var frame = stage.querySelector('.ds-image__frame');
+          frame.setAttribute('data-state', on ? 'loaded' : 'loading');
+          return DS.motion.settled(frame.querySelector('img'));
+        },
+        state: function (stage) {
+          return stage.querySelector('.ds-image__frame').getAttribute('data-state') !== 'loading';
+        }
+      });
+    })();
+  }());
+
+  // ── components/logview/logview.lab.js
+  (function () {
+    /* The log viewer's one motion: the "Latest" pill that comes while the reader is away from the end, and goes back. */
+    function logviewLines(count) {
+      var lines = [];
+      for (var i = 0; i < count; i += 1) lines.push('09:00:' + String(i % 60).padStart(2, '0') + ' ' + (i % 7 === 3 ? 'WARN ' : 'INFO ') + 'Device ' + (40 + (i % 5)) + ' synced ' + i + ' settings');
+      return lines;
+    }
+
+    function logviewScroll(stage, toEnd) {
+      var log = stage.logview;
+      var scroller = stage.querySelector('.ds-logview__scroller');
+      var pill = stage.querySelector('.ds-logview__latest');
+      if (toEnd) log.latest();
+      else scroller.scrollTop = Math.max(0, scroller.scrollTop - scroller.clientHeight);
+      return new Promise(function (resolve) { requestAnimationFrame(function () { requestAnimationFrame(resolve); }); })
+        .then(function () { return DS.motion.settled(pill, { transitions: true }); });
+    }
+
+    SG_LAB.add({
+      id: 'logview-latest',
+      group: 'data',
+      title: 'Log viewer: the Latest pill',
+      note: '<code>DS.logview.create()</code> follows the end through <code>DS.dom.followEnd()</code>: scrolling up lets go and the pill comes (<code>.ds-presence</code>: a fade and a grow on the spring), pressing it scrolls back and the pill goes, faster.',
+      shows: ['DS.logview.create', '.ds-logview', '.ds-presence', '--ds-dur-medium', '--ds-ease-spatial'],
+      html: '<div class="ds-logview" data-ds-logview-tools="off" aria-label="Device log" style="--ds-logview-height: 200px"></div>',
+      height: 220,
+      setup: function (stage) {
+        stage.logview = DS.logview.create(stage.querySelector('.ds-logview'), { lines: logviewLines(120) });
+      },
+      play: function (stage) {
+        return logviewScroll(stage, !stage.querySelector('.ds-logview__latest').hidden);
+      },
+      toggle: function (stage, on) {
+        return logviewScroll(stage, !on);
+      },
+      state: function (stage) {
+        return !stage.querySelector('.ds-logview__latest').hidden;
+      },
+      reset: function (stage) {
+        return logviewScroll(stage, true);
+      },
+    });
+  }());
+
+  // ── components/labelgroup/labelgroup.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.labelgroup: the "+N" popup grows from its
+     * button on the spring and leaves with a quick fade.
+     */
+    SG_LAB.add({
+      id: 'labelgroup-popup',
+      group: 'overlays',
+      title: 'Label group, every tag in a popup',
+      note: 'The popup of the "+N" button fades in over <code>--ds-dur-fast</code> and grows from the button on <code>--ds-ease-spatial</code> over <code>--ds-dur-medium</code>; it leaves with a fade over <code>--ds-dur-instant</code>. Closed mid-way, it turns back from where it is. The tags themselves hide and show at once.',
+      shows: ['DS.labelgroup.create', '.ds-label-group', '.ds-label-group__popup', '--ds-dur-fast', '--ds-dur-medium', '--ds-dur-instant', '--ds-ease-spatial', '--ds-scale-popup'],
+      html: '<div class="sg-popup-stage"><div class="ds-label-group" style="inline-size: 240px">' +
+        '<ul class="ds-label-group__list" aria-label="Labels of ticket 41">' +
+        '<li><span class="ds-tag">Printer</span></li><li><span class="ds-tag ds-tone-warning">Waiting for parts</span></li>' +
+        '<li><span class="ds-tag">Second floor</span></li><li><span class="ds-tag">Hardware</span></li><li><span class="ds-tag">Vendor</span></li></ul></div></div>',
+      height: 200,
+      setup: function (stage) {
+        stage.sgLabelGroup = DS.labelgroup.create(stage.querySelector('.ds-label-group'));
+      },
+      subject: function (stage) { return stage.querySelector('.ds-label-group__popup'); },
+      state: function (stage) { return stage.sgLabelGroup.get().open; },
+      play: function (stage) {
+        var handle = stage.sgLabelGroup;
+        var popup = stage.querySelector('.ds-label-group__popup');
+        handle.set(true);
+        return DS.motion.settled(popup).then(function () {
+          handle.set(false);
+          return DS.motion.settled(popup);
+        });
+      },
+      toggle: function (stage, on) {
+        var handle = stage.sgLabelGroup;
+        handle.set(on);
+        return DS.motion.settled(stage.querySelector('.ds-label-group__popup'));
+      }
     });
   }());
 
@@ -271,6 +1130,93 @@
         el.hidden = false;
         el.textContent = '';
         stage.badge = DS.badge.create(el, { value: 0 });
+      },
+    });
+  }());
+
+  // ── components/presence/presence.lab.js
+  (function () {
+    /* A presence that changes (Replay turns it online or busy): the dot glides its colours on --ds-dur-medium, its shape and the word change at once. A CSS transition, so a change mid-way turns back from where it is. */
+    (function () {
+      function to(stage, on) {
+        var label = stage.querySelector('[data-lab-presence]');
+        var dot = label.querySelector('.ds-presence-dot');
+        dot.className = 'ds-presence-dot ds-presence-dot--' + (on ? 'busy' : 'online');
+        label.lastElementChild.textContent = DS.core.t(on ? 'presenceBusy' : 'presenceOnline');
+        return DS.motion.settled(dot);
+      }
+
+      SG_LAB.add({
+        id: 'presence-change',
+        group: 'feedback',
+        title: 'Presence changes',
+        note: 'A <code>.ds-presence-dot</code> that turns from online to busy: its colours glide on <code>--ds-dur-medium</code>, as a status chip does; the shape (a disc, a disc with a bar) and the word change at once.',
+        shows: ['.ds-presence-dot', '.ds-presence-dot--online', '.ds-presence-dot--busy', '.ds-presence-label', '--ds-dur-medium', '--ds-ease-in-out'],
+        html: '<span class="ds-presence-label ds-xl" data-lab-presence><span class="ds-presence-dot ds-presence-dot--online"></span><span>Online</span></span>',
+        height: 120,
+        play: function (stage) {
+          return to(stage, !stage.querySelector('.ds-presence-dot--busy'));
+        },
+        reset: function (stage) {
+          return to(stage, false);
+        },
+      });
+    })();
+  }());
+
+  // ── components/banner/banner.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.banner: messages come and go above a view
+     * inside DS.motion.flip() on the panel, so the view glides and nothing
+     * animates a height; a message that appears fades in.
+     */
+    var LAB_BANNERS = [
+      { id: 'lab-notice', tone: 'info', text: 'Maintenance on Sunday, 02:00 to 04:00.' },
+      { id: 'lab-urgent', tone: 'error', text: 'Sign-in is down for some people.' },
+    ];
+
+    SG_LAB.add({
+      id: 'banner-priority',
+      group: 'feedback',
+      title: 'Banner messages in priority order',
+      note: 'A broadcast arrives (the urgent one goes first), "Show more" reveals the waiting ones, a dismissal hides one: each a change inside DS.motion.flip() on the panel. The view glides (--ds-dur-medium, --ds-ease-spatial), the message that appears fades in (ds-fade-in); no height animates.',
+      shows: ['DS.banner.create', 'DS.motion.flip', 'ds-fade-in', '--ds-dur-medium', '--ds-ease-spatial'],
+      html: '<div class="ds-panel" style="margin: 0; min-height: 0; border: 1px solid var(--ds-line)">' +
+        '<div class="ds-banner" data-lab-banner data-ds-banner-remember="off"></div>' +
+        '<div class="ds-content"><p class="ds-muted">The view.</p></div></div>',
+      height: 220,
+      setup: function (stage) {
+        stage._banner = DS.banner.create(stage.querySelector('[data-lab-banner]'));
+      },
+      // Back to two messages, folded: the error shows, the notice waits.
+      reset: function (stage) {
+        ['lab-notice', 'lab-urgent'].forEach(function (id) { stage._banner.restore(id); });
+        stage._banner.set(LAB_BANNERS);
+        stage._banner.expand(false);
+        return DS.motion.settled(stage.querySelector('.ds-panel'), { subtree: true });
+      },
+      state: function (stage) { return stage.querySelectorAll('.ds-banner > .ds-alert:not([hidden])').length > 1; },
+      play: function (stage, sg) {
+        var banner = stage._banner;
+        var panel = stage.querySelector('.ds-panel');
+        var wait = function (ms) { return new Promise(function (resolve) { setTimeout(resolve, sg.slow(ms)); }); };
+        banner.set([{ id: 'lab-notice', tone: 'info', text: 'Maintenance on Sunday, 02:00 to 04:00.' }]);
+        return DS.motion.settled(panel, { subtree: true })
+          .then(function () { banner.add({ id: 'lab-urgent', tone: 'error', text: 'Sign-in is down for some people.' }); return wait(50); })
+          .then(function () { return DS.motion.settled(panel, { subtree: true }); })
+          .then(function () { banner.expand(true); return wait(50); })
+          .then(function () { return DS.motion.settled(panel, { subtree: true }); })
+          .then(function () { banner.dismiss('lab-urgent'); return wait(50); })
+          .then(function () { return DS.motion.settled(panel, { subtree: true }); });
+      },
+      toggle: function (stage, on) {
+        var banner = stage._banner;
+        if (stage.querySelectorAll('.ds-banner > .ds-alert').length < 2 || banner.get().length === 0) {
+          ['lab-notice', 'lab-urgent'].forEach(function (id) { banner.restore(id); });
+          banner.set(LAB_BANNERS);
+        }
+        banner.expand(on);
       },
     });
   }());
@@ -513,6 +1459,117 @@
     });
   }());
 
+  // ── components/datagrid/datagrid.lab.js
+  (function () {
+    /*
+     * The Motion Lab entries of the data grid: rows that glide to a new sort
+     * (DS.motion.flip under DS.datagrid), and a tree row whose chevron turns on
+     * the spring as it opens. A classic script: the build wraps it into
+     * styleguide/lab-components.js. Nothing here reads DS while the file loads;
+     * the grids are made in setup().
+     */
+    var gridOf = new WeakMap();
+
+    function gridAfter(ms) {
+      return new Promise(function (resolve) { setTimeout(resolve, Math.max(0, ms)); });
+    }
+
+    /* Everything finite that still runs under the stage has ended. */
+    function gridQuiet(root, sg) {
+      var end = Date.now() + sg.slow(10000);
+      function round() {
+        var running = root.getAnimations({ subtree: true }).filter(function (animation) {
+          var timing = animation.effect && animation.effect.getComputedTiming();
+          return timing && isFinite(timing.endTime) && animation.timeline === root.ownerDocument.timeline && animation.playState === 'running';
+        });
+        if (!running.length || Date.now() > end) return undefined;
+        return Promise.race([
+          Promise.all(running.map(function (animation) { return animation.finished.catch(function () {}); })),
+          gridAfter(end - Date.now()),
+        ]).then(function () { return sg.frames(2); }).then(round);
+      }
+      return sg.frames(2).then(round);
+    }
+
+    var GRID_LAB_ROWS = [
+      { id: 'd1', name: 'LAPTOP-0042', owner: 'Ada Lovelace', load: 32 },
+      { id: 'd2', name: 'LAPTOP-0043', owner: 'Alan Turing', load: 14 },
+      { id: 'd3', name: 'DESKTOP-0107', owner: 'Grace Hopper', load: 93 },
+      { id: 'd4', name: 'LAPTOP-0051', owner: 'Grace Hopper', load: 78 },
+      { id: 'd5', name: 'TABLET-0121', owner: 'Katherine Johnson', load: 47 },
+    ];
+
+    SG_LAB.add({
+      id: 'datagrid-sort',
+      group: 'data',
+      title: 'Data grid: sort',
+      note: 'Click a header, Shift+click a second one: <code>DS.datagrid</code> sorts by several columns and the rows glide to their places through <code>DS.motion.flip</code>, keyed by their <code>data-ds-key</code>. Replay sorts by load, highest first.',
+      shows: ['DS.datagrid.create', 'DS.motion.flip', '--ds-dur-slow', '--ds-ease-spatial'],
+      html: '<div class="ds-table-wrap"><table class="ds-table ds-datagrid" aria-label="Devices"></table></div>',
+      height: 360,
+      wide: true,
+      setup: function (stage) {
+        gridOf.set(stage, DS.datagrid.create(stage.querySelector('table'), {
+          columns: [
+            { key: 'name', label: 'Device', className: 'ds-nowrap' },
+            { key: 'owner', label: 'Owner' },
+            { key: 'load', label: 'Load', type: 'number', format: function (value) { return value + '%'; } },
+          ],
+          rows: GRID_LAB_ROWS.map(function (row) { return Object.assign({}, row); }),
+          sortable: true,
+          multiSort: true,
+          sort: [{ key: 'name', dir: 'ascending' }],
+        }));
+      },
+      reset: function (stage, sg) {
+        var grid = gridOf.get(stage);
+        grid.set({ sort: [{ key: 'name', dir: 'ascending' }] });
+        return gridQuiet(stage, sg);
+      },
+      play: function (stage, sg) {
+        gridOf.get(stage).sort('load', 'descending');
+        return gridQuiet(stage, sg);
+      },
+    });
+
+    SG_LAB.add({
+      id: 'datagrid-tree',
+      group: 'data',
+      title: 'Data grid: tree rows',
+      note: 'A tree row opens: its <code>.ds-datagrid__chevron</code> turns 90deg on the spring (<code>--ds-dur-medium</code>, <code>--ds-ease-spatial</code>) and the children are there at once, indented by level. Replay opens Building A; ArrowRight and ArrowLeft open and close it from the keyboard.',
+      shows: ['.ds-datagrid__chevron', '--ds-dur-medium', '--ds-ease-spatial'],
+      html: '<div class="ds-table-wrap"><table class="ds-table ds-datagrid" aria-label="Places and devices"></table></div>',
+      height: 320,
+      setup: function (stage) {
+        gridOf.set(stage, DS.datagrid.create(stage.querySelector('table'), {
+          columns: [{ key: 'name', label: 'Name' }, { key: 'kind', label: 'Kind' }],
+          rows: [
+            { id: 'a', name: 'Building A', kind: 'Site', children: [
+              { id: 'a1', name: 'LAPTOP-0042', kind: 'Laptop 14' },
+              { id: 'a2', name: 'DESKTOP-0107', kind: 'Desktop 7' },
+            ] },
+            { id: 's', name: 'Server room', kind: 'Room', children: [{ id: 's1', name: 'LAPTOP-0051', kind: 'Laptop 13' }] },
+          ],
+          tree: true,
+          focus: 'row',
+        }));
+      },
+      reset: function (stage, sg) {
+        gridOf.get(stage).expand('a', false);
+        return gridQuiet(stage, sg);
+      },
+      play: function (stage, sg) {
+        gridOf.get(stage).expand('a', true);
+        return gridQuiet(stage, sg);
+      },
+      state: function (stage) { return stage.querySelector('tr[data-ds-datagrid-row="a"]').getAttribute('aria-expanded') === 'true'; },
+      toggle: function (stage, on, sg) {
+        gridOf.get(stage).expand('a', on);
+        return gridQuiet(stage, sg);
+      },
+    });
+  }());
+
   // ── components/pagination/pagination.lab.js
   (function () {
     /*
@@ -586,6 +1643,167 @@
     });
   }());
 
+  // ── components/loadmore/loadmore.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.loadmore: a slow page. The button's busy face
+     * shows after --ds-delay-loader and stays for --ds-hold-loader; the new rows
+     * fade in through DS.motion.flip (keyed, so nothing else moves); the status
+     * changes at once.
+     */
+    var made = new WeakMap();
+
+    function rowHtml(index) {
+      return '<li class="ds-list__item" data-ds-key="r' + index + '"><span class="ds-list__text"><span class="ds-list__title">TICKET-' + (1040 + index) + '</span></span></li>';
+    }
+
+    function rowsHtml(count) {
+      var out = '';
+      for (var i = 0; i < count; i += 1) out += rowHtml(i);
+      return out;
+    }
+
+    function controlOf(stage, sg) {
+      var el = stage.querySelector('.ds-loadmore');
+      if (made.has(el)) return made.get(el);
+      var list = stage.querySelector('ul');
+      var control = DS.loadmore.create(el, {
+        load: function (state) {
+          return new Promise(function (resolve) {
+            setTimeout(function () {
+              var next = (state.loaded || 0) + 2;
+              DS.motion.flip(list, function (options) { DS.dom.morphHtml(list, rowsHtml(next), options); }, { items: 'li' });
+              resolve({ loaded: next });
+            }, sg.slow(600));
+          });
+        },
+      });
+      made.set(el, control);
+      return control;
+    }
+
+    SG_LAB.add({
+      id: 'loadmore-page',
+      group: 'data',
+      title: 'Load more: a slow page',
+      note: 'The busy face shows only after --ds-delay-loader and stays at least --ds-hold-loader; the two new rows fade in through DS.motion.flip, the rows above stay where they are, and the status changes at once.',
+      shows: ['DS.loadmore.create', '.ds-loadmore', '--ds-delay-loader', '--ds-hold-loader'],
+      html: '<ul class="ds-list" aria-label="Tickets">' + rowsHtml(2) + '</ul>' +
+        '<div class="ds-loadmore ds-loadmore--inline" data-ds-loadmore-loaded="2" data-ds-loadmore-total="12"><p class="ds-loadmore__status"><span class="ds-loadmore__text"></span></p>' +
+        '<button class="ds-btn ds-loadmore__button" type="button"><span class="ds-btn__faces"><span class="ds-btn__face">Load more</span>' +
+        '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Loading</span></span></button></div>',
+      height: 300,
+      setup: function (stage, sg) {
+        controlOf(stage, sg);
+      },
+      reset: function (stage, sg) {
+        var list = stage.querySelector('ul');
+        DS.dom.morphHtml(list, rowsHtml(2));
+        controlOf(stage, sg).reset({ loaded: 2, total: 12 });
+      },
+      play: function (stage, sg) {
+        return controlOf(stage, sg).load().then(function () {
+          return DS.motion.settled(stage, { subtree: true });
+        });
+      },
+    });
+  }());
+
+  // ── components/sort/sort.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.sort: the order button flips the direction, and
+     * the one arrow turns 180deg on the spring; the words change at once and keep
+     * the button's width.
+     */
+    var made = new WeakMap();
+
+    /** The stage's one controller (create() makes a new one each call outside data-ds-sort). */
+    function sortOf(stage) {
+      var el = stage.querySelector('[data-lab-sort]');
+      if (!made.has(el)) made.set(el, DS.sort.create(el));
+      return made.get(el);
+    }
+
+    SG_LAB.add({
+      id: 'sort-order',
+      group: 'data',
+      title: 'Sort control: the order flips',
+      note: 'The arrow turns on the spring (--ds-dur-medium, --ds-ease-spatial), as the table\'s sort arrow; the words change at once in a cell as wide as the longer one. Rapid toggles turn it back from where it is.',
+      shows: ['DS.sort.create', '.ds-sort', '.ds-sort__arrow', '--ds-dur-medium', '--ds-ease-spatial'],
+      html: '<div class="ds-sort" data-lab-sort data-ds-value="name" role="group" aria-label="Sort">' +
+        '<label class="ds-sort__label" for="sg-lab-sort-field">Sort by</label>' +
+        '<select class="ds-input ds-sort__field" id="sg-lab-sort-field"><option value="name" data-ds-sort-type="text">Name</option>' +
+        '<option value="seen" data-ds-sort-type="date">Last seen</option></select>' +
+        '<button class="ds-btn ds-btn--quiet ds-sort__order" type="button">' +
+        '<span class="ds-sr">Order: </span><span class="ds-sort__words"><span class="ds-sort__word"></span><span class="ds-sort__word"></span></span></button></div>',
+      height: 96,
+      setup: function (stage) {
+        // The arrow comes from DS.icons, which the lab loads before it renders the stage.
+        stage.querySelector('.ds-sort__order').insertAdjacentHTML('afterbegin', DS.icons.icon(DS.icons.arrowUp, 20, 'ds-sort__arrow'));
+        sortOf(stage);
+      },
+      subject: function (stage) { return stage.querySelector('.ds-sort__arrow'); },
+      state: function (stage) { return stage.querySelector('[data-lab-sort]').getAttribute('data-state') === 'descending'; },
+      play: function (stage) {
+        var sort = sortOf(stage);
+        var arrow = stage.querySelector('.ds-sort__arrow');
+        sort.set({ direction: 'descending' });
+        return DS.motion.settled(arrow).then(function () {
+          sort.set({ direction: 'ascending' });
+          return DS.motion.settled(arrow);
+        });
+      },
+      toggle: function (stage, on) {
+        sortOf(stage).set({ direction: on ? 'descending' : 'ascending' });
+        return DS.motion.settled(stage.querySelector('.ds-sort__arrow'));
+      },
+    });
+  }());
+
+  // ── components/views/views.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.views: the trigger's chevron turns while its
+     * menu is open, on the spring, and back from wherever it is.
+     */
+    SG_LAB.add({
+      id: 'views-chevron',
+      group: 'data',
+      title: 'Saved views: the trigger opens its menu',
+      note: 'The chevron turns 180deg on the spring (--ds-dur-medium, --ds-ease-spatial) while the menu is open, as a disclosure chevron; the menu plays its own entrance. Rapid toggles turn it back from where it is.',
+      shows: ['DS.views.create', '.ds-views', '.ds-views__chevron', '--ds-dur-medium', '--ds-ease-spatial'],
+      html: '<div class="ds-views" data-lab-views data-ds-views-url="off" data-ds-views-key="sg-lab">' +
+        '<button class="ds-btn ds-views__trigger" type="button" aria-haspopup="menu" aria-expanded="false">' +
+        '<span class="ds-views__name"></span><span class="ds-views__edited" hidden></span></button>' +
+        '<div class="ds-views__list" hidden><button class="ds-menu__item" role="menuitemradio" type="button" data-ds-view="all">' +
+        '<span class="ds-menu__label">All devices</span></button></div></div>',
+      height: 96,
+      setup: function (stage) {
+        // The glyphs come from DS.icons, which the lab loads before it renders the stage.
+        var trigger = stage.querySelector('.ds-views__trigger');
+        trigger.insertAdjacentHTML('afterbegin', DS.icons.icon(DS.icons.layers, 20));
+        trigger.insertAdjacentHTML('beforeend', DS.icons.icon(DS.icons.chevronDown, 20, 'ds-views__chevron'));
+        DS.views.create(stage.querySelector('[data-lab-views]'));
+      },
+      subject: function (stage) { return stage.querySelector('.ds-views__chevron'); },
+      state: function (stage) { return stage.querySelector('.ds-views__trigger').getAttribute('aria-expanded') === 'true'; },
+      play: function (stage) {
+        var trigger = stage.querySelector('.ds-views__trigger');
+        var chevron = stage.querySelector('.ds-views__chevron');
+        trigger.setAttribute('aria-expanded', 'true');
+        return DS.motion.settled(chevron).then(function () {
+          trigger.setAttribute('aria-expanded', 'false');
+          return DS.motion.settled(chevron);
+        });
+      },
+      toggle: function (stage, on) {
+        stage.querySelector('.ds-views__trigger').setAttribute('aria-expanded', String(on));
+        return DS.motion.settled(stage.querySelector('.ds-views__chevron'));
+      },
+    });
+  }());
+
   // ── components/scroller/scroller.lab.js
   (function () {
     /* A reel and a column: the fades on the same two numbers, the reel resting on a child. */
@@ -638,6 +1856,110 @@
       },
       state: function (stage) { return stage.querySelector('.ds-scroll-y').scrollTop > 0; },
       toggle: function (stage, on) { return scrollToEnd(stage.querySelector('.ds-scroll-y'), 'block', on); },
+    });
+  }());
+
+  // ── components/password/password.lab.js
+  (function () {
+    /* The password's strength meter through its controller: the bars change colour on --ds-dur-fast, the reveal swaps its icon. */
+    SG_LAB.add({
+      id: 'password-meter',
+      group: 'controls',
+      title: 'Password strength meter',
+      note: '<code>DS.password.create()</code>: each level fills its bars in the level\'s colour (<code>--ds-dur-fast</code>), and the level is written in words; the reveal button\'s icons swap as every <code>.ds-icon-swap</code>.',
+      shows: ['DS.password.create', '.ds-password__meter', '.ds-password__bars', '--ds-dur-fast'],
+      html: '<div class="ds-field"><label class="ds-field__label" for="lab-pw">New password</label>' +
+        '<div class="ds-input-group"><input class="ds-input" id="lab-pw" type="password" autocomplete="off" aria-describedby="lab-pw-meter">' +
+        '<span class="ds-input-group__trailing"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Show password" aria-pressed="false"><span class="ds-icon-swap"><span class="ds-icon-swap__a">' +
+        '</span><span class="ds-icon-swap__b"></span></span></button></span></div>' +
+        '<div class="ds-password__meter" id="lab-pw-meter"><span class="ds-password__bars" aria-hidden="true"><span></span><span></span><span></span><span></span></span><span class="ds-password__strength"></span></div></div>',
+      height: 140,
+      // The icons come in at setup: DS is not there yet when this file registers.
+      setup: function (stage) {
+        stage.querySelector('.ds-icon-swap__a').innerHTML = DS.icons.icon(DS.icons.eye, 18);
+        stage.querySelector('.ds-icon-swap__b').innerHTML = DS.icons.icon(DS.icons.eyeOff, 18);
+        stage.pw = DS.password.create(stage.querySelector('.ds-field'));
+      },
+      play: function (stage) {
+        var input = stage.querySelector('input');
+        var steps = ['abc', 'devices42', 'Tr0ub4dor&3', 'correct horse battery staple'];
+        var meter = stage.querySelector('.ds-password__meter');
+        var at = steps.indexOf(input.value) + 1;
+        input.value = at >= steps.length ? '' : steps[at];
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        return DS.motion.settled(meter.querySelector('.ds-password__bars'), { subtree: true, transitions: true });
+      },
+      toggle: function (stage, on) {
+        if (stage.pw) stage.pw.set({ revealed: on });
+        var input = stage.querySelector('input');
+        if (!input.value) {
+          input.value = 'Tr0ub4dor&3';
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        return DS.motion.settled(stage.querySelector('.ds-icon-swap'), { subtree: true, transitions: true });
+      },
+      state: function (stage) {
+        return Boolean(stage.pw && stage.pw.get().revealed);
+      },
+      reset: function (stage) {
+        if (stage.pw) stage.pw.destroy();
+        var input = stage.querySelector('input');
+        input.value = '';
+        input.type = 'password';
+        stage.querySelector('button').setAttribute('aria-pressed', 'false');
+        stage.pw = DS.password.create(stage.querySelector('.ds-field'));
+      },
+    });
+  }());
+
+  // ── components/search/search.lab.js
+  (function () {
+    /* The search field's recent searches: the list grows out of the pill through DS.overlay, as the combobox's. */
+    SG_LAB.add({
+      id: 'search-recent',
+      group: 'controls',
+      title: 'Search: recent searches',
+      note: '<code>DS.search.create()</code>: in an empty field the recent searches open under the pill as a combobox list (<code>DS.overlay</code>: a fade on <code>--ds-dur-fast</code>, the clip and the scale on <code>--ds-ease-spatial</code>), and close with a fade.',
+      shows: ['DS.search.create', '.ds-search__popup', '.ds-search__clear', '--ds-ease-spatial'],
+      // The icons come in at setup: DS is not there yet when this file registers.
+      html: '<div class="ds-search" data-ds-search-recent="sg-lab">' +
+        '<input class="ds-input" type="search" aria-label="Search devices" placeholder="Search devices" autocomplete="off">' +
+        '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-search__clear" type="button" hidden></button></div>',
+      height: 280,
+      setup: function (stage) {
+        var root = stage.querySelector('.ds-search');
+        root.insertAdjacentHTML('afterbegin', DS.icons.icon(DS.icons.search, 20));
+        root.querySelector('.ds-search__clear').innerHTML = DS.icons.icon(DS.icons.close, 18);
+        stage.search = DS.search.create(root);
+        ['laptop', 'router', 'printer'].reverse().forEach(function (value) { stage.search.remember(value); });
+      },
+      play: function (stage) {
+        var input = stage.querySelector('input');
+        input.focus();
+        input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+        var popup = stage.querySelector('.ds-search__popup');
+        return popup ? DS.motion.settled(popup) : Promise.resolve();
+      },
+      toggle: function (stage, on) {
+        var input = stage.querySelector('input');
+        var popup = stage.querySelector('.ds-search__popup');
+        if (on) {
+          input.focus();
+          input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+          popup = stage.querySelector('.ds-search__popup');
+        } else if (popup) {
+          DS.overlay.close(popup);
+        }
+        return popup ? DS.motion.settled(popup) : Promise.resolve();
+      },
+      state: function (stage) {
+        var popup = stage.querySelector('.ds-search__popup');
+        return Boolean(popup && !popup.hidden && popup.getAttribute('data-state') === 'open');
+      },
+      reset: function (stage) {
+        if (stage.search) stage.search.destroy();
+        stage.search = DS.search.create(stage.querySelector('.ds-search'));
+      },
     });
   }());
 
@@ -702,8 +2024,9 @@
   // ── components/combobox/combobox.lab.js
   (function () {
     /*
-     * The combobox's motion of 3.0: the press of its clear button. The list and
-     * the toggle's chevron of 2.x stay in styleguide/lab.js.
+     * The combobox's motion of 3.0: the press of its clear button, and the list
+     * of a combobox the system drives (DS.combobox). The list and the toggle's
+     * chevron of 2.x stay in styleguide/lab.js.
      */
     SG_LAB.add({
       id: 'combobox-clear',
@@ -723,6 +2046,394 @@
           clear.classList.remove('ds-pressed');
           return DS.motion.settled(clear, { transitions: true });
         });
+      },
+    });
+
+    /* The list of a combobox the system drives (data-ds-combobox): DS.combobox opens and closes it through DS.overlay. */
+    SG_LAB.add({
+      id: 'combobox-system',
+      group: 'overlays',
+      title: 'Combobox list through DS.combobox',
+      note: 'It grows out of the field: a fade over <code>--ds-dur-fast</code> while its clip opens and it grows on the spring over <code>--ds-dur-medium</code>; it leaves with a fade in <code>--ds-dur-instant</code>, and a close mid-way turns back from where it is. The matched letters are marked by weight and a line.',
+      shows: ['DS.combobox.open', 'DS.combobox.close', '.ds-combo__match', '--ds-dur-fast', '--ds-dur-medium', '--ds-dur-instant', '--ds-ease-spatial'],
+      html: '<div class="ds-combo" style="inline-size: 280px;"><input class="ds-input ds-combo__input" role="combobox" aria-label="Model" aria-expanded="false" aria-autocomplete="list" value="lap">' +
+        '<div class="ds-combo__popup" hidden><ul class="ds-combo__list" role="listbox" aria-label="Models">' +
+        '<li class="ds-combo__option" role="option" aria-selected="false"><span class="ds-combo__name">Laptop 14</span></li>' +
+        '<li class="ds-combo__option" role="option" aria-selected="false"><span class="ds-combo__name">Laptop 16</span></li>' +
+        '<li class="ds-combo__option" role="option" aria-selected="false"><span class="ds-combo__name">Mini desktop</span></li></ul></div></div>',
+      height: 240,
+      setup: function (stage) { DS.combobox.create(stage.querySelector('.ds-combo')); },
+      subject: function (stage) { return stage.querySelector('.ds-combo__popup'); },
+      state: function (stage) { return stage.querySelector('.ds-combo__popup').getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var combo = stage.querySelector('.ds-combo');
+        var popup = stage.querySelector('.ds-combo__popup');
+        return DS.combobox.open(combo)
+          .then(function () { return DS.motion.settled(popup); })
+          .then(function () { return DS.combobox.close(combo); })
+          .then(function () { return DS.motion.settled(popup); });
+      },
+      toggle: function (stage, on) {
+        var combo = stage.querySelector('.ds-combo');
+        return on ? DS.combobox.open(combo) : DS.combobox.close(combo);
+      },
+    });
+  }());
+
+  // ── components/listbox/listbox.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.listbox: the check box of several values fills
+     * and draws its check, and goes again; the active layer comes in over
+     * --ds-dur-micro and leaves at once.
+     */
+    SG_LAB.add({
+      id: 'listbox-check',
+      group: 'controls',
+      title: 'Listbox: choosing several values',
+      note: 'The box fills over <code>--ds-dur-fast</code> while its check is drawn from left to right over <code>--ds-dur-medium</code> on <code>--ds-ease-out</code>; taken back, the check fades and the box empties. The active option\'s layer comes in over <code>--ds-dur-micro</code> and goes at once, so a held arrow key leaves no trail.',
+      shows: ['DS.listbox.create', '.ds-listbox', '.ds-listbox__check', '--ds-dur-fast', '--ds-dur-medium', '--ds-dur-micro', '--ds-ease-out'],
+      html: '<div class="ds-listbox" role="listbox" aria-multiselectable="true" aria-label="Models" style="inline-size: 280px;">' +
+        '<div class="ds-listbox__option" role="option" aria-selected="false" data-value="a"><span class="ds-listbox__check" aria-hidden="true"></span><span class="ds-listbox__name">Laptop 14</span></div>' +
+        '<div class="ds-listbox__option" role="option" aria-selected="false" data-value="b"><span class="ds-listbox__check" aria-hidden="true"></span><span class="ds-listbox__name">Mini desktop</span></div></div>',
+      setup: function (stage) {
+        stage.querySelectorAll('.ds-listbox__check').forEach(function (box) { box.innerHTML = DS.icons.icon(DS.icons.check, 16); });
+        DS.listbox.create(stage.querySelector('.ds-listbox'));
+      },
+      state: function (stage) { return stage.querySelector('.ds-listbox__option').getAttribute('aria-selected') === 'true'; },
+      play: function (stage) {
+        var list = DS.listbox.create(stage.querySelector('.ds-listbox'));
+        list.set([]);
+        list.activate('a');
+        list.pick();
+        return DS.motion.settled(stage.querySelector('.ds-listbox__option'), { subtree: true, transitions: true });
+      },
+      toggle: function (stage, on) {
+        var list = DS.listbox.create(stage.querySelector('.ds-listbox'));
+        list.set(on ? ['a'] : []);
+        return DS.motion.settled(stage.querySelector('.ds-listbox__option'), { subtree: true, transitions: true });
+      },
+      reset: function (stage) {
+        var list = DS.listbox.create(stage.querySelector('.ds-listbox'));
+        list.set([]);
+        list.activate(null);
+        return DS.motion.settled(stage.querySelector('.ds-listbox__option'), { subtree: true, transitions: true });
+      },
+    });
+  }());
+
+  // ── components/taginput/taginput.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.taginput: a tag comes and goes while the
+     * other chips glide (DS.motion.flip); the message of a refused tag fades in.
+     */
+    SG_LAB.add({
+      id: 'taginput-tags',
+      group: 'controls',
+      title: 'Tag input: a tag comes and goes',
+      note: 'A new chip fades in; a removed one leaves while the chips after it glide into its place on <code>--ds-ease-spatial</code> (<code>DS.motion.flip</code>). A refused tag\'s message fades in over <code>--ds-dur-fast</code>.',
+      shows: ['DS.taginput.create', '.ds-taginput', '.ds-taginput__message', 'DS.motion.flip', '--ds-dur-fast', '--ds-ease-spatial'],
+      html: '<div class="ds-taginput" style="inline-size: 320px;" data-ds-value=\'["printer","floor-2"]\'><input class="ds-input ds-taginput__input" aria-label="Labels"></div>',
+      height: 160,
+      setup: function (stage) { DS.taginput.create(stage.querySelector('.ds-taginput')); },
+      state: function (stage) { return DS.taginput.create(stage.querySelector('.ds-taginput')).get().indexOf('shared') >= 0; },
+      play: function (stage) {
+        var box = stage.querySelector('.ds-taginput');
+        var tags = DS.taginput.create(box);
+        tags.set(['printer', 'floor-2']);
+        tags.add('shared');
+        return DS.motion.settled(box, { subtree: true })
+          .then(function () { tags.remove('printer'); return DS.motion.settled(box, { subtree: true }); })
+          .then(function () { tags.add('floor-2'); return DS.motion.settled(box.nextElementSibling || box); });
+      },
+      toggle: function (stage, on) {
+        var box = stage.querySelector('.ds-taginput');
+        var tags = DS.taginput.create(box);
+        if (on) tags.add('shared');
+        else tags.remove('shared');
+        return DS.motion.settled(box, { subtree: true });
+      },
+      reset: function (stage) {
+        var tags = DS.taginput.create(stage.querySelector('.ds-taginput'));
+        tags.set(['printer', 'floor-2']);
+      },
+    });
+  }());
+
+  // ── components/choices/choices.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.choices: "select all" turns every box on and
+     * off; each box wipes its check in (form.css), "some" shows the dash.
+     */
+    SG_LAB.add({
+      id: 'choices-all',
+      group: 'controls',
+      title: 'Choice list: select all',
+      note: '"Select all" checks every box that shows: each check wipes in after <code>--ds-dur-micro</code> on <code>--ds-ease-out</code>; taken back, they fade. With only some checked the box shows the dash.',
+      shows: ['DS.choices.create', '.ds-choices', '.ds-choices__list', '--ds-dur-micro', '--ds-ease-out'],
+      html: '<div class="ds-choices" style="inline-size: 280px;"><div class="ds-choices__tools"><label class="ds-check"><input type="checkbox" data-ds-choices-all><span>All channels</span></label><span class="ds-choices__count"></span></div>' +
+        '<div class="ds-choices__list" role="group" aria-label="Channels"><label class="ds-check"><input type="checkbox" value="mail"><span>Email</span></label>' +
+        '<label class="ds-check"><input type="checkbox" value="chat"><span>Chat</span></label><label class="ds-check"><input type="checkbox" value="text"><span>Text message</span></label></div></div>',
+      height: 220,
+      setup: function (stage) { DS.choices.create(stage.querySelector('.ds-choices')); },
+      state: function (stage) { return DS.choices.create(stage.querySelector('.ds-choices')).get().length === 3; },
+      play: function (stage) {
+        var all = stage.querySelector('[data-ds-choices-all]');
+        DS.choices.create(stage.querySelector('.ds-choices')).set([]);
+        all.click();
+        return DS.motion.settled(stage.querySelector('.ds-choices__list'), { subtree: true, transitions: true });
+      },
+      toggle: function (stage, on) {
+        DS.choices.create(stage.querySelector('.ds-choices')).set(on ? ['mail', 'chat', 'text'] : []);
+        return DS.motion.settled(stage.querySelector('.ds-choices__list'), { subtree: true, transitions: true });
+      },
+      reset: function (stage) { DS.choices.create(stage.querySelector('.ds-choices')).set([]); },
+    });
+  }());
+
+  // ── components/selectpanel/selectpanel.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.selectpanel: the panel grows from its button
+     * and leaves with a fade; a close mid-way turns back.
+     */
+    SG_LAB.add({
+      id: 'selectpanel-open',
+      group: 'overlays',
+      title: 'Select panel opens and closes',
+      note: 'It grows from the button as a menu does: a fade over <code>--ds-dur-fast</code> while its clip opens and it scales on the spring over <code>--ds-dur-medium</code>; it leaves with a fade in <code>--ds-dur-instant</code>, and a close mid-way turns back from where it is.',
+      shows: ['DS.selectpanel.open', 'DS.selectpanel.close', '.ds-selectpanel__panel', '--ds-dur-fast', '--ds-dur-medium', '--ds-dur-instant', '--ds-ease-spatial'],
+      html: '<div class="ds-selectpanel"><button class="ds-btn ds-btn--outlined ds-selectpanel__trigger" type="button">Labels <span class="ds-selectpanel__summary"></span></button>' +
+        '<div class="ds-selectpanel__panel" role="dialog" aria-label="Labels" hidden><div class="ds-listbox ds-listbox--plain ds-selectpanel__list" role="listbox" aria-multiselectable="true" aria-label="Labels">' +
+        '<div class="ds-listbox__option" role="option" aria-selected="true" data-value="bug"><span class="ds-listbox__check" aria-hidden="true"></span><span class="ds-listbox__name">Bug</span></div>' +
+        '<div class="ds-listbox__option" role="option" aria-selected="false" data-value="docs"><span class="ds-listbox__check" aria-hidden="true"></span><span class="ds-listbox__name">Docs</span></div>' +
+        '<div class="ds-listbox__option" role="option" aria-selected="false" data-value="urgent"><span class="ds-listbox__check" aria-hidden="true"></span><span class="ds-listbox__name">Urgent</span></div></div></div></div>',
+      height: 260,
+      setup: function (stage) {
+        stage.querySelectorAll('.ds-listbox__check').forEach(function (box) { box.innerHTML = DS.icons.icon(DS.icons.check, 16); });
+        DS.selectpanel.create(stage.querySelector('.ds-selectpanel'));
+      },
+      subject: function (stage) { return stage.querySelector('.ds-selectpanel__panel'); },
+      state: function (stage) { return stage.querySelector('.ds-selectpanel__panel').getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var el = stage.querySelector('.ds-selectpanel');
+        var panel = stage.querySelector('.ds-selectpanel__panel');
+        return DS.selectpanel.open(el)
+          .then(function () { return DS.motion.settled(panel); })
+          .then(function () { return DS.selectpanel.close(el); })
+          .then(function () { return DS.motion.settled(panel); });
+      },
+      toggle: function (stage, on) {
+        var el = stage.querySelector('.ds-selectpanel');
+        return on ? DS.selectpanel.open(el) : DS.selectpanel.close(el);
+      },
+    });
+  }());
+
+  // ── components/orderedchoice/orderedchoice.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.orderedchoice: a row moves to the top and back
+     * (DS.dnd through DS.motion.flip); the rank discs follow.
+     */
+    SG_LAB.add({
+      id: 'orderedchoice-move',
+      group: 'controls',
+      title: 'Ordered choice: a row moves',
+      note: 'The rows glide to their new places on <code>--ds-ease-spatial</code> (<code>DS.dnd</code> through <code>DS.motion.flip</code>); the rank discs change with them, and a disc fades in over <code>--ds-dur-fast</code> when its row is checked.',
+      shows: ['DS.orderedchoice.create', '.ds-orderedchoice', '.ds-orderedchoice__item', '.ds-orderedchoice__rank', '--ds-ease-spatial', '--ds-dur-fast'],
+      html: '<ol class="ds-orderedchoice" aria-label="Columns" style="inline-size: 280px;">' +
+        ['Name', 'Status', 'Owner'].map(function (name, index) {
+          return '<li class="ds-orderedchoice__item"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move ' + name + '"></button>' +
+            '<label class="ds-check"><input type="checkbox" value="' + name.toLowerCase() + '"' + (index < 2 ? ' checked' : '') + '><span>' + name + '</span></label><span class="ds-orderedchoice__rank"></span></li>';
+        }).join('') + '</ol>',
+      height: 220,
+      setup: function (stage) {
+        stage.querySelectorAll('.ds-grip').forEach(function (grip) { grip.innerHTML = DS.icons.icon(DS.icons.grip, 20); });
+        DS.orderedchoice.create(stage.querySelector('.ds-orderedchoice'));
+      },
+      state: function (stage) { return DS.orderedchoice.create(stage.querySelector('.ds-orderedchoice')).order()[0] === 'owner'; },
+      play: function (stage) {
+        var list = stage.querySelector('.ds-orderedchoice');
+        var control = DS.orderedchoice.create(list);
+        control.set(['name', 'status']);
+        control.move('owner', 0);
+        return DS.motion.settled(list, { subtree: true })
+          .then(function () { control.move('owner', 2); return DS.motion.settled(list, { subtree: true }); });
+      },
+      toggle: function (stage, on) {
+        var list = stage.querySelector('.ds-orderedchoice');
+        DS.orderedchoice.create(list).move('owner', on ? 0 : 2);
+        return DS.motion.settled(list, { subtree: true });
+      },
+      reset: function (stage) { DS.orderedchoice.create(stage.querySelector('.ds-orderedchoice')).set(['name', 'status']); },
+    });
+  }());
+
+  // ── components/calendar/calendar.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.calendar: a turned page slides in from its
+     * side; the chosen day and the band of a range change colour.
+     */
+    SG_LAB.add({
+      id: 'calendar-turn',
+      group: 'controls',
+      title: 'Calendar turns a month',
+      note: 'The new month slides in from its side (<code>DS.motion.enter</code> with <code>slide</code>: <code>--ds-distance-xl</code> over <code>--ds-dur-slow</code> on the spring, faded in on the way); back, it comes from the other side, mirrored right to left.',
+      shows: ['DS.calendar.create', '.ds-calendar', '.ds-enter--slide', '--ds-distance-xl', '--ds-ease-spatial', '--ds-dur-slow'],
+      html: '<div class="ds-calendar" data-lab-calendar style="inline-size: max-content;"></div>',
+      height: 380,
+      setup: function (stage) {
+        DS.calendar.create(stage.querySelector('[data-lab-calendar]'), { value: '2026-11-04', show: '2026-11-04' });
+      },
+      reset: function (stage) {
+        var calendar = DS.calendar.create(stage.querySelector('[data-lab-calendar]'));
+        calendar.update({ show: '2026-11-04' });
+        calendar.set('2026-11-04');
+      },
+      play: function (stage) {
+        var element = stage.querySelector('[data-lab-calendar]');
+        stage.querySelector('.ds-calendar__nav[data-step="1"]').click();
+        return DS.motion.settled(element, { subtree: true });
+      },
+    });
+  }());
+
+  // ── components/datepicker/datepicker.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.datepicker: the calendar's popover grows from
+     * the field's button; a pick closes it with a fade.
+     */
+    SG_LAB.add({
+      id: 'datepicker-open',
+      group: 'overlays',
+      title: 'Date picker opens its calendar',
+      note: 'The popover grows from the button on the spring over <code>--ds-dur-medium</code> (the picker\'s motion) with focus on the chosen day; a pick or Escape closes it with a fade over <code>--ds-dur-instant</code>, and focus is back on the button at once.',
+      shows: ['DS.datepicker.create', '--ds-dur-medium', '--ds-dur-instant', '--ds-ease-spatial'],
+      html: '<div class="sg-popup-stage"><div class="ds-picker" data-lab-datepicker>' +
+        '<div class="ds-datefield" role="group" aria-label="Due date">' +
+        '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-datefield__toggle" type="button" aria-label="Choose date"></button></div></div></div>',
+      height: 440,
+      setup: function (stage) {
+        stage.querySelector('.ds-datefield__toggle').innerHTML = DS.icons.icon(DS.icons.calendar, 20);
+        DS.datepicker.create(stage.querySelector('[data-lab-datepicker]'), { value: '2026-11-07' });
+      },
+      subject: function (stage) { return stage.querySelector('.ds-picker__popover'); },
+      play: function (stage) {
+        var picker = DS.datepicker.create(stage.querySelector('[data-lab-datepicker]'));
+        var panel = stage.querySelector('.ds-picker__popover');
+        return picker.open()
+          .then(function () { return picker.close(); })
+          .then(function () { return DS.motion.settled(panel); });
+      },
+    });
+  }());
+
+  // ── components/timepicker/timepicker.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.timepicker: the list of times in its popover;
+     * the active row's layer comes quickly and goes at once.
+     */
+    SG_LAB.add({
+      id: 'timepicker-list',
+      group: 'overlays',
+      title: 'Time picker opens its list',
+      note: 'The popover grows from the button (the picker\'s motion) with the chosen time in the middle. The active row\'s layer comes in over <code>--ds-dur-micro</code> and goes at once, so a held arrow key leaves no trail.',
+      shows: ['DS.timepicker.create', '--ds-dur-micro', '--ds-dur-medium', '--ds-dur-instant'],
+      html: '<div class="sg-popup-stage"><div class="ds-picker" data-lab-timepicker>' +
+        '<div class="ds-datefield" role="group" aria-label="Daily backup at">' +
+        '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-datefield__toggle" type="button" aria-label="Choose time"></button></div></div></div>',
+      height: 400,
+      setup: function (stage) {
+        stage.querySelector('.ds-datefield__toggle').innerHTML = DS.icons.icon(DS.icons.clock, 20);
+        DS.timepicker.create(stage.querySelector('[data-lab-timepicker]'), { value: '02:30' });
+      },
+      subject: function (stage) { return stage.querySelector('.ds-picker__popover'); },
+      play: function (stage) {
+        var picker = DS.timepicker.create(stage.querySelector('[data-lab-timepicker]'));
+        var panel = stage.querySelector('.ds-picker__popover');
+        return picker.open()
+          .then(function () { return picker.close(); })
+          .then(function () { return DS.motion.settled(panel); });
+      },
+    });
+  }());
+
+  // ── components/daterange/daterange.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.daterange: the band of a range and its
+     * preview, which change colour as the pointer or the keys move.
+     */
+    SG_LAB.add({
+      id: 'daterange-preview',
+      group: 'controls',
+      title: 'Date range picker previews the range',
+      note: 'The first pick starts a range; the band follows the pointer or the arrow keys, its tint changing over <code>--ds-dur-fast</code>, and the second pick ends it. Nothing moves: the days keep their places.',
+      shows: ['DS.daterange.create', '--ds-dur-fast'],
+      html: '<div class="sg-popup-stage"><div class="ds-picker" data-lab-daterange>' +
+        '<div class="ds-datefield" role="group" aria-label="Report period">' +
+        '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-datefield__toggle" type="button" aria-label="Choose dates"></button></div></div></div>',
+      height: 460,
+      wide: true,
+      setup: function (stage) {
+        stage.querySelector('.ds-datefield__toggle').innerHTML = DS.icons.icon(DS.icons.calendarRange, 20);
+        DS.daterange.create(stage.querySelector('[data-lab-daterange]'), { value: '2026-11-02/2026-11-06', presets: [] });
+      },
+      subject: function (stage) { return stage.querySelector('.ds-picker__popover'); },
+      play: function (stage) {
+        var range = DS.daterange.create(stage.querySelector('[data-lab-daterange]'));
+        var panel = stage.querySelector('.ds-picker__popover');
+        return range.open().then(function () {
+          var start = panel.querySelector('.ds-calendar__day[data-date="2026-11-09"]');
+          var end = panel.querySelector('.ds-calendar__day[data-date="2026-11-20"]');
+          if (!start || !end) return range.close();
+          start.click();
+          end.dispatchEvent(new PointerEvent('pointerover', { bubbles: true }));
+          return DS.motion.settled(end.parentElement, { transitions: true }).then(function () {
+            range.set('2026-11-02/2026-11-06');
+            return range.close();
+          });
+        }).then(function () { return DS.motion.settled(panel); });
+      },
+    });
+  }());
+
+  // ── components/timerange/timerange.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.timerange: the popover of the range and the
+     * chevron of its trigger, which turns with it.
+     */
+    SG_LAB.add({
+      id: 'timerange-open',
+      group: 'overlays',
+      title: 'Time range opens its ranges',
+      note: 'The popover grows from the trigger (the picker\'s motion) while the trigger\'s chevron turns half a turn on the spring over <code>--ds-dur-medium</code>; closed mid-way, both turn back from where they are.',
+      shows: ['DS.timerange.create', '.ds-timerange__chevron', '--ds-dur-medium', '--ds-ease-spatial', '--ds-dur-instant'],
+      html: '<div class="sg-popup-stage"><div class="ds-timerange" data-lab-timerange></div></div>',
+      height: 460,
+      wide: true,
+      setup: function (stage) {
+        DS.timerange.create(stage.querySelector('[data-lab-timerange]'), { from: 'now-1h', to: 'now', store: 'sg-lab' });
+      },
+      subject: function (stage) { return stage.querySelector('.ds-picker__popover'); },
+      state: function (stage) { return stage.querySelector('.ds-picker__popover').getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var range = DS.timerange.create(stage.querySelector('[data-lab-timerange]'));
+        var panel = stage.querySelector('.ds-picker__popover');
+        return range.open()
+          .then(function () { return range.close(); })
+          .then(function () { return DS.motion.settled(panel); });
+      },
+      toggle: function (stage, on) {
+        var range = DS.timerange.create(stage.querySelector('[data-lab-timerange]'));
+        return on ? range.open() : range.close();
       },
     });
   }());
@@ -764,6 +2475,139 @@
       toggle: function (stage, on) {
         var menu = stage.querySelector('.ds-menu');
         return on ? DS.menu.open(menu, { opener: stage.querySelector('[data-lab-open]') }) : DS.menu.close(menu);
+      },
+    });
+
+    /*
+     * A submenu: it grows out of its item, beside it, and goes with its parent.
+     */
+    SG_LAB.add({
+      id: 'menu-submenu',
+      group: 'overlays',
+      title: 'Submenu beside its item',
+      note: 'It grows out of its item towards the end on the spring, its first item level with it; ArrowLeft or Escape closes it onto the item, and the parent takes it along when it closes.',
+      shows: ['.ds-menu__chevron', '--ds-delay-submenu', '--ds-delay-submenu-close', '--ds-scale-popup'],
+      html: '<div class="sg-popup-stage"><button class="ds-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-menu-parent" data-lab-open>Device</button>' +
+        '<div class="ds-menu" role="menu" id="sg-lab-menu-parent" aria-label="Device" hidden>' +
+        '<button class="ds-menu__item" role="menuitem" type="button"><span class="ds-menu__label">Rename</span></button>' +
+        '<button class="ds-menu__item" role="menuitem" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-menu-sub" data-lab-sub><span class="ds-menu__label">Move to</span>' +
+        '<svg class="ds-menu__chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>' +
+        '<div class="ds-menu" role="menu" id="sg-lab-menu-sub" aria-label="Move to" hidden>' +
+        '<button class="ds-menu__item" role="menuitem" type="button"><span class="ds-menu__label">Storage room</span></button>' +
+        '<button class="ds-menu__item" role="menuitem" type="button"><span class="ds-menu__label">Front desk</span></button></div></div></div>',
+      height: 220,
+      setup: function (stage) {
+        var trigger = stage.querySelector('[data-lab-open]');
+        var menu = stage.querySelector('#sg-lab-menu-parent');
+        trigger.addEventListener('click', function () {
+          if (menu.getAttribute('data-state') === 'open') DS.menu.close(menu);
+          else DS.menu.open(menu, { opener: trigger });
+        });
+      },
+      subject: function (stage) { return stage.querySelector('#sg-lab-menu-sub'); },
+      state: function (stage) { return stage.querySelector('#sg-lab-menu-sub').getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var menu = stage.querySelector('#sg-lab-menu-parent');
+        var sub = stage.querySelector('#sg-lab-menu-sub');
+        return DS.menu.open(menu, { opener: stage.querySelector('[data-lab-open]') })
+          .then(function () { stage.querySelector('[data-lab-sub]').click(); return DS.motion.settled(sub); })
+          .then(function () { return DS.menu.close(menu); })
+          .then(function () { return DS.motion.settled(sub); });
+      },
+      toggle: function (stage, on) {
+        var menu = stage.querySelector('#sg-lab-menu-parent');
+        var sub = stage.querySelector('#sg-lab-menu-sub');
+        if (!on) return DS.menu.close(sub);
+        // The parent opens (if it is not open) and the submenu at once, so the
+        // submenu's own entrance is what a reversal turns back.
+        if (menu.getAttribute('data-state') !== 'open') DS.menu.open(menu, { opener: stage.querySelector('[data-lab-open]') });
+        stage.querySelector('[data-lab-sub]').click();
+        return DS.motion.settled(sub);
+      },
+    });
+
+    /*
+     * A context menu at the pointer: DS.menu.openAt() grows it from the point.
+     */
+    SG_LAB.add({
+      id: 'menu-context',
+      group: 'overlays',
+      title: 'Context menu at a point',
+      note: 'It grows from the point it was asked at (a right click, a long press), below and after it, and leaves with a quick fade.',
+      shows: ['DS.menu.openAt', '--ds-dur-medium', '--ds-ease-spatial', '--ds-dur-instant'],
+      html: '<div class="sg-popup-stage"><div class="ds-pressable ds-pressable--inset" tabindex="0" data-lab-row style="padding:var(--ds-space-3)">LAPTOP-0042: right-click me</div>' +
+        '<div class="ds-menu" role="menu" id="sg-lab-menu-context" aria-label="Device actions" hidden>' +
+        '<button class="ds-menu__item" role="menuitem" type="button"><span class="ds-menu__label">Rename</span></button>' +
+        '<button class="ds-menu__item" role="menuitem" type="button"><span class="ds-menu__label">Duplicate</span></button></div></div>',
+      height: 200,
+      setup: function (stage) {
+        var row = stage.querySelector('[data-lab-row]');
+        row.addEventListener('contextmenu', function (event) {
+          event.preventDefault();
+          DS.menu.openAt(stage.querySelector('.ds-menu'), { x: event.clientX, y: event.clientY, opener: row });
+        });
+      },
+      subject: function (stage) { return stage.querySelector('.ds-menu'); },
+      state: function (stage) { return stage.querySelector('.ds-menu').getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var menu = stage.querySelector('.ds-menu');
+        var row = stage.querySelector('[data-lab-row]');
+        var box = row.getBoundingClientRect();
+        return DS.menu.openAt(menu, { x: box.left + box.width / 2, y: box.top + box.height / 2, opener: row })
+          .then(function () { return DS.menu.close(menu); })
+          .then(function () { return DS.motion.settled(menu); });
+      },
+      toggle: function (stage, on) {
+        var menu = stage.querySelector('.ds-menu');
+        var row = stage.querySelector('[data-lab-row]');
+        var box = row.getBoundingClientRect();
+        return on ? DS.menu.openAt(menu, { x: box.left + box.width / 2, y: box.top + box.height / 2, opener: row }) : DS.menu.close(menu);
+      },
+    });
+  }());
+
+  // ── components/popover/popover.lab.js
+  (function () {
+    /*
+     * The Motion Lab entries of DS.popover: a popover with an arrow grows out of
+     * its anchor on each side, and a hover card.
+     */
+    SG_LAB.add({
+      id: 'popover-open',
+      group: 'overlays',
+      title: 'Popover through DS.popover, with its arrow',
+      note: 'It grows out of its anchor (the arrow\'s tip) on the spring while it fades in, and leaves with a quick fade; closed mid-way, it turns back from where it is. Each replay takes the next side.',
+      shows: ['DS.popover.open', 'DS.popover.close', '.ds-popover--arrow', '--ds-scale-popup', '--ds-dur-medium', '--ds-dur-fast', '--ds-dur-instant', '--ds-ease-spatial'],
+      html: '<div class="sg-popup-stage"><button class="ds-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="sg-lab-popover" data-lab-open>Share</button>' +
+        '<div class="ds-popover ds-popover--arrow" id="sg-lab-popover" role="dialog" aria-label="Share" hidden>' +
+        '<div class="ds-popover__head"><h2 class="ds-popover__title">Share LAPTOP-0042</h2></div>' +
+        '<div class="ds-popover__body"><p>Anyone in the team can open it.</p></div>' +
+        '<div class="ds-popover__foot"><button class="ds-btn ds-btn--filled" type="button" data-ds-close>Copy link</button></div></div></div>',
+      height: 260,
+      setup: function (stage) {
+        var trigger = stage.querySelector('[data-lab-open]');
+        var popover = stage.querySelector('.ds-popover');
+        trigger.addEventListener('click', function () {
+          if (popover.getAttribute('data-state') === 'open') DS.popover.close(popover);
+          else DS.popover.open(popover, { opener: trigger });
+        });
+      },
+      subject: function (stage) { return stage.querySelector('.ds-popover'); },
+      state: function (stage) { return stage.querySelector('.ds-popover').getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var popover = stage.querySelector('.ds-popover');
+        // Each replay takes the next side: below, above, after, before.
+        var sides = ['bottom', 'top', 'end', 'start'];
+        var turn = Number(stage.getAttribute('data-lab-turn') || 0);
+        stage.setAttribute('data-lab-turn', String((turn + 1) % sides.length));
+        var side = sides[turn];
+        return DS.popover.open(popover, { opener: stage.querySelector('[data-lab-open]'), placement: side, focus: false })
+          .then(function () { return DS.popover.close(popover); })
+          .then(function () { return DS.motion.settled(popover); });
+      },
+      toggle: function (stage, on) {
+        var popover = stage.querySelector('.ds-popover');
+        return on ? DS.popover.open(popover, { opener: stage.querySelector('[data-lab-open]'), focus: false }) : DS.popover.close(popover);
       },
     });
   }());
@@ -817,6 +2661,223 @@
         return on ? DS.dialog.open(dialog, { opener: stage.querySelector('[data-lab-open]') }) : DS.dialog.close(dialog);
       },
     });
+
+    /* The non-modal box: no frame, no scrim, the page stays usable. */
+    var floating = null;
+
+    function modelessOf() {
+      if (floating) return floating;
+      var host = document.createElement('div');
+      host.innerHTML = '<section class="ds-dialog__box ds-dialog__box--modeless" id="sg-lab-dialog-modeless" role="dialog" aria-labelledby="sg-lab-dialog-modeless-title" hidden>' +
+        '<h2 class="ds-dialog__title" id="sg-lab-dialog-modeless-title">Export running</h2>' +
+        '<p class="ds-dialog__text">240 devices, about a minute. The page stays usable meanwhile.</p>' +
+        '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Hide</button></div></section>';
+      floating = host.firstChild;
+      (document.querySelector('.ds-theme') || document.body).append(floating);
+      return floating;
+    }
+
+    SG_LAB.add({
+      id: 'dialog-modeless',
+      group: 'overlays',
+      title: 'Non-modal dialog',
+      note: 'The box alone floats in at the end of the window: it fades, grows from --ds-scale-enter and rises --ds-distance-md on the spring, without a scrim; it leaves the same way back, accelerating.',
+      shows: ['.ds-dialog__box--modeless', '--ds-dur-slow', '--ds-dur-base', '--ds-distance-md', '--ds-scale-enter', '--ds-ease-spatial', '--ds-ease-exit'],
+      html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-lab-open>Open a non-modal dialog</button></div>',
+      height: 120,
+      setup: function (stage) {
+        stage.querySelector('[data-lab-open]').addEventListener('click', function (event) {
+          DS.overlay.open(modelessOf(), { opener: event.currentTarget });
+        });
+      },
+      subject: function () { return modelessOf(); },
+      state: function () { return modelessOf().getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var box = modelessOf();
+        return DS.overlay.open(box, { opener: stage.querySelector('[data-lab-open]') })
+          .then(function () { return DS.overlay.close(box); })
+          .then(function () { return DS.motion.settled(box); });
+      },
+      toggle: function (stage, on) {
+        var box = modelessOf();
+        return on ? DS.overlay.open(box, { opener: stage.querySelector('[data-lab-open]') }) : DS.overlay.close(box);
+      },
+    });
+  }());
+
+  // ── components/tearsheet/tearsheet.lab.js
+  (function () {
+    /*
+     * The Motion Lab entries of DS.tearsheet: the box rising from the bottom
+     * edge, and a second tearsheet stacking over the first.
+     */
+    var sheets = {};
+
+    function tearsheetOf(name, narrow) {
+      if (sheets[name]) return sheets[name];
+      var host = document.createElement('div');
+      var id = 'sg-lab-tearsheet-' + name;
+      host.innerHTML = '<dialog class="ds-dialog ds-tearsheet' + (narrow ? ' ds-tearsheet--narrow' : '') + '" id="' + id + '" aria-labelledby="' + id + '-title" data-ds-tearsheet>' +
+        '<div class="ds-dialog__backdrop"></div><div class="ds-dialog__box ds-tearsheet__box">' +
+        '<div class="ds-tearsheet__head"><div class="ds-tearsheet__heading"><h2 class="ds-dialog__title" id="' + id + '-title">' + (narrow ? 'Add a person' : 'Add a device') + '</h2></div>' +
+        '<button class="ds-btn ds-btn--text" type="button" data-ds-close>Close</button></div>' +
+        '<div class="ds-tearsheet__main"><div class="ds-tearsheet__body"><section class="ds-tearsheet__step" aria-label="Details"><p class="ds-muted">The form of the flow goes here.</p></section></div></div>' +
+        '<div class="ds-tearsheet__foot"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button></div></div></dialog>';
+      sheets[name] = host.firstChild;
+      (document.querySelector('.ds-theme') || document.body).append(sheets[name]);
+      return sheets[name];
+    }
+
+    SG_LAB.add({
+      id: 'tearsheet-open',
+      group: 'overlays',
+      title: 'Tearsheet rises and drops back',
+      note: 'The box rises its full height from the bottom edge over --ds-dur-long on --ds-ease-out (a box as tall as the window never springs past its rest) and fades in over --ds-dur-fast, while the scrim fades; it drops back in --ds-dur-base, accelerating.',
+      shows: ['DS.tearsheet.open', 'DS.tearsheet.close', '.ds-tearsheet', '--ds-dur-long', '--ds-dur-base', '--ds-ease-out', '--ds-ease-exit', '--ds-distance-sheet'],
+      html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-lab-open>Open a tearsheet</button></div>',
+      height: 120,
+      setup: function (stage) {
+        stage.querySelector('[data-lab-open]').addEventListener('click', function (event) {
+          DS.tearsheet.open(tearsheetOf('device'), { opener: event.currentTarget });
+        });
+      },
+      subject: function () { return tearsheetOf('device'); },
+      state: function () { return tearsheetOf('device').getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var sheet = tearsheetOf('device');
+        return DS.tearsheet.open(sheet, { opener: stage.querySelector('[data-lab-open]') })
+          .then(function () { return DS.tearsheet.close(sheet, { force: true }); })
+          .then(function () { return DS.motion.settled(sheet.querySelector('.ds-dialog__box')); });
+      },
+      toggle: function (stage, on) {
+        var sheet = tearsheetOf('device');
+        return on ? DS.tearsheet.open(sheet, { opener: stage.querySelector('[data-lab-open]') }) : DS.tearsheet.close(sheet, { force: true });
+      },
+    });
+
+    SG_LAB.add({
+      id: 'tearsheet-stacked',
+      group: 'overlays',
+      title: 'Tearsheets stack',
+      note: 'A second tearsheet opens over the first: the lower box recedes to --ds-scale-enter and up by --ds-distance-lg on the spring over --ds-dur-slow (data-stacked), the upper one rises a little lower; closing the upper one brings the lower back the same way.',
+      shows: ['--ds-scale-enter', '--ds-distance-lg', '--ds-dur-slow', '--ds-ease-spatial'],
+      html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-lab-open>Open two tearsheets</button></div>',
+      height: 120,
+      setup: function (stage) {
+        stage.querySelector('[data-lab-open]').addEventListener('click', function (event) {
+          var lower = tearsheetOf('device');
+          DS.tearsheet.open(lower, { opener: event.currentTarget }).then(function () {
+            return DS.tearsheet.open(tearsheetOf('person', true), { opener: lower.querySelector('[data-ds-close]') });
+          });
+        });
+      },
+      play: function (stage) {
+        var lower = tearsheetOf('device');
+        var upper = tearsheetOf('person', true);
+        return DS.tearsheet.open(lower, { opener: stage.querySelector('[data-lab-open]') })
+          .then(function () { return DS.tearsheet.open(upper, { opener: lower.querySelector('[data-ds-close]') }); })
+          .then(function () { return DS.tearsheet.close(upper, { force: true }); })
+          .then(function () { return DS.motion.settled(lower.querySelector('.ds-dialog__box')); })
+          .then(function () { return DS.tearsheet.close(lower, { force: true }); })
+          .then(function () { return DS.motion.settled(lower.querySelector('.ds-dialog__box')); });
+      },
+    });
+  }());
+
+  // ── components/command/command.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.command: the palette opens and closes with the
+     * dialog's motion, near the top of the window; its results change in place.
+     */
+    var palette = null;
+
+    function paletteOf() {
+      if (palette) return palette;
+      var host = document.createElement('div');
+      host.innerHTML = '<dialog class="ds-dialog ds-command" id="sg-lab-command" aria-label="Command palette" data-ds-command-hotkey="off">' +
+        '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box">' +
+        '<div class="ds-command__search">' + DS.icons.icon(DS.icons.search, 20) +
+        '<input class="ds-command__input" type="text" aria-label="Search commands" placeholder="Search or run a command"></div>' +
+        '<div class="ds-command__list" aria-label="Commands"></div></div></dialog>';
+      palette = host.firstChild;
+      document.body.append(palette);
+      DS.command.create(palette, {
+        recent: 0,
+        commands: [
+          { id: 'add', label: 'Add a device', group: 'Devices', icon: DS.icons.plus, shortcut: 'mod+shift+a' },
+          { id: 'devices', label: 'Open devices', group: 'Devices', icon: DS.icons.laptop },
+          { id: 'ticket', label: 'Open a ticket', group: 'Tickets', icon: DS.icons.ticket },
+          { id: 'theme', label: 'Change the theme', group: 'Settings', icon: DS.icons.palette, children: [{ id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }] },
+        ],
+        shortcuts: false,
+      });
+      return palette;
+    }
+
+    SG_LAB.add({
+      id: 'command-open',
+      group: 'overlays',
+      title: 'Command palette through DS.command',
+      note: 'The dialog\'s motion, near the top of the window, so the box keeps its place while the results change under the field. The active option\'s layer comes in over --ds-dur-micro and goes at once.',
+      shows: ['DS.command.open', 'DS.command.close', 'DS.command.create', '--ds-dur-slow', '--ds-dur-base', '--ds-dur-micro', '--ds-ease-spatial', '--ds-ease-exit'],
+      html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-lab-open>Open the palette</button></div>',
+      height: 120,
+      setup: function (stage) {
+        stage.querySelector('[data-lab-open]').addEventListener('click', function (event) {
+          DS.command.open(paletteOf(), { opener: event.currentTarget });
+        });
+      },
+      subject: function () { return paletteOf(); },
+      state: function () { return paletteOf().getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var dialog = paletteOf();
+        return DS.command.open(dialog, { opener: stage.querySelector('[data-lab-open]') })
+          .then(function () { return DS.command.close(dialog); })
+          .then(function () { return DS.motion.settled(dialog.querySelector('.ds-dialog__box')); });
+      },
+      toggle: function (stage, on) {
+        var dialog = paletteOf();
+        return on ? DS.command.open(dialog, { opener: stage.querySelector('[data-lab-open]') }) : DS.command.close(dialog);
+      },
+    });
+  }());
+
+  // ── components/lightbox/lightbox.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.lightbox: the viewer opens on an image, steps
+     * to the next one, zooms and closes.
+     */
+    function lbLabPicture(colour) {
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 160 100"><rect width="160" height="100" fill="' + colour + '"/>' +
+        '<rect x="40" y="20" width="80" height="60" rx="8" fill="#fff" fill-opacity=".85"/></svg>';
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    SG_LAB.add({
+      id: 'lightbox-open',
+      group: 'overlays',
+      title: 'Lightbox: open, next, zoom, close',
+      note: 'The viewer opens as a dialog; the next image enters with the swap of DS.motion.enter(); the zoom glides over --ds-dur-medium on --ds-ease-out and back; the viewer closes as a dialog.',
+      shows: ['DS.lightbox.open', 'DS.lightbox.close', '.ds-lightbox', '--ds-dur-medium', '--ds-ease-out'],
+      html: '<ul class="ds-lightbox__gallery" aria-label="Photos of LAPTOP-0042" style="inline-size:100%" data-lab-gallery>' +
+        '<li><a class="ds-lightbox__item" href="' + lbLabPicture('#5b7fbd') + '" data-caption="The lid"><img src="' + lbLabPicture('#5b7fbd') + '" alt="The lid of LAPTOP-0042"></a></li>' +
+        '<li><a class="ds-lightbox__item" href="' + lbLabPicture('#6a8f6b') + '" data-caption="The keyboard"><img src="' + lbLabPicture('#6a8f6b') + '" alt="The keyboard of LAPTOP-0042"></a></li></ul>',
+      height: 160,
+      setup: function (stage) { DS.lightbox.create(stage.querySelector('[data-lab-gallery]')); },
+      play: function (stage) {
+        var gallery = stage.querySelector('[data-lab-gallery]');
+        var box = DS.lightbox.create(gallery);
+        var pause = function () { return new Promise(function (resolve) { setTimeout(resolve, DS.motion.motionDuration(gallery, '--ds-dur-glide')); }); };
+        return DS.lightbox.open(gallery, { index: 0, opener: gallery.querySelector('a') })
+          .then(pause)
+          .then(function () { box.next(); return pause(); })
+          .then(function () { box.set({ zoom: 2 }); return pause(); })
+          .then(function () { box.set({ zoom: 1 }); return pause(); })
+          .then(function () { return DS.lightbox.close(gallery); });
+      },
+    });
   }());
 
   // ── components/sheet/sheet.lab.js
@@ -867,6 +2928,430 @@
         return on ? DS.sheet.open(sheet, { opener: stage.querySelector('[data-lab-open]') }) : DS.sheet.close(sheet);
       },
     });
+
+    /* A docked panel: the content beside it narrows while its width opens. */
+    SG_LAB.add({
+      id: 'sheet-push',
+      group: 'overlays',
+      title: 'Docked side sheet: push',
+      note: 'No scrim: the list narrows while the panel\'s width opens from 0 on --ds-ease-out (a size that pushes never overshoots), its parts uncovered from the end; it gives the width back in --ds-dur-base, accelerating.',
+      shows: ['.ds-sheet__panel--push', '.ds-sheet__panel--inspector', '.ds-sheet__layout', '--ds-dur-long', '--ds-dur-base', '--ds-ease-out', '--ds-ease-exit'],
+      html: '<div class="ds-sheet__layout" style="block-size:200px;border:1px solid var(--ds-line);border-radius:var(--ds-radius-card);overflow:hidden">' +
+        '<div class="ds-sheet__main"><ul class="ds-list"><li class="ds-list__item"><span class="ds-list__text"><span class="ds-list__title">LAPTOP-0042</span><span class="ds-list__meta">Ada Lovelace</span></span></li>' +
+        '<li class="ds-list__item"><span class="ds-list__text"><span class="ds-list__title">LAPTOP-0043</span><span class="ds-list__meta">Alan Turing</span></span></li></ul></div>' +
+        '<section class="ds-sheet__panel ds-sheet__panel--push" id="sg-lab-sheet-push" aria-labelledby="sg-lab-sheet-push-title" hidden data-lab-panel>' +
+        '<div class="ds-sheet__head"><h2 class="ds-sheet__title" id="sg-lab-sheet-push-title">Filters</h2></div>' +
+        '<div class="ds-sheet__body"><p class="ds-muted">Laptops, tablets</p></div></section></div>',
+      height: 220,
+      wide: true,
+      subject: function (stage) { return stage.querySelector('[data-lab-panel]'); },
+      state: function (stage) { return stage.querySelector('[data-lab-panel]').getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var panel = stage.querySelector('[data-lab-panel]');
+        return DS.sheet.open(panel)
+          .then(function () { return DS.sheet.close(panel); })
+          .then(function () { return DS.motion.settled(panel); });
+      },
+      toggle: function (stage, on) {
+        var panel = stage.querySelector('[data-lab-panel]');
+        return on ? DS.sheet.open(panel) : DS.sheet.close(panel);
+      },
+    });
+  }());
+
+  // ── components/bottomsheet/bottomsheet.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.bottomsheet: it rises to its smallest detent,
+     * springs to the full height and drops back.
+     */
+    var bsMade = null;
+
+    function bottomSheetOf() {
+      if (bsMade) return bsMade;
+      var host = document.createElement('div');
+      host.innerHTML = '<dialog class="ds-sheet ds-bottomsheet" id="sg-lab-bottomsheet" aria-labelledby="sg-lab-bottomsheet-title" data-ds-bottomsheet data-ds-bottomsheet-detents="0.5 1">' +
+        '<div class="ds-sheet__backdrop" data-ds-close></div><section class="ds-sheet__panel ds-bottomsheet__panel">' +
+        '<button class="ds-bottomsheet__handle" type="button" aria-label="Resize the sheet"></button>' +
+        '<div class="ds-sheet__head"><h2 class="ds-sheet__title" id="sg-lab-bottomsheet-title">Filters</h2>' +
+        '<button class="ds-btn ds-btn--text" type="button" data-ds-close>Close</button></div>' +
+        '<div class="ds-sheet__body"><p class="ds-muted">Laptops, tablets and phones.</p></div></section></dialog>';
+      bsMade = host.firstChild;
+      (document.querySelector('.ds-theme') || document.body).append(bsMade);
+      return bsMade;
+    }
+
+    SG_LAB.add({
+      id: 'bottomsheet-open',
+      group: 'overlays',
+      title: 'Bottom sheet: rise, a detent, drop',
+      note: 'The panel rises to its smallest detent on the spatial spring over --ds-dur-long while the scrim fades, springs to the full height, and drops back down in --ds-dur-base, accelerating. A drag follows the finger (the named exception).',
+      shows: ['DS.bottomsheet.open', 'DS.bottomsheet.close', '.ds-bottomsheet', '--ds-dur-long', '--ds-dur-base', '--ds-ease-spatial', '--ds-ease-exit'],
+      html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-lab-open>Open a bottom sheet</button></div>',
+      height: 120,
+      setup: function (stage) {
+        stage.querySelector('[data-lab-open]').addEventListener('click', function (event) {
+          DS.bottomsheet.open(bottomSheetOf(), { opener: event.currentTarget });
+        });
+      },
+      subject: function () { return bottomSheetOf(); },
+      state: function () { return bottomSheetOf().getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var sheet = bottomSheetOf();
+        var panel = sheet.querySelector('.ds-bottomsheet__panel');
+        return DS.bottomsheet.open(sheet, { opener: stage.querySelector('[data-lab-open]') })
+          .then(function () { DS.bottomsheet.create(sheet).set({ index: 1 }); return DS.motion.settled(panel); })
+          .then(function () { return DS.bottomsheet.close(sheet); })
+          .then(function () { return DS.motion.settled(panel); });
+      },
+      toggle: function (stage, on) {
+        var sheet = bottomSheetOf();
+        return on ? DS.bottomsheet.open(sheet, { opener: stage.querySelector('[data-lab-open]') }) : DS.bottomsheet.close(sheet);
+      },
+    });
+  }());
+
+  // ── components/toast/toast.lab.js
+  (function () {
+    /*
+     * The Motion Lab entries of the 3.0 snackbar: a waiting message that turns
+     * into its outcome in place, a progress message whose bar glides, and a
+     * stack that expands on a click and collapses again (the messages glide
+     * through DS.motion.flip()). Regions of their own (a plain one and a
+     * stacking one) at the end of the page's theme, so the lab's other
+     * snackbars keep theirs.
+     */
+    var labRegions = {};
+
+    /** A region of the lab's own at the end of the page's theme: plain, or stacking. */
+    function regionOf(stack) {
+      var key = stack ? 'stack' : 'plain';
+      var region = labRegions[key];
+      if (region && region.isConnected) return region;
+      region = document.createElement('div');
+      region.className = stack ? 'ds-toasts ds-toasts--stack' : 'ds-toasts';
+      region.id = 'sg-lab-toast-' + key;
+      (document.querySelector('.ds-theme') || document.body).append(region);
+      labRegions[key] = region;
+      return region;
+    }
+
+    function stackOf() { return regionOf(true); }
+
+    function wait(sg, ms) {
+      return new Promise(function (resolve) { setTimeout(resolve, sg.slow(ms)); });
+    }
+
+    function quiet(region) {
+      return DS.toast.closeToasts(region).then(function () { return DS.motion.settled(region, { subtree: true }); });
+    }
+
+    function quietStack() { return quiet(stackOf()); }
+
+    SG_LAB.add({
+      id: 'toast-promise',
+      group: 'feedback',
+      title: 'Waiting and progress snackbars',
+      note: 'DS.toast.promise() shows a spinner and the waiting text, then turns into the outcome in place: the icon and the text change, the stack glides to the new height, and the success closes by itself. DS.toast.progress() glides its bar on every set() (--ds-dur-medium) and ends the same way.',
+      shows: ['DS.toast.promise', 'DS.toast.progress', '.ds-toast__spinner', '.ds-toast--progress', '--ds-dur-medium', '--ds-ease-spatial'],
+      html: '<div class="sg-row"><span class="ds-muted">Two messages at the bottom of the window.</span></div>',
+      height: 80,
+      reset: function () { return quiet(regionOf(false)); },
+      // The outcomes show for a moment, then both close (the success would on
+      // its own timer, which a pointer resting over it pauses).
+      play: function (stage, sg) {
+        var region = regionOf(false);
+        var upload = DS.toast.progress(region, 'Uploading 3 files', { value: 0 });
+        var done = wait(sg, 900);
+        DS.toast.promise(region, done, { pending: 'Saving LAPTOP-0042', success: 'Saved LAPTOP-0042.' });
+        return wait(sg, 300)
+          .then(function () { upload.set(0.35); return wait(sg, 400); })
+          .then(function () { upload.set(0.8, 'Uploading the last file'); return wait(sg, 500); })
+          .then(function () { upload.done('3 files uploaded.'); return done; })
+          .then(function () { return DS.motion.settled(region, { subtree: true }); })
+          .then(function () { return wait(sg, 600); })
+          .then(function () { return quiet(region); });
+      },
+    });
+
+    SG_LAB.add({
+      id: 'toast-stack',
+      group: 'feedback',
+      title: 'A snackbar stack expands on a click',
+      note: 'A .ds-toasts--stack region keeps its messages one behind the other, edges showing above the front. A click on a message or focus inside expands it (data-expanded; never hover): the messages glide apart through DS.motion.flip() and their timers pause. A press outside, or focus leaving, collapses it. Rapid toggle reverses the glide from wherever it is.',
+      shows: ['.ds-toasts--stack', 'DS.motion.flip', '--ds-dur-medium', '--ds-ease-spatial'],
+      html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-lab-stack>Expand or collapse</button></div>',
+      height: 80,
+      setup: function (stage) {
+        stage.querySelector('[data-lab-stack]').addEventListener('click', function () {
+          var region = stackOf();
+          var front = region.querySelector('.ds-toast:last-child');
+          if (!front) return;
+          if (region.hasAttribute('data-expanded')) document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+          else front.click();
+        });
+      },
+      reset: function () { return quietStack(); },
+      subject: function () { return stackOf(); },
+      state: function () { return stackOf().hasAttribute('data-expanded'); },
+      play: function (stage, sg) {
+        var region = stackOf();
+        ['Saved LAPTOP-0042.', 'Saved TABLET-0007.', 'Saved PHONE-0013.'].forEach(function (text) {
+          DS.toast.toast(region, text, { persistent: true, restart: false });
+        });
+        return DS.motion.settled(region, { subtree: true })
+          .then(function () { region.querySelector('.ds-toast:last-child').click(); return wait(sg, 50); })
+          .then(function () { return DS.motion.settled(region, { subtree: true }); })
+          .then(function () { document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); return wait(sg, 50); })
+          .then(function () { return DS.motion.settled(region, { subtree: true }); });
+      },
+      toggle: function (stage, on) {
+        var region = stackOf();
+        if (region.querySelectorAll('.ds-toast').length < 2) {
+          ['Saved LAPTOP-0042.', 'Saved TABLET-0007.'].forEach(function (text) {
+            DS.toast.toast(region, text, { persistent: true, restart: false });
+          });
+        }
+        var front = region.querySelector('.ds-toast:last-child');
+        if (on) front.click();
+        else document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      },
+    });
+  }());
+
+  // ── components/notifications/notifications.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.notifications: the centre opens as a side
+     * sheet (DS.overlay), a notification arrives at the top (it fades in, the
+     * others glide), and the sheet closes.
+     */
+    var labCentre = null;
+
+    function labCentreOf() {
+      if (labCentre && labCentre.isConnected) return labCentre;
+      var host = document.createElement('div');
+      host.innerHTML = '<dialog class="ds-sheet ds-notifications" id="sg-lab-notifications" aria-labelledby="sg-lab-notifications-title">' +
+        '<div class="ds-sheet__backdrop" data-ds-close></div><section class="ds-sheet__panel">' +
+        '<div class="ds-sheet__head"><div class="ds-sheet__heading"><h2 class="ds-sheet__title" id="sg-lab-notifications-title">Notifications</h2><p class="ds-sheet__subtitle"></p></div>' +
+        '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>' + DS.icons.icon(DS.icons.close, 20) + '</button></div>' +
+        '<div class="ds-sheet__body ds-notifications__feed" tabindex="0"></div></section></dialog>';
+      labCentre = host.firstChild;
+      (document.querySelector('.ds-theme') || document.body).append(labCentre);
+      DS.notifications.create(labCentre, { items: [
+        { id: 'lab-1', title: 'LAPTOP-0042 is offline', time: Date.now() - 600000, tone: 'warning', icon: DS.icons.wifiOff },
+        { id: 'lab-2', title: 'The nightly backup finished', time: Date.now() - 3600000, tone: 'success', icon: DS.icons.checkCircle, read: true },
+      ] });
+      return labCentre;
+    }
+
+    var labArrivals = 0;
+
+    SG_LAB.add({
+      id: 'notifications-arrive',
+      group: 'overlays',
+      title: 'Notification centre: a notification arrives',
+      note: 'The sheet opens (DS.overlay); a notification arrives at the top: it fades in (ds-fade-in) while the others glide down (DS.motion.flip(), --ds-dur-medium on the spring); the unread dot comes in over --ds-dur-fast. Then the sheet closes and focus returns to the opener.',
+      shows: ['DS.notifications.create', 'DS.notifications.open', 'DS.notifications.close', 'DS.motion.flip', 'ds-fade-in', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-spatial'],
+      html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-lab-open>Open the centre</button></div>',
+      height: 80,
+      setup: function (stage) {
+        stage.querySelector('[data-lab-open]').addEventListener('click', function (event) {
+          DS.notifications.open(labCentreOf(), { opener: event.currentTarget });
+        });
+      },
+      subject: function () { return labCentreOf(); },
+      state: function () { return labCentreOf().getAttribute('data-state') === 'open'; },
+      play: function (stage, sg) {
+        var sheet = labCentreOf();
+        var wait = function (ms) { return new Promise(function (resolve) { setTimeout(resolve, sg.slow(ms)); }); };
+        return DS.notifications.open(sheet, { opener: stage.querySelector('[data-lab-open]') })
+          .then(function () {
+            labArrivals += 1;
+            DS.notifications.create(sheet).add({ id: 'lab-new-' + labArrivals, title: 'TABLET-0207 needs an update', time: Date.now(), icon: DS.icons.download, tone: 'info' }, { announce: false });
+            return wait(50);
+          })
+          .then(function () { return DS.motion.settled(sheet.querySelector('.ds-notifications__feed'), { subtree: true }); })
+          .then(function () { return wait(400); })
+          .then(function () { return DS.notifications.close(sheet); });
+      },
+      toggle: function (stage, on) {
+        var sheet = labCentreOf();
+        return on ? DS.notifications.open(sheet, { opener: stage.querySelector('[data-lab-open]') }) : DS.notifications.close(sheet);
+      },
+    });
+  }());
+
+  // ── components/picker/picker.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.picker: the popover of the date and time
+     * pickers, opened from its button as a menu is.
+     */
+    SG_LAB.add({
+      id: 'picker-popover',
+      group: 'overlays',
+      title: 'Picker popover through DS.picker',
+      note: 'It grows from its button on the spring (<code>--ds-scale-popup</code>, its clip opening from the button\'s edge) over <code>--ds-dur-medium</code> and leaves with a fade over <code>--ds-dur-instant</code>; closed mid-way, it turns back from where it is.',
+      shows: ['DS.picker.create', 'DS.picker.open', 'DS.picker.close', '.ds-picker__popover', '--ds-scale-popup', '--ds-dur-medium', '--ds-dur-fast', '--ds-dur-instant', '--ds-ease-spatial'],
+      html: '<div class="sg-popup-stage"><div class="ds-picker" data-lab-picker>' +
+        '<button class="ds-btn" type="button" data-ds-picker-toggle>Status: Any</button>' +
+        '<div class="ds-picker__popover" aria-label="Status" hidden><div class="ds-picker__presets">' +
+        '<button class="ds-picker__preset" type="button" aria-current="true">Any status</button>' +
+        '<button class="ds-picker__preset" type="button">Online</button>' +
+        '<button class="ds-picker__preset" type="button">Offline</button></div></div></div></div>',
+      height: 220,
+      setup: function (stage) {
+        DS.picker.create(stage.querySelector('[data-lab-picker]'));
+      },
+      subject: function (stage) { return stage.querySelector('.ds-picker__popover'); },
+      state: function (stage) { return stage.querySelector('.ds-picker__popover').getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var root = stage.querySelector('[data-lab-picker]');
+        var panel = stage.querySelector('.ds-picker__popover');
+        return DS.picker.open(root)
+          .then(function () { return DS.picker.close(root); })
+          .then(function () { return DS.motion.settled(panel); });
+      },
+      toggle: function (stage, on) {
+        var root = stage.querySelector('[data-lab-picker]');
+        return on ? DS.picker.open(root) : DS.picker.close(root);
+      },
+    });
+  }());
+
+  // ── components/toggletip/toggletip.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.toggletip: the help card grows out of the info
+     * button and the button morphs on press.
+     */
+    SG_LAB.add({
+      id: 'toggletip-open',
+      group: 'overlays',
+      title: 'Toggletip card',
+      note: 'A click on the info button opens its card, which grows out of the button (the arrow\'s tip) like every popover; focus stays on the button.',
+      shows: ['DS.toggletip.create', '.ds-toggletip', '.ds-popover--tip', '--ds-dur-medium', '--ds-ease-spatial', '--ds-dur-micro'],
+      html: '<div class="sg-popup-stage"><span>Serial number</span> <button class="ds-toggletip" type="button" aria-label="About the serial number" aria-expanded="false" aria-controls="sg-lab-toggletip" data-lab-tip>' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></button>' +
+        '<div class="ds-popover ds-popover--tip ds-popover--arrow" id="sg-lab-toggletip" role="group" aria-label="Serial number" hidden>' +
+        '<div class="ds-popover__head"><h3 class="ds-popover__title">Serial number</h3></div>' +
+        '<div class="ds-popover__body"><p>On the sticker under the device.</p></div></div></div>',
+      height: 200,
+      setup: function (stage) {
+        var button = stage.querySelector('[data-lab-tip]');
+        var control = DS.toggletip.create(button);
+        button.addEventListener('click', function () { control.set(!control.get()); });
+      },
+      subject: function (stage) { return stage.querySelector('.ds-popover'); },
+      state: function (stage) { return stage.querySelector('.ds-popover').getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var control = DS.toggletip.create(stage.querySelector('[data-lab-tip]'));
+        var card = stage.querySelector('.ds-popover');
+        return control.set(true)
+          .then(function () { return control.set(false); })
+          .then(function () { return DS.motion.settled(card); });
+      },
+      toggle: function (stage, on) {
+        return DS.toggletip.create(stage.querySelector('[data-lab-tip]')).set(on);
+      },
+    });
+  }());
+
+  // ── components/unsaved/unsaved.lab.js
+  (function () {
+    /*
+     * Motion Lab: an unsaved change. The field's dot fades in (Form's
+     * .ds-field--changed) and the save bar rises on the spring (.ds-presence,
+     * DS.overlay.savebar); undoing the change by hand takes both back.
+     */
+    function unsavedLabToggle(stage, on) {
+      var input = stage.querySelector('input');
+      input.value = on ? 'Grace Hopper' : 'Ada Lovelace';
+      stage.guard.check();
+      return Promise.all([
+        DS.motion.settled(stage.querySelector('.ds-savebar__bar'), { transitions: true }),
+        DS.motion.settled(stage.querySelector('.ds-field'), { transitions: true, subtree: true }),
+      ]);
+    }
+
+    SG_LAB.add({
+      id: 'unsaved-change',
+      group: 'controls',
+      title: 'Unsaved changes: the bar and the dot',
+      note: '<code>DS.unsaved.create()</code>: a change shows the field\'s dot (in on <code>--ds-dur-fast</code>, out on <code>--ds-dur-instant</code>) and the save bar, which rises from <code>--ds-scale-enter</code> on <code>--ds-ease-spatial</code> and leaves faster. The same value again takes both back.',
+      shows: ['DS.unsaved.create', '.ds-field--changed', 'DS.overlay.savebar', '.ds-presence', '--ds-ease-spatial'],
+      html: '<div class="ds-view" style="block-size: 240px; inline-size: min(100%, 520px); border: 1px solid var(--ds-line); view-transition-name: none; scroll-timeline: none;">' +
+        '<div class="ds-content"><form class="ds-form" aria-label="Device"><div class="ds-field"><label class="ds-field__label" for="lab-unsaved-owner">Owner <span class="ds-field__changed ds-sr">(changed)</span></label>' +
+        '<input class="ds-input" id="lab-unsaved-owner" name="owner" value="Ada Lovelace"></div></form></div>' +
+        '<div class="ds-savebar"><div class="ds-savebar__bar ds-presence" role="region" aria-label="Unsaved changes" hidden><p class="ds-savebar__text ds-unsaved__count" data-ds-unsaved-count></p>' +
+        '<div class="ds-savebar__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-unsaved-discard>Discard</button><button class="ds-btn ds-btn--filled" type="button" data-ds-unsaved-save>Save</button></div></div></div></div>',
+      height: 260,
+      setup: function (stage) {
+        stage.guard = DS.unsaved.create(stage.querySelector('form'), { hotkey: 'off' });
+      },
+      play: function (stage) {
+        return unsavedLabToggle(stage, true);
+      },
+      toggle: unsavedLabToggle,
+      state: function (stage) {
+        return Boolean(stage.guard && stage.guard.get().dirty);
+      },
+      reset: function (stage) {
+        return unsavedLabToggle(stage, false);
+      },
+    });
+  }());
+
+  // ── components/wizard/wizard.lab.js
+  (function () {
+    /*
+     * Motion Lab: a form wizard moving on and back. Next checks the step (here
+     * filled in), the step turns done in the steps (its check draws itself) and
+     * the next panel enters with .ds-enter--swap; Back plays the same entrance
+     * the other way round.
+     */
+    function wizardLabForm() {
+      var panel = function (title, body, hidden) {
+        return '<section class="ds-wizard__panel"' + (hidden ? ' hidden' : '') + '><h3 class="ds-wizard__title">' + title + '</h3>' + body + '</section>';
+      };
+      return '<form class="ds-wizard" aria-label="Report a problem" style="inline-size: min(100%, 520px);">' +
+        '<ol class="ds-steps ds-wizard__steps" aria-label="Report a problem"></ol>' +
+        panel('Device', '<div class="ds-field"><label class="ds-field__label" for="lab-wizard-serial">Serial number</label><input class="ds-input" id="lab-wizard-serial" name="serial" required value="SN-3381-77"></div>') +
+        panel('Problem', '<div class="ds-field"><label class="ds-field__label" for="lab-wizard-what">What happened</label><input class="ds-input" id="lab-wizard-what" name="what" value="It does not start"></div>', true) +
+        panel('Review', '<div class="ds-wizard__summary"></div>', true).replace('<section class="ds-wizard__panel"', '<section class="ds-wizard__panel" data-ds-wizard-summary') +
+        '<div class="ds-wizard__actions"><button class="ds-btn ds-wizard__back" type="button">Back</button>' +
+        '<button class="ds-btn ds-btn--filled ds-wizard__next" type="button">Next</button>' +
+        '<button class="ds-btn ds-btn--filled ds-wizard__submit" type="submit" hidden>Send report</button></div></form>';
+    }
+
+    SG_LAB.add({
+      id: 'wizard-step',
+      group: 'controls',
+      title: 'Form wizard: next and back',
+      note: '<code>DS.wizard.create()</code>: Next checks the step, the step turns done (its check draws itself, as in Steps) and the next panel enters with <code>.ds-enter--swap</code> through <code>DS.motion.enter()</code>: it fades in and moves <code>--ds-distance-sm</code> on the spring. Back never checks and plays the same entrance.',
+      shows: ['DS.wizard.create', '.ds-wizard', '.ds-wizard__panel', '.ds-enter--swap', 'DS.motion.enter'],
+      html: wizardLabForm(),
+      height: 300,
+      setup: function (stage) {
+        stage.wizard = DS.wizard.create(stage.querySelector('.ds-wizard'));
+      },
+      play: function (stage) {
+        stage.wizard.next();
+        return DS.motion.settled(stage.wizard.get().panel);
+      },
+      toggle: function (stage, on) {
+        if (on) stage.wizard.go(1);
+        else stage.wizard.go(0);
+        return DS.motion.settled(stage.wizard.get().panel);
+      },
+      state: function (stage) {
+        return Boolean(stage.wizard && stage.wizard.get().index === 1);
+      },
+      reset: function (stage) {
+        stage.wizard.go(0);
+      },
+    });
   }());
 
   // ── components/loading/loading.lab.js
@@ -891,6 +3376,392 @@
         },
       });
     })();
+  }());
+
+  // ── components/loadingoverlay/loadingoverlay.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.loadingoverlay: a card blocked while it saves.
+     */
+    SG_LAB.add({
+      id: 'loadingoverlay-show',
+      group: 'feedback',
+      title: 'Loading overlay over a card',
+      note: 'The card is blocked at once; after --ds-delay-loader the veil and the box fade in over --ds-dur-fast while the box rises --ds-distance-sm on --ds-ease-out. Once visible it stays for --ds-hold-loader at least, then fades out over --ds-dur-instant.',
+      shows: ['DS.loadingoverlay.show', 'DS.loadingoverlay.hide', 'DS.loadingoverlay.wait', '.ds-loadingoverlay', '--ds-delay-loader', '--ds-hold-loader', '--ds-dur-fast', '--ds-dur-instant', '--ds-distance-sm'],
+      html: '<section class="ds-card" aria-label="LAPTOP-0042" style="position:relative;inline-size:100%;min-block-size:160px" data-lab-card>' +
+        // While the veil shows, the card's content is inert on purpose (data-lab-keep).
+        '<h2 class="ds-card__title" data-lab-keep>LAPTOP-0042</h2><p class="ds-muted" data-lab-keep>Owner: Ada Lovelace</p><p class="ds-muted" data-lab-keep>Location: Building A</p></section>',
+      height: 200,
+      subject: function (stage) { return stage.querySelector('[data-lab-card] .ds-loadingoverlay') || stage.querySelector('[data-lab-card]'); },
+      state: function (stage) { var veil = stage.querySelector('[data-lab-card] .ds-loadingoverlay'); return Boolean(veil && veil.getAttribute('data-state') === 'open'); },
+      play: function (stage) {
+        var card = stage.querySelector('[data-lab-card]');
+        return DS.loadingoverlay.wait(card, new Promise(function (resolve) {
+          setTimeout(resolve, DS.motion.motionDuration(card, '--ds-dur-glide') * 2);
+        }), { message: 'Saving LAPTOP-0042 ...' });
+      },
+      toggle: function (stage, on) {
+        var card = stage.querySelector('[data-lab-card]');
+        if (on) DS.loadingoverlay.show(card, { message: 'Saving LAPTOP-0042 ...' });
+        else return DS.loadingoverlay.hide(card);
+        return Promise.resolve();
+      },
+    });
+  }());
+
+  // ── components/levelmeter/levelmeter.lab.js
+  (function () {
+    /* The meter's ballistics: a burst rises at once, the bar falls over --ds-dur-glide per full scale, the peak holds --ds-hold-status and falls. */
+    (function () {
+      function meterOf(stage) {
+        var el = stage.querySelector('.ds-levelmeter');
+        stage.levelmeter = stage.levelmeter || DS.core.get(el, 'levelmeter') || DS.levelmeter.create(el);
+        return stage.levelmeter;
+      }
+
+      /* Resolves once the bar and the peak are back at the level asked for. */
+      function rest(stage, value) {
+        var meter = meterOf(stage);
+        return new Promise(function (resolve) {
+          (function wait() {
+            var state = meter.get();
+            var track = stage.querySelector('.ds-levelmeter__track');
+            var shown = parseFloat(track.style.getPropertyValue('--ds-levelmeter-level')) || 0;
+            if (Math.abs(shown - value) < 0.002 && Math.abs(state.peak - value) < 0.002) resolve();
+            else requestAnimationFrame(wait);
+          })();
+        });
+      }
+
+      SG_LAB.add({
+        id: 'levelmeter-ballistics',
+        group: 'feedback',
+        title: 'Level meter',
+        note: '<code>DS.levelmeter.create()</code>: a burst rises at once; the bar falls over <code>--ds-dur-glide</code> per full scale, the peak mark holds <code>--ds-hold-status</code> and then falls the same way. Live data: no transition, the ballistics run per frame.',
+        shows: ['DS.levelmeter.create', '.ds-levelmeter', '.ds-levelmeter__fill', '.ds-levelmeter__peak', '--ds-dur-glide', '--ds-hold-status'],
+        html: '<div class="ds-levelmeter ds-xl" style="inline-size: 280px;"><span class="ds-levelmeter__label" id="sg-lab-level">Microphone</span>' +
+          '<div class="ds-levelmeter__track" role="meter" aria-labelledby="sg-lab-level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span class="ds-levelmeter__fill"></span><span class="ds-levelmeter__peak"></span></div>' +
+          '<span class="ds-levelmeter__note" aria-live="polite"></span></div>',
+        height: 140,
+        play: function (stage) {
+          var meter = meterOf(stage);
+          meter.set(0.8);
+          return new Promise(function (resolve) { requestAnimationFrame(function () { requestAnimationFrame(resolve); }); })
+            .then(function () { meter.set(0); return rest(stage, 0); });
+        },
+        reset: function (stage) {
+          meterOf(stage).set(0);
+          return rest(stage, 0);
+        },
+      });
+    })();
+  }());
+
+  // ── components/chart/chart.lab.js
+  (function () {
+    /*
+     * DS.chart in the Motion Lab: a line and its area morph their path to new
+     * data (the named exception of D14) while the bars glide on their share,
+     * and a donut's slices and a gauge's arc turn while their figures count.
+     * Each continues from the frame it shows when the data changes again.
+     */
+    var LAB_CHART_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    var LAB_CHART_A = [[42, 38, 51, 47, 30, 12, 9], [5.2, 6.1, 4.8, 7.4, 6.6, 3.1, 2.8]];
+    var LAB_CHART_B = [[18, 44, 29, 58, 41, 33, 20], [2.4, 3.8, 6.9, 5.2, 7.8, 6.1, 4.4]];
+    var LAB_CHART_SETTLE = { subtree: true, transitions: true, names: ['ds-chart-morph', 'ds-fill-share', 'ds-fade-in'] };
+
+    function labChartSpec(set) {
+      return {
+        type: 'combo', labels: LAB_CHART_DAYS, legend: false, table: false,
+        series: [{ name: 'Tickets', values: set[0] }, { name: 'Hours to solve', values: set[1], mark: 'area', axis: 'end' }],
+        y2: {},
+      };
+    }
+
+    SG_LAB.add({
+      id: 'chart-morph',
+      group: 'data',
+      title: 'Chart: paths morph, bars glide',
+      note: '<code>DS.chart.create()</code> and <code>set()</code>: the area and its line morph their path to the new data (D14) while the columns glide on <code>--ds-share</code> and <code>--ds-chart-from</code>, all on <code>--ds-ease-value</code> over <code>--ds-dur-glide</code>, so they land together. The first render fills the bars from zero and draws the line up from the baseline.',
+      shows: ['DS.chart.create', '.ds-chart', '.ds-chart__line', '.ds-chart__area', '.ds-chart__bar', '.ds-enter--fill', 'ds-fill-share', '--ds-dur-glide', '--ds-ease-value'],
+      html: '<figure class="ds-chart" data-lab-chart style="inline-size:100%"></figure>',
+      height: 280,
+      wide: true,
+      setup: function (stage) {
+        stage.chart = DS.chart.create(stage.querySelector('[data-lab-chart]'), labChartSpec(LAB_CHART_A));
+        stage.on = false;
+      },
+      play: function (stage) {
+        var el = stage.querySelector('[data-lab-chart]');
+        stage.on = !stage.on;
+        stage.chart.set(labChartSpec(stage.on ? LAB_CHART_B : LAB_CHART_A));
+        return DS.motion.settled(el, LAB_CHART_SETTLE);
+      },
+      toggle: function (stage, on) {
+        var el = stage.querySelector('[data-lab-chart]');
+        stage.on = on;
+        stage.chart.set(labChartSpec(on ? LAB_CHART_B : LAB_CHART_A));
+        return DS.motion.settled(el, LAB_CHART_SETTLE);
+      },
+      state: function (stage) {
+        return Boolean(stage.on);
+      },
+      reset: function (stage) {
+        var el = stage.querySelector('[data-lab-chart]');
+        if (stage.chart) stage.chart.destroy();
+        stage.chart = DS.chart.create(el, labChartSpec(LAB_CHART_A));
+        stage.on = false;
+        return DS.motion.settled(el, LAB_CHART_SETTLE);
+      },
+    });
+
+    SG_LAB.add({
+      id: 'chart-arcs',
+      group: 'data',
+      title: 'Chart: slices and a gauge',
+      note: 'A donut\'s slices and a gauge\'s value arc turn to their new angles on the same curve and time, and the figure in the middle counts (<code>DS.motion.countUp</code>); the gauge\'s zone word changes with it.',
+      shows: ['.ds-chart__slice', '.ds-chart__value-arc', '.ds-chart__figure', 'DS.motion.countUp'],
+      html: '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;inline-size:100%">' +
+        '<figure class="ds-chart" data-lab-donut><figcaption>Tickets by channel</figcaption></figure>' +
+        '<figure class="ds-chart" data-lab-gauge><figcaption>Processor load</figcaption></figure></div>',
+      height: 300,
+      wide: true,
+      setup: function (stage) {
+        stage.donut = DS.chart.create(stage.querySelector('[data-lab-donut]'), { type: 'donut', labels: ['Email', 'Portal', 'Phone', 'Chat'], series: [{ name: 'Tickets', values: [184, 122, 86, 54] }], legend: false, table: false });
+        stage.gauge = DS.chart.create(stage.querySelector('[data-lab-gauge]'), { type: 'gauge', value: 36, zones: [{ to: 70, tone: 'success', label: 'Normal' }, { to: 90, tone: 'warning', label: 'High' }, { tone: 'error', label: 'Critical' }], format: { style: 'unit', unit: 'percent' } });
+        stage.on = false;
+      },
+      play: function (stage) {
+        return this.toggle(stage, !stage.on);
+      },
+      toggle: function (stage, on) {
+        stage.on = on;
+        stage.donut.set({ series: [{ name: 'Tickets', values: on ? [60, 140, 210, 90] : [184, 122, 86, 54] }] });
+        stage.gauge.set({ value: on ? 94 : 36 });
+        return Promise.all([stage.querySelector('[data-lab-donut]'), stage.querySelector('[data-lab-gauge]')].map(function (el) { return DS.motion.settled(el, LAB_CHART_SETTLE); }));
+      },
+      state: function (stage) {
+        return Boolean(stage.on);
+      },
+    });
+  }());
+
+  // ── components/meter/meter.lab.js
+  (function () {
+    /* Meter variants: a gauge, an arc and a bar gauge fill from zero, then glide between two shares with their figures. */
+    (function () {
+      var LOW = 0.32;
+      var HIGH = 0.86;
+
+      function figureOf(meter) {
+        return meter.querySelector('.ds-gauge__value, .ds-bar-gauge__value');
+      }
+
+      function setShare(stage, share) {
+        var percent = Math.round(share * 100);
+        stage.querySelectorAll('[data-lab-meter]').forEach(function (meter) {
+          meter.style.setProperty('--ds-share', String(share));
+          meter.setAttribute('aria-valuenow', String(percent));
+          meter.setAttribute('aria-valuetext', percent + '%');
+          DS.motion.countUp(figureOf(meter), percent, { from: parseFloat(figureOf(meter).textContent) || 0, format: function (value) { return Math.round(value) + '%'; } });
+        });
+        return DS.motion.settled(stage.querySelector('[data-lab-meter]'));
+      }
+
+      SG_LAB.add({
+        id: 'meter-share',
+        group: 'data',
+        title: 'Gauges and bar gauge',
+        note: 'A ring, a gauge and a bar gauge read <code>--ds-share</code>: the first render fills from zero (<code>.ds-enter--fill</code>), a new share glides on <code>--ds-ease-value</code> over <code>--ds-dur-glide</code> while <code>DS.motion.countUp()</code> counts the figure on the same frame. A share set mid-glide takes over from where the fill is.',
+        shows: ['.ds-gauge', '.ds-gauge--arc', '.ds-bar-gauge', '.ds-meter--segmented', '.ds-enter--fill', 'ds-fill-share', '--ds-share', '--ds-ease-value', '--ds-dur-glide'],
+        html: '<div class="sg-row">' +
+          '<div class="ds-gauge" role="meter" aria-label="Storage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="32" style="--ds-share: ' + LOW + '" data-lab-meter><span class="ds-gauge__value" aria-hidden="true">32%</span><span class="ds-gauge__label" aria-hidden="true">Storage</span></div>' +
+          '<div class="ds-gauge ds-gauge--arc" role="meter" aria-label="CPU" aria-valuemin="0" aria-valuemax="100" aria-valuenow="32" style="--ds-share: ' + LOW + '" data-lab-meter><span class="ds-gauge__threshold" style="--ds-share: .8" aria-hidden="true"></span><span class="ds-gauge__value" aria-hidden="true">32%</span><span class="ds-gauge__label" aria-hidden="true">CPU</span></div>' +
+          '</div><div class="ds-bar-gauge" role="meter" aria-label="Memory" aria-valuemin="0" aria-valuemax="100" aria-valuenow="32" style="--ds-share: ' + LOW + '; --ds-bar-gauge-warning: .7; --ds-bar-gauge-error: .9; inline-size: min(100%, 360px)" data-lab-meter><span class="ds-bar-gauge__label">Memory</span><span class="ds-bar-gauge__value">32%</span><span class="ds-bar-gauge__track" aria-hidden="true"></span></div>' +
+          '<span class="ds-meter ds-meter--segmented" role="meter" aria-label="Score" aria-valuemin="0" aria-valuemax="5" aria-valuenow="2" style="--ds-share: .4; inline-size: min(100%, 360px)"></span>',
+        height: 280,
+        play: function (stage) {
+          var meters = Array.prototype.slice.call(stage.querySelectorAll('[data-lab-meter], .ds-meter--segmented'));
+          return DS.motion.enterAll(meters, 'fill', { stagger: false });
+        },
+        toggle: function (stage, on) {
+          return setShare(stage, on ? HIGH : LOW);
+        },
+        state: function (stage) {
+          return parseFloat(stage.querySelector('[data-lab-meter]').style.getPropertyValue('--ds-share')) > 0.5;
+        },
+      });
+    })();
+  }());
+
+  // ── components/bar-list/bar-list.lab.js
+  (function () {
+    /* Bar list: the bars fill from zero, then glide between two sets of shares. */
+    (function () {
+      var LOW = [1, 0.42, 0.24, 0.12];
+      var HIGH = [1, 0.86, 0.6, 0.35];
+      var NAMES = ['Printers', 'Laptops', 'Monitors', 'Routers'];
+
+      function setShares(stage, shares) {
+        stage.querySelectorAll('.ds-bar-list__item').forEach(function (row, index) {
+          row.style.setProperty('--ds-share', String(shares[index]));
+        });
+        return DS.motion.settled(stage.querySelector('.ds-bar-list__item:nth-child(2)'));
+      }
+
+      SG_LAB.add({
+        id: 'bar-list-share',
+        group: 'data',
+        title: 'Bar list',
+        note: 'Each row reads <code>--ds-share</code>: the first render fills from zero (<code>.ds-enter--fill</code>), a new share glides on <code>--ds-ease-value</code> over <code>--ds-dur-glide</code>, from where the bar is when it is set mid-glide.',
+        shows: ['.ds-bar-list', '.ds-enter--fill', '--ds-share', '--ds-ease-value', '--ds-dur-glide'],
+        html: '<ol class="ds-bar-list" aria-label="Tickets per device type" style="inline-size: min(100%, 420px)">' + NAMES.map(function (name, index) {
+          return '<li class="ds-bar-list__item" style="--ds-share: ' + LOW[index] + '"><span class="ds-bar-list__label"><span>' + name + '</span></span><span class="ds-bar-list__value">' + Math.round(LOW[index] * 400) + '</span></li>';
+        }).join('') + '</ol>',
+        play: function (stage) {
+          var rows = Array.prototype.slice.call(stage.querySelectorAll('.ds-bar-list__item'));
+          DS.motion.enterAll(rows, 'fill', { stagger: false });
+          return DS.motion.settled(rows[1]);
+        },
+        toggle: function (stage, on) {
+          return setShares(stage, on ? HIGH : LOW);
+        }
+      });
+    })();
+  }());
+
+  // ── components/category-bar/category-bar.lab.js
+  (function () {
+    /* Category bar: the parts fill from zero, then their shares glide between two splits. */
+    (function () {
+      var A = [0.5, 0.3, 0.2];
+      var B = [0.2, 0.35, 0.45];
+
+      SG_LAB.add({
+        id: 'category-bar-share',
+        group: 'data',
+        title: 'Category bar',
+        note: 'Each part is as wide as its <code>--ds-share</code>: the first render fills from zero (<code>.ds-enter--fill</code>), a new split glides on <code>--ds-ease-value</code> over <code>--ds-dur-glide</code>; the widths follow the registered share, so the parts never jump.',
+        shows: ['.ds-category-bar', '.ds-category-bar__part', '.ds-enter--fill', '--ds-share', '--ds-ease-value', '--ds-dur-glide'],
+        html: '<figure class="ds-category-bar" style="inline-size: min(100%, 420px)"><figcaption class="ds-category-bar__head"><span class="ds-category-bar__label">Tickets by status</span><span class="ds-category-bar__total">240</span></figcaption>' +
+          '<div class="ds-category-bar__track" role="img" aria-label="Tickets by status">' +
+          '<span class="ds-category-bar__part" style="--ds-share: .5"></span><span class="ds-category-bar__part ds-category-bar__part--s2" style="--ds-share: .3"></span><span class="ds-category-bar__part ds-category-bar__part--s3" style="--ds-share: .2"></span></div>' +
+          '<ul class="ds-legend" aria-hidden="true"><li><span class="ds-legend__key"></span>Open</li><li><span class="ds-legend__key ds-legend__key--s2"></span>In progress</li><li><span class="ds-legend__key ds-legend__key--s3"></span>Closed</li></ul></figure>',
+        play: function (stage) {
+          var parts = Array.prototype.slice.call(stage.querySelectorAll('.ds-category-bar__part'));
+          DS.motion.enterAll(parts, 'fill', { stagger: false });
+          return DS.motion.settled(parts[0]);
+        },
+        toggle: function (stage, on) {
+          var parts = stage.querySelectorAll('.ds-category-bar__part');
+          parts.forEach(function (part, index) { part.style.setProperty('--ds-share', String((on ? B : A)[index])); });
+          return DS.motion.settled(parts[0]);
+        }
+      });
+    })();
+  }());
+
+  // ── components/upload/upload.lab.js
+  (function () {
+    /* A file upload's rows: files come in through DS.motion.flip (they fade in, the others glide), their bars glide to each share, a removed row fades out while the rest close the gap. */
+    SG_LAB.add({
+      id: 'upload-rows',
+      group: 'controls',
+      title: 'File upload rows',
+      note: '<code>DS.upload.create()</code>: added files fade in through <code>DS.motion.flip()</code>, the bar glides to each share on <code>--ds-ease-value</code>, Remove takes a row out while the others close the gap. Toggle adds and removes the second file.',
+      shows: ['DS.upload.create', '.ds-upload', '.ds-upload__item', '.ds-upload__bar', 'DS.motion.flip', '--ds-ease-value'],
+      html: '<div class="ds-upload" style="inline-size: min(100%, 520px)"><ul class="ds-list ds-upload__list" aria-label="Files" data-lab-list></ul></div>',
+      height: 280,
+      setup: function (stage) {
+        var el = stage.querySelector('.ds-upload');
+        stage.upload = DS.upload.create(el, {});
+        stage.upload.set([{ id: 'lab-a', name: 'devices.csv', size: 48213, type: 'text/csv', status: 'done' }]);
+      },
+      play: function (stage) {
+        var upload = stage.upload;
+        var list = stage.querySelector('[data-lab-list]');
+        var file = new File([new Uint8Array(2048)], 'inventory.csv', { type: 'text/csv' });
+        return upload.add([file]).then(function (entries) {
+          var id = entries[0].id;
+          upload.progress(id, 0.35);
+          return DS.motion.settled(list).then(function () {
+            upload.progress(id, 1);
+            upload.done(id);
+            return DS.motion.settled(list);
+          }).then(function () { return upload.remove(id); });
+        });
+      },
+      toggle: function (stage, on) {
+        var upload = stage.upload;
+        var list = stage.querySelector('[data-lab-list]');
+        stage.want = on;
+        if (on && !stage.second) {
+          stage.second = 'pending';
+          return upload.add([new File([new Uint8Array(4096)], 'report.pdf', { type: 'application/pdf' })]).then(function (entries) {
+            stage.second = entries[0] ? entries[0].id : null;
+            // Turned off while it was being added: it goes again.
+            if (stage.second && !stage.want) {
+              var added = stage.second;
+              stage.second = null;
+              return upload.remove(added);
+            }
+            if (stage.second) upload.progress(stage.second, 0.6);
+            return DS.motion.settled(list);
+          });
+        }
+        if (!on && stage.second && stage.second !== 'pending') {
+          var id = stage.second;
+          stage.second = null;
+          return upload.remove(id);
+        }
+        return DS.motion.settled(list);
+      },
+      state: function (stage) {
+        return Boolean(stage.second);
+      },
+      reset: function (stage) {
+        stage.second = null;
+        stage.upload.set([{ id: 'lab-a', name: 'devices.csv', size: 48213, type: 'text/csv', status: 'done' }]);
+      },
+    });
+  }());
+
+  // ── components/kveditor/kveditor.lab.js
+  (function () {
+    /* A key-value editor's rows: a row added fades in through DS.motion.flip, a removed one fades out while the rows after it close the gap; a duplicate key's hint fades in. */
+    SG_LAB.add({
+      id: 'kveditor-rows',
+      group: 'controls',
+      title: 'Key-value rows',
+      note: '<code>DS.kveditor.create()</code>: Add brings a row in through <code>DS.motion.flip()</code> (it fades in over <code>--ds-dur-fast</code>), Remove takes one out while the others close the gap. The added row repeats a key, so its warning fades in (<code>ds-fade-in</code>).',
+      shows: ['DS.kveditor.create', '.ds-kveditor', '.ds-kveditor__row', '.ds-kveditor__hint', 'ds-fade-in', 'DS.motion.flip'],
+      html: '<fieldset class="ds-kveditor ds-kveditor--code" style="inline-size: min(100%, 560px)"><legend class="ds-fieldset__legend">Variables</legend><ul class="ds-kveditor__rows"></ul><div class="ds-kveditor__foot"></div></fieldset>',
+      height: 300,
+      setup: function (stage) {
+        stage.editor = DS.kveditor.create(stage.querySelector('.ds-kveditor'), { value: { API_URL: 'https://api.example.test', LOG_LEVEL: 'info' } });
+      },
+      play: function (stage) {
+        var editor = stage.editor;
+        var list = stage.querySelector('.ds-kveditor__rows');
+        editor.add({ key: 'API_URL', value: 'https://staging.example.test' }, 1);
+        return DS.motion.settled(list).then(function () { return editor.remove(1); });
+      },
+      toggle: function (stage, on) {
+        var editor = stage.editor;
+        var list = stage.querySelector('.ds-kveditor__rows');
+        var rows = editor.get();
+        if (on && rows.length < 3) editor.add({ key: 'API_URL', value: 'https://staging.example.test' }, 1);
+        else if (!on && rows.length > 2) return editor.remove(1);
+        return DS.motion.settled(list);
+      },
+      state: function (stage) {
+        return Boolean(stage.editor && stage.editor.get().length > 2);
+      },
+      reset: function (stage) {
+        stage.editor.set({ API_URL: 'https://api.example.test', LOG_LEVEL: 'info' });
+      },
+    });
   }());
 
   // ── components/ripple/ripple.lab.js
@@ -1147,6 +4018,547 @@
       toggle: function (stage, on, sg) {
         pressTrack(stage, on ? TRACK.length - 1 : 0);
         return trackSettled(stage, sg);
+      },
+    });
+  }());
+
+  // ── components/sticky/sticky.lab.js
+  (function () {
+    /* A list under its sticky head and foot: the edges follow the scroll position (or data-scrolled and data-ds-overflow-end). */
+    function stickyScroll(list, on) {
+      var size = list.scrollHeight - list.clientHeight;
+      list.scrollTo({ top: on ? size : 0, behavior: 'smooth' });
+      return new Promise(function (resolve) {
+        var left = 240;
+        (function poll() {
+          if (Math.abs(list.scrollTop - (on ? size : 0)) < 2 || --left <= 0) resolve();
+          else requestAnimationFrame(poll);
+        }());
+      }).then(function () { return DS.motion.settled(list, { transitions: true, subtree: true }); });
+    }
+
+    SG_LAB.add({
+      id: 'sticky-edges',
+      group: 'views',
+      title: 'Sticky head and foot',
+      note: '<code>.ds-sticky--head</code> raises its edge once rows pass under it, <code>.ds-sticky--foot</code> while rows are hidden under it: on the scroller\'s scroll timeline (<code>ds-scroll-fade</code>), or through <code>DS.dom.watchScrolled</code> and <code>DS.dom.scrollEdges</code> over <code>--ds-dur-fast</code>.',
+      shows: ['.ds-sticky', '.ds-sticky--head', '.ds-sticky--foot', 'ds-scroll-fade', 'DS.dom.watchScrolled', 'DS.dom.scrollEdges', '--ds-dur-fast'],
+      html: '<div data-lab-sticky tabindex="0" role="region" aria-label="Tickets" style="overflow: auto; position: relative; block-size: 170px; border: 1px solid var(--ds-line); border-radius: var(--ds-radius-card); background: var(--ds-surface)">' +
+        '<header class="ds-sticky ds-sticky--head" style="padding: var(--ds-space-2) var(--ds-space-4)"><p class="ds-card__title">Tickets</p></header>' +
+        ['Battery swelling', 'Screen flickers', 'No network after update', 'Keyboard key stuck', 'Fan noise', 'Dock not detected', 'Printer offline', 'Disk almost full'].map(function (title, index) {
+          return '<p class="ds-muted" style="padding: var(--ds-space-2) var(--ds-space-4); margin: 0">' + (1040 + index) + ' · ' + title + '</p>';
+        }).join('') +
+        '<footer class="ds-sticky ds-sticky--foot" style="padding: var(--ds-space-2) var(--ds-space-4)"><p class="ds-meta">8 open</p></footer></div>',
+      height: 190,
+      setup: function (stage) {
+        var list = stage.querySelector('[data-lab-sticky]');
+        DS.dom.watchScrolled(list, list.querySelector('.ds-sticky--head'));
+        DS.dom.scrollEdges(list, { axis: 'block' });
+      },
+      play: function (stage) {
+        var list = stage.querySelector('[data-lab-sticky]');
+        return stickyScroll(list, list.scrollTop < 1);
+      },
+      state: function (stage) { return stage.querySelector('[data-lab-sticky]').scrollTop > 0; },
+      toggle: function (stage, on) { return stickyScroll(stage.querySelector('[data-lab-sticky]'), on); },
+    });
+  }());
+
+  // ── components/wheel/wheel.lab.js
+  (function () {
+    /* The wheel: one strip of two lines (the new pushes the old out), the hold that turns a burst into one roll, and the morph hooks. */
+    (function () {
+      var STEPS = ['Thinking', 'Running npm test', 'Writing the summary'];
+      var line = function (text) { return '<span class="ds-wheel__line" data-ds-key="' + text + '">' + text + '</span>'; };
+
+      SG_LAB.add({
+        id: 'wheel-roll',
+        group: 'feedback',
+        title: 'Wheel: a status line rolls',
+        note: '<code>DS.wheel.create()</code> and <code>set()</code>: both lines glide together, one line apart, on <code>--ds-dur-slow</code> and <code>--ds-ease-in-out</code>, each fading on its own glide. A change during a turn waits out <code>--ds-hold-status</code>; Rapid toggle rolls once to the last line.',
+        shows: ['DS.wheel.create', '.ds-wheel', '.ds-wheel__line', '--ds-dur-slow', '--ds-ease-in-out', '--ds-hold-status'],
+        html: '<p class="ds-meta">Status</p><p><span class="ds-wheel" data-lab-wheel></span></p>',
+        height: 120,
+        setup: function (stage) {
+          stage.wheel = DS.wheel.create(stage.querySelector('[data-lab-wheel]'), { text: STEPS[0] });
+          stage.at = 0;
+        },
+        play: function (stage) {
+          stage.at = (stage.at + 1) % STEPS.length;
+          stage.wheel.set(STEPS[stage.at]);
+          return DS.motion.settled(stage.querySelector('[data-lab-wheel]'), { subtree: true });
+        },
+        toggle: function (stage, on) {
+          stage.at = on ? 1 : 0;
+          stage.wheel.set(STEPS[stage.at]);
+          return DS.motion.settled(stage.querySelector('[data-lab-wheel]'), { subtree: true });
+        },
+        state: function (stage) { return stage.at === 1; },
+        reset: function (stage) {
+          var slot = stage.querySelector('[data-lab-wheel]');
+          slot.replaceChildren();
+          stage.wheel = DS.wheel.create(slot, { text: STEPS[0] });
+          stage.at = 0;
+        },
+      });
+
+      SG_LAB.add({
+        id: 'wheel-burst',
+        group: 'feedback',
+        title: 'Wheel: a burst rolls once',
+        note: '<code>DS.wheel.roll()</code> five times in one task: the lines that never showed go at once, and only the last one comes in, with the shimmer.',
+        shows: ['DS.wheel.roll', '.ds-shimmer'],
+        html: '<p class="ds-meta">Status</p><p><span class="ds-wheel" data-lab-burst></span></p>',
+        height: 120,
+        setup: function (stage) {
+          DS.wheel.roll(stage.querySelector('[data-lab-burst]'), 'Listing devices');
+          stage.round = 0;
+        },
+        play: function (stage) {
+          var slot = stage.querySelector('[data-lab-burst]');
+          stage.round += 1;
+          var last;
+          ['LAPTOP-0042', 'LAPTOP-0043', 'LAPTOP-0044', 'LAPTOP-0045', 'Round ' + stage.round + ' done'].forEach(function (text) {
+            last = DS.wheel.roll(slot, 'Reading ' + text, { shimmer: true });
+          });
+          return last;
+        },
+      });
+
+      SG_LAB.add({
+        id: 'wheel-morph',
+        group: 'feedback',
+        title: 'Wheel: lines of a morph',
+        note: '<code>DS.dom.morphHtml(el, html, DS.wheel.hooks)</code>: a new key rolls in; the same key with a ticking figure is patched in place and does not roll.',
+        shows: ['DS.dom.morphHtml'],
+        html: '<p class="ds-meta">Sync</p><p data-lab-morph><span class="ds-wheel">' + line('Waiting') + '</span></p>',
+        height: 120,
+        play: function (stage, sg) {
+          var host = stage.querySelector('[data-lab-morph]');
+          var draw = function (key, text) {
+            DS.dom.morphHtml(host, '<span class="ds-wheel"><span class="ds-wheel__line" data-ds-key="' + key + '">' + text + '</span></span>', DS.wheel.hooks);
+          };
+          draw('Syncing', 'Syncing 1 of 3');
+          return new Promise(function (resolve) {
+            setTimeout(function () { draw('Syncing', 'Syncing 2 of 3'); }, sg.slow(300));
+            setTimeout(function () { draw('Syncing', 'Syncing 3 of 3'); }, sg.slow(600));
+            setTimeout(function () {
+              draw('Waiting', 'Waiting');
+              resolve(DS.motion.settled(host, { subtree: true }));
+            }, sg.slow(900));
+          });
+        },
+      });
+    })();
+  }());
+
+  // ── components/shimmer/shimmer.lab.js
+  (function () {
+    /* The shimmer: a glint that travels over the words, a pass and a pause, on the progress wave's keyframe. */
+    SG_LAB.add({
+      id: 'shimmer',
+      group: 'feedback',
+      title: 'Shimmer',
+      note: '<code>.ds-shimmer</code>: a copy of the text in <code>--ds-shimmer-glint</code> through a band of a mask that travels one <code>--ds-shimmer-length</code> per round (<code>--ds-loop-shimmer</code>, the loader\'s 4.55s), on <code>ds-progress-wave</code>. Replay switches it on and off; slow it down with the speed select.',
+      shows: ['.ds-shimmer', 'ds-progress-wave', '--ds-loop-loader'],
+      html: '<p><span class="ds-shimmer" data-shimmer="Running npm test" data-lab-shimmer>Running npm test</span></p>',
+      height: 120,
+      play: function (stage) {
+        var line = stage.querySelector('[data-lab-shimmer]');
+        line.classList.toggle('ds-shimmer');
+        return Promise.resolve();
+      },
+      toggle: function (stage, on) {
+        stage.querySelector('[data-lab-shimmer]').classList.toggle('ds-shimmer', on);
+        return Promise.resolve();
+      },
+      state: function (stage) {
+        return stage.querySelector('[data-lab-shimmer]').classList.contains('ds-shimmer');
+      },
+    });
+  }());
+
+  // ── components/thinking/thinking.lab.js
+  (function () {
+    /* The thinking indicator: its step rolls on the wheel with the shimmer; the time ticks in place. */
+    SG_LAB.add({
+      id: 'thinking-step',
+      group: 'feedback',
+      title: 'Thinking indicator: the next step',
+      note: '<code>DS.thinking.create()</code> and <code>set({ step })</code>: the step rolls on the wheel (<code>--ds-dur-slow</code>, <code>--ds-ease-in-out</code>, the hold <code>--ds-hold-status</code>) with the shimmer; the time and the tokens change in place. Rapid toggle rolls once, to the last.',
+      shows: ['DS.thinking.create', '.ds-thinking', '.ds-thinking__step'],
+      html: '<div class="ds-thinking" data-lab-thinking><span class="ds-thinking__step"><span class="ds-wheel"></span></span><span class="ds-thinking__meta"><time class="ds-thinking__time"></time><span class="ds-thinking__tokens"></span></span></div>',
+      height: 120,
+      setup: function (stage) {
+        stage.thinking = DS.thinking.create(stage.querySelector('[data-lab-thinking]'), { step: 'Thinking', tokens: 120 });
+        stage.at = 0;
+      },
+      play: function (stage) {
+        var steps = ['Thinking', 'Reading the device list', 'Writing the summary'];
+        stage.at = (stage.at + 1) % steps.length;
+        stage.thinking.set({ step: steps[stage.at], tokens: 120 + stage.at * 900 });
+        return DS.motion.settled(stage.querySelector('.ds-wheel'), { subtree: true });
+      },
+      toggle: function (stage, on) {
+        stage.at = on ? 1 : 0;
+        stage.thinking.set({ step: on ? 'Reading the device list' : 'Thinking' });
+        return DS.motion.settled(stage.querySelector('.ds-wheel'), { subtree: true });
+      },
+      state: function (stage) { return stage.at === 1; },
+      reset: function (stage) {
+        stage.thinking.destroy();
+        stage.querySelector('.ds-wheel').textContent = '';
+        stage.thinking = DS.thinking.create(stage.querySelector('[data-lab-thinking]'), { step: 'Thinking', tokens: 120 });
+        stage.at = 0;
+      },
+    });
+  }());
+
+  // ── components/reasoning/reasoning.lab.js
+  (function () {
+    /* The reasoning disclosure: it opens while it runs (the shimmer on its line) and closes when it ends. */
+    SG_LAB.add({
+      id: 'reasoning-auto',
+      group: 'feedback',
+      title: 'Reasoning: runs, then closes',
+      note: '<code>DS.reasoning.create(el, { auto: true })</code>: it opens while it runs (a <code>.ds-collapsible</code>, <code>--ds-dur-medium</code> on <code>--ds-ease-out</code>; the shimmer on "Thinking") and closes to "Thought for ..." when <code>set({ done: true })</code> ends it.',
+      shows: ['DS.reasoning.create', '.ds-reasoning'],
+      html: '<details class="ds-collapsible ds-disclosure ds-reasoning" data-lab-reasoning><summary><span class="ds-reasoning__summary"></span> <time class="ds-reasoning__time"></time></summary>' +
+        '<div class="ds-disclosure__body ds-reasoning__body"><div class="ds-reasoning__text"><p>Forty laptops; eleven end before March.</p><p>Three of those are in repair.</p></div></div></details>',
+      height: 200,
+      setup: function (stage) {
+        stage.reasoning = DS.reasoning.create(stage.querySelector('[data-lab-reasoning]'), { done: true, total: 4000, auto: true });
+      },
+      play: function (stage, sg) {
+        var el = stage.querySelector('[data-lab-reasoning]');
+        stage.reasoning.set({ done: false, since: Date.now() });
+        return new Promise(function (resolve) {
+          setTimeout(function () {
+            stage.reasoning.set({ done: true });
+            resolve(DS.motion.settled(el, { subtree: true }));
+          }, sg.slow(1200));
+        });
+      },
+      toggle: function (stage, on) {
+        stage.reasoning.set({ done: !on, since: Date.now() });
+        return DS.motion.settled(stage.querySelector('[data-lab-reasoning]'), { subtree: true });
+      },
+      state: function (stage) { return !stage.reasoning.get().done; },
+    });
+  }());
+
+  // ── components/toolcall/toolcall.lab.js
+  (function () {
+    /* The tool call: its status swaps at once; the body opens as a disclosure. */
+    SG_LAB.add({
+      id: 'toolcall-status',
+      group: 'feedback',
+      title: 'Tool call: running to done',
+      note: '<code>DS.toolcall.create()</code> and <code>set({ status })</code>: the spinner gives way to the check at once and the time stops; the row opens and closes as a <code>.ds-collapsible</code> (<code>--ds-dur-medium</code>, <code>--ds-ease-out</code>) while its chevron turns. Rapid toggle turns it back from where it is.',
+      shows: ['DS.toolcall.create', '.ds-toolcall'],
+      html: '<details class="ds-collapsible ds-disclosure ds-disclosure--row ds-toolcall" data-status="running" data-lab-toolcall><summary>' +
+        '<span class="ds-toolcall__icon"></span><span class="ds-disclosure__title ds-toolcall__title"><span class="ds-toolcall__name">run_tests</span> <span class="ds-toolcall__args">npm test</span></span>' +
+        '<span class="ds-toolcall__status"><span class="ds-toolcall__mark"><span class="ds-spinner"></span></span><span class="ds-toolcall__word">Running</span></span><time class="ds-toolcall__time"></time></summary>' +
+        '<div class="ds-disclosure__body ds-toolcall__body"><div class="ds-toolcall__part"><p class="ds-toolcall__label">Output</p><pre class="ds-toolcall__code"><code>42 passing (1s)</code></pre></div></div></details>',
+      height: 200,
+      setup: function (stage) {
+        var row = stage.querySelector('[data-lab-toolcall]');
+        row.querySelector('.ds-toolcall__icon').append(DS.icons.iconElement(DS.icons.terminal, 20));
+        row.querySelector('summary').append(DS.icons.iconElement(DS.icons.chevronDown, 20, 'ds-chevron'));
+        stage.call = DS.toolcall.create(row, { since: Date.now() });
+      },
+      play: function (stage) {
+        var row = stage.querySelector('[data-lab-toolcall]');
+        var running = stage.call.get().status === 'running';
+        stage.call.set(running ? { status: 'done', label: 'Done' } : { status: 'running', label: 'Running', since: Date.now() });
+        row.open = running;
+        return DS.motion.settled(row, { subtree: true });
+      },
+      toggle: function (stage, on) {
+        var row = stage.querySelector('[data-lab-toolcall]');
+        row.open = on;
+        return DS.motion.settled(row, { subtree: true });
+      },
+      state: function (stage) { return stage.querySelector('[data-lab-toolcall]').open; },
+    });
+  }());
+
+  // ── components/cite/cite.lab.js
+  (function () {
+    /* A citation's card: the popups' entrance from the marker, and its exit. */
+    SG_LAB.add({
+      id: 'cite-card',
+      group: 'overlays',
+      title: 'Citation card',
+      note: '<code>DS.cite.create()</code> and <code>set(open)</code>: the card fades in on <code>--ds-dur-fast</code> and grows from <code>--ds-scale-popup</code> at the marker on <code>--ds-ease-spatial</code> (<code>--ds-dur-medium</code>); it fades out in <code>--ds-dur-instant</code>. Rapid toggle turns it back from where it is.',
+      shows: ['DS.cite.create', '.ds-cite', '.ds-cite__card', '--ds-scale-popup'],
+      html: '<p>Eleven laptops leave warranty before March<button class="ds-cite" type="button" aria-controls="lab-cite-card" aria-label="Source 1: Warranty register 2026" data-lab-cite>1</button>.</p>' +
+        '<div class="ds-cite__card" id="lab-cite-card" popover="manual" hidden><p class="ds-cite__source">example.com</p><a class="ds-cite__title" href="#">Warranty register 2026</a><p class="ds-cite__snippet">The warranty of LAPTOP-0042 ends on 28 February 2027.</p></div>',
+      height: 220,
+      setup: function (stage) {
+        stage.cite = DS.cite.create(stage.querySelector('[data-lab-cite]'));
+      },
+      play: function (stage, sg) {
+        var card = stage.querySelector('.ds-cite__card');
+        stage.cite.set(true);
+        return new Promise(function (resolve) {
+          setTimeout(function () {
+            stage.cite.set(false);
+            resolve(DS.motion.settled(card));
+          }, sg.slow(900));
+        });
+      },
+      toggle: function (stage, on) {
+        stage.cite.set(on);
+        return DS.motion.settled(stage.querySelector('.ds-cite__card'));
+      },
+      state: function (stage) { return stage.cite.get(); },
+    });
+  }());
+
+  // ── components/plan/plan.lab.js
+  (function () {
+    /* The plan card: once decided its actions leave and the state changes in place; back to waiting they enter. */
+    SG_LAB.add({
+      id: 'plan-decide',
+      group: 'feedback',
+      title: 'Plan card: a decision',
+      note: '<code>DS.plan.create()</code> and <code>set(state)</code>: approved, the actions leave (<code>DS.motion.leave()</code>, <code>.ds-leave</code> on <code>--ds-dur-fast</code>) and the word changes in place; back to waiting they enter (<code>.ds-enter</code>, <code>--ds-dur-medium</code>). Rapid toggle turns them back from where they are.',
+      shows: ['DS.plan.create', '.ds-plan', '.ds-plan__actions', '.ds-plan__state'],
+      html: '<section class="ds-plan" data-lab-plan aria-label="Replace the swollen batteries"><div class="ds-plan__head"><h3 class="ds-plan__title">Replace the swollen batteries</h3><span class="ds-plan__state"></span></div>' +
+        '<ol class="ds-tasks ds-plan__steps" aria-label="Steps"><li class="ds-tasks__item" data-status="pending"><span class="ds-tasks__mark"></span><span class="ds-tasks__text">Order three batteries</span></li></ol>' +
+        '<div class="ds-plan__actions"><button class="ds-btn ds-btn--filled" type="button" data-ds-plan-action="approve">Approve</button><button class="ds-btn" type="button" data-ds-plan-action="reject">Reject</button></div></section>',
+      height: 220,
+      setup: function (stage) {
+        stage.plan = DS.plan.create(stage.querySelector('[data-lab-plan]'));
+      },
+      play: function (stage, sg) {
+        var actions = stage.querySelector('.ds-plan__actions');
+        stage.plan.set('approved');
+        return new Promise(function (resolve) {
+          setTimeout(function () {
+            stage.plan.set('waiting');
+            resolve(DS.motion.settled(actions));
+          }, sg.slow(900));
+        });
+      },
+      toggle: function (stage, on) {
+        stage.plan.set(on ? 'approved' : 'waiting');
+        return DS.motion.settled(stage.querySelector('.ds-plan__actions'));
+      },
+      state: function (stage) { return stage.plan.get().state === 'approved'; },
+    });
+  }());
+
+  // ── components/question/question.lab.js
+  (function () {
+    /* The question card: answered, its actions leave and the answer line fades in; opened again the actions enter. */
+    SG_LAB.add({
+      id: 'question-answer',
+      group: 'feedback',
+      title: 'Question card: an answer',
+      note: '<code>DS.question.create()</code> and <code>set({ state })</code>: answered, the actions leave (<code>DS.motion.leave()</code>, <code>.ds-leave</code>) and the answer line fades in (<code>ds-fade-in</code>, <code>--ds-dur-fast</code>); opened again the actions enter (<code>.ds-enter</code>). Rapid toggle turns them back from where they are.',
+      shows: ['DS.question.create', '.ds-question', '.ds-question__actions', '.ds-question__answer'],
+      html: '<form class="ds-question" data-lab-question aria-label="Restart LAPTOP-0042 now?"><div class="ds-question__head"><h3 class="ds-question__title">Restart LAPTOP-0042 now?</h3></div>' +
+        '<div class="ds-radios ds-question__options" role="radiogroup" aria-label="Restart LAPTOP-0042 now?"><label class="ds-radio"><input type="radio" name="lab-q" value="now" checked><span><strong>Now</strong></span></label><label class="ds-radio"><input type="radio" name="lab-q" value="tonight"><span><strong>Tonight</strong></span></label></div>' +
+        '<div class="ds-question__actions"><button class="ds-btn ds-btn--filled" type="submit">Answer</button><button class="ds-btn ds-btn--text" type="button" data-ds-question-skip>Skip</button></div><p class="ds-question__answer" hidden></p></form>',
+      height: 280,
+      setup: function (stage) {
+        stage.question = DS.question.create(stage.querySelector('[data-lab-question]'));
+      },
+      play: function (stage, sg) {
+        var actions = stage.querySelector('.ds-question__actions');
+        stage.question.set({ state: 'answered' });
+        return new Promise(function (resolve) {
+          setTimeout(function () {
+            stage.question.set({ state: 'waiting' });
+            resolve(DS.motion.settled(actions));
+          }, sg.slow(900));
+        });
+      },
+      toggle: function (stage, on) {
+        stage.question.set({ state: on ? 'answered' : 'waiting' });
+        return DS.motion.settled(stage.querySelector('.ds-question__actions'));
+      },
+      state: function (stage) { return stage.question.get().state === 'answered'; },
+    });
+  }());
+
+  // ── components/usage/usage.lab.js
+  (function () {
+    /* The usage meter: its share glides; near and over the budget the tone and the status change in place. */
+    SG_LAB.add({
+      id: 'usage-share',
+      group: 'data',
+      title: 'Usage meter: tokens spent',
+      note: '<code>DS.usage.create()</code> and <code>set({ used })</code>: the share glides on <code>--ds-ease-value</code> over <code>--ds-dur-glide</code> (the meter\'s <code>--ds-share</code>); from 80% the meter takes the warning role and the status its icon and word, past the budget the error role. Rapid toggle turns the glide back from where it is.',
+      shows: ['DS.usage.create', '.ds-usage', '.ds-usage__meter', '--ds-share'],
+      html: '<section class="ds-usage" data-lab-usage aria-label="Tokens this month"><div class="ds-usage__head"><h3 class="ds-usage__title">Tokens this month</h3><span class="ds-usage__status" hidden></span></div>' +
+        '<span class="ds-meter ds-usage__meter" role="meter" aria-label="Tokens this month"></span>' +
+        '<p class="ds-usage__figures"><span class="ds-usage__value"></span><span class="ds-usage__cost"></span></p></section>',
+      height: 140,
+      setup: function (stage) {
+        stage.usage = DS.usage.create(stage.querySelector('[data-lab-usage]'), { used: 60000, budget: 250000, cost: 1.2, costBudget: 5 });
+        stage.at = 0;
+      },
+      play: function (stage) {
+        var steps = [60000, 215000, 262000];
+        stage.at = (stage.at + 1) % steps.length;
+        stage.usage.set({ used: steps[stage.at] });
+        return DS.motion.settled(stage.querySelector('.ds-meter'));
+      },
+      toggle: function (stage, on) {
+        stage.at = on ? 1 : 0;
+        stage.usage.set({ used: on ? 215000 : 60000 });
+        return DS.motion.settled(stage.querySelector('.ds-meter'));
+      },
+      state: function (stage) { return stage.at === 1; },
+    });
+  }());
+
+  // ── components/composer/composer.lab.js
+  (function () {
+    /*
+     * The Motion Lab entries of DS.composer: the command palette at the caret,
+     * and the attachment chips that pop in and out.
+     */
+    SG_LAB.add({
+      id: 'composer-palette',
+      group: 'overlays',
+      title: 'Composer: the command palette at the caret',
+      note: 'Typing "/" opens the palette above the caret: a fade on <code>--ds-dur-fast</code> and a grow from <code>--ds-scale-popup</code> on the spring; it leaves in <code>--ds-dur-instant</code>, fading only. Closed mid-way, it turns back from where it is.',
+      shows: ['DS.composer.create', '.ds-composer__palette', '--ds-scale-popup', '--ds-dur-fast', '--ds-dur-medium', '--ds-dur-instant', '--ds-ease-spatial'],
+      html: '<form class="ds-composer" style="margin-block-start:180px" onsubmit="return false">' +
+        '<textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message" placeholder="Message"></textarea>' +
+        '<button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send" data-lab-icon></button>' +
+        '<div class="ds-composer__palette" role="listbox" aria-label="Commands" data-ds-composer-trigger="/" popover="manual" hidden>' +
+        '<div class="ds-composer__option" role="option" data-value="/summarize"><span class="ds-composer__option-label">/summarize</span><span class="ds-composer__option-hint">Sum up the ticket</span></div>' +
+        '<div class="ds-composer__option" role="option" data-value="/assign"><span class="ds-composer__option-label">/assign</span><span class="ds-composer__option-hint">Give the ticket to someone</span></div>' +
+        '</div></form>',
+      height: 260,
+      setup: function (stage, sg) {
+        stage.querySelector('[data-lab-icon]').innerHTML = sg.icon('send', 20);
+        DS.composer.create(stage.querySelector('.ds-composer'), { enter: 'send' });
+      },
+      subject: function (stage) { return stage.querySelector('.ds-composer__palette'); },
+      state: function (stage) { return stage.querySelector('.ds-composer__palette').getAttribute('data-state') === 'open'; },
+      toggle: function (stage, on) {
+        var field = stage.querySelector('.ds-composer__input');
+        var palette = stage.querySelector('.ds-composer__palette');
+        field.focus({ preventScroll: true });
+        field.value = on ? '/' : '';
+        field.setSelectionRange(field.value.length, field.value.length);
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+        // Its transitions, then a frame: DS.overlay hides it and lifts the
+        // exit's inert in the same settle.
+        return DS.motion.settled(palette, { transitions: true }).then(function () { return new Promise(requestAnimationFrame); });
+      },
+      play: function (stage) {
+        var lab = this;
+        return lab.toggle(stage, true).then(function () { return lab.toggle(stage, false); });
+      },
+    });
+
+    SG_LAB.add({
+      id: 'composer-attachments',
+      group: 'controls',
+      title: 'Composer: attachments pop in and out',
+      note: 'A file attached (picked, dropped or pasted) pops in as a chip; a removed one pops out, the focus going to the next chip.',
+      shows: ['DS.composer.create', '.ds-composer__attachment', '.ds-enter--pop', '.ds-leave--pop'],
+      html: '<form class="ds-composer" onsubmit="return false"><ul class="ds-composer__attachments" aria-label="Attachments"></ul>' +
+        '<textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message" placeholder="Message"></textarea>' +
+        '<button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send" data-lab-icon></button></form>',
+      height: 160,
+      setup: function (stage, sg) {
+        stage.querySelector('[data-lab-icon]').innerHTML = sg.icon('send', 20);
+        stage.composer = DS.composer.create(stage.querySelector('.ds-composer'));
+      },
+      state: function (stage) { return stage.composer.get().attachments.length > 0; },
+      toggle: function (stage, on) {
+        var composer = stage.composer;
+        var tray = stage.querySelector('.ds-composer__attachments');
+        if (on && !composer.get().attachments.length) composer.add([new File(['report'], 'battery-report.pdf', { type: 'application/pdf' })]);
+        if (!on) composer.get().attachments.forEach(function (item) { composer.remove(item.id); });
+        return DS.motion.settled(tray, { subtree: true });
+      },
+      play: function (stage) {
+        var lab = this;
+        return lab.toggle(stage, true).then(function () { return lab.toggle(stage, false); });
+      },
+    });
+  }());
+
+  // ── components/transcript/transcript.lab.js
+  (function () {
+    /* The Motion Lab entry of DS.transcript: the "Latest" pill comes while the reader is scrolled up and a reply arrives, and goes at the end. */
+    SG_LAB.add({
+      id: 'transcript-latest',
+      group: 'data',
+      title: 'Transcript: the "Latest" pill',
+      note: 'Scrolled up, a message that arrives brings the pill (a <code>.ds-presence</code>) with its count; "Latest" glides back to the end within one screen and the pill goes.',
+      shows: ['DS.transcript.create', '.ds-transcript', '.ds-presence', '.ds-jump'],
+      html: '<div class="ds-transcript" role="region" aria-label="Conversation" tabindex="0" style="block-size:200px">' +
+        '<div class="ds-transcript__list" role="log" aria-label="Messages">' +
+        ['Which devices need attention?', 'Laptop 4, the monitor in room 2 and the router.', 'Why laptop 4?', 'It drains overnight: wake for network access is on.', 'And the router?', 'It restarted twice; it is fine now.']
+          .map(function (text, i) {
+            return '<div class="ds-message ds-message--' + (i % 2 ? 'assistant' : 'user') + '"><div class="ds-message__main"><p class="ds-message__content">' + text + '</p></div></div>';
+          }).join('') + '</div></div>',
+      height: 220,
+      setup: function (stage) {
+        stage.transcript = DS.transcript.create(stage.querySelector('.ds-transcript'));
+      },
+      subject: function (stage) { return stage.querySelector('.ds-presence'); },
+      state: function (stage) { return !stage.transcript.get().atEnd; },
+      toggle: function (stage, on) {
+        var log = stage.querySelector('.ds-transcript');
+        var pill = stage.querySelector('.ds-presence');
+        if (on) {
+          log.scrollTop = 0;
+          var message = document.createElement('div');
+          message.className = 'ds-message ds-message--assistant';
+          message.innerHTML = '<div class="ds-message__main"><p class="ds-message__content">A new reply.</p></div>';
+          stage.querySelector('.ds-transcript__list').append(message);
+        } else stage.transcript.stick();
+        // The module answers the scroll and the new message a frame later; then
+        // the pill's transitions run (and a smooth scroll back, if any).
+        return new Promise(function (resolve) { requestAnimationFrame(function () { requestAnimationFrame(resolve); }); })
+          .then(function () { return DS.motion.settled(pill, { transitions: true }); });
+      },
+      play: function (stage) {
+        var lab = this;
+        return lab.toggle(stage, true).then(function () { return lab.toggle(stage, false); });
+      },
+    });
+  }());
+
+  // ── components/ailabel/ailabel.lab.js
+  (function () {
+    /* The Motion Lab entry of DS.ailabel: the explainer of an AI label opens under it and closes. */
+    SG_LAB.add({
+      id: 'ailabel-tip',
+      group: 'overlays',
+      title: 'AI label: the explainer',
+      note: 'It fades in on <code>--ds-dur-fast</code> and grows from <code>--ds-scale-popup</code> at the label on the spring; it leaves in <code>--ds-dur-instant</code>, fading only, and turns back from where it is when pressed again mid-way.',
+      shows: ['DS.ailabel.create', '.ds-ailabel__tip', '--ds-scale-popup', '--ds-dur-fast', '--ds-dur-medium', '--ds-dur-instant', '--ds-ease-spatial'],
+      html: '<div><button class="ds-ailabel" type="button" aria-expanded="false" aria-controls="sg-lab-ai-tip"><span data-lab-icon></span><span>AI</span><span class="ds-sr">: about this content</span></button>' +
+        '<div class="ds-ailabel__tip" id="sg-lab-ai-tip" role="dialog" aria-labelledby="sg-lab-ai-tip-title" popover="manual" hidden>' +
+        '<p class="ds-ailabel__title" id="sg-lab-ai-tip-title">Generated by AI</p><p>A language model wrote this from the device data.</p></div></div>',
+      height: 200,
+      setup: function (stage, sg) {
+        stage.querySelector('[data-lab-icon]').outerHTML = sg.icon('sparkles', 16);
+        stage.ailabel = DS.ailabel.create(stage.querySelector('.ds-ailabel'));
+      },
+      subject: function (stage) { return stage.querySelector('.ds-ailabel__tip'); },
+      state: function (stage) { return stage.querySelector('.ds-ailabel__tip').getAttribute('data-state') === 'open'; },
+      toggle: function (stage, on) {
+        stage.ailabel.set(on);
+        // Its transitions, then a frame: DS.overlay hides it and lifts the
+        // exit's inert in the same settle.
+        return DS.motion.settled(stage.querySelector('.ds-ailabel__tip'), { transitions: true }).then(function () { return new Promise(requestAnimationFrame); });
+      },
+      play: function (stage) {
+        var lab = this;
+        return lab.toggle(stage, true).then(function () { return lab.toggle(stage, false); });
       },
     });
   }());

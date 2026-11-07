@@ -69,16 +69,17 @@
  *   <div class="ds-search">(search icon)<input class="ds-input" type="search" aria-keyshortcuts="/" placeholder="Search">
  *     <kbd class="ds-kbd ds-search__key" aria-hidden="true">/</kbd></div>
  *   <textarea class="ds-input ds-input--grow" rows="1"></textarea>   (grows with its text)
- *   <div class="ds-composer"><textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message"></textarea>
- *     <button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send">(send)</button></div>
+ *   <select class="ds-input ds-select"><button><selectedcontent></selectedcontent></button>
+ *     <option value="laptop">(icon)Laptop</option> ...</select>   (a customizable select, progressive)
+ *   <textarea class="ds-input" maxlength="200" data-ds-counter></textarea>   (with a .ds-field__counter: DS.form counts)
  *
  * Field hooks: --ds-input-height (40px), --ds-input-padding-x (12px),
  * --ds-input-bg, --ds-input-border, --ds-input-radius,
  * --ds-input-focus-color (the ring and the label tint), --ds-input-font,
  * --ds-input-weight, --ds-input-grow-max (50vh), --ds-field-error-color,
  * --ds-field-warning-color, --ds-field-success-color,
- * --ds-field-changed-color, --ds-form-rows-control-max (480px),
- * --ds-composer-radius, --ds-composer-max-height (220px). The computed
+ * --ds-field-changed-color, --ds-form-rows-control-max (480px). The
+ * composer (.ds-composer) has a folder of its own. The computed
  * values (--_h, --_box, --_radius, --_px, --_py and the like) are private:
  * never set them.
  *
@@ -93,7 +94,7 @@
  *             the filled field, .ds-check rows, the halo); 2px of padding
  *             per step on radio and checkbox cards. Not the side padding.
  *   shape     .ds-shape-*: multiplies the radius of fields, the search pill,
- *             the composer, checkboxes, the check list and the cards, and
+ *             checkboxes, the check list and the cards, and
  *             the press morph of a card. A radio stays round.
  *   touch     .ds-touch: at least --ds-touch-target (48px) high, and field
  *             text at --ds-font-input; touch wins over size and density.
@@ -122,9 +123,9 @@
  * and its place in the tab order; DS.motion's action guard blocks its
  * click.
  *
- * Forced colours: focused fields, input groups and the composer show a
+ * Forced colours: focused fields and input groups show a
  * Highlight outline (their inset ring is a shadow, which forced colours
- * drop); the filled field and the composer keep a transparent border,
+ * drop); the filled field keeps a transparent border,
  * their edge there; a warning or success field keeps the system's edge (its
  * word says which); a disabled field or group, a disabled fieldset's legend
  * and a blocked card's title are GrayText; a selected card's edge and input
@@ -141,12 +142,16 @@
  * - scrollbar-color (a thin, quiet scrollbar in .ds-check-list): without it
  *   the platform scrollbar shows.
  * - field-sizing (.ds-input--grow grows with its text): without it
- *   DS.dom.autosize(textarea) sets the height, and without that the field
- *   keeps its height and scrolls.
+ *   DS.dom.autosize(textarea) sets the height (DS.form does it for every
+ *   textarea.ds-input--grow), and without a script the field keeps its
+ *   height and scrolls.
+ * - appearance: base-select (.ds-select: the list as the system's own
+ *   picker, rich options, <selectedcontent>): without it the styled
+ *   native select with the platform's list.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
+@layer ds.components.global, ds.components.layout, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.calendar, ds.components.container, ds.components.loadmore, ds.components.popover, ds.components.splitpane, ds.components.upload, ds.components.datefield, ds.components.kveditor, ds.components.listdetail, ds.components.sort, ds.components.text, ds.components.toggletip, ds.components.dashpanel, ds.components.filterbar, ds.components.picker, ds.components.spacing, ds.components.wizard, ds.components.facets, ds.components.sticky, ds.components.timepicker, ds.components.unsaved, ds.components.datepicker, ds.components.print, ds.components.query, ds.components.views, ds.components.datagrid, ds.components.daterange, ds.components.timerange, ds.components.duration, ds.components.link, ds.components.toggle, ds.components.button-group, ds.components.menubutton, ds.components.splitbutton, ds.components.copy, ds.components.prioritybar, ds.components.listbox, ds.components.number, ds.components.tree, ds.components.choices, ds.components.jsonview, ds.components.password, ds.components.auditlog, ds.components.secret, ds.components.taginput, ds.components.otp, ds.components.selectpanel, ds.components.inlineedit, ds.components.orderedchoice, ds.components.transfer, ds.components.typeconfirm, ds.components.errorsummary, ds.components.search, ds.components.meter, ds.components.bar-list, ds.components.category-bar, ds.components.lozenge, ds.components.result, ds.components.formatted, ds.components.kbd, ds.components.truncate, ds.components.expandable, ds.components.hits, ds.components.tracker, ds.components.labelgroup, ds.components.image, ds.components.composer, ds.components.message, ds.components.transcript, ds.components.suggestions, ds.components.feedback, ds.components.ailabel, ds.components.tearsheet, ds.components.loadingoverlay, ds.components.lightbox, ds.components.bottomsheet, ds.components.highlight, ds.components.markdown, ds.components.code, ds.components.toc, ds.components.backtop, ds.components.diff, ds.components.logview, ds.components.object, ds.components.terminal, ds.components.shimmer, ds.components.wheel, ds.components.thinking, ds.components.toolcall, ds.components.reasoning, ds.components.cite, ds.components.plan, ds.components.question, ds.components.usage, ds.components.presence, ds.components.avatar, ds.components.persona, ds.components.media, ds.components.levelmeter, ds.components.command, ds.components.shortcuts, ds.components.banner, ds.components.notifications, ds.components.ripple;
 
 @layer ds.components.form {
   /* A dialog's box that is the form (<form class="ds-dialog__box ds-form">)
@@ -854,6 +859,149 @@
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v6l4 2'/%3E%3C/svg%3E") center / 20px no-repeat;
   }
 
+  /*
+   * A customizable select (.ds-select on a select.ds-input): where
+   * appearance: base-select exists, the list opens as the system's own
+   * picker, a popup on the menu's surface with rows of the menu's height,
+   * a check before the chosen row and option content of any markup (an
+   * icon, a second line), shown in the field through <selectedcontent>.
+   * Elsewhere it is the styled native select above, with the platform's
+   * list. The keyboard, type-ahead, form value and validation are the
+   * engine's either way.
+   */
+  @supports (appearance: base-select) {
+    select.ds-select,
+    select.ds-select::picker(select) {
+      appearance: base-select;
+    }
+
+    select.ds-select {
+      display: flex;
+      align-items: center;
+      gap: var(--ds-space-2);
+      /* The engine's chevron sits in the flow: both ends take the field's
+         padding again (both sides, so the physical room of the triangle
+         rule goes in either direction). */
+      padding-inline: var(--_px);
+      background-image: none;
+    }
+
+    /* The engine's chevron in the quieter ink, turned while the list is open. */
+    select.ds-select::picker-icon {
+      color: var(--ds-text-2);
+      transition: rotate var(--ds-dur-medium) var(--ds-ease-spatial);
+    }
+
+    select.ds-select:open::picker-icon {
+      rotate: 180deg;
+    }
+
+    select.ds-select > button {
+      display: contents;
+    }
+
+    select.ds-select selectedcontent {
+      display: flex;
+      flex: 1 1 auto;
+      align-items: center;
+      gap: var(--ds-space-2);
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    select.ds-select::picker(select) {
+      margin-block: var(--ds-space-1);
+      padding-block: calc(var(--ds-space-2) + var(--ds-density, 0) * 2px);
+      border: 0;
+      border-radius: calc(var(--ds-radius-xs) * var(--ds-shape, 1));
+      background: var(--ds-surface-popover);
+      color: var(--ds-text);
+      box-shadow: var(--ds-elev-popover);
+      /* Invisible; forced colours paint it, so the list keeps an edge. */
+      outline: 1px solid transparent;
+      opacity: 1;
+      transition:
+        opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+        display var(--ds-dur-fast) allow-discrete,
+        overlay var(--ds-dur-fast) allow-discrete;
+    }
+
+    @starting-style {
+      select.ds-select:open::picker(select) {
+        opacity: 0;
+      }
+    }
+
+    select.ds-select:not(:open)::picker(select) {
+      opacity: 0;
+      transition-duration: var(--ds-dur-instant);
+    }
+
+    /* A row: the menu's height at every size and density, the check first. */
+    select.ds-select option {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: var(--ds-space-3);
+      min-height: max(var(--ds-target-min, 0px), calc(var(--ds-menu-item-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
+      padding: 0 var(--ds-space-3);
+      font: var(--ds-input-font, var(--ds-size-font, var(--ds-font-body)));
+      outline: none;
+    }
+
+    select.ds-select option::checkmark {
+      color: var(--ds-primary);
+    }
+
+    /* The chosen row says so by its check and its weight, never the tint alone. */
+    select.ds-select option:checked {
+      font-weight: var(--ds-weight-label);
+    }
+
+    select.ds-select option::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: currentColor;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+    }
+
+    @media (hover: hover) {
+      select.ds-select option:hover::before {
+        opacity: var(--ds-state-hover);
+      }
+    }
+
+    select.ds-select option:focus-visible::before {
+      opacity: var(--ds-state-focus);
+      transition-duration: 0s;
+    }
+
+    select.ds-select option:disabled {
+      color: var(--ds-disabled-ink, var(--ds-text-2));
+    }
+
+    select.ds-select option > svg {
+      flex: none;
+      color: var(--ds-text-2);
+    }
+
+    @media (forced-colors: active) {
+      select.ds-select option:checked {
+        background: SelectedItem;
+        color: SelectedItemText;
+      }
+
+      select.ds-select option:focus-visible {
+        outline: 2px solid CanvasText;
+        outline-offset: -2px;
+      }
+    }
+  }
+
   /* Firefox: no dotted inner focus line. */
   select.ds-input:-moz-focusring {
     color: transparent;
@@ -1276,76 +1424,6 @@
   /* Not while the input has the focus: the focus line stays. */
   .ds-field--inset:has(> .ds-input:is(:disabled, [readonly], [aria-readonly="true"]):not(:focus), > .ds-input-group > .ds-input:is(:disabled, [readonly], [aria-readonly="true"]):not(:focus))::before {
     box-shadow: inset 0 -1px 0 0 var(--ds-line);
-  }
-
-  /*
-   * Composer: a message field with its actions (send, attach) in one
-   * filled shell. The textarea grows with its text (.ds-input--grow) up to
-   * --ds-composer-max-height; the actions stay at the bottom. The ring
-   * follows the field model on the shell: at once while focus is inside,
-   * fading back on blur.
-   */
-  .ds-composer {
-    display: flex;
-    align-items: flex-end;
-    gap: var(--ds-space-1);
-    min-width: 0;
-    padding-block: var(--ds-space-1);
-    padding-inline: var(--ds-space-4) var(--ds-space-1);
-    border: 1px solid transparent;
-    border-radius: calc(var(--ds-composer-radius, var(--ds-radius-2xl)) * var(--ds-shape, 1));
-    background: var(--ds-surface-high);
-    color: var(--ds-text);
-    transition:
-      border-color var(--ds-dur-fast) var(--ds-ease-in-out),
-      background-color var(--ds-dur-fast) var(--ds-ease-in-out),
-      box-shadow var(--ds-dur-fast) var(--ds-ease-in-out);
-  }
-
-  .ds-composer:focus-within {
-    border-color: var(--ds-input-focus-color, var(--ds-primary));
-    background: var(--ds-surface);
-    box-shadow: inset 0 0 0 1px var(--ds-input-focus-color, var(--ds-primary));
-    transition-duration: 0s;
-  }
-
-  .ds-composer > .ds-composer__input {
-    --_box: max(var(--ds-target-min, 0px), calc(var(--ds-input-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
-    flex: 1 1 auto;
-    min-width: 0;
-    min-height: var(--_box);
-    max-height: var(--ds-composer-max-height, 220px);
-    margin: 0;
-    padding: max(0px, calc((var(--_box) - 1lh) / 2)) 0;
-    border: 0;
-    background: transparent;
-    color: var(--ds-text);
-    font: var(--ds-input-font, var(--ds-size-font, var(--ds-font-body)));
-    font-weight: var(--ds-input-weight, var(--ds-weight-regular));
-    resize: none;
-  }
-
-  .ds-composer__input:focus {
-    outline: none;
-  }
-
-  /* On the tonal fill text-3 falls short of 4.5:1; text-2 keeps it. */
-  .ds-composer__input::placeholder {
-    color: var(--ds-text-2);
-    opacity: 1;
-  }
-
-  .ds-composer > .ds-btn {
-    flex: none;
-  }
-
-  @media (max-width: 600px) {
-    /* 2px more than the box asks for, around the taller line: 44px at md. */
-    .ds-composer > .ds-composer__input {
-      padding-block: max(0px, calc((var(--_box) - 1lh) / 2 + 2px));
-      font: var(--ds-input-font, var(--ds-font-input));
-      font-weight: var(--ds-input-weight, var(--ds-weight-regular));
-    }
   }
 
   /* ── Checkbox and radio cards ─────────────────── */
@@ -2179,8 +2257,7 @@
     .ds-input[type="date"]:focus-within,
     .ds-input:is([type="datetime-local"], [type="month"], [type="week"], [type="time"]):focus-within,
     .ds-input-group:has(> .ds-input:focus),
-    .ds-field--inset:has(> .ds-input:focus, > .ds-input-group > .ds-input:focus)::before,
-    .ds-composer:focus-within {
+    .ds-field--inset:has(> .ds-input:focus, > .ds-input-group > .ds-input:focus)::before {
       outline: 2px solid Highlight;
       outline-offset: -2px;
     }

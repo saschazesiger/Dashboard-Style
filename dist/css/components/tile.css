@@ -7,7 +7,7 @@
  *   <div class="ds-tiles">
  *     <div class="ds-tile">
  *       <p class="ds-tile__label">[icon] <span>Open items</span></p>
- *       <p class="ds-tile__value">128</p>
+ *       <p class="ds-tile__value"><span class="ds-tile__figure">128</span><span class="ds-tile__unit">GB</span></p>
  *       <p class="ds-tile__delta ds-tone-success">[icon arrowUp 16]<span>12% more</span></p>
  *       <p class="ds-tile__note">Target 140</p>
  *       <div class="ds-tile__trend">[a sparkline: .ds-columns--mini, or the project's own]</div>
@@ -26,7 +26,8 @@
  * not morph; an aria-disabled one keeps its focus layer.
  *
  * Values (docs/motion.md, "Data motion"): every new value goes through
- * DS.motion.countUp(el, next), which counts from the figure on screen
+ * DS.motion.countUp(el, next) (el the value, or its .ds-tile__figure when
+ * it has a unit), which counts from the figure on screen
  * (the first call from 0) on --ds-ease-value over --ds-dur-glide,
  * retargets mid-count and gives assistive technology the final value. A
  * meter or progress bar set in the same task lands on the same frame. The
@@ -44,6 +45,18 @@
  * A value that does not fit ends in an ellipsis (the last resort: shorten
  * figures, the full value in data-tip). .ds-tile__value--empty: a value
  * that is missing ("No data"), in --ds-text-2 with the display font.
+ *
+ * The unit (.ds-tile__unit, inside the value): a short unit after the
+ * figure ("GB", "ms", "%"), in the subtitle type and --ds-text-2, so the
+ * figure stays the thing to read. With a unit the figure has an element
+ * of its own, .ds-tile__figure, and countUp() runs on that: it writes
+ * textContent, which on the value would take the unit with it.
+ *
+ * The target (.ds-tile__target): a .ds-meter (with a .ds-meter__threshold
+ * at the target's share, meter.css) and one line of words under it,
+ * .ds-tile__target-text ("92% of the target of 140"). The meter has its own
+ * name and value text; the words say whether the target is met, never the
+ * mark or the colour alone.
  *
  * The delta (.ds-tile__delta): how the figure moved, always an arrow and a
  * word. Without a tone it stays quiet; a .ds-tone-* on the delta itself
@@ -73,7 +86,7 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
+@layer ds.components.global, ds.components.layout, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.calendar, ds.components.container, ds.components.loadmore, ds.components.popover, ds.components.splitpane, ds.components.upload, ds.components.datefield, ds.components.kveditor, ds.components.listdetail, ds.components.sort, ds.components.text, ds.components.toggletip, ds.components.dashpanel, ds.components.filterbar, ds.components.picker, ds.components.spacing, ds.components.wizard, ds.components.facets, ds.components.sticky, ds.components.timepicker, ds.components.unsaved, ds.components.datepicker, ds.components.print, ds.components.query, ds.components.views, ds.components.datagrid, ds.components.daterange, ds.components.timerange, ds.components.duration, ds.components.link, ds.components.toggle, ds.components.button-group, ds.components.menubutton, ds.components.splitbutton, ds.components.copy, ds.components.prioritybar, ds.components.listbox, ds.components.number, ds.components.tree, ds.components.choices, ds.components.jsonview, ds.components.password, ds.components.auditlog, ds.components.secret, ds.components.taginput, ds.components.otp, ds.components.selectpanel, ds.components.inlineedit, ds.components.orderedchoice, ds.components.transfer, ds.components.typeconfirm, ds.components.errorsummary, ds.components.search, ds.components.meter, ds.components.bar-list, ds.components.category-bar, ds.components.lozenge, ds.components.result, ds.components.formatted, ds.components.kbd, ds.components.truncate, ds.components.expandable, ds.components.hits, ds.components.tracker, ds.components.labelgroup, ds.components.image, ds.components.composer, ds.components.message, ds.components.transcript, ds.components.suggestions, ds.components.feedback, ds.components.ailabel, ds.components.tearsheet, ds.components.loadingoverlay, ds.components.lightbox, ds.components.bottomsheet, ds.components.highlight, ds.components.markdown, ds.components.code, ds.components.toc, ds.components.backtop, ds.components.diff, ds.components.logview, ds.components.object, ds.components.terminal, ds.components.shimmer, ds.components.wheel, ds.components.thinking, ds.components.toolcall, ds.components.reasoning, ds.components.cite, ds.components.plan, ds.components.question, ds.components.usage, ds.components.presence, ds.components.avatar, ds.components.persona, ds.components.media, ds.components.levelmeter, ds.components.command, ds.components.shortcuts, ds.components.banner, ds.components.notifications, ds.components.ripple;
 
 @layer ds.components.tile {
   /* Intrinsic columns: as many tiles per row as fit at their smallest width,
@@ -268,6 +281,34 @@
     border-radius: calc(var(--ds-radius-chip) * var(--ds-shape, 1));
     background: var(--ds-tone-container);
     color: var(--ds-on-tone-container);
+  }
+
+  /* A unit after the figure: quieter, and as large as it can be beside a
+     figure that shrinks with its tile. */
+  /* The figure beside a unit: what countUp() writes. Tabular, as the value. */
+  .ds-tile__figure {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ds-tile__unit {
+    margin-inline-start: var(--ds-space-1);
+    color: var(--ds-text-2);
+    font: var(--ds-font-subtitle);
+    letter-spacing: 0;
+  }
+
+  /* The target: a meter and its words, under the figure. */
+  .ds-tile__target {
+    display: grid;
+    gap: var(--ds-space-1);
+    margin-top: var(--ds-space-2);
+  }
+
+  .ds-tile__target-text {
+    margin: 0;
+    color: var(--ds-text-2);
+    font: var(--ds-font-meta);
+    font-variant-numeric: tabular-nums;
   }
 
   /* A meter under the figure: how far it is to its target. */

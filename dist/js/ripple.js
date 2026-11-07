@@ -122,9 +122,11 @@ export const RIPPLE_HOSTS = [
   '.ds-disclosure > summary',
   '.ds-errors summary',
   ':is(button, a).ds-columns__col',
+  '.ds-chart__key',
   ':is(button, a).ds-tile',
   '.ds-list--interactive > .ds-list__item',
   ':is(a, button).ds-kv-list__row',
+  '.ds-list[data-ds-list-select] > .ds-list__item:not(:has(.ds-list__action)):not(:has(> .ds-list__check:disabled))',
   '.ds-card--interactive',
   '.ds-menu__item',
   '.ds-chip',
@@ -139,6 +141,11 @@ export const RIPPLE_HOSTS = [
   '.ds-drawer__item',
   '.ds-drawer__toggle',
   '.ds-tabs__tab',
+  '.ds-steps__link',
+  '.ds-calendar__day',
+  '.ds-picker__preset',
+  '.ds-tree__item:not([aria-disabled="true"]) > .ds-tree__row',
+  '.ds-toc__link',
   '[data-ds-ripple]',
   // /generated: ripple hosts
 ].join(', ');

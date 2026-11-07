@@ -128,7 +128,7 @@ its handle adds `count(value, forms)` and `watch(root, signal)` (chips and Clear
 - **Announcements.** "Removed Status: Online", "Filters cleared" (polite); the page's count follows once the changes
   pause, from the bar and from the sheet.
 - **Strings.** `removeFilter`, `filterRemoved`, `filtersCleared`, `filtersApplied`, `filterChip`, `resultsOne`,
-  `resultsOther`, `showResults`, `rangeFrom`, `rangeTo` and `rangeBetween` of `DS.core.config()`.
+  `resultsOther`, `showResults`, `rangeMin`, `rangeMax` and `rangeBetween` of `DS.core.config()`.
 
 ### Forced colours
 
@@ -152,5 +152,5 @@ the sheet plays the side sheet's motion; the list's change is the page's `DS.mot
   `--ds-filterbar-search-min`, `--ds-filterbar-field-width`, `--ds-filterbar-range-width`): inline filters that fold into a side sheet by the bar's
   width, applied input chips with Clear all, a result count, `ds:filter`; `read()`, `write()`, `applied()`, `fold()` and
   the `filters()` engine. Strings `removeFilter`, `filterRemoved`, `filtersCleared`, `filtersApplied`, `filterChip`,
-  `resultsOne`, `resultsOther`, `showResults`, `rangeFrom`, `rangeTo`, `rangeBetween`.
+  `resultsOne`, `resultsOther`, `showResults`, `rangeMin`, `rangeMax`, `rangeBetween`.
 -->

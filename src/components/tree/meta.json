@@ -1,7 +1,7 @@
 {
   "name": "tree",
   "group": "data",
-  "order": 600,
+  "order": 780,
   "docsOrder": 95,
   "need": "Show a hierarchy that opens and closes: folders, groups, nested records; pick one or check many",
   "tier": 1,

@@ -77,7 +77,10 @@
  * preventDefault() keeps it open) closes the topmost overlay that is not
  * already closing, unless a tooltip took the key or the key came from a
  * filled input[type="search"] inside that overlay (it clears the search
- * and fires input; the next Escape closes); the stack is shared by
+ * and fires input; the next Escape closes), or the layer is non-modal
+ * (a .ds-dialog__box--modeless, a docked sheet panel) and the key came
+ * from a page field outside it (escapeReaches(): the layer under it may
+ * take the key instead); the stack is shared by
  * every copy of ds.js on the page (sharedOf), so the topmost layer closes
  * whichever copy opened it. A native dialog's cancel
  * event is turned into close(), so its exit plays. Closing a dialog, sheet
@@ -302,7 +305,7 @@ const stack = /** @type {Element[]} */ ([]);
  *   never write the same one;
  * - `tipRoots`: the roots tooltips() serves, root element to handle.
  * Copies before 1.6.1 keep their own.
- * @returns {{ order: Array<{ element: Element, open: () => boolean, opener?: () => Element|null, escape: (event: Event) => void }>, lock: { count: number, saved: { gutter: string, padding: string } | null }, seq: number, tipRoots: WeakMap<Element, { destroy: () => void }> }}
+ * @returns {{ order: Array<{ element: Element, open: () => boolean, opener?: () => Element|null, escape: (event: Event) => boolean|undefined }>, lock: { count: number, saved: { gutter: string, padding: string } | null }, seq: number, tipRoots: WeakMap<Element, { destroy: () => void }> }}
  */
 /**
  * The focused element as seen from `node`'s tree: inside a shadow root its
@@ -370,12 +373,34 @@ function enterOrder(element) {
       // A contained dialog owns Escape only inside its container: the host
       // page around an embedded widget keeps the key (its own dialogs, its
       // search fields), also with focus on <body>.
-      if (containedDialog(element) && !inside(containerOf(element), event)) return;
+      if (containedDialog(element) && !inside(containerOf(element), event)) return undefined;
+      // A non-modal layer leaves the key to the page field that has focus.
+      if (!escapeReaches(element, event)) return false;
       // preventDefault() also keeps a native dialog from its own cancel.
       event.preventDefault();
       closeFrom(element, 'escape');
+      return true;
     },
   });
+}
+
+/** The non-modal layers: the page around them stays usable. */
+const NON_MODAL = '.ds-dialog__box--modeless, .ds-sheet__panel--push, .ds-sheet__panel--inspector';
+
+/**
+ * Whether Escape is the layer's: always for a modal one; for a non-modal
+ * layer (WAI-ARIA APG) only from inside it, from its opener or with focus
+ * nowhere (<body>), and for a docked panel also from the content of its
+ * .ds-sheet__layout (an inspector's list keeps the focus). Escape in an
+ * unrelated page field stays that field's.
+ */
+function escapeReaches(element, event) {
+  if (!element.matches?.(NON_MODAL)) return true;
+  const target = /** @type {any} */ (event.composedPath?.()[0] ?? event.target);
+  const doc = element.ownerDocument;
+  if (!target || target === doc || target === doc.body || target === doc.documentElement) return true;
+  const docked = element.matches('.ds-sheet__panel--push, .ds-sheet__panel--inspector') ? element.closest('.ds-sheet__layout') : null;
+  return inside(docked ?? element, event) || inside(overlays.get(element)?.opener ?? null, event);
 }
 
 function leaveOrder(element) {
@@ -552,10 +577,14 @@ export function canFocus(node) {
   return typeof node.getClientRects !== 'function' || node.getClientRects().length > 0;
 }
 
-/** The first tabbable element inside `root`. */
+/**
+ * The first tabbable element inside `root`, a focusable separator (a
+ * sheet's resize handle, the first child of its panel) passed over: the
+ * first focus belongs to the content, not to a handle that only resizes.
+ */
 function firstFocusable(root) {
   for (const node of root.querySelectorAll(FOCUSABLE)) {
-    if (node.getAttribute('tabindex') === '-1') continue;
+    if (node.getAttribute('tabindex') === '-1' || node.getAttribute('role') === 'separator') continue;
     if (canFocus(node)) return node;
   }
   return null;
@@ -974,7 +1003,8 @@ function listen(doc) {
       if (!order[i].open()) continue;
       // A filled search in that layer takes the first Escape: it clears.
       if (clearSearch(order[i].element, event)) return;
-      order[i].escape(event);
+      // false: a non-modal layer left the key to the page; the layer under it may take it.
+      if (order[i].escape(event) === false) continue;
       return;
     }
   });

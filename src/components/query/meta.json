@@ -1,7 +1,7 @@
 {
   "name": "query",
   "group": "forms",
-  "order": 440,
+  "order": 630,
   "docsOrder": 336,
   "need": "Filter with a typed query of tokens such as status:open, with suggestions, operators and saved queries",
   "tier": 1,

@@ -1,7 +1,7 @@
 {
   "name": "dashpanel",
   "group": "layout",
-  "order": 420,
+  "order": 520,
   "docsOrder": 66,
   "need": "Hold one chart, table or list of a dashboard under a title, with a menu and its loading, error and no-data states",
   "tier": 1,

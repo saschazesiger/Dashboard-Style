@@ -1,7 +1,7 @@
 {
   "name": "loadingoverlay",
   "group": "feedback",
-  "order": 1110,
+  "order": 1130,
   "docsOrder": 305,
   "need": "Block one region while work on it runs, with a spinner and a message, and keep the rest of the page usable",
   "tier": 1,

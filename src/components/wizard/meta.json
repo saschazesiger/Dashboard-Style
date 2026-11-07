@@ -1,7 +1,7 @@
 {
   "name": "wizard",
   "group": "forms",
-  "order": 420,
+  "order": 560,
   "docsOrder": 292,
   "need": "Split a long form into steps, each checked before the next, with Back, Next and a summary to review before sending",
   "tier": 1,

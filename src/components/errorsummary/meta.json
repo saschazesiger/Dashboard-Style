@@ -1,7 +1,7 @@
 {
   "name": "errorsummary",
   "group": "forms",
-  "order": 660,
+  "order": 910,
   "docsOrder": 208,
   "need": "Tell what is wrong with a form after a submit: every problem at the top, each a link to its field",
   "tier": 1,

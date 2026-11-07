@@ -1,7 +1,7 @@
 {
   "name": "link",
   "group": "actions",
-  "order": 510,
+  "order": 690,
   "docsOrder": 51,
   "need": "Navigate: a link in text, a standalone link, an external link with its icon, or a quiet secondary link",
   "tier": 1,

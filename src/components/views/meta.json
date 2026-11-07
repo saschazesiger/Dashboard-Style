@@ -1,7 +1,7 @@
 {
   "name": "views",
   "group": "data",
-  "order": 440,
+  "order": 640,
   "docsOrder": 187,
   "need": "Save and share a list's filters, sort and columns as named views, with a default and a link",
   "tier": 1,

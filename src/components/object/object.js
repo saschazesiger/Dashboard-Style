@@ -197,7 +197,7 @@ function controller(article, signal) {
     const inBatch = batch.delete(section);
     const focus = !inBatch && (section.contains(doc.activeElement) || doc.activeElement === doc.body);
     if (!face(section, false, focus)) return false;
-    announce(t('saved', { label: titleOf(section) }));
+    announce(t('sectionSaved', { label: titleOf(section) }));
     syncMode();
     if (inBatch && batch.size === 0) settleBatch();
     return true;

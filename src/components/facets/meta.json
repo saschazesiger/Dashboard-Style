@@ -1,7 +1,7 @@
 {
   "name": "facets",
   "group": "data",
-  "order": 430,
+  "order": 570,
   "docsOrder": 184,
   "need": "Filter a list from a panel of facets beside it: options with counts, a search inside long facets, ranges, applied chips and Clear all; a side sheet on phones",
   "tier": 1,

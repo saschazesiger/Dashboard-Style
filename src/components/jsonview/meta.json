@@ -1,7 +1,7 @@
 {
   "name": "jsonview",
   "group": "data",
-  "order": 610,
+  "order": 800,
   "docsOrder": 96,
   "need": "Read a JSON document: open its levels, search keys and values, copy a value or its path",
   "tier": 1,

@@ -1,7 +1,7 @@
 {
   "name": "bar-list",
   "group": "data",
-  "order": 810,
+  "order": 940,
   "docsOrder": 324,
   "need": "Rank a few categories by a value, each row a label and a figure on a bar",
   "tier": 1,

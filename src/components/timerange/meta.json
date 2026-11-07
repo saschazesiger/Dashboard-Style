@@ -1,8 +1,8 @@
 {
   "name": "timerange",
   "group": "forms",
-  "order": 460,
-  "docsOrder": 237,
+  "order": 670,
+  "docsOrder": 242,
   "need": "Choose the time range of a monitoring view, relative or absolute, and refresh it now or on an interval",
   "tier": 1,
   "status": "beta",

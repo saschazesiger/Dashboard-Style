@@ -1,7 +1,7 @@
 {
   "name": "text",
   "group": "layout",
-  "order": 410,
+  "order": 500,
   "docsOrder": 358,
   "need": "Cut, clamp, break or keep text, set it in the code family or tabular figures, balance a heading",
   "tier": 1,
@@ -17,8 +17,7 @@
     "ds-clamp-5",
     "ds-mono",
     "ds-pretty",
-    "ds-tabular",
-    "ds-truncate"
+    "ds-tabular"
   ],
   "attributes": [],
   "requires": [],

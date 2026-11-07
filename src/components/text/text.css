@@ -1,7 +1,6 @@
 /*
  * Text utilities: how a run of text wraps, cuts and sets its figures.
  *
- *   <span class="ds-truncate">One line, cut with an ellipsis</span>
  *   <p class="ds-clamp-2">At most two lines, then an ellipsis</p>
  *   <p class="ds-clamp" style="--ds-clamp-lines: 7">At most seven</p>
  *   <code class="ds-break">a-hash-or-url-that-breaks-anywhere</code>
@@ -13,13 +12,10 @@
  * .ds-nowrap (keep a value and its unit together) is one of the 2.x
  * utilities and stays there.
  *
- * .ds-truncate and .ds-clamp-* cut what does not fit: put the full text
- * where it can be read (a tooltip through data-tip, a details view, the
- * title of the page it leads to). .ds-truncate is an inline block at most
- * as wide as its container, so it cuts a span in running text, a link or
- * a cell as well as a flex or grid item (min-width: 0 lets a flex item
- * shrink); a heading or paragraph cut on a line of its own carries it on
- * a span inside, so the block keeps its line. On paper both print in full.
+ * .ds-clamp-* cut what does not fit: put the full text where it can be
+ * read (a details view, the title of the page it leads to). One line cut
+ * at its end, start or middle is .ds-truncate (truncate.css, with its
+ * tooltip). On paper the clamps print in full.
  *
  * Options: none read; the text keeps the type role of where it stands
  * (size changes type through the components, not here).
@@ -34,19 +30,6 @@
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
 @layer ds.components.text {
-  /* An inline block: an inline span gets a width to cut at (at most its
-     container's), a flex or grid item is blockified anyway. Its baseline
-     would be its bottom edge (overflow: hidden), so it aligns by that. */
-  .ds-truncate {
-    display: inline-block;
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    vertical-align: bottom;
-  }
-
   /* A fixed number of lines, then an ellipsis: the prefixed box is the one
      form every engine at the floor clamps with. */
   .ds-clamp,
@@ -114,11 +97,6 @@
 
   /* Paper is as wide as it is: cut text prints in full. */
   @media print {
-    .ds-truncate {
-      overflow: visible;
-      white-space: normal;
-    }
-
     .ds-clamp,
     .ds-clamp-1,
     .ds-clamp-2,

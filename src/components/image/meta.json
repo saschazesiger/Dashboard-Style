@@ -1,7 +1,7 @@
 {
   "name": "image",
   "group": "content",
-  "order": 920,
+  "order": 1050,
   "docsOrder": 125,
   "need": "Show a picture in a frame of a fixed shape, cropped or fitted, lazy, with words where it fails and a caption",
   "tier": 1,

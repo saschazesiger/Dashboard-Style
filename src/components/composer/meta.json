@@ -1,7 +1,7 @@
 {
   "name": "composer",
   "group": "forms",
-  "order": 930,
+  "order": 1060,
   "docsOrder": 920,
   "need": "Write a message: a field that grows, attachments as chips, slash commands, mentions, send and stop, drafts",
   "tier": 1,

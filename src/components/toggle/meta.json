@@ -1,7 +1,7 @@
 {
   "name": "toggle",
   "group": "actions",
-  "order": 520,
+  "order": 700,
   "docsOrder": 52,
   "need": "Turn an option on or off with a button, or pick one or several in a set of toggle buttons",
   "tier": 1,

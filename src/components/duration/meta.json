@@ -1,8 +1,8 @@
 {
   "name": "duration",
   "group": "forms",
-  "order": 470,
-  "docsOrder": 238,
+  "order": 680,
+  "docsOrder": 243,
   "need": "Type a length of time as people write it (1h 30m, 90 min) and keep it as ISO 8601",
   "tier": 2,
   "status": "beta",
