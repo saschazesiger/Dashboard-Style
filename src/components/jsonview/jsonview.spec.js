@@ -183,6 +183,45 @@ test('expand all opens every level within its limit, collapse all closes them', 
   await expect(quiet.locator('.ds-jsonview__bar')).toBeHidden();
 });
 
+test('large: after Expand all an arrow key costs no pass over every row', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(async () => {
+    const el = document.createElement('div');
+    el.className = 'ds-jsonview';
+    el.setAttribute('role', 'region');
+    el.setAttribute('aria-label', 'Large');
+    document.querySelector('#fx-component').append(el);
+    const value = Array.from({ length: 90 }, (_, index) => ({ id: index, name: `DEVICE-${index}`, owner: { name: 'Ada Lovelace', team: 'Lab' }, tags: ['lab', 'loan'], ports: [1, 2] }));
+    const view = DS.jsonview.create(el, { value, open: 1 });
+    view.expandAll();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const rows = el.querySelectorAll('[role="treeitem"]').length;
+    const first = el.querySelector('[role="treeitem"]');
+    first.focus();
+    // The DOM queries the presses make: a pass over every row makes thousands each, a move of the tab stop a few.
+    // Counted, not timed, so a busy machine cannot fail it.
+    let queries = 0;
+    const originals = { one: Element.prototype.querySelector, all: Element.prototype.querySelectorAll };
+    Element.prototype.querySelector = function (...args) { queries += 1; return originals.one.apply(this, args); };
+    Element.prototype.querySelectorAll = function (...args) { queries += 1; return originals.all.apply(this, args); };
+    const start = performance.now();
+    try {
+      for (let step = 0; step < 20; step += 1) document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+    } finally {
+      Element.prototype.querySelector = originals.one;
+      Element.prototype.querySelectorAll = originals.all;
+    }
+    const time = performance.now() - start;
+    const moved = document.activeElement !== first && el.contains(document.activeElement);
+    view.destroy();
+    el.remove();
+    return { rows, time, queries, moved };
+  });
+  expect(result.rows).toBeGreaterThan(1000);
+  expect(result.moved).toBe(true);
+  expect(result.queries, `${result.queries} queries in ${Math.round(result.time)}ms`).toBeLessThan(20 * 20);
+});
+
 test('text that is no JSON says where, in words, and sets data-state="error"', async ({ page }) => {
   await open(page);
   const broken = viewer(page, 'broken');
@@ -206,7 +245,7 @@ test('a row at every size x density: 8px per size, 4px per density from 32px, .d
         for (const [size] of sizes) {
           const region = document.createElement('div');
           region.className = `${density} ${size}${touch ? ' ds-touch' : ''}`;
-          region.innerHTML = '<div class="ds-jsonview" aria-label="Probe"></div>';
+          region.innerHTML = '<div class="ds-jsonview" role="region" aria-label="Probe"></div>';
           document.querySelector('#fx-component').append(region);
           const view = DS.jsonview.create(region.firstChild, { value: { a: 1 }, search: false });
           const label = region.querySelector('.ds-tree__label');

@@ -37,18 +37,18 @@ SG.demo('jsonview', {
   options: { sizes: true, density: true, shape: true, tones: false },
 
   render: function (h) {
-    return h.section('A record', '<div class="ds-jsonview" data-ds-jsonview data-ds-jsonview-open="2" aria-label="Response of GET /devices/42" data-demo="device">' +
+    return h.section('A record', '<div class="ds-jsonview" role="region" data-ds-jsonview data-ds-jsonview-open="2" aria-label="Response of GET /devices/42" data-demo="device">' +
         '<script type="application/json">' + DEVICE_JSON + '</script></div>',
         'Two levels open. The id is beyond 2^53: it shows and copies with every digit. Search "lovelace", then Enter and Shift+Enter walk the matches. The copy buttons show on the row under the pointer, the focused row and the chosen one.') +
 
-      h.section('Large', '<div class="ds-jsonview" aria-label="Event log of LAPTOP-0042" data-demo="log" style="--ds-jsonview-max-height: 24rem"></div>',
+      h.section('Large', '<div class="ds-jsonview" role="region" aria-label="Event log of LAPTOP-0042" data-demo="log" style="--ds-jsonview-max-height: 24rem"></div>',
         'Set from the page with DS.jsonview.create(el, { value }). The 250 events open into ranges of 100; the rows scroll inside the viewer past --ds-jsonview-max-height.') +
 
-      h.section('Without the bar', '<div class="ds-jsonview" data-ds-jsonview data-ds-jsonview-search="off" aria-label="Webhook body" data-demo="quiet">' +
+      h.section('Without the bar', '<div class="ds-jsonview" role="region" data-ds-jsonview data-ds-jsonview-search="off" aria-label="Webhook body" data-demo="quiet">' +
         '<script type="application/json">{"event":"device.updated","device":{"id":42,"name":"LAPTOP-0042"},"changes":["owner"]}</script></div>',
         'data-ds-jsonview-search="off": for a short body.') +
 
-      h.section('Not JSON', '<div class="ds-jsonview" data-ds-jsonview aria-label="Pasted configuration" data-demo="broken">' +
+      h.section('Not JSON', '<div class="ds-jsonview" role="region" data-ds-jsonview aria-label="Pasted configuration" data-demo="broken">' +
         '<script type="application/json">{\n  "retries": 3,\n  "timeout" 30\n}</script></div>',
         'The error says where the text stops being JSON, with an icon and in words.') +
 

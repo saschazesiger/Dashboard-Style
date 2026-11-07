@@ -4,7 +4,7 @@ A JSON document to read: its levels open and close, a search marks keys and valu
 path. For a payload, a webhook body, a record's raw data or a configuration.
 
 ```html
-<div class="ds-jsonview" data-ds-jsonview aria-label="Response of GET /devices/42">
+<div class="ds-jsonview" role="region" data-ds-jsonview aria-label="Response of GET /devices/42">
   <!-- the JSON, in a script element of type application/json -->
 </div>
 ```
@@ -80,8 +80,9 @@ the tree on its rows (`ds:toggle`, `ds:select`).
 
 The rows are the tree view's: one tab stop, `↑` `↓` walk, `→` opens or enters, `←` closes or goes up, `Home` `End`,
 `*` opens the siblings, letters jump by key, `Enter` and `Space` choose a row. `Tab` goes from the focused row to its copy
-buttons, then on. The field, the count and the buttons come first. Name the viewer (`aria-label` or
-`aria-labelledby`): the tree takes its name; each item is named by its key and value ("owner: {…}"), and each copy
+buttons, then on. The field, the count and the buttons come first. The viewer is a named region (`role="region"` with
+`aria-label` or `aria-labelledby`: a plain `div` may not carry a name), which holds the search bar and the tree; the tree
+takes its name; each item is named by its key and value ("owner: {…}"), and each copy
 button by what it copies ("Copy the value of owner").
 
 ### Forced colours

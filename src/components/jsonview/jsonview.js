@@ -7,7 +7,7 @@
  * shows and copies exactly; large objects render only what opens, and a
  * container of more than 100 entries opens into ranges of them.
  *
- *   <div class="ds-jsonview" data-ds-jsonview aria-label="Response of GET /devices/42">
+ *   <div class="ds-jsonview" role="region" data-ds-jsonview aria-label="Response of GET /devices/42">
  *     <script type="application/json">{ "id": 42, "name": "LAPTOP-0042", "tags": ["lab", "loan"] }</script>
  *   </div>
  *   const view = DS.jsonview.create(el, { value: payload, open: 2 });
