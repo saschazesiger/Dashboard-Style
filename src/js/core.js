@@ -153,6 +153,7 @@ const DEFAULT_STRINGS = Object.freeze({
   dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
   moreTabs: 'More tabs',
   tabClosed: '{label} closed',
+  closeTab: 'Close {label}',
   moreActions: 'More actions',
   backToTop: 'Back to top',
   editing: 'Editing {label}',

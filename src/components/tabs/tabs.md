@@ -68,8 +68,10 @@ controller) does what 2.x pages wired by hand:
   button when no tab is left), and a screen reader hears "{label} closed" (the string `tabClosed`). The overlays' own
   `ds:close` bubbles too: check `event.target` when you listen above the row.
 - **Adding.** A `.ds-tabs__add` button in the `.ds-tabs__bar` sends `ds:add` on the row; the page calls `add()`,
-  which writes a tab (closable unless `closable: false`) and an empty panel after the last one, and selects and
-  focuses it.
+  which writes a tab (closable unless `closable: false`) and a panel after the last one, and selects and focuses it.
+  The panel of a tab that closes holds its named close action, a `.ds-btn--text` with `data-ds-tabs-close` ("Close
+  June", the string `closeTab`): the page puts its content before it (`panel.prepend()`). A page that passes its own
+  `panel` writes that action itself.
 - **Overflow into "More".** With `data-ds-tabs-overflow` (`overflow: true`) on a row in a `.ds-tabs__bar`, the tabs
   that do not fit the bar hide (`hidden` on the tab or its `.ds-tabs__item`) and a "More" button after the last one
   (`.ds-tabs__more`, the string `more`, named "More tabs", `moreTabs`) opens a `.ds-menu` of them, with their icons
@@ -88,7 +90,7 @@ controller) does what 2.x pages wired by hand:
 ```js
 row.addEventListener('ds:add', () => {
   const { panel } = DS.get(row, 'tabs').add({ label: 'June' });
-  panel.append(renderReport('June'));
+  panel.prepend(renderReport('June')); // before the "Close June" action add() wrote
 });
 row.addEventListener('ds:close', (event) => {
   if (unsaved(event.detail.panel)) event.preventDefault();
@@ -191,5 +193,5 @@ its place at once (layout never animates) and the indicator glides to it.
 - Tabs: `data-ds-tabs` (`DS.tabs`, `tabs.js`): selection, the keyboard, panels kept alive (`first` in `ds:change`),
   the indicator, closing (`ds:close`, cancelable; Delete, the close button, `data-ds-tabs-close` in a panel), adding
   (`.ds-tabs__add`, `ds:add`, `add()`) and the overflow into a "More" menu (`data-ds-tabs-overflow`,
-  `.ds-tabs__bar`, `.ds-tabs__more`). New strings `moreTabs`, `tabClosed`.
+  `.ds-tabs__bar`, `.ds-tabs__more`). New strings `moreTabs`, `tabClosed`, `closeTab`.
 -->

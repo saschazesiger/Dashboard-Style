@@ -130,7 +130,7 @@ SG.demo('tabs', {
       text.className = 'ds-muted';
       text.textContent = 'A new report for ' + label + '.';
       made.panel.style.paddingBlockStart = 'var(--ds-space-4)';
-      made.panel.append(text);
+      made.panel.prepend(text);
     });
 
     var links = h.$('[data-demo="links"]', root);

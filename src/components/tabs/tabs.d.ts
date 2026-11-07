@@ -32,7 +32,7 @@ export interface TabsAddSpec {
   closable?: boolean;
   /** Select and focus it (default true). */
   select?: boolean;
-  /** Its panel; default an empty .ds-tabs__panel after the last panel. */
+  /** Its panel; default a .ds-tabs__panel after the last panel, holding the named close action (data-ds-tabs-close) when the tab closes. */
   panel?: HTMLElement;
 }
 

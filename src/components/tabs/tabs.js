@@ -33,7 +33,8 @@
  *   its panel go, a neighbour takes the selection when the selected one
  *   closed, the focus stays in the row and a screen reader hears it.
  * - Adding: a .ds-tabs__add button in the bar sends ds:add on the row; the
- *   page appends a tab (add() writes one) and selects it.
+ *   page appends a tab (add() writes one, and for a tab that closes a panel
+ *   with its named close action) and selects it.
  * - Overflow (data-ds-tabs-overflow, in a .ds-tabs__bar, not in a vertical
  *   row): the tabs that do not fit the bar's width hide and a "More" button
  *   after the last one lists them in a menu (DS.menu, so DS.overlay opens
@@ -281,8 +282,12 @@ function controller(list, options, signal) {
   };
 
   /**
-   * Writes a new tab (and, unless one is given, its empty panel) at the end of
-   * the row, and selects it unless `select: false`.
+   * Writes a new tab (and, unless one is given, its panel) at the end of the
+   * row, and selects it unless `select: false`. The panel it writes for a tab
+   * that closes holds the named close action ([data-ds-tabs-close], the string
+   * closeTab): the close button beside the tab is for the pointer only, so
+   * this action is how a screen reader on a touch screen closes the tab. The
+   * page puts its content before it (panel.prepend()).
    * @param {{ label: string, id?: string, closable?: boolean, select?: boolean, panel?: HTMLElement }} spec
    */
   const add = (spec) => {
@@ -304,6 +309,14 @@ function controller(list, options, signal) {
       panel.setAttribute('role', 'tabpanel');
       panel.tabIndex = 0;
       panel.hidden = true;
+      if (spec.closable !== false) {
+        const action = doc.createElement('button');
+        action.className = 'ds-btn ds-btn--text';
+        action.type = 'button';
+        action.setAttribute('data-ds-tabs-close', '');
+        action.textContent = t('closeTab', { label: spec.label });
+        panel.append(action);
+      }
     }
     if (!panel.id) panel.id = `${id}-panel`;
     panel.setAttribute('aria-labelledby', id);
@@ -442,12 +455,18 @@ function controller(list, options, signal) {
   }
 
   /* Events on the row. */
+  // The close button is aria-hidden: a press must not focus it (the focus
+  // would sit outside the accessibility tree when ds:close is cancelled).
+  list.addEventListener('mousedown', (event) => {
+    const closer = /** @type {Element} */ (event.target)?.closest?.('.ds-tabs__close');
+    if (closer && list.contains(closer)) event.preventDefault();
+  }, listen);
   list.addEventListener('click', (event) => {
     const target = /** @type {Element} */ (event.target);
     const closer = target?.closest?.('.ds-tabs__close');
     if (closer && list.contains(closer)) {
       const tab = closer.parentElement?.querySelector(':scope > .ds-tabs__tab');
-      if (tab) closeTab(tab);
+      if (tab && !closeTab(tab) && closer.contains(doc.activeElement)) /** @type {HTMLElement} */ (tab).focus();
       return;
     }
     if (!aria) return;

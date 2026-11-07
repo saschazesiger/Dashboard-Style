@@ -254,6 +254,10 @@ test('tabs that close: room for the button, a click and Delete close, the focus 
   // The last tab stays, also from its panel's action.
   await page.getByRole('tabpanel', { name: 'May' }).getByRole('button', { name: 'Close May' }).click();
   await expect(row.locator('[role="tab"]')).toHaveCount(1);
+  // ... and from its close button: the press never leaves the focus on that aria-hidden button.
+  await closeButtons.first().click();
+  await expect(row.locator('[role="tab"]')).toHaveCount(1);
+  expect(await closeButtons.first().evaluate((el) => el.contains(document.activeElement))).toBe(false);
 
   // Under .ds-touch the button is a finger's target and the tab keeps room for it.
   await row.evaluate((el) => el.classList.add('ds-touch'));
@@ -450,11 +454,25 @@ test('adding: the add button sends ds:add, add() writes a tab that closes, selec
   await expect(panel).toBeVisible();
   await expect(panel).toHaveAttribute('role', 'tabpanel');
   await expect(panel).toHaveAttribute('aria-labelledby', await added.getAttribute('id'));
+  // The panel holds the named close action, after the page's content: the one way a screen reader on a touch screen closes it.
+  const label = await added.getAttribute('data-label');
+  const action = panel.getByRole('button', { name: `Close ${label}` });
+  await expect(action).toBeVisible();
+  await expect(action).toHaveAttribute('data-ds-tabs-close', '');
+  expect(await panel.evaluate((el) => el.lastElementChild.matches('[data-ds-tabs-close]') && el.firstElementChild.matches('p'))).toBe(true);
   // Delete closes it again; the neighbour takes the selection and a screen reader hears it.
   await page.keyboard.press('Delete');
   await expect(row.getByRole('tab')).toHaveCount(2);
   await expect(row.getByRole('tab').nth(1)).toBeFocused();
   await expect(page.locator('[aria-live]').filter({ hasText: /closed$/ })).toHaveCount(1);
+  // A second one closes from its panel's action.
+  await add.click();
+  await expect(row.getByRole('tab')).toHaveCount(3);
+  const second = row.getByRole('tab').nth(2);
+  const secondPanel = page.locator(`#${await second.getAttribute('aria-controls')}`);
+  await secondPanel.getByRole('button', { name: `Close ${await second.getAttribute('data-label')}` }).click();
+  await expect(row.getByRole('tab')).toHaveCount(2);
+  await expect(secondPanel).toHaveCount(0);
 });
 
 test('the behaviour: ds:change with first, panels kept alive (fields and scroll), manual activation, get/set, destroy', async ({ page }) => {
