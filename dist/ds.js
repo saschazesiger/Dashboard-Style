@@ -20766,28 +20766,40 @@
 
       /* Events. */
       const options = { signal };
-      frame.addEventListener('pointermove', (event) => {
-        if (!spec.tooltip || viewMode !== 'chart') return;
-        const hit = pointerIndex(event);
-        if (!hit) {
-          if (!frame.contains(doc.activeElement)) hideCursor();
-          return;
-        }
-        moveTo(hit.index, -1, false, { x: hit.x, y: hit.y });
-      }, options);
-      frame.addEventListener('pointerleave', (event) => {
-        if (event.pointerType === 'touch') return;
-        // The keyboard's cursor stays when the pointer leaves; a click's focus does not hold it.
-        if (!frame.matches(':focus-visible')) {
-          cursor.active = false;
-          hideCursor();
-        } else showCursor(false);
-      }, options);
-      frame.addEventListener('pointerdown', (event) => {
-        if (event.pointerType !== 'touch' || !spec.tooltip) return;
-        const hit = pointerIndex(event);
-        if (hit) moveTo(hit.index, -1, false, { x: hit.x, y: hit.y });
-      }, options);
+      /*
+       * The pointer listeners come in a microtask, after the task that made the
+       * chart (no event can come before it). In WebKit, once an SVG <text> (a
+       * tick) is in the page, every pointer, touch or wheel listener added
+       * costs a layout of the whole page at the next layout read: the first
+       * render's own read, and the next chart's, paid it once per chart. Added
+       * after the task, the charts a page makes together pay it once.
+       */
+      const pointerEvents = () => {
+        if (destroyed) return;
+        frame.addEventListener('pointermove', (event) => {
+          if (!spec.tooltip || viewMode !== 'chart') return;
+          const hit = pointerIndex(event);
+          if (!hit) {
+            if (!frame.contains(doc.activeElement)) hideCursor();
+            return;
+          }
+          moveTo(hit.index, -1, false, { x: hit.x, y: hit.y });
+        }, options);
+        frame.addEventListener('pointerleave', (event) => {
+          if (event.pointerType === 'touch') return;
+          // The keyboard's cursor stays when the pointer leaves; a click's focus does not hold it.
+          if (!frame.matches(':focus-visible')) {
+            cursor.active = false;
+            hideCursor();
+          } else showCursor(false);
+        }, options);
+        frame.addEventListener('pointerdown', (event) => {
+          if (event.pointerType !== 'touch' || !spec.tooltip) return;
+          const hit = pointerIndex(event);
+          if (hit) moveTo(hit.index, -1, false, { x: hit.x, y: hit.y });
+        }, options);
+      };
+      queueMicrotask(pointerEvents);
       frame.addEventListener('click', (event) => {
         const hit = pointerIndex(event);
         if (!hit || spec.kind === 'gauge' || spec.kind === 'rows') return;
@@ -44096,6 +44108,11 @@
       const measureFold = () => {
         if (!sticky || condensed) return;
         const start = box().scrollTop;
+        // The trial is styled (the reads flush it): without transitions
+        // (data-ds-moving, motion.css), or the hairline and the folding parts
+        // would start toward the condensed look and back on every measure.
+        const settling = !head.hasAttribute('data-ds-moving');
+        if (settling) head.setAttribute('data-ds-moving', '');
         quiet(() => {
           // The head's place in the flow: unstuck for a moment (static ignores its top).
           const before = head.style.position;
@@ -44110,6 +44127,10 @@
           foldHeight = Math.max(0, Math.round(tall - head.getBoundingClientRect().height));
           apply(false);
         });
+        if (settling) {
+          void view.getComputedStyle(head).opacity;
+          head.removeAttribute('data-ds-moving');
+        }
         if (box().scrollTop !== start) box().scrollTop = start;
       };
 
@@ -58011,18 +58032,20 @@
       }, { signal: abort.signal });
 
       read();
-      const top = nav.querySelector('.ds-toc__list');
-      const indicator = top ? createIndicator(top, {
-        active: '.ds-toc__link[aria-current]:not([aria-current="false"])',
-        className: 'ds-toc__indicator',
-        reveal: nav.classList.contains('ds-toc--bar'),
-      }) : null;
       // The markup's own mark first (a server that knows), else what the scroll says.
       const marked = entries.findIndex(({ link }) => { const value = link.getAttribute('aria-current'); return value !== null && value !== 'false'; });
       if (marked >= 0) active = marked;
       observe();
       resize?.observe(scroller ?? doc.documentElement);
       update();
+      // After the first mark: the pill's first placement jumps, so the link
+      // the page loads on is marked in place instead of growing on load.
+      const top = nav.querySelector('.ds-toc__list');
+      const indicator = top ? createIndicator(top, {
+        active: '.ds-toc__link[aria-current]:not([aria-current="false"])',
+        className: 'ds-toc__indicator',
+        reveal: nav.classList.contains('ds-toc--bar'),
+      }) : null;
 
       // Links added or removed: read them again.
       const changes = typeof view.MutationObserver === 'function' ? new view.MutationObserver((records) => {

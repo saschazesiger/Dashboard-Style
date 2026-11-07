@@ -38,6 +38,14 @@ Everything is additive: no 2.x name changes meaning.
 - The wheel and the shimmer ([plans/wheel-and-shimmer.md](plans/wheel-and-shimmer.md)) ship as components:
   `DS.wheel.hooks`, `DS.wheel.roll()` and `DS.wheel.create()` instead of the proposal's `DS.motion.wheelHooks` and
   `DS.motion.wheel()`.
+- **Style cost**: `.ds-cluster--nowrap`, the toggletip in a field and the query's placeholder no longer style the
+  children of an element that `:has()` something: in Chromium that form restyled and laid out the whole page on each
+  DOM change (150 ms and more on the Motion Lab). A nowrap cluster with a title tells its items through the private
+  `--_cluster-shrink`. `[data-ds-moving]` turns off the transitions of `::before` and `::after` too.
+- **Load motion**: the jump links mark the current link before their pill exists, so it is placed, not grown, on load;
+  the page head's measure of what folds runs without transitions (its hairline no longer starts on every measure).
+- **Charts** add their pointer listeners after the task that made them: in WebKit each such listener, once an SVG
+  `<text>` is in the page, cost a layout of the whole page at the next read.
 
 #### Layout and page structure
 

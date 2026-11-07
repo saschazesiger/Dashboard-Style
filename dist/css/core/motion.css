@@ -1224,9 +1224,14 @@
      every sort. It carries data-ds-moving for one style flush: no
      transitions, so data changes glide and never replay an entrance.
      DS.indicator.create() sets it on the track for the flush that
-     gives its items their look under the new pill. */
+     gives its items their look under the new pill. Their ::before and
+     ::after too: a hairline or a state layer is part of the look. */
   :where(.ds-theme) [data-ds-moving],
-  :where(.ds-theme) [data-ds-moving] * {
+  :where(.ds-theme) [data-ds-moving]::before,
+  :where(.ds-theme) [data-ds-moving]::after,
+  :where(.ds-theme) [data-ds-moving] *,
+  :where(.ds-theme) [data-ds-moving] *::before,
+  :where(.ds-theme) [data-ds-moving] *::after {
     transition: none;
   }
 

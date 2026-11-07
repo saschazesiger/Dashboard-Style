@@ -167,6 +167,11 @@ function controller(head, options, signal) {
   const measureFold = () => {
     if (!sticky || condensed) return;
     const start = box().scrollTop;
+    // The trial is styled (the reads flush it): without transitions
+    // (data-ds-moving, motion.css), or the hairline and the folding parts
+    // would start toward the condensed look and back on every measure.
+    const settling = !head.hasAttribute('data-ds-moving');
+    if (settling) head.setAttribute('data-ds-moving', '');
     quiet(() => {
       // The head's place in the flow: unstuck for a moment (static ignores its top).
       const before = head.style.position;
@@ -181,6 +186,10 @@ function controller(head, options, signal) {
       foldHeight = Math.max(0, Math.round(tall - head.getBoundingClientRect().height));
       apply(false);
     });
+    if (settling) {
+      void view.getComputedStyle(head).opacity;
+      head.removeAttribute('data-ds-moving');
+    }
     if (box().scrollTop !== start) box().scrollTop = start;
   };
 

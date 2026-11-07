@@ -65,6 +65,7 @@ const QUIET = [
   [(e) => e.pseudo === '::after' && e.name === 'opacity' && /^t[hd](\.|$)/.test(e.target), 'the hairline of a pinned column shows once its wrapper knows it scrolls (DS.dom.scrollEdges, table.css)'],
   [(e) => /^div\.ds-combo__popup(\.|$)/.test(e.target) && /^ds-(fade|clip)-in$/.test(e.name), 'a combobox list the combobox demo shows open in place (its empty and loading states) plays its entrance'],
   [(e) => /^div\.ds-(dialog|sheet)(\.|$)/.test(e.parent) && /^ds-(fade|grow)-in$/.test(e.name), 'an overlay of the index shown in place by hand plays its entrance keyframes'],
+  [(e) => /^img(\.|$)/.test(e.target) && /^span\.ds-image__frame(\.|$)/.test(e.parent) && e.name === 'opacity', 'a picture in the markup that was not complete when DS.image started fades in once it arrives (image.md, "Motion")'],
 ];
 
 test.describe('quiet load', () => {
@@ -120,6 +121,8 @@ function interactiveKinds(page) {
       if (kinds.has(key)) continue;
       n += 1;
       el.setAttribute('data-review', String(n));
+      // Held by reference too: a row of DS.virtual (the log viewer's lines) is patched in place when its window moves, which drops an attribute its render does not write.
+      ((window.__review ||= {})['data-review'] ||= {})[n] = el;
       kinds.set(key, String(n));
     }
     return [...kinds.values()];
@@ -129,7 +132,7 @@ function interactiveKinds(page) {
 /** The box and the transforms of `[<attribute>=id]`, after scrolling it to the middle of its scroller. */
 function geometry(page, id, scroll, attribute = 'data-review') {
   return page.evaluate(async ({ id: mark, scroll: bring, attribute: name }) => {
-    const el = document.querySelector(`[${name}="${mark}"]`);
+    const el = window.__review?.[name]?.[mark] ?? document.querySelector(`[${name}="${mark}"]`);
     if (bring) {
       el.scrollIntoView({ block: 'center', inline: 'nearest' });
       for (let i = 0; i < 2; i += 1) await new Promise((resolve) => requestAnimationFrame(() => resolve()));
@@ -316,6 +319,12 @@ test.describe('page loads', () => {
     await page.setViewportSize({ width: 1280, height: 3400 });
     await recordReveal(page);
     await open(page, INDEX);
+    // The index's drawer lists every component page: as tall as its list needs.
+    const overflow = await page.evaluate(() => { const nav = document.querySelector('#sg-nav'); return Math.ceil(nav.scrollHeight - nav.clientHeight); });
+    if (overflow > 0) {
+      await page.setViewportSize({ width: 1280, height: 3400 + overflow + 64 });
+      await open(page, INDEX);
+    }
     test.skip(!(await page.evaluate(() => 'onpagereveal' in window)), 'no cross-document View Transitions in this engine');
     for (const [from, link, to] of [[INDEX, 'motion.html', /motion\.html/], [LAB, 'index.html', /index\.html/]]) {
       const label = `${from.split('/').pop()} to ${link}`;

@@ -2227,6 +2227,7 @@
       ],
       "attributes": [
         "data-ds-keep",
+        "data-ds-moving",
         "data-ds-page-head",
         "data-ds-page-head-condense",
         "data-scrolled"
