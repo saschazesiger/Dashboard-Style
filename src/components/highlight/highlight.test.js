@@ -6,7 +6,7 @@
 import { describe, it, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { contrast, pickLightDark, resolveColour } from '../../../scripts/tools/theme-rules.mjs';
+import { contrast, pickLightDark, resolveColour, TEXT_PAIRS } from '../../../scripts/tools/theme-rules.mjs';
 import { KINDS, create, highlight, language, languages, lines, register, tokenize, use } from './highlight.js';
 
 /** The tokens with a kind, as 'kind:text'. */
@@ -319,10 +319,9 @@ describe('speed', () => {
   });
 });
 
-describe('the code roles (meta.json roles, contrast-checked)', () => {
-  // The roles the integrator moves into tokens.css, themes/dark.css and themes/contrast.css: each value must reach
-  // 4.5:1 on --ds-code-bg in the scheme it is for, 7:1 with the contrast theme; and until then the fallbacks of
-  // highlight.css must read on the same ground in every shipped theme.
+describe('the code roles (tokens.css, the shipped themes, contrast-checked)', () => {
+  // Colour roles of tokens.css, with their dark values in themes/dark.css and their contrast values in
+  // themes/contrast.css: each reaches 4.5:1 on --ds-code-bg in the scheme it is for, 7:1 with the contrast theme.
   const root = new URL('../../../', import.meta.url);
   const read = (file) => readFileSync(new URL(file, root), 'utf8');
   /** The custom properties a stylesheet declares outside @media, the last one winning. */
@@ -330,48 +329,43 @@ describe('the code roles (meta.json roles, contrast-checked)', () => {
     const css = read(file).replace(/\/\*[\s\S]*?\*\//g, '').replace(/@media[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '');
     return Object.fromEntries([...css.matchAll(/(--[\w-]+)\s*:\s*([^;{}]+);/g)].map((match) => [match[1], match[2].trim()]));
   };
-  const stack = (scheme, ...files) => {
+  /** The value of a name with `files` loaded after tokens.css, as the scheme of the stack sees a light-dark() pair. */
+  const stack = (...files) => {
     const layers = ['src/core/tokens.css', ...files].map(declared).reverse();
+    const raw = (name) => layers.find((layer) => name in layer)?.[name];
+    const scheme = /\bdark\b/.test(raw('--ds-color-scheme') ?? '') ? 'dark' : 'light';
     return (name) => {
-      for (const layer of layers) if (name in layer) return pickLightDark(layer[name], scheme);
-      return undefined;
+      const value = raw(name);
+      return value === undefined ? undefined : pickLightDark(value, scheme);
     };
   };
-  const meta = JSON.parse(read('src/components/highlight/meta.json'));
-  const roles = Object.entries(meta.roles);
-  const ratio = (fg, lookup) => contrast(resolveColour(fg, lookup), resolveColour('var(--ds-code-bg)', lookup));
+  const css = read('src/components/highlight/highlight.css');
+  const roles = [...new Set([...css.matchAll(/var\((--ds-code-[\w-]+)/g)].map((m) => m[1]))].sort();
+  const ratio = (name, lookup) => contrast(resolveColour(`var(${name})`, lookup), resolveColour('var(--ds-code-bg)', lookup));
 
-  it('requests every role the stylesheet reads, as a text pair on --ds-code-bg', () => {
-    const read_ = [...new Set([...read('src/components/highlight/highlight.css').matchAll(/var\((--ds-code-[\w-]+)/g)].map((m) => m[1]))].sort();
-    assert.deepEqual(roles.map(([name]) => name).sort(), read_);
-    for (const [name, role] of roles) assert.deepEqual(role.pair, [name, '--ds-code-bg', 'text'], name);
+  it('reads every code role plainly, a role of tokens.css with its dark and contrast values and its text pair', () => {
+    assert.equal(roles.length, 10);
+    assert.doesNotMatch(css, /var\(--ds-code-[\w-]+,/, 'roles are read without a fallback');
+    const [tokens, dark, more] = ['src/core/tokens.css', 'themes/dark.css', 'themes/contrast.css'].map(declared);
+    for (const name of roles) {
+      assert.match(tokens[name] ?? '', /^#[0-9a-f]{6}$/, `${name} in tokens.css`);
+      assert.match(dark[name] ?? '', /^#[0-9a-f]{6}$/, `${name} in themes/dark.css`);
+      assert.match(more[name] ?? '', /^light-dark\(#[0-9a-f]{6}, #[0-9a-f]{6}\)$/, `${name} in themes/contrast.css`);
+      assert.ok(TEXT_PAIRS.some(([fg, bg]) => fg === name && bg === '--ds-code-bg'), `${name} on --ds-code-bg in TEXT_PAIRS`);
+    }
+    const meta = JSON.parse(read('src/components/highlight/meta.json'));
+    assert.ok(!('roles' in meta), 'no requested roles left in meta.json');
+    for (const name of roles) assert.ok(!(name in meta.hooks), `${name} is a role, not a hook`);
   });
 
   it('reaches 4.5:1 in light and dark, 7:1 with the contrast theme', () => {
     const failing = [];
-    const check = (label, value, lookup, min) => {
-      const r = ratio(value, lookup);
-      if (r === null || r < min) failing.push(`${label}: ${r === null ? 'not resolved' : r.toFixed(2)} (needs ${min})`);
-    };
-    for (const [name, role] of roles) {
-      check(`${name} light`, role.light, stack('light'), 4.5);
-      check(`${name} dark`, role.dark, stack('light', 'themes/dark.css'), 4.5);
-      check(`${name} contrast light`, pickLightDark(role.contrast, 'light'), stack('light', 'themes/contrast.css'), 7);
-      check(`${name} contrast dark`, pickLightDark(role.contrast, 'dark'), stack('light', 'themes/dark.css', 'themes/contrast.css'), 7);
-    }
-    assert.deepEqual(failing, []);
-  });
-
-  it('falls back to palette roles that read on the code ground in every shipped theme', () => {
-    const css = read('src/components/highlight/highlight.css');
-    const fallbacks = [...css.matchAll(/var\((--ds-code-[\w-]+),\s*(var\(--ds-[\w-]+\))\)/g)].map((m) => [m[1], m[2]]);
-    assert.equal(fallbacks.length, roles.length);
-    const failing = [];
-    for (const files of [[], ['themes/dark.css'], ['themes/contrast.css'], ['themes/dark.css', 'themes/contrast.css']]) {
-      const lookup = stack('light', ...files);
-      for (const [name, fallback] of fallbacks) {
-        const r = ratio(fallback, lookup);
-        if (r === null || r < 4.5) failing.push(`${name} → ${fallback} (${files.join(' + ') || 'default'}): ${r === null ? 'not resolved' : r.toFixed(2)}`);
+    const views = [[[], 4.5], [['themes/dark.css'], 4.5], [['themes/contrast.css'], 7], [['themes/dark.css', 'themes/contrast.css'], 7]];
+    for (const [files, min] of views) {
+      const lookup = stack(...files);
+      for (const name of roles) {
+        const r = ratio(name, lookup);
+        if (r === null || r < min) failing.push(`${name} (${files.join(' + ') || 'default'}): ${r === null ? 'not resolved' : r.toFixed(2)} (needs ${min})`);
       }
     }
     assert.deepEqual(failing, []);

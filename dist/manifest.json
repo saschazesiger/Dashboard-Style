@@ -5757,22 +5757,11 @@
       "js": [
         "highlight"
       ],
-      "hooks": [
-        "--ds-code-comment",
-        "--ds-code-deleted",
-        "--ds-code-function",
-        "--ds-code-inserted",
-        "--ds-code-keyword",
-        "--ds-code-meta",
-        "--ds-code-number",
-        "--ds-code-property",
-        "--ds-code-string",
-        "--ds-code-type"
-      ],
+      "hooks": [],
       "ripple": false,
       "progressive": [],
-      "bytes": 4489,
-      "gzip": 1111
+      "bytes": 4295,
+      "gzip": 1060
     },
     "markdown": {
       "css": "css/components/markdown.css",
@@ -5842,16 +5831,14 @@
         "code"
       ],
       "hooks": [
-        "--ds-code-block-radius",
-        "--ds-code-deleted",
-        "--ds-code-inserted"
+        "--ds-code-block-radius"
       ],
       "ripple": false,
       "progressive": [
         "scrollbar-color"
       ],
-      "bytes": 8912,
-      "gzip": 2209
+      "bytes": 8878,
+      "gzip": 2198
     },
     "toc": {
       "css": "css/components/toc.css",
@@ -6214,14 +6201,12 @@
       ],
       "js": [],
       "hooks": [
-        "--ds-shimmer-glint",
-        "--ds-shimmer-length",
-        "--ds-shimmer-peak"
+        "--ds-shimmer-length"
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 4417,
-      "gzip": 1282
+      "bytes": 4304,
+      "gzip": 1230
     },
     "wheel": {
       "css": "css/components/wheel.css",

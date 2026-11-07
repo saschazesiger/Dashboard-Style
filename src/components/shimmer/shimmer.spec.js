@@ -24,7 +24,7 @@ test('the copy lies over the text in its own type, in the glint, through a trave
     const text = getComputedStyle(el);
     const copy = getComputedStyle(el, '::after');
     const probe = document.createElement('span');
-    probe.style.color = 'var(--ds-shimmer-glint, light-dark(var(--ds-surface), var(--ds-on-primary-container)))';
+    probe.style.color = 'var(--ds-shimmer-glint)';
     el.closest('.ds-theme').append(probe);
     const glint = getComputedStyle(probe).color;
     probe.remove();

@@ -12,7 +12,7 @@ import {
   emphasizedCurve, generate, LOADER_SHAPES, LOADER_VERTICES, loaderPolygons, problems, SPATIAL, springCurve, springFunction, TOLERANCE, WAVE,
 } from '../scripts/motion-curves.mjs';
 import {
-  CONTROL_PAIRS, contrast as ratioOf, formatColour, ICON_PAIRS, MOTION, pairResults, parseColour, resolveColour, TEXT_PAIRS,
+  CONTROL_PAIRS, contrast as ratioOf, formatColour, ICON_PAIRS, MOTION, pairResults, parseColour, pickLightDark, resolveColour, schemesOf, TEXT_PAIRS,
 } from '../scripts/tools/theme-rules.mjs';
 import { packageInfo, SHIPPED_THEMES, tokensJson } from '../scripts/build.mjs';
 import { atRuleBlocks, filesIn, ms, read, stripComments, token, withoutAtRuleBlocks } from './helpers.js';
@@ -406,12 +406,21 @@ describe('shipped themes (themes/dark.css, compact.css, contrast.css)', () => {
     const css = withoutAtRuleBlocks(read(file), /^@media\b/);
     return Object.fromEntries([...css.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map((match) => [match[1], match[2].trim()]));
   };
-  /** The value of a name with `files` loaded after ds.css, in this order. */
+  /**
+   * The value of a name with `files` loaded after ds.css, in this order, as the scheme of the stack
+   * (--ds-color-scheme) sees it: a light-dark() pair (the syntax colours of contrast.css) gives its argument for
+   * that scheme, as check-theme.mjs reads it.
+   */
   const stack = (...files) => {
     const layers = files.map(declared);
-    return (name) => {
+    const raw = (name) => {
       for (const layer of [...layers].reverse()) if (name in layer) return layer[name];
       return token(name);
+    };
+    const [scheme] = schemesOf(raw('--ds-color-scheme'));
+    return (name) => {
+      const value = raw(name);
+      return value === undefined ? value : pickLightDark(value, scheme);
     };
   };
   const failing = (lookup) => pairResults(lookup)

@@ -4573,7 +4573,9 @@ diff stay.
 
 **Roles.** `--ds-code-keyword`, `--ds-code-string`, `--ds-code-number`, `--ds-code-comment`, `--ds-code-function`,
 `--ds-code-type`, `--ds-code-property`, `--ds-code-meta`, `--ds-code-inserted`, `--ds-code-deleted`, on
-`--ds-code-bg` ([tokens.md](tokens.md)). A theme sets the roles, never the token classes.
+`--ds-code-bg` ([tokens.md](tokens.md)): colour roles of `tokens.css` at fixed hues, with their dark values in
+`themes/dark.css` and their contrast values in `themes/contrast.css`; the theme generator derives them from the same
+hues. A theme sets the roles, never the token classes.
 
 <!-- changelog -->
 - Syntax highlighting (3.0, D13): `DS.highlight` (`data-ds-highlight`; `tokenize`, `highlight`, `lines`, `language`,
@@ -15912,7 +15914,8 @@ is the text's own, said once. The glint carries no meaning: say the state in the
 
 **Hooks and roles.** `--ds-shimmer-length` (480px, one tile: the band and the pause after it;
 [theming.md](theming.md#component-hooks)). The colour roles `--ds-shimmer-glint` (white in light and dark; the text
-colour in the contrast theme) and `--ds-shimmer-peak` (`color-mix(in srgb, var(--ds-text) 55%, transparent)`).
+colour in the contrast theme) and `--ds-shimmer-peak` (`color-mix(in srgb, var(--ds-text) 55%, transparent)`;
+`transparent` in the contrast theme, so no glint passes there) ([tokens.md](tokens.md)).
 
 **Motion.** The mask tile travels one `--ds-shimmer-length` per `--ds-loop-shimmer` (4.55s, the shape loader's round;
 `--ds-loop-loader` until that token is in the theme), linear and endless, on the progress wave's keyframe
@@ -15921,9 +15924,9 @@ pass and a pause. Nothing else animates; the mask is the only repaint.
 
 <!-- changelog -->
 - Shimmer (`.ds-shimmer`, `data-shimmer`): a soft glint that travels over the words of a status line, on
-  `ds-progress-wave`. Hook `--ds-shimmer-length`; colour roles `--ds-shimmer-glint` and `--ds-shimmer-peak` and the
-  loop `--ds-loop-shimmer` requested (until then: a `light-dark()` of `--ds-surface` and
-  `--ds-on-primary-container`, and `--ds-loop-loader`).
+  `ds-progress-wave`. Hook `--ds-shimmer-length`; colour roles `--ds-shimmer-glint` and `--ds-shimmer-peak` (in
+  tokens.css, `themes/dark.css` and `themes/contrast.css`); the loop `--ds-loop-shimmer` requested (until then:
+  `--ds-loop-loader`).
 ## Thinking indicator
 
 What an assistant or an agent is doing right now, while it works: the step it is on (a [wheel](#wheel) line with the

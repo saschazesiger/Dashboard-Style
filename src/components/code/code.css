@@ -288,11 +288,11 @@
   }
 
   .ds-code__line--inserted {
-    background: color-mix(in srgb, var(--ds-code-inserted, var(--ds-success)) 10%, transparent);
+    background: color-mix(in srgb, var(--ds-code-inserted) 10%, transparent);
   }
 
   .ds-code__line--deleted {
-    background: color-mix(in srgb, var(--ds-code-deleted, var(--ds-error)) 10%, transparent);
+    background: color-mix(in srgb, var(--ds-code-deleted) 10%, transparent);
   }
 
   /* The foot: the button that unfolds, a fade over the folded lines. */

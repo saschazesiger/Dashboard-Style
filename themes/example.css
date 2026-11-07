@@ -43,6 +43,9 @@
   /* light or dark: scrollbars, pickers and native controls follow it. */
   --ds-color-scheme: light;
   --ds-skeleton-highlight: var(--ds-surface-high);
+  /* The shimmer on a status line: the glint, and the mask at its crest (only the alpha counts). */
+  --ds-shimmer-glint: #ffffff;
+  --ds-shimmer-peak: color-mix(in srgb, var(--ds-text) 55%, transparent);   /* derived; set only to differ */
 
   /* ── Text and lines ── */
   --ds-text: #191c1c;
@@ -93,6 +96,18 @@
   --ds-scrim-nested: rgba(0, 0, 0, .16);   /* a dialog over an open sheet or drawer */
   --ds-fill-round: color-mix(in srgb, var(--ds-text) 8%, transparent);   /* derived; set only to differ */
   --ds-code-bg: var(--ds-surface-low);
+
+  /* ── Syntax colours (DS.highlight), each at 4.5:1 on --ds-code-bg ── */
+  --ds-code-keyword: #8430ce;
+  --ds-code-string: #146c2e;
+  --ds-code-number: #9c4300;
+  --ds-code-comment: #5f6368;
+  --ds-code-function: #0b57d0;
+  --ds-code-type: #00696b;
+  --ds-code-property: #a3195b;
+  --ds-code-meta: #4c5a92;
+  --ds-code-inserted: #146c2e;
+  --ds-code-deleted: #b3261e;
 
   /* ── Charts ──
      Four series in a fixed order, each at 3:1 on the surfaces and on the
@@ -721,16 +736,6 @@
   --ds-bottomsheet-width: 640px;
   --ds-bottomsheet-gap: var(--ds-space-12);
   --ds-bottomsheet-radius: var(--ds-radius-dialog);
-  --ds-code-keyword: var(--ds-primary);
-  --ds-code-string: var(--ds-success);
-  --ds-code-number: var(--ds-warning);
-  --ds-code-comment: var(--ds-text-2);
-  --ds-code-function: var(--ds-info);
-  --ds-code-type: var(--ds-on-info-container);
-  --ds-code-property: var(--ds-on-error-container);
-  --ds-code-meta: var(--ds-text-2);
-  --ds-code-inserted: var(--ds-success);
-  --ds-code-deleted: var(--ds-error);
   --ds-code-block-radius: var(--ds-radius-card);
   --ds-toc-height: 32px;
   --ds-toc-bar-height: 48px;
@@ -783,8 +788,6 @@
   --ds-terminal-magenta: color-mix(in oklab, var(--ds-error) 50%, var(--ds-primary));
   --ds-terminal-cyan: color-mix(in oklab, var(--ds-info) 50%, var(--ds-success));
   --ds-terminal-white: var(--ds-text);
-  --ds-shimmer-glint: light-dark(var(--ds-surface), var(--ds-on-primary-container));
-  --ds-shimmer-peak: color-mix(in srgb, var(--ds-text) 55%, transparent);
   --ds-shimmer-length: 480px;
   --ds-wheel-fade: var(--ds-space-3);
   --ds-wheel-travel: 100%;

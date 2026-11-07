@@ -34,12 +34,6 @@
     "--ds-code-block-radius": {
       "default": "`--ds-radius-card`",
       "description": "`.ds-code-block`, a `pre` in prose and the `.ds-code` frame (times `--ds-shape`)"
-    },
-    "--ds-code-deleted": {
-      "owner": "highlight"
-    },
-    "--ds-code-inserted": {
-      "owner": "highlight"
     }
   },
   "keyframes": [],

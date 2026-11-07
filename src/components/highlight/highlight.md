@@ -98,7 +98,9 @@ diff stay.
 
 **Roles.** `--ds-code-keyword`, `--ds-code-string`, `--ds-code-number`, `--ds-code-comment`, `--ds-code-function`,
 `--ds-code-type`, `--ds-code-property`, `--ds-code-meta`, `--ds-code-inserted`, `--ds-code-deleted`, on
-`--ds-code-bg` ([tokens.md](tokens.md)). A theme sets the roles, never the token classes.
+`--ds-code-bg` ([tokens.md](tokens.md)): colour roles of `tokens.css` at fixed hues, with their dark values in
+`themes/dark.css` and their contrast values in `themes/contrast.css`; the theme generator derives them from the same
+hues. A theme sets the roles, never the token classes.
 
 <!-- changelog -->
 - Syntax highlighting (3.0, D13): `DS.highlight` (`data-ds-highlight`; `tokenize`, `highlight`, `lines`, `language`,

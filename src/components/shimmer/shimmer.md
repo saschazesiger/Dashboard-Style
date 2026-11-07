@@ -29,7 +29,8 @@ is the text's own, said once. The glint carries no meaning: say the state in the
 
 **Hooks and roles.** `--ds-shimmer-length` (480px, one tile: the band and the pause after it;
 [theming.md](theming.md#component-hooks)). The colour roles `--ds-shimmer-glint` (white in light and dark; the text
-colour in the contrast theme) and `--ds-shimmer-peak` (`color-mix(in srgb, var(--ds-text) 55%, transparent)`).
+colour in the contrast theme) and `--ds-shimmer-peak` (`color-mix(in srgb, var(--ds-text) 55%, transparent)`;
+`transparent` in the contrast theme, so no glint passes there) ([tokens.md](tokens.md)).
 
 **Motion.** The mask tile travels one `--ds-shimmer-length` per `--ds-loop-shimmer` (4.55s, the shape loader's round;
 `--ds-loop-loader` until that token is in the theme), linear and endless, on the progress wave's keyframe
@@ -38,6 +39,6 @@ pass and a pause. Nothing else animates; the mask is the only repaint.
 
 <!-- changelog -->
 - Shimmer (`.ds-shimmer`, `data-shimmer`): a soft glint that travels over the words of a status line, on
-  `ds-progress-wave`. Hook `--ds-shimmer-length`; colour roles `--ds-shimmer-glint` and `--ds-shimmer-peak` and the
-  loop `--ds-loop-shimmer` requested (until then: a `light-dark()` of `--ds-surface` and
-  `--ds-on-primary-container`, and `--ds-loop-loader`).
+  `ds-progress-wave`. Hook `--ds-shimmer-length`; colour roles `--ds-shimmer-glint` and `--ds-shimmer-peak` (in
+  tokens.css, `themes/dark.css` and `themes/contrast.css`); the loop `--ds-loop-shimmer` requested (until then:
+  `--ds-loop-loader`).

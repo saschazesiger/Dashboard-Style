@@ -92,9 +92,22 @@
   --ds-chart-3: light-dark(#5056ef, #bfc1ff);
   --ds-chart-4: light-dark(#994700, #ffa368);
 
-  /* ── Scrims and shadows (on black in the dark) ── */
+  /* ── Syntax colours on the code ground (fixed hues) ── */
+  --ds-code-keyword: light-dark(#6900b2, #ebd0ff);
+  --ds-code-string: light-dark(#00531e, #96ea9d);
+  --ds-code-number: light-dark(#7b3400, #ffd0b9);
+  --ds-code-comment: light-dark(#514748, #d2c3c4);
+  --ds-code-function: light-dark(#0042a5, #dae2ff);
+  --ds-code-type: light-dark(#004f51, #a1f0f2);
+  --ds-code-property: light-dark(#810044, #ffd5e0);
+  --ds-code-meta: light-dark(#35437a, #dce1ff);
+  --ds-code-inserted: light-dark(#00531e, #96ea9d);
+  --ds-code-deleted: light-dark(#950c0b, #ffdad5);
+
+  /* ── Scrims, the shimmer's glint and shadows (on black in the dark) ── */
   --ds-scrim: light-dark(rgba(0, 0, 0, .32), rgba(0, 0, 0, .48));
   --ds-scrim-nested: light-dark(rgba(0, 0, 0, .16), rgba(0, 0, 0, .24));
+  --ds-shimmer-glint: #ffffff;
   --ds-elev-1: 0 1px 2px 0 light-dark(rgba(60, 64, 67, .3), rgba(0, 0, 0, .3)), 0 1px 3px 1px light-dark(rgba(60, 64, 67, .15), rgba(0, 0, 0, .15));
   --ds-elev-2: 0 1px 2px 0 light-dark(rgba(60, 64, 67, .3), rgba(0, 0, 0, .3)), 0 2px 6px 2px light-dark(rgba(60, 64, 67, .15), rgba(0, 0, 0, .15));
   --ds-elev-3: 0 1px 3px 0 light-dark(rgba(60, 64, 67, .3), rgba(0, 0, 0, .3)), 0 4px 8px 3px light-dark(rgba(60, 64, 67, .15), rgba(0, 0, 0, .15));
