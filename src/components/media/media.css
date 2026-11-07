@@ -252,7 +252,7 @@
     place-items: center;
     inline-size: calc(var(--ds-space-8) + var(--ds-size-step, 0) * 4px);
     block-size: calc(var(--ds-space-8) + var(--ds-size-step, 0) * 4px);
-    border-radius: 50%;
+    border-radius: calc(50% * var(--ds-shape, 1));
     background: var(--ds-surface);
     opacity: 0;
     transition: opacity var(--ds-dur-instant) var(--ds-ease-in-out);

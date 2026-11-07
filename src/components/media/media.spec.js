@@ -45,19 +45,21 @@ test('columns: at least --ds-media-min, 32px per size step; the gap per density;
   expect(await grid(page).evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(2);
 });
 
-test('shape: the card\'s radius times --ds-shape', async ({ page }) => {
+test('shape: the card\'s radius and the selection disc\'s times --ds-shape', async ({ page }) => {
   await open(page);
-  const radius = (cls) => page.evaluate((cls) => {
+  const radius = (cls, part = '') => page.evaluate(({ cls, part }) => {
     const host = document.querySelector('#fx-component');
-    host.insertAdjacentHTML('beforeend', `<div id="probe-host" class="${cls}"><div class="ds-media"></div></div>`);
-    const value = parseFloat(getComputedStyle(host.querySelector('#probe-host > .ds-media')).borderTopLeftRadius);
+    host.insertAdjacentHTML('beforeend', `<div id="probe-host" class="${cls}"><div class="ds-media"><span class="ds-media__select"></span></div></div>`);
+    const value = parseFloat(getComputedStyle(host.querySelector(`#probe-host > .ds-media${part}`)).borderTopLeftRadius);
     host.querySelector('#probe-host').remove();
     return value;
-  }, cls);
+  }, { cls, part });
   const base = await radius('');
   expect(base).toBeGreaterThan(0);
   expect(await radius('ds-shape-square')).toBe(0);
   expect(await radius('ds-shape-soft')).toBe(base / 2);
+  expect(await radius('', ' > .ds-media__select'), 'a disc at the default shape').toBeGreaterThan(0);
+  expect(await radius('ds-shape-square', ' > .ds-media__select'), 'square at shape 0').toBe(0);
 });
 
 test('one tab stop: Tab enters at a card, then its checkbox and menu, then leaves; the other cards are out of the tab order', async ({ page }) => {
