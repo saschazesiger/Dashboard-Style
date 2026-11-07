@@ -10,17 +10,24 @@
     "ds-toast",
     "ds-toast--error",
     "ds-toast--info",
+    "ds-toast--progress",
     "ds-toast--shown",
     "ds-toast__action",
+    "ds-toast__body",
     "ds-toast__close",
+    "ds-toast__spinner",
     "ds-toast__text",
-    "ds-toasts"
+    "ds-toast__value",
+    "ds-toasts",
+    "ds-toasts--stack"
   ],
   "attributes": [
     "data-drawer-collapsed",
     "data-drawer-hidden",
     "data-drawer-open",
+    "data-ds-leaving",
     "data-ds-vt",
+    "data-expanded",
     "data-follow",
     "data-toast-reserve"
   ],
@@ -28,6 +35,7 @@
     "button"
   ],
   "context": [
+    "progress",
     "shell"
   ],
   "hooks": {
@@ -42,6 +50,10 @@
     "--ds-toast-radius": {
       "default": "`--ds-radius-sm`",
       "description": "a snackbar's radius at the default shape"
+    },
+    "--ds-toast-stack-width": {
+      "default": "400px",
+      "description": "a stacking snackbar region (`.ds-toasts--stack`): its width above phones"
     }
   },
   "keyframes": [
@@ -49,6 +61,8 @@
     "ds-lift-in"
   ],
   "js": [
+    "dom",
+    "format",
     "overlay",
     "toast"
   ],

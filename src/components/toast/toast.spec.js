@@ -146,3 +146,212 @@ test('forced colours: a message keeps its edge', async ({ page, browserName }) =
   const edge = await page.evaluate(() => getComputedStyle(document.querySelector('[data-demo="static"] .ds-toast')).outlineColor);
   expect(edge).not.toMatch(/^(transparent|rgba\(0, 0, 0, 0\))$/);
 });
+
+/* ── 3.0: waiting, progress, the queue limit and the stack ── */
+
+test('promise(): a spinner while the work runs, then the success in place, which closes by itself', async ({ page }) => {
+  await open(page);
+  const seen = await page.evaluate(async () => {
+    const region = DS.toast.toastRegion(document);
+    let finish;
+    const work = new Promise((resolve) => { finish = resolve; });
+    const handle = DS.toast.promise(region, work, { pending: 'Saving LAPTOP-0042', success: (value) => `Saved ${value}.`, timeout: 600 });
+    await DS.motion.settled(region, { subtree: true });
+    const pending = {
+      busy: handle.el.getAttribute('aria-busy'),
+      spinner: Boolean(handle.el.querySelector('.ds-toast__spinner')),
+      close: Boolean(handle.el.querySelector('.ds-toast__close')),
+      text: handle.el.querySelector('.ds-toast__text').textContent,
+    };
+    finish('LAPTOP-0042');
+    await work;
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const done = {
+      busy: handle.el.hasAttribute('aria-busy'),
+      spinner: Boolean(handle.el.querySelector('.ds-toast__spinner')),
+      icon: Boolean(handle.el.querySelector(':scope > svg')),
+      text: handle.el.querySelector('.ds-toast__text').textContent,
+      said: document.querySelector('.ds-sr[aria-live="polite"]')?.textContent ?? '',
+    };
+    await handle.closed;
+    return { pending, done, gone: !handle.el.isConnected };
+  });
+  expect(seen.pending).toEqual({ busy: 'true', spinner: true, close: true, text: 'Saving LAPTOP-0042' });
+  expect(seen.done.busy).toBe(false);
+  expect(seen.done.spinner).toBe(false);
+  expect(seen.done.icon).toBe(true);
+  expect(seen.done.text).toBe('Saved LAPTOP-0042.');
+  expect(seen.gone, 'the success closes by itself').toBe(true);
+});
+
+test('promise(): a failure turns into the error, which stays and is announced at once; a closed one still says it', async ({ page }) => {
+  await open(page);
+  const seen = await page.evaluate(async () => {
+    const region = DS.toast.toastRegion(document);
+    const failing = Promise.reject(new Error('offline'));
+    const handle = DS.toast.promise(region, failing, { pending: 'Saving', error: (reason) => `Could not save: ${reason.message}.` });
+    await failing.catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const out = {
+      classes: handle.el.className,
+      text: handle.el.querySelector('.ds-toast__text').textContent,
+      stays: handle.el.isConnected,
+    };
+    // Closed while waiting: the outcome is still said.
+    let finish;
+    const second = DS.toast.promise(region, new Promise((resolve) => { finish = resolve; }), { pending: 'Exporting', success: 'Export ready.' });
+    await second.close();
+    finish();
+    return out;
+  });
+  // Spoken on the next frame: the error at once (assertive), the closed one's outcome politely.
+  await expect.poll(() => page.evaluate(() => document.querySelector('.ds-sr[aria-live="assertive"]')?.textContent ?? '')).toContain('Could not save: offline.');
+  await expect.poll(() => page.evaluate(() => document.querySelector('.ds-sr[aria-live="polite"]')?.textContent ?? '')).toContain('Export ready.');
+  await page.evaluate(() => DS.toast.closeToasts());
+  expect(seen.classes).toContain('ds-toast--error');
+  expect(seen.text).toBe('Could not save: offline.');
+  expect(seen.stays).toBe(true);
+});
+
+test('progress(): a progressbar named by the text, the share at the end, set() moves it, done() ends it in place', async ({ page }) => {
+  await open(page);
+  const seen = await page.evaluate(async () => {
+    const region = DS.toast.toastRegion(document);
+    const upload = DS.toast.progress(region, 'Uploading 3 files', { value: 0.25 });
+    const bar = upload.el.querySelector('[role="progressbar"]');
+    const name = document.getElementById(bar.getAttribute('aria-labelledby'))?.textContent;
+    const first = { now: bar.getAttribute('aria-valuenow'), figure: upload.el.querySelector('.ds-toast__value').textContent };
+    upload.set(0.8, 'Uploading the last file');
+    const second = { now: bar.getAttribute('aria-valuenow'), text: upload.el.querySelector('.ds-toast__text').textContent };
+    upload.set(null);
+    const unknown = bar.hasAttribute('aria-valuenow');
+    upload.done('3 files uploaded.', { persistent: true });
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const done = {
+      bar: Boolean(upload.el.querySelector('[role="progressbar"]')),
+      text: upload.el.querySelector('.ds-toast__text').textContent,
+      progressClass: upload.el.classList.contains('ds-toast--progress'),
+    };
+    upload.set(0.1);
+    await DS.toast.closeToasts(region);
+    return { name, first, second, unknown, done };
+  });
+  expect(seen.name).toBe('Uploading 3 files');
+  expect(seen.first.now).toBe('25');
+  expect(seen.first.figure).toMatch(/25\s?%/);
+  expect(seen.second).toEqual({ now: '80', text: 'Uploading the last file' });
+  expect(seen.unknown, 'an unknown share has no value').toBe(false);
+  expect(seen.done).toEqual({ bar: false, text: '3 files uploaded.', progressClass: false });
+});
+
+test('data-ds-toast-limit: how many show at once; the others wait in the queue', async ({ page }) => {
+  await open(page);
+  const counts = await page.evaluate(async () => {
+    const region = DS.toast.toastRegion(document);
+    region.setAttribute('data-ds-toast-limit', '1');
+    for (const name of ['One', 'Two', 'Three']) DS.toast.toast(region, `${name} stays.`, { persistent: true, restart: false });
+    await DS.motion.settled(region, { subtree: true });
+    const one = region.querySelectorAll('.ds-toast:not([data-ds-leaving])').length;
+    region.setAttribute('data-ds-toast-limit', '5');
+    await DS.toast.closeToasts(region);
+    region.removeAttribute('data-ds-toast-limit');
+    return { one };
+  });
+  expect(counts.one).toBe(1);
+});
+
+test('the stack: collapsed behind the front, expanded on focus or a click, never on hover; collapses on a press outside', async ({ page }) => {
+  await open(page);
+  await page.evaluate(async () => {
+    const region = DS.toast.toastRegion(document);
+    region.classList.add('ds-toasts--stack');
+    for (const name of ['LAPTOP-0042', 'TABLET-0007', 'PHONE-0013']) DS.toast.toast(region, `Saved ${name}.`, { persistent: true, restart: false });
+    await DS.motion.settled(region, { subtree: true });
+  });
+  await settle(page);
+  const region = page.locator('.ds-toasts');
+  const boxes = () => page.evaluate(() => [...document.querySelectorAll('.ds-toasts .ds-toast')].map((el) => {
+    const box = el.getBoundingClientRect();
+    return { top: Math.round(box.top), height: Math.round(box.height), text: getComputedStyle(el.querySelector('.ds-toast__text')).opacity };
+  }));
+  let collapsed = await boxes();
+  expect(collapsed).toHaveLength(3);
+  // Collapsed: the front's text shows, those behind are hidden and stand only a little above it.
+  expect(collapsed[2].text).toBe('1');
+  expect(collapsed[0].text).toBe('0');
+  expect(collapsed[2].top - collapsed[0].top).toBeLessThan(collapsed[2].height);
+  // Hover never expands it.
+  await page.locator('.ds-toasts .ds-toast').last().hover();
+  await page.waitForTimeout(300);
+  await expect(region).not.toHaveAttribute('data-expanded', '');
+  // A click on a message does.
+  await page.locator('.ds-toasts .ds-toast__text').last().click();
+  await expect(region).toHaveAttribute('data-expanded', '');
+  await settle(page);
+  const expanded = await boxes();
+  expect(expanded[1].top - expanded[0].top).toBeGreaterThanOrEqual(expanded[0].height);
+  expect(expanded[0].text).toBe('1');
+  // A press outside collapses it.
+  await page.mouse.click(640, 100);
+  await expect(region).not.toHaveAttribute('data-expanded', '');
+  // Focus inside expands it, and every message's close button is reachable.
+  await page.locator('.ds-toasts .ds-toast__close').first().focus();
+  await expect(region).toHaveAttribute('data-expanded', '');
+  await expect(page.locator('.ds-toasts .ds-toast__close').first()).toHaveAccessibleName('Close');
+  await page.evaluate(() => document.activeElement.blur());
+  await expect(region).not.toHaveAttribute('data-expanded', '');
+  await page.evaluate(async () => {
+    const region = DS.toast.toastRegion(document);
+    await DS.toast.closeToasts(region);
+    region.classList.remove('ds-toasts--stack');
+  });
+});
+
+test('the stack fades the content behind the front, but its buttons keep their own transitions (press morph, focus snap)', async ({ page }) => {
+  await open(page);
+  const seen = await page.evaluate(async () => {
+    const region = DS.toast.toastRegion(document);
+    region.classList.add('ds-toasts--stack');
+    for (const name of ['LAPTOP-0042', 'TABLET-0007']) DS.toast.toast(region, `Saved ${name}.`, { persistent: true, restart: false, action: { label: 'Undo', run() {} } });
+    await DS.motion.settled(region, { subtree: true });
+    const plain = document.createElement('button');
+    plain.className = 'ds-btn ds-btn--text ds-sm';
+    document.querySelector('#fx-component').append(plain);
+    const list = (el) => getComputedStyle(el).transitionProperty.split(',').map((name) => name.trim()).sort().join(',');
+    const toasts = [...region.querySelectorAll('.ds-toast')];
+    const out = {
+      button: list(plain),
+      action: toasts.map((toast) => list(toast.querySelector('.ds-toast__action'))),
+      close: toasts.map((toast) => list(toast.querySelector('.ds-toast__close'))),
+      text: list(toasts[0].querySelector('.ds-toast__text')),
+      hidden: getComputedStyle(toasts[0].querySelector('.ds-toast__action')).opacity,
+    };
+    plain.remove();
+    await DS.toast.closeToasts(region);
+    region.classList.remove('ds-toasts--stack');
+    return out;
+  });
+  expect(seen.button).toContain('border-radius');
+  expect(seen.button).toContain('outline-offset');
+  for (const action of seen.action) expect(action, 'a stacked action keeps the button\'s transitions').toBe(seen.button);
+  for (const close of seen.close) {
+    expect(close).toContain('border-radius');
+    expect(close).toContain('outline-offset');
+  }
+  expect(seen.text).toBe('opacity');
+  expect(seen.hidden, 'the action behind the front is hidden').toBe('0');
+});
+
+test('forced colours: the waiting spinner and the progress bar take system colours', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'forced colours are emulated in Chromium only');
+  await page.emulateMedia({ forcedColors: 'active' });
+  await open(page);
+  const seen = await page.evaluate(() => {
+    const spinner = document.querySelector('[data-demo="work-static"] .ds-toast__spinner');
+    // The bar paints its fill on pseudo-elements from --ds-progress-bar.
+    const meter = document.querySelector('[data-demo="work-static"] .ds-progress');
+    return { spinner: getComputedStyle(spinner).getPropertyValue('--ds-spinner-color').trim(), bar: getComputedStyle(meter).getPropertyValue('--ds-progress-bar').trim() };
+  });
+  expect(seen.spinner).toBe('Highlight');
+  expect(seen.bar).toBe('Highlight');
+});

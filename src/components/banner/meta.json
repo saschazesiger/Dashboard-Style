@@ -1,0 +1,35 @@
+{
+  "name": "banner",
+  "group": "feedback",
+  "order": 5040,
+  "docsOrder": 165,
+  "need": "Broadcast a message to the whole app: several in priority order, each dismissible and remembered",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-banner__dismiss",
+    "ds-banner__more"
+  ],
+  "attributes": [],
+  "requires": [
+    "alert",
+    "button",
+    "shell",
+    "toast"
+  ],
+  "context": [],
+  "hooks": {},
+  "keyframes": [],
+  "js": [
+    "banner",
+    "store",
+    "toast"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.banner.order": "sorts data: no motion",
+    "DS.banner.priorityOf": "a number: no motion"
+  }
+}

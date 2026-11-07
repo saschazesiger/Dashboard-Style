@@ -2,7 +2,7 @@
  * DS.core (src/js/core.js) on a small fake DOM with a fake
  * MutationObserver: the shared runtime, the registry, init() and its
  * observer batches (a keyed move keeps its controller), data-ds-managed,
- * globals, destroy(), emit(), config() and t(). The real engines run the
+ * globals, destroy(), emit(), config(), t() and safeHref(). The real engines run the
  * same in test/browser/core.spec.js.
  */
 import { describe, it, afterEach } from 'node:test';
@@ -472,6 +472,22 @@ describe('DS.core.emit', () => {
     target.addEventListener('ds:before-close', (event) => event.preventDefault());
     assert.equal(core.emit(target, 'before-close', null), true, 'not cancelable unless asked');
     assert.equal(core.emit(target, 'before-close', null, { cancelable: true }), false);
+  });
+});
+
+describe('DS.core.safeHref', () => {
+  it('keeps http, https, mailto, tel and relative links as given', () => {
+    for (const href of ['https://example.com/devices/42', 'http://example.com', 'mailto:ada@example.com', 'tel:+15550100', '/devices/42', 'devices/42', '../up', '?page=2', '#top', '//example.com/x', 'HTTPS://EXAMPLE.COM']) {
+      assert.equal(core.safeHref(href), href, href);
+    }
+    assert.equal(core.safeHref(new URL('https://example.com/a')), 'https://example.com/a');
+  });
+
+  it('refuses javascript:, data:, blob: and vbscript: URLs, however they are disguised, and nothing', () => {
+    for (const href of ['javascript:window.__pwn=1', 'JavaScript:alert(1)', ' javascript:alert(1)', 'java\tscript:alert(1)', 'java\nscript:alert(1)', '\u0000javascript:alert(1)', 'data:text/html,<script>alert(1)</script>', 'blob:https://example.com/0f4c', 'vbscript:msgbox(1)', 'file:///etc/passwd']) {
+      assert.equal(core.safeHref(href), null, JSON.stringify(href));
+    }
+    for (const nothing of [null, undefined, '', '   ']) assert.equal(core.safeHref(nothing), null);
   });
 });
 

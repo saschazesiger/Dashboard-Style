@@ -1,0 +1,55 @@
+{
+  "name": "shortcuts",
+  "group": "navigation",
+  "order": 5030,
+  "docsOrder": 47,
+  "need": "List every keyboard shortcut of the page when someone presses ?",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-shortcuts",
+    "ds-shortcuts__combo",
+    "ds-shortcuts__empty",
+    "ds-shortcuts__filter",
+    "ds-shortcuts__group",
+    "ds-shortcuts__groups",
+    "ds-shortcuts__heading",
+    "ds-shortcuts__item",
+    "ds-shortcuts__items",
+    "ds-shortcuts__keys",
+    "ds-shortcuts__label",
+    "ds-shortcuts__list",
+    "ds-shortcuts__off",
+    "ds-shortcuts__or",
+    "ds-shortcuts__scope",
+    "ds-shortcuts__title"
+  ],
+  "attributes": [
+    "data-off"
+  ],
+  "requires": [
+    "dialog",
+    "utilities"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-shortcuts-column": {
+      "default": "240px",
+      "description": "a column of the shortcut sheet at least"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "dialog",
+    "hotkeys",
+    "overlay",
+    "shortcuts"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.shortcuts.render": "writes a list: no motion",
+    "DS.shortcuts.byScope": "groups data: no motion"
+  }
+}
