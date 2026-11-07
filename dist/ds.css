@@ -42976,6 +42976,13 @@
     outline-offset: var(--ds-focus-offset);
   }
 
+  /* A closed call holds no ring: the snap back of a ring that left as the
+     call closed would never end in Firefox, which does not run transitions
+     in the hidden content of a closed <details>. */
+  .ds-toolcall:not([open]) .ds-toolcall__code {
+    transition: none;
+  }
+
   .ds-toolcall__part--error > .ds-toolcall__label {
     color: var(--ds-error);
   }

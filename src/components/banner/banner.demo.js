@@ -6,9 +6,11 @@
  * dismissal and remembering come from the system (data-ds-banner).
  */
 function bannerPanel(h, id, body) {
-  return '<div class="ds-panel" data-demo="panel" style="grid-area: auto; margin: 0; min-height: 0">' +
+  // A panel inside the styleguide's own frame: it keeps out of the page's View Transitions, whose
+  // names (ds-panel, ds-view) may each sit on one element only. A project never needs this.
+  return '<div class="ds-panel" data-demo="panel" style="grid-area: auto; margin: 0; min-height: 0; view-transition-name: none">' +
     '<div class="ds-banner" id="' + id + '" data-ds-banner data-ds-banner-remember="session">' + body + '</div>' +
-    '<main class="ds-view" tabindex="-1" style="flex: none"><div class="ds-content"><p class="ds-muted">The view: 240 devices, 12 offline.</p></div></main></div>';
+    '<main class="ds-view" tabindex="-1" style="flex: none; view-transition-name: none"><div class="ds-content"><p class="ds-muted">The view: 240 devices, 12 offline.</p></div></main></div>';
 }
 
 SG.demo('banner', {

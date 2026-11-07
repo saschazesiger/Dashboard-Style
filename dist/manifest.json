@@ -2226,6 +2226,7 @@
         "ds-stack--page"
       ],
       "attributes": [
+        "data-ds-keep",
         "data-ds-page-head",
         "data-ds-page-head-condense",
         "data-scrolled"
@@ -6328,8 +6329,8 @@
       "progressive": [
         "scrollbar-color"
       ],
-      "bytes": 7015,
-      "gzip": 1841
+      "bytes": 7075,
+      "gzip": 1860
     },
     "reasoning": {
       "css": "css/components/reasoning.css",

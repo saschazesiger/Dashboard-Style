@@ -107,8 +107,13 @@ test('every registered demo renders into its stage and wires without a console e
   const errors = collectErrors(page);
   await open(page);
   const names = await page.evaluate(() => window.SG.list().map((spec) => spec.name));
-  for (const name of names) {
-    await go(page, `components/${name}`);
+  for (const [index, name] of names.entries()) {
+    // A fresh page every 15 demos: headless WebKit keeps the snapshots of
+    // every View Transition of a page (100-300 MB each, a bare test page
+    // too) until it goes; it slows down long before its kill
+    // threshold (16 GB) ends the page, about 60 route changes in.
+    if (index && index % 15 === 0) await open(page, `components/${name}`);
+    else await go(page, `components/${name}`);
     const root = page.locator(`#sg-stage > .sg-demo-root[data-sg-demo="${name}"]`);
     await expect(root, name).toHaveCount(1);
     expect(await root.evaluate((el) => el.children.length), `${name} renders markup`).toBeGreaterThan(0);
