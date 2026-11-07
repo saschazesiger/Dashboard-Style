@@ -1,0 +1,70 @@
+{
+  "name": "popover",
+  "group": "overlays",
+  "order": 400,
+  "docsOrder": 245,
+  "need": "Show a small form, a share box or details next to the control that opened it, without leaving the page",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-popover",
+    "ds-popover--arrow",
+    "ds-popover--tip",
+    "ds-popover__body",
+    "ds-popover__close",
+    "ds-popover__foot",
+    "ds-popover__head",
+    "ds-popover__title"
+  ],
+  "attributes": [
+    "data-placement",
+    "data-state"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": {
+    "--ds-popover-width": {
+      "default": "360px",
+      "description": "the widest a popover gets (it is as wide as its content up to this)"
+    },
+    "--ds-popover-tip-width": {
+      "default": "320px",
+      "description": "the widest a `.ds-popover--tip` help card gets"
+    },
+    "--ds-popover-padding": {
+      "default": "`--ds-space-4`",
+      "description": "the padding of a popover's parts at the comfortable density"
+    },
+    "--ds-popover-tip-padding": {
+      "default": "`--ds-space-3`",
+      "description": "the padding of a `.ds-popover--tip` help card's parts at the comfortable density"
+    },
+    "--ds-popover-radius": {
+      "default": "`--ds-radius-md`",
+      "description": "the popover's radius at the default shape"
+    }
+  },
+  "keyframes": [
+    "ds-clip-in",
+    "ds-fade-in"
+  ],
+  "js": [
+    "overlay",
+    "popover"
+  ],
+  "module": true,
+  "progressive": [
+    "scrollbar-color"
+  ],
+  "ripple": false,
+  "labExempt": {
+    "DS.popover.create": "events only, no motion"
+  },
+  "exceptions": {
+    "physical": {
+      ".ds-popover: inset": "script coordinates: --ds-popover-x from the left",
+      ".ds-popover--arrow::before: left": "script coordinate: --ds-popover-arrow runs from the box's left edge",
+      ".ds-popover--arrow:is([data-placement=\"start\"], [data-placement=\"end\"])::before: left": "clears the script coordinate of the block sides; the inline sides place the arrow by inset-inline"
+    }
+  }
+}

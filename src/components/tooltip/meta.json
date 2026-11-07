@@ -13,6 +13,7 @@
   "attributes": [
     "data-anchored",
     "data-placement",
+    "data-side",
     "data-state",
     "data-warm"
   ],

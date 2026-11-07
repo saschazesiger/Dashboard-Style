@@ -447,6 +447,7 @@ const DEFAULT_STRINGS = Object.freeze({
   chartShown: '{series} shown',
   chartHidden: '{series} hidden',
   chartEmpty: 'No data',
+  moreInfo: 'More information',
 });
 
 /**

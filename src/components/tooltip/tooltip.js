@@ -14,6 +14,11 @@
  * trigger's visible text shows only while that text is cut off. On touch a
  * tap shows the tip of an image or a blocked control, a long press the
  * others. A trigger that leaves the document takes its tooltip with it.
+ * On the trigger, data-tip-placement (bottom by default; top, start, end)
+ * picks the side (flipped when it does not fit there and fits on the other
+ * one) and data-tip-delay (none, short: --ds-delay-tooltip-skip, long: twice
+ * --ds-delay-tooltip) the wait of a hover; data-tip-shortcut fills the
+ * shortcut slot.
  * Like the snackbar regions, it is never made inert by the div trap or the
  * modal drawer, so a trigger inside one shows a hoverable tooltip that is
  * heard.
@@ -118,6 +123,15 @@ function tipWanted(trigger) {
     if (clips(at)) return 'cut';
   }
   return null;
+}
+
+/** The sides a trigger may ask for (data-tip-placement). */
+const SIDES = new Set(['bottom', 'top', 'start', 'end']);
+
+/** The side the tooltip of `trigger` goes on: data-tip-placement, below by default. */
+function sideOf(trigger) {
+  const side = trigger.getAttribute('data-tip-placement') ?? '';
+  return SIDES.has(side) ? side : 'bottom';
 }
 
 function focusVisible(node) {
@@ -225,6 +239,19 @@ export function tooltips(root = globalThis.document) {
   let watching = false;
 
   const time = (token) => motionDuration(tip.isConnected ? tip : shadow ? theme ?? /** @type {ShadowRoot} */ (root).host : rootElement, token);
+
+  /**
+   * How long a mouse or pen rests on `trigger` before its tip shows
+   * (data-tip-delay): none at once, short --ds-delay-tooltip-skip, long twice
+   * --ds-delay-tooltip, else --ds-delay-tooltip.
+   */
+  function delayOf(trigger) {
+    const delay = trigger.getAttribute('data-tip-delay');
+    if (delay === 'none') return 0;
+    if (delay === 'short') return time('--ds-delay-tooltip-skip');
+    if (delay === 'long') return 2 * time('--ds-delay-tooltip');
+    return time('--ds-delay-tooltip');
+  }
   const contains = (node) => (root.nodeType === 9 ? doc.contains(node) : rootElement.contains(node));
 
   /** Where the tooltip lives for a trigger: its overlay (in the top layer, never inert), else the theme. */
@@ -249,15 +276,27 @@ export function tooltips(root = globalThis.document) {
   /** Marks the side the engine put an anchored tooltip on; true when that changed. */
   function readSide(next) {
     const box = tip.getBoundingClientRect();
-    const top = box.bottom <= next.getBoundingClientRect().top + 1;
-    if (top === tip.hasAttribute('data-placement')) return false;
-    if (top) tip.setAttribute('data-placement', 'top');
-    else tip.removeAttribute('data-placement');
+    const anchor = next.getBoundingClientRect();
+    const rtl = view.getComputedStyle?.(next).direction === 'rtl';
+    let side = 'bottom';
+    if (box.bottom <= anchor.top + 1) side = 'top';
+    else if (box.right <= anchor.left + 1) side = rtl ? 'end' : 'start';
+    else if (box.left >= anchor.right - 1) side = rtl ? 'start' : 'end';
+    if (side === (tip.getAttribute('data-placement') ?? 'bottom')) return false;
+    if (side === 'bottom') tip.removeAttribute('data-placement');
+    else tip.setAttribute('data-placement', side);
     return true;
   }
 
-  /** Below the trigger, centred and clamped to the viewport; above it when there is no room below. */
+  /**
+   * On the side its trigger asks for (data-tip-placement; below by default),
+   * centred and clamped to the viewport; on the other side when it does not
+   * fit there and fits there.
+   */
   function place(next) {
+    const side = sideOf(next);
+    if (side === 'bottom') tip.removeAttribute('data-side');
+    else tip.setAttribute('data-side', side);
     if (anchored) {
       // The engine places it; its side sets the origin. Chromium lays a
       // swap out with what it took from the previous anchor at the last
@@ -274,7 +313,7 @@ export function tooltips(root = globalThis.document) {
       return;
     }
     const gap = pxOf(tip, '--ds-space-2', 8);
-    positionPlace(tip, next, { align: 'center', offset: gap, padding: gap, flip: 'fits', size: false, x: '--ds-tooltip-x', y: '--ds-tooltip-y' });
+    positionPlace(tip, next, { side, align: 'center', offset: gap, padding: gap, flip: 'fits', size: false, x: '--ds-tooltip-x', y: '--ds-tooltip-y' });
   }
 
   function describe(next, why) {
@@ -468,10 +507,15 @@ export function tooltips(root = globalThis.document) {
       return;
     }
     clearTimeout(showTimer);
+    const wait = delayOf(next);
+    if (wait <= 0) {
+      show(next);
+      return;
+    }
     showTimer = setTimeout(() => {
       showTimer = 0;
       show(next);
-    }, time('--ds-delay-tooltip'));
+    }, wait);
   }
 
   function onPointerOut(/** @type {PointerEvent} */ event) {

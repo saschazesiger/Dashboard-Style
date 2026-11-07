@@ -385,6 +385,7 @@ const RATIOS = [
   ['select panel', [['src/components/selectpanel/selectpanel.css', '.ds-selectpanel__panel[data-state]', ['transition']]], [['src/components/selectpanel/selectpanel.css', '.ds-selectpanel__panel[data-state="closed"]', ['transition']]]],
   ['picker popover', [['src/components/picker/picker.css', '.ds-picker__popover[data-state]', ['transition']]], [['src/components/picker/picker.css', '.ds-picker__popover[data-state="closed"]', ['transition']]]],
   ['label group popup', [['src/components/labelgroup/labelgroup.css', '.ds-label-group__popup[data-state]', ['transition']]], [['src/components/labelgroup/labelgroup.css', '.ds-label-group__popup[data-state="closed"]', ['transition']]]],
+  ['popover', [['src/components/popover/popover.css', '.ds-popover[data-state]', ['transition']]], [['src/components/popover/popover.css', '.ds-popover[data-state="closed"]', ['transition']]]],
 ];
 /**
  * Old/new pairs outside the ratio, each with its reason (the test checks

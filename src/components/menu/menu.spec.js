@@ -7,7 +7,7 @@
  * `fallback` project too (the script's placement).
  */
 import { test, expect } from '../../../test/browser/base-test.js';
-import { ready, settle } from '../../../test/browser/helpers/motion.js';
+import { focusByKeyboard, ready, settle } from '../../../test/browser/helpers/motion.js';
 
 const SIZES = [['ds-xs', -2], ['ds-sm', -1], ['ds-md', 0], ['ds-lg', 1], ['ds-xl', 2]];
 const DENSITIES = [['ds-density-comfortable', 0], ['ds-density-compact', -1], ['ds-density-dense', -2], ['ds-density-tight', -3]];
@@ -287,4 +287,305 @@ test('forced colours: the menu keeps its edge, the focused item its ring, a bloc
   expect(styles.blocked).toBe(styles.gray);
   expect(styles.shade).toBe('none');
   await page.keyboard.press('Escape');
+});
+
+test('submenus: ArrowRight opens one on its first item beside its item, ArrowLeft and Escape close it onto the item', async ({ page }) => {
+  await open(page);
+  const trigger = page.locator('[data-demo="nested"]');
+  const menu = page.locator('[data-demo="nested-menu"]');
+  const sub = page.locator('[data-demo="move-menu"]');
+  const item = page.locator('[data-demo="move-item"]');
+  await trigger.click();
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await page.keyboard.press('ArrowDown');
+  expect(await focused(page)).toBe('Move to');
+  // The arrows of the parent pass the submenu's items by.
+  await page.keyboard.press('ArrowDown');
+  expect(await focused(page)).toBe('Archive');
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('ArrowRight');
+  await expect(sub).toHaveAttribute('data-state', 'open');
+  await expect(item).toHaveAttribute('aria-expanded', 'true');
+  expect(await focused(page)).toBe('Storage room');
+  await settle(page);
+  const geometry = await page.evaluate(() => {
+    const it = document.querySelector('[data-demo="move-item"]').getBoundingClientRect();
+    const box = document.querySelector('[data-demo="move-menu"]');
+    const first = box.querySelector('.ds-menu__item').getBoundingClientRect();
+    return { beside: box.getBoundingClientRect().left >= it.right - 1, level: Math.abs(first.top - it.top), top: box.matches(':popover-open'), placement: box.getAttribute('data-placement') };
+  });
+  expect(geometry.beside).toBe(true);
+  expect(geometry.level).toBeLessThan(2);
+  expect(geometry.top).toBe(true);
+  expect(geometry.placement).toBe('end');
+  await page.keyboard.press('ArrowLeft');
+  // Closing or closed already (the exit takes --ds-dur-instant).
+  await expect(sub).not.toHaveAttribute('data-state', 'open');
+  expect(await focused(page)).toBe('Move to');
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  // Enter opens it too; Escape closes only the submenu.
+  await page.keyboard.press('Enter');
+  await expect(sub).toHaveAttribute('data-state', 'open');
+  expect(await focused(page)).toBe('Storage room');
+  await page.keyboard.press('Escape');
+  await expect(sub).toBeHidden();
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  expect(await focused(page)).toBe('Move to');
+  // A nested one, then Tab closes the whole chain and moves on from the trigger.
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('End');
+  expect(await focused(page)).toBe('A person');
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('[data-demo="share-menu"]')).toHaveAttribute('data-state', 'open');
+  await page.keyboard.press('Tab');
+  await expect(menu).toBeHidden();
+  await expect(sub).toBeHidden();
+  await expect(page.locator('[data-demo="share-menu"]')).toBeHidden();
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('submenus: an item chosen inside closes the whole chain, focus back on the trigger', async ({ page }) => {
+  await open(page);
+  const trigger = page.locator('[data-demo="nested"]');
+  await trigger.focus();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('Enter');
+  await expect(page.locator('[data-demo="nested-menu"]')).toBeHidden();
+  await expect(page.locator('[data-demo="move-menu"]')).toBeHidden();
+  await expect(trigger).toBeFocused();
+  await expect(page.locator('.ds-toast').last()).toContainText('storage room');
+});
+
+test('submenus: a resting pointer opens one and leaves focus; another item closes it after the grace, unless the pointer reaches it', async ({ page }) => {
+  await open(page);
+  await page.locator('[data-demo="nested"]').click();
+  const menu = page.locator('[data-demo="nested-menu"]');
+  const sub = page.locator('[data-demo="move-menu"]');
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await settle(page);
+  await page.locator('[data-demo="move-item"]').hover();
+  await expect(sub).toHaveAttribute('data-state', 'open');
+  expect(await focused(page), 'focus stays in the parent').not.toBe('Storage room');
+  await settle(page);
+  // Across "Archive" into the submenu: it stays.
+  const archive = await page.locator('[data-demo="nested-menu"] > .ds-menu__item').nth(2).boundingBox();
+  const target = await sub.locator('.ds-menu__item').nth(1).boundingBox();
+  await page.mouse.move(archive.x + archive.width - 4, archive.y + archive.height / 2);
+  await page.mouse.move(target.x + 10, target.y + target.height / 2, { steps: 3 });
+  await page.waitForTimeout(600);
+  await expect(sub).toHaveAttribute('data-state', 'open');
+  // Resting on another item: it goes.
+  await page.mouse.move(archive.x + 20, archive.y + archive.height / 2);
+  await expect(sub).toBeHidden();
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  // A click on the item opens it as well, and the menu stays.
+  await page.locator('[data-demo="move-item"]').click();
+  await expect(sub).toHaveAttribute('data-state', 'open');
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+});
+
+test('search: it takes focus, typing filters and says when nothing matches, the arrows and Enter work from the field, Escape clears first', async ({ page }) => {
+  await open(page);
+  const trigger = page.locator('[data-demo="assign"]');
+  const menu = page.locator('[data-demo="assign-menu"]');
+  await trigger.click();
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  const field = menu.locator('.ds-menu__search input');
+  await expect(field).toBeFocused();
+  // A menu owns only items: the field sits beside the role="menu" list it controls, not in it.
+  expect(await menu.getAttribute('role')).toBeNull();
+  const list = menu.locator('.ds-menu__list');
+  await expect(list).toHaveAttribute('role', 'menu');
+  await expect(field).toHaveAttribute('aria-controls', await list.getAttribute('id'));
+  await page.keyboard.type('gr');
+  await expect(menu.locator('.ds-menu__item:visible')).toHaveCount(1);
+  await expect(menu.locator('.ds-menu__item:visible')).toContainText('Grace Hopper');
+  await page.keyboard.press('ArrowDown');
+  expect(await focused(page)).toBe('Grace Hopper');
+  await page.keyboard.press('ArrowUp');
+  await expect(field).toBeFocused();
+  await page.keyboard.type('zz');
+  await expect(menu.locator('.ds-menu__item:visible')).toHaveCount(0);
+  await expect(menu.locator('.ds-menu__empty')).toHaveText('No results');
+  await expect.poll(() => page.evaluate(() => [...document.querySelectorAll('[aria-live]')].map((node) => node.textContent).join(' '))).toContain('No results');
+  // The first Escape clears the field, the second closes.
+  await page.keyboard.press('Escape');
+  await expect(field).toHaveValue('');
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await expect(menu.locator('.ds-menu__empty')).toBeHidden();
+  await expect(menu.locator('.ds-menu__item:visible')).toHaveCount(12);
+  // A letter typed on an item goes on in the field; Enter takes the first match.
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.type('hed');
+  await expect(field).toBeFocused();
+  await expect(field).toHaveValue('hed');
+  await page.keyboard.press('Enter');
+  await expect(menu).toBeHidden();
+  await expect(page.locator('.ds-toast').last()).toContainText('Hedy Lamarr');
+  // Opened again, it starts unfiltered.
+  await trigger.click();
+  await expect(field).toHaveValue('');
+  await expect(menu.locator('.ds-menu__item:visible')).toHaveCount(12);
+  await page.keyboard.press('Escape');
+});
+
+test('context menu: a right click opens it at the pointer, the row is told and gets focus back; a press anywhere outside closes it', async ({ page }) => {
+  await open(page);
+  const rows = page.locator('[data-demo="rows"] [data-ds-contextmenu]');
+  const menu = page.locator('[data-demo="context-menu"]');
+  const row = rows.nth(1);
+  await row.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  const box = await row.boundingBox();
+  await row.focus();
+  await page.mouse.click(box.x + 60, box.y + box.height / 2, { button: 'right' });
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await expect(menu.locator('[data-row-name]')).toHaveText('LAPTOP-0043');
+  expect(await row.getAttribute('aria-expanded'), 'a row is no menu button').toBeNull();
+  await settle(page);
+  const at = await menu.boundingBox();
+  expect(at.x).toBeCloseTo(box.x + 60, 0);
+  expect(at.y).toBeCloseTo(box.y + box.height / 2, 0);
+  expect(await menu.evaluate((el) => el.matches(':popover-open'))).toBe(true);
+  expect(await focused(page)).toBe('Rename');
+  // A second right click at once, on another row: that row's menu (no window swallows a real right click).
+  const other = rows.nth(2);
+  const otherBox = await other.boundingBox();
+  // At its far end, clear of the open menu that hangs over it.
+  const far = { x: otherBox.x + otherBox.width - 20, y: otherBox.y + otherBox.height / 2 };
+  const over = await menu.boundingBox();
+  expect(far.x > over.x + over.width || far.y > over.y + over.height, 'the second click lands outside the menu').toBe(true);
+  await page.mouse.click(far.x, far.y, { button: 'right' });
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await expect(menu.locator('[data-row-name]')).toHaveText('PRINTER-0007');
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  await page.mouse.click(box.x + 60, box.y + box.height / 2, { button: 'right' });
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await expect(menu.locator('[data-row-name]')).toHaveText('LAPTOP-0043');
+  // A press on its own row closes it too.
+  await page.mouse.click(box.x + 300, box.y + box.height / 2);
+  await expect(menu).toBeHidden();
+  // Choosing an item: the page knows the row; focus goes back to it.
+  await page.mouse.click(box.x + 60, box.y + box.height / 2, { button: 'right' });
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await expect(menu).toBeHidden();
+  await expect(page.locator('.ds-toast').last()).toContainText('Duplicated LAPTOP-0043');
+  await expect(row).toBeFocused();
+  expect(await row.getAttribute('aria-expanded')).toBeNull();
+  // A cancelled ds:contextmenu keeps the browser's menu: nothing opens.
+  await page.evaluate(() => document.addEventListener('ds:contextmenu', (event) => event.preventDefault(), { once: true }));
+  await page.mouse.click(box.x + 60, box.y + box.height / 2, { button: 'right' });
+  await page.waitForTimeout(200);
+  await expect(menu).toBeHidden();
+});
+
+test('context menu: Shift+F10 and the ContextMenu key open it under the focused row', async ({ page }) => {
+  await open(page);
+  const row = page.locator('[data-demo="rows"] [data-ds-contextmenu]').first();
+  const menu = page.locator('[data-demo="context-menu"]');
+  await row.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  await focusByKeyboard(page, row);
+  await page.keyboard.press('Shift+F10');
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await expect(menu.locator('[data-row-name]')).toHaveText('LAPTOP-0042');
+  expect(await focused(page)).toBe('Rename');
+  await settle(page);
+  const [rowBox, menuBox] = [await row.boundingBox(), await menu.boundingBox()];
+  expect(menuBox.y).toBeGreaterThanOrEqual(rowBox.y + rowBox.height - 1);
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  await expect(row).toBeFocused();
+  await page.keyboard.press('ContextMenu');
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+});
+
+test('context menu: a tile opens it too, on a right click and on Shift+F10', async ({ page }) => {
+  await open(page);
+  const tile = page.locator('[data-demo="tiles"] [data-ds-contextmenu]').last();
+  const menu = page.locator('[data-demo="context-menu"]');
+  await tile.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  await tile.click({ button: 'right' });
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await expect(menu.locator('[data-row-name]')).toHaveText('PRINTER group');
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  await expect(tile).toBeFocused();
+  await page.keyboard.press('Shift+F10');
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  expect(await focused(page)).toBe('Rename');
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+});
+
+test('context menu: a long press on a touch screen opens it at the finger, and the click it ends in never comes', async ({ page, browserName }) => {
+  test.skip(browserName === 'firefox', 'Firefox has no touch events in Playwright without hasTouch');
+  await open(page);
+  const row = page.locator('[data-demo="rows"] [data-ds-contextmenu]').nth(2);
+  const menu = page.locator('[data-demo="context-menu"]');
+  await row.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  const box = await row.boundingBox();
+  const x = box.x + 40;
+  const y = box.y + box.height / 2;
+  const clicks = await page.evaluate(() => {
+    window.rowClicks = 0;
+    document.addEventListener('click', (event) => { if (event.target.closest?.('[data-ds-contextmenu]')) window.rowClicks += 1; });
+    return 0;
+  });
+  // A pointer press by touch, held past the delay, through the pointer events the browser sends.
+  await row.evaluate((el, [px, py]) => {
+    const init = { bubbles: true, cancelable: true, composed: true, pointerId: 7, pointerType: 'touch', isPrimary: true, clientX: px, clientY: py };
+    el.dispatchEvent(new PointerEvent('pointerdown', init));
+    window.releaseTouch = () => {
+      el.dispatchEvent(new PointerEvent('pointerup', init));
+      el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, clientX: px, clientY: py }));
+    };
+  }, [x, y]);
+  await expect(menu).toHaveAttribute('data-state', 'open', { timeout: 3000 });
+  await row.evaluate(() => window.releaseTouch());
+  expect(await page.evaluate(() => window.rowClicks)).toBe(clicks);
+  await expect(menu.locator('[data-row-name]')).toHaveText('PRINTER-0007');
+  await settle(page);
+  const at = await menu.boundingBox();
+  expect(at.x).toBeCloseTo(x, 0);
+  // A press that moves is a scroll: nothing opens.
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  await row.evaluate((el, [px, py]) => {
+    const init = { bubbles: true, cancelable: true, composed: true, pointerId: 8, pointerType: 'touch', isPrimary: true, clientX: px, clientY: py };
+    el.dispatchEvent(new PointerEvent('pointerdown', init));
+    el.dispatchEvent(new PointerEvent('pointermove', { ...init, clientY: py + 30 }));
+  }, [x, y]);
+  await page.waitForTimeout(900);
+  await expect(menu).toBeHidden();
+});
+
+test('forced colours: an item whose submenu shows is Highlight on HighlightText', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'forced colours are emulated in Chromium only');
+  await page.emulateMedia({ forcedColors: 'active' });
+  await open(page);
+  await page.locator('[data-demo="nested"]').click();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('[data-demo="move-menu"]')).toHaveAttribute('data-state', 'open');
+  await settle(page);
+  const styles = await page.evaluate(() => {
+    const item = document.querySelector('[data-demo="move-item"]');
+    const probe = document.createElement('span');
+    probe.style.cssText = 'background: Highlight; color: HighlightText';
+    document.body.append(probe);
+    const system = { background: getComputedStyle(probe).backgroundColor, color: getComputedStyle(probe).color };
+    probe.remove();
+    return { background: getComputedStyle(item).backgroundColor, color: getComputedStyle(item).color, system };
+  });
+  expect(styles.background).toBe(styles.system.background);
+  expect(styles.color).toBe(styles.system.color);
 });

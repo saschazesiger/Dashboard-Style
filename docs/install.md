@@ -390,6 +390,7 @@ strings a script adds have an option, so a page in another language passes its o
 | `All selected` | the system's string `allSelected`: the summary of a select panel or check group with every option chosen | `DS.core.config({ strings: { allSelected } })` |
 | `Ctrl` | the system's string `keyCtrl`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyCtrl } })` |
 | `Alt` | the system's string `keyAlt`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyAlt } })` |
+| `More information` | the system's string `moreInfo`: the name of a toggletip button that has none of its own | `DS.core.config({ strings: { moreInfo } })` |
 | `Shift` | the system's string `keyShift`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyShift } })` |
 | `Win` | the system's string `keyMeta`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyMeta } })` |
 | `Enter` | the system's string `keyEnter`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyEnter } })` |
