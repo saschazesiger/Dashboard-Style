@@ -1,0 +1,108 @@
+{
+  "name": "terminal",
+  "group": "content",
+  "order": 1330,
+  "docsOrder": 128,
+  "need": "Frame a terminal emulator: title, connection status, actions, and the keys a phone keyboard lacks",
+  "tier": 2,
+  "status": "beta",
+  "classes": [
+    "ds-terminal",
+    "ds-terminal--fill",
+    "ds-terminal__actions",
+    "ds-terminal__head",
+    "ds-terminal__key",
+    "ds-terminal__keys",
+    "ds-terminal__probe",
+    "ds-terminal__screen",
+    "ds-terminal__status",
+    "ds-terminal__title"
+  ],
+  "attributes": [
+    "data-bar",
+    "data-fg",
+    "data-sgr"
+  ],
+  "requires": [
+    "button",
+    "spinner",
+    "status"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-terminal-height": {
+      "default": "360px",
+      "description": "terminal frame: the height of the screen (not with `--fill`)"
+    },
+    "--ds-terminal-bg": {
+      "default": "`--ds-code-bg`",
+      "description": "terminal frame: the ground of the screen, and the emulator's background (`DS.terminal.theme`)"
+    },
+    "--ds-terminal-fg": {
+      "default": "`--ds-text`",
+      "description": "terminal frame: the text of the screen, and the emulator's foreground"
+    },
+    "--ds-terminal-cursor": {
+      "default": "`--ds-primary`",
+      "description": "terminal frame: the caret and the emulator's cursor"
+    },
+    "--ds-terminal-selection": {
+      "default": "`--ds-primary-container`",
+      "description": "terminal frame: selected text on the screen"
+    },
+    "--ds-terminal-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "terminal frame: the frame's corners at the default shape"
+    },
+    "--ds-terminal-font": {
+      "default": "`--ds-font-code`",
+      "description": "terminal frame: the title and plain output on the screen"
+    },
+    "--ds-terminal-black": {
+      "default": "`--ds-text-2`",
+      "description": "terminal frame: ANSI black (and bright black)"
+    },
+    "--ds-terminal-red": {
+      "default": "`--ds-error`",
+      "description": "terminal frame: ANSI red"
+    },
+    "--ds-terminal-green": {
+      "default": "`--ds-success`",
+      "description": "terminal frame: ANSI green"
+    },
+    "--ds-terminal-yellow": {
+      "default": "`--ds-warning`",
+      "description": "terminal frame: ANSI yellow"
+    },
+    "--ds-terminal-blue": {
+      "default": "`--ds-primary`",
+      "description": "terminal frame: ANSI blue"
+    },
+    "--ds-terminal-magenta": {
+      "default": "`--ds-error` and `--ds-primary` half and half",
+      "description": "terminal frame: ANSI magenta"
+    },
+    "--ds-terminal-cyan": {
+      "default": "`--ds-info` and `--ds-success` half and half",
+      "description": "terminal frame: ANSI cyan"
+    },
+    "--ds-terminal-white": {
+      "default": "`--ds-text`",
+      "description": "terminal frame: ANSI white"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "terminal"
+  ],
+  "module": true,
+  "progressive": [
+    "scrollbar-color"
+  ],
+  "ripple": false,
+  "labExempt": {
+    "DS.terminal.create": "the frame does not move: the status chip glides by .ds-status and the keys press as buttons",
+    "DS.terminal.sequence": "a pure function: no motion",
+    "DS.terminal.theme": "reads colours: no motion"
+  }
+}

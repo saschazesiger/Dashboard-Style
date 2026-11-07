@@ -449,6 +449,16 @@ strings a script adds have an option, so a page in another language passes its o
 | `No line matches the filters` | what `DS.logview` shows when the filters hide every line (the system's string `logNoneShown`) | `DS.core.config({ strings: { logNoneShown } })` |
 | `Latest` | the pill of `DS.logview` that goes back to the newest line (the system's string `logLatest`) | `DS.core.config({ strings: { logLatest } })` |
 | `Following new lines` | what `DS.logview` announces when the pill takes the reader back to the end (the system's string `logFollowing`) | `DS.core.config({ strings: { logFollowing } })` |
+| `Terminal keys` | the name of the key bar of `DS.terminal` (the system's string `terminalKeys`) | `DS.core.config({ strings: { terminalKeys } })` |
+| `Arrow up` | the name of the up key of `DS.terminal` (the system's string `terminalUp`) | `DS.core.config({ strings: { terminalUp } })` |
+| `Arrow down` | the name of the down key of `DS.terminal` (the system's string `terminalDown`) | `DS.core.config({ strings: { terminalDown } })` |
+| `Arrow left` | the name of the left key of `DS.terminal` (the system's string `terminalLeft`) | `DS.core.config({ strings: { terminalLeft } })` |
+| `Arrow right` | the name of the right key of `DS.terminal` (the system's string `terminalRight`) | `DS.core.config({ strings: { terminalRight } })` |
+| `Connecting` | the status of a `DS.terminal` that connects (the system's string `terminalConnecting`) | `DS.core.config({ strings: { terminalConnecting } })` |
+| `Connected` | the status of a connected `DS.terminal` (the system's string `terminalConnected`) | `DS.core.config({ strings: { terminalConnected } })` |
+| `Disconnected` | the status of a disconnected `DS.terminal` (the system's string `terminalDisconnected`) | `DS.core.config({ strings: { terminalDisconnected } })` |
+| `{key} held for the next key` | what `DS.terminal` announces when Ctrl or Alt is held (the system's string `terminalHeld`) | `DS.core.config({ strings: { terminalHeld } })` |
+| `{key} released` | what `DS.terminal` announces when Ctrl or Alt is let go (the system's string `terminalReleased`) | `DS.core.config({ strings: { terminalReleased } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

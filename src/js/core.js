@@ -203,6 +203,16 @@ const DEFAULT_STRINGS = Object.freeze({
   logNoneShown: 'No line matches the filters',
   logLatest: 'Latest',
   logFollowing: 'Following new lines',
+  terminalKeys: 'Terminal keys',
+  terminalUp: 'Arrow up',
+  terminalDown: 'Arrow down',
+  terminalLeft: 'Arrow left',
+  terminalRight: 'Arrow right',
+  terminalConnecting: 'Connecting',
+  terminalConnected: 'Connected',
+  terminalDisconnected: 'Disconnected',
+  terminalHeld: '{key} held for the next key',
+  terminalReleased: '{key} released',
 });
 
 /**
