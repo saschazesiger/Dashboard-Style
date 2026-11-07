@@ -1,0 +1,36 @@
+{
+  "name": "toggle",
+  "group": "actions",
+  "order": 520,
+  "docsOrder": 52,
+  "need": "Turn an option on or off with a button, or pick one or several in a set of toggle buttons",
+  "tier": 1,
+  "status": "stable",
+  "classes": [
+    "ds-toggle-group"
+  ],
+  "attributes": [],
+  "requires": [
+    "button"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-toggle-group-gap": {
+      "default": "`--ds-space-2`",
+      "description": "toggle group: the gap between its toggles at the comfortable density (2px less per density step)"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "toggle"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.toggle.create": "state only: the button's fill fades on its own transition (Button), nothing else moves",
+    "DS.toggle.group": "state only: the buttons' fills fade on their own transitions, nothing else moves",
+    "DS.toggle.nextPressed": "a pure function of the state",
+    "DS.toggle.parseValue": "a pure function of the state"
+  }
+}

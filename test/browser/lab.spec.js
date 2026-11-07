@@ -314,6 +314,7 @@ const CONTINUITY = {
   'dialog-work': { in: 'doc', sel: '#sg-lab-dialog-work .ds-dialog__box', props: ['opacity', 'scale.x'] },
   'modal-drawer': { in: 'frame', sel: '#drawer', props: ['translateX'] },
   menu: { in: 'stage', sel: '#sg-lab-menu', props: ['opacity'] },
+  'menubutton-open': { in: 'stage', sel: '#sg-lab-menubutton', props: ['opacity'] },
   combobox: { in: 'stage', sel: '.ds-combo__popup', props: ['opacity'] },
   'list-edges': { in: 'stage', sel: '.ds-combo__popup', props: ['opacity'] },
   snackbars: { in: 'doc', sel: '#sg-toasts .ds-toast', props: ['opacity'] },

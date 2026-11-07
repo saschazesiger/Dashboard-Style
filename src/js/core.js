@@ -154,6 +154,9 @@ const DEFAULT_STRINGS = Object.freeze({
   splitpaneResize: 'Resize',
   splitpaneCollapsed: 'Collapsed',
   back: 'Back',
+  moreOptionsFor: 'More options for {label}',
+  moreActions: 'More actions',
+  copyManual: 'Copying is blocked here. The text is selected: press {keys} to copy it.',
 });
 
 /**

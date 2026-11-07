@@ -208,3 +208,57 @@ test('forced colours: the error tone becomes the system button colours; a toggle
   // The square shape and the touch minimum hold in forced colours too.
   expect((await box(page, '#shape-square')).radius).toBe(0);
 });
+
+test('icon buttons in the four looks, each a circle at every size; as toggles the filled and tonal ones turn neutral while off', async ({ page }) => {
+  await open(page);
+  const out = await page.evaluate(() => {
+    const host = document.createElement('div');
+    host.className = 'ds-theme';
+    document.body.append(host);
+    const colour = (value) => {
+      const probe = document.createElement('span');
+      probe.style.color = value;
+      host.append(probe);
+      const resolved = getComputedStyle(probe).color;
+      probe.remove();
+      return resolved;
+    };
+    const result = {};
+    for (const look of ['quiet', 'filled', 'tonal', 'outlined']) {
+      for (const [size, pressed] of [['', null], ['ds-sm', null], ['ds-lg', null], ['', 'false'], ['', 'true']]) {
+        const button = document.createElement('button');
+        button.className = `ds-btn ds-btn--${look} ds-btn--icon ${size}`;
+        button.type = 'button';
+        button.setAttribute('aria-label', 'Probe');
+        if (pressed) button.setAttribute('aria-pressed', pressed);
+        host.append(button);
+        const style = getComputedStyle(button);
+        const rect = button.getBoundingClientRect();
+        result[`${look} ${size || 'md'}${pressed ? ` ${pressed}` : ''}`] = { w: rect.width, h: rect.height, r: parseFloat(style.borderTopLeftRadius), bg: style.backgroundColor, border: style.borderTopColor };
+        button.remove();
+      }
+    }
+    const colours = { neutral: colour('var(--ds-surface-highest)'), primary: colour('var(--ds-primary)'), clear: colour('transparent') };
+    host.remove();
+    return { result, ...colours };
+  });
+  const { result, neutral, primary, clear } = out;
+  for (const look of ['quiet', 'filled', 'tonal', 'outlined']) {
+    expect(result[`${look} md`]).toMatchObject({ w: 40, h: 40, r: 20 });
+    expect(result[`${look} ds-sm`]).toMatchObject({ w: 32, h: 32, r: 16 });
+    expect(result[`${look} ds-lg`]).toMatchObject({ w: 48, h: 48, r: 24 });
+  }
+  expect(result['quiet md'].bg).toBe(clear);
+  expect(result['filled md'].bg).toBe(primary);
+  expect(result['tonal md'].bg).not.toBe(clear);
+  expect(result['outlined md'].bg).toBe(clear);
+  expect(result['outlined md'].border).not.toBe(clear);
+  // Toggles: filled and tonal show the neutral container while off, their fill while on.
+  expect(result['filled md false'].bg).toBe(neutral);
+  expect(result['tonal md false'].bg).toBe(neutral);
+  expect(result['filled md true'].bg).toBe(primary);
+  expect(result['tonal md true'].bg).not.toBe(neutral);
+  // The quiet and outlined toggles: clear while off, the tint while on.
+  expect(result['quiet md false'].bg).toBe(clear);
+  expect(result['outlined md true'].bg).not.toBe(clear);
+});

@@ -59,6 +59,19 @@ A choice made once, then locked (a vote, an answer that was sent): the pressed t
 </div>
 ```
 
+Icon buttons in the four looks of Material 3: standard (`--quiet`: no frame, the quieter ink), `--filled`, `--tonal`
+and `--outlined`. The label is required: an `aria-label`, and a `data-tip` with the same words, so a pointer user
+reads it too. Each is also a toggle (`aria-pressed`, with `data-ds-toggle` of [Toggle button](#toggle-button-and-toggle-group) or
+the page's own script), whose fillable glyph fills while it is on:
+
+```html
+<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit" data-tip="Edit">[icon pencil 20]</button>
+<button class="ds-btn ds-btn--filled ds-btn--icon" type="button" aria-label="Add device" data-tip="Add device">[icon plus 20]</button>
+<button class="ds-btn ds-btn--tonal ds-btn--icon" type="button" aria-label="Restart" data-tip="Restart">[icon refresh 20]</button>
+<button class="ds-btn ds-btn--outlined ds-btn--icon" type="button" aria-label="Lock" data-tip="Lock">[icon lock 20]</button>
+<button class="ds-btn ds-btn--filled ds-btn--icon" type="button" aria-pressed="false" aria-label="Pin" data-tip="Pin" data-ds-toggle>[icon pin 20 ds-icon--fillable]</button>
+```
+
 ```js
 await DS.motion.busy(saveButton, () => fetch(url, { method: 'POST', body }));   // busy, then "Saved" (or "Not saved") for a moment
 DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' });  // copy to check
@@ -96,6 +109,11 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
   Toggles in a track with a sliding indicator ([DS.indicator](motion.md), `.ds-has-indicator`) leave the tint to
   the pill (give it `--ds-accent`): the button stays clear, so only one pill shows while it travels, and its label
   changes colour on the pill's timing (`--ds-indicator-dur`).
+- A `--filled` or `--tonal` toggle shows the neutral container (`--ds-surface-highest`) while off
+  (`aria-pressed="false"`) and its own fill while on, as Material 3's toggles do: off and on differ by the fill, and a
+  filled toggle that is on stays filled. An outlined, quiet or text toggle keeps the tint. Give a text toggle an icon
+  that swaps to a check (`.ds-icon-swap`) and an icon toggle a fillable glyph (`.ds-icon--fillable`), so on is never
+  the colour alone.
 - `aria-disabled="true"` looks disabled but stays focusable and hoverable, so a tooltip can say why. `disabled` and
   `aria-busy="true"` block the pointer. Blocked for every input (2.0): once `DS.ripple.attach()` or `DS.motion.busy()` ran,
   or `DS.motion.guard()` was called once ([motion.md](motion.md#dsmotion-jsmotionjs)), a click, middle click, Enter,
@@ -145,10 +163,16 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
   `--ds-scale-small`, a `pathLength="1"` glyph draws itself, the outgoing icon only fades; a crossfade with a scale,
   not a path morph ([motion.md](motion.md)).
 - Keyboard and names: a `<button>` (or a link that navigates); Enter and Space press it. An icon button needs
-  `aria-label`; an adaptive one keeps its label as its name.
+  `aria-label` and a `data-tip` with the same words (the tooltip is how a pointer user reads the label); an adaptive
+  one keeps its label as its name.
 - Forced colours: the system button colours; a pressed toggle and an open disclosure button `Highlight` /
   `HighlightText` (focused: a `CanvasText` ring), a blocked one `GrayText`. The error tone becomes the system colours
   too, so its label carries the meaning.
 - Hooks: [theming.md](theming.md#component-hooks).
 
 **Motion:** the press, focus, busy and success rows of [Controls](motion.md#controls) in motion.md.
+
+<!-- changelog -->
+- Button: icon buttons in the standard (`--quiet`), `--filled`, `--tonal` and `--outlined` looks, each also a toggle,
+  documented with their required label and tooltip; a `--filled` or `--tonal` toggle shows the neutral container
+  while off and its own fill while on.

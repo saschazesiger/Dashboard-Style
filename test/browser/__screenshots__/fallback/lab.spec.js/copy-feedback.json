@@ -1,0 +1,10 @@
+[
+  "transition opacity - 100 0 1 --ds-ease-in",
+  "transition opacity - 150 0 1 --ds-ease-in-out",
+  "transition scale - 0 100 1 ease",
+  "transition scale - 250 0 1 --ds-ease-spatial",
+  "transition stroke-dashoffset - 0 100 1 ease",
+  "transition stroke-dashoffset - 250 0 1 --ds-ease-out",
+  "transition translate - 100 0 1 --ds-ease-in",
+  "transition translate - 150 0 1 --ds-ease-out"
+]

@@ -1,0 +1,50 @@
+{
+  "name": "prioritybar",
+  "group": "actions",
+  "order": 570,
+  "docsOrder": 57,
+  "need": "Keep a row of actions on one line at any width: what does not fit folds into a More menu",
+  "tier": 1,
+  "status": "stable",
+  "classes": [
+    "ds-priority-bar",
+    "ds-priority-bar--end",
+    "ds-priority-bar__menu",
+    "ds-priority-bar__more"
+  ],
+  "attributes": [
+    "data-ds-folded"
+  ],
+  "requires": [
+    "button",
+    "menu"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-priority-bar-gap": {
+      "default": "`--ds-space-1`",
+      "description": "priority action bar: the gap between its actions at the comfortable density (1px less per density step)"
+    },
+    "--ds-priority-bar-menu-width": {
+      "default": "200px",
+      "description": "priority action bar: the least width of its More menu"
+    },
+    "--ds-btn-icon-size": {
+      "owner": "button"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "menu",
+    "menubutton",
+    "overlay",
+    "prioritybar"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.prioritybar.create": "no motion: an action folds and unfolds at once; the menu's entrance is DS.menu's",
+    "DS.prioritybar.plan": "a pure function of the widths"
+  }
+}
