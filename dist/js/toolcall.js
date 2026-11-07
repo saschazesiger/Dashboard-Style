@@ -28,8 +28,11 @@
  *
  * set({ status, label, duration, since }) writes data-status, the mark
  * (.ds-toolcall__mark: the spinner, or the status glyph of DS.icons:
- * hourglass, checkCircle, alertCircle, ban) and
- * the word (.ds-toolcall__word) when a label is given. get() gives
+ * hourglass, checkCircle, alertCircle, ban) and the word
+ * (.ds-toolcall__word): the label, or without one the status's own word
+ * (strings toolPending, toolRunning, toolDone, toolFailed, toolCancelled).
+ * A status changed through data-status alone gets its mark, and its word
+ * unless the page wrote one with it. get() gives
  * { status, duration } (duration: the ms shown, or null), on('change', fn)
  * runs after a set() that changed the status, with ds:change on the row.
  *
@@ -45,6 +48,8 @@ import { elapsedText, isoDuration, sinceOf } from './thinking.js';
 export const STATUSES = Object.freeze(['pending', 'running', 'done', 'failed', 'cancelled']);
 const ENDED = new Set(['done', 'failed', 'cancelled']);
 const GLYPHS = { pending: hourglass, done: checkCircle, failed: alertCircle, cancelled: ban };
+/** The word of each status, when the page gives none (strings of DS.core.config()). */
+const WORDS = { pending: 'toolPending', running: 'toolRunning', done: 'toolDone', failed: 'toolFailed', cancelled: 'toolCancelled' };
 
 /**
  * A duration as a tool call shows it: the milliseconds under a second
@@ -108,14 +113,33 @@ function controller(el, start, signal) {
     if (name || word) announce(t('toolStatus', { name, status: word }));
   };
 
+  const wordPart = () => summary?.querySelector('.ds-toolcall__word') ?? null;
+  /** The word as the status last left it: a page that changes the status alone leaves it so. */
+  let lastWord = wordPart()?.textContent ?? null;
+
+  const writeWord = (label) => {
+    const word = wordPart();
+    if (!word) return;
+    const text = typeof label === 'string' ? label : t(WORDS[state.status]);
+    if (word.textContent !== text) word.textContent = text;
+    lastWord = text;
+  };
+
+  /** The mark of the status: the spinner, or its glyph; markup that already shows it stays. */
   const writeMark = () => {
     const mark = summary?.querySelector('.ds-toolcall__mark');
     if (!mark) return;
     if (state.status === 'running') {
+      if (mark.children.length === 1 && mark.firstElementChild.classList.contains('ds-spinner')) return;
       const spinner = doc.createElement('span');
       spinner.className = 'ds-spinner';
       mark.replaceChildren(spinner);
-    } else mark.replaceChildren(iconElement(GLYPHS[state.status], 16, undefined, doc));
+      return;
+    }
+    const glyph = iconElement(GLYPHS[state.status], 16, undefined, doc);
+    const shown = mark.children.length === 1 ? mark.firstElementChild : null;
+    if (shown?.localName === 'svg' && shown.innerHTML === glyph.innerHTML) return;
+    mark.replaceChildren(glyph);
   };
 
   render();
@@ -129,14 +153,12 @@ function controller(el, start, signal) {
       if ('since' in changes) state.since = sinceOf(changes.since);
       if ('duration' in changes) state.duration = changes.duration === null || changes.duration === undefined ? null : Number(changes.duration);
       if (changes.status !== undefined) state.status = statusOf(changes.status);
-      if (typeof changes.label === 'string') {
-        const word = summary?.querySelector('.ds-toolcall__word');
-        if (word) word.textContent = changes.label;
-      }
       if (state.status !== before) {
         el.setAttribute('data-status', state.status);
         writeMark();
       }
+      // The word follows the status: the label given, or the status's own.
+      if (typeof changes.label === 'string' || state.status !== before) writeWord(changes.label);
       render();
       if (state.status === before || signal?.aborted) return;
       say(before);
@@ -159,6 +181,13 @@ function controller(el, start, signal) {
       if (changed('data-ds-toolcall-duration')) {
         const total = el.getAttribute('data-ds-toolcall-duration');
         state.duration = total === null || total === '' ? null : Number(total);
+      }
+      if (state.status !== before) {
+        writeMark();
+        // A re-render that wrote its own word keeps it; a status changed alone gets its word.
+        const word = wordPart();
+        if (word && word.textContent === lastWord) writeWord();
+        else lastWord = word?.textContent ?? null;
       }
       render();
       if (state.status !== before) say(before);

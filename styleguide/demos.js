@@ -13041,7 +13041,7 @@
             '</div>', 'Comfortable, near the budget (from 80%), over it: the icon and the word say it, the meter repeats it.') +
 
           h.section('Without a budget', usageMarkup(h, 'data-ds-usage-used="18420" data-ds-usage-cost="0.37"', 'This conversation'),
-            'No share and no status: the figures alone, and an empty meter track.') +
+            'No share and no status: the figures alone, the meter hidden.') +
 
           h.section('Inline', '<div class="ds-card"><p class="ds-muted">Ask about a device, a ticket or a Product.</p>' +
             usageMarkup(h, 'data-ds-usage-used="7400" data-ds-usage-budget="8000"', 'Context', null, true) + '</div>',

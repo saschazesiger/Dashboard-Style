@@ -71,8 +71,12 @@ function release(card) {
   }
 }
 
-/** The cards whose pointer and keys are bound (once per card, for every marker). */
-const bound = new WeakSet();
+/**
+ * The cards whose pointer and keys are bound: once per card, for every
+ * marker, with the controllers that use it; the last one to go unbinds it.
+ * @type {WeakMap<Element, { users: Set<object>, unbind: AbortController }>}
+ */
+const bound = new WeakMap();
 
 /** Closes a card that only the pointer opened, after the hide grace, unless the pointer came back. */
 function scheduleClose(card, held) {
@@ -86,21 +90,36 @@ function scheduleClose(card, held) {
 
 const hovering = (event) => event.pointerType === 'mouse' || event.pointerType === 'pen';
 
-/** The card's own pointer and keys. */
-function bindCard(card) {
-  if (!card || bound.has(card)) return;
-  bound.add(card);
+/** Lets a controller go from a card; the card's listeners go with the last one. */
+function unbindCard(card, user) {
+  const entry = bound.get(card);
+  if (!entry || !entry.users.delete(user) || entry.users.size) return;
+  entry.unbind.abort();
+  bound.delete(card);
+}
+
+/** The card's own pointer and keys, bound for `user` (a controller). */
+function bindCard(card, user) {
+  if (!card) return;
+  const entry = bound.get(card);
+  if (entry) {
+    entry.users.add(user);
+    return;
+  }
+  const unbind = new AbortController();
+  const { signal } = unbind;
+  bound.set(card, { users: new Set([user]), unbind });
   card.addEventListener('pointerenter', () => {
     const held = shared.open.get(card);
     if (held) viewOf(card).clearTimeout(held.timer);
-  });
+  }, { signal });
   card.addEventListener('pointerleave', (event) => {
     const held = shared.open.get(card);
     if (!held || !hovering(event)) return;
     const to = /** @type {Node|null} */ (event.relatedTarget);
     if (to && held.marker.contains(to)) return;
     scheduleClose(card, held);
-  });
+  }, { signal });
   // Tab past the card's ends goes back to the marker (Shift+Tab lands on
   // it, Tab moves on from it) and closes the card.
   card.addEventListener('keydown', (event) => {
@@ -112,16 +131,28 @@ function bindCard(card) {
     held.marker.focus();
     if (event.shiftKey) event.preventDefault();
     close(card, { reason: 'tab' });
-  });
+  }, { signal });
 }
 
-function controller(marker, signal) {
+function controller(marker, given) {
+  // Without the signal of DS.init() (create()), destroy() ends its own.
+  const own = given ? null : new AbortController();
+  const signal = given ?? own.signal;
   const listeners = new Set();
   const view = viewOf(marker);
+  const me = {};
+  /** The cards this marker bound, let go on destroy(). */
+  const cards = new Set();
   let timer = 0;
 
+  const use = (card) => {
+    if (!card || signal.aborted) return;
+    cards.add(card);
+    bindCard(card, me);
+  };
+
   if (!marker.hasAttribute('aria-expanded')) marker.setAttribute('aria-expanded', 'false');
-  bindCard(cardOf(marker));
+  use(cardOf(marker));
 
   /** The open entry of this marker's card, when this marker opened it. */
   const entry = () => {
@@ -131,7 +162,7 @@ function controller(marker, signal) {
   };
 
   const tell = (value) => {
-    if (signal?.aborted) return;
+    if (signal.aborted) return;
     emit(marker, 'change', { open: value });
     listeners.forEach((fn) => fn({ open: value }));
   };
@@ -145,8 +176,8 @@ function controller(marker, signal) {
   const show = async (pinned, focusIn) => {
     view.clearTimeout(timer);
     const card = cardOf(marker);
-    if (!card) return;
-    bindCard(card);
+    if (!card || signal.aborted) return;
+    use(card);
     const held = shared.open.get(card);
     if (held && held.marker === marker) {
       view.clearTimeout(held.timer);
@@ -233,6 +264,9 @@ function controller(marker, signal) {
       view.clearTimeout(timer);
       listeners.clear();
       if (entry()) hide();
+      own?.abort();
+      for (const card of cards) unbindCard(card, me);
+      cards.clear();
     },
   };
 }
@@ -262,7 +296,8 @@ define('cite', {
 
 /**
  * A citation marker driven from the page; the same controller the
- * attribute path makes.
+ * attribute path makes. destroy() removes every listener it added (the
+ * card's with the last marker that uses it).
  * @param {Element} marker
  */
 export function create(marker) {

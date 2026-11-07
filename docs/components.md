@@ -16151,8 +16151,10 @@ DS.toolcall.STATUSES;                                         // ['pending', 'ru
 
 Exports: `DS.toolcall.create(el, options)` (the controller), `DS.toolcall.durationText(ms)` (the duration as the summary shows it) and `DS.toolcall.STATUSES` (the statuses `data-status` takes).
 
-`set()` writes the mark (the spinner, or `hourglass`, `checkCircle`, `alertCircle`, `ban` of `DS.icons`) and, with a
-`label`, the word; a page that renders the row writes them in its markup.
+`set()` writes the mark (the spinner, or `hourglass`, `checkCircle`, `alertCircle`, `ban` of `DS.icons`) and the word:
+the `label`, or without one the status's own (strings `toolPending`, `toolRunning`, `toolDone`, `toolFailed`,
+`toolCancelled`: `Pending`, `Running`, `Done`, `Failed`, `Cancelled`). A page that renders the row writes them in its
+markup; one that changes only `data-status` gets the mark, and the word unless it wrote its own with it.
 
 **Options.**
 
@@ -16185,7 +16187,7 @@ mark at once.
 <!-- changelog -->
 - Tool call (`.ds-toolcall`, `DS.toolcall`, `data-ds-toolcall`): a disclosure row in a frame with the call's name,
   arguments, status (icon and word), live duration, input, output and nested calls; announces its end. String
-  `toolStatus`.
+  `toolStatus`, and the status words `toolPending`, `toolRunning`, `toolDone`, `toolFailed`, `toolCancelled`.
 ## Sources and citations
 
 Where a generated answer's facts come from: numbered markers in the text that open a card with their source (on
@@ -16418,8 +16420,9 @@ answers in place):
 - **With one**, the card emits `ds:answer` (cancelable) with `{ values, labels, other, skipped: false }`. A page that
   calls `preventDefault()` keeps it open and settles it later with `set({ state: 'answered' })`. Otherwise the controls
   are disabled (the choice stays in view), the actions go, the answer line says `Answered: All three` (string
-  `questionAnswered`; several labels as a list, `DS.format.list()`), takes the focus (`tabindex="-1"`) and is
-  announced; `ds:change` follows with `{ state }`.
+  `questionAnswered`; several labels as a list, `DS.format.list()`) and takes the focus (`tabindex="-1"`) when the
+  focus was in the card, so a screen reader reads it; otherwise (an answer set from the page) it is announced.
+  `ds:change` follows with `{ state }`.
 - **Skip** does the same with `skipped: true` and `Skipped` (string `questionSkipped`).
 - `set({ state: 'waiting' })` opens it again.
 - `data-ds-question-state="answered"` (or `"skipped"`) renders a question from history decided at once, with its
@@ -16454,7 +16457,8 @@ Exports: `DS.question.create(form)` (the controller), `DS.question.answerText(st
 
 **Accessibility.** A `<form>` named by its title; the options are a radio group (or a group of checkboxes) named by
 the same title, so a screen reader hears the question with each option. The error is tied to the group and the
-answer is announced once; focus never falls to the page when the actions go.
+answer is said once (read on the focused line, or announced when the focus was elsewhere); focus never falls to the
+page when the actions go.
 
 **Forced colours.** The frame keeps its border; the glyph follows the line's forced text colour; the cards are the
 form's.
@@ -16514,7 +16518,7 @@ The share is the larger of the token share and the cost share (each only with it
 used`), the figures, and `data-state="near"` (from the warn share) or `"over"` (past the budget) on the root. Then the
 status shows an icon and the word (`Near the budget`, `Over budget`; strings `usageNear`, `usageOver`), the meter takes
 `.ds-meter--warning` or `.ds-meter--error`, and the word is announced once when the state gets worse. Without a budget
-there is no share and no status: the figures alone.
+there is no share and no status: the figures alone, the meter `hidden` (and without its values) until a budget comes.
 
 ```js
 const usage = DS.usage.create(el, { used: 182400, budget: 250000, cost: 3.12, costBudget: 5 });   // or DS.core.get(el, 'usage')

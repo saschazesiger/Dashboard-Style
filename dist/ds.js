@@ -664,6 +664,11 @@
       reasoningRunning: 'Thinking',
       reasoningDone: 'Thought for {time}',
       toolStatus: '{name}: {status}',
+      toolPending: 'Pending',
+      toolRunning: 'Running',
+      toolDone: 'Done',
+      toolFailed: 'Failed',
+      toolCancelled: 'Cancelled',
       usageOf: '{used} of {budget}',
       usageShare: '{percent} used',
       usageNear: 'Near the budget',
@@ -21090,8 +21095,12 @@
       }
     }
 
-    /** The cards whose pointer and keys are bound (once per card, for every marker). */
-    const bound = new WeakSet();
+    /**
+     * The cards whose pointer and keys are bound: once per card, for every
+     * marker, with the controllers that use it; the last one to go unbinds it.
+     * @type {WeakMap<Element, { users: Set<object>, unbind: AbortController }>}
+     */
+    const bound = new WeakMap();
 
     /** Closes a card that only the pointer opened, after the hide grace, unless the pointer came back. */
     function scheduleClose(card, held) {
@@ -21105,21 +21114,36 @@
 
     const hovering = (event) => event.pointerType === 'mouse' || event.pointerType === 'pen';
 
-    /** The card's own pointer and keys. */
-    function bindCard(card) {
-      if (!card || bound.has(card)) return;
-      bound.add(card);
+    /** Lets a controller go from a card; the card's listeners go with the last one. */
+    function unbindCard(card, user) {
+      const entry = bound.get(card);
+      if (!entry || !entry.users.delete(user) || entry.users.size) return;
+      entry.unbind.abort();
+      bound.delete(card);
+    }
+
+    /** The card's own pointer and keys, bound for `user` (a controller). */
+    function bindCard(card, user) {
+      if (!card) return;
+      const entry = bound.get(card);
+      if (entry) {
+        entry.users.add(user);
+        return;
+      }
+      const unbind = new AbortController();
+      const { signal } = unbind;
+      bound.set(card, { users: new Set([user]), unbind });
       card.addEventListener('pointerenter', () => {
         const held = shared.open.get(card);
         if (held) viewOf(card).clearTimeout(held.timer);
-      });
+      }, { signal });
       card.addEventListener('pointerleave', (event) => {
         const held = shared.open.get(card);
         if (!held || !hovering(event)) return;
         const to = /** @type {Node|null} */ (event.relatedTarget);
         if (to && held.marker.contains(to)) return;
         scheduleClose(card, held);
-      });
+      }, { signal });
       // Tab past the card's ends goes back to the marker (Shift+Tab lands on
       // it, Tab moves on from it) and closes the card.
       card.addEventListener('keydown', (event) => {
@@ -21131,16 +21155,28 @@
         held.marker.focus();
         if (event.shiftKey) event.preventDefault();
         close(card, { reason: 'tab' });
-      });
+      }, { signal });
     }
 
-    function controller(marker, signal) {
+    function controller(marker, given) {
+      // Without the signal of DS.init() (create()), destroy() ends its own.
+      const own = given ? null : new AbortController();
+      const signal = given ?? own.signal;
       const listeners = new Set();
       const view = viewOf(marker);
+      const me = {};
+      /** The cards this marker bound, let go on destroy(). */
+      const cards = new Set();
       let timer = 0;
 
+      const use = (card) => {
+        if (!card || signal.aborted) return;
+        cards.add(card);
+        bindCard(card, me);
+      };
+
       if (!marker.hasAttribute('aria-expanded')) marker.setAttribute('aria-expanded', 'false');
-      bindCard(cardOf(marker));
+      use(cardOf(marker));
 
       /** The open entry of this marker's card, when this marker opened it. */
       const entry = () => {
@@ -21150,7 +21186,7 @@
       };
 
       const tell = (value) => {
-        if (signal?.aborted) return;
+        if (signal.aborted) return;
         emit(marker, 'change', { open: value });
         listeners.forEach((fn) => fn({ open: value }));
       };
@@ -21164,8 +21200,8 @@
       const show = async (pinned, focusIn) => {
         view.clearTimeout(timer);
         const card = cardOf(marker);
-        if (!card) return;
-        bindCard(card);
+        if (!card || signal.aborted) return;
+        use(card);
         const held = shared.open.get(card);
         if (held && held.marker === marker) {
           view.clearTimeout(held.timer);
@@ -21252,6 +21288,9 @@
           view.clearTimeout(timer);
           listeners.clear();
           if (entry()) hide();
+          own?.abort();
+          for (const card of cards) unbindCard(card, me);
+          cards.clear();
         },
       };
     }
@@ -21281,7 +21320,8 @@
 
     /**
      * A citation marker driven from the page; the same controller the
-     * attribute path makes.
+     * attribute path makes. destroy() removes every listener it added (the
+     * card's with the last marker that uses it).
      * @param {Element} marker
      */
     function create(marker) {
@@ -45334,7 +45374,11 @@
       return PLAN_STATES.includes(state) ? /** @type {'waiting'|'approved'|'rejected'} */ (state) : 'waiting';
     }
 
-    function controller(el, start, signal) {
+    function controller(el, start, given) {
+      // Without the signal of DS.init() (create()), destroy() ends its own.
+      const own = given ? null : new AbortController();
+      const signal = given ?? own.signal;
+
       const doc = el.ownerDocument;
       const listeners = new Set();
       let state = planState(start);
@@ -45377,7 +45421,7 @@
         if (value === state) return;
         state = value;
         render(moving);
-        if (signal?.aborted) return;
+        if (signal.aborted) return;
         if (moving && state !== 'waiting') announce(t(WORDS[state]));
         const detail = { state };
         emit(el, 'change', detail);
@@ -45410,6 +45454,7 @@
         },
         destroy() {
           listeners.clear();
+          own?.abort();
         },
       };
     }
@@ -45426,8 +45471,7 @@
 
     /**
      * A plan card driven from the page; the same controller the attribute
-     * path makes. Without a signal of its own its press listener lives as long
-     * as the element.
+     * path makes; destroy() removes its press listener.
      * @param {Element} el
      * @param {{ state?: 'waiting'|'approved'|'rejected' }} [options]
      */
@@ -47210,9 +47254,9 @@
      * settles later with set({ state: 'answered' }). Otherwise it takes
      * data-state="answered": the controls are disabled (the choice stays in
      * view), the actions go (DS.motion.leave()), .ds-question__answer says
-     * "Answered: <labels>" (string questionAnswered, with a check), takes the
-     * focus (tabindex="-1") and is announced; ds:change follows with
-     * { state }. Skip ([data-ds-question-skip]) does the same with
+     * "Answered: <labels>" (string questionAnswered, with a check) and takes
+     * the focus (tabindex="-1") when the focus was in the card, which reads
+     * it; otherwise it is announced. ds:change follows with { state }. Skip ([data-ds-question-skip]) does the same with
      * skipped: true and "Skipped" (questionSkipped). set({ state: 'waiting' })
      * opens it again.
      *
@@ -47269,7 +47313,11 @@
       return (strong ?? label)?.textContent.trim().replace(/\s+/g, ' ') || input.value;
     }
 
-    function controller(form, signal) {
+    function controller(form, given) {
+      // Without the signal of DS.init() (create()), destroy() ends its own.
+      const own = given ? null : new AbortController();
+      const signal = given ?? own.signal;
+
       const doc = form.ownerDocument;
       const listeners = { change: new Set(), answer: new Set() };
       let state = 'waiting';
@@ -47292,7 +47340,7 @@
       };
 
       const tell = (type, detail) => {
-        if (signal?.aborted) return;
+        if (signal.aborted) return;
         listeners[type].forEach((fn) => fn(detail));
       };
 
@@ -47365,9 +47413,10 @@
           else if (actions) leave(actions, '', { then: 'hide', focus: line });
           lock(true);
           if (hadFocus && line && !line.contains(doc.activeElement)) line.focus();
-          if (line && !quiet && !signal?.aborted) announce(line.textContent);
+          // Focus on the line reads it; announced too it would be said twice.
+          if (line && !quiet && !hadFocus && !signal.aborted) announce(line.textContent);
         }
-        if (signal?.aborted || quiet) return;
+        if (signal.aborted || quiet) return;
         const detail = { state };
         emit(form, 'change', detail);
         tell('change', detail);
@@ -47454,6 +47503,7 @@
         destroy() {
           listeners.change.clear();
           listeners.answer.clear();
+          own?.abort();
         },
       };
     }
@@ -47469,7 +47519,7 @@
 
     /**
      * A question card driven from the page; the same controller the attribute
-     * path makes.
+     * path makes; destroy() removes its listeners.
      * @param {Element} form
      */
     function create(form) {
@@ -64762,7 +64812,7 @@
      */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const clock = DS.format.clock, duration = DS.format.duration, number = DS.format.number, plural = DS.format.plural;
-    const createWheel = DS.wheel.create;
+    const roll = DS.wheel.roll;
 
     /**
      * A moment in ms: a timestamp, a numeric text or a date text; null when it
@@ -64853,7 +64903,6 @@
         slot.className = 'ds-wheel';
         stepPart.append(slot);
       }
-      const wheel = slot ? createWheel(slot, { text: state.step, shimmer: !state.done }) : null;
       const timePart = el.querySelector('.ds-thinking__time');
       const tokensPart = el.querySelector('.ds-thinking__tokens');
       const thoughtPart = el.querySelector('.ds-thinking__thought');
@@ -64890,7 +64939,8 @@
           if (tokensPart.textContent !== text) tokensPart.textContent = text;
         }
         if (thoughtPart && state.thought !== null && thoughtPart.textContent !== state.thought) thoughtPart.textContent = state.thought;
-        wheel?.set(state.step, { shimmer: !state.done });
+        // roll() rather than a wheel controller: the slot tells nobody, so a page hears one ds:change per set().
+        if (slot) roll(slot, state.step, { shimmer: !state.done });
       };
 
       const snapshot = () => ({ step: state.step, thought: state.thought ?? thoughtPart?.textContent ?? '', tokens: state.tokens === null ? null : Number(state.tokens), elapsed: elapsed(), done: state.done });
@@ -65040,7 +65090,11 @@
       };
     }
 
-    function controller(el, start, signal) {
+    function controller(el, start, given) {
+      // Without the signal of DS.init() (create()), destroy() ends its own.
+      const own = given ? null : new AbortController();
+      const signal = given ?? own.signal;
+
       const listeners = new Set();
       const summary = el.querySelector(':scope > summary');
       const line = summary?.querySelector('.ds-reasoning__summary') ?? null;
@@ -65139,7 +65193,7 @@
           }
           if (!changed) return;
           render();
-          if (signal?.aborted) return;
+          if (signal.aborted) return;
           const detail = snapshot();
           emit(el, 'change', detail);
           listeners.forEach((fn) => fn(detail));
@@ -65164,6 +65218,7 @@
           follower?.destroy();
           follower = null;
           listeners.clear();
+          own?.abort();
         },
       };
     }
@@ -65180,7 +65235,7 @@
 
     /**
      * A reasoning disclosure driven from the page; the same controller the
-     * attribute path makes.
+     * attribute path makes; destroy() removes its listeners.
      * @param {Element} el
      * @param {{ since?: Date|number|string, done?: boolean, total?: number, auto?: boolean }} [options]
      */
@@ -65224,8 +65279,11 @@
      *
      * set({ status, label, duration, since }) writes data-status, the mark
      * (.ds-toolcall__mark: the spinner, or the status glyph of DS.icons:
-     * hourglass, checkCircle, alertCircle, ban) and
-     * the word (.ds-toolcall__word) when a label is given. get() gives
+     * hourglass, checkCircle, alertCircle, ban) and the word
+     * (.ds-toolcall__word): the label, or without one the status's own word
+     * (strings toolPending, toolRunning, toolDone, toolFailed, toolCancelled).
+     * A status changed through data-status alone gets its mark, and its word
+     * unless the page wrote one with it. get() gives
      * { status, duration } (duration: the ms shown, or null), on('change', fn)
      * runs after a set() that changed the status, with ds:change on the row.
      *
@@ -65241,6 +65299,8 @@
     const STATUSES = Object.freeze(['pending', 'running', 'done', 'failed', 'cancelled']);
     const ENDED = new Set(['done', 'failed', 'cancelled']);
     const GLYPHS = { pending: hourglass, done: checkCircle, failed: alertCircle, cancelled: ban };
+    /** The word of each status, when the page gives none (strings of DS.core.config()). */
+    const WORDS = { pending: 'toolPending', running: 'toolRunning', done: 'toolDone', failed: 'toolFailed', cancelled: 'toolCancelled' };
 
     /**
      * A duration as a tool call shows it: the milliseconds under a second
@@ -65304,14 +65364,33 @@
         if (name || word) announce(t('toolStatus', { name, status: word }));
       };
 
+      const wordPart = () => summary?.querySelector('.ds-toolcall__word') ?? null;
+      /** The word as the status last left it: a page that changes the status alone leaves it so. */
+      let lastWord = wordPart()?.textContent ?? null;
+
+      const writeWord = (label) => {
+        const word = wordPart();
+        if (!word) return;
+        const text = typeof label === 'string' ? label : t(WORDS[state.status]);
+        if (word.textContent !== text) word.textContent = text;
+        lastWord = text;
+      };
+
+      /** The mark of the status: the spinner, or its glyph; markup that already shows it stays. */
       const writeMark = () => {
         const mark = summary?.querySelector('.ds-toolcall__mark');
         if (!mark) return;
         if (state.status === 'running') {
+          if (mark.children.length === 1 && mark.firstElementChild.classList.contains('ds-spinner')) return;
           const spinner = doc.createElement('span');
           spinner.className = 'ds-spinner';
           mark.replaceChildren(spinner);
-        } else mark.replaceChildren(iconElement(GLYPHS[state.status], 16, undefined, doc));
+          return;
+        }
+        const glyph = iconElement(GLYPHS[state.status], 16, undefined, doc);
+        const shown = mark.children.length === 1 ? mark.firstElementChild : null;
+        if (shown?.localName === 'svg' && shown.innerHTML === glyph.innerHTML) return;
+        mark.replaceChildren(glyph);
       };
 
       render();
@@ -65325,14 +65404,12 @@
           if ('since' in changes) state.since = sinceOf(changes.since);
           if ('duration' in changes) state.duration = changes.duration === null || changes.duration === undefined ? null : Number(changes.duration);
           if (changes.status !== undefined) state.status = statusOf(changes.status);
-          if (typeof changes.label === 'string') {
-            const word = summary?.querySelector('.ds-toolcall__word');
-            if (word) word.textContent = changes.label;
-          }
           if (state.status !== before) {
             el.setAttribute('data-status', state.status);
             writeMark();
           }
+          // The word follows the status: the label given, or the status's own.
+          if (typeof changes.label === 'string' || state.status !== before) writeWord(changes.label);
           render();
           if (state.status === before || signal?.aborted) return;
           say(before);
@@ -65355,6 +65432,13 @@
           if (changed('data-ds-toolcall-duration')) {
             const total = el.getAttribute('data-ds-toolcall-duration');
             state.duration = total === null || total === '' ? null : Number(total);
+          }
+          if (state.status !== before) {
+            writeMark();
+            // A re-render that wrote its own word keeps it; a status changed alone gets its word.
+            const word = wordPart();
+            if (word && word.textContent === lastWord) writeWord();
+            else lastWord = word?.textContent ?? null;
           }
           render();
           if (state.status !== before) say(before);
@@ -65428,8 +65512,8 @@
      *
      * What it writes: the share (the larger of tokens and cost against their
      * budgets) as --ds-share on the .ds-usage__meter (a .ds-meter, role meter,
-     * with aria-valuenow and aria-valuetext) and its tone (.ds-meter--warning
-     * near, .ds-meter--error over); the text of .ds-usage__value ("182.4K of
+     * with aria-valuenow and aria-valuetext; hidden without a budget) and its
+     * tone (.ds-meter--warning near, .ds-meter--error over); the text of .ds-usage__value ("182.4K of
      * 250K tokens") and .ds-usage__cost ("$3.12 of $5.00"); data-state="near"
      * or "over" on the root and, in .ds-usage__status, an icon and the word
      * (strings usageNear, usageOver), which it also announces once when the
@@ -65551,15 +65635,21 @@
       const render = (speak) => {
         const now = snapshot();
         const meter = part('meter');
-        if (meter) {
+        // Without a budget there is no share: no meter at 0% for a screen reader, no empty track.
+        if (meter) meter.hidden = now.share === null;
+        if (meter && now.share === null) {
+          for (const name of ['aria-valuenow', 'aria-valuetext', 'aria-valuemin', 'aria-valuemax']) meter.removeAttribute(name);
+          meter.style.removeProperty('--ds-share');
+          meter.classList.remove('ds-meter--warning', 'ds-meter--error');
+        } else if (meter) {
           if (!meter.hasAttribute('role')) meter.setAttribute('role', 'meter');
-          const shareShown = Math.min(1, now.share ?? 0);
+          const shareShown = Math.min(1, now.share);
           meter.style.setProperty('--ds-share', String(shareShown));
           meter.setAttribute('aria-valuemin', '0');
           meter.setAttribute('aria-valuemax', '100');
           // A meter's value stays in its range; the text says how far past it.
           meter.setAttribute('aria-valuenow', String(Math.round(shareShown * 100)));
-          meter.setAttribute('aria-valuetext', now.share === null ? '' : t('usageShare', { percent: percent(now.share, { maximumFractionDigits: 0 }) }));
+          meter.setAttribute('aria-valuetext', t('usageShare', { percent: percent(now.share, { maximumFractionDigits: 0 }) }));
           meter.classList.toggle('ds-meter--warning', now.state === 'near');
           meter.classList.toggle('ds-meter--error', now.state === 'over');
         }
