@@ -22,7 +22,7 @@ function planFaces(h, label, busy) {
 
 function planCard(h, opts) {
   var id = h.uid('plan');
-  return '<article class="ds-plan" data-ds-plan' + (opts.attrs || '') + ' aria-labelledby="' + id + '">' +
+  return '<section class="ds-plan" data-ds-plan' + (opts.attrs || '') + ' aria-labelledby="' + id + '">' +
     '<div class="ds-plan__head"><span class="ds-plan__icon">' + h.icon('clipboardCheck', 20) + '</span>' +
     '<h3 class="ds-plan__title" id="' + id + '">' + h.esc(opts.title) + '</h3><span class="ds-plan__state"></span></div>' +
     (opts.lead ? '<p class="ds-plan__lead">' + h.esc(opts.lead) + '</p>' : '') +
@@ -33,7 +33,7 @@ function planCard(h, opts) {
       (opts.edit ? '<button class="ds-btn ds-btn--text" type="button" data-demo="edit">' + h.icon('pencil', 18) + 'Edit the plan</button>' : '') +
       '</div>') +
     (opts.note ? '<p class="ds-plan__note">' + h.esc(opts.note) + '</p>' : '') +
-    '</article>';
+    '</section>';
 }
 
 SG.demo('plan', {
@@ -57,7 +57,7 @@ SG.demo('plan', {
       h.section('Narrow', '<div style="max-inline-size: 300px">' + planCard(h, { title: 'Restart the print server', steps: ['Drain the print queue', 'Restart the service', 'Print a test page'], edit: true }) + '</div>',
         'The actions wrap; the state goes under the title when it does not fit beside it.') +
 
-      h.section('Keyboard and screen readers', '<p class="ds-muted">Tab reaches the actions; Enter or Space decides. The card is an article named by its title; the new state is announced once, and focus moves to the title when the actions go.</p>');
+      h.section('Keyboard and screen readers', '<p class="ds-muted">Tab reaches the actions; Enter or Space decides. The card is a region named by its title; the new state is announced once, and focus moves to the title when the actions go.</p>');
   },
 
   wire: function (root, h) {

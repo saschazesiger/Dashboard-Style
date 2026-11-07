@@ -29,10 +29,10 @@ async function listen(page, selector) {
   }, selector);
 }
 
-test('names and states: an article named by its title, the state as a glyph and a word, the icon hidden', async ({ page }) => {
+test('names and states: a region named by its title, the state as a glyph and a word, the icon hidden', async ({ page }) => {
   await open(page);
   const card = page.locator(WAITING);
-  await expect(card).toHaveRole('article');
+  await expect(card).toHaveRole('region');
   await expect(card).toHaveAccessibleName('Replace the swollen batteries');
   await expect(card).toHaveAttribute('data-state', 'waiting');
   await expect(card.locator('.ds-plan__state')).toHaveText('Waiting for approval');

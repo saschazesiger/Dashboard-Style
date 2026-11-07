@@ -2,7 +2,7 @@
  * Plan card: a plan an assistant or agent proposes before it acts, its
  * steps, and the person's decision (approve or reject), in a frame.
  *
- *   <article class="ds-plan" data-ds-plan aria-labelledby="plan-title">
+ *   <section class="ds-plan" data-ds-plan aria-labelledby="plan-title">
  *     <div class="ds-plan__head">
  *       <span class="ds-plan__icon">[icon clipboardCheck 20]</span>
  *       <h3 class="ds-plan__title" id="plan-title">Replace the swollen batteries</h3>
@@ -18,7 +18,7 @@
  *       <button class="ds-btn" type="button" data-ds-plan-action="reject">Reject</button>
  *     </div>
  *     <p class="ds-plan__note">Proposed by the assistant at 09:12</p>
- *   </article>
+ *   </section>
  *
  * Parts: __head (an optional __icon, the __title and the __state, which
  * plan.js fills with a 16px __glyph and the word), __lead (optional: what

@@ -2,9 +2,9 @@
  * The plan card (DS.plan): a plan an assistant or agent proposes, its
  * steps, and the decision the person makes: approve or reject.
  *
- *   <article class="ds-plan" data-ds-plan aria-labelledby="plan-title"> ...
+ *   <section class="ds-plan" data-ds-plan aria-labelledby="plan-title"> ...
  *     <button class="ds-btn ds-btn--filled" type="button" data-ds-plan-action="approve">Approve</button>
- *     <button class="ds-btn" type="button" data-ds-plan-action="reject">Reject</button> ... </article>
+ *     <button class="ds-btn" type="button" data-ds-plan-action="reject">Reject</button> ... </section>
  *   const plan = DS.plan.create(el);
  *   plan.on('change', ({ state }) => {});
  *   plan.set('approved');

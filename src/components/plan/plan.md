@@ -5,7 +5,7 @@ Nothing happens until someone approves; the card then says who decided what, and
 a [task list](#tasks).
 
 ```html
-<article class="ds-plan" data-ds-plan aria-labelledby="plan-title">
+<section class="ds-plan" data-ds-plan aria-labelledby="plan-title">
   <div class="ds-plan__head">
     <span class="ds-plan__icon"><!-- clipboardCheck, 20px --></span>
     <h3 class="ds-plan__title" id="plan-title">Replace the swollen batteries</h3>
@@ -24,7 +24,7 @@ a [task list](#tasks).
     <button class="ds-btn ds-btn--text" type="button">Edit the plan</button>
   </div>
   <p class="ds-plan__note">Proposed by the assistant at 09:12</p>
-</article>
+</section>
 ```
 
 | Part | What |
@@ -75,7 +75,7 @@ and `DS.plan.PLAN_STATES`.
 | Size, touch | `.ds-xs` ... `.ds-xl`, `.ds-touch` | the buttons and the steps follow their own; the title keeps its role |
 | Tone | | not read: the state shows the meaning, with its word |
 
-**Accessibility.** The card is an `<article>` named by its title; the decision is two real buttons, so Tab and
+**Accessibility.** The card is a `<section>` named by its title (a region); the decision is two real buttons, so Tab and
 Enter or Space work as everywhere. The state is a word next to its glyph, announced once when it changes; focus never
 falls to the page when the actions go. Keep the step texts plain: they are what the person approves.
 

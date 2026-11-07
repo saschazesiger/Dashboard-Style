@@ -326,6 +326,11 @@ const CONTINUITY = {
   'radio-tiles': { in: 'stage', sel: '.ds-radio:nth-of-type(2) .ds-radio__mark svg', props: ['opacity', 'scale.x'] },
   charts: { in: 'stage', sel: '.ds-meter', props: ['--ds-share'] },
   'selection-bar': { in: 'stage', sel: '.ds-selection-bar', props: ['opacity'] },
+  'cite-card': { in: 'stage', sel: '.ds-cite__card', props: ['opacity', 'scale.x'] },
+  'usage-share': { in: 'stage', sel: '.ds-meter', props: ['--ds-share'] },
+  'plan-decide': { in: 'stage', sel: '.ds-plan__actions', props: ['opacity'] },
+  'question-answer': { in: 'stage', sel: '.ds-question__actions', props: ['opacity'] },
+  'toolcall-status': { in: 'stage', sel: '.ds-chevron', props: ['rotate'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */
@@ -348,6 +353,10 @@ const CONTINUITY_EXEMPT = {
   'scroll-reel': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
   'scroll-y': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
   'scroll-x': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
+  'wheel-roll': 'a roll never turns back: a change during a turn waits out --ds-hold-status and rolls once to the last line (wheel.spec.js checks that an interrupted entrance glides out from where it is)',
+  'thinking-step': 'its step is a wheel line: a roll never turns back, a change during a turn rolls once to the last line (wheel.spec.js)',
+  shimmer: 'a class on or off: the glint is a loop that starts or stops, no value turns back',
+  'reasoning-auto': 'set({ done }) swaps the summary line (the shimmer for the total) and the auto mode opens or closes the body as a .ds-collapsible, whose continuity the disclosure demo checks',
 };
 
 /**

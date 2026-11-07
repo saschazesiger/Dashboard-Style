@@ -19,7 +19,7 @@ figures. Near the budget and past it, a status with an icon and a word says so, 
 
 | Part | What |
 |---|---|
-| `.ds-usage__head` | the `.ds-usage__title` and the `.ds-usage__status` (empty and `hidden` while the usage is comfortable) |
+| `.ds-usage__head` | the `.ds-usage__title` and the `.ds-usage__status` (empty and `hidden` while the usage is comfortable; the module writes a 16px `.ds-usage__icon` and the word into it) |
 | `.ds-usage__meter` | on a `.ds-meter` (role `meter`, named by the title): the share of the budget, its tone near and over it |
 | `.ds-usage__figures` | the tokens (`.ds-usage__value`, `182.4K of 250K tokens`) and the cost (`.ds-usage__cost`, `$3.12 of $5.00`), tabular, on one line that wraps; leave out the one you do not show |
 | `.ds-usage__note` | optional: when it resets, what the budget covers |
