@@ -14,7 +14,8 @@ SG_LAB.add({
   title: 'Banner messages in priority order',
   note: 'A broadcast arrives (the urgent one goes first), "Show more" reveals the waiting ones, a dismissal hides one: each a change inside DS.motion.flip() on the panel. The view glides (--ds-dur-medium, --ds-ease-spatial), the message that appears fades in (ds-fade-in); no height animates.',
   shows: ['DS.banner.create', 'DS.motion.flip', 'ds-fade-in', '--ds-dur-medium', '--ds-ease-spatial'],
-  html: '<div class="ds-panel" style="margin: 0; min-height: 0; border: 1px solid var(--ds-line)">' +
+  // Unnamed: this page's own panel is the one ds-panel of a View Transition (the drawer demo runs one).
+  html: '<div class="ds-panel" style="margin: 0; min-height: 0; border: 1px solid var(--ds-line); view-transition-name: none;">' +
     '<div class="ds-banner" data-lab-banner data-ds-banner-remember="off"></div>' +
     '<div class="ds-content"><p class="ds-muted">The view.</p></div></div>',
   height: 220,
