@@ -6,7 +6,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { runtime } from '../../js/core.js';
-import { costText, create, shareOf, stateOf, usageText } from './usage.js';
+import { costText, shareOf, stateOf, usageText } from './usage.js';
 
 describe('DS.usage.shareOf', () => {
   it('takes the larger of the token and the cost share', () => {
@@ -62,6 +62,5 @@ describe('DS.usage registration', () => {
     assert.equal(spec.attribute, 'data-ds-usage');
     assert.ok(spec.attributes.includes('data-ds-usage-used'));
     assert.ok(spec.attributes.includes('data-ds-usage-cost-budget'));
-    assert.equal(typeof create, 'function');
   });
 });

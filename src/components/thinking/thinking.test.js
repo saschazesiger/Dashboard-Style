@@ -5,7 +5,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { config } from '../../js/core.js';
-import { create, elapsedText, isoDuration, sinceOf, tokensText } from './thinking.js';
+import { elapsedText, isoDuration, sinceOf, tokensText } from './thinking.js';
 
 describe('DS.thinking.sinceOf', () => {
   it('reads timestamps, numeric texts, date texts and dates', () => {
@@ -67,11 +67,5 @@ describe('DS.thinking.tokensText', () => {
 
   it('shows nothing for no count', () => {
     for (const value of [null, undefined, '', 'many', -1]) assert.equal(tokensText(value), '');
-  });
-});
-
-describe('DS.thinking.create', () => {
-  it('is the controller factory', () => {
-    assert.equal(typeof create, 'function');
   });
 });

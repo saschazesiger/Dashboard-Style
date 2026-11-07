@@ -79,6 +79,26 @@ test('a cancelled ds:decide keeps it waiting until the page calls set()', async 
   await expect(card.locator('.ds-plan__actions')).toBeHidden();
 });
 
+test('create() then destroy(): a press neither asks nor decides', async ({ page }) => {
+  await open(page);
+  await page.evaluate((sel) => {
+    const copy = document.querySelector(sel).cloneNode(true);
+    copy.removeAttribute('data-ds-plan');
+    copy.removeAttribute('aria-labelledby');
+    copy.id = 'own';
+    document.querySelector('#fx-component').append(copy);
+    window.decided = 0;
+    copy.addEventListener('ds:decide', () => { window.decided += 1; });
+    DS.plan.create(copy).destroy();
+  }, WAITING);
+  const card = page.locator('#own');
+  await card.getByRole('button', { name: 'Approve' }).click();
+  await page.waitForTimeout(200);
+  expect(await page.evaluate(() => window.decided)).toBe(0);
+  await expect(card).toHaveAttribute('data-state', 'waiting');
+  await expect(card.locator('.ds-plan__actions')).toBeVisible();
+});
+
 test('the state is read again from data-ds-plan-state, and set() takes the verbs', async ({ page }) => {
   await open(page);
   const rejected = page.locator('.ds-plan').nth(3);

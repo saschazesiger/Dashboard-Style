@@ -769,6 +769,7 @@ const LAYERS = {
   'Search sheet (phone)': { drive: 'popup', phone: true, part: '[data-lab-sheet]', opener: '[data-lab-open]', variants: [['shell-search-sheet', 'shell-search-sheet']] },
   Menu: { drive: 'popup', part: '#sg-lab-menu', opener: '[data-menu-trigger]', variants: [['sg-lab-menu', 'menu']] },
   'Combobox list': { drive: 'popup', part: '.ds-combo__popup', opener: '.ds-combo__input', variants: [['sg-lab-combo', 'combobox']] },
+  'Citation card': { drive: 'cite', part: '.ds-cite__card', variants: [['lab-cite-card', 'cite-card']] },
 };
 
 /**
@@ -849,6 +850,11 @@ function layerStep(page, layer, step, variant, row) {
       part = stage.querySelector(spec.part);
       root = part;
       window.SG_LAB.find((entry) => entry.id === demo).toggle(stage, act === 'open', window.SG_LAB_HELPERS);
+    } else if (spec.drive === 'cite') {
+      // Through its marker's controller (the lab's setup made it), as a press would.
+      part = document.getElementById(id);
+      root = part;
+      stage.cite.set(act === 'open');
       done = act === 'open' ? () => part.getAttribute('data-state') === 'open' : () => !part.hasAttribute('data-state');
     } else {
       part = stage.querySelector(spec.part);

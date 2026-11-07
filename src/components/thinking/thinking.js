@@ -31,7 +31,7 @@
  */
 import { define, emit, t } from '../../js/core.js';
 import { clock, duration, number, plural } from '../../js/format.js';
-import { create as createWheel } from '../wheel/wheel.js';
+import { roll } from '../wheel/wheel.js';
 
 /**
  * A moment in ms: a timestamp, a numeric text or a date text; null when it
@@ -122,7 +122,6 @@ function controller(el, start, signal) {
     slot.className = 'ds-wheel';
     stepPart.append(slot);
   }
-  const wheel = slot ? createWheel(slot, { text: state.step, shimmer: !state.done }) : null;
   const timePart = el.querySelector('.ds-thinking__time');
   const tokensPart = el.querySelector('.ds-thinking__tokens');
   const thoughtPart = el.querySelector('.ds-thinking__thought');
@@ -159,7 +158,8 @@ function controller(el, start, signal) {
       if (tokensPart.textContent !== text) tokensPart.textContent = text;
     }
     if (thoughtPart && state.thought !== null && thoughtPart.textContent !== state.thought) thoughtPart.textContent = state.thought;
-    wheel?.set(state.step, { shimmer: !state.done });
+    // roll() rather than a wheel controller: the slot tells nobody, so a page hears one ds:change per set().
+    if (slot) roll(slot, state.step, { shimmer: !state.done });
   };
 
   const snapshot = () => ({ step: state.step, thought: state.thought ?? thoughtPart?.textContent ?? '', tokens: state.tokens === null ? null : Number(state.tokens), elapsed: elapsed(), done: state.done });

@@ -72,6 +72,19 @@ test('a reader who toggles it keeps it as they left it', async ({ page }) => {
   await expect(el).toHaveJSProperty('open', false);
 });
 
+test('destroy(): the time stops; a toggle is the reader\'s alone', async ({ page }) => {
+  const el = await own(page);
+  const time = el.locator('.ds-reasoning__time');
+  await expect(time).toHaveText(/^[5-6]s$/);
+  await page.evaluate(() => window.reasoning.destroy());
+  const before = await time.textContent();
+  await page.waitForTimeout(1300);
+  await expect(time).toHaveText(before);
+  await el.locator('summary').click();
+  await expect(el).toHaveJSProperty('open', false);
+  await expect(el).toHaveAttribute('data-state', 'running');
+});
+
 test('the page\'s own summary stays, with the total beside it; the module\'s says the total itself', async ({ page }) => {
   await open(page);
   const own = page.locator('.ds-reasoning').nth(1);

@@ -137,6 +137,10 @@ test('a line replaced while it waited out a hold goes at once, and the next take
   await page.waitForTimeout(1000);
   const result = await page.evaluate(async () => {
     window.wheel.set('Running npm test');
+    // Its entrance under way (a timer alone does not promise that under load), so it has shown.
+    const entrance = [...document.querySelectorAll('#slot > *')].at(-1).getAnimations()[0];
+    await entrance.ready;
+    while (!(Number(entrance.currentTime) > 0)) await new Promise((resolve) => requestAnimationFrame(resolve));
     await new Promise((resolve) => setTimeout(resolve, 100));
     window.wheel.set('Writing the summary');
     const waiting = performance.now() + Number([...document.querySelectorAll('#slot > *')].at(-1).getAnimations()[0].effect.getTiming().delay);

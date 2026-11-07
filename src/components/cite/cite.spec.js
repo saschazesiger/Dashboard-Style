@@ -157,6 +157,36 @@ test('two markers share a card: the second takes it over', async ({ page }) => {
   expect(await page.evaluate(() => DS.core.get(document.querySelectorAll('[data-demo="answer"] .ds-cite')[3], 'cite').get())).toBe(true);
 });
 
+test('create() then destroy(): a press opens nothing; a new controller binds it again', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const card = document.createElement('div');
+    card.className = 'ds-cite__card';
+    card.id = 'own-card';
+    card.hidden = true;
+    card.innerHTML = '<a href="#own">Own source</a>';
+    const button = document.createElement('button');
+    button.className = 'ds-cite';
+    button.type = 'button';
+    button.id = 'own-marker';
+    button.setAttribute('aria-controls', 'own-card');
+    button.setAttribute('aria-label', 'Source 9: Own source');
+    button.textContent = '9';
+    document.querySelector('#fx-component').append(button, card);
+    DS.cite.create(button).destroy();
+  });
+  const own = page.locator('#own-marker');
+  const card = page.locator('#own-card');
+  await own.click();
+  await page.waitForTimeout(300);
+  await expect(card).toBeHidden();
+  await expect(own).toHaveAttribute('aria-expanded', 'false');
+  await page.evaluate(() => { window.ownCite = DS.cite.create(document.querySelector('#own-marker')); });
+  await own.click();
+  await expect(card).toBeVisible();
+  await expect(card).toHaveAttribute('data-state', 'open');
+});
+
 test('motion: the card fades and grows on transitions keyed on data-state, and fades out quicker', async ({ page }) => {
   await open(page);
   const card = await cardOf(page, 0);

@@ -89,7 +89,16 @@ test('without a budget: the figures alone, no share, no status', async ({ page }
   await expect(free.locator('.ds-usage__value')).toHaveText('18.4K tokens');
   await expect(free.locator('.ds-usage__cost')).toHaveText('$0.37');
   await expect(free).not.toHaveAttribute('data-state');
-  await expect(free.locator('.ds-meter')).toHaveAttribute('aria-valuenow', '0');
+  // No meter at 0%: hidden, without values, until a budget comes.
+  const meter = free.locator('.ds-meter');
+  await expect(meter).toBeHidden();
+  await expect(meter).not.toHaveAttribute('aria-valuenow');
+  await expect(meter).not.toHaveAttribute('aria-valuetext');
+  await expect(page.getByRole('meter', { name: 'This conversation' })).toHaveCount(0);
+  await free.evaluate((el) => el.setAttribute('data-ds-usage-budget', '100000'));
+  await expect(meter).toBeVisible();
+  await expect(meter).toHaveAttribute('aria-valuenow', '18');
+  await expect(meter).toHaveAttribute('aria-valuetext', '18% used');
 });
 
 test('the attributes are read again, and set() drives it from the page', async ({ page }) => {

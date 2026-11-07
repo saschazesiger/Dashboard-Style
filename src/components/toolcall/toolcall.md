@@ -80,8 +80,10 @@ DS.toolcall.STATUSES;                                         // ['pending', 'ru
 
 Exports: `DS.toolcall.create(el, options)` (the controller), `DS.toolcall.durationText(ms)` (the duration as the summary shows it) and `DS.toolcall.STATUSES` (the statuses `data-status` takes).
 
-`set()` writes the mark (the spinner, or `hourglass`, `checkCircle`, `alertCircle`, `ban` of `DS.icons`) and, with a
-`label`, the word; a page that renders the row writes them in its markup.
+`set()` writes the mark (the spinner, or `hourglass`, `checkCircle`, `alertCircle`, `ban` of `DS.icons`) and the word:
+the `label`, or without one the status's own (strings `toolPending`, `toolRunning`, `toolDone`, `toolFailed`,
+`toolCancelled`: `Pending`, `Running`, `Done`, `Failed`, `Cancelled`). A page that renders the row writes them in its
+markup; one that changes only `data-status` gets the mark, and the word unless it wrote its own with it.
 
 **Options.**
 
@@ -114,4 +116,4 @@ mark at once.
 <!-- changelog -->
 - Tool call (`.ds-toolcall`, `DS.toolcall`, `data-ds-toolcall`): a disclosure row in a frame with the call's name,
   arguments, status (icon and word), live duration, input, output and nested calls; announces its end. String
-  `toolStatus`.
+  `toolStatus`, and the status words `toolPending`, `toolRunning`, `toolDone`, `toolFailed`, `toolCancelled`.

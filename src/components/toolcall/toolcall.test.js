@@ -5,7 +5,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { config } from '../../js/core.js';
-import { STATUSES, create, durationText } from './toolcall.js';
+import { STATUSES, durationText } from './toolcall.js';
 
 describe('DS.toolcall.durationText', () => {
   it('shows milliseconds under a second, whole seconds above', () => {
@@ -28,11 +28,5 @@ describe('DS.toolcall.STATUSES', () => {
   it('names the five statuses, frozen', () => {
     assert.deepEqual([...STATUSES], ['pending', 'running', 'done', 'failed', 'cancelled']);
     assert.ok(Object.isFrozen(STATUSES));
-  });
-});
-
-describe('DS.toolcall.create', () => {
-  it('is the controller factory', () => {
-    assert.equal(typeof create, 'function');
   });
 });

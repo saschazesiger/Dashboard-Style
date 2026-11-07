@@ -32,9 +32,9 @@
  * settles later with set({ state: 'answered' }). Otherwise it takes
  * data-state="answered": the controls are disabled (the choice stays in
  * view), the actions go (DS.motion.leave()), .ds-question__answer says
- * "Answered: <labels>" (string questionAnswered, with a check), takes the
- * focus (tabindex="-1") and is announced; ds:change follows with
- * { state }. Skip ([data-ds-question-skip]) does the same with
+ * "Answered: <labels>" (string questionAnswered, with a check) and takes
+ * the focus (tabindex="-1") when the focus was in the card, which reads
+ * it; otherwise it is announced. ds:change follows with { state }. Skip ([data-ds-question-skip]) does the same with
  * skipped: true and "Skipped" (questionSkipped). set({ state: 'waiting' })
  * opens it again.
  *
@@ -91,7 +91,11 @@ function labelOf(input) {
   return (strong ?? label)?.textContent.trim().replace(/\s+/g, ' ') || input.value;
 }
 
-function controller(form, signal) {
+function controller(form, given) {
+  // Without the signal of DS.init() (create()), destroy() ends its own.
+  const own = given ? null : new AbortController();
+  const signal = given ?? own.signal;
+
   const doc = form.ownerDocument;
   const listeners = { change: new Set(), answer: new Set() };
   let state = 'waiting';
@@ -114,7 +118,7 @@ function controller(form, signal) {
   };
 
   const tell = (type, detail) => {
-    if (signal?.aborted) return;
+    if (signal.aborted) return;
     listeners[type].forEach((fn) => fn(detail));
   };
 
@@ -187,9 +191,10 @@ function controller(form, signal) {
       else if (actions) leave(actions, '', { then: 'hide', focus: line });
       lock(true);
       if (hadFocus && line && !line.contains(doc.activeElement)) line.focus();
-      if (line && !quiet && !signal?.aborted) announce(line.textContent);
+      // Focus on the line reads it; announced too it would be said twice.
+      if (line && !quiet && !hadFocus && !signal.aborted) announce(line.textContent);
     }
-    if (signal?.aborted || quiet) return;
+    if (signal.aborted || quiet) return;
     const detail = { state };
     emit(form, 'change', detail);
     tell('change', detail);
@@ -276,6 +281,7 @@ function controller(form, signal) {
     destroy() {
       listeners.change.clear();
       listeners.answer.clear();
+      own?.abort();
     },
   };
 }
@@ -291,7 +297,7 @@ define('question', {
 
 /**
  * A question card driven from the page; the same controller the attribute
- * path makes.
+ * path makes; destroy() removes its listeners.
  * @param {Element} form
  */
 export function create(form) {

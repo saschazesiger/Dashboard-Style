@@ -52,7 +52,11 @@ export function planState(value) {
   return PLAN_STATES.includes(state) ? /** @type {'waiting'|'approved'|'rejected'} */ (state) : 'waiting';
 }
 
-function controller(el, start, signal) {
+function controller(el, start, given) {
+  // Without the signal of DS.init() (create()), destroy() ends its own.
+  const own = given ? null : new AbortController();
+  const signal = given ?? own.signal;
+
   const doc = el.ownerDocument;
   const listeners = new Set();
   let state = planState(start);
@@ -95,7 +99,7 @@ function controller(el, start, signal) {
     if (value === state) return;
     state = value;
     render(moving);
-    if (signal?.aborted) return;
+    if (signal.aborted) return;
     if (moving && state !== 'waiting') announce(t(WORDS[state]));
     const detail = { state };
     emit(el, 'change', detail);
@@ -128,6 +132,7 @@ function controller(el, start, signal) {
     },
     destroy() {
       listeners.clear();
+      own?.abort();
     },
   };
 }
@@ -144,8 +149,7 @@ define('plan', {
 
 /**
  * A plan card driven from the page; the same controller the attribute
- * path makes. Without a signal of its own its press listener lives as long
- * as the element.
+ * path makes; destroy() removes its press listener.
  * @param {Element} el
  * @param {{ state?: 'waiting'|'approved'|'rejected' }} [options]
  */
