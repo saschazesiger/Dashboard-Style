@@ -145,3 +145,76 @@ test('forced colours: the fill in CanvasText, the marks CanvasText, a bar gauge\
   expect(track).toContain('repeating-linear-gradient(45deg');
   expect(track).toContain('repeating-linear-gradient(135deg');
 });
+
+/* What a strip of the screen shows: 'ink' (all CanvasText), 'gray' (all GrayText), 'canvas', or 'hatch' (two of them). */
+async function looks(page, strips) {
+  const png = await page.screenshot({ animations: 'disabled' });
+  return page.evaluate(async ([data, spots]) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${data}`;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    context.drawImage(image, 0, 0);
+    const swatch = (value) => {
+      const probe = document.createElement('span');
+      probe.style.cssText = `forced-color-adjust: none; background: ${value}`;
+      document.body.append(probe);
+      context.fillStyle = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return context.fillStyle;
+    };
+    const named = { ink: swatch('CanvasText'), gray: swatch('GrayText'), canvas: swatch('Canvas') };
+    const rgb = (hex) => [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16));
+    const near = (pixel, want) => pixel.every((value, index) => Math.abs(value - want[index]) <= 40);
+    return spots.map(({ x, y, width, height }) => {
+      const data = context.getImageData(Math.round(x), Math.round(y), Math.max(1, Math.round(width)), Math.max(1, Math.round(height))).data;
+      const seen = new Set();
+      for (let at = 0; at < data.length; at += 4) {
+        const pixel = [data[at], data[at + 1], data[at + 2]];
+        const name = Object.keys(named).find((key) => near(pixel, rgb(named[key])));
+        seen.add(name ?? 'other');
+      }
+      return seen.size === 1 ? [...seen][0] : 'hatch';
+    });
+  }, [png.toString('base64'), strips]);
+}
+
+test('forced colours: the unlit cells and segments show, the zones hatch only from their shares', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'forced colours are emulated in Chromium only');
+  await page.emulateMedia({ forcedColors: 'active' });
+  await open(page);
+  // The middle of a cell or a segment at a share of the track, its middle third high.
+  const spots = await page.evaluate(() => {
+    const holder = document.createElement('div');
+    holder.id = 'forced';
+    holder.style.cssText = 'inline-size: 400px; display: grid; gap: 24px; padding: 16px';
+    holder.innerHTML = '<div class="ds-bar-gauge" style="--ds-share: .5"><span class="ds-bar-gauge__track"></span></div>'
+      + '<div class="ds-bar-gauge" style="--ds-share: .8; --ds-bar-gauge-warning: .7; --ds-bar-gauge-error: .9"><span class="ds-bar-gauge__track"></span></div>'
+      + '<span class="ds-meter ds-meter--segmented ds-xl" style="--ds-share: .4"></span>';
+    document.querySelector('#fx-component').prepend(holder);
+    const at = (el, share, count) => {
+      const box = el.getBoundingClientRect();
+      // The cell of `count` that holds `share`, and its middle.
+      const cell = box.width / count;
+      const index = Math.min(count - 1, Math.floor(share * count));
+      return { x: box.left + index * cell + cell * 0.25, y: box.top + box.height / 3, width: cell * 0.4, height: box.height / 3 };
+    };
+    const [plain, zoned] = [...holder.querySelectorAll('.ds-bar-gauge__track')];
+    const segmented = holder.querySelector('.ds-meter--segmented');
+    return [
+      at(plain, 0.1, 20), at(plain, 0.75, 20), at(plain, 0.95, 20),
+      at(zoned, 0.1, 20), at(zoned, 0.75, 20), at(zoned, 0.95, 20),
+      at(segmented, 0.1, 5), at(segmented, 0.5, 5), at(segmented, 0.9, 5),
+    ];
+  });
+  const seen = await looks(page, spots);
+  // No zones at 50%: lit cells solid, the rest grey (no hatch at all).
+  expect(seen.slice(0, 3)).toEqual(['ink', 'gray', 'gray']);
+  // Zones at 70% and 90%, lit to 80%: solid before the warning, hatched in it, the unlit error zone hatched in grey.
+  expect(seen.slice(3, 6)).toEqual(['ink', 'hatch', 'hatch']);
+  // Two of five segments: lit, then the three unlit ones still there.
+  expect(seen.slice(6)).toEqual(['ink', 'gray', 'gray']);
+});

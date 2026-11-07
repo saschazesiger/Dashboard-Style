@@ -77,8 +77,10 @@ marks and the note are `aria-hidden`: the meter says them. None of them takes fo
 ### Forced colours
 
 The fill is `CanvasText` and the track `Canvas` with a `CanvasText` edge (a gauge: `CanvasText` on `GrayText`); the
-threshold marks are `CanvasText` with a `Canvas` hairline. A bar gauge's warning zone is hatched at 45 degrees and its
-error zone at 135 degrees, so the zones stay apart without colour. Printed, the fills keep their colours.
+threshold marks are `CanvasText` with a `Canvas` hairline. The mask of a segmented meter and of a bar gauge cuts any
+edge away, so their unlit parts are `GrayText`: "2 of 5" still shows the 5. A bar gauge's warning zone is hatched at 45
+degrees and its error zone at 135 degrees, on lit (`CanvasText`) and unlit (`GrayText`) cells alike, so the zones stay
+apart without colour. Printed, the fills keep their colours.
 
 ### Hooks
 

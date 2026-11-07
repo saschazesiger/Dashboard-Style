@@ -72,8 +72,10 @@
  * aria-valuetext that says the state in words; the visible figure and
  * label inside a gauge are aria-hidden, since the meter says them.
  * Forced colours: the fill in CanvasText, the track Canvas with a
- * CanvasText edge, the marks CanvasText; a bar gauge's zones hatch
- * (warning 45 degrees, error 135 degrees) so they stay apart without
+ * CanvasText edge, the marks CanvasText; the unlit parts of a segmented
+ * meter and the unlit cells of a bar gauge GrayText, since their masks
+ * cut any edge away; a bar gauge's zones hatch (warning 45 degrees, error
+ * 135 degrees) on lit and unlit cells alike, so they stay apart without
  * colour. Printed, the fills keep their colours.
  *
  * conic-gradient(), sin() and cos() (the arc's round ends) and
@@ -322,16 +324,29 @@
       box-shadow: 0 0 0 1px Canvas;
     }
 
+    /* The mask cuts the track's edge away: the unlit parts in GrayText. */
+    .ds-meter--segmented {
+      background: GrayText;
+    }
+
+    /* Each zone a hatch from its share to the end: a layer as wide as the
+       zone, at the end (none without the share), the error zone over the
+       warning one. Lit cells hatch in CanvasText, unlit ones in GrayText. */
     .ds-bar-gauge__track {
+      --_warn-zone: calc((1 - var(--ds-bar-gauge-warning, 1)) * 100%) 100%;
+      --_error-zone: calc((1 - var(--ds-bar-gauge-error, 1)) * 100%) 100%;
       forced-color-adjust: none;
       background:
-        repeating-linear-gradient(135deg, CanvasText 0 2px, Canvas 2px 4px) calc(var(--ds-bar-gauge-error, 1) * 100%) 0 / 100% 100% no-repeat,
-        repeating-linear-gradient(45deg, CanvasText 0 2px, Canvas 2px 4px) calc(var(--ds-bar-gauge-warning, 1) * 100%) 0 / 100% 100% no-repeat,
+        repeating-linear-gradient(135deg, CanvasText 0 2px, Canvas 2px 4px) right / var(--_error-zone) no-repeat,
+        repeating-linear-gradient(45deg, CanvasText 0 2px, Canvas 2px 4px) right / var(--_warn-zone) no-repeat,
         CanvasText;
     }
 
     .ds-bar-gauge__track::before {
-      background: Canvas;
+      background:
+        repeating-linear-gradient(135deg, GrayText 0 2px, Canvas 2px 4px) right / var(--_error-zone) no-repeat,
+        repeating-linear-gradient(45deg, GrayText 0 2px, Canvas 2px 4px) right / var(--_warn-zone) no-repeat,
+        GrayText;
     }
   }
 

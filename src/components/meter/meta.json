@@ -79,7 +79,9 @@
     "physical": {
       ".ds-meter--segmented: mask-image": "the parts are cut left to right as the chart meter fills (.ds-meter clips its fill from the right in every direction)",
       ".ds-bar-gauge__track: --_zones": "the zones lie along the fill, which grows left to right as the chart meter's",
-      ".ds-bar-gauge__track: mask-image": "the cells are cut left to right along the fill"
+      ".ds-bar-gauge__track: mask-image": "the cells are cut left to right along the fill",
+      ".ds-bar-gauge__track: background": "forced colours: each zone's hatch from its share to the right end, as the zones lie along the fill, which grows left to right",
+      ".ds-bar-gauge__track::before: background": "forced colours: the unlit cells' zone hatches from each share to the right end, as on the track"
     }
   }
 }
