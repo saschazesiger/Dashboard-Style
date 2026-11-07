@@ -131,12 +131,19 @@ test('the imperative API: DS.splitbutton.create, open and close; partsOf finds t
     await control.open();
     const opened = parts.toggle.getAttribute('aria-expanded');
     await control.close();
-    const result = { menu: parts.menu === host.lastElementChild, name: parts.toggle.getAttribute('aria-label'), opened, closed: parts.toggle.getAttribute('aria-expanded'), value: control.get() };
+    const same = DS.splitbutton.create(group) === control;
+    const result = { menu: parts.menu === host.lastElementChild, name: parts.toggle.getAttribute('aria-label'), opened, closed: parts.toggle.getAttribute('aria-expanded'), value: control.get(), same };
+    // Destroyed and made again: the name it wrote still follows the action's label.
     control.destroy();
+    const again = DS.splitbutton.create(group);
+    parts.action.textContent = 'Deploy';
+    again.set(null);
+    result.renamed = parts.toggle.getAttribute('aria-label');
+    again.destroy();
     host.remove();
     return result;
   });
-  expect(out).toEqual({ menu: true, name: 'More options for Run', opened: 'true', closed: 'false', value: null });
+  expect(out).toEqual({ menu: true, name: 'More options for Run', opened: 'true', closed: 'false', value: null, same: true, renamed: 'More options for Deploy' });
 });
 
 test('options: size and density set both halves, the shape the pill, touch the toggle\'s width', async ({ page }) => {

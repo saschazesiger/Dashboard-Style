@@ -18,7 +18,10 @@
  * ArrowUp on its last, Escape brings focus back to the toggle; the menu
  * opens under the toggle. Its menu: the toggle's aria-controls, else the
  * .ds-menu right after the group (or inside it). A toggle without a name
- * gets one from the strings: "More options for <action>" (moreOptionsFor).
+ * gets one from the strings: "More options for <action>" (moreOptionsFor),
+ * kept in step with the action's label (the name it wrote is remembered,
+ * so a re-initialised split button still tells it from the page's own).
+ * create() and the attribute share one controller per group.
  *
  * A choice (the menu holds menuitemradio items, the GitHub merge button):
  * the checked one is the action's variant. Its label shows in
@@ -44,6 +47,9 @@ export function partsOf(group) {
   return { action, toggle, menu };
 }
 
+/** The name this module wrote on each toggle, so a later controller (after a destroy) tells it from the page's. @type {WeakMap<Element, string>} */
+const written = new WeakMap();
+
 /** The words of the action: its aria-label, else its text. */
 const nameOf = (action) => (action?.getAttribute('aria-label') || action?.textContent || '').replace(/\s+/g, ' ').trim();
 
@@ -53,9 +59,12 @@ function controller(group, options, signal) {
   const local = new AbortController();
   signal?.addEventListener('abort', () => local.abort(), { once: true });
   // A name for the toggle when the markup gives none; kept in step with the action's label.
-  const named = Boolean(toggle?.hasAttribute('aria-label') || toggle?.hasAttribute('aria-labelledby'));
+  const ours = () => !toggle.hasAttribute('aria-labelledby') && (!toggle.hasAttribute('aria-label') || toggle.getAttribute('aria-label') === written.get(toggle));
   const name = () => {
-    if (!named && toggle) toggle.setAttribute('aria-label', t('moreOptionsFor', { label: nameOf(action) }));
+    if (!toggle || !ours()) return;
+    const text = t('moreOptionsFor', { label: nameOf(action) });
+    written.set(toggle, text);
+    if (toggle.getAttribute('aria-label') !== text) toggle.setAttribute('aria-label', text);
   };
   name();
   const label = action?.querySelector('.ds-split-btn__label') ?? null;
@@ -77,7 +86,7 @@ function controller(group, options, signal) {
     trigger?.destroy();
   }, { once: true });
 
-  return {
+  const api = {
     element: group,
     action,
     toggle,
@@ -100,22 +109,41 @@ function controller(group, options, signal) {
     destroy() {
       listeners.clear();
       local.abort();
+      if (controllers.get(group) === api) controllers.delete(group);
     },
   };
+  return api;
 }
+
+/** One controller per group, whichever of create() and the attribute came first. @type {WeakMap<Element, ReturnType<typeof controller>>} */
+const controllers = new WeakMap();
 
 /**
  * A split button driven from the page; the controller data-ds-splitbutton
- * makes. `value`: the start of a choice (else the checked radio).
+ * makes (the same one, `value` applied through set(), when the attribute
+ * set it up). `value`: the start of a choice (else the checked radio).
  * @param {Element} group
  * @param {{ value?: string|null }} [options]
  */
 export function create(group, options = {}) {
-  return controller(group, options, null);
+  const existing = controllers.get(group);
+  if (existing) {
+    if (options.value !== undefined && options.value !== null) existing.set(options.value);
+    return existing;
+  }
+  const made = controller(group, options, null);
+  controllers.set(group, made);
+  return made;
 }
 
 define('splitbutton', {
   attribute: 'data-ds-splitbutton',
   attributes: ['data-ds-value'],
-  init: (group, ctx) => controller(group, { value: group.getAttribute('data-ds-value') }, ctx.signal),
+  init(group, ctx) {
+    const existing = controllers.get(group);
+    if (existing) return existing;
+    const made = controller(group, { value: group.getAttribute('data-ds-value') }, ctx.signal);
+    controllers.set(group, made);
+    return made;
+  },
 });

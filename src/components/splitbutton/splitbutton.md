@@ -75,8 +75,8 @@ merge.action;  merge.toggle;  merge.menu;
 DS.splitbutton.partsOf(group);    // { action, toggle, menu }
 ```
 
-`DS.splitbutton.create(group, options)` returns the controller; `DS.splitbutton.partsOf(group)` finds the parts as the
-module does.
+`DS.splitbutton.create(group, options)` returns the controller, one per group: on a group the attribute set up it
+returns that controller (`value` through `set()`); `DS.splitbutton.partsOf(group)` finds the parts as the module does.
 
 ### Accessibility
 
