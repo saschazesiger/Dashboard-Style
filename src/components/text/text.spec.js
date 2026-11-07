@@ -1,6 +1,6 @@
 /**
  * The text utilities on probes and on their demo: .ds-truncate cuts one
- * line with an ellipsis and lets a flex item shrink; .ds-clamp-n and
+ * line with an ellipsis, on a bare span too, and lets a flex item shrink; .ds-clamp-n and
  * .ds-clamp (--ds-clamp-lines) show n lines; .ds-break keeps a long token
  * inside its column; .ds-mono sets the code family at the size around it;
  * .ds-tabular sets figures of one width; .ds-balance and .ds-pretty set
@@ -30,13 +30,17 @@ const HASH = 'sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f
 /** The number of lines a box shows: its height over its line height. */
 const lines = (page, selector) => page.$eval(selector, (el) => Math.round(el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight)));
 
-test('truncate: one line with an ellipsis; in a flex row it shrinks beside its action', async ({ page }) => {
+test('truncate: one line with an ellipsis, on a bare span too; in a flex row it shrinks beside its action', async ({ page }) => {
   await open(page);
-  await add(page, `<div style="inline-size: 240px"><p class="ds-truncate" id="cut">${LONG}</p>
+  await add(page, `<div style="inline-size: 240px"><span class="ds-truncate" id="cut">${LONG}</span>
+    <h3 style="margin: 0" id="heading"><span class="ds-truncate" id="inner">${LONG}</span></h3>
     <div style="display: flex"><span class="ds-truncate" id="item">${LONG}</span><button type="button" class="ds-btn" id="action">Open</button></div></div>`);
   const cut = await page.$eval('#cut', (el) => ({ over: el.scrollWidth > el.clientWidth, overflow: getComputedStyle(el).textOverflow, space: getComputedStyle(el).whiteSpace }));
   expect(cut).toEqual({ over: true, overflow: 'ellipsis', space: 'nowrap' });
   expect(await lines(page, '#cut')).toBe(1);
+  expect(await page.$eval('#cut', (el) => Math.round(el.getBoundingClientRect().width)), 'at most its container wide').toBe(240);
+  expect(await page.$eval('#inner', (el) => el.scrollWidth > el.clientWidth), 'a span inside a heading is cut').toBe(true);
+  expect(await lines(page, '#heading'), 'the heading keeps one line').toBe(1);
   const row = await page.evaluate(() => {
     const item = document.getElementById('item').getBoundingClientRect();
     const action = document.getElementById('action').getBoundingClientRect();

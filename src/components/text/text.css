@@ -15,9 +15,11 @@
  *
  * .ds-truncate and .ds-clamp-* cut what does not fit: put the full text
  * where it can be read (a tooltip through data-tip, a details view, the
- * title of the page it leads to). .ds-truncate cuts a block or a flex or
- * grid item (min-width: 0 lets a flex item shrink), never a plain inline
- * span: give that a block or a flex parent. On paper both print in full.
+ * title of the page it leads to). .ds-truncate is an inline block at most
+ * as wide as its container, so it cuts a span in running text, a link or
+ * a cell as well as a flex or grid item (min-width: 0 lets a flex item
+ * shrink); a heading or paragraph cut on a line of its own carries it on
+ * a span inside, so the block keeps its line. On paper both print in full.
  *
  * Options: none read; the text keeps the type role of where it stands
  * (size changes type through the components, not here).
@@ -32,11 +34,17 @@
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
 @layer ds.components.text {
+  /* An inline block: an inline span gets a width to cut at (at most its
+     container's), a flex or grid item is blockified anyway. Its baseline
+     would be its bottom edge (overflow: hidden), so it aligns by that. */
   .ds-truncate {
+    display: inline-block;
     min-width: 0;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    vertical-align: bottom;
   }
 
   /* A fixed number of lines, then an ellipsis: the prefixed box is the one
