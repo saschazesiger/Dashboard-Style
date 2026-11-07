@@ -36,12 +36,12 @@ SG.demo('tile', {
       'Every new value goes through DS.motion.countUp: it counts from the figure it shows. Pick a tone in the options panel to see it on the deltas.') +
 
       h.section('KPI stat: unit and target', '<div class="ds-tiles ds-tiles--3" data-demo="kpi">' +
-        '<div class="ds-tile"><p class="ds-tile__label">' + h.icon('hardDrive', 20) + '<span>Storage used</span></p><p class="ds-tile__value">640<span class="ds-tile__unit">GB</span></p>' + deltaHtml(h, tone, 'arrowUp', '40 GB more this month') +
+        '<div class="ds-tile"><p class="ds-tile__label">' + h.icon('hardDrive', 20) + '<span>Storage used</span></p><p class="ds-tile__value"><span class="ds-tile__figure" data-demo="storage">640</span><span class="ds-tile__unit">GB</span></p>' + deltaHtml(h, tone, 'arrowUp', '40 GB more this month') +
           '<div class="ds-tile__target"><span class="ds-meter" role="meter" aria-label="Storage used" aria-valuemin="0" aria-valuemax="1000" aria-valuenow="640" aria-valuetext="640 GB of 1,000, target below 800" style="--ds-share: .64"><span class="ds-meter__threshold" style="--ds-share: .8" aria-hidden="true"></span></span><p class="ds-tile__target-text">Below the 800 GB target</p></div>' +
           '<div class="ds-tile__trend">' + sparkline('Storage used per day, last 14 days') + '</div></div>' +
-        '<div class="ds-tile"><p class="ds-tile__label">' + h.icon('timer', 20) + '<span>Median response</span></p><p class="ds-tile__value">212<span class="ds-tile__unit">ms</span></p>' + deltaHtml(h, tone || 'success', 'arrowDown', '18 ms faster') +
+        '<div class="ds-tile"><p class="ds-tile__label">' + h.icon('timer', 20) + '<span>Median response</span></p><p class="ds-tile__value"><span class="ds-tile__figure">212</span><span class="ds-tile__unit">ms</span></p>' + deltaHtml(h, tone || 'success', 'arrowDown', '18 ms faster') +
           '<div class="ds-tile__target"><span class="ds-meter ds-tone-warning" role="meter" aria-label="Median response" aria-valuemin="0" aria-valuemax="300" aria-valuenow="212" aria-valuetext="212 ms, target 200 ms: missed" style="--ds-share: .707"><span class="ds-meter__threshold" style="--ds-share: .667" aria-hidden="true"></span></span><p class="ds-tile__target-text">12 ms over the 200 ms target</p></div></div>' +
-        '<div class="ds-tile"><p class="ds-tile__label">' + h.icon('ticket', 20) + '<span>Tickets closed</span></p><p class="ds-tile__value">129<span class="ds-tile__unit">of 140</span></p>' + deltaHtml(h, tone, 'arrowRight', 'Same as last week') +
+        '<div class="ds-tile"><p class="ds-tile__label">' + h.icon('ticket', 20) + '<span>Tickets closed</span></p><p class="ds-tile__value"><span class="ds-tile__figure">129</span><span class="ds-tile__unit">of 140</span></p>' + deltaHtml(h, tone, 'arrowRight', 'Same as last week') +
           '<div class="ds-tile__target"><span class="ds-meter ds-tone-success" role="meter" aria-label="Tickets closed" aria-valuemin="0" aria-valuemax="140" aria-valuenow="129" aria-valuetext="129 of 140, 92% of the target" style="--ds-share: .921"></span><p class="ds-tile__target-text">92% of the weekly target</p></div></div>' +
         '</div>', 'The figure with a unit, how it moved in an arrow and a word, a meter with a mark at the target and the words whether it is met, and the trend.') +
 
@@ -70,14 +70,19 @@ SG.demo('tile', {
   wire: function (root, h) {
     var M = window.DS.motion;
     var devices = 1284;
+    var storage = 640;
     var format = function (value) { return Math.round(value).toLocaleString('en-US'); };
     M.countUp(h.$('[data-demo="devices"]', root), devices, { duration: 0, format: format });
+    // With a unit, the count runs on the figure, so the unit stays.
+    M.countUp(h.$('[data-demo="storage"]', root), storage, { duration: 0 });
     var onClick = function (event) {
       var target = event.target.closest('[data-demo="refresh"], [data-demo="open-link"], [data-demo="open-button"], [data-demo="filter"] .ds-tile');
       if (!target || !root.contains(target)) return;
       if (target.getAttribute('data-demo') === 'refresh') {
         devices += 12;
+        storage += 8;
         M.countUp(h.$('[data-demo="devices"]', root), devices, { format: format });
+        M.countUp(h.$('[data-demo="storage"]', root), storage);
       } else if (target.matches('[data-demo="open-link"], [data-demo="open-button"]')) {
         event.preventDefault();
         h.toast('Opened the list.', 'info');
