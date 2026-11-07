@@ -230,6 +230,48 @@ test('the group follows avatars added and removed, and set(max); destroy shows t
   expect(out.after).toEqual([0]);
 });
 
+test('the group keeps focus when it shrinks: the menu of the rest closes, focus stays in the group; a focused item that goes passes it on', async ({ page }) => {
+  await open(page);
+  const group = page.locator('[data-demo="group"]');
+  const more = group.locator('.ds-avatar-group__more');
+  const menu = group.locator('.ds-menu');
+  const removeLast = () => page.evaluate(() => {
+    const people = document.querySelectorAll('[data-demo="group"] > .ds-avatar:not(.ds-avatar-group__more)');
+    people[people.length - 1].remove();
+  });
+
+  // A focused item whose avatar goes: the item now at its place takes focus.
+  await focusByKeyboard(page, more);
+  await page.keyboard.press('Enter');
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await page.keyboard.press('End');
+  await expect(menu.locator('.ds-menu__item')).toHaveCount(5);
+  await expect(menu.locator('.ds-menu__item').last()).toBeFocused();
+  await removeLast();
+  await expect(menu.locator('.ds-menu__item')).toHaveCount(4);
+  await expect(menu.locator('.ds-menu__item').last()).toBeFocused();
+
+  // Nothing left to list: the menu closes and focus stays in the group, never on <body>.
+  for (let n = 0; n < 4; n += 1) await removeLast();
+  await expect(more).toBeHidden();
+  await expect(menu).not.toHaveAttribute('data-state', 'open');
+  await settle(page);
+  const focus = await page.evaluate(() => {
+    const groupEl = document.querySelector('[data-demo="group"]');
+    const active = document.activeElement;
+    return { inGroup: groupEl.contains(active), body: active === document.body, tabindex: groupEl.getAttribute('tabindex') };
+  });
+  expect(focus.body).toBe(false);
+  expect(focus.inGroup).toBe(true);
+  // The demo's avatars are no buttons: the group itself holds focus, and gives tabindex back on destroy.
+  expect(focus.tabindex).toBe('-1');
+  expect(await page.evaluate(() => {
+    const groupEl = document.querySelector('[data-demo="group"]');
+    DS.core.get(groupEl, 'avatar-group').destroy();
+    return groupEl.getAttribute('tabindex');
+  })).toBeNull();
+});
+
 test('names, the focus ring and a blocked avatar', async ({ page }) => {
   await open(page);
   const button = page.locator('[data-demo="buttons"] button').first();
@@ -244,6 +286,20 @@ test('names, the focus ring and a blocked avatar', async ({ page }) => {
   await blocked.hover({ force: true });
   await settle(page);
   expect(await blocked.evaluate((el) => getComputedStyle(el, '::after').opacity)).toBe('0');
+  // The disabled model: the neutral fill and ink, unlike its enabled neighbour.
+  const looks = await blocked.evaluate((el) => {
+    const probe = document.createElement('span');
+    probe.style.color = 'var(--ds-disabled-ink)';
+    probe.style.backgroundColor = 'var(--ds-disabled-fill)';
+    el.parentElement.append(probe);
+    const want = [getComputedStyle(probe).color, getComputedStyle(probe).backgroundColor];
+    probe.remove();
+    const enabled = el.parentElement.querySelector('button:not([disabled])');
+    return { want, got: [getComputedStyle(el).color, getComputedStyle(el).backgroundColor], enabled: getComputedStyle(enabled).backgroundColor };
+  });
+  expect(looks.got).toEqual(looks.want);
+  expect(looks.got[1]).not.toBe(looks.enabled);
+  expect(await probe(page, '<button id="probe" class="ds-avatar" type="button" aria-disabled="true" aria-label="A">A</button>', 'style.color')).toBe(looks.want[0]);
 });
 
 test('forced colours: the disc keeps an edge, the state layer goes, the ring turns a Highlight outline', async ({ page, browserName }) => {
@@ -263,4 +319,13 @@ test('forced colours: the disc keeps an edge, the state layer goes, the ring tur
     return colour;
   });
   expect(ring[1]).toBe(highlight);
+  const gray = await page.evaluate(() => {
+    const el = document.createElement('span');
+    el.style.color = 'GrayText';
+    document.body.append(el);
+    const colour = getComputedStyle(el).color;
+    el.remove();
+    return colour;
+  });
+  expect(await probe(page, '<button id="probe" class="ds-avatar" type="button" aria-label="A" disabled>A</button>', '[style.color, style.outlineColor]')).toEqual([gray, gray]);
 });

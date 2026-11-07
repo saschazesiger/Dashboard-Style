@@ -28,7 +28,12 @@
  * opens (aria-controls or data-ds-open) with one item per hidden avatar: a
  * link for a linked avatar, else a button that presses the avatar it stands
  * for (when that one is a button) and sends ds:select ({ avatar, name }) on
- * the group. It follows avatars added, removed or renamed.
+ * the group. It follows avatars added, removed or renamed. When the group
+ * shrinks while focus is on "+N" or in its menu, focus stays in the group:
+ * the menu closes once nothing is left to list (DS.overlay.close) and focus
+ * goes to the last interactive avatar shown (else the group itself, with
+ * tabindex="-1"); a focused item that goes moves focus to the item now at
+ * its place.
  *
  * Strings: avatarStatus, avatarMore, avatarOverflow and the presence words
  * (presenceOnline, presenceAway, presenceBusy, presenceOffline).
@@ -39,6 +44,7 @@
  */
 import { define, emit, t } from '../../js/core.js';
 import { own, disown, morphChildren } from '../../js/dom.js';
+import { canFocus, close } from '../../js/overlay.js';
 
 /** The hue classes, 1 ... HUES. */
 const HUES = 6;
@@ -339,6 +345,8 @@ function groupController(el, start, signal) {
   let moreAttrs = null;
   let menuAttrs = null;
   let menuSeen = null;
+  /** The group's own attributes this controller writes (tabindex="-1" when focus has nowhere else to go). */
+  const groupAttrs = writer(el);
   let shown = 0;
   let rest = 0;
 
@@ -356,10 +364,29 @@ function groupController(el, start, signal) {
   const avatars = () => [...el.children].filter((child) => child.classList.contains('ds-avatar') && !child.classList.contains('ds-avatar-group__more'));
   const moreButton = () => el.querySelector(':scope > .ds-avatar-group__more');
 
+  /** Where focus goes when what held it ("+N", an item, a hidden avatar) goes: the last interactive avatar shown, else the group. */
+  const keepFocus = (shownAvatars) => {
+    const target = [...shownAvatars].reverse().find((avatar) => avatar.matches('a[href], button') && canFocus(avatar));
+    if (target) {
+      target.focus();
+      return;
+    }
+    if (!el.hasAttribute('tabindex') || groupAttrs.has('tabindex')) groupAttrs.set('tabindex', '-1');
+    /** @type {HTMLElement} */ (el).focus();
+  };
+
   const render = () => {
     const all = avatars();
     // Past the maximum the "+N" takes the last place.
     const visible = all.length > max ? Math.max(1, max - 1) : all.length;
+    const more = moreButton();
+    const menu = menuOf(el, more);
+    // Where focus is now, so it does not fall to <body> when its element goes.
+    const active = doc.activeElement;
+    const inMenu = Boolean(menu && active && menu.contains(active));
+    const focusedItem = inMenu ? [...menu.querySelectorAll('.ds-menu__item')].indexOf(active.closest('.ds-menu__item')) : -1;
+    const onMore = Boolean(more && active === more);
+    const onAvatar = Boolean(active && all.includes(active));
     for (const [index, avatar] of all.entries()) {
       const hide = index >= visible;
       if (hide && !hiddenByUs.has(avatar)) {
@@ -379,7 +406,8 @@ function groupController(el, start, signal) {
     const hidden = all.slice(visible);
     shown = visible;
     rest = hidden.length;
-    const more = moreButton();
+    // Nothing left to list: an open menu of the rest closes before its opener goes.
+    if (!rest && menu && menu.getAttribute('data-state') === 'open') close(menu);
     if (more) {
       if (!moreAttrs || moreAttrs.el !== more) {
         releaseMore();
@@ -399,7 +427,6 @@ function groupController(el, start, signal) {
         more.hidden = false;
       }
     }
-    const menu = menuOf(el, more);
     if (menu) {
       if (menuSeen !== menu) {
         menuAttrs?.restore();
@@ -411,6 +438,19 @@ function groupController(el, start, signal) {
       const items = hidden.map((avatar, index) => itemFor(doc, avatar, visible + index));
       owners = new Map(items.map((item, index) => [item.getAttribute('data-ds-key'), hidden[index]]));
       morphChildren(menu, items);
+    }
+    // Focus that lost its element finds the nearest one left.
+    const now = doc.activeElement;
+    if (inMenu && rest && menu && !menu.contains(now)) {
+      const left = [...menu.querySelectorAll('.ds-menu__item')];
+      const item = left[Math.min(Math.max(focusedItem, 0), left.length - 1)];
+      if (item && canFocus(item)) /** @type {HTMLElement} */ (item).focus();
+      else keepFocus(all.slice(0, visible));
+    } else if ((inMenu || onMore) && (!rest || !canFocus(more)) && !(now && el.contains(now) && canFocus(now) && !menu?.contains(now))) {
+      keepFocus(all.slice(0, visible));
+    } else if (onAvatar && !canFocus(active)) {
+      if (rest && more && canFocus(more)) /** @type {HTMLElement} */ (more).focus();
+      else keepFocus(all.slice(0, visible));
     }
   };
 
@@ -480,6 +520,7 @@ function groupController(el, start, signal) {
       releaseMore();
       menuAttrs?.restore();
       menuAttrs = null;
+      groupAttrs.restore();
     },
   };
 }

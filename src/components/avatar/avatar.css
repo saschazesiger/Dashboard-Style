@@ -97,8 +97,13 @@
  * press in --ds-dur-micro), the focus ring snaps (outline-offset,
  * --ds-dur-fast); a badge pops in and out through DS.badge.
  *
+ * Blocked (:disabled, aria-disabled="true" on an interactive avatar): the
+ * disabled model, --ds-disabled-fill and --ds-disabled-ink (a picture fades
+ * to --ds-state-disabled), faded on --ds-dur-fast; no state layer.
+ *
  * Forced colours: the disc keeps its edge (a transparent outline that
- * becomes visible), the state layer goes, the focus ring stays; the ring
+ * becomes visible), the state layer goes, the focus ring stays, a blocked
+ * avatar turns GrayText; the ring
  * of --ring, a shadow elsewhere, becomes a Highlight outline beyond the
  * edge. A status dot and a badge keep their own forced looks.
  */
@@ -238,7 +243,15 @@
     -webkit-tap-highlight-color: transparent;
     /* The ring rests one width further out and snaps in. */
     outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
-    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+    transition:
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out),
+      background-color var(--ds-dur-fast) var(--ds-ease-in-out),
+      color var(--ds-dur-fast) var(--ds-ease-in-out),
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  :is(a, button).ds-avatar > img {
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
   :is(a, button).ds-avatar::before {
@@ -280,9 +293,20 @@
     transition-duration: var(--ds-dur-micro);
   }
 
-  /* Blocked: no layer, no press; aria-disabled keeps its focus layer. */
+  /* Blocked: the disabled model (the neutral fill and ink, or the theme's
+     dimming through --ds-disabled-opacity; a picture fades onto the fill),
+     no layer, no press; aria-disabled keeps its focus layer. */
   :is(a, button).ds-avatar:is(:disabled, [aria-disabled="true"]) {
     cursor: not-allowed;
+    opacity: var(--ds-disabled-opacity, var(--ds-state-disabled));
+    background: var(--ds-disabled-fill, var(--ds-avatar-bg, var(--ds-accent)));
+    color: var(--ds-disabled-ink, var(--ds-avatar-color, var(--ds-on-accent)));
+  }
+
+  /* A picture covers the fill: it fades to the disabled share, less what a
+     theme's dimming of the whole avatar already takes. */
+  :is(a, button).ds-avatar:is(:disabled, [aria-disabled="true"]) > img {
+    opacity: calc(var(--ds-state-disabled) / var(--ds-disabled-opacity, 1));
   }
 
   @media (hover: hover) {
@@ -363,6 +387,12 @@
 
     :is(a, button).ds-avatar::after {
       display: none;
+    }
+
+    /* Blocked: GrayText, the one model for what cannot be used. */
+    :is(a, button).ds-avatar:is(:disabled, [aria-disabled="true"]) {
+      color: GrayText;
+      outline-color: GrayText;
     }
 
     /* Shadows are gone here: the ring becomes an outline beyond the edge. */

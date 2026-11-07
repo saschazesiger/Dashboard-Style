@@ -61,7 +61,8 @@ The avatar's overflow stays visible, so the corner parts are never cut; a pictur
 `<button class="ds-avatar">` or `<a class="ds-avatar" href>` opens something (a profile, the account menu): a state
 layer over the picture (hover inside `@media (hover: hover)`, the press in `--ds-dur-micro`, the focus layer with the
 ring), the focus ring that snaps in (`outline-offset`, `--ds-dur-fast`), and a hit area of `--ds-target-min` around the
-disc (`.ds-touch`: 48px), while the disc keeps its size. `:disabled` and `aria-disabled="true"` show no layer.
+disc (`.ds-touch`: 48px), while the disc keeps its size. `:disabled` and `aria-disabled="true"` show the disabled model
+(`--ds-disabled-fill` and `--ds-disabled-ink`, a picture faded to `--ds-state-disabled`, on `--ds-dur-fast`) and no layer.
 
 No ripple and no morph: a ripple host clips while a ripple is inside, which would cut the status dot and the badge on the
 corner, so an interactive avatar presses through its state layer (the exception in `meta.json`), until each ripple clips
@@ -92,9 +93,13 @@ itself. A disc is a face, not a pill: it never morphs.
 (`avatarOverflow`, "+3") and its name (`avatarMore`, "3 more"), and fills the menu the button opens (`aria-controls`, else
 `data-ds-open`) with one `.ds-menu__item` per hidden avatar: its face at `.ds-sm`, its name, its status word. A linked
 avatar becomes a link; any other a button that sends `ds:select` (`detail: { avatar, name }`) on the group and presses the
-avatar it stands for when that one is a button. It follows avatars added, removed or renamed. The menu opens and closes
-through `DS.overlay` (`data-ds-open`): the [Menu](#menu)'s keys, Escape and focus return. Without the script, render the
-"+N" yourself.
+avatar it stands for when that one is a button. Menu items are actions: when the avatars are neither links nor buttons,
+the page handles `ds:select` (open the person's profile, say), so an item never does nothing. It follows avatars added,
+removed or renamed. The menu opens and closes through `DS.overlay` (`data-ds-open`): the [Menu](#menu)'s keys, Escape
+and focus return. When the group shrinks while focus is on "+N" or in its menu, focus stays in the group: a menu with
+nothing left to list closes (`DS.overlay.close`) and focus goes to the last interactive avatar shown, else to the group
+itself (`tabindex="-1"`, owned); a focused item that goes passes focus to the item now at its place. Without the script,
+render the "+N" yourself.
 
 | Option | Classes | Where it applies | Effect |
 |---|---|---|---|
@@ -147,8 +152,8 @@ team.set(5);
 
 ### Forced colours
 
-The disc keeps its edge (a transparent outline that turns visible); the state layer goes, the focus ring stays; the
-activity ring becomes a `Highlight` outline beyond the edge. A status dot and a badge keep their own forced looks (the
+The disc keeps its edge (a transparent outline that turns visible); the state layer goes, the focus ring stays; a blocked
+avatar is `GrayText`; the activity ring becomes a `Highlight` outline beyond the edge. A status dot and a badge keep their own forced looks (the
 dot's shapes in `CanvasText`).
 
 ### Motion
