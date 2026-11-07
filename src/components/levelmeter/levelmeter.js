@@ -8,12 +8,17 @@
  *   const stop = meter.listen(otherAnalyser);                // or later; stop() lets go
  *   meter.set(0.4);                                          // or the page's own value, 0 ... 1
  *   DS.levelmeter.level(samples);                            // 0 ... 1 of a block of samples
+ *   DS.levelmeter.peak(samples);                             // its sample peak, 0 ... 1
  *
  * The level of a block of samples is its RMS in dBFS, from -60 dB (0) to
  * 0 dB (1), so speech sits in the middle of the track and silence at its
  * start. The meter rises at once and falls over --ds-dur-glide per full
- * scale; the peak mark holds --ds-hold-status, then falls the same way. A
- * level at -1 dBFS or above is loud: data-state="loud" on .ds-levelmeter
+ * scale; the peak mark holds --ds-hold-status, then falls the same way.
+ * Clipping is decided on the sample peak, not on the RMS (a full-scale
+ * sine reads -3 dB RMS, clipped speech far less): a block whose peak
+ * reaches -1 dBFS is loud. A page's own value (set()) counts as loud when
+ * it gives a sample peak there (set(value, { peak })), else when the
+ * level itself reaches -1 dBFS. Loud: data-state="loud" on .ds-levelmeter
  * and the note says it ("Too loud", levelmeterLoud) until it has stayed
  * below for --ds-hold-status. The track's aria-valuenow (0 ... 100) and
  * aria-valuetext ("-18 dB", levelmeterValue) follow at most once per
@@ -37,8 +42,10 @@ import { own, disown } from '../../js/dom.js';
 
 /** The bottom of the scale, in dBFS: the level 0. */
 const FLOOR_DB = -60;
-/** From here up a level is loud (clipping is near), in dBFS. */
+/** From here up a sample peak is loud (clipping is near), in dBFS. */
 const LOUD_DB = -1;
+/** LOUD_DB as a sample amplitude: about 0.891. */
+const LOUD_PEAK = 10 ** (LOUD_DB / 20);
 
 /**
  * The level of a block of samples (floats from -1 to 1, as
@@ -61,6 +68,23 @@ export function level(samples, options = {}) {
   if (!(rms > 0)) return 0;
   const db = 20 * Math.log10(rms);
   return Math.min(1, Math.max(0, (db - floor) / -floor));
+}
+
+/**
+ * The sample peak of a block of samples: the largest |x|, at most 1 (a
+ * clipped block reads 1). 0 for silence or an empty block. A peak of
+ * 10 ** (-1 / 20), about 0.891 (-1 dBFS), or more is loud.
+ * @param {ArrayLike<number>} samples
+ * @returns {number}
+ */
+export function peak(samples) {
+  const count = samples?.length ?? 0;
+  let most = 0;
+  for (let i = 0; i < count; i += 1) {
+    const value = Math.abs(Number(samples[i]) || 0);
+    if (value > most) most = value;
+  }
+  return Math.min(1, most);
 }
 
 /**
@@ -87,12 +111,14 @@ function meterController(el, start = {}) {
   const note = el.querySelector('.ds-levelmeter__note');
   const floor = Number.isFinite(start.floor) && start.floor < 0 ? start.floor : FLOOR_DB;
   const listeners = new Set();
-  /** The level of LOUD_DB on this meter's scale. */
+  /** The level of LOUD_DB on this meter's scale: loud by a set() value without a sample peak. */
   const loudLevel = 1 - (LOUD_DB / floor);
 
   let target = 0;
+  /** The sample peak of the last block or set(), or null when set() gave none. */
+  let targetPeak = null;
   let shown = 0;
-  let peak = 0;
+  let peakLevel = 0;
   let peakAt = 0;
   let loud = false;
   let quietSince = 0;
@@ -116,8 +142,8 @@ function meterController(el, start = {}) {
 
   const paint = (now) => {
     track.style.setProperty('--ds-levelmeter-level', String(Math.round(shown * 1000) / 1000));
-    track.style.setProperty('--ds-levelmeter-peak', String(Math.round(peak * 1000) / 1000));
-    if (peakMark && peakMark.hidden !== !(peak > 0)) peakMark.hidden = !(peak > 0);
+    track.style.setProperty('--ds-levelmeter-peak', String(Math.round(peakLevel * 1000) / 1000));
+    if (peakMark && peakMark.hidden !== !(peakLevel > 0)) peakMark.hidden = !(peakLevel > 0);
     if (now - lastAria >= motionDuration(el, '--ds-hold-status')) {
       lastAria = now;
       const value = String(Math.round(shown * 100));
@@ -148,18 +174,20 @@ function meterController(el, start = {}) {
     if (analyser && buffer) {
       analyser.getFloatTimeDomainData(buffer);
       target = level(buffer, { floor });
+      targetPeak = peak(buffer);
     }
     const value = muted() ? 0 : target;
     const fall = dt / Math.max(1, motionDuration(el, '--ds-dur-glide'));
     shown = value >= shown ? value : Math.max(value, shown - fall);
-    if (shown >= peak) {
-      peak = shown;
+    if (shown >= peakLevel) {
+      peakLevel = shown;
       peakAt = now;
     } else if (now - peakAt > motionDuration(el, '--ds-hold-status')) {
-      peak = Math.max(shown, peak - fall);
+      peakLevel = Math.max(shown, peakLevel - fall);
     }
     // Loud at once; quiet again only after a hold, so the word does not flicker.
-    if (value >= loudLevel) {
+    const clipping = !muted() && (targetPeak === null ? value >= loudLevel : targetPeak >= LOUD_PEAK);
+    if (clipping) {
       quietSince = 0;
       setLoud(true);
     } else if (loud) {
@@ -167,7 +195,7 @@ function meterController(el, start = {}) {
       if (now - quietSince >= motionDuration(el, '--ds-hold-status')) setLoud(false);
     }
     paint(now);
-    return Boolean(analyser) || shown !== value || peak !== shown || loud;
+    return Boolean(analyser) || shown !== value || peakLevel !== shown || loud;
   };
 
   const tick = (now) => {
@@ -183,9 +211,10 @@ function meterController(el, start = {}) {
   };
 
   const controller = {
-    get() { return { level: target, peak, loud }; },
-    set(value) {
+    get() { return { level: target, peak: peakLevel, loud }; },
+    set(value, options = {}) {
       target = clamp(value);
+      targetPeak = Number.isFinite(options?.peak) ? clamp(options.peak) : null;
       run();
     },
     listen(node) {
@@ -198,6 +227,7 @@ function meterController(el, start = {}) {
         analyser = null;
         buffer = null;
         target = 0;
+        targetPeak = null;
         run();
       };
     },

@@ -37,19 +37,23 @@ const meter = DS.levelmeter.create(el, { analyser });     // or DS.core.get(el, 
 | Segmented | `.ds-levelmeter--segmented` | the track cut into segments of `--ds-levelmeter-segment` (6px) with a 2px gap |
 | Vertical | `.ds-levelmeter--vertical` | upright, the level grows upwards over `--ds-levelmeter-length` (96px) |
 
-**States.** `data-state="loud"` (the script's, on `.ds-levelmeter`) while the level is at -1 dBFS or above and for
-`--ds-hold-status` after: the fill and the peak in `--ds-error`, and the note says it in words. `aria-disabled="true"` on the
+**States.** `data-state="loud"` (the script's, on `.ds-levelmeter`) while the signal clips, a sample peak at -1 dBFS
+or above, and for `--ds-hold-status` after: the fill and the peak in `--ds-error`, and the note says it in words. `aria-disabled="true"` on the
 track (the page's: a muted microphone) shows the disabled model and no level; say "Muted" in the label or the note.
 
 **The level.** `DS.levelmeter.level(samples)` is the RMS of a block of samples in dBFS, mapped from -60 dB (0) to 0 dB (1),
 so speech sits in the middle of the track and silence at its start; `decibels(value)` maps back. The meter rises at once and
-falls over `--ds-dur-glide` per full scale; the peak holds `--ds-hold-status`, then falls the same way. A page with its own
-level (a server's value, a recorder's) calls `set(value)` instead.
+falls over `--ds-dur-glide` per full scale; the peak holds `--ds-hold-status`, then falls the same way. Clipping is decided
+on the sample peak (`DS.levelmeter.peak(samples)`, the largest |x|), not on the RMS: a full-scale sine reads -3 dB on the
+bar and clipped speech far less, but their peaks reach -1 dBFS (about 0.891). A page with its own level (a server's value, a
+recorder's) calls `set(value, { peak })` instead; without `peak` the level itself decides (loud from -1 dBFS on the meter's
+scale). The meter runs left to right in either writing direction, like its scale.
 
 | Export | What |
 |---|---|
-| `DS.levelmeter.create(el, { analyser, floor })` | the controller of a meter: `get()` (`{ level, peak, loud }`), `set(value)`, `listen(analyser)` (returns a function that lets go), `on('change')` (`{ loud }`, also `ds:change` on `.ds-levelmeter`, only when the loud state changes), `destroy()` |
+| `DS.levelmeter.create(el, { analyser, floor })` | the controller of a meter: `get()` (`{ level, peak, loud }`), `set(value, { peak })`, `listen(analyser)` (returns a function that lets go), `on('change')` (`{ loud }`, also `ds:change` on `.ds-levelmeter`, only when the loud state changes), `destroy()` |
 | `DS.levelmeter.level(samples, { floor })` | the level (0 to 1) of a block of samples (floats from -1 to 1, `getFloatTimeDomainData()`) |
+| `DS.levelmeter.peak(samples)` | the sample peak (0 to 1) of a block of samples; from about 0.891 (-1 dBFS) the meter is loud |
 | `DS.levelmeter.decibels(value, { floor })` | the dBFS of a level, rounded; `-Infinity` at 0 |
 
 The loop runs only while an analyser is attached or the bar still falls, and stops on `destroy()`. Stopping the
@@ -80,5 +84,5 @@ Hooks: `--ds-levelmeter-height`, `--ds-levelmeter-fill`, `--ds-levelmeter-track`
 
 <!-- changelog -->
 - Level meter (3.0, new): `.ds-levelmeter` with `__label`, `__track`, `__fill`, `__peak` and `__note`, the variants
-  `--segmented` and `--vertical`; `DS.levelmeter` (`create`, `level`, `decibels`) and `data-ds-levelmeter`: reads a
-  page-supplied AnalyserNode every frame, peak hold, "Too loud" in words. New strings: `levelmeterValue`, `levelmeterLoud`.
+  `--segmented` and `--vertical`; `DS.levelmeter` (`create`, `level`, `peak`, `decibels`) and `data-ds-levelmeter`: reads a
+  page-supplied AnalyserNode every frame, peak hold, "Too loud" in words when the sample peak reaches -1 dBFS. New strings: `levelmeterValue`, `levelmeterLoud`.

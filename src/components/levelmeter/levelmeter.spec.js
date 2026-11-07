@@ -3,7 +3,7 @@
  * nothing), the shape of its ends, the vertical and segmented variants; the
  * level from a stand-in AnalyserNode with its ARIA value in words; the
  * ballistics (rise at once, fall, the peak's hold); loud in words and its
- * ds:change; a muted track; destroy; forced colours. Runs
+ * ds:change, decided on the sample peak; left to right under dir="rtl"; a muted track; destroy; forced colours. Runs
  * in `fallback` too.
  */
 import { test, expect } from '../../../test/browser/base-test.js';
@@ -120,6 +120,50 @@ test('loud: data-state, the word in the note, the error colour, one ds:change ea
   await expect(page.locator('#lm')).not.toHaveAttribute('data-state', 'loud', { timeout: 4000 });
   await expect(page.locator('#lm .ds-levelmeter__note')).toHaveText('');
   expect(await page.evaluate(() => window.heard)).toEqual([true, false]);
+});
+
+test('loud on the sample peak: a clipped sine reads below -1 dB on the bar and still says "Too loud"; set(value, { peak })', async ({ page }) => {
+  await open(page);
+  await add(page);
+  await page.evaluate(() => {
+    // A sine at twice full scale, clipped: its RMS is about -1.3 dBFS, its peak full scale.
+    window.clipped = { fftSize: 1024, getFloatTimeDomainData(buffer) { for (let i = 0; i < buffer.length; i += 1) buffer[i] = Math.max(-1, Math.min(1, 2 * Math.sin(i * 0.21))); } };
+    window.stopClipped = window.lm.listen(window.clipped);
+  });
+  await expect(page.locator('#lm')).toHaveAttribute('data-state', 'loud');
+  await expect(page.locator('#lm .ds-levelmeter__note')).toHaveText('Too loud');
+  expect((await read(page)).level, 'the bar shows the RMS, below -1 dBFS').toBeLessThan(59 / 60);
+  await page.evaluate(() => window.stopClipped());
+  await expect(page.locator('#lm')).not.toHaveAttribute('data-state', 'loud', { timeout: 4000 });
+  // The page's own values: a sample peak decides when given, the level when not.
+  await page.evaluate(() => window.lm.set(0.9, { peak: 0.5 }));
+  await page.waitForTimeout(100);
+  expect((await read(page)).state, 'a high level with a low peak is not loud').toBeNull();
+  await page.evaluate(() => window.lm.set(0.6, { peak: 1 }));
+  await expect(page.locator('#lm')).toHaveAttribute('data-state', 'loud');
+});
+
+test('direction: under dir="rtl" the meter runs left to right, its peak mark inside the track', async ({ page }) => {
+  await open(page);
+  await add(page);
+  await page.evaluate(() => {
+    const el = document.querySelector('#lm');
+    el.setAttribute('dir', 'rtl');
+    el.style.inlineSize = '300px';
+    window.lm.set(0.3);
+  });
+  await expect.poll(async () => (await read(page)).level).toBe(0.3);
+  const box = await page.evaluate(() => {
+    const el = document.querySelector('#lm');
+    const rect = (node) => { const r = node.getBoundingClientRect(); return [r.left, r.right]; };
+    return { track: rect(el.querySelector('.ds-levelmeter__track')), fill: rect(el.querySelector('.ds-levelmeter__fill')), peak: rect(el.querySelector('.ds-levelmeter__peak')) };
+  });
+  expect(box.fill[0]).toBeCloseTo(box.track[0], 0);
+  expect(box.fill[1] - box.fill[0]).toBeCloseTo(0.3 * (box.track[1] - box.track[0]), 0);
+  expect(box.peak[0]).toBeGreaterThanOrEqual(box.track[0]);
+  expect(box.peak[1]).toBeLessThanOrEqual(box.track[1] + 0.5);
+  expect(box.peak[0], 'the mark sits at the end of the fill').toBeLessThanOrEqual(box.fill[1] + 1);
+  expect(box.peak[1]).toBeGreaterThanOrEqual(box.fill[1] - 1);
 });
 
 test('muted: aria-disabled on the track shows no level', async ({ page }) => {

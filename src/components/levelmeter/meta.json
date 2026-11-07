@@ -52,11 +52,13 @@
   "ripple": false,
   "labExempt": {
     "DS.levelmeter.level": "a pure function of a block of samples: no motion",
-    "DS.levelmeter.decibels": "a pure function of a level: no motion"
+    "DS.levelmeter.decibels": "a pure function of a level: no motion",
+    "DS.levelmeter.peak": "a pure function of a block of samples: no motion"
   },
   "exceptions": {
     "physical": {
-      ".ds-levelmeter--segmented > .ds-levelmeter__track: mask": "gradient direction: a meter fills left to right, as its scale from the start does"
+      ".ds-levelmeter--segmented > .ds-levelmeter__track: mask": "gradient direction: a meter fills left to right, as its scale from the start does",
+      ".ds-levelmeter__peak: left": "the peak mark rides the physical scale the fill grows on (transform-origin: left): a meter fills left to right in either direction"
     }
   }
 }

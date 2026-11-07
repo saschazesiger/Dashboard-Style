@@ -30,7 +30,7 @@
  *                          writes --ds-levelmeter-peak, and hidden while
  *                          nothing was heard)
  *   .ds-levelmeter__note   a word for the state, written by the script:
- *                          "Too loud" while the level clips (levelmeterLoud)
+ *                          "Too loud" while the signal clips (levelmeterLoud)
  *
  * Variants:
  *   (none)                 one bar
@@ -41,7 +41,7 @@
  *                          --ds-levelmeter-length (96px)
  *
  * States: data-state="loud" (written by the script on .ds-levelmeter while
- * the level clips): the fill and the peak in --ds-error and the note says
+ * the signal clips, a sample peak at -1 dBFS): the fill and the peak in --ds-error and the note says
  * it in words, never the colour alone. aria-disabled="true" on the track
  * (the page's, a muted microphone): the disabled model, and the script
  * shows no level.
@@ -55,6 +55,11 @@
  *   tone      on .ds-levelmeter itself: the fill in --ds-tone, the track in
  *             --ds-tone-container (the "loud" state still wins)
  *   touch     not read: a meter is no target
+ *
+ * Direction: a meter runs left to right whatever the writing direction,
+ * like the scale it shows: the fill grows from the left, the peak mark is
+ * placed from the left (left: 0) and the segments run that way (the
+ * physical exceptions in meta.json).
  *
  * Hooks: --ds-levelmeter-height (6px, the md thickness),
  * --ds-levelmeter-length (96px, --vertical), --ds-levelmeter-fill
@@ -122,7 +127,7 @@
   .ds-levelmeter__peak {
     position: absolute;
     inset-block: 0;
-    inset-inline-start: 0;
+    left: 0;
     inline-size: max(2px, calc(var(--_t) / 2));
     background: var(--_fill);
     translate: calc(var(--ds-levelmeter-peak, 0) * (100cqi - 100%)) 0;
