@@ -3,7 +3,7 @@
  * are on. The buttons are .ds-btn toggles (button.css draws on and off); the
  * group lays them out and DS.toggle keeps their state.
  *
- *   <div class="ds-toggle-group" role="group" aria-label="View" data-ds-toggle-group="single">
+ *   <div class="ds-toggle-group" role="toolbar" aria-label="View" data-ds-toggle-group="single">
  *     <button class="ds-btn" type="button" aria-pressed="true" value="list">(list 16) List</button>
  *     <button class="ds-btn" type="button" aria-pressed="false" value="grid">(grid 16) Grid</button>
  *   </div>
@@ -16,7 +16,8 @@
  * Behaviour (DS.toggle, toggle.js): data-ds-toggle flips one button;
  * data-ds-toggle-group="single | multiple" serves every [aria-pressed]
  * button inside, with data-ds-toggle-group-required (single: one always on)
- * and data-ds-value; one tab stop and the arrow keys (DS.a11y.roving).
+ * and data-ds-value; a role="toolbar" group is one tab stop with the
+ * arrow keys (DS.a11y.roving), a role="group" keeps every button's own.
  *
  * Options (docs/options.md), on the group or any ancestor:
  *   size      the buttons' (button.css)

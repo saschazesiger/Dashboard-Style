@@ -63,7 +63,7 @@ describe('DS.toggle behaviours', () => {
     const specs = runtime.state('core').specs;
     assert.equal(specs.get('toggle').attribute, 'data-ds-toggle');
     assert.equal(specs.get('toggle-group').attribute, 'data-ds-toggle-group');
-    assert.deepEqual([...specs.get('toggle-group').attributes], ['data-ds-toggle-group-required', 'data-ds-value']);
+    assert.deepEqual([...specs.get('toggle-group').attributes], ['data-ds-toggle-group-required', 'data-ds-value', 'data-ds-toggle-group-roving']);
   });
 
   it('flips aria-pressed on a click and says so; set() is silent; a blocked toggle stays', () => {

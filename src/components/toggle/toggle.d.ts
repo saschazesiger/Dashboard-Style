@@ -25,6 +25,7 @@ export interface ToggleGroupOptions {
   mode?: 'single' | 'multiple';
   required?: boolean;
   value?: string | string[] | null;
+  /** One tab stop with the arrow keys; default: the markup's data-ds-toggle-group-roving, else role="toolbar". */
   roving?: boolean;
 }
 
@@ -32,7 +33,7 @@ export interface ToggleGroupOptions {
 export declare function parseValue(value: unknown, mode: 'single' | 'multiple'): string | null | string[];
 /** The values that are on after a press on `item`. */
 export declare function nextPressed(pressed: string[], item: string, options: { mode: 'single' | 'multiple'; required?: boolean }): string[];
-/** A toggle button driven from the page; the controller data-ds-toggle makes. */
+/** A toggle button driven from the page; the controller data-ds-toggle makes (one per button: the same one twice). */
 export declare function create(button: Element, options?: { pressed?: boolean }): ToggleController;
-/** A toggle group driven from the page; the controller data-ds-toggle-group makes. */
+/** A toggle group driven from the page; the controller data-ds-toggle-group makes (one per group: the same one, options applied). */
 export declare function group(element: Element, options?: ToggleGroupOptions): ToggleGroupController;

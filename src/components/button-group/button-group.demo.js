@@ -30,7 +30,7 @@ SG.demo('button-group', {
           '<button class="' + btn(look) + ' ds-btn--icon" type="button" aria-label="Locate" data-tip="Locate">' + h.icon('mapPin', 20) + '</button></div>';
       }).join('') + '</div>') +
 
-      h.section('Toggles', '<div class="sg-row"><div class="ds-btn-group ds-toggle-group" role="group" aria-label="View" data-ds-toggle-group="single" data-ds-toggle-group-required data-demo="toggles">' +
+      h.section('Toggles', '<div class="sg-row"><div class="ds-btn-group ds-toggle-group" role="toolbar" aria-label="View" data-ds-toggle-group="single" data-ds-toggle-group-required data-demo="toggles">' +
         '<button class="' + btn(looks[0]) + '" type="button" aria-pressed="true" value="day">Day</button>' +
         '<button class="' + btn(looks[0]) + '" type="button" aria-pressed="false" value="week">Week</button>' +
         '<button class="' + btn(looks[0]) + '" type="button" aria-pressed="false" value="month">Month</button></div></div>',

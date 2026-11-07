@@ -91,7 +91,7 @@ test('a single, required group: one tab stop on the item that is on, arrows move
   await open(page);
   await listen(page);
   const group = page.locator('[data-demo="view"]');
-  await expect(group).toHaveAttribute('role', 'group');
+  await expect(group).toHaveAttribute('role', 'toolbar');
   await expect(group).toHaveAccessibleName('View');
   const items = group.getByRole('button');
   await expect(items).toHaveCount(3);
@@ -125,6 +125,16 @@ test('a single, required group: one tab stop on the item that is on, arrows move
   await focusByKeyboard(page, items.nth(2));
   await page.keyboard.press('Tab');
   expect(await page.evaluate(() => document.activeElement?.closest('[data-demo="view"]'))).toBeNull();
+  // Single: an arrow moves focus off the item that is on; once focus leaves,
+  // Shift+Tab comes back to the item that is on, not to the last focused.
+  await focusByKeyboard(page, items.nth(2));
+  await page.keyboard.press('ArrowLeft');
+  await expect(items.nth(1)).toBeFocused();
+  await page.keyboard.press('Tab');
+  expect(await page.evaluate(() => document.activeElement?.closest('[data-demo="view"]'))).toBeNull();
+  await page.keyboard.press('Shift+Tab');
+  await expect(items.nth(2)).toBeFocused();
+  await expect(items.nth(2)).toHaveAttribute('aria-pressed', 'true');
   // set() from the page: no event; the controller reads the state.
   const value = await group.evaluate((el) => {
     const control = DS.get(el, 'toggle-group');
@@ -134,6 +144,55 @@ test('a single, required group: one tab stop on the item that is on, arrows move
   expect(value).toBe('list');
   await expect(items.nth(0)).toHaveAttribute('aria-pressed', 'true');
   expect(await changes(page)).toHaveLength(2);
+});
+
+test('a role="group" keeps every button a tab stop; data-ds-toggle-group-roving overrides the role', async ({ page }) => {
+  await open(page);
+  const status = page.getByRole('group', { name: 'Status' });
+  const items = status.getByRole('button');
+  await focusByKeyboard(page, items.nth(0));
+  await page.keyboard.press('Tab');
+  await expect(items.nth(1)).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(items.nth(2)).toBeFocused();
+  expect(await items.evaluateAll((list) => list.map((el) => el.getAttribute('tabindex')))).toEqual([null, null, null]);
+  const stops = await page.evaluate(async () => {
+    const make = (role, roving) => {
+      const el = document.createElement('div');
+      el.className = 'ds-toggle-group';
+      el.setAttribute('role', role);
+      el.setAttribute('aria-label', 'Probe');
+      el.setAttribute('data-ds-toggle-group', 'single');
+      if (roving) el.setAttribute('data-ds-toggle-group-roving', roving);
+      el.innerHTML = '<button class="ds-btn" type="button" aria-pressed="false">A</button><button class="ds-btn" type="button" aria-pressed="true">B</button>';
+      document.querySelector('#fx-component').append(el);
+      return el;
+    };
+    const groups = [make('group', 'on'), make('toolbar', 'off')];
+    DS.init(document.querySelector('#fx-component'));
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    const out = groups.map((el) => [...el.children].map((item) => item.getAttribute('tabindex')));
+    for (const el of groups) el.remove();
+    return out;
+  });
+  expect(stops).toEqual([['-1', '0'], [null, null]]);
+});
+
+test('create() and group() on what the attributes set up: the same controller, a press flips once', async ({ page }) => {
+  await open(page);
+  const out = await page.evaluate(() => {
+    const button = document.querySelector('[data-demo="only-open"]');
+    const before = button.getAttribute('aria-pressed');
+    const made = DS.toggle.create(button);
+    const same = made === DS.get(button, 'toggle') && made === DS.toggle.create(button);
+    button.click();
+    const view = document.querySelector('[data-demo="view"]');
+    const group = DS.toggle.group(view, { value: 'grid' });
+    const groupSame = group === DS.get(view, 'toggle-group');
+    view.querySelector('[value="board"]').click();
+    return { before, after: button.getAttribute('aria-pressed'), same, groupSame, value: group.get(), pressed: view.querySelectorAll('[aria-pressed="true"]').length };
+  });
+  expect(out).toEqual({ before: 'false', after: 'true', same: true, groupSame: true, value: 'board', pressed: 1 });
 });
 
 test('a single group without -required turns off again; a multiple group flips each item', async ({ page }) => {

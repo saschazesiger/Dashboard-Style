@@ -31,13 +31,13 @@ SG.demo('toggle', {
       '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Star" data-tip="Star" data-ds-toggle>' + h.icon('star', 20, 'ds-icon--fillable') + '</button>' +
       '</div>', 'Icon toggles in the standard (quiet), filled, tonal and outlined looks: a filled or tonal one shows the neutral container while off. The glyph fills while on.') +
 
-      h.section('One of a set', '<div class="ds-toggle-group" role="group" aria-label="View" data-ds-toggle-group="single" data-ds-toggle-group-required data-demo="view">' +
+      h.section('One of a set', '<div class="ds-toggle-group" role="toolbar" aria-label="View" data-ds-toggle-group="single" data-ds-toggle-group-required data-demo="view">' +
         '<button class="' + cls + '" type="button" aria-pressed="true" value="list">' + swap(h, 'list') + 'List</button>' +
         '<button class="' + cls + '" type="button" aria-pressed="false" value="grid">' + swap(h, 'layoutGrid') + 'Grid</button>' +
         '<button class="' + cls + '" type="button" aria-pressed="false" value="board">' + swap(h, 'kanban') + 'Board</button>' +
-        '</div><p class="ds-meta" data-demo="view-out">View: list</p>', 'data-ds-toggle-group="single" with -required: one is always on. One tab stop: the arrow keys move between the buttons, Space presses.') +
+        '</div><p class="ds-meta" data-demo="view-out">View: list</p>', 'data-ds-toggle-group="single" with -required: one is always on. A role="toolbar": one tab stop, the arrow keys move between the buttons, Space presses, Tab comes back to the one that is on.') +
 
-      h.section('Several of a set, connected', '<div class="ds-toggle-group ds-btn-group" role="group" aria-label="Format" data-ds-toggle-group="multiple" data-ds-value="bold" data-demo="format">' +
+      h.section('Several of a set, connected', '<div class="ds-toggle-group ds-btn-group" role="toolbar" aria-label="Format" data-ds-toggle-group="multiple" data-ds-value="bold" data-demo="format">' +
         '<button class="' + cls + ' ds-btn--icon" type="button" aria-pressed="false" value="bold" aria-label="Bold" data-tip="Bold">' + h.icon('bold', 20) + '</button>' +
         '<button class="' + cls + ' ds-btn--icon" type="button" aria-pressed="false" value="italic" aria-label="Italic" data-tip="Italic">' + h.icon('italic', 20) + '</button>' +
         '<button class="' + cls + ' ds-btn--icon" type="button" aria-pressed="false" value="code" aria-label="Code" data-tip="Code">' + h.icon('code', 20) + '</button>' +
@@ -48,7 +48,7 @@ SG.demo('toggle', {
         '<button class="' + cls + '" type="button" aria-pressed="false" value="open">' + swap(h, 'circleDot') + 'Open</button>' +
         '<button class="' + cls + '" type="button" aria-pressed="false" value="waiting">' + swap(h, 'hourglass') + 'Waiting</button>' +
         '<button class="' + cls + '" type="button" aria-pressed="false" value="closed">' + swap(h, 'checkCircle') + 'Closed</button>' +
-        '</div>', 'Single without -required: pressing the button that is on turns it off again.') +
+        '</div>', 'Single without -required: pressing the button that is on turns it off again. A role="group": every button is a tab stop of its own.') +
 
       h.section('States', '<div class="sg-row">' +
         '<button class="' + cls + '" type="button" aria-pressed="false" disabled>' + swap(h, 'bell') + 'Disabled</button>' +
@@ -59,7 +59,7 @@ SG.demo('toggle', {
         '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-disabled="true" aria-label="Not helpful">' + h.icon('thumbDown', 20, 'ds-icon--fillable') + '</button></div>' +
         '</div>', 'aria-disabled stays focusable, so its tooltip can say why; a choice made once keeps its on look.') +
 
-      h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches a toggle (in a group: the one that is on); <kbd class="ds-kbd">Space</kbd> or <kbd class="ds-kbd">Enter</kbd> presses it; in a group <kbd class="ds-kbd">←</kbd> <kbd class="ds-kbd">→</kbd> <kbd class="ds-kbd">Home</kbd> <kbd class="ds-kbd">End</kbd> move between the buttons.</p>');
+      h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches a toggle (in a toolbar: the one that is on); <kbd class="ds-kbd">Space</kbd> or <kbd class="ds-kbd">Enter</kbd> presses it; in a toolbar <kbd class="ds-kbd">←</kbd> <kbd class="ds-kbd">→</kbd> <kbd class="ds-kbd">Home</kbd> <kbd class="ds-kbd">End</kbd> move between the buttons.</p>');
   },
 
   wire: function (root, h) {
