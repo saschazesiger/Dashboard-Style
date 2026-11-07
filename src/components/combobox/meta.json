@@ -16,6 +16,7 @@
     "ds-combo__heading",
     "ds-combo__input",
     "ds-combo__list",
+    "ds-combo__match",
     "ds-combo__meta",
     "ds-combo__name",
     "ds-combo__option",
@@ -79,8 +80,11 @@
     "ds-scroll-edge-start"
   ],
   "js": [
+    "combobox",
+    "listbox",
     "overlay"
   ],
+  "module": true,
   "progressive": [
     "anchor positioning",
     "scroll-driven",
@@ -91,6 +95,9 @@
     ".ds-combo__toggle",
     ".ds-combo__clear"
   ],
+  "labExempt": {
+    "DS.combobox.create": "the controller; the list's motion is DS.overlay's (the combobox entries of styleguide/lab.js) and the chips' are the chip's"
+  },
   "exceptions": {
     "ripple": {
       ".ds-combo__option": "pointer-down selects and closes the list; the state layer is the feedback"

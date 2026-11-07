@@ -1,0 +1,68 @@
+{
+  "name": "listbox",
+  "group": "forms",
+  "order": 600,
+  "docsOrder": 231,
+  "need": "Choose one or several options from a visible list: groups, descriptions, type-ahead, thousands of options",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-listbox",
+    "ds-listbox--plain",
+    "ds-listbox__check",
+    "ds-listbox__description",
+    "ds-listbox__group",
+    "ds-listbox__heading",
+    "ds-listbox__match",
+    "ds-listbox__meta",
+    "ds-listbox__name",
+    "ds-listbox__option"
+  ],
+  "attributes": [
+    "data-active",
+    "data-ds-edges",
+    "data-ds-overflow-end",
+    "data-ds-overflow-start"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": {
+    "--ds-listbox-option-height": {
+      "default": "40px",
+      "description": "listbox option: the base height (size md, comfortable density) that size and density steps apply to; a least height, its text may need more"
+    },
+    "--ds-listbox-max-height": {
+      "default": "264px",
+      "description": "the listbox box's height before it scrolls (about six options); `none` shows every option"
+    },
+    "--ds-listbox-radius": {
+      "default": "`--ds-radius-field`",
+      "description": "the corners of the listbox box, times `--ds-shape`"
+    },
+    "--ds-scroll-fade": {
+      "owner": "scroller"
+    },
+    "--ds-check-size": {
+      "owner": "form"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "listbox"
+  ],
+  "module": true,
+  "progressive": [
+    "scrollbar-color"
+  ],
+  "ripple": false,
+  "labExempt": {
+    "DS.listbox.fuzzy": "matching only, no motion",
+    "DS.listbox.filter": "matching only, no motion",
+    "DS.listbox.highlight": "markup only, no motion"
+  },
+  "exceptions": {
+    "ripple": {
+      ".ds-listbox__option": "an option is chosen by a press, the state layer and the check are the feedback, as in the combobox"
+    }
+  }
+}

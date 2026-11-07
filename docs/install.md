@@ -375,6 +375,19 @@ strings a script adds have an option, so a page in another language passes its o
 | `Previous` | the system's string `previous` | `DS.core.config({ strings: { previous } })` |
 | `Next` | the system's string `next` | `DS.core.config({ strings: { next } })` |
 | `No results` | the system's string `noResults` | `DS.core.config({ strings: { noResults } })` |
+| `Moved {count} to {list}` | what a transfer list announces after a move, `{list}` the name of the side (the system's string `transferMoved`) | `DS.core.config({ strings: { transferMoved } })` |
+| `Position {position}` | the place of a checked row of an ordered choice, for a screen reader (the system's string `orderPosition`) | `DS.core.config({ strings: { orderPosition } })` |
+| `Create “{text}”` | the last option of a creatable combobox (`DS.combobox`) (the system's string `createOption`) | `DS.core.config({ strings: { createOption } })` |
+| `1 result` | the status line of a filtered combobox, one match (the system's string `resultsOne`) | `DS.core.config({ strings: { resultsOne } })` |
+| `{count} results` | the same, several matches (the system's string `resultsOther`) | `DS.core.config({ strings: { resultsOther } })` |
+| `Type to search` | the status line of a combobox with a `source` before its first letters (the system's string `typeToSearch`) | `DS.core.config({ strings: { typeToSearch } })` |
+| `Added {label}` | what a combobox of several values and a tag input announce when a value comes (the system's string `added`) | `DS.core.config({ strings: { added } })` |
+| `Removed {label}` | the same when a value goes (the system's string `removed`) | `DS.core.config({ strings: { removed } })` |
+| `{count} selected` | the summary of several choices: a select panel's trigger, a check group's count (the system's string `selectedCount`) | `DS.core.config({ strings: { selectedCount } })` |
+| `{label} is in the list already` | the message of a tag input that refuses a repeated tag (the system's string `tagDuplicate`) | `DS.core.config({ strings: { tagDuplicate } })` |
+| `{label} is not valid` | the message of a tag input that refuses a tag its `validate` turned down (the system's string `tagInvalid`) | `DS.core.config({ strings: { tagInvalid } })` |
+| `Up to {max} items` | the message of a tag input or an ordered choice at its maximum (the system's string `tagMax`) | `DS.core.config({ strings: { tagMax } })` |
+| `All selected` | the system's string `allSelected`: the summary of a select panel or check group with every option chosen | `DS.core.config({ strings: { allSelected } })` |
 | `Ctrl` | the system's string `keyCtrl`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyCtrl } })` |
 | `Alt` | the system's string `keyAlt`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyAlt } })` |
 | `Shift` | the system's string `keyShift`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyShift } })` |

@@ -1,0 +1,59 @@
+{
+  "name": "taginput",
+  "group": "forms",
+  "order": 620,
+  "docsOrder": 232,
+  "need": "Type free values as tags: labels, recipients, keywords; paste a list, check each, cap the count",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-taginput",
+    "ds-taginput--full",
+    "ds-taginput__input",
+    "ds-taginput__message"
+  ],
+  "attributes": [],
+  "requires": [
+    "chip",
+    "form"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-input-bg": {
+      "owner": "form"
+    },
+    "--ds-input-border": {
+      "owner": "form"
+    },
+    "--ds-input-focus-color": {
+      "owner": "form"
+    },
+    "--ds-input-height": {
+      "owner": "form"
+    },
+    "--ds-input-radius": {
+      "owner": "form"
+    },
+    "--ds-form-rows-control-max": {
+      "owner": "form"
+    }
+  },
+  "keyframes": [
+    "ds-fade-in"
+  ],
+  "js": [
+    "taginput"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.taginput.split": "parsing only, no motion",
+    "DS.taginput.check": "validation only, no motion"
+  },
+  "exceptions": {
+    "focus": {
+      ".ds-taginput": "forced colours: the box draws the field, so it takes the ring a field shows on any focus"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "transfer",
+  "group": "forms",
+  "order": 650,
+  "docsOrder": 236,
+  "need": "Move options between two lists, available and chosen: permissions, group members; with filters and keys",
+  "tier": 2,
+  "status": "beta",
+  "classes": [
+    "ds-transfer",
+    "ds-transfer__actions",
+    "ds-transfer__list",
+    "ds-transfer__search",
+    "ds-transfer__side",
+    "ds-transfer__title"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "form",
+    "listbox"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-transfer-list-height": {
+      "default": "264px",
+      "description": "the height of both lists of a transfer list"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "listbox",
+    "transfer"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.transfer.create": "options change sides at once, as a listbox renders new data: no motion of its own",
+    "DS.transfer.move": "the arithmetic of a move, no motion"
+  }
+}

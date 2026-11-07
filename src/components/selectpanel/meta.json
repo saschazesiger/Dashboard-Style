@@ -1,0 +1,64 @@
+{
+  "name": "selectpanel",
+  "group": "forms",
+  "order": 630,
+  "docsOrder": 234,
+  "need": "Pick several values in a popover with a filter and an apply foot: labels, assignees, filters",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-selectpanel",
+    "ds-selectpanel__foot",
+    "ds-selectpanel__head",
+    "ds-selectpanel__list",
+    "ds-selectpanel__panel",
+    "ds-selectpanel__search",
+    "ds-selectpanel__status",
+    "ds-selectpanel__summary",
+    "ds-selectpanel__trigger"
+  ],
+  "attributes": [
+    "data-anchored",
+    "data-placement",
+    "data-state"
+  ],
+  "requires": [
+    "button",
+    "form",
+    "listbox"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-selectpanel-width": {
+      "default": "320px",
+      "description": "the select panel's width (at most the viewport's less 16px)"
+    },
+    "--ds-selectpanel-list-max-height": {
+      "default": "320px",
+      "description": "the select panel's list before it scrolls inside the panel"
+    },
+    "--ds-selectpanel-radius": {
+      "default": "`--ds-radius-xs`",
+      "description": "the corners of the select panel, times `--ds-shape`"
+    }
+  },
+  "keyframes": [
+    "ds-clip-in",
+    "ds-fade-in"
+  ],
+  "js": [
+    "listbox",
+    "overlay",
+    "selectpanel"
+  ],
+  "module": true,
+  "progressive": [
+    "anchor positioning",
+    "scrollbar-color"
+  ],
+  "ripple": false,
+  "labExempt": {
+    "DS.selectpanel.create": "the controller; the panel's motion is DS.selectpanel.open and close",
+    "DS.selectpanel.summarize": "text only, no motion"
+  }
+}

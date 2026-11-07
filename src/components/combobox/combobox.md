@@ -146,6 +146,73 @@ block their keys: the page sets `disabled` on each chip as well. A disabled sele
 into the disabled ink. An option both chosen and blocked keeps its tint and weight in the disabled ink. Without a `.ds-combo__toggle` the field keeps only its
 own end padding.
 
+**Behaviour by the system** (`data-ds-combobox`, `DS.combobox`). The same markup; with the attribute the system does what
+the page's script did above, on the list engine of the [Listbox](#listbox). Without it a combobox stays the page's, as
+in 2.x.
+
+```html
+<div class="ds-combo" data-ds-combobox data-ds-combobox-creatable>
+  <input class="ds-input ds-combo__input" id="model" role="combobox" aria-expanded="false" aria-controls="model-list" aria-autocomplete="list">
+  <button class="ds-combo__clear" type="button" aria-label="Clear model" hidden>[icon close 20]</button>
+  <button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all">[icon chevronDown 20]</button>
+  <div class="ds-combo__popup" hidden>
+    <ul class="ds-combo__list" id="model-list" role="listbox">
+      <li class="ds-combo__option" role="option" aria-selected="false" data-value="l14"><span class="ds-combo__name">Laptop 14</span></li>
+    </ul>
+    <p class="ds-combo__status" role="status"></p>
+  </div>
+</div>
+```
+
+```js
+const people = DS.combobox.create(el, {
+  source: (query, { signal }) => fetch(`/api/people?q=${encodeURIComponent(query)}`, { signal }).then((r) => r.json()),
+});
+people.on('change', ({ value, item }) => save(value));
+DS.combobox.open(el);  DS.combobox.close(el);   // DS.overlay on its popup
+```
+
+- **Filter.** Without `items` or a `source` the system works on the markup itself (the value is `data-value`, else the
+  name's text): it sets `hidden` on the options that do not match, so each option keeps its content (a `.ds-progress`,
+  an icon), its id and its place, and groups with no match go with their heading. `items` (as `DS.listbox`) are rendered
+  instead, best first. As the field changes the list keeps what matches `DS.listbox.fuzzy()`: every word of the text, in
+  any order, as a substring or as its letters in order ("lp 16" finds "Laptop 16"), case and accents aside. The matched
+  letters are marked in a `.ds-combo__match` (the label weight and an underline, not colour alone). The chevron shows
+  every option while the field shows the choice; typed text stays a filter.
+- **A search elsewhere** (`source(query, { signal })`, a Promise of items): asked once the typing paused for
+  `--ds-delay-loader` (`debounce` or `data-ds-combobox-debounce` in ms instead) and from `minLength` letters on
+  (`data-ds-combobox-min`, default 1; with 0, opening the list asks for the empty field at once). While it runs the
+  status line shows a spinner and "Loading" and the list `aria-busy="true"`; a newer query aborts the older one through
+  `signal`; the results keep their order and show the matched letters; a failure says "That did not work. Try again.".
+  `ds:search` (`{ query }`, cancelable) comes first. Choosing asks nothing: the field shows the choice, not a query.
+- **Nothing found.** The list part hides and the status line says "No results"; the list stays open. Otherwise the status
+  line counts the results ("3 results").
+- **Creatable** (`data-ds-combobox-creatable`, `creatable`): while no option has the typed name, a last option
+  `.ds-combo__option--create` says "Create “Tower 9”" (the markup's own, or one the system adds at the end of the list).
+  Choosing it sends `ds:create` (`{ text }`, cancelable: the text stays typed), adds the value (with markup, a new option
+  before the create one) and chooses it.
+- **Clearable**: a `.ds-combo__clear` shows while the field has text or a value; it empties both and gives the focus
+  back to the field.
+- **Several values** (`.ds-combo--multi`): each chosen value becomes an input chip before the field (`Remove` and its
+  name for a screen reader); choosing leaves the list open and empties the field; a press on a chip, or Backspace in the
+  empty field, removes one. "Added Laptop 14" and "Removed Laptop 14" are announced.
+- **Select-only** (`.ds-combo--select`): Enter, Space, ArrowDown and ArrowUp open the list on the chosen option, Home
+  and End open it on the first or the last one, letters jump to a name, Enter or Space chooses, Tab chooses the active
+  option and moves on (the WAI select-only pattern); the button shows the value and its meta. No status line.
+- **Long lists**: `items` and the results of a source are windowed from `DS.listbox.VIRTUAL_FROM` on (`virtual`,
+  `data-ds-combobox-virtual`). The markup's options are the page's and stay as they are: pass a long list as `items`.
+- **Value.** One value, or a list with several. A single field that loses the focus shows the chosen name again; an
+  emptied field chooses nothing. `data-ds-value` (a value, or a JSON list) or `value` sets the first one, else the options
+  marked `aria-selected="true"`; `data-ds-combobox-name` (`name`) writes hidden inputs for a form.
+
+The controller: `get()`, `set(value)` (no event), `on('change' | 'create' | 'search', fn)`, `setItems(items)`, `open()`,
+`close()`, `list` (the engine, `DS.listbox`'s controller) and `destroy()`. `ds:change` (`{ value, item }`) bubbles from
+the `.ds-combo` when the user chose. `item` is the chosen option's item (with markup: `{ value, label, description, meta, group, disabled }`).
+`DS.combobox.create(el, options)` makes it, `DS.combobox.open(el)` and
+`DS.combobox.close(el)` open and close the list through `DS.overlay`. Keys: as above (the WAI combobox), plus Alt+ArrowDown
+opens without moving, Alt+ArrowUp closes, PageDown and PageUp move ten options, Tab closes without choosing (select-only:
+chooses the active option first).
+
 **Options** ([options.md](options.md)): classes on the `.ds-combo` or any ancestor; the nearest wins.
 
 | Option | Classes | Where it applies | Effect on the combobox |
@@ -186,3 +253,11 @@ several values too: `--ds-input-border`, `--ds-input-bg`, `--ds-input-radius`, `
 and `data-ds-ripple` (off for a part: [Ripple](#ripple)) are described above.
 
 **Motion:** the "Combobox list" row of [Overlays](motion.md#overlays) in motion.md.
+
+<!-- changelog -->
+- Combobox: `data-ds-combobox` and `DS.combobox` (`create`, `open`, `close`): the behaviour by the system on the same
+  markup, through the list engine of `DS.listbox`: fuzzy filter with scoring and `.ds-combo__match`, an async `source`
+  with debounce, abort and a loading state, creatable (`ds:create`), clearable, several values with chips, nothing
+  found, windowed long lists, select-only keys. A page's own script keeps working without the attribute.
+- Combobox: `--ds-scroll-edge-start` and `--ds-scroll-edge-end` are registered once in `tokens.css` (no longer in
+  `scroller.css`), so the list's cut edges fade when `combobox.css` is linked without `scroller.css`.

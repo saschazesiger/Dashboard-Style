@@ -269,3 +269,8 @@ Themes never set them.
 The share of a chart mark, `--ds-share` (`<number>`, 0 to 1, inheriting, top-level `@property` in `tokens.css`), is set
 by the page on a `.ds-meter` or a `.ds-columns__col`; its fill is clipped at it, and it glides on `--ds-ease-value`
 over `--ds-dur-glide` (`ds-fill-share` runs it from 0 on the first render). Themes never set it.
+
+The ends of a cut edge's fade, `--ds-scroll-edge-start` and `--ds-scroll-edge-end` (`<number>`, 0 to 1, not inheriting,
+top-level `@property` in `tokens.css`, so every set of single files has them), are set by the scroller, the combobox
+list, the listbox and the choice list from their scroll position; the mask of each is the number times
+`--ds-scroll-fade`. Themes never set them.

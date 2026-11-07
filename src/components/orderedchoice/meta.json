@@ -1,0 +1,39 @@
+{
+  "name": "orderedchoice",
+  "group": "forms",
+  "order": 640,
+  "docsOrder": 235,
+  "need": "Choose several options and put them in order: table columns, fallbacks, priorities; by drag and by keys",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-orderedchoice",
+    "ds-orderedchoice__item",
+    "ds-orderedchoice__rank",
+    "ds-orderedchoice__status"
+  ],
+  "attributes": [],
+  "requires": [
+    "drag",
+    "form"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-orderedchoice-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "the corners of the ordered choice's box, times `--ds-shape`"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "dnd",
+    "orderedchoice"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.orderedchoice.arrange": "order only, no motion",
+    "DS.orderedchoice.ranks": "numbers only, no motion"
+  }
+}

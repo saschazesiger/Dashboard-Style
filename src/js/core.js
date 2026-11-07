@@ -186,6 +186,19 @@ const DEFAULT_STRINGS = Object.freeze({
   charactersOver: '{count} characters too many',
   charactersOverOne: '1 character too many',
   errorSummaryField: '{label}: {message}',
+  createOption: 'Create “{text}”',
+  resultsOne: '1 result',
+  resultsOther: '{count} results',
+  typeToSearch: 'Type to search',
+  added: 'Added {label}',
+  removed: 'Removed {label}',
+  selectedCount: '{count} selected',
+  tagDuplicate: '{label} is in the list already',
+  tagInvalid: '{label} is not valid',
+  tagMax: 'Up to {max} items',
+  allSelected: 'All selected',
+  orderPosition: 'Position {position}',
+  transferMoved: 'Moved {count} to {list}',
 });
 
 /**

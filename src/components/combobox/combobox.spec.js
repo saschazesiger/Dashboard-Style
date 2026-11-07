@@ -651,3 +651,269 @@ test('forced colours: the chosen option, the active one, a blocked one, the list
   // One box: the field inside draws none of its own, which a transparent border would be here.
   expect(read.inner).toBe('none');
 });
+
+/* ── Behaviour by the system: data-ds-combobox, DS.combobox (3.0) ───────── */
+
+const sys = (page, name) => page.locator(`[data-demo="sys-${name}"]`);
+const sysInput = (page, name) => sys(page, name).locator('.ds-combo__input');
+const shownNames = (page, name) => sys(page, name).locator('.ds-combo__option:not([hidden]) .ds-combo__name').allTextContents();
+
+test('by the system: a fuzzy filter, best first, the letters marked, the count in the status line', async ({ page }) => {
+  await open(page);
+  const input = sysInput(page, 'fuzzy');
+  await input.click();
+  await expect(input).toHaveAttribute('aria-expanded', 'true');
+  await page.keyboard.type('lp 16');
+  await expect(sys(page, 'fuzzy').locator('.ds-combo__status')).toHaveText('1 result');
+  expect(await shownNames(page, 'fuzzy')).toEqual(['Laptop 16', 'Create “lp 16”']);
+  await expect(sys(page, 'fuzzy').locator('.ds-combo__option:not([hidden])').first().locator('.ds-combo__match')).toHaveText(['L', 'p', '16']);
+  const mark = await sys(page, 'fuzzy').locator('.ds-combo__match').first().evaluate((el) => getComputedStyle(el).textDecorationLine);
+  expect(mark).toBe('underline');
+  // ArrowDown walks, Enter chooses, the list closes, the field shows the name, ds:change tells the page.
+  await page.keyboard.press('ArrowDown');
+  const active = await input.getAttribute('aria-activedescendant');
+  expect(await page.locator(`[id="${active}"] .ds-combo__name`).textContent()).toBe('Laptop 16');
+  // The page's options stay the page's: filtered in place, their ids and meta lines kept.
+  const inputId = await input.getAttribute('id');
+  expect(active).toBe(`${inputId}-2`);
+  await expect(page.locator(`[id="${active}"] .ds-combo__meta`)).toHaveText('16 inch · 2024');
+  await page.keyboard.press('Enter');
+  await expect(input).toHaveAttribute('aria-expanded', 'false');
+  await expect(input).toHaveValue('Laptop 16');
+  await expect(input).not.toHaveAttribute('aria-activedescendant');
+  await expect(page.locator('[data-demo-out="sys-fuzzy"]')).toHaveText('Chosen: Laptop 16');
+  await expect(input).toBeFocused();
+  // "Show all": after a choice the chevron shows every option, the chosen one active.
+  await sys(page, 'fuzzy').locator('.ds-combo__toggle').click();
+  await expect(input).toHaveAttribute('aria-expanded', 'true');
+  expect(await shownNames(page, 'fuzzy')).toEqual(['Laptop 13', 'Laptop 14', 'Laptop 16', 'Workstation 15', 'Mini desktop', 'Convertible 13']);
+  expect(await page.locator(`[id="${await input.getAttribute('aria-activedescendant')}"] .ds-combo__name`).textContent()).toBe('Laptop 16');
+  // Typed text stays a filter.
+  await page.keyboard.press('Escape');
+  await input.fill('mini');
+  await page.keyboard.press('Escape');
+  await expect(input).toHaveAttribute('aria-expanded', 'false');
+  await sys(page, 'fuzzy').locator('.ds-combo__toggle').click();
+  expect(await shownNames(page, 'fuzzy')).toEqual(['Mini desktop', 'Create “mini”']);
+});
+
+test('by the system: nothing found keeps the list open and says so; the clear button empties field and value', async ({ page }) => {
+  await open(page);
+  const input = sysInput(page, 'fuzzy');
+  const clear = sys(page, 'fuzzy').locator('.ds-combo__clear');
+  await expect(clear).toBeHidden();
+  await input.click();
+  await page.keyboard.type('zzzz');
+  await expect(input).toHaveAttribute('aria-expanded', 'true');
+  await expect(sys(page, 'fuzzy').locator('.ds-combo__status')).toHaveText('No results');
+  // Creatable: the one option left creates the text.
+  expect(await shownNames(page, 'fuzzy')).toEqual(['Create “zzzz”']);
+  await expect(clear).toBeVisible();
+  await clear.click();
+  await expect(input).toHaveValue('');
+  await expect(input).toBeFocused();
+  await expect(clear).toBeHidden();
+});
+
+test('by the system: creating a value sends a cancelable ds:create, then chooses it', async ({ page }) => {
+  await open(page);
+  const input = sysInput(page, 'fuzzy');
+  await page.evaluate(() => {
+    window.created = [];
+    document.querySelector('[data-demo="sys-fuzzy"]').addEventListener('ds:create', (event) => {
+      window.created.push(event.detail.text);
+      if (event.detail.text === 'No') event.preventDefault();
+    });
+  });
+  await input.click();
+  await page.keyboard.type('No');
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('Enter');
+  await expect(input).toHaveValue('No');
+  expect(await page.evaluate(() => DS.get(document.querySelector('[data-demo="sys-fuzzy"]'), 'combobox').get())).toBeNull();
+  await input.fill('Tower 9');
+  await page.locator('[data-demo="sys-fuzzy"] .ds-combo__option--create').click();
+  await expect(input).toHaveValue('Tower 9');
+  expect(await page.evaluate(() => [window.created, DS.get(document.querySelector('[data-demo="sys-fuzzy"]'), 'combobox').get()])).toEqual([['No', 'Tower 9'], 'Tower 9']);
+});
+
+test('by the system: a source asked after the pause, with a spinner and aria-busy, a newer query aborting the older one', async ({ page }) => {
+  await open(page);
+  const input = sysInput(page, 'remote');
+  await page.evaluate(() => {
+    window.searches = [];
+    const remote = document.querySelector('[data-demo="sys-remote"]');
+    // A pause no loaded engine's keystrokes outlast, so the word is one search (the attribute is read per change).
+    remote.setAttribute('data-ds-combobox-debounce', '1000');
+    remote.addEventListener('ds:search', (event) => window.searches.push(event.detail.query));
+  });
+  await input.click();
+  await expect(sys(page, 'remote').locator('.ds-combo__status')).toHaveText('Type to search');
+  await page.keyboard.type('grace');
+  await expect(sys(page, 'remote').locator('.ds-combo__list')).toHaveAttribute('aria-busy', 'true');
+  await expect(sys(page, 'remote').locator('.ds-combo__status .ds-spinner')).toHaveCount(1);
+  await expect(sys(page, 'remote').locator('.ds-combo__status')).toHaveText('1 result', { timeout: 5000 });
+  await expect(sys(page, 'remote').locator('.ds-combo__list')).not.toHaveAttribute('aria-busy', 'true');
+  expect(await shownNames(page, 'remote')).toEqual(['Grace Hopper']);
+  await expect(sys(page, 'remote').locator('.ds-combo__match')).toHaveText(['Grace']);
+  // One search for the typed word: the letters in between waited.
+  expect(await page.evaluate(() => window.searches)).toEqual(['grace']);
+  // Choosing asks nothing more: the field shows the choice, not a query.
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await expect(input).toHaveValue('Grace Hopper');
+  await expect(input).toHaveAttribute('aria-expanded', 'false');
+  await page.waitForTimeout(1300);
+  expect(await page.evaluate(() => window.searches)).toEqual(['grace']);
+  await expect(sys(page, 'remote').locator('.ds-combo__list')).not.toHaveAttribute('aria-busy', 'true');
+  // Opening again shows what the list holds, without asking.
+  await sys(page, 'remote').locator('.ds-combo__toggle').click();
+  await expect(input).toHaveAttribute('aria-expanded', 'true');
+  expect(await shownNames(page, 'remote')).toEqual(['Grace Hopper']);
+  expect(await page.evaluate(() => window.searches)).toEqual(['grace']);
+  await page.keyboard.press('End');
+  await page.keyboard.type('zz');
+  await expect(sys(page, 'remote').locator('.ds-combo__status')).toHaveText('No results', { timeout: 5000 });
+  await expect(sys(page, 'remote').locator('.ds-combo__list')).toBeHidden();
+});
+
+test('by the system: minLength 0 asks for the empty field as the list opens, once', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(async () => {
+    const host = document.createElement('div');
+    host.innerHTML = '<div class="ds-combo"><input class="ds-input ds-combo__input" role="combobox" aria-expanded="false" aria-label="Probe">'
+      + '<div class="ds-combo__popup" hidden><ul class="ds-combo__list" role="listbox" aria-label="Probe"></ul></div></div>';
+    document.querySelector('#fx-component').append(host);
+    const asked = [];
+    const combo = DS.combobox.create(host.firstElementChild, {
+      minLength: 0,
+      source: (query) => {
+        asked.push(query);
+        return Promise.resolve(['Alpha', 'Beta']);
+      },
+    });
+    combo.open();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const first = [asked.slice(), host.querySelector('.ds-combo__status').textContent, [...host.querySelectorAll('.ds-combo__option .ds-combo__name')].map((el) => el.textContent)];
+    combo.close();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    combo.open();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    return { first, again: asked.slice() };
+  });
+  expect(result.first).toEqual([[''], '2 results', ['Alpha', 'Beta']]);
+  expect(result.again).toEqual(['']);
+});
+
+test('by the system: select-only keeps its rich options and takes the WAI select keys', async ({ page }) => {
+  await open(page);
+  const combo = sys(page, 'select');
+  const button = combo.locator('.ds-combo__input');
+  const value = () => page.evaluate(() => DS.get(document.querySelector('[data-demo="sys-select"]'), 'combobox').get());
+  // The options keep their content and ids: a progress bar on each, the page's ids.
+  await expect(combo.locator('.ds-combo__option .ds-progress')).toHaveCount(4);
+  const buttonId = await button.getAttribute('id');
+  await expect(combo.locator('.ds-combo__option').first()).toHaveAttribute('id', `${buttonId}-0`);
+  expect(await value()).toBe('Standard');
+  await expect(combo.locator('.ds-combo__status')).toHaveCount(0);
+  await button.focus();
+  // Space opens on the choice.
+  await page.keyboard.press('Space');
+  await expect(button).toHaveAttribute('aria-expanded', 'true');
+  await expect(button).toHaveAttribute('aria-activedescendant', `${buttonId}-1`);
+  // ArrowDown passes the blocked Premium; Enter chooses and closes.
+  await page.keyboard.press('ArrowDown');
+  await expect(button).toHaveAttribute('aria-activedescendant', `${buttonId}-3`);
+  await page.keyboard.press('Enter');
+  await expect(button).toHaveAttribute('aria-expanded', 'false');
+  expect(await value()).toBe('Team');
+  await expect(combo.locator('.ds-combo__value')).toHaveText('Team');
+  await expect(combo.locator('.ds-combo__input .ds-combo__meta')).toHaveText('25 devices');
+  // Home and End open the list on the ends.
+  await page.keyboard.press('Home');
+  await expect(button).toHaveAttribute('aria-expanded', 'true');
+  await expect(button).toHaveAttribute('aria-activedescendant', `${buttonId}-0`);
+  await page.keyboard.press('Escape');
+  await expect(button).toHaveAttribute('aria-expanded', 'false');
+  await page.keyboard.press('End');
+  await expect(button).toHaveAttribute('aria-expanded', 'true');
+  await expect(button).toHaveAttribute('aria-activedescendant', `${buttonId}-3`);
+  // A letter jumps to the name; Tab chooses it and moves on.
+  await page.keyboard.press('b');
+  await expect(button).toHaveAttribute('aria-activedescendant', `${buttonId}-0`);
+  await page.keyboard.press('Tab');
+  await expect(button).toHaveAttribute('aria-expanded', 'false');
+  await expect(button).not.toBeFocused();
+  expect(await value()).toBe('Basic');
+  await expect(combo.locator('.ds-combo__value')).toHaveText('Basic');
+  await expect(combo.locator('[aria-selected="true"] .ds-combo__name')).toHaveText(['Basic']);
+});
+
+test('by the system: several values as chips, the list open, Backspace and a chip remove one, announced', async ({ page }) => {
+  await open(page);
+  const combo = sys(page, 'multi');
+  const input = sysInput(page, 'multi');
+  await expect(combo.locator('.ds-combo__list')).toHaveAttribute('aria-multiselectable', 'true');
+  await input.click();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await expect(input).toHaveAttribute('aria-expanded', 'true');
+  await expect(combo.locator('.ds-chip')).toHaveText(['Remove Laptop 13', 'Remove Laptop 14']);
+  await expect(combo.locator('[aria-selected="true"] .ds-combo__name')).toHaveText(['Laptop 13', 'Laptop 14']);
+  await page.keyboard.press('Backspace');
+  await expect(combo.locator('.ds-chip')).toHaveText(['Remove Laptop 13']);
+  await expect(page.locator('.ds-toasts [aria-live], .ds-sr[aria-live]').filter({ hasText: 'Removed Laptop 14' })).toHaveCount(1);
+  await combo.locator('.ds-chip').click();
+  await expect(combo.locator('.ds-chip')).toHaveCount(0);
+  await expect(input).toBeFocused();
+  // Typing narrows, choosing empties the field again.
+  await page.keyboard.type('mini');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await expect(input).toHaveValue('');
+  expect(await page.evaluate(() => DS.get(document.querySelector('[data-demo="sys-multi"]'), 'combobox').get())).toEqual(['Mini desktop']);
+});
+
+test('by the system: 5,000 options windowed; the active one stays rendered and named', async ({ page }) => {
+  await open(page);
+  const combo = sys(page, 'many');
+  const input = sysInput(page, 'many');
+  await input.click();
+  await expect(combo.locator('.ds-combo__status')).toHaveText('5,000 results');
+  const rendered = await combo.locator('.ds-combo__option').count();
+  expect(rendered).toBeLessThan(80);
+  await expect(combo.locator('.ds-combo__option').first()).toHaveAttribute('aria-setsize', '5000');
+  await page.keyboard.press('ArrowUp');
+  const active = await input.getAttribute('aria-activedescendant');
+  await expect(page.locator(`[id="${active}"]`)).toHaveAttribute('aria-posinset', '5000');
+  await expect(page.locator(`[id="${active}"]`)).toBeInViewport();
+  await page.keyboard.press('Enter');
+  await expect(input).toHaveValue('Monitor 5999');
+});
+
+test('by the system: Tab closes without choosing, Alt+ArrowDown opens without moving, Escape closes', async ({ page }) => {
+  await open(page);
+  const input = sysInput(page, 'fuzzy');
+  await input.click();
+  await page.keyboard.press('Escape');
+  await expect(input).toHaveAttribute('aria-expanded', 'false');
+  await page.keyboard.press('Alt+ArrowDown');
+  await expect(input).toHaveAttribute('aria-expanded', 'true');
+  await expect(input).not.toHaveAttribute('aria-activedescendant');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Tab');
+  await expect(input).toHaveAttribute('aria-expanded', 'false');
+  await expect(input).toHaveValue('');
+});
+
+test('single files: combobox.css without scroller.css still has the registered edge numbers of its fade', async ({ page, baseURL }) => {
+  // tokens.css registers --ds-scroll-edge-start and -end (once, for every set of single files): a registered
+  // <number> computes to its canonical form, an unregistered one would keep the text as written.
+  const sheets = ['core/tokens.css', 'components/form.css', 'components/combobox.css'].map((file) => `<link rel="stylesheet" href="${baseURL}/dist/css/${file}">`).join('');
+  await page.setContent(`<!doctype html>${sheets}<div class="ds-theme"><div class="ds-combo__list" style="--ds-scroll-edge-start: 0.50; --ds-scroll-edge-end: 1.0"></div></div>`, { waitUntil: 'load' });
+  const values = await page.$eval('.ds-combo__list', (el) => [getComputedStyle(el).getPropertyValue('--ds-scroll-edge-start').trim(), getComputedStyle(el).getPropertyValue('--ds-scroll-edge-end').trim()]);
+  expect(values).toEqual(['0.5', '1']);
+  expect(await page.$$eval('link', (links) => links.map((link) => link.href).some((href) => href.includes('scroller')))).toBe(false);
+});
