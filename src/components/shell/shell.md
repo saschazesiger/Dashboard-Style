@@ -386,9 +386,10 @@ menu.addEventListener('click', () => {
 | `data-ds-scheme-switch="<key>"` on a group | `DS.shell.schemeSwitch(el, { key, target, link, remember })` | light, dark and auto, remembered, in step everywhere |
 | `data-ds-breadcrumbs` on `.ds-breadcrumbs` | `DS.shell.breadcrumbs(nav)` | the crumbs that do not fit fold into a menu |
 
-Two helpers without a DOM: `DS.shell.setScheme(value, { target, link, key, remember })` applies a scheme the way the
-switch does (and every switch follows), `DS.shell.matchText(text, query)` is the drawer filter's match (every word, any
-case, without accents) for a page's own search, and `DS.shell.fitCrumbs(widths, room, more)` the breadcrumbs' fold.
+Three helpers: `DS.shell.setScheme(value, { target, link, key, remember })` applies a scheme the way the switch does
+(and every switch follows); `DS.shell.matchText(text, query)`, the drawer filter's match (every word, any case, without
+accents) for a page's own search, and `DS.shell.fitCrumbs(widths, room, more)`, the breadcrumbs' fold, are pure
+functions.
 
 - **Frame** (`data-ds-shell`): the rail is remembered under the key through [`DS.store`](core.md) (namespace
   `shell`); `data-ds-shell-rail="off"` keeps the drawer full (the button then shows only with the modal drawer) and
@@ -397,11 +398,15 @@ case, without accents) for a page's own search, and `DS.shell.fitCrumbs(widths, 
   `.ds-app`. The rail clears the drawer's filter (it has no room for the field). A skip link focuses its target (a
   target that cannot take focus gets `tabindex="-1"`); one that leads into the drawer opens the modal drawer, one that
   leads into a phone search sheet opens it.
-- **Push or overlay.** Above 900px the drawer is docked and pushes the panel (full or as the rail); at and below it
-  the drawer overlays the page as a modal sheet over the scrim. `DS.overlay` decides by `DS.overlay.DRAWER_QUERY`.
+- **Push or overlay.** The width decides, not the page: above 900px the drawer is docked and pushes the panel (full
+  or as the rail); at and below it the drawer overlays the page as a modal sheet over the scrim. `DS.overlay` decides
+  by `DS.overlay.DRAWER_QUERY`. There is no modal drawer at desktop widths yet; a console that wants all the width for
+  its content uses the rail.
 - **Drawer** (`data-ds-drawer`): see [Filter, remembered groups and badges](#filter-remembered-groups-and-badges).
 - Every part this module adds (the "more" crumb and its menu, the drawer's "No results") carries `data-ds-keep`, so
-  a re-render with `DS.dom.morphHtml` leaves it. Its strings come from `DS.core.config({ strings })`:
+  a re-render with `DS.dom.morphHtml` leaves it. The marks it writes (`data-ds-filtered`, `data-ds-collapsed`, the
+  `open` of a group the filter opened) are owned state, so a re-render keeps them, and a re-render that changes the
+  drawer's list or the trail (new items, other labels) filters or folds again. Its strings come from `DS.core.config({ strings })`:
   `filterMatch`, `filterMatches`, `noResults`, `breadcrumbsMore` ([install.md](install.md), "Language and locale").
 
 ### Filter, remembered groups and badges
@@ -461,8 +466,8 @@ case, without accents) for a page's own search, and `DS.shell.fitCrumbs(widths, 
   </div>
   <div class="ds-account">
     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
-    <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-head" hidden>
-      <div class="ds-account__head" id="account-head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name">Ada Lovelace</div><div class="ds-account__email">ada@example.org</div></div>
+    <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+      <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
       <div class="ds-menu__divider" role="separator"></div>
       <div role="group" aria-labelledby="theme-heading" data-ds-scheme-switch>
         <p class="ds-menu__heading" id="theme-heading">Theme</p>
@@ -505,12 +510,16 @@ case, without accents) for a page's own search, and `DS.shell.fitCrumbs(widths, 
   changes. Without a centre, the button links to a notifications page.
 - **Account menu.** `.ds-account__trigger` is a quiet icon button around the `.ds-account__avatar` disc (its state
   layer, ring, ripple and target; the disc keeps its size); it opens `.ds-account__menu` (a [Menu](#menu), at most
-  `--ds-account-menu-width`, 280px), named by `.ds-account__head` (the avatar `.ds-lg`, name and email; `aria-hidden`,
-  since `aria-labelledby` reads it). Then the theme switch, the page's own links (profile, settings) and sign out, a
+  `--ds-account-menu-width`, 280px), headed by `.ds-account__head` (the avatar `.ds-lg`, name and email; `aria-hidden`,
+  since the menu's `aria-labelledby` names the ids of `.ds-account__name` and `.ds-account__email`: the menu is
+  "Ada Lovelace ada@example.org", without the avatar's initial). Then the theme switch, the page's own links (profile, settings) and sign out, a
   `menuitem` whose click the page handles. The trigger never shrinks; on phones a brand of only a name gives way
   with an ellipsis instead.
 - **Theme switch** (`data-ds-scheme-switch="<key>"`): items with `data-ds-scheme-value="light | dark | auto"` and
-  `aria-checked` (`menuitemradio` in a menu, `radio` in a `radiogroup` elsewhere). A choice sets `data-ds-scheme` on
+  `aria-checked` (`menuitemradio` in a menu, whose keys are the menu's; `radio` in a `radiogroup` elsewhere, such as a
+`.ds-segmented`: the switch makes the checked radio the one tab stop, and the arrow keys move to the next or previous
+radio and choose it, round at the ends, Space chooses, as in the
+[APG radio group](https://www.w3.org/WAI/ARIA/apg/patterns/radio/)). A choice sets `data-ds-scheme` on
   the `.ds-theme` around the switch (`auto` removes it: the system decides) or on the one
   `data-ds-scheme-switch-target` names, which needs a theme that holds both schemes (a preset, `light-dark()`); with
   `themes/dark.css` name its `<link>` in `data-ds-scheme-switch-link`, whose `media` follows (`all`, `not all`,

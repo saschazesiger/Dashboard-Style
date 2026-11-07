@@ -19,6 +19,8 @@ the ones the page sets for it. The project check reads this table.
 | `data-toast-reserve` (with `--ds-toast-reserve`) | both: `DS.overlay.toast()` by default, the page only with `reserve: false` | `.ds-view`, `.ds-sheet__body`, `.ds-dialog` | the layer keeps room at its end for snackbars that stay ([Snackbar](#snackbar)) |
 | `data-ds-savebar` (with `--ds-savebar-height`) | the system (`DS.overlay.savebar()`) | `.ds-view` | the save bar shows: scroll padding and the content's end keep its room ([Save bar](#save-bar)) |
 | `data-ds-savebar-rest` | the system (`DS.overlay.savebar()`) | `.ds-view` | the bar hid at the end of the page: its room stays until the page scrolls away from the end ([Save bar](#save-bar)) |
+| `data-ds-filtered` | the system (`DS.shell`, `data-ds-drawer`) | an item, row, group or the "No results" note of a `.ds-drawer` | the drawer's filter hides it ([App frame](#filter-remembered-groups-and-badges)) |
+| `data-ds-collapsed` | the system (`DS.shell`, `data-ds-breadcrumbs`) | a crumb of a `.ds-breadcrumbs` or its "more" crumb | folded into the menu, or the "more" crumb hidden while every crumb fits |
 | `data-ds-busy` | the page | `.ds-dialog`, `.ds-sheet`, `.ds-drawer` | keeps the overlay open while its action runs: the user's close attempts do nothing, `DS.overlay.close()` still closes ([Dialog](#dialog), "While its action runs") |
 | `data-ds-open` | the page | a button | `DS.init()`: a click, or a menu's ArrowDown and ArrowUp, opens the overlay it names (a selector or an id), with the button as its opener ([Dialog](#dialog)) |
 | `data-ds-close` | the page | a control or a backdrop | without a value closes the overlay around it; with a selector or an id closes that overlay, leaving the one around it open ([Dialog](#dialog)) |
@@ -34,7 +36,7 @@ the ones the page sets for it. The project check reads this table.
 | `data-icon-size` | the page | an element with `data-icon` | the glyph size in px for `DS.icons.fill()` (default 20) |
 | `data-icon-place` | the page | an element with `data-icon` | `start` or `end`: `DS.icons.fill()` puts the glyph first or last and keeps the content (without it the glyph replaces the content; [icons.md](icons.md)) |
 | `data-ds-shown` | the page | a `.ds-presence--keep` element, a `.ds-hover-actions` host or its actions | shown (`.ds-presence--keep`: without it hidden, keeping its box; `.ds-hover-actions`: the actions show without hover or focus, [Utilities](#actions-on-demand)) |
-| `data-drawer-collapsed` | the page | `.ds-app` | the docked drawer is a rail (above 900px; [App frame](#the-rail)) |
+| `data-drawer-collapsed` | both: the page, or `DS.shell` with `data-ds-shell` | `.ds-app` | the docked drawer is a rail (above 900px; [App frame](#the-rail)) |
 | `data-label` | the page | `.ds-segmented__option`, `.ds-tabs__tab` | the option's text again: keeps the width of the selected weight |
 | `data-label` | the page | a cell of `.ds-table--stack` / `--stack-wide` | the label shown above the cell's content while the rows stack ([Stacked rows](#stacked-rows)) |
 | `data-status` | the page | `.ds-steps__step` | `done`, `error` or `optional`: the state of a step ([Steps](#steps)) |

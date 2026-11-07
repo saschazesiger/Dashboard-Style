@@ -52,9 +52,11 @@
  * Down by a column, Home and End); the menu does the rest.
  *
  * Scheme switch (data-ds-scheme-switch="<key>"): items with
- * data-ds-scheme-value="light | dark | auto" (menuitemradio or radio, with
- * aria-checked) set data-ds-scheme on the .ds-theme around it (auto removes
- * it; data-ds-scheme-switch-target names another) and the media of a dark
+ * data-ds-scheme-value="light | dark | auto" (menuitemradio in a menu, whose
+ * keys are the menu's, or radio in a radiogroup: one tab stop, the arrow
+ * keys move and choose, Space chooses; with aria-checked) set
+ * data-ds-scheme on the .ds-theme around it (auto removes it;
+ * data-ds-scheme-switch-target names another) and the media of a dark
  * theme link (data-ds-scheme-switch-link), remembered under the key
  * (default "scheme"; data-ds-scheme-switch-remember="off": not stored), in
  * step across switches, tabs and the page pinning the theme itself.
@@ -65,7 +67,10 @@
  * first; then the first; then the parent; the current page never.
  *
  * Every timing comes from the tokens (motionDuration()); the parts it adds
- * are data-ds-keep, so a re-render with DS.dom.morphHtml leaves them.
+ * are data-ds-keep, so a re-render with DS.dom.morphHtml leaves them, and
+ * the marks it writes (data-ds-filtered, data-ds-collapsed, a group the
+ * filter opened) are owned state (DS.dom.own), so a re-render keeps them; a
+ * re-render that changes the list or the trail filters or folds again.
  *
  * ES2022. Progressive: ResizeObserver (the breadcrumbs measure again when
  * their nav changes size): without it they measure on load and on a window
@@ -73,7 +78,7 @@
  */
 import { define, emit, get, runtime, t } from '../../js/core.js';
 import { motionDuration } from '../../js/motion.js';
-import { scrollEdges, watchScrolled } from '../../js/dom.js';
+import { disown, own, scrollEdges, watchScrolled } from '../../js/dom.js';
 import { iconElement, moreHorizontal } from '../../js/icons.js';
 import { DRAWER_QUERY, close as closeOverlay, lockScroll, open as openOverlay, unlockScroll } from '../../js/overlay.js';
 import { create as indicator } from '../../js/indicator.js';
@@ -97,6 +102,30 @@ const SCHEMES = new Set(['light', 'dark', 'auto']);
  * moduleAttributes()), and a page's own kept node needs none of this.
  */
 const KEEP = ['data', 'ds', 'keep'].join('-');
+
+/**
+ * Marks `node` with the attribute `name` or clears it. A mark is owned
+ * state while it is set (DS.dom.own), so a re-render with DS.dom.morphHtml
+ * keeps it; `claims` holds the marked nodes for the release.
+ */
+function marker(name) {
+  const claims = new Set();
+  const set = (node, on) => {
+    node.toggleAttribute(name, on);
+    if (on && !claims.has(node)) {
+      own(node, 'attrs', name);
+      claims.add(node);
+    } else if (!on && claims.has(node)) {
+      disown(node, 'attrs', name);
+      claims.delete(node);
+    }
+  };
+  /** Clears every mark, or only those of nodes that left `root`. */
+  set.release = (root) => {
+    for (const node of [...claims]) if (!root || !root.contains(node)) set(node, false);
+  };
+  return set;
+}
 
 /** Ids of the parts this module adds, numbered per page. */
 const shared = runtime.state('shell', () => ({ seq: 0 }));
@@ -388,7 +417,7 @@ function navDrawer(nav, options, signal) {
     return empty;
   };
 
-  const mark = (node, hide) => node.toggleAttribute('data-ds-filtered', hide);
+  const mark = marker('data-ds-filtered');
 
   /** Filters the children of `container`; returns how many items show. `all`: a heading above matched. */
   const filterIn = (container, all) => {
@@ -396,12 +425,14 @@ function navDrawer(nav, options, signal) {
     for (const child of container.children) {
       if (child.matches('.ds-drawer__group')) {
         const heading = child.querySelector(':scope > .ds-drawer__heading');
-        const own = all || (Boolean(query) && Boolean(heading) && matchText(labelOf(heading), query));
-        const inside = filterIn(child, own);
-        const show = !query || inside > 0 || own;
+        const headed = all || (Boolean(query) && Boolean(heading) && matchText(labelOf(heading), query));
+        const inside = filterIn(child, headed);
+        const show = !query || inside > 0 || headed;
         mark(child, !show);
         if (query && show && child.matches('details') && !/** @type {HTMLDetailsElement} */ (child).open) {
           /** @type {HTMLDetailsElement} */ (child).open = true;
+          // Open for the query: a re-render keeps it so until the field is cleared.
+          own(child, 'attrs', 'open');
           opened.add(child);
         }
         shown += show ? inside : 0;
@@ -415,18 +446,27 @@ function navDrawer(nav, options, signal) {
     return shown;
   };
 
-  const filter = (value) => {
-    const next = String(value ?? '');
-    query = next.trim() ? next : '';
+  /** Marks the items for the query as it stands: the filter, or a re-render of the list during one. */
+  const apply = () => {
     count = filterIn(list, false);
+    mark.release(list);
     if (!query) {
-      for (const group of opened) /** @type {HTMLDetailsElement} */ (group).open = false;
+      for (const group of opened) {
+        disown(group, 'attrs', 'open');
+        /** @type {HTMLDetailsElement} */ (group).open = false;
+      }
       opened.clear();
     }
     if (query && !count) {
       const note = emptyNote();
       mark(note, false);
     } else if (empty) mark(empty, true);
+  };
+
+  const filter = (value) => {
+    const next = String(value ?? '');
+    query = next.trim() ? next : '';
+    apply();
     if (field && field.value !== next) field.value = next;
     emit(nav, 'filter', { query, count });
     // Spoken once the typing pauses, not at every key.
@@ -438,6 +478,16 @@ function navDrawer(nav, options, signal) {
   };
 
   field?.addEventListener('input', () => filter(field.value), on);
+
+  // The page re-rendered the list during a filter (new items, other labels): they follow the query.
+  const view = viewOf(nav);
+  const changes = typeof view.MutationObserver === 'function' ? new view.MutationObserver(() => {
+    if (!query) return;
+    const before = count;
+    apply();
+    if (count !== before) emit(nav, 'filter', { query, count });
+  }) : null;
+  changes?.observe(list, { childList: true, subtree: true, characterData: true });
 
   /** The items and group toggles the keys move between: shown, not filtered, not in a closed group. */
   const stops = () => [...nav.querySelectorAll('.ds-drawer__item, .ds-drawer__toggle')]
@@ -497,6 +547,8 @@ function navDrawer(nav, options, signal) {
       if (query) filter('');
       alive = false;
       clearTimeout(timer);
+      changes?.disconnect();
+      mark.release();
       abort.abort();
       events.clear();
       prefs?.destroy();
@@ -757,8 +809,13 @@ function switcher(el, options, signal) {
   };
   let value = current();
 
+  /** The radio form (role="radio" items): one tab stop, arrows that move and choose (the APG radio group). */
+  const radios = () => items().filter((item) => item.getAttribute('role') === 'radio' && !item.hidden && !item.matches(':disabled'));
   const check = () => {
     for (const item of items()) item.setAttribute('aria-checked', String(item.getAttribute('data-ds-scheme-value') === value));
+    const set = radios();
+    const stop = set.find((item) => item.getAttribute('aria-checked') === 'true') ?? set[0];
+    for (const item of set) item.setAttribute('tabindex', item === stop ? '0' : '-1');
   };
   const apply = (next, remember) => {
     if (!SCHEMES.has(next)) return;
@@ -777,6 +834,27 @@ function switcher(el, options, signal) {
     const item = /** @type {Element} */ (event.target)?.closest?.('[data-ds-scheme-value]');
     if (!item || !el.contains(item) || item.getAttribute('aria-disabled') === 'true') return;
     apply(item.getAttribute('data-ds-scheme-value') ?? '', true);
+  }, { signal: abort.signal });
+  el.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
+    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
+    const set = radios();
+    const item = set.find((each) => each === event.target);
+    if (!item) return;
+    // A radio that is no button chooses on Space itself (a button's click does it).
+    if (event.key === ' ' && item.localName !== 'button') {
+      event.preventDefault();
+      item.click();
+      return;
+    }
+    const rtl = viewOf(el).getComputedStyle?.(el).direction === 'rtl';
+    const step = { ArrowDown: 1, ArrowUp: -1, ArrowRight: rtl ? -1 : 1, ArrowLeft: rtl ? 1 : -1 }[event.key];
+    if (step === undefined) return;
+    event.preventDefault();
+    const usable = set.filter((each) => each === item || each.getAttribute('aria-disabled') !== 'true');
+    const next = usable[(usable.indexOf(item) + step + usable.length) % usable.length];
+    if (!next || next === item) return;
+    next.focus();
+    apply(next.getAttribute('data-ds-scheme-value') ?? '', true);
   }, { signal: abort.signal });
   // Another switch, setScheme() or another tab chose.
   const off = prefs?.on('change', (detail) => {
@@ -878,7 +956,8 @@ function trail(nav, signal) {
   const more = doc.createElement('li');
   more.className = 'ds-breadcrumbs__more';
   more.setAttribute(KEEP, '');
-  more.setAttribute('data-ds-collapsed', '');
+  const collapse = marker('data-ds-collapsed');
+  collapse(more, true);
   const button = doc.createElement('button');
   button.type = 'button';
   button.className = 'ds-btn ds-btn--quiet ds-btn--icon ds-xs';
@@ -923,8 +1002,9 @@ function trail(nav, signal) {
     if (!nav.isConnected) return;
     const list = crumbs();
     if (more.parentNode !== ol || more.previousElementSibling !== (list[0] ?? null)) list[0]?.after(more);
-    for (const li of list) li.removeAttribute('data-ds-collapsed');
-    more.removeAttribute('data-ds-collapsed');
+    for (const li of list) collapse(li, false);
+    collapse.release(ol);
+    collapse(more, false);
     // Natural widths: the list as wide as its content for one measure.
     ol.style.setProperty('inline-size', 'max-content');
     const widths = list.map((li) => li.getBoundingClientRect().width);
@@ -933,9 +1013,9 @@ function trail(nav, signal) {
     const room = nav.getBoundingClientRect().width;
     const hide = fitCrumbs(widths, room, moreWidth);
     const next = hide.map((index) => list[index]);
-    for (const li of next) li.setAttribute('data-ds-collapsed', '');
+    for (const li of next) collapse(li, true);
     if (!next.length) {
-      more.setAttribute('data-ds-collapsed', '');
+      collapse(more, true);
       if (button.getAttribute('aria-expanded') === 'true') closeMenu(menu);
     }
     const changed = next.length !== folded.length || next.some((li, i) => li !== folded[i]);
@@ -968,9 +1048,9 @@ function trail(nav, signal) {
   const resize = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(schedule) : null;
   resize?.observe(nav);
   if (!resize) view.addEventListener?.('resize', schedule, { signal: abort.signal });
-  // The page changed the trail: fold again.
+  // The page changed the trail (crumbs, their text): fold again.
   const changes = typeof view.MutationObserver === 'function' ? new view.MutationObserver(schedule) : null;
-  changes?.observe(ol, { childList: true });
+  changes?.observe(ol, { childList: true, subtree: true, characterData: true });
   // Text of the system's own changed (another language).
   doc.addEventListener('ds:config', () => { if (folded.length) fill(); }, { signal: abort.signal });
   measure();
@@ -989,7 +1069,7 @@ function trail(nav, signal) {
       resize?.disconnect();
       changes?.disconnect();
       if (pending) view.cancelAnimationFrame?.(pending);
-      for (const li of crumbs()) li.removeAttribute('data-ds-collapsed');
+      collapse.release();
       more.remove();
       if (button.getAttribute('aria-expanded') === 'true') closeMenu(menu).then(() => menu.remove());
       else menu.remove();

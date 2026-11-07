@@ -145,8 +145,8 @@ SG_LAB.add({
   note: 'The avatar opens a menu with the name and email at its head, the theme switch and sign out. It moves as every menu does; choosing a theme changes the colours at once, nothing moves.',
   shows: ['.ds-account__trigger', '.ds-account__menu', '.ds-account__head', '--ds-scale-popup', '--ds-dur-medium', '--ds-dur-instant'],
   html: '<div class="ds-account" style="justify-content: center; align-items: flex-start; align-self: start; inline-size: 100%; min-block-size: 248px; margin: 0; padding-block-start: var(--ds-space-2);"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-account" data-lab-account><span class="ds-account__avatar" aria-hidden="true">A</span></button>' +
-    '<div class="ds-menu ds-account__menu" role="menu" id="sg-lab-account" aria-labelledby="sg-lab-account-head" hidden>' +
-      '<div class="ds-account__head" id="sg-lab-account-head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name">Ada Lovelace</div><div class="ds-account__email">ada@example.org</div></div>' +
+    '<div class="ds-menu ds-account__menu" role="menu" id="sg-lab-account" aria-labelledby="sg-lab-account-name sg-lab-account-email" hidden>' +
+      '<div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="sg-lab-account-name">Ada Lovelace</div><div class="ds-account__email" id="sg-lab-account-email">ada@example.org</div></div>' +
       '<div class="ds-menu__divider" role="separator"></div>' +
       '<button class="ds-menu__item" role="menuitem" type="button"><span data-glyph="logout"></span><span class="ds-menu__label">Sign out</span></button>' +
     '</div></div>',

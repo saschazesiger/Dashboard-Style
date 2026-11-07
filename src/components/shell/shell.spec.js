@@ -702,13 +702,18 @@ test('the bell: a dot on its icon\'s corner, inside the button, and a name that 
   await open(page);
   const bell = page.locator('[data-demo="bell"]');
   await expect(bell).toHaveAccessibleName('Notifications, 3 unread');
-  const placed = await bell.evaluate((button) => {
-    const dot = button.querySelector('.ds-badge--dot').getBoundingClientRect();
-    const box = button.getBoundingClientRect();
-    const glyph = button.querySelector('svg').getBoundingClientRect();
-    return { inside: dot.left >= box.left && dot.right <= box.right && dot.top >= box.top && dot.bottom <= box.bottom, corner: Math.abs(dot.right - glyph.right) < 1 && Math.abs(dot.top - glyph.top) < 1, size: dot.width };
-  });
-  expect(placed).toEqual({ inside: true, corner: true, size: 8 });
+  // At md, lg and under touch: the box grows, the 20px glyph stays, the dot (a step larger at lg) keeps its corner.
+  for (const [option, size] of [['', 8], ['ds-lg', 10], ['ds-touch', 8]]) {
+    const placed = await bell.evaluate((button, name) => {
+      button.classList.remove('ds-lg', 'ds-touch');
+      if (name) button.classList.add(name);
+      const dot = button.querySelector('.ds-badge--dot').getBoundingClientRect();
+      const box = button.getBoundingClientRect();
+      const glyph = button.querySelector('svg').getBoundingClientRect();
+      return { inside: dot.left >= box.left && dot.right <= box.right && dot.top >= box.top && dot.bottom <= box.bottom, corner: Math.abs(dot.right - glyph.right) < 1 && Math.abs(dot.top - glyph.top) < 1, size: dot.width };
+    }, option);
+    expect(placed, option || 'md').toEqual({ inside: true, corner: true, size });
+  }
 });
 
 test('the account menu: named by its head, a theme switch that pins the scheme and is remembered', async ({ page }) => {
@@ -716,7 +721,7 @@ test('the account menu: named by its head, a theme switch that pins the scheme a
   const trigger = page.getByRole('button', { name: 'Account: Ada Lovelace' });
   await expect(trigger).toHaveAttribute('aria-haspopup', 'menu');
   await trigger.click();
-  const menu = page.getByRole('menu', { name: 'A Ada Lovelace ada@example.org' });
+  const menu = page.getByRole('menu', { name: 'Ada Lovelace ada@example.org', exact: true });
   await expect(menu).toBeVisible();
   const theme = menu.getByRole('group', { name: 'Theme' });
   await expect(theme.getByRole('menuitemradio', { name: 'Device' })).toHaveAttribute('aria-checked', 'true');
@@ -778,6 +783,82 @@ test('the breadcrumbs fold their middle into a menu by the width of their nav', 
   await box.evaluate((el) => { el.style.inlineSize = '100%'; });
   await expect(more).toBeHidden();
   await expect.poll(visible).toEqual(['Home', 'Sites', 'Building A', 'Floor 2', 'Devices', 'LAPTOP-0042']);
+});
+
+test('a re-render with DS.dom.morphHtml keeps the drawer\'s filter and the folded trail, and follows what changed', async ({ page }) => {
+  await open(page);
+  // The page's template: the list and the trail as rendered, without the parts and marks of the system.
+  const template = (selector) => page.$eval(selector, (el) => {
+    const copy = el.cloneNode(true);
+    for (const kept of copy.querySelectorAll('[data-ds-keep]')) kept.remove();
+    for (const marked of copy.querySelectorAll('[data-ds-filtered], [data-ds-collapsed]')) marked.removeAttribute(marked.hasAttribute('data-ds-filtered') ? 'data-ds-filtered' : 'data-ds-collapsed');
+    return copy.innerHTML;
+  });
+  const listHtml = await template('[data-demo="list"]');
+  const field = page.locator(drawerField);
+  await field.fill('waiting');
+  const items = () => shown(page, '[data-demo="list"] .ds-drawer__item');
+  expect(await items()).toEqual(['Waiting, 2']);
+  await page.$eval('[data-demo="list"]', (el, html) => DS.dom.morphHtml(el, html), listHtml);
+  expect(await items(), 'the same list again: the filter stays').toEqual(['Waiting, 2']);
+  await expect(field).toHaveValue('waiting');
+  expect(await page.$eval('[data-demo="drawer"]', (el) => DS.get(el, 'drawer').get().count)).toBe(1);
+  // New items during the filter follow the query.
+  const more = '<a class="ds-drawer__item" href="#"><span class="ds-drawer__label">Waiting list</span></a><a class="ds-drawer__item" href="#"><span class="ds-drawer__label">Zebra</span></a>';
+  await page.$eval('[data-demo="list"]', (el, html) => DS.dom.morphHtml(el, html), listHtml + more);
+  await expect.poll(items).toEqual(['Waiting, 2', 'Waiting list']);
+  expect(await page.$eval('[data-demo="drawer"]', (el) => DS.get(el, 'drawer').get().count)).toBe(2);
+  await field.fill('');
+  await expect.poll(async () => (await items()).includes('Zebra')).toBe(true);
+
+  const box = page.locator('[data-demo="crumbs-box"]');
+  const crumbs = () => shown(page, '[data-demo="crumbs-box"] li:not(.ds-breadcrumbs__more)');
+  const trailHtml = await template('[data-demo="crumbs-box"] .ds-breadcrumbs ol');
+  await box.evaluate((el) => { el.style.inlineSize = '280px'; });
+  await expect.poll(crumbs).toEqual(['Devices', 'LAPTOP-0042']);
+  await page.$eval('[data-demo="crumbs-box"] .ds-breadcrumbs ol', (el, html) => DS.dom.morphHtml(el, html), trailHtml);
+  expect(await crumbs(), 'the same trail again: the fold stays').toEqual(['Devices', 'LAPTOP-0042']);
+  await expect(box.locator('.ds-breadcrumbs__more button')).toBeVisible();
+  // Another text: the trail folds again and still fits.
+  await page.$eval('[data-demo="crumbs-box"] .ds-breadcrumbs ol', (el, html) => DS.dom.morphHtml(el, html), trailHtml.replace('>Devices<', '>Every device on the second floor of Building A<'));
+  await expect.poll(crumbs).toEqual(['LAPTOP-0042']);
+  await expect(box.locator('.ds-breadcrumbs__more button')).toHaveAccessibleName('Show 5 more');
+  expect(await box.locator('.ds-breadcrumbs').evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+});
+
+test('the theme switch as radios: one tab stop, the arrow keys move and choose, round at the ends', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const group = document.createElement('div');
+    group.className = 'ds-segmented';
+    group.setAttribute('role', 'radiogroup');
+    group.setAttribute('aria-label', 'Colour scheme');
+    group.setAttribute('data-ds-scheme-switch', 'sg-test-radios');
+    group.setAttribute('data-ds-scheme-switch-remember', 'off');
+    group.innerHTML = ['light', 'dark', 'auto'].map((value) => `<button class="ds-segmented__option" type="button" role="radio" aria-checked="false" data-ds-scheme-value="${value}">${value}</button>`).join('');
+    document.querySelector('#fx-component').append(group);
+  });
+  const group = page.getByRole('radiogroup', { name: 'Colour scheme' });
+  const radio = (name) => group.getByRole('radio', { name });
+  await expect(radio('auto')).toHaveAttribute('aria-checked', 'true');
+  const stops = () => group.evaluate((el) => [...el.querySelectorAll('[role="radio"]')].map((item) => item.getAttribute('tabindex')));
+  expect(await stops()).toEqual(['-1', '-1', '0']);
+  const pinned = () => page.evaluate(() => document.querySelector('[data-ds-scheme-switch="sg-test-radios"]').closest('.ds-theme').getAttribute('data-ds-scheme'));
+  await radio('auto').focus();
+  await page.keyboard.press('ArrowLeft');
+  await expect(radio('dark')).toBeFocused();
+  await expect(radio('dark')).toHaveAttribute('aria-checked', 'true');
+  expect(await pinned()).toBe('dark');
+  expect(await stops()).toEqual(['-1', '0', '-1']);
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  await expect(radio('light')).toBeFocused();
+  expect(await pinned()).toBe('light');
+  await page.keyboard.press('ArrowUp');
+  await expect(radio('auto')).toBeFocused();
+  expect(await pinned()).toBeNull();
+  // Nothing was stored (remember off), and the menu's switch follows the pin.
+  expect(await page.evaluate(() => DS.store.open('shell').get('sg-test-radios', null))).toBeNull();
 });
 
 test('a phone at 360px: the bar keeps every action and the account inside the frame', async ({ page }) => {

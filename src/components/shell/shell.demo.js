@@ -51,10 +51,11 @@ function drawer(h, attributes) {
   '</nav>';
 }
 
-/* The account menu: the avatar opens it; the head names the menu; the theme switch pins the frame's scheme. */
+/* The account menu: the avatar opens it; the name and email in its head name the menu; the theme switch pins the frame's scheme. */
 function accountMenu(h) {
   var menu = h.uid('account');
-  var head = h.uid('account-head');
+  var name = h.uid('account-name');
+  var email = h.uid('account-email');
   var heading = h.uid('scheme');
   var radio = function (value, glyph, label) {
     return '<button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="' + (value === 'auto') + '" data-ds-scheme-value="' + value + '">' +
@@ -63,9 +64,9 @@ function accountMenu(h) {
   return '<div class="ds-account">' +
     '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="' + menu + '" data-ds-open="#' + menu + '" data-tip="Ada Lovelace, ada@example.org" data-demo="account">' +
       '<span class="ds-account__avatar" aria-hidden="true">A</span></button>' +
-    '<div class="ds-menu ds-account__menu" role="menu" id="' + menu + '" aria-labelledby="' + head + '" hidden>' +
-      '<div class="ds-account__head" id="' + head + '" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span>' +
-        '<div class="ds-account__name">Ada Lovelace</div><div class="ds-account__email">ada@example.org</div></div>' +
+    '<div class="ds-menu ds-account__menu" role="menu" id="' + menu + '" aria-labelledby="' + name + ' ' + email + '" hidden>' +
+      '<div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span>' +
+        '<div class="ds-account__name" id="' + name + '">Ada Lovelace</div><div class="ds-account__email" id="' + email + '">ada@example.org</div></div>' +
       '<div class="ds-menu__divider" role="separator"></div>' +
       '<div role="group" aria-labelledby="' + heading + '" data-ds-scheme-switch="sg-demo-scheme">' +
         '<p class="ds-menu__heading" id="' + heading + '">Theme</p>' +
@@ -124,7 +125,7 @@ function frame(h) {
       '<div class="ds-topbar__actions">' +
         '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__search-open" type="button" aria-label="Search" data-tip="Search" data-demo="search-open">' + h.icon('search', 20) + '</button>' +
         launcher(h) +
-        // The notification slot: the command package's centre opens from here (data-ds-open on its panel).
+        // The notification slot: a notification centre opens from here (data-ds-open on its panel).
         '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Notifications, 3 unread" data-tip="Notifications" data-demo="bell">' + h.icon('bell', 20) +
           '<span class="ds-badge ds-badge--dot ds-tone-error" aria-hidden="true"></span></button>' +
       '</div>' +
@@ -250,7 +251,7 @@ SG.demo('shell', {
         });
       }
       if (event.target.closest('[data-demo="sign-out"]')) h.toast('Signed out (a page would sign out here).', 'info');
-      if (event.target.closest('[data-demo="bell"]')) h.toast('The notification centre opens here (the command package).', 'info');
+      if (event.target.closest('[data-demo="bell"]')) h.toast('The notification centre opens here.', 'info');
       var tile = event.target.closest('.ds-launcher__app');
       if (tile) h.toast('Opening ' + tile.textContent.trim() + '.', 'info');
     });

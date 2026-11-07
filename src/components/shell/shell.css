@@ -22,8 +22,8 @@
  *        .ds-badge--dot inside)
  *       (the account menu: <div class="ds-account"> <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger"
  *        type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account">
- *        <span class="ds-account__avatar" aria-hidden="true">A</span></button> <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-head">
- *        <div class="ds-account__head" id="account-head" aria-hidden="true"> avatar, name, email </div> [data-ds-scheme-switch group] sign out </div></div>)
+ *        <span class="ds-account__avatar" aria-hidden="true">A</span></button> <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email">
+ *        <div class="ds-account__head" aria-hidden="true"> avatar, name (#account-name), email (#account-email) </div> [data-ds-scheme-switch group] sign out </div></div>)
  *       <div class="ds-account"> <div class="ds-account__text"> <div class="ds-account__name"> <div class="ds-account__email"> </div>
  *         <span class="ds-account__avatar" role="img" aria-label="..." tabindex="0" data-tip="...">A</span> <button class="ds-btn ds-btn--text" type="button">Sign out</button>
  *       (.ds-account--capsule: avatar, text aria-hidden, <span class="ds-account__divider"></span>, the sign-out button)

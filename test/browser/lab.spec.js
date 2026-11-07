@@ -713,8 +713,9 @@ const LAYERS = {
   Snackbar: { drive: 'toast', part: '.ds-toast', variants: [['sg-toasts', 'snackbars']] },
   Tooltip: { drive: 'tooltip', part: '.ds-tooltip', variants: [['0', 'tooltips']] },
   'Tooltip warm-up': { drive: 'warm', part: '.ds-tooltip', variants: [['1', 'tooltips']] },
-  Menu: { drive: 'popup', part: '#sg-lab-menu', variants: [['sg-lab-menu', 'menu']] },
-  'Combobox list': { drive: 'popup', part: '.ds-combo__popup', variants: [['sg-lab-combo', 'combobox']] },
+  'Search sheet (phone)': { drive: 'popup', phone: true, part: '[data-lab-sheet]', opener: '[data-lab-open]', variants: [['shell-search-sheet', 'shell-search-sheet']] },
+  Menu: { drive: 'popup', part: '#sg-lab-menu', opener: '[data-menu-trigger]', variants: [['sg-lab-menu', 'menu']] },
+  'Combobox list': { drive: 'popup', part: '.ds-combo__popup', opener: '.ds-combo__input', variants: [['sg-lab-combo', 'combobox']] },
 };
 
 /**
@@ -794,7 +795,7 @@ function layerStep(page, layer, step, variant, row) {
     } else {
       part = stage.querySelector(spec.part);
       root = part;
-      const opener = demo === 'menu' ? stage.querySelector('[data-menu-trigger]') : stage.querySelector('.ds-combo__input');
+      const opener = stage.querySelector(spec.opener);
       if (act === 'open') DS.overlay.open(part, { opener });
       else DS.overlay.close(part);
       done = act === 'open' ? () => part.getAttribute('data-state') === 'open' : () => !part.hasAttribute('data-state');
