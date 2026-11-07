@@ -604,6 +604,21 @@ const DEFAULT_STRINGS = Object.freeze({
   messageStopped: 'Stopped',
   messageFailed: 'Not completed',
   feedbackThanks: 'Thanks for the feedback',
+  tokensOne: '{count} token',
+  tokensOther: '{count} tokens',
+  reasoningRunning: 'Thinking',
+  reasoningDone: 'Thought for {time}',
+  toolStatus: '{name}: {status}',
+  usageOf: '{used} of {budget}',
+  usageShare: '{percent} used',
+  usageNear: 'Near the budget',
+  usageOver: 'Over budget',
+  planWaiting: 'Waiting for approval',
+  planApproved: 'Approved',
+  planRejected: 'Rejected',
+  questionAnswered: 'Answered: {answer}',
+  questionSkipped: 'Skipped',
+  questionRequired: 'Choose an answer.',
 });
 
 /**

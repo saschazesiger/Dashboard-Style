@@ -389,6 +389,7 @@ const RATIOS = [
   ['tearsheet (DS.overlay)', [['src/components/tearsheet/tearsheet.css', '.ds-tearsheet[data-state] .ds-dialog__box', ['transition']]], [['src/components/tearsheet/tearsheet.css', '.ds-tearsheet[data-state="closed"] .ds-dialog__box', ['transition']]]],
   ['loading overlay', [['src/components/loadingoverlay/loadingoverlay.css', '.ds-loadingoverlay[data-state="open"]', ['transition']]], [['src/components/loadingoverlay/loadingoverlay.css', '.ds-loadingoverlay[data-state]', ['transition']]]],
   ['bottom sheet (DS.overlay)', [['src/components/bottomsheet/bottomsheet.css', '.ds-bottomsheet[data-state] .ds-bottomsheet__panel', ['transition']]], [['src/components/bottomsheet/bottomsheet.css', '.ds-bottomsheet[data-state="closed"] .ds-bottomsheet__panel', ['transition']]]],
+  ['citation card', [['src/components/cite/cite.css', '.ds-cite__card[data-state]', ['transition']]], [['src/components/cite/cite.css', '.ds-cite__card[data-state="closed"]', ['transition']]]],
 ];
 /**
  * Old/new pairs outside the ratio, each with its reason (the test checks

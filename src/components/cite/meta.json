@@ -1,0 +1,64 @@
+{
+  "name": "cite",
+  "group": "content",
+  "order": 4350,
+  "docsOrder": 722,
+  "need": "Mark where a generated answer's facts come from: numbered markers that open their source, and the list of sources",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-cite",
+    "ds-cite-list",
+    "ds-cite-list__body",
+    "ds-cite-list__item",
+    "ds-cite-list__number",
+    "ds-cite__card",
+    "ds-cite__icon",
+    "ds-cite__snippet",
+    "ds-cite__source",
+    "ds-cite__title"
+  ],
+  "attributes": [
+    "data-placement",
+    "data-state"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": {
+    "--ds-cite-size": {
+      "default": "18px",
+      "description": "`.ds-cite`, `.ds-cite-list__number`: the marker's height at md (2px per size step)"
+    },
+    "--ds-cite-bg": {
+      "default": "`--ds-surface-high`",
+      "description": "`.ds-cite`, `.ds-cite-list__number`: the marker's fill"
+    },
+    "--ds-cite-card-width": {
+      "default": "320px",
+      "description": "`.ds-cite__card`: its widest"
+    },
+    "--ds-cite-card-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "`.ds-cite__card`: its corners, times `--ds-shape`"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "cite"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.cite.cardOf": "a lookup: the card a marker names, no motion"
+  },
+  "exceptions": {
+    "physical": {
+      ".ds-cite__card: inset": "script coordinates: --ds-cite-x from the left, as DS.position.place() writes them"
+    },
+    "ripple": {
+      ".ds-cite": "an inline marker in running text, like a text link: no ripple and no press morph",
+      ".ds-cite__title": "a text link to the source (inline links are the exception to ripple and morph)"
+    }
+  }
+}

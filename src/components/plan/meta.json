@@ -1,0 +1,57 @@
+{
+  "name": "plan",
+  "group": "content",
+  "order": 4360,
+  "docsOrder": 724,
+  "need": "Let a person approve or reject the plan an assistant or agent proposes before it acts, with its steps",
+  "tier": 2,
+  "status": "beta",
+  "classes": [
+    "ds-plan",
+    "ds-plan__actions",
+    "ds-plan__glyph",
+    "ds-plan__head",
+    "ds-plan__icon",
+    "ds-plan__lead",
+    "ds-plan__note",
+    "ds-plan__state",
+    "ds-plan__steps",
+    "ds-plan__title"
+  ],
+  "attributes": [
+    "data-state"
+  ],
+  "requires": [
+    "button",
+    "tasks"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-plan-padding": {
+      "default": "`--ds-space-4`",
+      "description": "`.ds-plan`: the padding at the default density (2px per density step)"
+    },
+    "--ds-plan-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "`.ds-plan`: the frame's corners, times `--ds-shape`"
+    },
+    "--ds-plan-bg": {
+      "default": "`--ds-surface`",
+      "description": "`.ds-plan`: the fill"
+    },
+    "--ds-plan-border": {
+      "default": "`--ds-line`",
+      "description": "`.ds-plan`: the frame"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "plan"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.plan.planState": "a pure function: a state's name, no motion"
+  }
+}

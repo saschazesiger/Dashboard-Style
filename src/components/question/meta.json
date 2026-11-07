@@ -1,0 +1,61 @@
+{
+  "name": "question",
+  "group": "content",
+  "order": 4370,
+  "docsOrder": 726,
+  "need": "Ask a person a question while an assistant or agent works: options to choose, an answer of one's own, Answer and Skip",
+  "tier": 2,
+  "status": "beta",
+  "classes": [
+    "ds-question",
+    "ds-question__actions",
+    "ds-question__answer",
+    "ds-question__error",
+    "ds-question__glyph",
+    "ds-question__head",
+    "ds-question__hint",
+    "ds-question__icon",
+    "ds-question__options",
+    "ds-question__other",
+    "ds-question__title"
+  ],
+  "attributes": [
+    "data-state"
+  ],
+  "requires": [
+    "button",
+    "form"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-question-padding": {
+      "default": "`--ds-space-4`",
+      "description": "`.ds-question`: the padding at the default density (2px per density step)"
+    },
+    "--ds-question-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "`.ds-question`: the frame's corners, times `--ds-shape`"
+    },
+    "--ds-question-bg": {
+      "default": "`--ds-surface`",
+      "description": "`.ds-question`: the fill"
+    },
+    "--ds-question-border": {
+      "default": "`--ds-line`",
+      "description": "`.ds-question`: the frame"
+    }
+  },
+  "keyframes": [
+    "ds-fade-in"
+  ],
+  "js": [
+    "question"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.question.answerText": "a pure function: the answer line's string, no motion",
+    "DS.question.optionIndex": "a pure function: the option a digit key picks, no motion"
+  }
+}

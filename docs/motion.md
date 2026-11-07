@@ -203,6 +203,7 @@ components never set it (`test/tokens.test.js`).
    | tearsheet (DS.overlay) | `--ds-dur-long` | `--ds-dur-base` |
    | loading overlay | `--ds-dur-fast` | `--ds-dur-instant` |
    | bottom sheet (DS.overlay) | `--ds-dur-long` | `--ds-dur-base` |
+   | citation card | `--ds-dur-medium` | `--ds-dur-instant` |
 
    "Keyframes" is the markup without `data-state`, opened by the page's own classes (`--closing`); `DS.overlay`
    sets `data-state` and plays transitions. The overlays' full timelines are in the [Overlays](#overlays) table,

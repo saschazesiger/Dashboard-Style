@@ -1,0 +1,65 @@
+{
+  "name": "toolcall",
+  "group": "content",
+  "order": 4330,
+  "docsOrder": 720,
+  "need": "Show a call an agent made: its arguments, status, duration, input and output, and the calls inside it",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-toolcall",
+    "ds-toolcall-list",
+    "ds-toolcall__args",
+    "ds-toolcall__body",
+    "ds-toolcall__calls",
+    "ds-toolcall__code",
+    "ds-toolcall__icon",
+    "ds-toolcall__label",
+    "ds-toolcall__mark",
+    "ds-toolcall__name",
+    "ds-toolcall__part",
+    "ds-toolcall__part--error",
+    "ds-toolcall__status",
+    "ds-toolcall__time",
+    "ds-toolcall__title",
+    "ds-toolcall__word"
+  ],
+  "attributes": [
+    "data-status"
+  ],
+  "requires": [
+    "disclosure",
+    "spinner"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-toolcall-height": {
+      "default": "40px",
+      "description": "`.ds-toolcall`: the summary's base height (size md, comfortable density), handed to the disclosure row"
+    },
+    "--ds-toolcall-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "`.ds-toolcall`: the frame's corners, times `--ds-shape`"
+    },
+    "--ds-toolcall-code-max-height": {
+      "default": "240px",
+      "description": "`.ds-toolcall__code`: the height past which input and output scroll"
+    },
+    "--ds-toolcall-code-bg": {
+      "default": "`--ds-surface-low`",
+      "description": "`.ds-toolcall__code`: the fill of input and output"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "toolcall"
+  ],
+  "module": true,
+  "progressive": [
+    "scrollbar-color"
+  ],
+  "ripple": false,
+  "labExempt": {
+    "DS.toolcall.durationText": "a pure function: formatting, no motion"
+  }
+}
