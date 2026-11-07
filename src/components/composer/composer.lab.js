@@ -10,13 +10,14 @@ SG_LAB.add({
   shows: ['DS.composer.create', '.ds-composer__palette', '--ds-scale-popup', '--ds-dur-fast', '--ds-dur-medium', '--ds-dur-instant', '--ds-ease-spatial'],
   html: '<form class="ds-composer" style="margin-block-start:180px" onsubmit="return false">' +
     '<textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message" placeholder="Message"></textarea>' +
-    '<button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send">' + DS.icons.icon(DS.icons.send, 20) + '</button>' +
+    '<button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send" data-lab-icon></button>' +
     '<div class="ds-composer__palette" role="listbox" aria-label="Commands" data-ds-composer-trigger="/" popover="manual" hidden>' +
     '<div class="ds-composer__option" role="option" data-value="/summarize"><span class="ds-composer__option-label">/summarize</span><span class="ds-composer__option-hint">Sum up the ticket</span></div>' +
     '<div class="ds-composer__option" role="option" data-value="/assign"><span class="ds-composer__option-label">/assign</span><span class="ds-composer__option-hint">Give the ticket to someone</span></div>' +
     '</div></form>',
   height: 260,
-  setup: function (stage) {
+  setup: function (stage, sg) {
+    stage.querySelector('[data-lab-icon]').innerHTML = sg.icon('send', 20);
     DS.composer.create(stage.querySelector('.ds-composer'), { enter: 'send' });
   },
   subject: function (stage) { return stage.querySelector('.ds-composer__palette'); },
@@ -44,9 +45,10 @@ SG_LAB.add({
   shows: ['DS.composer.create', '.ds-composer__attachment', '.ds-enter--pop', '.ds-leave--pop'],
   html: '<form class="ds-composer" onsubmit="return false"><ul class="ds-composer__attachments" aria-label="Attachments"></ul>' +
     '<textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message" placeholder="Message"></textarea>' +
-    '<button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send">' + DS.icons.icon(DS.icons.send, 20) + '</button></form>',
+    '<button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send" data-lab-icon></button></form>',
   height: 160,
-  setup: function (stage) {
+  setup: function (stage, sg) {
+    stage.querySelector('[data-lab-icon]').innerHTML = sg.icon('send', 20);
     stage.composer = DS.composer.create(stage.querySelector('.ds-composer'));
   },
   state: function (stage) { return stage.composer.get().attachments.length > 0; },

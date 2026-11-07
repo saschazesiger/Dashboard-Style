@@ -43,7 +43,7 @@ function full(h, extra) {
     '<ul class="ds-composer__attachments" aria-label="Attachments"></ul>' +
     '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Attach files" data-tip="Attach files" data-ds-composer-attach>' + h.icon('paperclip', 20) + '</button>' +
     '<input class="ds-composer__picker" type="file" multiple hidden>' +
-    '<textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message" placeholder="Message, / for commands, @ to mention"></textarea>' +
+    '<textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message" placeholder="Message, / or @"></textarea>' +
     '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Dictate" aria-pressed="false" data-tip="Dictate" data-demo="mic">' + h.icon('mic', 20) + '</button>' +
     sendButton(h) + palettes(h) + '</form>';
 }
@@ -67,7 +67,7 @@ SG.demo('composer', {
       h.section('States', '<div class="ds-stack">' +
         '<form class="ds-composer" data-ds-composer data-ds-composer-busy data-demo="busy">' +
         '<textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message while a reply runs" placeholder="Message"></textarea>' + sendButton(h) + '</form>' +
-        full(h, 'data-demo="files"').replace('placeholder="Message, / for commands, @ to mention"', 'placeholder="Message"').replace('aria-label="Message"', 'aria-label="Message with files"') +
+        full(h, 'data-demo="files"').replace('placeholder="Message, / or @"', 'placeholder="Message"').replace('aria-label="Message"', 'aria-label="Message with files"') +
         '<form class="ds-composer" data-ds-composer data-demo="disabled">' +
         '<textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message (closed ticket)" placeholder="This ticket is closed" disabled></textarea>' +
         '<button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send" disabled>' + h.icon('send', 20) + '</button></form>' +
