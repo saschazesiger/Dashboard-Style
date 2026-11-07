@@ -71,6 +71,12 @@
  * placeholders filled from vars (a string may also be a function of vars). A
  * change dispatches ds:config on the document, for what has text on screen.
  *
+ * Links from data: safeHref(value) returns the value when it is safe to
+ * write as an href or to navigate to (http, https, mailto, tel, or
+ * relative: a path, a query, a #fragment), else null, so a javascript: or
+ * data: URL that came with a notification, a banner or a search result
+ * never runs. The components that write an href from data use it.
+ *
  * ES2022; the first module of MODULES (scripts/build.mjs), so every other
  * module may import from it; no DOM is touched until init() runs.
  */
@@ -176,6 +182,9 @@ const DEFAULT_STRINGS = Object.freeze({
   notificationsEarlier: 'Earlier',
   notificationsEmpty: 'No notifications',
   notificationsUnreadCount: '{count} unread',
+  notificationsError: 'Error',
+  notificationsWarning: 'Warning',
+  notificationsSuccess: 'Success',
   bannerMore: 'Show {count} more',
 });
 
@@ -611,4 +620,32 @@ export function t(key, vars) {
   const values = vars ?? {};
   const value = typeof text === 'function' ? text(values) : text;
   return String(value).replace(/\{(\w+)\}/g, (match, name) => (Object.hasOwn(values, name) ? String(values[name]) : match));
+}
+
+/* ── Links from data ────────────────────────────────── */
+
+/** The schemes a link from data may have: none runs script. */
+const SAFE_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:']);
+
+/**
+ * `value` (a string or URL) when it is safe as an href or a navigation
+ * from data: an absolute URL on http, https, mailto or tel, or a relative
+ * one (no scheme of its own: a path, a query, a #fragment). Otherwise
+ * (javascript:, data:, blob:, vbscript:, nothing) null. The scheme is read
+ * by the URL parser, so tabs, newlines and leading spaces cannot hide it.
+ * @param {unknown} value
+ * @returns {string|null}
+ */
+export function safeHref(value) {
+  if (value === null || value === undefined) return null;
+  const text = String(value);
+  if (!text.trim()) return null;
+  let absolute = null;
+  try {
+    absolute = new URL(text);
+  } catch {
+    // No scheme of its own: relative to the page, so on the page's own scheme.
+    return text;
+  }
+  return SAFE_SCHEMES.has(absolute.protocol) ? text : null;
 }

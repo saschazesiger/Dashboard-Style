@@ -292,6 +292,8 @@ function controller(el, given = {}, signal = null) {
     close: () => closeOverlay(el, { reason: 'api' }),
     refresh: () => paint(),
     destroy() {
+      // A later create(el) or open(el) makes a new sheet, never this dead one.
+      made.delete(el);
       lifetime.abort();
       unsubscribe();
       own?.destroy();

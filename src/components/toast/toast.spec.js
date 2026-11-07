@@ -307,6 +307,41 @@ test('the stack: collapsed behind the front, expanded on focus or a click, never
   });
 });
 
+test('the stack fades the content behind the front, but its buttons keep their own transitions (press morph, focus snap)', async ({ page }) => {
+  await open(page);
+  const seen = await page.evaluate(async () => {
+    const region = DS.toast.toastRegion(document);
+    region.classList.add('ds-toasts--stack');
+    for (const name of ['LAPTOP-0042', 'TABLET-0007']) DS.toast.toast(region, `Saved ${name}.`, { persistent: true, restart: false, action: { label: 'Undo', run() {} } });
+    await DS.motion.settled(region, { subtree: true });
+    const plain = document.createElement('button');
+    plain.className = 'ds-btn ds-btn--text ds-sm';
+    document.querySelector('#fx-component').append(plain);
+    const list = (el) => getComputedStyle(el).transitionProperty.split(',').map((name) => name.trim()).sort().join(',');
+    const toasts = [...region.querySelectorAll('.ds-toast')];
+    const out = {
+      button: list(plain),
+      action: toasts.map((toast) => list(toast.querySelector('.ds-toast__action'))),
+      close: toasts.map((toast) => list(toast.querySelector('.ds-toast__close'))),
+      text: list(toasts[0].querySelector('.ds-toast__text')),
+      hidden: getComputedStyle(toasts[0].querySelector('.ds-toast__action')).opacity,
+    };
+    plain.remove();
+    await DS.toast.closeToasts(region);
+    region.classList.remove('ds-toasts--stack');
+    return out;
+  });
+  expect(seen.button).toContain('border-radius');
+  expect(seen.button).toContain('outline-offset');
+  for (const action of seen.action) expect(action, 'a stacked action keeps the button\'s transitions').toBe(seen.button);
+  for (const close of seen.close) {
+    expect(close).toContain('border-radius');
+    expect(close).toContain('outline-offset');
+  }
+  expect(seen.text).toBe('opacity');
+  expect(seen.hidden, 'the action behind the front is hidden').toBe('0');
+});
+
 test('forced colours: the waiting spinner and the progress bar take system colours', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', 'forced colours are emulated in Chromium only');
   await page.emulateMedia({ forcedColors: 'active' });

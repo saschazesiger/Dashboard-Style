@@ -29,9 +29,12 @@
  *   centre.read('n9');  centre.readAll();  centre.on('action', ({ item, action }) => ...);
  *
  * A notification: { id, title, text, time (a Date, timestamp or ISO
- * text), read, icon (a glyph of DS.icons), tone (info, success, warning,
- * error: the icon's colour, its glyph carries the meaning), href (the
- * title links there), group (a heading of its own instead of the day),
+ * text), read, icon (a glyph of DS.icons; default the tone's: info,
+ * check circle, alert, alert circle), tone (info, success, warning,
+ * error: the icon's colour and glyph, and a word for screen readers, so
+ * never colour alone), href (the title links there when DS.core.safeHref
+ * accepts it: http, https, mailto, tel or relative; else the title is
+ * plain text), group (a heading of its own instead of the day),
  * actions: [{ id, label }] }. Newest first within a group; the groups in
  * the order of their newest notification (Today, Yesterday, Earlier for
  * the days). Rows are keyed (data-ds-key) and patched in place, so focus
@@ -39,7 +42,10 @@
  *
  * Unread: a dot, the title in the label weight and the word "Unread" for
  * screen readers (never colour alone); the row's read button (mail open /
- * mail) toggles it. Following the title's link marks it read. Mark all
+ * mail) toggles it. Following the title's link marks it read. A row that
+ * leaves the feed while it holds focus (read with the unread-only switch
+ * on, removed) hands focus to the next row's first control, else the
+ * previous row's, else the feed, so focus never falls out of the sheet. Mark all
  * read ([data-ds-notifications-read-all]) is aria-disabled while nothing
  * is unread, and announces when it acted. The unread-only switch
  * ([data-ds-notifications-unread-only]) hides what was read.
@@ -67,13 +73,14 @@
  * notificationsUnreadCount, notificationsMarkRead,
  * notificationsMarkUnread, notificationsAllRead, notificationsArrived,
  * notificationsArrivedMany, notificationsToday, notificationsYesterday,
- * notificationsEarlier, notificationsEmpty.
+ * notificationsEarlier, notificationsEmpty, notificationsError,
+ * notificationsWarning, notificationsSuccess.
  *
  * ES2022; no progressive feature of its own.
  */
-import { define, emit, t } from '../../js/core.js';
+import { define, emit, safeHref, t } from '../../js/core.js';
 import { enter, flip } from '../../js/motion.js';
-import { bell as bellGlyph, iconElement, info, mail, mailOpen } from '../../js/icons.js';
+import { alert as alertGlyph, alertCircle, bell as bellGlyph, checkCircle, iconElement, info, mail, mailOpen } from '../../js/icons.js';
 import { open as openOverlay, close as closeOverlay } from '../../js/overlay.js';
 import { relative, time as keepTime } from '../../js/format.js';
 import { create as createBadge, format as formatCount } from '../badge/badge.js';
@@ -186,6 +193,12 @@ function fromMarkup(feed) {
 }
 
 let centres = 0;
+
+/** The string of the word a screen reader hears for a tone that states a status. */
+const TONE_WORDS = { error: 'notificationsError', warning: 'notificationsWarning', success: 'notificationsSuccess' };
+
+/** The default glyph of a notification of `tone`: the meaning never rests on colour alone. */
+const glyphOf = (tone) => (tone === 'error' ? alertCircle : tone === 'warning' ? alertGlyph : tone === 'success' ? checkCircle : info);
 
 function controller(el, given = {}, signal = null) {
   const doc = el.ownerDocument;
@@ -341,27 +354,32 @@ function controller(el, given = {}, signal = null) {
     const { row, icon, title, text, word, when, actions, toggle, state } = entry;
     row.toggleAttribute('data-unread', !item.read);
     // The icon: its glyph and tone.
-    const glyph = item.icon ?? info;
+    const glyph = item.icon ?? glyphOf(item.tone);
     if (entry.glyph !== glyph) {
       icon.replaceChildren(iconElement(glyph, 20, undefined, doc));
       entry.glyph = glyph;
     }
     icon.className = item.tone ? `ds-notifications__icon ds-tone-${item.tone}` : 'ds-notifications__icon';
     // The title, linked when it goes somewhere.
-    if (state.title !== item.title || state.href !== item.href) {
-      if (item.href) {
+    // An href from data only when safe: a javascript: or data: URL leaves the title plain text.
+    const href = safeHref(item.href);
+    if (state.title !== item.title || state.href !== href) {
+      if (href) {
         const link = doc.createElement('a');
         link.className = 'ds-notifications__link';
-        link.href = String(item.href);
+        link.setAttribute('href', href);
         link.textContent = item.title;
         title.replaceChildren(link);
       } else title.textContent = item.title;
       state.title = item.title;
-      state.href = item.href;
+      state.href = href;
     }
     if (text.textContent !== item.text) text.textContent = item.text;
     text.hidden = !item.text;
-    word.textContent = item.read ? '' : `${t('notificationsUnread')}, `;
+    // Tone and unread in words for screen readers: never colour (or the dot) alone.
+    const toneWord = TONE_WORDS[item.tone] ? `${t(TONE_WORDS[item.tone])}, ` : '';
+    const words = `${toneWord}${item.read ? '' : `${t('notificationsUnread')}, `}`;
+    if (word.textContent !== words) word.textContent = words;
     // The time: relative, kept current on the shared clock.
     const at = stamp(item.time);
     if (Number.isFinite(at)) {
@@ -419,8 +437,26 @@ function controller(el, given = {}, signal = null) {
     if (focused && focused !== doc.activeElement && focused.isConnected) /** @type {HTMLElement} */ (focused).focus({ preventScroll: true });
   };
 
+  /**
+   * When focus sits in a row about to leave the feed (read with the
+   * unread-only switch on, removed), moves it first, so it never falls out
+   * of the sheet: to the first control of the next row that stays, else of
+   * the previous one, else to the feed.
+   */
+  const handOff = (staying) => {
+    const row = doc.activeElement?.closest?.('.ds-notifications__item');
+    if (!row || !feed.contains(row) || staying.has(row.getAttribute('data-ds-key'))) return;
+    const all = [...feed.querySelectorAll('.ds-notifications__item')];
+    const at = all.indexOf(row);
+    const stays = (node) => staying.has(node.getAttribute('data-ds-key'));
+    const next = all.slice(at + 1).find(stays) ?? all.slice(0, at).reverse().find(stays);
+    const target = next?.querySelector('a[href], button') ?? feed;
+    /** @type {HTMLElement} */ (target).focus({ preventScroll: true });
+  };
+
   const paint = (animate = false) => {
     const filtered = unreadOnly?.checked ? items.filter((item) => !item.read) : items;
+    handOff(new Set(filtered.map((item) => item.id)));
     const groups = groupByDay(filtered);
     const appeared = [];
     const change = () => {
@@ -565,13 +601,7 @@ function controller(el, given = {}, signal = null) {
       const before = items.length;
       items = items.filter((item) => item.id !== id);
       if (items.length === before) return;
-      const row = rows.get(id)?.row;
-      if (row?.contains(doc.activeElement)) {
-        // Focus moves on before the row goes: the next row's first control, else the feed.
-        const next = row.nextElementSibling ?? row.previousElementSibling;
-        const target = next?.querySelector('a[href], button') ?? feed;
-        /** @type {HTMLElement} */ (target).focus({ preventScroll: true });
-      }
+      // paint() moves focus on before the row goes.
       changed(true);
     },
     read(id, read = true) {

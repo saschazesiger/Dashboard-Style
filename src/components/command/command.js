@@ -60,7 +60,7 @@
  *
  * ES2022; no progressive feature of its own.
  */
-import { define, emit, t } from '../../js/core.js';
+import { define, emit, safeHref, t } from '../../js/core.js';
 import { motionDuration } from '../../js/motion.js';
 import { chevronLeft, chevronRight, iconElement } from '../../js/icons.js';
 import { open as openOverlay, close as closeOverlay, topmost } from '../../js/overlay.js';
@@ -300,7 +300,7 @@ function controller(el, given = {}, signal = null) {
   const statusText = doc.createElement('span');
   status.replaceChildren(statusText);
 
-  // The field as the APG combobox with a list that always shows.
+  // The field as the APG combobox with a list that shows whenever it has options (paint() keeps aria-expanded).
   input.setAttribute('role', 'combobox');
   input.setAttribute('aria-expanded', 'true');
   input.setAttribute('aria-controls', list.id);
@@ -363,8 +363,14 @@ function controller(el, given = {}, signal = null) {
     return (Array.isArray(ids) ? ids : []).map((id) => known.get(id)).filter((command) => command && !command.disabled).slice(0, recentCount);
   };
 
+  /**
+   * Remembers a command of `commands` (or of their list pages): only those
+   * can show under Recent again, so a provider's result or an item of a
+   * page function never takes a slot.
+   */
   const remember = (command) => {
     if (!store || typeof command.children === 'function') return;
+    if (!flatten(commands).some((each) => each.id === command.id)) return;
     const ids = store.get(storeKey, []);
     const next = [command.id, ...(Array.isArray(ids) ? ids : []).filter((id) => id !== command.id)].slice(0, recentCount);
     store.set(storeKey, next);
@@ -519,6 +525,8 @@ function controller(el, given = {}, signal = null) {
     lastQuery = query;
     empty.hidden = rows.length > 0 || busy || !query;
     list.hidden = rows.length === 0;
+    // The APG combobox: expanded only while its list shows.
+    input.setAttribute('aria-expanded', String(rows.length > 0));
     if (!empty.hidden) empty.textContent = t('commandEmpty', { query });
     writeStatus();
   };
@@ -679,7 +687,12 @@ function controller(el, given = {}, signal = null) {
     fire('select', detail);
     try {
       if (typeof command.run === 'function') command.run(command, api);
-      else if (command.href) view.location.assign(command.href);
+      else if (command.href) {
+        // An href from data (a provider's result) only when safe: never a javascript: or data: URL.
+        const href = safeHref(command.href);
+        if (!href) throw new TypeError(`DS.command: "${command.label}" has an href that is not a safe link`);
+        view.location.assign(href);
+      }
     } catch (error) {
       view.reportError?.(error);
     }
@@ -851,6 +864,8 @@ function controller(el, given = {}, signal = null) {
     run: (id) => run(flatten(commands).find((command) => command.id === id)),
     refresh: () => changed(),
     destroy() {
+      // A later create(el) or open(el) makes a new palette, never this dead one.
+      made.delete(el);
       for (const handle of shortcuts) handle.destroy();
       shortcuts = [];
       opening?.destroy();

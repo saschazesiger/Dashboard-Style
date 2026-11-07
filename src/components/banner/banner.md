@@ -36,9 +36,9 @@ What `DS.banner` makes of it (the error first, the others behind the more button
 | Option | Attribute or class | Where it applies | Effect |
 |---|---|---|---|
 | Priority | `data-ds-banner-priority="<number>"` on an alert | one message | higher first; without it, by tone: error, warning, info, primary, the plain alert (neutral), success; equal ones keep the markup's order |
-| How many show | `data-ds-banner-max="1"` (default 1) | the banner | the others wait behind `.ds-banner__more` ("Show 2 more"), which shows them all and hides them again ("Show less") |
+| How many show | `data-ds-banner-max="1"` (default 1) | the banner | the others wait behind `.ds-banner__more` ("Show 2 more"), which shows them all and hides them again ("Show less"); a change applies at once and keeps the messages from data |
 | Dismissible | `data-ds-banner-id="<key>"` on an alert; `data-ds-banner-dismiss="off"` | one message | an alert with an id gets a `.ds-banner__dismiss` button (unless it has one); `off` keeps it without one. An alert without an id cannot be dismissed: there is nothing to remember |
-| Remembered | `data-ds-banner-remember="local"` (default), `"session"`, `"off"` | the banner | where the dismissal is kept: `DS.store` in `localStorage` (every tab, after a reload), `sessionStorage` (this tab), or memory (until the page reloads) |
+| Remembered | `data-ds-banner-remember="local"` (default), `"session"`, `"off"` | the banner | where the dismissal is kept: `DS.store` in `localStorage` (every tab, after a reload), `sessionStorage` (this tab), or memory (until the page reloads); a change switches the storage and keeps the messages from data |
 | Tone, size, density, shape, touch | those of the [alert](#alert) | each message | the alert's: the icon and the word carry the status; the dismiss button is an icon button at `.ds-sm` (size steps it, density does not; `.ds-touch` makes it a full target) |
 
 Messages under each other: only the first one shown keeps the panel's top corners; the next ones are square, a hairline
@@ -66,7 +66,7 @@ DS.banner.priorityOf({ tone: 'error' });
 
 | Export | What |
 |---|---|
-| `create(el, { banners })` | the controller of a `.ds-banner`, the same one `data-ds-banner` makes; once per element (a second call adds `banners`). A message from data: `{ id, tone, title, text, icon, action: { label, href \| onClick(event, banner) }, priority, dismissible, role }`, built in the alert's markup (`role` only when given: it is announced instead). The controller: `get()`, `set(banners)` (replaces the messages built from data; those of the markup stay), `add(banners)`, `remove(id)`, `dismiss(id)`, `restore(id)`, `expand(on)`, `on(type, fn)`, `destroy()` |
+| `create(el, { banners })` | the controller of a `.ds-banner`, the same one `data-ds-banner` makes; once per element (a second call adds `banners`). A message from data: `{ id, tone, title, text, icon, action: { label, href \| onClick(event, banner) }, priority, dismissible, role }`, built in the alert's markup (`role` only when given: it is announced instead; `href` only when [`DS.core.safeHref()`](core.md) accepts it, `http:`, `https:`, `mailto:`, `tel:` or relative, else the action is a button). The controller: `get()`, `set(banners)` (replaces the messages built from data; those of the markup stay), `add(banners)`, `remove(id)`, `dismiss(id)`, `restore(id)`, `expand(on)`, `on(type, fn)`, `update(names)` (core calls it when `data-ds-banner-max` or `-remember` changes), `destroy()` |
 | `order(banners)` | the order messages show in: `priorityOf()`, the highest first, equal ones in their given order |
 | `priorityOf(banner)` | a message's priority: the number of `priority`, else its tone's rank |
 

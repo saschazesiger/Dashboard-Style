@@ -67,7 +67,7 @@ title and a sentence: "You are all caught up") replaces the built one.
 
 | Option | Classes | Where it applies | Effect |
 |---|---|---|---|
-| Tone | `tone` of a notification (`.ds-tone-*` on its icon) | one notification's icon | the disc takes the tone's container pair; the glyph carries the meaning, so pick one that says it (`alertCircle`, `wifiOff`). A tone on an ancestor is ignored |
+| Tone | `tone` of a notification (`.ds-tone-*` on its icon) | one notification's icon | the disc takes the tone's container pair; the glyph carries the meaning: without an `icon` of its own it is the tone's (`alertCircle` for error, `alert` for warning, `checkCircle` for success, else `info`), and pick one that says it when you name one (`wifiOff`). Error, warning and success add their word for screen readers ("Error", `notificationsError`; `notificationsWarning`, `notificationsSuccess`) before the time. A tone on an ancestor is ignored |
 | Size | `.ds-xs` ... `.ds-xl` | the sheet or any ancestor | a row's padding 4px per step (8px of height), the disc 8px per step (`--ds-notifications-icon-size`, 40px at md); type stays |
 | Density | `.ds-density-*` | any container | a row's padding 2px per step (`--ds-notifications-item-padding`, 12px at comfortable), the bar's height 4px per step; the sheet's padding follows the sheet |
 | Shape | `.ds-shape-*` | any container or the theme | the disc's radius times `--ds-shape` (round at the default) |
@@ -77,8 +77,9 @@ title and a sentence: "You are all caught up") replaces the built one.
 
 - **A notification** is `{ id, title, text, time, read, icon, tone, href, group, actions }`: `time` a `Date`, a timestamp
   or an ISO text, shown as a relative time that stays current ([`DS.format.time`](core.md#relative-time-data-ds-time),
-  the absolute date in its tooltip); `icon` a glyph of `DS.icons` (default `info`); `href` links the title (following
-  it marks the notification read and dispatches `ds:select`); `group` a heading of its own instead of the day;
+  the absolute date in its tooltip); `icon` a glyph of `DS.icons` (default: the tone's glyph, else `info`); `href` links the title (following
+  it marks the notification read and dispatches `ds:select`) when [`DS.core.safeHref()`](core.md) accepts it
+  (`http:`, `https:`, `mailto:`, `tel:` or relative; a `javascript:` or `data:` URL leaves the title plain text); `group` a heading of its own instead of the day;
   `actions` a list of `{ id, label, run(item, centre) }`, text buttons under the text (`ds:action`, then `run`).
 - **Groups.** Today, Yesterday and Earlier by the calendar day of `time` (the strings `notificationsToday`,
   `notificationsYesterday`, `notificationsEarlier`), or the notification's `group`; newest first inside a group, the
@@ -87,7 +88,8 @@ title and a sentence: "You are all caught up") replaces the built one.
   "Unread" for screen readers (`data-unread` on the row), never colour alone. Its read button (`.ds-notifications__toggle`,
   named "Mark as read" or "Mark as unread", described by the title) toggles it. `[data-ds-notifications-read-all]` marks
   all read and announces it ("All notifications marked as read."); it is `aria-disabled` while nothing is unread. An
-  unread-only switch (`[data-ds-notifications-unread-only]`) hides what was read. Read state is the page's to keep:
+  unread-only switch (`[data-ds-notifications-unread-only]`) hides what was read; a row that leaves while it holds
+  focus (read there, or removed) hands focus to the next row's first control, else the previous row's, else the feed. Read state is the page's to keep:
   save it on `ds:read`.
 - **The count.** Every button with `data-ds-open="#<id>"` inside a `.ds-notifications__bell` (or the `bell` option)
   gets the unread count as a `.ds-badge` on its corner ([badge](#badge): `99+` past 99, gone at zero, popping in and

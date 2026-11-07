@@ -23,6 +23,7 @@ them from `js/core.js`.
 | `emit(el, type, detail?, { cancelable })` | dispatches the bubbling `CustomEvent` `ds:<type>` with `detail` on `el`; returns `false` when a listener called `preventDefault()`. Cancelable only when asked, and only where cancelling cannot trap someone |
 | `config({ locale, strings })` | sets the page's locale (`null`: back to the default, the `lang` of `<html>`, else the browser's) and overrides strings by key (`null` restores one); returns the settings in force, `{ locale, strings }`. A change dispatches `ds:config` on the document |
 | `t(key, vars?)` | the system's string `key`: the page's override, else the English default, else the key itself; `{name}` placeholders are filled from `vars`, and a string may be a function of `vars` (plurals) |
+| `safeHref(value)` | `value` when it is safe to write as an `href` or to navigate to from data: an absolute URL on `http:`, `https:`, `mailto:` or `tel:`, or a relative one (a path, a query, a `#fragment`); else `null` (`javascript:`, `data:`, `blob:` …). The scheme is read by the URL parser, so tabs, newlines or spaces cannot hide it. Notifications, banners and the command palette pass every `href` from data through it |
 
 ## One runtime per page
 

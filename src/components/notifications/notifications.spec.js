@@ -2,7 +2,9 @@
  * The notification centre (3.0): the bell with its count and name, the
  * sheet through DS.overlay (focus in, Escape, focus back), groups by day,
  * read and unread (the dot, the weight, the word, the button's name), mark
- * all read with its announcement, actions, the unread-only switch, the
+ * all read with its announcement, actions, the unread-only switch (and
+ * focus that stays in the sheet when the focused row leaves), safe links
+ * and the glyph and word of a tone from data, the
  * empty state, the live announcement on arrival, the options, a phone and
  * forced colours. Runs in `fallback` too.
  */
@@ -57,7 +59,8 @@ test('groups by day, newest first; unread shows a dot, the label weight and a wo
   const first = rows(page).first();
   await expect(first).toHaveAttribute('data-unread', '');
   await expect(first.locator('.ds-notifications__link')).toHaveText('LAPTOP-0042 is offline');
-  await expect(first.locator('.ds-sr')).toHaveText('Unread,');
+  // The tone in a word too (warning), never colour alone.
+  await expect(first.locator('.ds-sr')).toHaveText('Warning, Unread,');
   const look = await first.evaluate((row) => {
     const dot = row.querySelector('.ds-notifications__dot');
     const read = row.closest('.ds-notifications__feed').querySelector('.ds-notifications__item:not([data-unread])');
@@ -143,6 +146,67 @@ test('the unread-only switch hides what was read; the empty state shows when not
   await expect(rows(page)).toHaveCount(0);
   await expect(sheet(page).locator('.ds-notifications__empty')).toBeVisible();
   await expect(sheet(page).locator('.ds-notifications__empty')).toContainText('No notifications');
+});
+
+test('unread only: reading the focused row hands focus to the next row, never to the body', async ({ page }) => {
+  await open(page);
+  await openSheet(page);
+  await sheet(page).getByRole('switch', { name: 'Only unread' }).check();
+  await expect(rows(page)).toHaveCount(3);
+  const second = await rows(page).nth(1).getAttribute('data-ds-key');
+  await rows(page).first().locator('.ds-notifications__toggle').focus();
+  await page.keyboard.press('Enter');
+  await expect(rows(page)).toHaveCount(2);
+  // The next row's first control (its title link, or its first button).
+  const focused = await page.evaluate(() => {
+    const active = document.activeElement;
+    return { tag: active.tagName, row: active.closest('.ds-notifications__item')?.getAttribute('data-ds-key') ?? null, inSheet: Boolean(active.closest('[data-demo="sheet"]')) };
+  });
+  expect(focused.inSheet).toBe(true);
+  expect(focused.row).toBe(second);
+  // The last row read the same way: focus goes back to the previous one.
+  await rows(page).last().locator('.ds-notifications__toggle').focus();
+  await page.keyboard.press('Enter');
+  await expect(rows(page)).toHaveCount(1);
+  await expect.poll(() => page.evaluate(() => document.activeElement.closest('.ds-notifications__item')?.getAttribute('data-ds-key') ?? null)).toBe(second);
+  // The one left: focus goes to the feed.
+  await rows(page).first().locator('.ds-notifications__toggle').focus();
+  await page.keyboard.press('Enter');
+  await expect(rows(page)).toHaveCount(0);
+  await expect(sheet(page).locator('.ds-notifications__feed')).toBeFocused();
+});
+
+test('an href from data links only when safe; a tone without an icon brings its own glyph and word', async ({ page }) => {
+  await open(page);
+  const seen = await page.evaluate(() => {
+    const el = document.querySelector('[data-demo="sheet"]');
+    const centre = DS.notifications.create(el);
+    centre.add([
+      { id: 'x-js', title: 'Script link', href: 'javascript:window.__pwn=1', tone: 'error' },
+      { id: 'x-data', title: 'Data link', href: 'data:text/html,<script>window.__pwn=1</script>', tone: 'warning' },
+      { id: 'x-ok', title: 'Safe link', href: '/devices/42', tone: 'success' },
+      { id: 'x-info', title: 'Plain', tone: 'info' },
+    ], { announce: false });
+    const row = (id) => el.querySelector(`.ds-notifications__item[data-ds-key="${id}"]`);
+    const glyph = (name) => DS.icons.iconElement(DS.icons[name], 20).innerHTML;
+    const out = {};
+    for (const id of ['x-js', 'x-data', 'x-ok', 'x-info']) {
+      out[id] = {
+        link: row(id).querySelector('.ds-notifications__title a')?.getAttribute('href') ?? null,
+        title: row(id).querySelector('.ds-notifications__title').textContent,
+        glyph: row(id).querySelector('.ds-notifications__icon svg').innerHTML,
+        word: row(id).querySelector('.ds-sr').textContent,
+      };
+    }
+    out.glyphs = { alertCircle: glyph('alertCircle'), alert: glyph('alert'), checkCircle: glyph('checkCircle'), info: glyph('info') };
+    for (const id of ['x-js', 'x-data', 'x-ok', 'x-info']) centre.remove(id);
+    return out;
+  });
+  expect(seen['x-js']).toMatchObject({ link: null, title: 'Script link', glyph: seen.glyphs.alertCircle, word: 'Error, Unread, ' });
+  expect(seen['x-data']).toMatchObject({ link: null, title: 'Data link', glyph: seen.glyphs.alert, word: 'Warning, Unread, ' });
+  expect(seen['x-ok']).toMatchObject({ link: '/devices/42', glyph: seen.glyphs.checkCircle, word: 'Success, Unread, ' });
+  expect(seen['x-info']).toMatchObject({ link: null, glyph: seen.glyphs.info, word: 'Unread, ' });
+  expect(await page.evaluate(() => window.__pwn)).toBeUndefined();
 });
 
 test('an empty centre shows the page\'s own empty state', async ({ page }) => {

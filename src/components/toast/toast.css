@@ -337,7 +337,11 @@
     pointer-events: none;
   }
 
-  .ds-toasts--stack > .ds-toast > * {
+  /* The content behind the front fades. Not the buttons: toast is a later
+     sublayer than button, so a transition here would replace their whole
+     list (press morph, focus snap, colours); their own list already fades
+     opacity on the same duration and curve. */
+  .ds-toasts--stack > .ds-toast > :not(.ds-btn) {
     transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 

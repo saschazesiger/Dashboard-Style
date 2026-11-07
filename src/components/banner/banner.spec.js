@@ -2,7 +2,8 @@
  * The banner (3.0): messages in priority order, the more button
  * (aria-expanded), dismissal remembered through DS.store (also after a new
  * render), focus that never falls to the body, broadcasts from data with
- * their announcement, the corners of stacked messages, a phone and forced
+ * their announcement, safe action links, a change of -max and -remember
+ * that keeps the controller, the corners of stacked messages, a phone and forced
  * colours. Runs in `fallback` too.
  */
 import { test, expect } from '../../../test/browser/base-test.js';
@@ -118,6 +119,52 @@ test('data-ds-banner-max shows that many; the more button stays away', async ({ 
   await expect(all.locator('.ds-banner__more')).toBeHidden();
   // Success is the lowest tone: the plain alert leads.
   await expect(all.locator(':scope > .ds-alert').first()).toHaveAttribute('data-ds-banner-id', 'sg-all-tip');
+});
+
+test('a change of data-ds-banner-max or -remember keeps the controller and the messages from data', async ({ page }) => {
+  await open(page);
+  const seen = await page.evaluate(async () => {
+    const el = document.querySelector('.ds-banner');
+    const handle = DS.banner.create(el);
+    handle.add({ id: 'data-1', tone: 'info', text: 'A notice from data.' });
+    const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+    // Room for all four: the three of the markup and the one from data.
+    el.setAttribute('data-ds-banner-max', '5');
+    await flush();
+    const afterMax = { same: DS.banner.create(el) === handle, kept: Boolean(el.querySelector('[data-ds-banner-id="data-1"]')), shown: el.querySelectorAll(':scope > .ds-alert:not([hidden])').length };
+    el.setAttribute('data-ds-banner-remember', 'off');
+    await flush();
+    const afterRemember = { same: DS.banner.create(el) === handle, kept: Boolean(el.querySelector('[data-ds-banner-id="data-1"]')) };
+    // The new storage (memory only) takes the dismissal; back on localStorage, which never had it, the message returns.
+    handle.dismiss('data-1');
+    const dismissed = el.querySelector('[data-ds-banner-id="data-1"]').hidden;
+    el.removeAttribute('data-ds-banner-remember');
+    await flush();
+    const back = !el.querySelector('[data-ds-banner-id="data-1"]').hidden;
+    el.removeAttribute('data-ds-banner-max');
+    await flush();
+    handle.remove('data-1');
+    return { afterMax, afterRemember, dismissed, back };
+  });
+  expect(seen.afterMax).toEqual({ same: true, kept: true, shown: 4 });
+  expect(seen.afterRemember).toEqual({ same: true, kept: true });
+  expect(seen.dismissed).toBe(true);
+  expect(seen.back).toBe(true);
+});
+
+test('an action href from data: only a safe link; a javascript: or data: URL makes a button', async ({ page }) => {
+  await open(page);
+  const seen = await page.evaluate(() => {
+    const el = document.querySelector('.ds-banner');
+    DS.banner.create(el).add([
+      { id: 'href-js', tone: 'info', text: 'Script.', action: { label: 'Open', href: 'javascript:window.__pwn=1' } },
+      { id: 'href-data', tone: 'info', text: 'Data.', action: { label: 'Open', href: 'data:text/html,x' } },
+      { id: 'href-ok', tone: 'info', text: 'Safe.', action: { label: 'Open', href: '/status' } },
+    ]);
+    const action = (id) => el.querySelector(`[data-ds-banner-id="${id}"] .ds-btn--text`);
+    return ['href-js', 'href-data', 'href-ok'].map((id) => ({ tag: action(id).tagName, href: action(id).getAttribute('href') }));
+  });
+  expect(seen).toEqual([{ tag: 'BUTTON', href: null }, { tag: 'BUTTON', href: null }, { tag: 'A', href: '/status' }]);
 });
 
 test('the keyboard: Tab goes through the action, the dismiss button, then the more button', async ({ page }) => {

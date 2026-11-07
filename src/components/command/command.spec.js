@@ -3,7 +3,8 @@
  * modal dialog (roles, names, aria-activedescendant), the fuzzy search and its
  * marks, the keys, running a command (focus back to the opener first), pages
  * and prefixes, the async search with its busy state, recent commands through
- * DS.store, the commands' shortcuts, a blocked and the empty state, the rows
+ * DS.store (never a provider's result), safe hrefs, aria-expanded while
+ * nothing matches, create() after destroy(), the commands' shortcuts, a blocked and the empty state, the rows
  * on the options model, a phone and forced colours. Runs in `fallback` too.
  */
 import { test, expect } from '../../../test/browser/base-test.js';
@@ -152,6 +153,11 @@ test('nothing found: the list hides, the message says so', async ({ page }) => {
   await expect(page.locator('.ds-command__list')).toBeHidden();
   await expect(page.locator('.ds-command__status')).toHaveText('0 results');
   expect(await page.evaluate(() => document.querySelector('.ds-command__input').hasAttribute('aria-activedescendant'))).toBe(false);
+  // The APG combobox: not expanded while its list is hidden, expanded again once it shows.
+  await expect(field(page)).toHaveAttribute('aria-expanded', 'false');
+  await field(page).fill('');
+  await expect(page.locator('.ds-command__list')).toBeVisible();
+  await expect(field(page)).toHaveAttribute('aria-expanded', 'true');
 });
 
 test('recent commands lead the empty field, remembered through DS.store', async ({ page }) => {
@@ -168,6 +174,46 @@ test('recent commands lead the empty field, remembered through DS.store', async 
   await expect(first.locator('.ds-command__label')).toHaveText(['Open a ticket']);
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem(`ds:command:${document.querySelector('[data-demo="palette"]').id}`)));
   expect(stored).toEqual(['new-ticket']);
+  // A provider's result runs, but never takes a Recent slot: it could not show there again.
+  await field(page).fill('LAPTOP-0042');
+  await page.locator('.ds-command__item', { hasText: 'Issued to Ada Lovelace' }).first().click();
+  await expect(dialog(page)).not.toHaveAttribute('data-state', 'open');
+  const after = await page.evaluate(() => JSON.parse(localStorage.getItem(`ds:command:${document.querySelector('[data-demo="palette"]').id}`)));
+  expect(after).toEqual(['new-ticket']);
+});
+
+test('an href from data is followed only when safe; a javascript: URL goes to reportError', async ({ page }) => {
+  await open(page);
+  const seen = await page.evaluate(async () => {
+    const el = document.querySelector('[data-demo="palette"]');
+    const palette = DS.command.create(el);
+    const reported = [];
+    window.reportError = (error) => reported.push(String(error && error.message));
+    palette.set({ commands: [{ id: 'bad', label: 'Bad link', href: 'javascript:window.__pwn=1' }, { id: 'worse', label: 'Data link', href: 'data:text/html,x' }] });
+    palette.run('bad');
+    palette.run('worse');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    return { reported, pwned: window.__pwn ?? null, url: location.href };
+  });
+  expect(seen.pwned).toBeNull();
+  expect(seen.reported).toHaveLength(2);
+  expect(seen.reported[0]).toContain('Bad link');
+  expect(seen.url).toContain('component.html?c=command');
+});
+
+test('a palette made by create() and destroyed: the next create() makes a new one, and Ctrl+K opens it', async ({ page }) => {
+  await open(page);
+  const fresh = await page.evaluate(() => {
+    const el = document.querySelector('[data-demo="palette"]');
+    const before = DS.command.create(el);
+    before.destroy();
+    const after = DS.command.create(el, { commands: [{ id: 'one', label: 'The only command', run() {} }] });
+    return after !== before;
+  });
+  expect(fresh).toBe(true);
+  await page.keyboard.press('Control+k');
+  await expect(dialog(page)).toHaveAttribute('data-state', 'open');
+  await expect(page.locator('.ds-command__item .ds-command__label')).toHaveText(['The only command']);
 });
 
 test('a command\'s shortcut shows as keys and runs it without the palette; the sheet lists it', async ({ page }) => {

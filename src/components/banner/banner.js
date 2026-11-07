@@ -30,7 +30,12 @@
  * broadcast takes a new id. An alert without an id is not dismissible
  * (nothing to remember). Focus goes to the next message's dismiss button,
  * else to the more button, else to the view (.ds-view), never the body.
- * A banner with nothing to show is hidden, so it takes no room.
+ * A banner with nothing to show is hidden, so it takes no room. A change
+ * of data-ds-banner-max or data-ds-banner-remember applies at once and
+ * keeps the controller and its messages from data (update()).
+ *
+ * Links from data: an action's href only when DS.core.safeHref() accepts
+ * it (http, https, mailto, tel or relative); else the action is a button.
  *
  * Motion: shown, hidden and dismissed messages change inside
  * DS.motion.flip() on the banner's parent (the .ds-panel), so the view
@@ -46,7 +51,7 @@
  *
  * ES2022; no progressive feature of its own.
  */
-import { define, emit, t } from '../../js/core.js';
+import { define, emit, safeHref, t } from '../../js/core.js';
 import { enter, flip } from '../../js/motion.js';
 import { alert as alertGlyph, alertCircle, checkCircle, close as closeGlyph, iconElement, info } from '../../js/icons.js';
 import { open as openStore } from '../../js/store.js';
@@ -120,7 +125,7 @@ let numbered = 0;
 
 function controller(el, given = {}, signal = null) {
   const doc = el.ownerDocument;
-  const store = storeFor(el);
+  let store = storeFor(el);
   const listeners = new Map();
   const lifetime = new AbortController();
   signal?.addEventListener('abort', () => lifetime.abort(), { once: true });
@@ -188,10 +193,12 @@ function controller(el, given = {}, signal = null) {
     alert.append(text);
     const action = banner.action;
     if (action?.label) {
-      const link = doc.createElement(action.href ? 'a' : 'button');
+      // An href from data only when safe: a javascript: or data: URL makes a button (its onClick, if any).
+      const href = safeHref(action.href);
+      const link = doc.createElement(href ? 'a' : 'button');
       link.className = 'ds-btn ds-btn--text ds-sm';
       link.textContent = String(action.label);
-      if (action.href) link.setAttribute('href', String(action.href));
+      if (href) link.setAttribute('href', href);
       else {
         link.setAttribute('type', 'button');
         link.addEventListener('click', (event) => {
@@ -305,9 +312,10 @@ function controller(el, given = {}, signal = null) {
   }, { signal: lifetime.signal });
 
   // Dismissed in another tab (or restored): this one follows.
-  const offStore = store.on('change', ({ key }) => {
+  const follow = () => store.on('change', ({ key }) => {
     if (key === null || alerts().some((alert) => idOf(alert) === key)) changed();
   });
+  let offStore = follow();
 
   const add = (banners, speak = false) => {
     const added = [];
@@ -378,6 +386,20 @@ function controller(el, given = {}, signal = null) {
       if (!listeners.has(type)) listeners.set(type, new Set());
       listeners.get(type).add(fn);
       return () => listeners.get(type)?.delete(fn);
+    },
+    /**
+     * A change of data-ds-banner-max or -remember (core calls it): the
+     * same controller keeps its messages from data; a new remember swaps
+     * the storage of the dismissals.
+     */
+    update(names = []) {
+      if (names.includes('data-ds-banner-remember')) {
+        offStore();
+        store.destroy();
+        store = storeFor(el);
+        offStore = follow();
+      }
+      changed();
     },
     destroy() {
       made.delete(el);

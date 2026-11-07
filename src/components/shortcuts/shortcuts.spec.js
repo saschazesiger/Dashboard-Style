@@ -114,6 +114,24 @@ test('render() writes the same list into a help page and follows changes', async
   expect(count).toBe(8);
 });
 
+test('a sheet made by create() and destroyed: the next create() makes a new one', async ({ page }) => {
+  await open(page);
+  const fresh = await page.evaluate(() => {
+    const el = document.createElement('dialog');
+    el.className = 'ds-dialog ds-shortcuts';
+    el.innerHTML = '<div class="ds-shortcuts__list"></div>';
+    document.querySelector('#fx-component').append(el);
+    const before = DS.shortcuts.create(el, { hotkey: 'off' });
+    before.destroy();
+    const after = DS.shortcuts.create(el, { hotkey: 'off' });
+    const out = { fresh: Boolean(after) && after !== before, same: DS.shortcuts.create(el) === after };
+    after.destroy();
+    el.remove();
+    return out;
+  });
+  expect(fresh).toEqual({ fresh: true, same: true });
+});
+
 test('the options: density changes a row, size the label\'s type, shape the keys', async ({ page }) => {
   await open(page);
   const measure = (classes) => page.evaluate((classes) => {

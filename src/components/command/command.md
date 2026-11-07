@@ -83,7 +83,7 @@ Phones (600px and below): the box fills the window, the key hints of the foot an
 | `keywords` | more words that find it (a list, or a text) |
 | `icon` | a glyph of `DS.icons` |
 | `shortcut` | a combo of `DS.hotkeys` (or a list): shown as keys (`.ds-command__shortcut`, `aria-keyshortcuts` on the option) and registered with `DS.hotkeys` while the palette lives, so it works without the palette and shows on the [shortcut sheet](#shortcut-sheet) (`shortcuts: false` leaves them out) |
-| `href`, `run(command, palette)` | what it does: the palette closes (focus goes back to its opener), then it runs |
+| `href`, `run(command, palette)` | what it does: the palette closes (focus goes back to its opener), then it runs. An `href` is followed only when [`DS.core.safeHref()`](core.md) accepts it (`http:`, `https:`, `mailto:`, `tel:` or relative); otherwise nothing happens and the error goes to `reportError` |
 | `children` | makes it a page: a list, or a function `(query, { signal })` that returns one or a promise of one (a search on the server); the option shows `.ds-command__chevron` |
 | `prefix`, `placeholder` | a page's character that, typed first, enters it (`>`, `#`); the field's placeholder there |
 | `disabled` | shown with `aria-disabled`, reachable, never run |
@@ -100,14 +100,17 @@ Phones (600px and below): the box fills the window, the key hints of the foot an
   best match. `DS.command.fuzzy(query, text)` and `DS.command.rank(commands, query)` are the same search for a page's
   own lists.
 - **Recent.** The last commands run (`recent`, default 5; 0: none) lead the empty field under "Recent", remembered
-  through [`DS.store`](core.md#dsstore-remembered-preferences) (namespace `command`, the dialog's id as key).
+  through [`DS.store`](core.md#dsstore-remembered-preferences) (namespace `command`, the dialog's id as key). Only
+  the palette's own `commands` and the items of their list pages are remembered: a provider's result or an item of a
+  page function is data of the moment, so it never takes a Recent slot.
 - **Pages.** A command with `children` opens in place: its label shows before the field (`.ds-command__back`, a
   button that goes back), the list holds its children. Backspace in an empty field and Escape go back one page; on
   the first page Escape closes the palette.
 - **Providers.** `providers` (each `{ group, search(query, { signal, page }), minLength }`) and a page's function
   are asked --ds-dur-fast after the last key; a newer query aborts the older call (its `signal`). Meanwhile the list
   has `aria-busy="true"` and the status line a `.ds-spinner` (after `--ds-delay-loader`); a failure says so there.
-- **Empty.** Nothing found: the list hides and `.ds-command__empty` says `No results for "…"` (`commandEmpty`).
+- **Empty.** Nothing found: the list hides (the field's `aria-expanded` turns `false`) and `.ds-command__empty` says
+  `No results for "…"` (`commandEmpty`).
 
 ### JS API
 
@@ -124,8 +127,8 @@ Phones (600px and below): the box fills the window, the key hints of the foot an
 
 ### Accessibility
 
-- The WAI-ARIA combobox in a modal dialog: the field is `role="combobox"` with `aria-expanded="true"`,
-  `aria-controls` and `aria-activedescendant` (written by `command.js`), the list a `role="listbox"` of options in
+- The WAI-ARIA combobox in a modal dialog: the field is `role="combobox"` with `aria-expanded` (`true` while the list
+  has options, `false` while nothing matches), `aria-controls` and `aria-activedescendant` (written by `command.js`), the list a `role="listbox"` of options in
   `role="group"`s named by their headings. The active option carries `aria-selected="true"` and `data-active`. Name the
   dialog (`aria-label`) and the field.
 - Keys: ArrowDown and ArrowUp move the active option (wrapping), PageDown and PageUp go to the next or previous group,

@@ -32,6 +32,8 @@ export interface BannerController {
   restore(id: string): void;
   /** Shows every message (or only the first data-ds-banner-max again). */
   expand(on?: boolean): void;
+  /** Applies a change of data-ds-banner-max or -remember (core calls it); the messages from data stay. */
+  update(names?: string[]): void;
   on(type: 'change', fn: (detail: { shown: string[]; hidden: string[] }) => void): () => void;
   on(type: 'dismiss', fn: (detail: { id: string }) => void): () => void;
   destroy(): void;
