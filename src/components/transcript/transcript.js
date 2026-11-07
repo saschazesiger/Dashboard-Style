@@ -216,8 +216,30 @@ function controller(el) {
     if (text) announce(text);
   }
 
+  /**
+   * Whether the reader was at the end before `records` added to it: at the
+   * end by followEnd(), and the first node added after the last message
+   * starts within a gap of the bottom edge. The second half matters when
+   * the page moved scrollTop in the same task (its scroll event comes
+   * later, so followEnd() has not seen it yet).
+   */
+  function endBefore(records) {
+    if (!atEnd()) return false;
+    let first = Infinity;
+    for (const item of records) {
+      for (const node of Array.from(item.addedNodes)) {
+        if (node.nodeType !== 1 || !node.isConnected) continue;
+        if (tail?.isConnected && !(tail.compareDocumentPosition(node) & 4)) continue;
+        first = Math.min(first, /** @type {Element} */ (node).getBoundingClientRect().top);
+      }
+    }
+    if (first === Infinity) return true;
+    const gapPx = Number.parseFloat(view.getComputedStyle(list).rowGap) || 0;
+    return first - el.getBoundingClientRect().top <= el.clientHeight + gapPx + END_SLOP_PX;
+  }
+
   function arrived(records) {
-    const wasAtEnd = atEnd();
+    const wasAtEnd = endBefore(records);
     for (const item of records) {
       for (const node of Array.from(item.addedNodes)) {
         if (node.nodeType !== 1) continue;
@@ -234,7 +256,7 @@ function controller(el) {
       }
     }
     tail = Array.from(list.querySelectorAll('.ds-message')).at(-1) ?? null;
-    // At the end, a new line keeps the reader there before the next scroll
+    // At the end, what arrives keeps the reader there before the next scroll
     // event: WebKit clamps scrollTop silently when the content shrinks (a
     // font swap) and fires that event late, with the next change, which
     // followEnd() would read as the reader scrolling up.
