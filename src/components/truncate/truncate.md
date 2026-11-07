@@ -19,7 +19,10 @@ whole in a tooltip; a screen reader always reads it whole.
 
 For `start` and `middle` the module cuts the text itself on every resize, as many characters as fit, between
 graphemes, so an emoji or an accented letter stays whole. It writes what shows into `.ds-truncate__shown`
-(`aria-hidden`) and keeps the whole text in a `.ds-sr` beside it. The whole text is the element's text when it starts,
+(`aria-hidden`) and keeps the whole text in a `.ds-sr` beside it. It sizes the candidates on a canvas in the element's
+font, and every text of the page that needs measuring (when it starts, on a resize, after a re-render) goes in one
+batch with one `ResizeObserver`, so a table of a few hundred file names costs a few layouts per resize, not one per
+candidate. The whole text is the element's text when it starts,
 or `data-ds-truncate-text`; a re-render with `DS.dom.morphHtml` that writes a new text is taken as the new whole text.
 
 While the text is cut, `data-tip` holds the whole text (owned state, so a re-render keeps it), and the tooltips of

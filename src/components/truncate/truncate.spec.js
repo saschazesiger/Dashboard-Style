@@ -5,7 +5,7 @@
  * two-line clamp. Runs in `fallback` too.
  */
 import { test, expect } from '../../../test/browser/base-test.js';
-import { ready } from '../../../test/browser/helpers/motion.js';
+import { layouts, ready } from '../../../test/browser/helpers/motion.js';
 
 async function open(page) {
   await page.goto('/test/browser/fixtures/component.html?c=truncate');
@@ -94,4 +94,38 @@ test('two lines: clamped by CSS (360px)', async ({ page }) => {
   const lines = page.locator('#fx-component .ds-truncate--lines');
   const [height, line] = await lines.evaluate((el) => [el.getBoundingClientRect().height, parseFloat(getComputedStyle(el).lineHeight)]);
   expect(Math.round(height / line)).toBe(2);
+});
+
+test('four hundred file names are cut when they start and again on a resize in one batch, not a layout per candidate', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const box = document.createElement('div');
+    box.id = 'many';
+    box.style.inlineSize = '600px';
+    document.querySelector('#fx-component').append(box);
+  });
+  const read = () => page.evaluate(() => [...document.querySelectorAll('#many .ds-truncate')].map((el) => {
+    const shown = el.querySelector('.ds-truncate__shown');
+    return { fits: el.scrollWidth <= el.clientWidth + 0.5, cut: Boolean(shown), share: shown ? shown.getBoundingClientRect().width / el.clientWidth : 1 };
+  }));
+  const start = await layouts(page, (count) => {
+    const html = Array.from({ length: count }, (_, index) => `<div><span class="ds-truncate" data-ds-truncate="middle">inventory-export-${index}-2026-11-04-final-reviewed-by-ada-lovelace-for-every-printer-and-scanner-in-the-north-building.csv</span></div>`).join('');
+    window.DS.dom.morphHtml(document.querySelector('#many'), html);
+  }, 400);
+  const wide = await read();
+  const resize = await layouts(page, () => {
+    document.querySelector('#many').style.inlineSize = '300px';
+  });
+  const narrow = await read();
+  test.info().annotations.push({ type: 'layouts', description: `start: ${start.forced} forced in ${Math.round(start.ms)}ms; resize: ${resize.forced} forced in ${Math.round(resize.ms)}ms` });
+  for (const rows of [wide, narrow]) {
+    expect(rows).toHaveLength(400);
+    expect(rows.every((row) => row.fits && row.cut)).toBe(true);
+    // As much as fits: the cut fills its room but for a character or two.
+    expect(Math.min(...rows.map((row) => row.share))).toBeGreaterThan(0.9);
+  }
+  // A layout per candidate forced thousands here (seconds: 4.7s for 200
+  // names in Chromium); the batch forces a few for all of them.
+  expect(start.forced).toBeLessThan(10);
+  expect(resize.forced).toBeLessThan(10);
 });

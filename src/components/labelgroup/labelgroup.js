@@ -10,13 +10,16 @@
  *
  * It measures the tags once they show, keeps those that fit on the line
  * (at most data-ds-label-group-max) and hides the others; again when the
- * group's width changes (ResizeObserver) and when the page re-renders the
- * list (DS.dom.morphHtml). One tag left alone in too little room ends in
- * an ellipsis. The button (.ds-label-group__more, a .ds-btn) says "+N"
- * and, for a screen reader, how many there are in all; it opens the popup
- * (.ds-label-group__popup, role="dialog", named like the list) with every
- * tag again, through DS.overlay: Escape closes it and focus goes back to
- * the button; a pointerdown outside it or focus that leaves it closes it.
+ * group's size changes (ResizeObserver) and when the page re-renders the
+ * list (DS.dom.morphHtml). Every group of the page is measured in one
+ * batch (reads before writes) and each tag's width is kept until the list
+ * changes, so a table column of groups costs a layout or two per resize.
+ * One tag left alone in too little room ends in an ellipsis. The button
+ * (.ds-label-group__more, a .ds-btn) says "+N" and, for a screen reader,
+ * how many there are in all; it opens the popup (.ds-label-group__popup,
+ * role="dialog", named like the list) with every tag again, through
+ * DS.overlay: Escape closes it and focus goes back to the button; a
+ * pointerdown outside it or focus that leaves it closes it.
  * The popup is placed at the button by DS.position: anchored in the top
  * layer where the engine can, else by --ds-label-group-x/-y.
  *
@@ -63,9 +66,77 @@ export function visibleCount(widths, room, more, gap, max = Infinity) {
   return 1;
 }
 
-function controller(el, given) {
+/* Measuring. Every group that needs measuring (at the start, on a resize,
+   after a re-render) joins one batch per window: one ResizeObserver for
+   all of them, a microtask after DS.init() or a re-render. The batch reads
+   every group before it writes any, so a column of five hundred groups
+   costs a layout or two, not one per group; the width of each tag is kept
+   until the list changes or a tag shows another width (a size class, a
+   font that loaded). */
+
+/** The border-box size [inline, block] as the ResizeObserver reports it. */
+function sizeOf(record) {
+  const box = record.borderBoxSize;
+  const first = Array.isArray(box) || (box && typeof box.length === 'number') ? box[0] : box;
+  return first ? [first.inlineSize, first.blockSize] : [record.contentRect.width, record.contentRect.height];
+}
+
+/** The batch of each window: the groups to measure, every group, the observer and the sizes it last saw. */
+const batches = new WeakMap();
+
+function batchOf(view) {
+  let batch = batches.get(view);
+  if (batch) return batch;
+  batch = { dirty: new Set(), all: new Set(), owners: new Map(), queued: false, seen: new WeakMap(), observer: null };
+  if (typeof view.ResizeObserver === 'function') {
+    batch.observer = new view.ResizeObserver((records) => {
+      for (const record of records) {
+        const [inline, block] = sizeOf(record);
+        const seen = batch.seen.get(record.target);
+        // The size of the last measuring: nothing changed.
+        if (seen && Math.abs(seen[0] - inline) < 0.5 && Math.abs(seen[1] - block) < 0.5) continue;
+        batch.seen.set(record.target, [inline, block]);
+        const one = batch.owners.get(record.target);
+        if (one) batch.dirty.add(one);
+      }
+      flush(batch);
+    });
+  }
+  // A font that loaded changes every tag's width.
+  view.document?.fonts?.addEventListener?.('loadingdone', () => {
+    for (const one of batch.all) one.stale();
+    for (const one of batch.all) batch.dirty.add(one);
+    flush(batch);
+  });
+  batches.set(view, batch);
+  return batch;
+}
+
+/** Measures the batch soon (a microtask: after DS.init() or a re-render has made all of them). */
+function schedule(batch, one) {
+  batch.dirty.add(one);
+  if (batch.queued) return;
+  batch.queued = true;
+  queueMicrotask(() => {
+    if (batch.queued) flush(batch);
+  });
+}
+
+/** Every dirty group: reads (free in a ResizeObserver callback), writes, reads, writes. */
+function flush(batch) {
+  batch.queued = false;
+  const list = [...batch.dirty].filter((one) => one.live());
+  batch.dirty.clear();
+  for (const one of list) one.probe();
+  for (const one of list) one.prepare();
+  for (const one of list) one.read();
+  for (const one of list) one.write();
+}
+
+function controller(el, given, now = false) {
   const doc = el.ownerDocument;
   const view = doc?.defaultView ?? globalThis;
+  const batch = batchOf(view);
   const listeners = new Set();
   let live = true;
   let hiddenCount = 0;
@@ -111,35 +182,88 @@ function controller(el, given) {
   };
 
   const label = (hidden, total) => {
-    count.textContent = `+${hidden}`;
-    more.setAttribute('aria-label', t('labelGroupMore', { count: hidden, total }));
+    const shown = `+${hidden}`;
+    if (count.textContent !== shown) count.textContent = shown;
+    const name = t('labelGroupMore', { count: hidden, total });
+    if (more.getAttribute('aria-label') !== name) more.setAttribute('aria-label', name);
+  };
+
+  /** The widths of the tags and of the widest button, kept until the list changes or a tag shows another width. */
+  let sizes = null;
+  /** One measuring: the tags, whether they are measured afresh, the room and the gap. */
+  let pass = null;
+
+  const box = () => el.getBoundingClientRect();
+
+  const one = {
+    live: () => live,
+    stale() {
+      sizes = null;
+    },
+    probe() {
+      const tags = items();
+      pass = { tags, fresh: false, measured: false, room: 0, gap: 0 };
+      if (!el.isConnected || !tags.length) {
+        sizes = null;
+        return;
+      }
+      const valid = sizes && sizes.total === tags.length && !(sizes.capped && Math.abs(sizes.room - el.clientWidth) >= 0.5)
+        && tags.every((item, index) => item.hidden || Math.abs(item.getBoundingClientRect().width - sizes.widths[index]) < 0.5);
+      if (!valid) {
+        pass.fresh = true;
+        return;
+      }
+      pass.measured = true;
+      pass.room = el.clientWidth;
+      pass.gap = parseFloat(view.getComputedStyle(el).columnGap) || 0;
+      const rect = box();
+      batch.seen.set(el, [rect.width, rect.height]);
+    },
+    prepare() {
+      if (!pass.fresh) return;
+      for (const item of pass.tags) item.hidden = false;
+      // The widest the button gets: "+N" of every tag.
+      label(pass.tags.length, pass.tags.length);
+      more.hidden = false;
+    },
+    read() {
+      if (!pass.fresh) return;
+      const { tags } = pass;
+      const widths = tags.map((item) => item.getBoundingClientRect().width);
+      const strip = list();
+      const style = view.getComputedStyle(strip);
+      // A tag as wide as the list is capped by it: its width holds only for this room.
+      const inner = strip.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0);
+      pass.measured = true;
+      pass.room = el.clientWidth;
+      pass.gap = parseFloat(view.getComputedStyle(el).columnGap) || 0;
+      sizes = { total: tags.length, widths, button: more.getBoundingClientRect().width, room: pass.room, capped: widths.some((width) => width >= inner - 0.5) };
+      const rect = box();
+      batch.seen.set(el, [rect.width, rect.height]);
+    },
+    write() {
+      if (!pass) return;
+      const { tags, measured, room, gap } = pass;
+      pass = null;
+      const before = hiddenCount;
+      const shown = measured && sizes ? visibleCount(sizes.widths, room, sizes.button, gap, max()) : tags.length;
+      tags.forEach((item, index) => {
+        const hide = index >= shown;
+        if (item.hidden !== hide) item.hidden = hide;
+      });
+      hiddenCount = tags.length - shown;
+      label(hiddenCount, tags.length);
+      if (more.hidden !== (hiddenCount === 0)) more.hidden = hiddenCount === 0;
+      if (!hiddenCount && isOpen) api.set(false);
+      watcher?.takeRecords();
+      if (hiddenCount !== before) tell();
+    },
   };
 
   const measure = () => {
     if (!live) return;
-    const tags = items();
-    const before = hiddenCount;
-    for (const item of tags) item.hidden = false;
-    let shown = tags.length;
-    if (el.isConnected && tags.length) {
-      const gap = parseFloat(view.getComputedStyle(el).columnGap) || 0;
-      // The widest the button gets: "+N" of every tag but one.
-      label(tags.length, tags.length);
-      more.hidden = false;
-      const button = more.getBoundingClientRect().width;
-      more.hidden = true;
-      const widths = tags.map((item) => item.getBoundingClientRect().width);
-      shown = visibleCount(widths, el.clientWidth, button, gap, max());
-    }
-    tags.forEach((item, index) => {
-      item.hidden = index >= shown;
-    });
-    hiddenCount = tags.length - shown;
-    label(hiddenCount, tags.length);
-    more.hidden = hiddenCount === 0;
-    if (!hiddenCount && isOpen) api.set(false);
-    watcher?.takeRecords();
-    if (hiddenCount !== before) tell();
+    batch.dirty.add(one);
+    flush(batch);
   };
 
   /** Every tag again, copied into the popup (ids dropped: they are the page's). */
@@ -231,16 +355,24 @@ function controller(el, given) {
   };
   popup.addEventListener('ds:close', onClose);
 
-  const watcher = typeof view.MutationObserver === 'function' ? new view.MutationObserver(() => measure()) : null;
-  const resize = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(() => measure()) : null;
-  resize?.observe(el);
+  // A re-render of the list: its tags are measured afresh, with every other group that waits.
+  const watcher = typeof view.MutationObserver === 'function' ? new view.MutationObserver(() => {
+    if (!live) return;
+    sizes = null;
+    schedule(batch, one);
+  }) : null;
+  batch.all.add(one);
+  batch.owners.set(el, one);
+  batch.observer?.observe(el);
 
   const api = {
     get() {
+      if (batch.dirty.has(one)) flush(batch);
       return { total: items().length, hidden: hiddenCount, open: isOpen };
     },
     set(next) {
       if (!live) return;
+      if (batch.dirty.has(one)) flush(batch);
       if (next && !isOpen && hiddenCount) show();
       else if (!next && isOpen) hide();
     },
@@ -250,6 +382,7 @@ function controller(el, given) {
       return () => listeners.delete(fn);
     },
     update() {
+      sizes = null;
       measure();
     },
     destroy() {
@@ -257,7 +390,10 @@ function controller(el, given) {
       if (isOpen) hide();
       live = false;
       watcher?.disconnect();
-      resize?.disconnect();
+      batch.dirty.delete(one);
+      batch.all.delete(one);
+      batch.owners.delete(el);
+      batch.observer?.unobserve(el);
       popupWatch?.disconnect();
       shared.open.delete(popup);
       release();
@@ -271,7 +407,9 @@ function controller(el, given) {
     },
   };
 
-  measure();
+  // From the page (create()): measured at once, with whatever else waits.
+  if (now) measure();
+  else schedule(batch, one);
   const target = list();
   if (target) watcher?.observe(target, { childList: true, subtree: true, characterData: true });
   return api;
@@ -305,5 +443,5 @@ define('labelgroup', {
  * @param {{ max?: number }} [options]
  */
 export function create(el, options = {}) {
-  return get(el, 'labelgroup') ?? controller(el, options);
+  return get(el, 'labelgroup') ?? controller(el, options, true);
 }

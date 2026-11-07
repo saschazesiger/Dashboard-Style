@@ -7,7 +7,7 @@
  * placement).
  */
 import { test, expect } from '../../../test/browser/base-test.js';
-import { ready, settle } from '../../../test/browser/helpers/motion.js';
+import { layouts, ready, settle } from '../../../test/browser/helpers/motion.js';
 
 const SIZES = [['ds-xs'], ['ds-sm'], ['ds-md'], ['ds-lg'], ['ds-xl']];
 
@@ -204,4 +204,42 @@ test('forced colours: the popup keeps an edge', async ({ page, browserName }) =>
   const edge = await dialog.evaluate((el) => [getComputedStyle(el).outlineStyle, getComputedStyle(el).outlineColor]);
   expect(edge[0]).toBe('solid');
   expect(edge[1]).not.toBe('rgba(0, 0, 0, 0)');
+});
+
+test('two hundred groups (a table column) are measured in one batch when they start and on a resize', async ({ page }) => {
+  // WebKit spends long on each `hidden` toggle of a page this size.
+  test.setTimeout(90000);
+  await open(page);
+  await page.evaluate(() => {
+    const box = document.createElement('div');
+    box.id = 'many';
+    box.style.inlineSize = '600px';
+    document.querySelector('#fx-component').append(box);
+  });
+  const read = () => page.evaluate(() => [...document.querySelectorAll('#many .ds-label-group')].map((el) => {
+    const shown = [...el.querySelectorAll('.ds-label-group__list > li')].filter((li) => !li.hidden);
+    const more = el.querySelector('.ds-label-group__more');
+    const end = more.hidden ? shown.at(-1).getBoundingClientRect().right : more.getBoundingClientRect().right;
+    return { shown: shown.length, fits: end <= el.getBoundingClientRect().right + 0.5 };
+  }));
+  const start = await layouts(page, (count) => {
+    const tags = ['Printer', 'Waiting for parts', 'Second floor', 'Hardware', 'Vendor', 'Product'].map((name) => `<li><span class="ds-tag">${name}</span></li>`).join('');
+    const html = Array.from({ length: count }, (_, index) => `<div class="ds-label-group" data-ds-label-group><ul class="ds-label-group__list" aria-label="Labels of ticket ${index}">${tags}</ul></div>`).join('');
+    window.DS.dom.morphHtml(document.querySelector('#many'), html);
+  }, 200);
+  const wide = await read();
+  const resize = await layouts(page, () => {
+    document.querySelector('#many').style.inlineSize = '300px';
+  });
+  const narrow = await read();
+  test.info().annotations.push({ type: 'layouts', description: `start: ${start.forced} forced in ${Math.round(start.ms)}ms; resize: ${resize.forced} forced in ${Math.round(resize.ms)}ms` });
+  expect(wide).toHaveLength(200);
+  expect(wide.every((row) => row.fits)).toBe(true);
+  expect(narrow.every((row) => row.fits)).toBe(true);
+  expect(narrow[0].shown).toBeLessThan(wide[0].shown);
+  // A layout per group forced hundreds here (for 500 groups 2.5s to
+  // start, 1.8s per resize in Chromium); the batch forces a few for all of
+  // them, and a resize reuses the widths of the tags.
+  expect(start.forced).toBeLessThan(10);
+  expect(resize.forced).toBeLessThan(10);
 });

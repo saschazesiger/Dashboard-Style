@@ -35,7 +35,9 @@ The module writes the button and the popup after the list:
 
 On the group. It measures the tags, keeps those that fit on the line and hides the others, at most
 `data-ds-label-group-max` of them (a fixed number: "the first 3"); again when the group's width changes and when the
-page re-renders the list (`DS.dom.morphHtml`). One tag left alone in too little room ends in an ellipsis. The button
+page re-renders the list (`DS.dom.morphHtml`). Every group of the page is measured in one batch, reads before writes,
+and each tag's width is kept until the list changes, so a table column of a few hundred groups costs a layout or two
+per resize. One tag left alone in too little room ends in an ellipsis. The button
 opens the popup through `DS.overlay`: it grows from the button, focus moves into it, Escape closes it and focus goes
 back to the button; a pointerdown outside it or focus that leaves it (Tab on) closes it too. The popup is placed at the
 button: anchored in the top layer where the engine can, else by the script (`--ds-label-group-x`, `--ds-label-group-y`).

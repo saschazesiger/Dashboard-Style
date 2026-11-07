@@ -16,8 +16,9 @@ message in a list. The button shows only while the text is longer than those lin
 `<button class="ds-link-btn ds-expandable__toggle" type="button" aria-expanded="false" aria-controls="...">`, labelled
 with the strings `showMore` and `showLess`. It writes `data-state` on the element: `closed` clamps the text to
 `--ds-expandable-lines` (3), `open` shows it whole; a text that fits gets neither and no toggle. Without the script the
-whole text shows. Whether the text is longer than its lines is measured again on every resize, so a phone may show
-the toggle where a wide screen does not.
+whole text shows. Whether the text is longer than its lines is measured again when its width or its text changes, so
+a phone may show the toggle where a wide screen does not. Every expandable text of the page is measured in one batch
+(reads before writes), so a page of hundreds costs one layout per resize.
 
 | Part | Class | What |
 |---|---|---|

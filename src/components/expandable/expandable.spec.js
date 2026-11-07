@@ -5,7 +5,7 @@
  * screen reader, set() and ds:change. Runs in `fallback` too.
  */
 import { test, expect } from '../../../test/browser/base-test.js';
-import { ready } from '../../../test/browser/helpers/motion.js';
+import { layouts, ready } from '../../../test/browser/helpers/motion.js';
 
 async function open(page) {
   await page.goto('/test/browser/fixtures/component.html?c=expandable');
@@ -70,4 +70,34 @@ test('set() opens it from the page and emits ds:change', async ({ page }) => {
     window.DS.get(el, 'expandable').set(true);
   }));
   expect(detail).toEqual({ open: true });
+});
+
+test('five hundred texts are measured in one batch when they start and on a resize', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const box = document.createElement('div');
+    box.id = 'many';
+    box.style.inlineSize = '900px';
+    document.querySelector('#fx-component').append(box);
+  });
+  const states = () => page.evaluate(() => [...document.querySelectorAll('#many .ds-expandable')].map((el) => el.getAttribute('data-state')));
+  const start = await layouts(page, (count) => {
+    const words = 'The printer on the second floor jams on every third page; the tray was replaced and the rollers cleaned.';
+    const html = Array.from({ length: count }, () => `<div class="ds-expandable" data-ds-expandable><div class="ds-expandable__text">${words}</div></div>`).join('');
+    window.DS.dom.morphHtml(document.querySelector('#many'), html);
+  }, 500);
+  const wide = await states();
+  const resize = await layouts(page, () => {
+    document.querySelector('#many').style.inlineSize = '120px';
+  });
+  const narrow = await states();
+  test.info().annotations.push({ type: 'layouts', description: `start: ${start.forced} forced in ${Math.round(start.ms)}ms; resize: ${resize.forced} forced in ${Math.round(resize.ms)}ms` });
+  // One line at 900px; many more than three at 120px.
+  expect(wide).toHaveLength(500);
+  expect(wide.every((state) => state === null)).toBe(true);
+  expect(narrow.every((state) => state === 'closed')).toBe(true);
+  // A layout per text forced five hundred here (1.9s to start, 0.9s per
+  // resize in Chromium); the batch forces a few for all of them.
+  expect(start.forced).toBeLessThan(10);
+  expect(resize.forced).toBeLessThan(10);
 });

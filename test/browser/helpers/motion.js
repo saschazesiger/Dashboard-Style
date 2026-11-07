@@ -1,7 +1,8 @@
 /**
  * The one shared helper module of the browser tests: reading motion out of
  * a page (timelines, seek-based and real-time samples), driving it (freeze,
- * seek, speed, pointer, keyboard focus) and judging a series of numbers.
+ * seek, speed, pointer, keyboard focus), counting the layouts it forces
+ * (layouts()) and judging a series of numbers.
  *
  * It imports only node:* and never @playwright/test: page functions take
  * Playwright `page` or `locator` objects as arguments and run their code
@@ -282,6 +283,70 @@ export async function settle(page, { timeout = 3000 } = {}) {
     }
   }, timeout);
   if (pending.length) throw new Error(`Animations did not settle within ${timeout}ms: ${pending.join(', ')}`);
+}
+
+/**
+ * Counts the layouts the page forces while `run` (a page function, awaited)
+ * goes on and one frame after it: a layout read (getBoundingClientRect, the
+ * client, scroll and offset sizes, getComputedStyle) that follows a DOM
+ * write (an attribute, `hidden`, a text, a node added or removed) counts
+ * once; reads in a row after it count nothing more. Engine-independent,
+ * unlike a time: a behaviour that measures each of 500 elements between
+ * writes forces about 500, one that reads every element before it writes
+ * any a handful. `arg` is passed to `run`; resolves to { forced, ms, value }
+ * (`value` what `run` returned, `ms` the time it took with the frame).
+ */
+export function layouts(page, run, arg) {
+  return page.evaluate(async ([source, given]) => {
+    let dirty = false;
+    let forced = 0;
+    const undo = [];
+    const mark = (write) => {
+      if (write) dirty = true;
+      else if (dirty) {
+        dirty = false;
+        forced += 1;
+      }
+    };
+    const patch = (target, name, write) => {
+      const desc = Object.getOwnPropertyDescriptor(target, name);
+      if (!desc) return;
+      const next = { ...desc };
+      if (typeof desc.value === 'function') {
+        next.value = function wrapped(...args) {
+          mark(write);
+          return desc.value.apply(this, args);
+        };
+      } else if (write && desc.set) {
+        next.set = function wrapped(value) {
+          mark(true);
+          desc.set.call(this, value);
+        };
+      } else if (!write && desc.get) {
+        next.get = function wrapped() {
+          mark(false);
+          return desc.get.call(this);
+        };
+      }
+      Object.defineProperty(target, name, next);
+      undo.push(() => Object.defineProperty(target, name, desc));
+    };
+    for (const name of ['setAttribute', 'removeAttribute', 'toggleAttribute', 'replaceChildren', 'append', 'prepend', 'after', 'before', 'remove']) patch(Element.prototype, name, true);
+    for (const name of ['appendChild', 'insertBefore', 'removeChild', 'replaceChild', 'textContent']) patch(Node.prototype, name, true);
+    patch(CharacterData.prototype, 'data', true);
+    patch(HTMLElement.prototype, 'hidden', true);
+    for (const name of ['getBoundingClientRect', 'clientWidth', 'clientHeight', 'scrollWidth', 'scrollHeight']) patch(Element.prototype, name, false);
+    for (const name of ['offsetWidth', 'offsetHeight']) patch(HTMLElement.prototype, name, false);
+    patch(window, 'getComputedStyle', false);
+    const start = performance.now();
+    try {
+      const value = await new Function(`return (${source});`)()(given);
+      await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)));
+      return { forced, ms: performance.now() - start, value };
+    } finally {
+      for (const restore of undo.reverse()) restore();
+    }
+  }, [run.toString(), arg]);
 }
 
 /**
