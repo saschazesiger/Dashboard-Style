@@ -1837,8 +1837,8 @@
         "scroll-driven",
         "scrollbar-color"
       ],
-      "bytes": 36423,
-      "gzip": 5562
+      "bytes": 36431,
+      "gzip": 5561
     },
     "pagination": {
       "css": "css/components/pagination.css",
@@ -5805,7 +5805,9 @@
       "min": "css/components/code.min.css",
       "layer": "ds.components.code",
       "group": "content",
-      "requires": [],
+      "requires": [
+        "copy"
+      ],
       "context": [
         "prose",
         "tabs"
@@ -8670,11 +8672,13 @@
         "create": [
           "button",
           "code",
+          "copy",
           "utilities"
         ],
         "render": [
           "button",
           "code",
+          "copy",
           "utilities"
         ]
       },

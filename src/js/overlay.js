@@ -598,13 +598,16 @@ function firstFocusable(root) {
  * tabindex="-1" ancestor or landmark. Never <body>.
  */
 function returnTarget(element, state) {
+  // An opener that is rendered but not focusable (a span that only places
+  // a popup) would drop the focus to <body>: it counts as gone.
+  const takes = (node) => canFocus(node) && (typeof node.matches !== 'function' || node.matches(FOCUSABLE));
   let opener = state.opener;
   for (let depth = 0; opener && depth < 4; depth += 1) {
-    if (canFocus(opener) && !element.contains(opener)) return opener;
+    if (takes(opener) && !element.contains(opener)) return opener;
     const host = [...stack, ...hostsOf(opener)].find((node) => node !== element && node.contains(opener));
     opener = host ? overlays.get(host)?.opener ?? null : null;
   }
-  const outside = (node) => canFocus(node) && !element.contains(node);
+  const outside = (node) => takes(node) && !element.contains(node);
   if (typeof state.returnTo === 'function') {
     try {
       const target = state.returnTo();

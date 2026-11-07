@@ -589,6 +589,8 @@ export function create(scroller, options = {}) {
 
   /* Input. */
   const onKey = (/** @type {KeyboardEvent} */ event) => {
+    // keyboard: false leaves the keys to the page (a combobox, a data grid).
+    if (!keyboard) return;
     if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     if (event.target?.matches?.(TEXT_ENTRY)) return;
     const row = rowOf(event.target);

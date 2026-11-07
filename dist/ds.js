@@ -7348,6 +7348,10 @@
       };
       const grew = () => {
         if (stuck && gap() > threshold) toEnd(false);
+        // Content that shrank may have clamped scrollTop without a scroll event
+        // (WebKit, a font swap): measure from here, or the next scroll reads as
+        // a move up and lets go of the end.
+        last = scroller.scrollTop;
         show();
       };
       const sizes = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(grew) : null;
@@ -10386,13 +10390,16 @@
      * tabindex="-1" ancestor or landmark. Never <body>.
      */
     function returnTarget(element, state) {
+      // An opener that is rendered but not focusable (a span that only places
+      // a popup) would drop the focus to <body>: it counts as gone.
+      const takes = (node) => canFocus(node) && (typeof node.matches !== 'function' || node.matches(FOCUSABLE));
       let opener = state.opener;
       for (let depth = 0; opener && depth < 4; depth += 1) {
-        if (canFocus(opener) && !element.contains(opener)) return opener;
+        if (takes(opener) && !element.contains(opener)) return opener;
         const host = [...stack, ...hostsOf(opener)].find((node) => node !== element && node.contains(opener));
         opener = host ? overlays.get(host)?.opener ?? null : null;
       }
-      const outside = (node) => canFocus(node) && !element.contains(node);
+      const outside = (node) => takes(node) && !element.contains(node);
       if (typeof state.returnTo === 'function') {
         try {
           const target = state.returnTo();
@@ -14685,6 +14692,8 @@
 
       /* Input. */
       const onKey = (/** @type {KeyboardEvent} */ event) => {
+        // keyboard: false leaves the keys to the page (a combobox, a data grid).
+        if (!keyboard) return;
         if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
         if (event.target?.matches?.(TEXT_ENTRY)) return;
         const row = rowOf(event.target);

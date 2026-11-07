@@ -751,7 +751,7 @@
     margin-inline: calc((var(--ds-space-5) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-icon-size, 40px) + var(--ds-size-step, 0) * 8px))) / 2) 0;
   }
 
-  .ds-table tbody tr:last-child td {
+  .ds-table tbody tr:last-child :is(td, th) {
     border-bottom: none;
   }
 

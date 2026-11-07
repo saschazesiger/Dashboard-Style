@@ -77,6 +77,9 @@ export const SYSTEM_ATTRIBUTES = [
   'data-ds-savebar-rest',
   'data-ds-filtered',
   'data-ds-collapsed',
+  'data-ds-dirty',
+  'data-ds-unsaved-marked',
+  'data-ds-wizard-error',
 ];
 const SHARED_ATTRIBUTES = ['data-toast-reserve'];
 

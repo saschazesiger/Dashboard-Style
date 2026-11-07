@@ -17203,6 +17203,9 @@ the ones the page sets for it. The project check reads this table.
 | `data-ds-savebar-rest` | the system (`DS.overlay.savebar()`) | `.ds-view` | the bar hid at the end of the page: its room stays until the page scrolls away from the end ([Save bar](#save-bar)) |
 | `data-ds-filtered` | the system (`DS.shell`, `data-ds-drawer`) | an item, row, group or the "No results" note of a `.ds-drawer` | the drawer's filter hides it ([App frame](#filter-remembered-groups-and-badges)) |
 | `data-ds-collapsed` | the system (`DS.shell`, `data-ds-breadcrumbs`) | a crumb of a `.ds-breadcrumbs` or its "more" crumb | folded into the menu, or the "more" crumb hidden while every crumb fits |
+| `data-ds-dirty` | the system (`DS.unsaved`) | the guarded `<form>` | something in it is unsaved ([Unsaved-changes guard](#unsaved-changes-guard)) |
+| `data-ds-unsaved-marked` | the system (`DS.unsaved`) | a `.ds-field` | the field changed since the last save: its dot shows |
+| `data-ds-wizard-error` | the system (`DS.wizard`) | an invalid field of a step | the id of the error hint the wizard wrote for it ([Form wizard](#form-wizard)) |
 | `data-ds-busy` | the page | `.ds-dialog`, `.ds-sheet`, `.ds-drawer` | keeps the overlay open while its action runs: the user's close attempts do nothing, `DS.overlay.close()` still closes ([Dialog](#dialog), "While its action runs") |
 | `data-ds-open` | the page | a button | `DS.init()`: a click, or a menu's ArrowDown and ArrowUp, opens the overlay it names (a selector or an id), with the button as its opener ([Dialog](#dialog)) |
 | `data-ds-close` | the page | a control or a backdrop | without a value closes the overlay around it; with a selector or an id closes that overlay, leaving the one around it open ([Dialog](#dialog)) |

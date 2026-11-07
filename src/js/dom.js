@@ -1542,6 +1542,10 @@ export function followEnd(scroller, options = {}) {
   };
   const grew = () => {
     if (stuck && gap() > threshold) toEnd(false);
+    // Content that shrank may have clamped scrollTop without a scroll event
+    // (WebKit, a font swap): measure from here, or the next scroll reads as
+    // a move up and lets go of the end.
+    last = scroller.scrollTop;
     show();
   };
   const sizes = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(grew) : null;

@@ -88,7 +88,8 @@
         },
         "exitUnpaired": { "description": "A movement exit (selector) that runs without ds-fade-out.", "$ref": "#/$defs/reasons" },
         "keyframeShape": { "description": "A keyframe of <name>.keyframes.css that names both ends (or many stops).", "$ref": "#/$defs/reasons" },
-        "press": { "description": "A pressed selector (:active, .ds-pressed) that may scale.", "$ref": "#/$defs/reasons" }
+        "press": { "description": "A pressed selector (:active, .ds-pressed) that may scale.", "$ref": "#/$defs/reasons" },
+        "morph": { "description": "A shape that JS morphs frame by frame (an SVG path's d, an arc), on motion tokens and from the frame on screen when interrupted (D14): the selectors with their reason.", "$ref": "#/$defs/reasons" }
       }
     }
   },

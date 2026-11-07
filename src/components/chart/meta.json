@@ -242,5 +242,12 @@
       ".ds-chart__centre: left": "SVG coordinates: the module writes the centre of the arcs from the left of the plot, which is drawn left to right in every direction",
       ".ds-chart__tip: left": "SVG coordinates: the tooltip follows the cursor from the left of the plot, which is drawn left to right in every direction"
     }
+  },
+  "motionExceptions": {
+    "morph": {
+      ".ds-chart__line": "D14: a line morphs its d to new data on --ds-dur-glide and --ds-ease-value, from the frame on screen when interrupted",
+      ".ds-chart__area": "D14: an area morphs with its line",
+      ".ds-chart__slice": "D14: an arc of a donut or gauge morphs its angles to new data, from the frame on screen"
+    }
   }
 }

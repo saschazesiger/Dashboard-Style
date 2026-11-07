@@ -25,7 +25,7 @@
   "attributes": [
     "data-state"
   ],
-  "requires": [],
+  "requires": ["copy"],
   "context": [
     "prose",
     "tabs"
