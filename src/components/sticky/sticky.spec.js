@@ -145,6 +145,9 @@ test('the demo: named scrollable regions in the Tab order; the keyboard scrolls 
   const list = page.getByRole('region', { name: 'Tickets' });
   await expect(list).toBeVisible();
   await expect(page.locator('[data-demo="board"]')).toHaveAttribute('tabindex', '0');
+  // The board is named by its caption, not by one of its column headers.
+  await expect(page.getByRole('region', { name: 'Hours per device' })).toHaveAttribute('data-demo', 'board');
+  await expect(page.getByRole('table', { name: 'Hours per device' })).toBeVisible();
   // A header inside a named region is no banner: the region names the list, the heading names the head.
   expect(await page.locator('[data-demo="head"]').evaluate((el) => el.tagName)).toBe('HEADER');
   await expect(page.getByRole('heading', { name: 'Tickets' })).toBeVisible();

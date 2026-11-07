@@ -32,9 +32,10 @@ SG.demo('sticky', {
 
     var cell = 'padding: var(--ds-space-2) var(--ds-space-3); border-block-end: 1px solid var(--ds-line)';
     var boardId = h.uid('board');
-    var board = '<div data-demo="board" tabindex="0" role="region" aria-labelledby="' + boardId + '" style="' + scroller + '">' +
+    var board = '<p class="ds-meta" id="' + boardId + '" style="margin: 0 0 var(--ds-space-2)">Hours per device</p>' +
+      '<div data-demo="board" tabindex="0" role="region" aria-labelledby="' + boardId + '" style="' + scroller + '">' +
       '<div role="table" aria-labelledby="' + boardId + '" style="display: grid; grid-template-columns: 10rem repeat(' + BOARD_DAYS.length + ', 6rem); inline-size: max-content">' +
-      '<div role="row" style="display: contents"><span role="columnheader" class="ds-sticky ds-sticky--start ds-meta" data-demo="corner" style="' + cell + '" id="' + boardId + '">Device</span>' +
+      '<div role="row" style="display: contents"><span role="columnheader" class="ds-sticky ds-sticky--start ds-meta" data-demo="corner" style="' + cell + '">Device</span>' +
       BOARD_DAYS.map(function (day) { return '<span role="columnheader" class="ds-meta" style="' + cell + '">' + day + '</span>'; }).join('') + '</div>' +
       BOARD_DEVICES.map(function (device, row) {
         return '<div role="row" style="display: contents"><span role="rowheader" class="ds-sticky ds-sticky--start" data-demo="start" style="' + cell + '">' + device + '</span>' +
