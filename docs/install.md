@@ -748,6 +748,16 @@ strings a script adds have an option, so a page in another language passes its o
 | `Selection cleared` | what a media grid announces when nothing is selected any more (the system's string `mediaSelectionCleared`) | `DS.core.config({ strings: { mediaSelectionCleared } })` |
 | `{value} dB` | the value of a level meter in words, its `aria-valuetext` (the system's string `levelmeterValue`) | `DS.core.config({ strings: { levelmeterValue } })` |
 | `Too loud` | the note of a level meter while the level clips (the system's string `levelmeterLoud`) | `DS.core.config({ strings: { levelmeterLoud } })` |
+| `Copy code` | the name of the copy button of a code block that `DS.markdown` writes (the system's string `copyCode`) | `DS.core.config({ strings: { copyCode } })` |
+| `Code` | the name of a code block without a language that `DS.markdown` writes (the system's string `codeBlock`) | `DS.core.config({ strings: { codeBlock } })` |
+| `Wrap lines` | the name of a code block's wrap toggle without one of its own (`DS.code`; the system's string `wrapLines`) | `DS.core.config({ strings: { wrapLines } })` |
+| `Footnotes` | the hidden heading of the footnotes `DS.markdown` writes (the system's string `footnotes`) | `DS.core.config({ strings: { footnotes } })` |
+| `Back to reference {number}` | the name of a footnote's link back (`DS.markdown`; the system's string `footnoteBack`) | `DS.core.config({ strings: { footnoteBack } })` |
+| `Note` | the word of a `[!NOTE]` callout (`DS.markdown`; the system's string `calloutNote`) | `DS.core.config({ strings: { calloutNote } })` |
+| `Tip` | the word of a `[!TIP]` callout (`DS.markdown`; the system's string `calloutTip`) | `DS.core.config({ strings: { calloutTip } })` |
+| `Important` | the word of an `[!IMPORTANT]` callout (`DS.markdown`; the system's string `calloutImportant`) | `DS.core.config({ strings: { calloutImportant } })` |
+| `Warning` | the word of a `[!WARNING]` callout (`DS.markdown`; the system's string `calloutWarning`) | `DS.core.config({ strings: { calloutWarning } })` |
+| `Caution` | the word of a `[!CAUTION]` callout (`DS.markdown`; the system's string `calloutCaution`) | `DS.core.config({ strings: { calloutCaution } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 | `Command` | the system's string `kbdCommand`: the spoken name of ⌘ in a key combo (`DS.kbd`) on Apple systems | `DS.core.config({ strings: { kbdCommand } })` |
 | `Option` | the system's string `kbdOption`: the spoken name of ⌥ in a key combo (`DS.kbd`) on Apple systems | `DS.core.config({ strings: { kbdOption } })` |

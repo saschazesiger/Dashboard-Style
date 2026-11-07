@@ -1,7 +1,8 @@
 /*
  * The Prose and code demo: rendered text with every bare element, task
- * lists, callouts in each tone, footnotes, the dense and the compact mode,
- * and code blocks. Density and shape come from the options panel around it;
+ * lists, callouts in each tone, footnotes with their links, heading
+ * anchors, inline code, kbd and mark, the dense and the compact mode, and
+ * code blocks. Density and shape come from the options panel around it;
  * the panel's tone goes on the first callout. Nothing to wire: a Markdown
  * renderer writes this markup.
  */
@@ -24,6 +25,23 @@ function article(h) {
     '<hr><p>Ask <mark>IT support</mark> when in doubt.</p>';
 }
 
+function anchored(h, level, text) {
+  var id = h.uid('heading');
+  return '<' + level + ' id="' + id + '"><a class="ds-prose__anchor" href="#' + id + '">' + text + h.icon('link', 16) + '</a></' + level + '>';
+}
+
+function footnotes(h, mode) {
+  var label = h.uid('notes');
+  var note = h.uid('note');
+  var ref = h.uid('ref');
+  var note2 = h.uid('note');
+  var ref2 = h.uid('ref');
+  return '<div class="ds-prose' + mode + '" data-demo="footnotes"><p>Devices are retired after four years.<sup class="ds-prose__fnref"><a href="#' + note + '" id="' + ref + '" aria-describedby="' + label + '">1</a></sup> A backup comes first.<sup class="ds-prose__fnref"><a href="#' + note2 + '" id="' + ref2 + '" aria-describedby="' + label + '">2</a></sup></p>' +
+    '<section class="ds-prose__footnotes" aria-labelledby="' + label + '"><h2 class="ds-sr" id="' + label + '">Footnotes</h2><ol>' +
+    '<li id="' + note + '"><p>The policy of the IT department. <a class="ds-prose__fnback" href="#' + ref + '" aria-label="Back to reference 1">' + h.icon('cornerUpLeft', 16) + '</a></p></li>' +
+    '<li id="' + note2 + '"><p>Kept for 90 days. <a class="ds-prose__fnback" href="#' + ref2 + '" aria-label="Back to reference 2">' + h.icon('cornerUpLeft', 16) + '</a></p></li></ol></section></div>';
+}
+
 function tasks() {
   return '<ul>' +
     '<li><label><input type="checkbox" disabled checked> Charger packed</label></li>' +
@@ -40,7 +58,7 @@ function callout(h, entry, tone) {
 SG.demo('prose', {
   title: 'Prose and code',
   group: 'content',
-  need: 'Show rendered rich text and blocks of code, with task lists, callouts and a compact mode for chat',
+  need: 'Show rendered rich text, with task lists, callouts, footnotes, heading anchors and a compact mode for chat',
   lead: 'Text the page does not mark up itself: a Markdown renderer writes bare elements, and the system styles them. A class of the page always wins, and a component inside prose keeps its look.',
   options: { sizes: false, density: true, shape: true, tones: ['info', 'success', 'warning', 'error'], variants: ['reading', 'dense', 'compact'] },
 
@@ -56,7 +74,13 @@ SG.demo('prose', {
       }).join('') + '<div class="ds-prose__callout" role="note"><p class="ds-prose__callout-title">' + h.icon('info', 16) + 'Note</p><p>With no tone: the surface of a quote.</p></div></div>',
         'A word and an icon say what it is; the tone only colours it.') +
 
-      h.section('Footnotes', '<div class="ds-prose' + mode + '" data-demo="footnotes"><p>Devices are retired after four years.<sup><a href="#prose-demo">1</a></sup></p><section class="ds-prose__footnotes"><ol><li>The policy of the IT department.</li></ol></section></div>') +
+      h.section('Footnotes', footnotes(h, mode),
+        'A small figure links to its note, which links back; the note jumped to takes the tint.') +
+
+      h.section('Heading anchors', '<div class="ds-prose' + mode + '" data-demo="anchors">' + anchored(h, 'h2', 'Before you start') + '<p>The heading\'s text links to itself: hover it, or reach it with Tab, and the link icon shows.</p>' + anchored(h, 'h3', 'What to bring') + '<p>Its name stays the heading\'s text.</p></div>') +
+
+      h.section('Inline code, keys and marks', '<div class="ds-prose' + mode + '" data-demo="inline"><p>Run <code>ds-cli backup</code>, then press <kbd>Ctrl</kbd> + <kbd>K</kbd> and search for <mark>LAPTOP-0042</mark>.</p></div>',
+        'Bare code, kbd and mark in prose: a chip in the text\'s size, a key, the tint.') +
 
       h.section('Compact, for chat', '<div class="ds-card ds-card--filled" style="max-inline-size:360px"><div class="ds-prose ds-prose--compact" data-demo="compact"><h2>Three devices are overdue</h2><p>I checked the list. <strong>LAPTOP-0042</strong> is the oldest:</p><ul><li>Issued to Ada Lovelace</li><li>Last seen today</li></ul><pre><code>ds-cli remind LAPTOP-0042</code></pre><div class="ds-prose__callout ds-tone-info" role="note"><p class="ds-prose__callout-title">' + h.icon('info', 16) + 'Note</p><p>Reminders go out at 09:00.</p></div></div></div>',
         'The body role, one heading size and tight blocks: at home in a bubble or a narrow panel.') +
@@ -69,8 +93,16 @@ SG.demo('prose', {
   },
 
   wire: function (root) {
+    // In-page links stay in the demo (the styleguide's address is its route): scroll to the target and focus it.
     root.addEventListener('click', function (event) {
-      if (event.target.closest('a[href="#prose-demo"]')) event.preventDefault();
+      var link = event.target.closest('a[href^="#"]');
+      if (!link) return;
+      event.preventDefault();
+      var target = link.getAttribute('href') === '#prose-demo' ? null : document.getElementById(link.getAttribute('href').slice(1));
+      if (!target || !root.contains(target)) return;
+      target.scrollIntoView({ block: 'nearest' });
+      var focusable = target.matches('a[href]') ? target : target.querySelector('a[href]');
+      if (focusable) focusable.focus();
     });
   },
 });

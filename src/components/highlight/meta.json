@@ -1,25 +1,73 @@
 {
   "name": "highlight",
   "group": "content",
-  "order": 890,
-  "docsOrder": 208,
-  "need": "Mark the hits of a search in a text, ignoring case and accents",
+  "order": 1210,
+  "docsOrder": 123,
+  "need": "Colour code by its syntax: json, js and ts, sh, html and xml, css, sql, yaml, go, py and diff, or with the page's own highlighter",
   "tier": 1,
   "status": "beta",
   "classes": [
-    "ds-mark"
+    "ds-highlight__attribute",
+    "ds-highlight__comment",
+    "ds-highlight__constant",
+    "ds-highlight__deleted",
+    "ds-highlight__function",
+    "ds-highlight__inserted",
+    "ds-highlight__keyword",
+    "ds-highlight__meta",
+    "ds-highlight__number",
+    "ds-highlight__operator",
+    "ds-highlight__property",
+    "ds-highlight__punctuation",
+    "ds-highlight__regex",
+    "ds-highlight__string",
+    "ds-highlight__tag",
+    "ds-highlight__type",
+    "ds-highlight__variable"
   ],
   "attributes": [],
   "requires": [],
   "context": [],
   "hooks": {
-    "--ds-mark-bg": {
-      "default": "`--ds-warning-container`",
-      "description": "a search hit (`.ds-mark`)"
+    "--ds-code-keyword": {
+      "default": "`--ds-primary` (the role requested: light #8430ce, dark #d7aefb)",
+      "description": "the colour of keywords on `--ds-code-bg`; a role once the integrator moves it into tokens.css"
     },
-    "--ds-mark-color": {
-      "default": "`--ds-on-warning-container`",
-      "description": "the text of a search hit"
+    "--ds-code-string": {
+      "default": "`--ds-success` (the role requested: light #146c2e, dark #81c995)",
+      "description": "the colour of strings and regular expressions on `--ds-code-bg`; a role once the integrator moves it into tokens.css"
+    },
+    "--ds-code-number": {
+      "default": "`--ds-warning` (the role requested: light #9c4300, dark #ffb683)",
+      "description": "the colour of numbers and constants (`true`, `null`, a hex colour) on `--ds-code-bg`; a role once the integrator moves it into tokens.css"
+    },
+    "--ds-code-comment": {
+      "default": "`--ds-text-2` (the role requested: light #5f6368, dark #9aa0a6)",
+      "description": "the colour of comments on `--ds-code-bg`; a role once the integrator moves it into tokens.css"
+    },
+    "--ds-code-function": {
+      "default": "`--ds-info` (the role requested: light #0b57d0, dark #a8c7fa)",
+      "description": "the colour of calls, definitions, a command, a tag name on `--ds-code-bg`; a role once the integrator moves it into tokens.css"
+    },
+    "--ds-code-type": {
+      "default": "`--ds-on-info-container` (the role requested: light #00696b, dark #5cd5d5)",
+      "description": "the colour of classes, built-in types, a CSS class or id selector on `--ds-code-bg`; a role once the integrator moves it into tokens.css"
+    },
+    "--ds-code-property": {
+      "default": "`--ds-on-error-container` (the role requested: light #a3195b, dark #ffb0cd)",
+      "description": "the colour of keys, CSS properties, attributes, options, variables on `--ds-code-bg`; a role once the integrator moves it into tokens.css"
+    },
+    "--ds-code-meta": {
+      "default": "`--ds-text-2` (the role requested: light #4c5a92, dark #bac3ff)",
+      "description": "the colour of decorators, a doctype, a shell prompt, diff headers on `--ds-code-bg`; a role once the integrator moves it into tokens.css"
+    },
+    "--ds-code-inserted": {
+      "default": "`--ds-success` (the role requested: light #146c2e, dark #6dd58c)",
+      "description": "the colour of the `+` lines of a diff (a code block tints them with it) on `--ds-code-bg`; a role once the integrator moves it into tokens.css"
+    },
+    "--ds-code-deleted": {
+      "default": "`--ds-error` (the role requested: light #b3261e, dark #f2b8b5)",
+      "description": "the colour of the `-` lines of a diff (a code block tints them with it) on `--ds-code-bg`; a role once the integrator moves it into tokens.css"
     }
   },
   "keyframes": [],
@@ -29,8 +77,116 @@
   "module": true,
   "progressive": [],
   "ripple": false,
+  "roles": {
+    "--ds-code-keyword": {
+      "light": "#8430ce",
+      "dark": "#d7aefb",
+      "contrast": "light-dark(#6a1b9a, #e8d0ff)",
+      "pair": [
+        "--ds-code-keyword",
+        "--ds-code-bg",
+        "text"
+      ]
+    },
+    "--ds-code-string": {
+      "light": "#146c2e",
+      "dark": "#81c995",
+      "contrast": "light-dark(#0b5221, #a8e6b8)",
+      "pair": [
+        "--ds-code-string",
+        "--ds-code-bg",
+        "text"
+      ]
+    },
+    "--ds-code-number": {
+      "light": "#9c4300",
+      "dark": "#ffb683",
+      "contrast": "light-dark(#7a3300, #ffd2b3)",
+      "pair": [
+        "--ds-code-number",
+        "--ds-code-bg",
+        "text"
+      ]
+    },
+    "--ds-code-comment": {
+      "light": "#5f6368",
+      "dark": "#9aa0a6",
+      "contrast": "light-dark(#45494d, #c4c7c5)",
+      "pair": [
+        "--ds-code-comment",
+        "--ds-code-bg",
+        "text"
+      ]
+    },
+    "--ds-code-function": {
+      "light": "#0b57d0",
+      "dark": "#a8c7fa",
+      "contrast": "light-dark(#0842a0, #d3e3fd)",
+      "pair": [
+        "--ds-code-function",
+        "--ds-code-bg",
+        "text"
+      ]
+    },
+    "--ds-code-type": {
+      "light": "#00696b",
+      "dark": "#5cd5d5",
+      "contrast": "light-dark(#004f51, #9cf0f0)",
+      "pair": [
+        "--ds-code-type",
+        "--ds-code-bg",
+        "text"
+      ]
+    },
+    "--ds-code-property": {
+      "light": "#a3195b",
+      "dark": "#ffb0cd",
+      "contrast": "light-dark(#7d0f45, #ffd5e5)",
+      "pair": [
+        "--ds-code-property",
+        "--ds-code-bg",
+        "text"
+      ]
+    },
+    "--ds-code-meta": {
+      "light": "#4c5a92",
+      "dark": "#bac3ff",
+      "contrast": "light-dark(#36447a, #dde1ff)",
+      "pair": [
+        "--ds-code-meta",
+        "--ds-code-bg",
+        "text"
+      ]
+    },
+    "--ds-code-inserted": {
+      "light": "#146c2e",
+      "dark": "#6dd58c",
+      "contrast": "light-dark(#0b5221, #a8e6b8)",
+      "pair": [
+        "--ds-code-inserted",
+        "--ds-code-bg",
+        "text"
+      ]
+    },
+    "--ds-code-deleted": {
+      "light": "#b3261e",
+      "dark": "#f2b8b5",
+      "contrast": "light-dark(#8c1d18, #ffdad6)",
+      "pair": [
+        "--ds-code-deleted",
+        "--ds-code-bg",
+        "text"
+      ]
+    }
+  },
   "labExempt": {
-    "DS.highlight.create": "marks at once: a hit that faded in would trail the typing",
-    "DS.highlight.ranges": "a pure function: no motion"
+    "DS.highlight.tokenize": "a pure function: no motion",
+    "DS.highlight.highlight": "a pure function: no motion",
+    "DS.highlight.lines": "a pure function: no motion",
+    "DS.highlight.language": "a pure function: no motion",
+    "DS.highlight.languages": "a pure function: no motion",
+    "DS.highlight.register": "adds a tokenizer: no motion",
+    "DS.highlight.use": "sets the page's highlighter: no motion",
+    "DS.highlight.create": "writes token spans at once: no motion"
   }
 }

@@ -1,0 +1,66 @@
+{
+  "name": "code",
+  "group": "content",
+  "order": 1230,
+  "docsOrder": 122,
+  "need": "Show a block of code with its language, a copy button, line numbers, marked lines, files as tabs and a folded height",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-code",
+    "ds-code--lines",
+    "ds-code-block",
+    "ds-code-block--wrap",
+    "ds-code__actions",
+    "ds-code__expand-label",
+    "ds-code__foot",
+    "ds-code__head",
+    "ds-code__lang",
+    "ds-code__line",
+    "ds-code__line--deleted",
+    "ds-code__line--inserted",
+    "ds-code__line--mark",
+    "ds-code__title"
+  ],
+  "attributes": [
+    "data-state"
+  ],
+  "requires": [],
+  "context": [
+    "prose",
+    "tabs"
+  ],
+  "hooks": {
+    "--ds-code-block-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "`.ds-code-block`, a `pre` in prose and the `.ds-code` frame (times `--ds-shape`)"
+    },
+    "--ds-code-deleted": {
+      "owner": "highlight"
+    },
+    "--ds-code-inserted": {
+      "owner": "highlight"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "code"
+  ],
+  "module": true,
+  "progressive": [
+    "scrollbar-color"
+  ],
+  "ripple": false,
+  "labExempt": {
+    "DS.code.parseLines": "a pure function: no motion",
+    "DS.code.linesHtml": "a pure function: no motion"
+  },
+  "motionExceptions": {
+    "transition": {
+      "height": {
+        ".ds-code > .ds-code-block": "a folded code block opens to its full height on --ds-ease-out (it pushes the content below, so it never overshoots), from the height it has, so a reversal continues",
+        ".ds-code[data-state=\"collapsed\"] > .ds-code-block": "a code block folds back to its lines on --ds-ease-in, 0.8 of the opening"
+      }
+    }
+  }
+}

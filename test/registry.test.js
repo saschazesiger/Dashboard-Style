@@ -83,6 +83,7 @@ describe('src/components/<name>/', () => {
       [tamper('badge', (meta) => ({ ...meta, js: ['nothing'] })), /"js" names nothing/],
       [tamper('badge', (meta) => ({ ...meta, group: 'misc' })), /group: "misc" is not one of/],
       [tamper('badge', (meta) => ({ ...meta, order: 10 })), /"order" 10 is also/],
+      [tamper('badge', (meta) => ({ ...meta, order: 99999 })), /badge\/meta\.json: "order" 99999 comes after ripple's \(\d+\), the last sublayer/],
       [tamper('badge', (meta) => ({ ...meta, extra: true })), /unknown key "extra"/],
       [tamper('dialog', (meta) => ({ ...meta, progressive: [] })), /"progressive" is \[\], the "Progressive:" note/],
       [tamper('table', (meta) => ({ ...meta, attributes: [] })), /table\/meta\.json: "attributes" misses data-/],

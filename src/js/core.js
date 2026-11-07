@@ -520,6 +520,16 @@ const DEFAULT_STRINGS = Object.freeze({
   mediaSelectionCleared: 'Selection cleared',
   levelmeterValue: '{value} dB',
   levelmeterLoud: 'Too loud',
+  copyCode: 'Copy code',
+  codeBlock: 'Code',
+  wrapLines: 'Wrap lines',
+  footnotes: 'Footnotes',
+  footnoteBack: 'Back to reference {number}',
+  calloutNote: 'Note',
+  calloutTip: 'Tip',
+  calloutImportant: 'Important',
+  calloutWarning: 'Warning',
+  calloutCaution: 'Caution',
 });
 
 /**

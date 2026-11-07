@@ -1,0 +1,36 @@
+{
+  "name": "hits",
+  "group": "content",
+  "order": 890,
+  "docsOrder": 208,
+  "need": "Mark the hits of a search in a text, ignoring case and accents",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-hit"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [],
+  "hooks": {
+    "--ds-hit-bg": {
+      "default": "`--ds-warning-container`",
+      "description": "a search hit (`.ds-hit`)"
+    },
+    "--ds-hit-color": {
+      "default": "`--ds-on-warning-container`",
+      "description": "the text of a search hit"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "hits"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.hits.create": "marks at once: a hit that faded in would trail the typing",
+    "DS.hits.ranges": "a pure function: no motion"
+  }
+}

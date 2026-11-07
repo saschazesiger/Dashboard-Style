@@ -1,95 +1,103 @@
 /**
- * Highlight: marks around every hit, folded case and accents, a new query
- * that replaces the marks, the phrase mode, skipped parts, a morph marked
- * again, the colours and the shape, forced colours. Runs in `fallback` too.
+ * Syntax highlighting on its demo: data-ds-highlight colours every language
+ * in place (the text stays the code), every token kind takes its role's
+ * colour with the contrast the roles promise, a change of the language or
+ * the code highlights again, the page's own highlighter goes first, and
+ * forced colours read as plain text. Runs in the `fallback` project too.
  */
 import { test, expect } from '../../../test/browser/base-test.js';
 import { ready } from '../../../test/browser/helpers/motion.js';
+
+const LANGUAGES = ['json', 'js', 'ts', 'sh', 'html', 'xml', 'css', 'sql', 'yaml', 'go', 'py', 'diff'];
 
 async function open(page) {
   await page.goto('/test/browser/fixtures/component.html?c=highlight');
   await ready(page);
 }
 
-const marks = (locator) => locator.evaluate((el) => [...el.querySelectorAll('mark.ds-mark')].map((m) => m.textContent));
+/** The relative luminance contrast of two computed rgb() colours. */
+const contrastIn = (page, a, b) => page.evaluate(([fg, bg]) => {
+  const lum = (text) => {
+    const [r, g, b2] = text.match(/[\d.]+/g).slice(0, 3).map(Number).map((v) => v / 255).map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b2;
+  };
+  const [x, y] = [lum(fg), lum(bg)].sort((p, q) => q - p);
+  return (x + 0.05) / (y + 0.05);
+}, [a, b]);
 
-test('every hit of every word is marked, case and accents ignored; a new query replaces the marks', async ({ page }) => {
+test('every language is highlighted in place; the text stays the code', async ({ page }) => {
   await open(page);
-  const list = page.locator('#fx-component [data-demo="list"]');
-  expect(await marks(list)).toEqual(['toner', 'Toner']);
-  const search = page.locator('#fx-component [data-demo="search"]');
-  await search.fill('cafe');
-  expect(await marks(list)).toEqual(['Café']);
-  await search.fill('print toner');
-  expect(await marks(list)).toEqual(['toner', 'Print', 'Toner', 'print']);
-  await search.fill('');
-  expect(await marks(list)).toEqual([]);
-  // The text is whole again: no split text nodes left behind.
-  expect(await list.locator('.ds-list__title').first().evaluate((el) => el.childNodes.length)).toBe(1);
-  await expect(page.locator('#fx-component [data-demo="count"]')).toHaveText('5 of 5 tickets');
+  for (const lang of LANGUAGES) {
+    const code = page.locator(`[data-demo="languages"] code[data-ds-highlight="${lang}"]`);
+    expect(await code.locator('[class^="ds-highlight__"]').count(), lang).toBeGreaterThan(2);
+    const same = await code.evaluate((el) => el.textContent === DS.core.get(el, 'highlight').get());
+    expect(same, lang).toBe(true);
+  }
+  await expect(page.locator('[data-demo="languages"] pre').first()).toHaveAccessibleName('JSON sample');
 });
 
-test('the phrase mode marks the whole query only; the page\'s own marks and skipped parts stay', async ({ page }) => {
+test('each kind takes its own colour, readable on the code background', async ({ page }) => {
   await open(page);
-  expect(await marks(page.locator('#fx-component [data-demo="phrase"]'))).toEqual(['second floor', 'second floor']);
-  const out = await page.evaluate(() => {
-    const el = document.createElement('div');
-    el.innerHTML = 'toner <mark>toner</mark> <span data-ds-highlight-skip>toner</span> <code>toner</code>';
-    document.querySelector('#fx-component').append(el);
-    const handle = window.DS.highlight.create(el, { query: 'toner' });
-    const result = [handle.get().count, el.querySelectorAll('mark').length];
-    handle.destroy();
-    result.push(el.querySelectorAll('mark').length, el.textContent);
-    el.remove();
-    return result;
-  });
-  expect(out).toEqual([2, 3, 1, 'toner toner toner toner']);
+  const colours = await page.locator('[data-demo="kinds"] tbody tr').evaluateAll((rows) => rows.map((row) => {
+    const token = row.querySelector('td:nth-child(2) code');
+    return [token.className, getComputedStyle(token).color];
+  }));
+  expect(new Set(colours.map((entry) => entry[1])).size).toBeGreaterThanOrEqual(8);
+  const bg = await page.locator('[data-demo="rendered"]').evaluate((el) => getComputedStyle(el).backgroundColor);
+  // The fallbacks until the roles land, and the roles after: AA on the code background.
+  for (const [, colour] of colours) expect(await contrastIn(page, colour, bg)).toBeGreaterThanOrEqual(4.5);
 });
 
-test('a re-render is marked again; set() emits ds:change with the count', async ({ page }) => {
+test('code the page renders through highlight() is escaped', async ({ page }) => {
+  await open(page);
+  const rendered = page.locator('[data-demo="rendered"] code');
+  await expect(rendered).toContainText('<script> stays text');
+  expect(await rendered.locator('script').count()).toBe(0);
+  expect(await rendered.locator('.ds-highlight__keyword').count()).toBeGreaterThan(2);
+});
+
+test('a change of the language or the code highlights again; destroy leaves plain text', async ({ page }) => {
   await open(page);
   const result = await page.evaluate(async () => {
-    const list = document.querySelector('[data-demo="list"]');
-    window.DS.dom.morphHtml(list, '<li class="ds-list__item">Toner for the north building</li>');
-    await new Promise((r) => requestAnimationFrame(r));
-    const after = [...list.querySelectorAll('mark.ds-mark')].map((m) => m.textContent);
-    const detail = await new Promise((done) => {
-      list.addEventListener('ds:change', (event) => done(event.detail), { once: true });
-      window.DS.get(list, 'highlight').set('north');
-    });
-    return [after, detail];
+    const code = document.querySelector('[data-ds-highlight="json"]');
+    code.setAttribute('data-ds-highlight', 'cobol');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const plain = code.querySelectorAll('span').length;
+    code.setAttribute('data-ds-highlight', 'yaml');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const view = DS.core.get(code, 'highlight');
+    const seen = [];
+    code.addEventListener('ds:change', (event) => seen.push(event.detail));
+    view.set('a: 1');
+    const yaml = [...code.querySelectorAll('span')].map((span) => span.className);
+    view.destroy();
+    return { plain, yaml, seen, after: code.innerHTML };
   });
-  expect(result).toEqual([['Toner'], { query: 'north', count: 1 }]);
+  expect(result.plain).toBe(0);
+  expect(result.yaml).toEqual(['ds-highlight__property', 'ds-highlight__punctuation', 'ds-highlight__number']);
+  expect(result.seen).toEqual([{ code: 'a: 1', language: 'yaml' }]);
+  expect(result.after).toBe('a: 1');
 });
 
-test('colours and shape: the warning container pair; square with .ds-shape-square', async ({ page }) => {
+test('the page\'s own highlighter goes first; null leaves the language to the system', async ({ page }) => {
   await open(page);
-  const mark = page.locator('#fx-component [data-demo="list"] mark').first();
-  const [bg, ink, expectBg, expectInk] = await mark.evaluate((el) => {
-    const probe = document.createElement('span');
-    probe.style.background = 'var(--ds-warning-container)';
-    probe.style.color = 'var(--ds-on-warning-container)';
-    document.querySelector('#fx-component').append(probe);
-    const out = [getComputedStyle(el).backgroundColor, getComputedStyle(el).color, getComputedStyle(probe).backgroundColor, getComputedStyle(probe).color];
-    probe.remove();
-    return out;
+  const result = await page.evaluate(() => {
+    DS.highlight.use((code, lang) => (lang === 'ruby' ? `<span class="page-keyword">${code}</span>` : null));
+    const outside = DS.highlight.lines('def a\nend', 'ruby');
+    const own = DS.highlight.highlight('{"a": 1}', 'json');
+    DS.highlight.use(null);
+    return { outside, own: own.includes('ds-highlight__property') };
   });
-  expect([bg, ink]).toEqual([expectBg, expectInk]);
-  await mark.evaluate((el) => el.closest('.ds-card').classList.add('ds-shape-square'));
-  expect(await mark.evaluate((el) => getComputedStyle(el).borderTopLeftRadius)).toBe('0px');
+  expect(result).toEqual({ outside: ['<span class="page-keyword">def a</span>', '<span class="page-keyword">end</span>'], own: true });
 });
 
-test('forced colours: Mark and MarkText', async ({ page, browserName }) => {
+test('forced colours: every token takes the text colour', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', 'forced colours are emulated in Chromium only');
   await page.emulateMedia({ forcedColors: 'active' });
   await open(page);
-  const [bg, expected] = await page.locator('#fx-component [data-demo="list"] mark').first().evaluate((el) => {
-    const probe = document.createElement('span');
-    probe.style.cssText = 'forced-color-adjust: none; background: Mark';
-    document.body.append(probe);
-    const out = [getComputedStyle(el).backgroundColor, getComputedStyle(probe).backgroundColor];
-    probe.remove();
-    return out;
+  const colours = await page.locator('[data-demo="languages"] code[data-ds-highlight="js"]').evaluate((el) => {
+    const text = getComputedStyle(el).color;
+    return [...el.querySelectorAll('[class^="ds-highlight__"]')].map((span) => getComputedStyle(span).color === text);
   });
-  expect(bg).toBe(expected);
+  expect(colours.every(Boolean)).toBe(true);
 });

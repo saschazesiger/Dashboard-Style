@@ -1,60 +1,59 @@
 /*
- * The Highlight demo: a search field that filters a ticket list and marks
- * the hits, the count announced; a phrase; a text marked by the server.
- * Registered through SG.demo() (styleguide/sg-core.js). Shape comes from
- * the options panel.
+ * The Syntax highlighting demo: a sample of every language of D13 in a code
+ * block (data-ds-highlight), the token kinds with their classes and roles,
+ * and code a page renders itself through DS.highlight.highlight().
  */
-var HL_TICKETS = ['Replace the toner on the second floor', 'Printer 7 jams on every second page', 'Café machine in the north building is offline', 'Toner ordered for every printer', 'Laptop 0042 needs a new battery'];
+var SAMPLES = [
+  ['json', 'JSON', '{\n  "id": 42,\n  "name": "LAPTOP-0042",\n  "retired": false,\n  "ports": [80, 443],\n  "note": null\n}'],
+  ['js', 'JavaScript', '// Retire every device older than four years\nconst limit = 4;\nexport async function retireOld(devices) {\n  const old = devices.filter((d) => d.age > limit && !/^TEST-/.test(d.name));\n  for (const device of old) await api.retire(device.id);\n  return `${old.length} retired`;\n}'],
+  ['ts', 'TypeScript', 'interface Device {\n  id: number;\n  owner?: string;\n}\ntype Retired = Device & { retiredAt: Date };\nexport const isRetired = (d: Device): d is Retired => "retiredAt" in d;'],
+  ['sh', 'Shell', '$ ds-cli backup LAPTOP-0042 --wait\n$ ds-cli retire LAPTOP-0042 --force | tee -a retire.log  # keep a record\nexport DS_TOKEN="${DS_TOKEN:-none}"'],
+  ['html', 'HTML', '<!doctype html>\n<button class="ds-btn" type="button" data-ds-copy="#key">Copy &amp; close</button>\n<!-- the key -->\n<script>DS.init(document);</script>'],
+  ['xml', 'XML', '<?xml version="1.0" encoding="UTF-8"?>\n<device id="42" retired="false">\n  <name>LAPTOP-0042</name>\n  <![CDATA[ a < b ]]>\n</device>'],
+  ['css', 'CSS', '@media (min-width: 600px) {\n  .ds-theme .device-card:hover {\n    --ds-card-padding: 24px;\n    color: var(--ds-text-2);\n    margin: 0 auto !important;\n  }\n}'],
+  ['sql', 'SQL', "SELECT d.id, COUNT(*) AS tickets\nFROM devices d\nJOIN tickets t ON t.device_id = d.id\nWHERE d.name LIKE 'LAPTOP-%' AND t.closed IS NULL -- open only\nGROUP BY d.id;"],
+  ['yaml', 'YAML', '---\nschedule:\n  at: "02:00"   # nightly\n  retries: 3\n  notify: true\ndevices: &all\n  - LAPTOP-0042\n  - PRINTER-7'],
+  ['go', 'Go', 'package devices\n\nimport "fmt"\n\ntype Device struct {\n\tID   int\n\tName string\n}\n\nfunc (d Device) String() string {\n\treturn fmt.Sprintf("%s (%d)", d.Name, d.ID)\n}'],
+  ['py', 'Python', '@dataclass\nclass Device:\n    id: int\n    retired: bool = False\n\n    def label(self) -> str:\n        return f"Device {self.id}" if not self.retired else None  # gone'],
+  ['diff', 'Diff', '--- a/sync.yaml\n+++ b/sync.yaml\n@@ -1,3 +1,3 @@\n schedule:\n-  at: "01:00"\n+  at: "02:00"'],
+];
+
+var KINDS = [
+  ['keyword', 'const, if, SELECT, @media', '--ds-code-keyword'],
+  ['string', '"LAPTOP-0042", /^TEST-/', '--ds-code-string'],
+  ['number', '42, true, null, #fff', '--ds-code-number'],
+  ['comment', '// a comment', '--ds-code-comment'],
+  ['function', 'retire(), ds-cli, a tag name', '--ds-code-function'],
+  ['type', 'Device, string, .card', '--ds-code-type'],
+  ['property', '"id":, color:, --force, $HOME', '--ds-code-property'],
+  ['meta', '@dataclass, $, ---, @@', '--ds-code-meta'],
+  ['inserted', '+ an added line', '--ds-code-inserted'],
+  ['deleted', '- a removed line', '--ds-code-deleted'],
+];
 
 SG.demo('highlight', {
-  title: 'Highlight',
+  title: 'Syntax highlighting',
   group: 'content',
-  need: 'Mark the hits of a search in a text, ignoring case and accents',
-  lead: 'The hits of a search marked in a text, ignoring case and accents. The page filters and announces the count; DS.highlight marks.',
-  options: { sizes: false, density: false, shape: true, tones: false },
+  need: 'Colour code by its syntax: json, js and ts, sh, html and xml, css, sql, yaml, go, py and diff, or with the page\'s own highlighter',
+  lead: 'The system\'s own small tokenizers, one pass each: data-ds-highlight colours the text of an element in place, DS.highlight.highlight() returns escaped markup. The colours are the theme\'s code roles.',
+  options: { sizes: false, density: true, shape: true, tones: false },
 
   render: function (h) {
-    var id = h.uid('hl-search');
-    var listId = h.uid('hl-list');
-    return h.section('Search a list', '<div class="ds-card" style="max-inline-size: 560px"><div class="ds-field"><label class="ds-field__label" for="' + id + '">Search tickets</label>' +
-        '<input class="ds-input" id="' + id + '" type="search" value="toner" aria-controls="' + listId + '" data-demo="search"></div>' +
-        '<p class="ds-muted" data-demo="count" aria-hidden="true"></p>' +
-        '<ul class="ds-list" id="' + listId + '" aria-label="Tickets" data-ds-highlight="toner" data-demo="list">' + HL_TICKETS.map(function (text) {
-          return '<li class="ds-list__item"><span class="ds-list__text"><span class="ds-list__title">' + text + '</span></span></li>';
-        }).join('') + '</ul></div>', 'Try "cafe", "second" or "print toner": every word is marked, accents and case ignored.') +
-      h.section('A phrase', '<div class="ds-card" style="max-inline-size: 560px"><p data-ds-highlight="second floor" data-ds-highlight-mode="phrase" data-demo="phrase">The printer on the second floor jams on every second page; the second floor team has a spare.</p></div>', 'data-ds-highlight-mode="phrase" marks the whole query only.') +
-      h.section('Marked by the server', '<div class="ds-card" style="max-inline-size: 560px"><p>Replace the <mark class="ds-mark">toner</mark> of every printer on floor 2.</p></div>') +
-      h.section('Keyboard', '<p class="ds-muted">Marks take no focus. The search field filters as you type; the count is announced once typing pauses.</p>');
+    return h.section('Languages', '<div class="ds-grid-2" style="align-items: start" data-demo="languages">' + SAMPLES.map(function (sample) {
+      return '<div class="ds-stack" style="--ds-stack-gap: var(--ds-space-2)"><h3 class="ds-card__title">' + sample[1] + ' <span class="ds-muted">' + sample[0] + '</span></h3>' +
+        '<pre class="ds-code-block" tabindex="0" aria-label="' + sample[1] + ' sample"><code data-ds-highlight="' + sample[0] + '">' + h.esc(sample[2]) + '</code></pre></div>';
+    }).join('') + '</div>', 'Every language of D13, with its aliases (yml, bash, python, typescript ...).') +
+
+      h.section('Token kinds', '<div class="ds-table-wrap"><table class="ds-table" data-demo="kinds"><thead><tr><th>Kind</th><th>Tokens</th><th>Role</th></tr></thead><tbody>' + KINDS.map(function (kind) {
+        return '<tr><td><code class="ds-highlight__' + kind[0] + '">' + kind[0] + '</code></td><td><code class="ds-highlight__' + kind[0] + '">' + h.esc(kind[1]) + '</code></td><td><code>' + kind[2] + '</code></td></tr>';
+      }).join('') + '</tbody></table></div>', 'A theme sets the roles; every one reaches 4.5:1 on --ds-code-bg in light and dark, 7:1 with the contrast theme.') +
+
+      h.section('Rendered by the page', '<pre class="ds-code-block" tabindex="0" aria-label="Rendered by the page" data-demo="rendered"><code></code></pre>',
+        'DS.highlight.highlight(code, \'sql\') returns escaped markup the page puts in place itself; unknown languages stay plain.');
   },
 
   wire: function (root, h) {
-    var list = h.$('[data-demo="list"]', root);
-    var count = h.$('[data-demo="count"]', root);
-    var timer = 0;
-    var apply = function (query, announce) {
-      var words = query.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(/\s+/).filter(Boolean);
-      var shown = 0;
-      h.$$('.ds-list__item', list).forEach(function (item) {
-        var text = item.textContent.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-        var hit = !words.length || words.some(function (word) { return text.indexOf(word) !== -1; });
-        item.hidden = !hit;
-        if (hit) shown += 1;
-      });
-      // Before DS.init's observer has reached the new demo, the attribute is the query.
-      var marks = window.DS.get(list, 'highlight');
-      if (marks) marks.set(query);
-      else list.setAttribute('data-ds-highlight', query);
-      count.textContent = shown + ' of ' + HL_TICKETS.length + ' tickets';
-      if (announce) {
-        clearTimeout(timer);
-        timer = setTimeout(function () { window.DS.a11y.announce(shown + ' tickets match'); }, h.slow(500));
-      }
-    };
-    apply('toner', false);
-    var onInput = function (event) {
-      if (event.target.matches('[data-demo="search"]')) apply(event.target.value, true);
-    };
-    root.addEventListener('input', onInput);
-    return function () { clearTimeout(timer); root.removeEventListener('input', onInput); };
-  }
+    var target = h.$('[data-demo="rendered"] code', root);
+    DS.dom.morphHtml(target, DS.highlight.highlight("UPDATE devices SET retired = true WHERE id = 42; -- <script> stays text", 'sql'));
+  },
 });

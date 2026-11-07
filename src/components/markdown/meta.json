@@ -1,0 +1,30 @@
+{
+  "name": "markdown",
+  "group": "content",
+  "order": 1220,
+  "docsOrder": 121,
+  "need": "Render Markdown safely into prose: a CommonMark subset with GFM tables, task lists and autolinks, or the page's own renderer and sanitiser",
+  "tier": 1,
+  "status": "beta",
+  "classes": [],
+  "attributes": [
+    "data-ds-markdown",
+    "data-state"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": {},
+  "keyframes": [],
+  "js": [
+    "markdown"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.markdown.render": "a pure function: no motion",
+    "DS.markdown.slug": "a pure function: no motion",
+    "DS.markdown.use": "sets the page's defaults: no motion",
+    "DS.markdown.create": "patches the rendered markup at once: no motion"
+  }
+}
