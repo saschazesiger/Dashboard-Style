@@ -1,0 +1,54 @@
+{
+  "name": "wizard",
+  "group": "forms",
+  "order": 420,
+  "docsOrder": 292,
+  "need": "Split a long form into steps, each checked before the next, with Back, Next and a summary to review before sending",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-wizard",
+    "ds-wizard__actions",
+    "ds-wizard__back",
+    "ds-wizard__edit",
+    "ds-wizard__error",
+    "ds-wizard__group",
+    "ds-wizard__group-head",
+    "ds-wizard__group-title",
+    "ds-wizard__next",
+    "ds-wizard__panel",
+    "ds-wizard__steps",
+    "ds-wizard__submit",
+    "ds-wizard__summary",
+    "ds-wizard__title"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "form",
+    "list",
+    "steps"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-wizard-gap": {
+      "default": "`--ds-space-6`",
+      "description": "`.ds-wizard`: the room between the steps, the panel and the actions (2px per density step)"
+    },
+    "--ds-wizard-panel-gap": {
+      "default": "`--ds-space-4`",
+      "description": "`.ds-wizard__panel`: the room between the parts of a step (2px per density step)"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "wizard"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.wizard.fieldLabel": "a pure function: no motion",
+    "DS.wizard.fieldValue": "a pure function: no motion"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "requires": ["button", "form", "savebar"],
+  "exportRequires": {
+    "navigate": ["button", "dialog", "spinner", "toast", "utilities"]
+  }
+}

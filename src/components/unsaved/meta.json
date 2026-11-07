@@ -1,0 +1,33 @@
+{
+  "name": "unsaved",
+  "group": "forms",
+  "order": 430,
+  "docsOrder": 291,
+  "need": "Keep a form's edits from getting lost: a save bar while something changed, Ctrl+S, a warning before leaving",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-unsaved__count"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "form",
+    "savebar"
+  ],
+  "context": [],
+  "hooks": {},
+  "keyframes": [],
+  "js": [
+    "unsaved"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.unsaved.snapshot": "a pure function: no motion",
+    "DS.unsaved.diff": "a pure function: no motion",
+    "DS.unsaved.isDirty": "a question, no motion",
+    "DS.unsaved.navigate": "asks through DS.overlay.confirm(), whose dialog the Motion Lab shows"
+  }
+}

@@ -464,6 +464,93 @@ strings a script adds have an option, so a page in another language passes its o
 | `Auto refresh` | the name of the time range's interval select (the system's string `autoRefresh`) | `DS.core.config({ strings: { autoRefresh } })` |
 | `Off` | the first option of that select: no auto refresh (the system's string `off`) | `DS.core.config({ strings: { off } })` |
 | `The start must come before the end.` | the error of the time range's absolute range when its start is after its end (the system's string `rangeOrder`) | `DS.core.config({ strings: { rangeOrder } })` |
+| `Retry` | the system's string `retry`: the tooltip of a retry button ([File upload](components.md#file-upload)) | `DS.core.config({ strings: { retry } })` |
+| `Waiting` | a file of `DS.upload` not started yet (the system's string `uploadWaiting`) | `DS.core.config({ strings: { uploadWaiting } })` |
+| `Uploaded` | a file of `DS.upload` that is done (the system's string `uploadDone`) | `DS.core.config({ strings: { uploadDone } })` |
+| `Upload failed` | a failed file of `DS.upload` without a reason (the system's string `uploadFailed`) | `DS.core.config({ strings: { uploadFailed } })` |
+| `Retry {name}` | the name of a file's retry button in `DS.upload` (the system's string `uploadRetry`) | `DS.core.config({ strings: { uploadRetry } })` |
+| `Remove {name}` | the name of a file's remove button in `DS.upload` (the system's string `uploadRemove`) | `DS.core.config({ strings: { uploadRemove } })` |
+| `Upload of {name}` | the name of a file's progress bar in `DS.upload` (the system's string `uploadProgress`) | `DS.core.config({ strings: { uploadProgress } })` |
+| `{name} is not a type this field takes.` | a file `DS.upload` refused for its type (the system's string `uploadWrongType`) | `DS.core.config({ strings: { uploadWrongType } })` |
+| `{name} was not added: at most {max} files.` | a file `DS.upload` refused for the count (the system's string `uploadTooMany`) | `DS.core.config({ strings: { uploadTooMany } })` |
+| `{name} is larger than {max}.` | a file `DS.upload` refused for its size (the system's string `uploadTooLarge`) | `DS.core.config({ strings: { uploadTooLarge } })` |
+| `{name} is empty.` | an empty file `DS.upload` refused (the system's string `uploadEmpty`) | `DS.core.config({ strings: { uploadEmpty } })` |
+| `Added {name}.` | what `DS.upload` announces for one file added (the system's string `uploadAdded`) | `DS.core.config({ strings: { uploadAdded } })` |
+| `Added {count} files.` | what `DS.upload` announces for several (the system's string `uploadAddedCount`) | `DS.core.config({ strings: { uploadAddedCount } })` |
+| `Removed {name}.` | what `DS.upload` announces for a removal (the system's string `uploadRemoved`) | `DS.core.config({ strings: { uploadRemoved } })` |
+| `{name} uploaded.` | what `DS.upload` announces when a file is done (the system's string `uploadDoneAnnounce`) | `DS.core.config({ strings: { uploadDoneAnnounce } })` |
+| `Upload of {name} failed.` | what `DS.upload` announces when a file failed (the system's string `uploadFailedAnnounce`) | `DS.core.config({ strings: { uploadFailedAnnounce } })` |
+| `Add row` | the add button `DS.kveditor` makes when the markup has none (the system's string `kvAdd`) | `DS.core.config({ strings: { kvAdd } })` |
+| `Key, row {row}` | the name of a key field of `DS.kveditor` (the system's string `kvKeyLabel`) | `DS.core.config({ strings: { kvKeyLabel } })` |
+| `Value, row {row}` | the name of a value field of `DS.kveditor` without a key (the system's string `kvValueLabel`) | `DS.core.config({ strings: { kvValueLabel } })` |
+| `Value of {key}` | the name of a value field of `DS.kveditor` (the system's string `kvValueOf`) | `DS.core.config({ strings: { kvValueOf } })` |
+| `Remove {key}` | the name of a row's remove button in `DS.kveditor` (the system's string `kvRemove`) | `DS.core.config({ strings: { kvRemove } })` |
+| `Remove row {row}` | the same, for a row without a key (the system's string `kvRemoveRow`) | `DS.core.config({ strings: { kvRemoveRow } })` |
+| `Show the value of {key}` | the name of a secret value's reveal button in `DS.kveditor` (the system's string `kvShow`) | `DS.core.config({ strings: { kvShow } })` |
+| `Show the value of row {row}` | the same, for a row without a key (the system's string `kvShowRow`) | `DS.core.config({ strings: { kvShowRow } })` |
+| `{key} is also on row {rows}: the last one counts.` | the warning of a key that comes twice in `DS.kveditor` (the system's string `kvDuplicate`) | `DS.core.config({ strings: { kvDuplicate } })` |
+| `Add a key, or this row is left out.` | the warning of a value without a key in `DS.kveditor` (the system's string `kvNoKey`) | `DS.core.config({ strings: { kvNoKey } })` |
+| `Removed {key}.` | what `DS.kveditor` announces for a removed row (the system's string `kvRemoved`) | `DS.core.config({ strings: { kvRemoved } })` |
+| `Removed a row.` | the same, for a row without a key (the system's string `kvRemovedRow`) | `DS.core.config({ strings: { kvRemovedRow } })` |
+| `Pasted {count} rows.` | what `DS.kveditor` announces after a paste of KEY=value lines (the system's string `kvPasted`) | `DS.core.config({ strings: { kvPasted } })` |
+| `done` | the hidden word after a done step's label in `DS.wizard` ("Device, done") (the system's string `wizardDone`) | `DS.core.config({ strings: { wizardDone } })` |
+| `Needs attention` | the hint of a step in error in `DS.wizard` (the system's string `wizardFix`) | `DS.core.config({ strings: { wizardFix } })` |
+| `Step {index} of {count}` | the name of a `.ds-steps--bar` that `DS.wizard` writes (the system's string `wizardStepOf`) | `DS.core.config({ strings: { wizardStepOf } })` |
+| `Step {index} of {count}: {label}` | what `DS.wizard` announces when a step opens (the system's string `wizardStep`) | `DS.core.config({ strings: { wizardStep } })` |
+| `One field needs attention.` | what `DS.wizard` announces for a step with one invalid field (the system's string `wizardError`) | `DS.core.config({ strings: { wizardError } })` |
+| `{count} fields need attention.` | the same, for several (the system's string `wizardErrors`) | `DS.core.config({ strings: { wizardErrors } })` |
+| `Not given` | an empty field in the summary of `DS.wizard` (the system's string `wizardEmpty`) | `DS.core.config({ strings: { wizardEmpty } })` |
+| `Edit {label}` | the name of a step's Edit button in the summary of `DS.wizard` (the system's string `wizardEdit`) | `DS.core.config({ strings: { wizardEdit } })` |
+| `Edit` | the text of that button (the system's string `wizardEditShort`) | `DS.core.config({ strings: { wizardEditShort } })` |
+| `Yes` | a ticked lone checkbox in the summary of `DS.wizard` (the system's string `wizardYes`) | `DS.core.config({ strings: { wizardYes } })` |
+| `No` | a lone checkbox left empty in the summary of `DS.wizard` (the system's string `wizardNo`) | `DS.core.config({ strings: { wizardNo } })` |
+| `1 unsaved change` | the text of `[data-ds-unsaved-count]` for one change in `DS.unsaved` (the system's string `unsavedOne`) | `DS.core.config({ strings: { unsavedOne } })` |
+| `{count} unsaved changes` | the same, for several (the system's string `unsavedMany`) | `DS.core.config({ strings: { unsavedMany } })` |
+| `Save changes` | the shortcut sheet's line for the save shortcut of `DS.unsaved` (the system's string `unsavedSaveKey`) | `DS.core.config({ strings: { unsavedSaveKey } })` |
+| `Changes saved.` | what `DS.unsaved` announces after a save (the system's string `unsavedSaved`) | `DS.core.config({ strings: { unsavedSaved } })` |
+| `Not saved. Your changes are still here.` | what `DS.unsaved` announces when a save failed (the system's string `unsavedFailed`) | `DS.core.config({ strings: { unsavedFailed } })` |
+| `Changes discarded.` | what `DS.unsaved` announces after a discard (the system's string `unsavedDiscarded`) | `DS.core.config({ strings: { unsavedDiscarded } })` |
+| `Leave without saving?` | the title of the dialog of `DS.unsaved.navigate()` (the system's string `unsavedLeaveTitle`) | `DS.core.config({ strings: { unsavedLeaveTitle } })` |
+| `Your unsaved changes will be lost.` | its text (the system's string `unsavedLeaveText`) | `DS.core.config({ strings: { unsavedLeaveText } })` |
+| `Discard changes` | its confirm button (the system's string `unsavedLeave`) | `DS.core.config({ strings: { unsavedLeave } })` |
+| `Keep editing` | its cancel button (the system's string `unsavedStay`) | `DS.core.config({ strings: { unsavedStay } })` |
+| `(changed)` | the word `DS.unsaved` adds to a changed field's label for screen readers, where the label has no `.ds-field__changed` (the system's string `unsavedChangedWord`) | `DS.core.config({ strings: { unsavedChangedWord } })` |
+| `is` | the operator of a filter of `DS.query` ("Status is open") (the system's string `queryIs`) | `DS.core.config({ strings: { queryIs } })` |
+| `is not` | the same, negated (`-status:closed`) (the system's string `queryNot`) | `DS.core.config({ strings: { queryNot } })` |
+| `over` | the same, `key:>n` (the system's string `queryGt`) | `DS.core.config({ strings: { queryGt } })` |
+| `at least` | the same, `key:>=n` (the system's string `queryGte`) | `DS.core.config({ strings: { queryGte } })` |
+| `under` | the same, `key:<n` (the system's string `queryLt`) | `DS.core.config({ strings: { queryLt } })` |
+| `at most` | the same, `key:<=n` (the system's string `queryLte`) | `DS.core.config({ strings: { queryLte } })` |
+| `or` | between the values of one filter of `DS.query` (the system's string `queryOr`) | `DS.core.config({ strings: { queryOr } })` |
+| `Text` | the name of the free text of `DS.query` ("Text printer") (the system's string `queryText`) | `DS.core.config({ strings: { queryText } })` |
+| `Remove filter` | the hidden start of a token's name in `DS.query` (the system's string `queryRemove`) | `DS.core.config({ strings: { queryRemove } })` |
+| `Backspace or Delete removes it, F2 edits it.` | the description of every token of `DS.query` (the system's string `queryTokenHint`) | `DS.core.config({ strings: { queryTokenHint } })` |
+| `(not a known filter)` | the reason in the name of a token of `DS.query` whose key the page did not name (the system's string `queryUnknownKey`) | `DS.core.config({ strings: { queryUnknownKey } })` |
+| `(this filter does not compare)` | the same, for an operator its key does not take (the system's string `queryBadOp`) | `DS.core.config({ strings: { queryBadOp } })` |
+| `(not a valid value)` | the same, for a value outside its key's list, or no number or date (the system's string `queryBadValue`) | `DS.core.config({ strings: { queryBadValue } })` |
+| `Suggestions` | the name of the list of `DS.query` (the system's string `querySuggestions`) | `DS.core.config({ strings: { querySuggestions } })` |
+| `Filter by` | the heading of the keys in that list (the system's string `queryKeys`) | `DS.core.config({ strings: { queryKeys } })` |
+| `Compare` | the heading of the operators in that list (the system's string `queryOperators`) | `DS.core.config({ strings: { queryOperators } })` |
+| `Saved queries` | the heading of the saved queries in that list (the system's string `querySaved`) | `DS.core.config({ strings: { querySaved } })` |
+| `Search` | the heading of the free-text choice in that list (the system's string `querySearch`) | `DS.core.config({ strings: { querySearch } })` |
+| `Search for "{text}"` | the free-text choice in that list (the system's string `querySearchFor`) | `DS.core.config({ strings: { querySearchFor } })` |
+| `1 suggestion` | the status line of that list for one entry (the system's string `queryOne`) | `DS.core.config({ strings: { queryOne } })` |
+| `{count} suggestions` | the same, for several (the system's string `queryMany`) | `DS.core.config({ strings: { queryMany } })` |
+| `No suggestions` | the same, for none (the system's string `queryNoMatch`) | `DS.core.config({ strings: { queryNoMatch } })` |
+| `Not a known filter` | the same, after a key the page did not name (the system's string `queryUnknown`) | `DS.core.config({ strings: { queryUnknown } })` |
+| `Enter applies this saved query, Delete removes it.` | the status line while a saved query is active (the system's string `querySavedHint`) | `DS.core.config({ strings: { querySavedHint } })` |
+| `Added filter {label}.` | what `DS.query` announces for a new token (the system's string `queryAdded`) | `DS.core.config({ strings: { queryAdded } })` |
+| `Removed filter {label}.` | what `DS.query` announces for a removed token (the system's string `queryRemoved`) | `DS.core.config({ strings: { queryRemoved } })` |
+| `Editing filter {label}.` | what `DS.query` announces when a token goes back into the field (the system's string `queryEditing`) | `DS.core.config({ strings: { queryEditing } })` |
+| `Cleared the query.` | what `DS.query` announces after its clear button (the system's string `queryCleared`) | `DS.core.config({ strings: { queryCleared } })` |
+| `Applied {name}.` | what `DS.query` announces after a saved query was chosen (the system's string `queryApplied`) | `DS.core.config({ strings: { queryApplied } })` |
+| `Clear the query` | the name of the clear button of `DS.query` (the system's string `queryClear`) | `DS.core.config({ strings: { queryClear } })` |
+| `Save this query` | the name of `.ds-query__save` (the system's string `querySave`) | `DS.core.config({ strings: { querySave } })` |
+| `Save the query` | the title of the dialog of `.ds-query__save` (the system's string `querySaveTitle`) | `DS.core.config({ strings: { querySaveTitle } })` |
+| `Name` | the field of that dialog (the system's string `querySaveName`) | `DS.core.config({ strings: { querySaveName } })` |
+| `Save` | its confirm button (the system's string `querySaveConfirm`) | `DS.core.config({ strings: { querySaveConfirm } })` |
+| `Saved the query as {name}.` | what `DS.query` announces after a save (the system's string `querySavedAs`) | `DS.core.config({ strings: { querySavedAs } })` |
+| `Removed the saved query {name}.` | what `DS.query` announces after Delete on a saved query (the system's string `querySavedRemoved`) | `DS.core.config({ strings: { querySavedRemoved } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

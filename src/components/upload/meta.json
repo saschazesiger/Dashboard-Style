@@ -1,0 +1,73 @@
+{
+  "name": "upload",
+  "group": "forms",
+  "order": 400,
+  "docsOrder": 332,
+  "need": "Upload files: a drop zone, the files with their progress, retry and remove, previews, limits and smaller images",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-upload",
+    "ds-upload__actions",
+    "ds-upload__bar",
+    "ds-upload__caption",
+    "ds-upload__error",
+    "ds-upload__error-text",
+    "ds-upload__glyph",
+    "ds-upload__grid",
+    "ds-upload__item",
+    "ds-upload__list",
+    "ds-upload__meta",
+    "ds-upload__name",
+    "ds-upload__preview",
+    "ds-upload__remove",
+    "ds-upload__retry",
+    "ds-upload__status",
+    "ds-upload__status-icon",
+    "ds-upload__thumb",
+    "ds-upload__tile"
+  ],
+  "attributes": [
+    "data-status"
+  ],
+  "requires": [
+    "button",
+    "drag",
+    "list",
+    "progress"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-upload-tile": {
+      "default": "144px",
+      "description": "`.ds-upload__grid`: a preview tile's least width at md (16px per size step, never under 96px)"
+    },
+    "--ds-upload-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "a preview tile of `.ds-upload__grid`, times `--ds-shape`"
+    },
+    "--ds-upload-gap": {
+      "default": "`--ds-space-3`",
+      "description": "`.ds-upload`: the room between the zone, the error line and the files (2px per density step)"
+    },
+    "--ds-field-error-color": {
+      "owner": "form"
+    }
+  },
+  "keyframes": [
+    "ds-fade-in"
+  ],
+  "js": [
+    "upload"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.upload.accepts": "a pure function: no motion",
+    "DS.upload.parseSize": "a pure function: no motion",
+    "DS.upload.validate": "a pure function: no motion",
+    "DS.upload.fitSize": "a pure function: no motion",
+    "DS.upload.resizeImage": "draws a picture on a canvas: no motion"
+  }
+}
