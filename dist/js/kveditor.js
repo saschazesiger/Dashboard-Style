@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Key-value editor (DS.kveditor): rows of a key and a value, added and
  * removed, filled by pasting KEY=value lines, a warning on a key that comes

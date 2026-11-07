@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * The loading overlay (DS.loadingoverlay): blocks one region of the page
  * while work on it runs, with a spinner and a message.

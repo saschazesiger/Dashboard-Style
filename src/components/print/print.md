@@ -39,8 +39,3 @@ off. These classes are for the page's own content.
 - Options: shape multiplies the sheet's radius on screen; size, density, tone and touch are its content's own.
 - Forced colours: the sheet keeps a transparent outline that becomes its edge.
 - Hooks: `--ds-print-page-width`, `--ds-print-page-pad` ([theming.md](theming.md#component-hooks)).
-
-<!-- changelog -->
-- Added: Print, `.ds-print-only`, `.ds-print-hide`, `.ds-print-break-before`, `.ds-print-break-after`,
-  `.ds-print-avoid`, `.ds-print-exact`, `.ds-print-urls` and the printable sheet `.ds-print-page`
-  (`--ds-print-page-width`, `--ds-print-page-pad`).

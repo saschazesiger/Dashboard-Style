@@ -67,9 +67,3 @@ The dotted underline takes the text colour.
 
 **Motion:** none. A figure that should count to its new value goes through `DS.motion.countUp()` with
 `format: (v) => DS.formatted.text(v, options)` instead.
-
-<!-- changelog -->
-- Formatted value (new, `formatted`): `data-ds-format` (`number`, `compact`, `percent`, `currency`, `bytes`,
-  `duration`) with `data-ds-value` and `data-ds-format-*` options, the exact value in a tooltip; `DS.formatted.create`,
-  `text`, `exact`; `.ds-value--plain`. Relative time (`data-ds-time` of the core) documented beside it, with its
-  dotted underline and tabular figures.

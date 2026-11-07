@@ -80,8 +80,3 @@ that becomes their edge.
 
 **Motion.** None of its own: the refresh dims through `.ds-stale`, the loading bar fades in after the loader delay
 ([loading](#loading)), and the content that arrives glides through the chart's `--ds-share` or `DS.motion.flip`.
-
-<!-- changelog -->
-- Dashboard panel (`.ds-dashpanel`): a titled panel with an actions slot for a menu, a loading bar along its head, a
-  body that keeps its place through the loading, refreshing, failed and no-data states, a foot; outlined, filled and
-  elevated.

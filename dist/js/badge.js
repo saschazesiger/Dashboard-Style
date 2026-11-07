@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Badge: a count that never outgrows its pill. The figure stops at a maximum
  * and shows "99+"; nothing (an empty badge takes no room) at zero or below.

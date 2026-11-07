@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * List-detail layout (DS.listdetail): which level shows, list, detail or
  * sub-detail, and what follows when it changes. This module writes the level

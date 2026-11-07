@@ -70,9 +70,3 @@ tells that the card opened; `on('open' | 'close', fn)` hears the card's own even
 
 **Motion:** the card is a popover: it grows out of the button (the arrow's tip) and leaves with a fade. The button
 morphs on press like every pill. The "Help card" row of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog
-- Toggletip (`.ds-toggletip`, `js/toggletip.js`, `DS.toggletip`): the info button that opens a help card
-  (`.ds-popover--tip`) on a click or a tap and announces its text; sits on the label row of a `.ds-field`. Hook
-  `--ds-toggletip-size`. New string `moreInfo` ("More information").
--->

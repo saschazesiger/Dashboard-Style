@@ -84,9 +84,3 @@ Rendered rich text (Markdown through [Markdown](#markdown), a help article, a re
   keeps its border. Print: tables wrap; anchor icons go.
 - Hooks: `--ds-prose-gap`, `--ds-prose-font`, `--ds-prose-strong-weight`, `--ds-prose-radius`
   ([theming.md](theming.md#component-hooks)).
-
-<!-- changelog -->
-- Prose (3.0): heading anchors (`.ds-prose__anchor`), footnote references and links back (`.ds-prose__fnref`,
-  `.ds-prose__fnback`, the `:target` note on the tint), `kbd` and `mark` in prose, the column alignment `data-align`.
-  `.ds-code-block` and `.ds-code-block--wrap` and the hook `--ds-code-block-radius` move to [Code block](#code-block)
-  (same names; prose requires code).

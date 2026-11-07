@@ -82,10 +82,3 @@ system's.
 **Hooks:** none of its own; the alert's.
 
 **Motion:** none of its own: the summary shows at once and its focus ring snaps as every ring does.
-
-<!-- changelog
-- Error summary (`DS.errorsummary`, `.ds-errorsummary`, `__title`, `__list`, `[data-ds-errorsummary]`): the problems
-  of a form at its top after a submit, from the fields' constraints and `aria-invalid`, a link per problem to its field,
-  focused; messages written into empty error hints; the list follows the fixes. Strings `errorSummaryOne`,
-  `errorSummaryMany`, `errorSummaryField`.
--->

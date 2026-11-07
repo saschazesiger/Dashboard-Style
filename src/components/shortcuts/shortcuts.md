@@ -102,7 +102,3 @@ Rows keep their hairlines (borders); a shortcut that is off reads `GrayText`.
 ### Motion
 
 The dialog's entrance and exit (`DS.overlay`); the list changes in place.
-
-<!-- changelog -->
-- Shortcut sheet (3.0): `.ds-shortcuts` in a `.ds-dialog`, `DS.shortcuts` (`create`, `open`, `close`, `render`,
-  `byScope`), `data-ds-shortcuts`; "?" lists every shortcut of `DS.hotkeys`, grouped by scope and group, with a filter.

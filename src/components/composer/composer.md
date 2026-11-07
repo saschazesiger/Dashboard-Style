@@ -127,12 +127,3 @@ the active option is `SelectedItem` / `SelectedItemText`, a blocked one `GrayTex
 (`DS.overlay`), so a palette closed mid-way turns back from where it is. Chips pop in and out
 (`DS.motion.enter` / `leave`, `'pop'`); the send icon swaps to stop through `.ds-icon-swap`. The field's height follows
 the text at once, never animated.
-
-<!-- changelog -->
-- Composer (3.0): `.ds-composer` moves out of the form into a folder of its own, with a behaviour module
-  (`DS.composer`, `data-ds-composer`): attachments as chips (`.ds-composer__attachments`, `.ds-composer__attachment`,
-  `.ds-composer__picker`, drop and paste), a slash-command and mention palette at the caret (`.ds-composer__palette`,
-  `.ds-composer__option`), send and stop (`data-ds-composer-busy`), Enter / Shift+Enter, remembered drafts
-  (`data-ds-composer-draft`). New hooks `--ds-composer-bg`, `--ds-composer-chip-height`,
-  `--ds-composer-chip-max-width`, `--ds-composer-palette-width`, `--ds-composer-palette-radius`,
-  `--ds-composer-option-height`. The 2.x markup keeps its look.

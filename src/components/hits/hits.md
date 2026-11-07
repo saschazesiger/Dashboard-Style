@@ -48,8 +48,3 @@ The system's `Mark` and `MarkText`. Printed, the background stays.
 `--ds-hit-bg`, `--ds-hit-color`: see [theming.md](theming.md).
 
 **Motion:** none: a hit that faded in would trail the typing.
-
-<!-- changelog -->
-- Search hits (new, `hits`): `data-ds-hits` marks the hits of a query in a container's text as `.ds-hit`
-  (case and accents folded, words or `phrase` mode); `DS.hits.create`, `ranges`; hooks `--ds-hit-bg`,
-  `--ds-hit-color`.

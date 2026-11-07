@@ -114,9 +114,3 @@ announces. `aria-current` is owned state (`DS.dom.morphHtml` keeps it).
 
 **Motion:** the "Steps" row of [Navigation](motion.md#navigation) in motion.md. A stage's fill and ink change on
 `--ds-dur-medium`; a link's press is the state layer's morph and the ripple.
-
-<!-- changelog
-- Steps: clickable steps (`.ds-steps__link`, a button or a link around the mark and label, with state layer, ripple
-  and touch target), a stage path (`.ds-steps--path`, `--ds-steps-path-height`) and a behaviour module (`DS.steps`,
-  `data-ds-steps`): a press sends a cancelable `ds:change`, moves `aria-current` and announces the step.
--->

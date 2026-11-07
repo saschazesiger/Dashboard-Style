@@ -1,6 +1,6 @@
 {
   "name": "dashboard-style",
-  "version": "3.0.0-alpha.4",
+  "version": "3.0.0-alpha.5",
   "layers": "@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;",
   "sublayers": "@layer ds.components.global, ds.components.layout, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.calendar, ds.components.container, ds.components.loadmore, ds.components.popover, ds.components.splitpane, ds.components.upload, ds.components.datefield, ds.components.kveditor, ds.components.listdetail, ds.components.sort, ds.components.text, ds.components.toggletip, ds.components.dashpanel, ds.components.filterbar, ds.components.picker, ds.components.spacing, ds.components.wizard, ds.components.facets, ds.components.sticky, ds.components.timepicker, ds.components.unsaved, ds.components.datepicker, ds.components.print, ds.components.query, ds.components.views, ds.components.datagrid, ds.components.daterange, ds.components.timerange, ds.components.duration, ds.components.link, ds.components.toggle, ds.components.button-group, ds.components.menubutton, ds.components.splitbutton, ds.components.copy, ds.components.prioritybar, ds.components.listbox, ds.components.number, ds.components.tree, ds.components.choices, ds.components.jsonview, ds.components.password, ds.components.auditlog, ds.components.secret, ds.components.taginput, ds.components.otp, ds.components.selectpanel, ds.components.inlineedit, ds.components.orderedchoice, ds.components.transfer, ds.components.typeconfirm, ds.components.errorsummary, ds.components.search, ds.components.meter, ds.components.bar-list, ds.components.category-bar, ds.components.lozenge, ds.components.result, ds.components.formatted, ds.components.kbd, ds.components.truncate, ds.components.expandable, ds.components.hits, ds.components.tracker, ds.components.labelgroup, ds.components.image, ds.components.composer, ds.components.message, ds.components.transcript, ds.components.suggestions, ds.components.feedback, ds.components.ailabel, ds.components.tearsheet, ds.components.loadingoverlay, ds.components.lightbox, ds.components.bottomsheet, ds.components.highlight, ds.components.markdown, ds.components.code, ds.components.toc, ds.components.backtop, ds.components.diff, ds.components.logview, ds.components.object, ds.components.terminal, ds.components.shimmer, ds.components.wheel, ds.components.thinking, ds.components.toolcall, ds.components.reasoning, ds.components.cite, ds.components.plan, ds.components.question, ds.components.usage, ds.components.presence, ds.components.avatar, ds.components.persona, ds.components.media, ds.components.levelmeter, ds.components.command, ds.components.shortcuts, ds.components.banner, ds.components.notifications, ds.components.ripple;",
   "core": {
@@ -491,7 +491,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 6741,
-      "gzip": 1703
+      "gzip": 1704
     },
     "loader": {
       "css": "css/components/loader.css",
@@ -520,7 +520,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4429,
-      "gzip": 1262
+      "gzip": 1261
     },
     "indicator": {
       "css": "css/components/indicator.css",
@@ -547,7 +547,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 6374,
-      "gzip": 1424
+      "gzip": 1425
     },
     "button": {
       "css": "css/components/button.css",
@@ -713,7 +713,7 @@
       "ripple": true,
       "progressive": [],
       "bytes": 6873,
-      "gzip": 1823
+      "gzip": 1824
     },
     "timeline": {
       "css": "css/components/timeline.css",
@@ -789,7 +789,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 5370,
-      "gzip": 1493
+      "gzip": 1494
     },
     "status": {
       "css": "css/components/status.css",
@@ -1141,7 +1141,7 @@
       "ripple": true,
       "progressive": [],
       "bytes": 26847,
-      "gzip": 5261
+      "gzip": 5262
     },
     "tile": {
       "css": "css/components/tile.css",
@@ -1508,7 +1508,7 @@
         "scrollbar-color"
       ],
       "bytes": 11793,
-      "gzip": 2895
+      "gzip": 2896
     },
     "chip": {
       "css": "css/components/chip.css",
@@ -1667,7 +1667,7 @@
         "scrollbar-color"
       ],
       "bytes": 15788,
-      "gzip": 3311
+      "gzip": 3312
     },
     "dialog": {
       "css": "css/components/dialog.css",
@@ -2023,7 +2023,7 @@
         "field-sizing"
       ],
       "bytes": 52791,
-      "gzip": 7918
+      "gzip": 7917
     },
     "drag": {
       "css": "css/components/drag.css",
@@ -2147,7 +2147,7 @@
         "scrollbar-color"
       ],
       "bytes": 17006,
-      "gzip": 3831
+      "gzip": 3832
     },
     "tooltip": {
       "css": "css/components/tooltip.css",
@@ -2184,7 +2184,7 @@
         "anchor positioning"
       ],
       "bytes": 5919,
-      "gzip": 1615
+      "gzip": 1614
     },
     "page": {
       "css": "css/components/page.css",
@@ -2480,7 +2480,7 @@
         "scrollbar-color"
       ],
       "bytes": 11372,
-      "gzip": 2772
+      "gzip": 2773
     },
     "steps": {
       "css": "css/components/steps.css",
@@ -2519,7 +2519,7 @@
       "ripple": true,
       "progressive": [],
       "bytes": 15631,
-      "gzip": 3180
+      "gzip": 3181
     },
     "toast": {
       "css": "css/components/toast.css",
@@ -2582,7 +2582,7 @@
         "View Transitions"
       ],
       "bytes": 8778,
-      "gzip": 2293
+      "gzip": 2294
     },
     "savebar": {
       "css": "css/components/savebar.css",
@@ -3048,7 +3048,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 7251,
-      "gzip": 1728
+      "gzip": 1729
     },
     "sort": {
       "css": "css/components/sort.css",
@@ -3158,7 +3158,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 6675,
-      "gzip": 1781
+      "gzip": 1782
     },
     "dashpanel": {
       "css": "css/components/dashpanel.css",
@@ -3200,7 +3200,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 6325,
-      "gzip": 1686
+      "gzip": 1685
     },
     "filterbar": {
       "css": "css/components/filterbar.css",
@@ -3302,7 +3302,7 @@
         "scrollbar-color"
       ],
       "bytes": 9548,
-      "gzip": 2485
+      "gzip": 2486
     },
     "spacing": {
       "css": "css/components/spacing.css",
@@ -3528,7 +3528,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 5552,
-      "gzip": 1590
+      "gzip": 1591
     },
     "unsaved": {
       "css": "css/components/unsaved.css",
@@ -3562,7 +3562,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 3633,
-      "gzip": 923
+      "gzip": 924
     },
     "datepicker": {
       "css": "css/components/datepicker.css",
@@ -3712,7 +3712,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4370,
-      "gzip": 1227
+      "gzip": 1228
     },
     "datagrid": {
       "css": "css/components/datagrid.css",
@@ -3910,7 +3910,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 3629,
-      "gzip": 917
+      "gzip": 918
     },
     "link": {
       "css": "css/components/link.css",
@@ -4066,7 +4066,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 3902,
-      "gzip": 1045
+      "gzip": 1046
     },
     "copy": {
       "css": "css/components/copy.css",
@@ -4188,7 +4188,7 @@
         "scrollbar-color"
       ],
       "bytes": 11481,
-      "gzip": 2645
+      "gzip": 2646
     },
     "number": {
       "css": "css/components/number.css",
@@ -4222,7 +4222,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 3984,
-      "gzip": 1080
+      "gzip": 1081
     },
     "tree": {
       "css": "css/components/tree.css",
@@ -4281,7 +4281,7 @@
         "overflow-clip-margin"
       ],
       "bytes": 10592,
-      "gzip": 2527
+      "gzip": 2528
     },
     "choices": {
       "css": "css/components/choices.css",
@@ -4423,7 +4423,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 5033,
-      "gzip": 1356
+      "gzip": 1357
     },
     "auditlog": {
       "css": "css/components/auditlog.css",
@@ -4468,7 +4468,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 6552,
-      "gzip": 1783
+      "gzip": 1784
     },
     "secret": {
       "css": "css/components/secret.css",
@@ -4510,7 +4510,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 5467,
-      "gzip": 1529
+      "gzip": 1530
     },
     "taginput": {
       "css": "css/components/taginput.css",
@@ -4552,7 +4552,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 6541,
-      "gzip": 1751
+      "gzip": 1752
     },
     "otp": {
       "css": "css/components/otp.css",
@@ -4685,7 +4685,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4574,
-      "gzip": 1251
+      "gzip": 1252
     },
     "orderedchoice": {
       "css": "css/components/orderedchoice.css",
@@ -4718,7 +4718,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 5472,
-      "gzip": 1502
+      "gzip": 1503
     },
     "transfer": {
       "css": "css/components/transfer.css",
@@ -4982,7 +4982,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 5036,
-      "gzip": 1439
+      "gzip": 1440
     },
     "result": {
       "css": "css/components/result.css",
@@ -5048,7 +5048,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4102,
-      "gzip": 1095
+      "gzip": 1096
     },
     "kbd": {
       "css": "css/components/kbd.css",
@@ -5078,7 +5078,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 3928,
-      "gzip": 1042
+      "gzip": 1043
     },
     "truncate": {
       "css": "css/components/truncate.css",
@@ -5532,7 +5532,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 7068,
-      "gzip": 2011
+      "gzip": 2012
     },
     "tearsheet": {
       "css": "css/components/tearsheet.css",
@@ -5591,7 +5591,7 @@
         "scrollbar-color"
       ],
       "bytes": 9479,
-      "gzip": 2294
+      "gzip": 2293
     },
     "loadingoverlay": {
       "css": "css/components/loadingoverlay.css",
@@ -5853,7 +5853,7 @@
         "scrollbar-color"
       ],
       "bytes": 8912,
-      "gzip": 2209
+      "gzip": 2210
     },
     "toc": {
       "css": "css/components/toc.css",
@@ -6292,7 +6292,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 5123,
-      "gzip": 1466
+      "gzip": 1467
     },
     "toolcall": {
       "css": "css/components/toolcall.css",
@@ -6875,7 +6875,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 5684,
-      "gzip": 1450
+      "gzip": 1451
     },
     "banner": {
       "css": "css/components/banner.css",

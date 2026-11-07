@@ -141,14 +141,3 @@ colours `--ds-logview-black`, `--ds-logview-red`, `--ds-logview-green`, `--ds-lo
 
 **Motion.** The "Latest" pill comes and goes with `.ds-presence`; following the end is a scroll (smooth within one
 screen, else at once). Lines arrive in place, without motion.
-
-<!-- changelog -->
-- Log viewer (`.ds-logview`, `DS.logview`): a windowed log (`DS.virtual`, 100,000 lines by default) with ANSI colours
-  on theme roles (hooks `--ds-logview-black` ... `--ds-logview-white`), levels read from the text with an icon and a
-  word, level filter chips with counts, search with a count and next and previous, "Only matching lines", wrap,
-  timestamps (time of day, full or none), copy of a line or a range (a multi-select listbox), follow mode with the
-  "Latest" pill (`DS.dom.followEnd`), `append()` batched per frame, `DS.logview.parse` and `DS.logview.ansi`. New
-  strings `logName`, `logFatal`, `logError`, `logWarn`, `logInfo`, `logDebug`, `logTrace`, `logLevels`, `logSearch`,
-  `logSearchPlaceholder`, `logPrevious`, `logNext`, `logMatch`, `logMatchesOne`, `logMatches`, `logOnlyMatches`,
-  `logWrap`, `logTimestamps`, `logCopyLine`, `logCopyLines`, `logCopiedOne`, `logCopied`, `logSelected`,
-  `logLinesOne`, `logLines`, `logShown`, `logEmpty`, `logNoneShown`, `logLatest`, `logFollowing`.

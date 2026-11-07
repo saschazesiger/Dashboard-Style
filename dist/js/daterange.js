@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * The date range picker (DS.daterange): a segmented field of two dates
  * (DS.datefield, type range) and a popover (DS.picker) with presets and two

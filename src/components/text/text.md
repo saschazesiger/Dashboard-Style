@@ -33,7 +33,3 @@ ellipsis at its end, start or middle is [Truncate](#truncate).
 - Forced colours: nothing of their own; the ellipsis is text.
 - Progressive: `.ds-pretty` (`text-wrap: pretty`) wraps as usual where it is missing. `.ds-balance` is at the floor.
 - Hooks: `--ds-clamp-lines` ([theming.md](theming.md#component-hooks)), on the element.
-
-<!-- changelog -->
-- Added: Text utilities, `.ds-clamp-1` to `.ds-clamp-5`, `.ds-clamp` (`--ds-clamp-lines`),
-  `.ds-break`, `.ds-mono`, `.ds-tabular`, `.ds-balance` and `.ds-pretty`.

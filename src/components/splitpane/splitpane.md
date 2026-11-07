@@ -103,9 +103,3 @@ user knows what grew.
 `--ds-ease-out` (a size that pushes layout never overshoots) and reverse from where they are; a drag and the keys move at
 once. The line and the grip change colour over `--ds-dur-fast`. Focus: a ring around the grip, solid from the first
 frame, snapping from offset + width to the offset.
-
-<!-- changelog -->
-- Split pane (`.ds-splitpane`, `DS.splitpane`): two or three panes, side by side or stacked, with dividers that drag
-  and move by keyboard (APG window splitter), limits per pane, collapse and restore (keys, double click, toggle
-  buttons), sizes remembered through `DS.store`, stacking under a width of its own on a phone
-  (`data-ds-splitpane-stack`). New strings `splitpaneResize`, `splitpaneCollapsed`.

@@ -118,13 +118,3 @@ status keeps its icon and word, a held modifier is `Highlight` (the button's tog
 `--ds-terminal-cyan`, `--ds-terminal-white` ([theming.md](theming.md)); `DS.terminal.theme()` reads them too.
 
 **Motion.** The status chip's colour glides (`.ds-status`); the keys press as buttons. Nothing else moves.
-
-<!-- changelog -->
-- Terminal frame (`.ds-terminal`, `DS.terminal`, tier 2): the chrome around a terminal emulator the page brings: a
-  head with the title, a status chip (connecting, connected, disconnected) and the page's actions, the screen, and a
-  key bar (Esc, Tab, Ctrl, Alt, the arrows; more by name or character) shown under a coarse pointer, with Ctrl and
-  Alt held for the next key, also for a character typed on the soft keyboard. `DS.terminal.sequence` gives xterm's
-  bytes of a key, `DS.terminal.theme` the theme's colours for an emulator (hooks `--ds-terminal-*`); `--fill` for a
-  terminal page; plain output with `data-fg` spans. New strings `terminalKeys`, `terminalUp`, `terminalDown`,
-  `terminalLeft`, `terminalRight`, `terminalConnecting`, `terminalConnected`, `terminalDisconnected`,
-  `terminalHeld`, `terminalReleased`.

@@ -78,6 +78,8 @@ view.destroy();                                   // the plain text again
   tried as one expression (the first rule that matches at the leftmost place wins); a kind may be a function
   `(text, state, index, end)` that returns a kind, `null` or a list of `[kind, text]` sub-tokens. Or pass a function
   `(code) => [kind, text][]` of your own.
+- `DS.highlight.language(name)` gives the language a name or alias stands for (`null` when none is registered) and
+  `DS.highlight.languages()` lists the registered names.
 - **The hook for an external highlighter**: `DS.highlight.use(fn)`, where `fn(code, language)` returns markup (taken
   as it comes: the page chose the highlighter and answers for its output) or `null` to leave the language to the
   system; `DS.highlight.use(null)` goes back. Give its token classes the code roles in the page's CSS
@@ -99,11 +101,3 @@ diff stay.
 **Roles.** `--ds-code-keyword`, `--ds-code-string`, `--ds-code-number`, `--ds-code-comment`, `--ds-code-function`,
 `--ds-code-type`, `--ds-code-property`, `--ds-code-meta`, `--ds-code-inserted`, `--ds-code-deleted`, on
 `--ds-code-bg` ([tokens.md](tokens.md)). A theme sets the roles, never the token classes.
-
-<!-- changelog -->
-- Syntax highlighting (3.0, D13): `DS.highlight` (`data-ds-highlight`; `tokenize`, `highlight`, `lines`, `language`,
-  `languages`, `register`, `use`, `create`, `KINDS`) with tokenizers for json, js, ts, sh, html, xml, css, sql, yaml,
-  go, py and diff; the token classes `.ds-highlight__*`; the colour roles `--ds-code-keyword`, `--ds-code-string`,
-  `--ds-code-number`, `--ds-code-comment`, `--ds-code-function`, `--ds-code-type`, `--ds-code-property`,
-  `--ds-code-meta`, `--ds-code-inserted`, `--ds-code-deleted` (light, dark and contrast values). Linear time, long single
-  lines included.

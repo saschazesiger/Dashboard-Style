@@ -133,12 +133,3 @@ keeps its frame and hairlines; the timeline's marker and rail are its own.
 
 **Motion:** the timeline's: new entries come in through `DS.motion.flip` (a new row fades in, the rows below glide down;
 a live log waits while it is pointed at or holds the focus). Filtering re-renders at once.
-
-<!-- changelog -->
-- Audit log (`.ds-auditlog`, `DS.auditlog`): who, what and when on the activity timeline, grouped by day, with a diff of
-  each changed field (`.ds-auditlog__diff`: old struck through, new underlined, the words for a reader), a filter bar
-  with a live count, and the pure helpers `changes()`, `group()` and `matches()`. Hooks `--ds-auditlog-field-width`,
-  `--ds-auditlog-old-bg`, `--ds-auditlog-new-bg`, `--ds-auditlog-diff-radius`. New strings `auditlogToday`,
-  `auditlogYesterday`, `auditlogUndated`, `auditlogBefore`, `auditlogAfter`, `auditlogNotSet`, `auditlogEvent`,
-  `auditlogEvents`, `auditlogFiltered`, `auditlogMore`. A `limit` (200) with a "Show more" button
-  (`.ds-auditlog__more`) keeps a log of thousands of entries quick.

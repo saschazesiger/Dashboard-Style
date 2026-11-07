@@ -90,8 +90,3 @@ apart without colour. Printed, the fills keep their colours.
 
 **Motion:** the share glides on `--ds-ease-value` over `--ds-dur-glide` (the "Data motion" rules of
 [motion.md](motion.md#data-motion)); the first render fills with `.ds-enter--fill`.
-
-<!-- changelog -->
-- Meter variants (new, `meter`): `.ds-meter--segmented` and `.ds-meter__threshold` on the chart meter, the ring and
-  gauge `.ds-gauge` (`--arc`, `__value`, `__label`, `__threshold`) and the bar gauge `.ds-bar-gauge` with warning and
-  error zones, all on `--ds-share`.

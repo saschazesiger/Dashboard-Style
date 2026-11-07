@@ -114,6 +114,3 @@ DS.motion.sortable(steps, { onChange: (order) => save(order.map((row) => row.dat
   leaves it alone, as every icon button. The row's look has no option of its own.
 
 **Motion:** `sortable()` in [DS.motion](motion.md#dsmotion-jsmotionjs); the row glides like every `flip()` item.
-
-<!-- changelog -->
-- Drag and files: the section of the drop zone is now "Drop zone and file field"; `#file-upload` names the new [File upload](#file-upload), which renders the chosen files around the same zone.

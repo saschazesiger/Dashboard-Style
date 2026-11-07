@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/*! Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Writes a project's Dashboard-Style bundle: only the stylesheets, modules
  * and icons the project uses, without dependencies (Node 22 or later).

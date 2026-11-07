@@ -119,12 +119,3 @@ The words are text and the buttons, the menu and its checks keep their own model
 
 **Motion:** the trigger's chevron turns while its menu is open (`--ds-dur-medium`, `--ds-ease-spatial`); the menu,
 the dialogs and the snackbar play their own motion.
-
-<!-- changelog
-- Saved views (`DS.views`, `.ds-views`, `__trigger`, `__name`, `__edited`, `__chevron`, `__save`, `__list`,
-  `__default`, `data-ds-views-key`, `data-ds-views-url`, `data-ds-views-prefix`, `data-ds-view`, `data-ds-view-state`,
-  `data-ds-view-default`, `data-ds-views-action`, hook `--ds-views-name-max`): named filter, sort and column sets in a
-  menu, built-in and the user's own (in `DS.store`, followed across tabs), a default, "Edited" while the state differs,
-  a link that carries the view (`toQuery()`, `fromQuery()`, `history.replaceState` with `sync`), `ds:view` and
-  `ds:views`. Strings `viewEdited` ... `viewDeleteConfirm`.
--->

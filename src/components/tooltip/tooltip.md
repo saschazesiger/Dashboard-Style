@@ -74,9 +74,3 @@ a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-orig
 
 For a help text with a title, a link or anything to click, use a [toggletip](#toggletip) (on a click or tap) or a
 hover card ([popover](#popover), `data-ds-popover-trigger="hover"`): a tooltip holds text only and never takes focus.
-
-<!-- changelog
-- Tooltip: `data-tip-placement` (bottom, top, start, end; the tooltip carries the asked side as `data-side`, and
-  `data-placement` now also says `start` and `end`) and `data-tip-delay` (none, short, long) on the trigger. The
-  shortcut slot (`data-tip-shortcut`) is documented with `aria-keyshortcuts`.
--->

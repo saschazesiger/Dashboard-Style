@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /** Types of DS.datepicker (js/datepicker.js): the date and the date-time picker. */
 import type { DisabledRule } from './calendar.js';
 import type { ChangeDetail } from './datefield.js';

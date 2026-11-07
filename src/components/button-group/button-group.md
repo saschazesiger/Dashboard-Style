@@ -62,8 +62,3 @@ the button hooks; the group computes the pill of its ends from `--ds-btn-height`
 **Motion:** the press morphs the outer corners of the pressed button (`--ds-btn-radius-pressed` times `--ds-shape`, in
 `--ds-dur-micro`) and springs them back on `--ds-ease-spatial`; the inner corners stay square. The state layer, the
 ripple and the colour fades are the buttons' own. Nothing moves.
-
-<!-- changelog -->
-- Button group (3.0): `.ds-btn-group` (one pill outline: outer corners the pill times `--ds-shape`, shared borders, a
-  divider in filled and tonal groups, the press morph on the outer corners) and `.ds-btn-group--block`; hooks
-  `--ds-btn-group-radius` and `--ds-btn-group-divider`.

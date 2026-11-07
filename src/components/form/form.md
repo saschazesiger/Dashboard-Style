@@ -511,12 +511,3 @@ follows, so the page's filter runs) and the next Escape closes the layer (2.0, `
 **Motion:** the check, radio, focus, validation, confirmation, changed dot, search key and radio tile rows of
 [Controls](motion.md#controls) in motion.md. A checkbox card moves as a radio card; a warning hint enters as an error
 hint does.
-
-<!-- changelog
-- Form: `DS.form` (3.0), the module of the field. `data-ds-counter` keeps a `.ds-field__counter` ("14 / 200", the
-  `--over` class past a soft `data-ds-counter-max`) and says once that the limit is near or passed (strings
-  `charactersLeft`, `charactersLeftOne`, `charactersOver`, `charactersOverOne`); `DS.form.counter()`,
-  `DS.form.count()`. Every `textarea.ds-input--grow` grows by itself where `field-sizing` is missing (the behaviour
-  `autosize`). `.ds-select`: a customizable select where `appearance: base-select` exists (the menu's surface and rows,
-  a check, rich options, `<selectedcontent>`), the styled native select elsewhere.
--->

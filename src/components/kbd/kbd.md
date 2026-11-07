@@ -50,8 +50,3 @@ Nothing here takes focus.
 ### Forced colours
 
 The keys keep their edge (a border); the separators take the text colour.
-
-<!-- changelog -->
-- Key combos (new, `kbd`): `data-ds-kbd` writes a shortcut as the keys of the platform (`.ds-kbd-combo`,
-  `__keys`, `__combo`, `__plus`, `__then`) with the words in `.ds-sr`; `DS.kbd.create`, `keys`; strings `kbdCommand`,
-  `kbdOption`, `kbdControl`, `kbdThen`.

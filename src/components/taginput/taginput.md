@@ -76,8 +76,3 @@ is `GrayText`; the input chips keep their edge; the message is `CanvasText` with
 
 **Motion:** a new chip fades in, and a chip that goes leaves while the others glide into its place (`DS.motion.flip`,
 the chip rows of [Controls](motion.md#controls)); the message fades in over `--ds-dur-fast`.
-
-<!-- changelog -->
-- Tag input (3.0): `.ds-taginput` with `DS.taginput` (`data-ds-taginput`): free tags as input chips, Enter, a comma or a
-  pasted list, checks (unique, pattern, `validate`, max) with a message, removal by Backspace, Delete or a press, the
-  arrow keys across the chips, announcements; `DS.taginput.split` and `DS.taginput.check`.

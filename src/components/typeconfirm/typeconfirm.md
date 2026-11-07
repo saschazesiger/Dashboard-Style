@@ -86,9 +86,3 @@ it.
 **Hooks:** none of its own.
 
 **Motion:** none of its own: the dialog opens and closes through `DS.overlay`, the busy face is `DS.motion.busy`'s.
-
-<!-- changelog
-- Type-to-confirm (`DS.typeconfirm`, `[data-ds-typeconfirm]` with `-case`, `.ds-typeconfirm` with `__label`, `__name`,
-  `__input`, `__error`, `__confirm`): a destructive confirmation in a dialog whose filled error button (D10) waits until
-  the name is typed, with an async action through `ds:confirm` and `wait()`. String `typeToConfirm`.
--->

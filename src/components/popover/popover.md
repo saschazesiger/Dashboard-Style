@@ -98,11 +98,3 @@ DS.popover.open(popover, { anchor: { x: event.clientX, y: event.clientY }, opene
 `--ds-scale-popup` and its clip opens from the anchor's edge over `--ds-dur-medium` on `--ds-ease-spatial`; it leaves
 with a fade over `--ds-dur-instant`, and a popover closed mid-way turns back from where it is. The "Popover" and
 "Help card" rows of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog
-- Popover (`.ds-popover`, `js/popover.js`, `DS.popover`): an anchored non-modal panel with an optional arrow
-  (`.ds-popover--arrow`), a help card variant (`.ds-popover--tip`), placement and alignment
-  (`data-ds-popover-placement`, `data-ds-popover-align`), the top layer as `popover="manual"`, light dismiss
-  through `DS.overlay`, and the hover card (`data-ds-popover-trigger="hover"`). Hooks `--ds-popover-width`,
-  `--ds-popover-tip-width`, `--ds-popover-padding`, `--ds-popover-tip-padding`, `--ds-popover-radius`.
--->

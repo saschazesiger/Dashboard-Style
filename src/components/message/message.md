@@ -115,11 +115,3 @@ error note keeps its icon and word in the system colours.
 
 **Motion.** None of its own: the text that streams in is the motion, so the cursor stands still. The copy button swaps
 its icon through `.ds-icon-swap`. Print leaves the footer and the cursor out.
-
-<!-- changelog -->
-- Message (3.0, new): `.ds-message` with the roles `--assistant`, `--user`, `--system` and `--tool`, its parts
-  (`__avatar`, `__main`, `__head`, `__author`, `__time`, `__content`, `__note`, `__footer`), the states streaming
-  (a cursor, `aria-busy`), partial and error (a note), and `DS.message` (`data-ds-message`, `create`, `state`) with the
-  footer actions copy, retry and edit. Hooks `--ds-message-avatar-size`, `--ds-message-gap`, `--ds-message-user-bg`,
-  `--ds-message-user-color`, `--ds-message-user-max`, `--ds-message-radius`, `--ds-message-tool-bg`. Strings
-  `messageStopped`, `messageFailed`.

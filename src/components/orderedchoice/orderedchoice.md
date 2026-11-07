@@ -71,8 +71,3 @@ compute size, density and touch themselves.
 **Motion:** rows glide to their places (`DS.dnd` through `DS.motion.flip`, on `--ds-ease-spatial`); a lifted row is
 raised with the dragged state layer, nothing scales; the rank disc fades in over `--ds-dur-fast` and out in
 `--ds-dur-instant`.
-
-<!-- changelog -->
-- Ordered choice (3.0): `.ds-orderedchoice` with `DS.orderedchoice` (`data-ds-orderedchoice`): checked rows in an order
-  of their own, moved by `DS.dnd` (pointer and keys) and by Alt with the arrows, Home and End; the place of each checked
-  row in a disc and in words; a maximum; `DS.orderedchoice.arrange` and `DS.orderedchoice.ranks`.

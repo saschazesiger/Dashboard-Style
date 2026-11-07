@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Unsaved-changes guard (DS.unsaved): knows when a form holds edits that
  * are not saved yet, shows them in a save bar, saves on Ctrl+S (Command+S

@@ -57,7 +57,3 @@ Links never take a tone: a status is said with a [status chip](#status-chip) or 
 
 **Motion:** the ink and the underline colour fade on `--ds-dur-fast`; a press on a touch screen darkens the underline
 as hover does. A link is inline text: no state layer, no ripple, no press morph, and hover moves nothing.
-
-<!-- changelog -->
-- Link (3.0): `.ds-link` (inline), `.ds-link--standalone`, `.ds-link--external` with `.ds-link__icon`, and the hook
-  `--ds-link-font`; the quiet link (`.ds-link--quiet`) is documented with them and still ships in button.css.

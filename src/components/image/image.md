@@ -70,9 +70,3 @@ The frame keeps a `CanvasText` edge; the fallback's glyph and words are `CanvasT
 **Motion:** a picture that arrives fades in over `--ds-dur-medium` on `--ds-ease-in-out` (`data-state` from
 `loading` to `loaded`); a new one fades out over `--ds-dur-fast` while it loads. A transition, so a change mid-way
 continues from where it is.
-
-<!-- changelog -->
-- Image (new, `image`): `.ds-image` with `__frame`, `__caption`, `__fallback`, the shapes `--square`, `--photo`,
-  `--wide` (or `--ds-image-ratio`) and `--contain`; `data-ds-image` writes `data-state` (`loading`, `loaded`,
-  `error`), fades the picture in, tries `data-ds-image-fallback` and shows the fallback with the alt text;
-  `DS.image.create`; hooks `--ds-image-ratio`, `--ds-image-radius`, `--ds-image-bg`.

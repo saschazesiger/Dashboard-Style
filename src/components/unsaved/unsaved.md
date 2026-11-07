@@ -100,9 +100,3 @@ turns `CanvasText`.
 **Strings:** `unsavedOne`, `unsavedMany`, `unsavedSaveKey`, `unsavedSaved`, `unsavedFailed`, `unsavedDiscarded`,
 `unsavedLeaveTitle`, `unsavedLeaveText`, `unsavedLeave`, `unsavedStay` and `unsavedChangedWord`
 ([install.md](install.md#language-and-locale)).
-
-<!-- changelog -->
-- Unsaved-changes guard (`data-ds-unsaved`, `DS.unsaved`): dirty tracking of a form against its baseline, the count
-  and Form's changed dots, the Save bar shown and hidden, save through a cancelable `ds:save` with `waitUntil()` (busy
-  face, new baseline, spoken result), discard, Ctrl or Command+S through `DS.hotkeys`, `beforeunload` only while
-  dirty, and a guarded in-app navigation (`navigate()`, `[data-ds-unsaved-link]`); `isDirty()`, `snapshot()`, `diff()`.

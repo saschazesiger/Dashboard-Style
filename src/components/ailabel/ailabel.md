@@ -57,8 +57,3 @@ tip keeps a transparent outline as its edge.
 **Motion.** The tip fades in on `--ds-dur-fast` and grows from `--ds-scale-popup` at the label on the spring
 (`--ds-dur-medium`); it leaves in `--ds-dur-instant`, fading only, and a tip closed mid-way turns back from where it is.
 Print keeps the label and leaves the tip out.
-
-<!-- changelog -->
-- AI label (3.0, new): `.ds-ailabel` (`--outlined`, `--plain`, `--icon`) with its toggletip `.ds-ailabel__tip`
-  (`__title`) and `DS.ailabel` (`data-ds-ailabel`, `create`), opened through `DS.overlay`. Hooks `--ds-ailabel-height`,
-  `--ds-ailabel-bg`, `--ds-ailabel-color`, `--ds-ailabel-tip-width`.

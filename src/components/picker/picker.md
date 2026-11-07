@@ -97,8 +97,3 @@ from `--ds-scale-popup` at the button (`--ds-motion-origin`), both over `--ds-du
 a fade over `--ds-dur-instant`. Transitions keyed on `data-state`, so a picker closed mid-way turns back from where it
 is; shown by hand (no `data-state`) it plays `ds-fade-in` and `ds-clip-in` once. A preset presses as every action
 (`--ds-dur-micro`, the ripple, the press morph).
-
-<!-- changelog -->
-- Picker popover (3.0): `.ds-picker` and `DS.picker` (`create`, `open`, `close`), the popover of the date and time
-  pickers, also for a page's own panel: a modal dialog through `DS.overlay`, in the top layer, placed below its field,
-  with presets, panes and a foot.

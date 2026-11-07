@@ -315,11 +315,3 @@ Events (bubbling, on the table, and through `on()`): `ds:sort` `{ sort }`, `ds:f
 the table's, the twist's chevron turns on the spring (`--ds-dur-medium`, `--ds-ease-spatial`), the selection bar
 crosses with the toolbar (`DS.motion.crossfade()`), a moved column's header glides into place (`DS.dnd`). Nothing else
 moves; a resize follows the pointer.
-
-<!-- changelog -->
-- Added: the data grid, `.ds-datagrid` and `js/datagrid.js` (`DS.datagrid`): multi-column sort, column resize, reorder and
-  chooser with presets (remembered through `DS.store`), client or server data through one contract, selection with
-  Shift ranges and "Select all N" across pages with the selection bar, details, tree rows and row groups with subtotals,
-  a summary row, inline edit, the APG grid keys (cell or row), row actions and a context menu, windowed rows
-  (`DS.virtual`), the empty, loading and error states, CSV and clipboard export. Strings `datagrid*` in
-  `DS.core.config({ strings })`. Hooks `--ds-datagrid-indent`, `--ds-datagrid-group-bg`.

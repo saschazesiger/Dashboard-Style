@@ -88,7 +88,3 @@ The tag keeps a `CanvasText` border; the preset in force is `SelectedItem`; the 
 ### Motion
 
 The popover's and the calendar's; the band and its preview change colour over `--ds-dur-fast`.
-
-<!-- changelog -->
-- Date range picker (3.0): `DS.daterange` (`create`, `resolve`, `presetLabel`), a field of two dates and a popover with
-  presets, relative ranges that resolve against today and two months with a hover preview.

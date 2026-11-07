@@ -199,8 +199,3 @@ are the system's checkboxes.
 `interpolate-size`, as `.ds-collapsible`: over `--ds-dur-medium` on `--ds-ease-out`, closing on `--ds-dur-base`,
 accelerating), else at once; the chevron turns a quarter on `--ds-ease-spatial`. A drop glides the item into place
 (`DS.dnd`).
-
-<!-- changelog -->
-- Tree view (`.ds-tree`, `DS.tree`): the APG tree with single selection, tri-state checkboxes, lazy children through a
-  loader, row actions, drag to move through `DS.dnd`, type-ahead and folder groups. New strings `treeMove`,
-  `treeMoveBefore`, `treeMoveAfter`, `treeMoveInside`, `treeDropped`, `treeLoaded`, `treeLoadFailed`, `treeError`.

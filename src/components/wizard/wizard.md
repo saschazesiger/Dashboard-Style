@@ -87,8 +87,3 @@ connector turns ([Steps](#steps)).
 **Strings:** `wizardDone`, `wizardFix`, `wizardStepOf`, `wizardStep`, `wizardError`, `wizardErrors`, `wizardEmpty`,
 `wizardEdit`, `wizardEditShort`, `wizardYes`, `wizardNo`, `optional` and `valueRequired`
 ([install.md](install.md#language-and-locale)).
-
-<!-- changelog -->
-- Form wizard (`.ds-wizard`, `DS.wizard`): a form in steps on Steps, each checked before the next (constraint
-  validation and a cancelable `ds:validate`), Back and Next, errors in words with focus on the first, and a summary
-  step with an Edit button per step; `fieldLabel()` and `fieldValue()`.

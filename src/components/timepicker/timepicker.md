@@ -81,7 +81,3 @@ chosen one).
 
 The popover's (it grows from the button). The active row's layer comes in over `--ds-dur-micro` and goes at once, so a
 held arrow key leaves no trail. A row picks and closes the popover, so it takes no ripple; its layer is the feedback.
-
-<!-- changelog -->
-- Time picker (3.0): `DS.timepicker` (`create`, `list`, `times`), a segmented time field and a list of times in a
-  popover, in the locale's hour cycle, with step, min, max and seconds.

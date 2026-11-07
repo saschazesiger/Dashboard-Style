@@ -103,9 +103,3 @@ the sections, `data-editing` on the sections and the `.ds-object`.
 
 **Motion:** a section's faces swap with `.ds-enter--swap` (the form in, then the view back); the head condenses and the
 bar's mark glides as on their own (Page, Jump links).
-
-<!-- changelog
-- Object page (`.ds-object`, `DS.object`, `object.js`): one record on one page, the page head with its key facts, the
-  section anchors as a sticky bar of jump links under it, sections as cards, and an edit mode that turns a section or
-  every section into its inline form (`ds:edit`, `ds:save` with the form's values, `ds:cancel`, `done()`).
--->

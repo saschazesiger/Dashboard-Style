@@ -253,11 +253,3 @@ several values too: `--ds-input-border`, `--ds-input-bg`, `--ds-input-radius`, `
 and `data-ds-ripple` (off for a part: [Ripple](#ripple)) are described above.
 
 **Motion:** the "Combobox list" row of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog -->
-- Combobox: `data-ds-combobox` and `DS.combobox` (`create`, `open`, `close`): the behaviour by the system on the same
-  markup, through the list engine of `DS.listbox`: fuzzy filter with scoring and `.ds-combo__match`, an async `source`
-  with debounce, abort and a loading state, creatable (`ds:create`), clearable, several values with chips, nothing
-  found, windowed long lists, select-only keys. A page's own script keeps working without the attribute.
-- Combobox: `--ds-scroll-edge-start` and `--ds-scroll-edge-end` are registered once in `tokens.css` (no longer in
-  `scroller.css`), so the list's cut edges fade when `combobox.css` is linked without `scroller.css`.

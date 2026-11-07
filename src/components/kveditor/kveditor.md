@@ -90,8 +90,3 @@ a hint fades in (`ds-fade-in`, `--ds-dur-fast`).
 
 **Strings:** `kvAdd`, `kvKeyLabel`, `kvValueLabel`, `kvValueOf`, `kvRemove`, `kvRemoveRow`, `kvShow`, `kvShowRow`,
 `kvDuplicate`, `kvNoKey`, `kvRemoved`, `kvRemovedRow`, `kvPasted` and `remove` ([install.md](install.md#language-and-locale)).
-
-<!-- changelog -->
-- Key-value editor (`.ds-kveditor`, `DS.kveditor`): rows of a key and a value with add and remove, paste of
-  `KEY=value` lines, a warning on duplicate keys, secret values with reveal, a hidden input for plain forms and
-  `toObject()`; the helpers `parse()`, `stringify()`, `duplicates()` and `toObject()`.

@@ -114,12 +114,3 @@ The arrow and the words are text in the system colours; the select and buttons k
 
 **Motion:** the arrow turns 180deg on the spring (`--ds-dur-medium`, `--ds-ease-spatial`) when the direction changes,
 as the table's sort arrow; the words change at once. The list's reorder is the page's `DS.motion.flip()`.
-
-<!-- changelog
-- Sort control (`DS.sort`, `.ds-sort`, `.ds-sort--menu`, `.ds-sort__field`, `.ds-sort__label`, `.ds-sort__order`,
-  `.ds-sort__trigger`, `.ds-sort__value`, `.ds-sort__words`, `.ds-sort__word`, `.ds-sort__arrow`, hook
-  `--ds-sort-field-width`): the field and direction of a list or cards outside a table, inline or as a menu, with the
-  direction in the field's words, `ds:sort`, an announcement, and `parse()` / `stringify()` for addresses. Strings
-  `sortAscending`, `sortDescending`, `sortAscendingText`, `sortDescendingText`, `sortAscendingNumber`,
-  `sortDescendingNumber`, `sortAscendingDate`, `sortDescendingDate`, `sortAnnounce`.
--->

@@ -88,11 +88,3 @@ No tone: waiting is no status. The overlay takes the region's radius (`border-ra
 **Motion:** after `--ds-delay-loader` the veil and the box fade in over `--ds-dur-fast` while the box rises
 `--ds-distance-sm` on `--ds-ease-out`; it leaves over `--ds-dur-instant` (falling back on `--ds-ease-in`), after
 `--ds-hold-loader` of being visible. By hand (no `data-state`): `ds-fade-in` after the delay.
-
-<!-- changelog
-- Loading overlay (`DS.loadingoverlay`, `[data-ds-loadingoverlay]` with `[data-ds-loadingoverlay-cancel]`,
-  `.ds-loadingoverlay` with `--opaque`, `__box`, `__message`, `__detail`): blocks one region with a spinner and a message
-  (the region inert and `aria-busy`, focus kept, the message announced, no flash through `--ds-delay-loader` and
-  `--ds-hold-loader`, a cancel); `show()`, `hide()`, `wait()`, `create()`, `holdMs()`. Hooks
-  `--ds-loadingoverlay-veil`, `-radius`, `-padding`, `-spinner-size`.
--->

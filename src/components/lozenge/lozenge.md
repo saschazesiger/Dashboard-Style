@@ -54,7 +54,3 @@ A transparent outline becomes its `CanvasText` edge, the text `CanvasText`: the 
 
 **Motion:** a state that changes glides its colours over `--ds-dur-medium`; re-render with `DS.dom.morphHtml`, so
 the element stays and the class change transitions.
-
-<!-- changelog -->
-- State label (new, `lozenge`): `.ds-lozenge` and `--subtle`, a bold workflow state in the tone of the class on it,
-  with a word and an icon; hooks `--ds-lozenge-height`, `--ds-lozenge-radius`.

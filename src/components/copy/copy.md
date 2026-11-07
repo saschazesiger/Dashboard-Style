@@ -101,8 +101,3 @@ to line up with the fields around it.
 
 **Motion:** the button's own: the icon swap crossfades with a small scale (`.ds-icon-swap`), the faces roll and the
 done check draws itself (`.ds-btn--done`); back after `--ds-hold-status`.
-
-<!-- changelog -->
-- Copy button (3.0): `DS.copy` (`data-ds-copy`, `data-ds-copy-value`, `copy`, `create`, `textOf`; the Clipboard API,
-  the copy command, then a selection and a hint), `.ds-copy`, `.ds-copy--field`, `.ds-copy__value`, `.ds-copy__manual`,
-  `.ds-copy__done`, hooks `--ds-copy-font` and `--ds-copy-field-bg`. String `copyManual`.

@@ -64,8 +64,3 @@ it sticks, so put a head first in its scroller.
 
 **Motion:** the edge fades on `ds-scroll-fade` along the scroll position, or on `--ds-dur-fast` in the fallback;
 the box itself never moves on its own.
-
-<!-- changelog -->
-- Added: Sticky, `.ds-sticky` with `--head`, `--foot`, `--start`, `--end`, `--side` and `--flat`: a raised edge
-  once content passes under the box, on the scroller's scroll timeline or through `DS.dom.watchScrolled()` and `DS.dom.scrollEdges()`. Hooks
-  `--ds-sticky-offset`, `--ds-sticky-bg`, `--ds-sticky-line`, `--ds-sticky-shadow`.

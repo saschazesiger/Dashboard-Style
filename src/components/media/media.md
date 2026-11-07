@@ -121,9 +121,3 @@ selection checkbox fades in on `--ds-dur-fast` and out on `--ds-dur-instant`, th
 
 Hooks: `--ds-media-min`, `--ds-media-gap`, `--ds-media-radius`, `--ds-media-border`, `--ds-media-bg`,
 `--ds-media-ratio`, `--ds-media-selected-bg`; reads `--ds-selected-ring` ([theming.md](theming.md#component-hooks)).
-
-<!-- changelog -->
-- Media (3.0, new): `.ds-media` cards (`__thumb`, `__tag`, `__select`, `__check`, `__open`, `__title`, `__meta`,
-  `__actions`; `--square`, `--wide`, `--bare`) in a `.ds-media-grid`; `DS.media` (`create`, `between`) and
-  `data-ds-media`: one tab stop, arrows in two dimensions, Space, Shift ranges, Ctrl+A and Escape. New strings:
-  `mediaSelected`, `mediaSelectionCleared`.

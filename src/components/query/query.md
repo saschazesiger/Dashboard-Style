@@ -102,9 +102,3 @@ come and go at once.
 `querySavedHint`, `queryAdded`, `queryRemoved`, `queryEditing`, `queryCleared`, `queryApplied`, `queryClear`,
 `querySave`, `querySaveTitle`, `querySaveName`, `querySaveConfirm`, `querySavedAs` and `querySavedRemoved`
 ([install.md](install.md#language-and-locale)).
-
-<!-- changelog -->
-- Query input (`.ds-query`, `DS.query`): filters as tokens (`key:value`, several values, quotes, `-key:` and `!`,
-  `>`, `>=`, `<`, `<=`), suggestions for keys, operators and values (static or from `values()`), invalid tokens in the
-  error tone with the reason, keyboard editing of the tokens, saved queries in `DS.store`, a hidden input and a
-  structured query in `ds:change`; `parse()`, `stringify()`, `toQuery()`, `suggest()`.

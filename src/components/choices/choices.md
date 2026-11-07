@@ -54,6 +54,8 @@ DS.choices.summary(boxes);               // 'all', 'none' or 'some' of { checked
 The controller: `get()`, `set(value)`, `on('change', fn)`, `filter(text)`, `refresh()` (the page added or removed rows)
 and `destroy()`. `ds:change` (`{ value }`) bubbles from the `.ds-choices` when the user changed a box. `DS.choices.create`
 takes `value` (the checked values to start with) and `count: false` (leave the count to the page).
+`DS.choices.summary(boxes)` says what a set of `{ checked, disabled }` adds up to, `'all'`, `'none'` or `'some'` (disabled
+boxes left out): the state the "select all" box shows.
 
 **Options** ([options.md](options.md)): the rows are `.ds-check` rows, which compute size, density and touch
 themselves.
@@ -79,8 +81,3 @@ line.
 
 **Motion:** the boxes' own (form.css: the check wipes in, the dash of "some" grows from the centre); the scrolling
 box's fades glide over `--ds-dur-fast`.
-
-<!-- changelog -->
-- Choice list (3.0): `.ds-choices` with `DS.choices` (`data-ds-choices`): "select all" with the indeterminate state, a
-  count, a fuzzy filter that marks its letters, columns (`.ds-choices--columns`) and a scrolling box
-  (`.ds-choices--scroll`) for long sets; `DS.choices.summary`.

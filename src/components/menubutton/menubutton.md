@@ -78,6 +78,10 @@ DS.menubutton.itemValue(item);      // an item's value
 
 `DS.menubutton.create(button, { menu, value, label })` takes a `label` element to show the chosen label in (default
 `.ds-menu-btn__value`); the [split button](#split-button) points it at its action.
+`DS.menubutton.open(button)` and `DS.menubutton.close(button)` open and close a button's menu through `DS.overlay` (the
+button is the opener); `DS.menubutton.menuOf(button)` finds the menu a button names (the attribute's selector or id,
+else `aria-controls`, else the `.ds-menu` right after it) and `DS.menubutton.itemValue(item)` reads an item's value
+(its `value` attribute, else `data-value`, else its label).
 
 ### Accessibility
 
@@ -97,7 +101,3 @@ The button's; `--ds-btn-padding-x` sets the side padding the chevron's end paddi
 **Motion:** the menu grows out of the button and leaves with a fade ([Menu](#menu)); the chevron turns over
 `--ds-dur-medium` on the spring (`.ds-chevron`, a named exception of the rotate rule) and turns back from where it is
 when the menu closes mid-way.
-
-<!-- changelog -->
-- Menu button (3.0): `DS.menubutton` (`data-ds-menubutton`, `data-ds-value`, `create`, `open`, `close`, `menuOf`,
-  `itemValue`), `.ds-menu-btn`, `.ds-menu-btn__value` and `.ds-menu-btn__chevron`.

@@ -149,8 +149,3 @@ the bar glides on `--ds-ease-value` (Progress); the error line fades in (`ds-fad
 `uploadWrongType`, `uploadTooMany`, `uploadTooLarge`, `uploadEmpty`, `uploadAdded`, `uploadAddedCount`,
 `uploadRemoved`, `uploadDoneAnnounce`, `uploadFailedAnnounce` and `retry`, `remove`
 ([install.md](install.md#language-and-locale)).
-
-<!-- changelog -->
-- File upload (`.ds-upload`, `DS.upload`): the drop zone grows into a full upload: rows or a preview grid with progress
-  per file, retry and remove, paste, limits on type, size and count with errors in words, and pictures resized in the
-  browser (`resize`). The page uploads through `ds:files` and reports with `progress()`, `done()` and `fail()`.

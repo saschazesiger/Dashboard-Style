@@ -415,10 +415,3 @@ dialog that `DS.get(el, 'dialog')` serves.
 **JS API.** `js/dialog.js` (`DS.dialog`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`; `confirm(options)`, `alert(options)` and `prompt(options)` are also `DS.overlay.confirm()`, `alert()` and `prompt()`; `form(el, { onSubmit, errorText })` runs a form dialog's submit; `create(el)` returns the controller that `data-ds-dialog` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`).
 
 **Motion:** the "Scrim", "Dialog", "Nested dialog", "Dialog on a phone", "Full-screen dialog" and "Action sheet" rows of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog
-- Dialog: `.ds-dialog--scroll-outside` (the window scrolls the whole box; the body scrolling inside stays the default),
-  a non-modal box `.ds-dialog__box--modeless` (no frame or scrim, the page stays usable; DS.overlay's non-modal layer,
-  focus moved in by `DS.dialog` once it opened; hook `--ds-dialog-modeless-inset`), and `lines` and `facts` on
-  `confirm()`, `alert()` and `prompt()` (`.ds-dialog__lines`, `.ds-dialog__facts`). Stacked dialogs documented.
--->

@@ -77,8 +77,3 @@ toggle model), the card its transparent outline as its edge.
 **Motion.** The card enters and leaves as the popups do (transitions keyed on `data-state`, so a close mid-way turns
 back from where it is): it fades in on `--ds-dur-fast` and grows from `--ds-scale-popup` at the marker on the spring
 over `--ds-dur-medium`, and fades out in `--ds-dur-instant`. The marker's layers fade on `--ds-dur-fast`.
-
-<!-- changelog -->
-- Sources and citations (`.ds-cite`, `.ds-cite__card`, `.ds-cite-list`, `DS.cite`, `data-ds-cite`): numbered markers
-  that open a source card on hover (WCAG 1.4.13: hoverable, dismissible) and on a press (focus moves into it), through
-  `DS.overlay` in the top layer, placed by `DS.position`; and the list of sources.

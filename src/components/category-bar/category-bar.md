@@ -73,8 +73,3 @@ their colours.
 
 **Motion:** the shares glide on `--ds-ease-value` over `--ds-dur-glide` (the widths follow); the first render fills
 from zero with `.ds-enter--fill` on the parts; the legend's figures count with `DS.motion.countUp()`.
-
-<!-- changelog -->
-- Category bar (new, `category-bar`): `.ds-category-bar` with `__head`, `__label`, `__total`, `__track`, `__part`
-  (`--s2` ... `--s4`, tones), `__marker`, `__value` and `--rest`, parts on `--ds-share` with the chart legend;
-  hooks `--ds-category-bar-height`, `--ds-category-bar-gap`.

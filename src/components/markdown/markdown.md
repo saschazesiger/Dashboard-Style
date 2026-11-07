@@ -103,11 +103,3 @@ described by the hidden "Footnotes" heading; each note links back ("Back to refe
 `role="note"` with its word. Images keep their alt text. Links are plain links: the system adds no extra tab stops.
 
 **Forced colours, motion.** Those of [Prose](#prose-and-code) and [Code block](#code-block); the renderer adds none.
-
-<!-- changelog -->
-- Markdown (3.0): `DS.markdown` (`data-ds-markdown` with `-anchors`, `-breaks`, `-code`, `-images`; `render`,
-  `create`, `use`, `slug`): a safe CommonMark subset with GFM tables, task lists, strikethrough and autolinks,
-  footnotes and callouts, no HTML passthrough, links limited to http, https, mailto and relative URLs, the page's own
-  sanitiser or renderer as a hook; linear time on hostile input, nesting capped at 100. Strings `copyCode`,
-  `codeBlock`, `footnotes`, `footnoteBack`, `calloutNote`, `calloutTip`, `calloutImportant`, `calloutWarning`,
-  `calloutCaution`.

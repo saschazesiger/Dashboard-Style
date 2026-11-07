@@ -112,8 +112,3 @@ its word, and the spinner takes its system colours.
 
 **Motion.** The disclosure's: the body opens as a `.ds-collapsible` and the chevron turns. A new status swaps its
 mark at once.
-
-<!-- changelog -->
-- Tool call (`.ds-toolcall`, `DS.toolcall`, `data-ds-toolcall`): a disclosure row in a frame with the call's name,
-  arguments, status (icon and word), live duration, input, output and nested calls; announces its end. String
-  `toolStatus`, and the status words `toolPending`, `toolRunning`, `toolDone`, `toolFailed`, `toolCancelled`.

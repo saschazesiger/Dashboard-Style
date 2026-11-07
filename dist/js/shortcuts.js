@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Shortcut sheet (DS.shortcuts): "?" opens a dialog that lists every
  * shortcut registered with DS.hotkeys (DS.hotkeys.list()), grouped by scope

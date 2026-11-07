@@ -163,11 +163,3 @@ the corner pops in and out through `DS.badge`; a status dot glides its colours (
 
 Hooks: `--ds-avatar-size`, `--ds-avatar-bg`, `--ds-avatar-color`, `--ds-avatar-font`, `--ds-avatar-square-radius`,
 `--ds-avatar-edge-color`, `--ds-avatar-ring-color` ([theming.md](theming.md#component-hooks)).
-
-<!-- changelog -->
-- Avatar (3.0): `.ds-avatar` moves out of the app frame into a component of its own, with `.ds-avatar--hue-1` ... `-6`
-  (a colour from the name, 4.5:1 in every theme), `.ds-avatar--square` (entities), `.ds-avatar--ring` (activity), a
-  status dot (`.ds-presence-dot`) and a corner badge (`.ds-badge`) that are never cut, interactive avatars (state layer,
-  focus ring, touch hit area), and `.ds-avatar-group` with `--spread` and `__more`. `DS.avatar` (`initials`, `hue`,
-  `create`, `group`), `data-ds-avatar` and `data-ds-avatar-group`. New strings: `avatarStatus`, `avatarMore`,
-  `avatarOverflow`. An avatar's overflow is visible now (2.x clipped it); a picture inside clips itself.

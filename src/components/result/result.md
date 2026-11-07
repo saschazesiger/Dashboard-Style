@@ -72,8 +72,3 @@ system colours.
 
 **Motion:** none of its own. A result that replaces content after a request comes in with `.ds-reveal`
 ([motion.md](motion.md)).
-
-<!-- changelog -->
-- Result page (new, `result`): `.ds-result` with the causes `--success`, `--forbidden`, `--not-found`, `--error`,
-  `--maintenance`, `--offline` (or a tone) and the parts `__disc`, `__media`, `__code`, `__title`, `__text`,
-  `__actions`, `__meta`; hooks `--ds-result-disc-size`, `--ds-result-media-size`, `--ds-result-padding`.

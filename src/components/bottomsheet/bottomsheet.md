@@ -82,11 +82,3 @@ and the side sheet's.
 of its own background below it covers the overshoot); a detent change springs there over `--ds-dur-long`; a drag
 follows the finger, the named exception of conventions section 8; it drops back down in `--ds-dur-base`, accelerating.
 By hand (no `data-state`): `ds-lift-in`, and `ds-drop-out` its full height with `ds-fade-out`.
-
-<!-- changelog
-- Bottom sheet (`DS.bottomsheet`, `[data-ds-bottomsheet]` with `data-ds-bottomsheet-detents`, `.ds-bottomsheet` with
-  `__panel` and `__handle`, on the side sheet's markup): a modal sheet at the bottom edge with detents, a handle (click
-  and keys), drag that follows the finger (the named motion exception) and drag to dismiss (reason `drag`);
-  `open()`, `close()`, `create()`, `parseDetents()`, `settleDetent()`. Hooks `--ds-bottomsheet-width`, `-gap`,
-  `-radius`. Strings `resizeSheet`, `sheetDetent`.
--->

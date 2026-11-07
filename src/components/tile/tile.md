@@ -133,8 +133,3 @@ A selected tile is `Highlight` / `HighlightText`, its delta and sparkline with i
 `--ds-tile-value-line`, `--ds-tile-trend-color`, `--ds-tile-selected-bg`, `--ds-selected-ring`: see [theming.md](theming.md).
 
 **Motion:** the "Alert, tile, card" row of [Feedback](motion.md#feedback) (`countUp()`, the press morph) in motion.md.
-
-<!-- changelog -->
-- Tiles, KPI stat: `.ds-tile__unit` (a unit after the figure, which then sits in `.ds-tile__figure`, the element
-  `countUp()` writes) and `.ds-tile__target` with `.ds-tile__target-text`
-  (a meter with a threshold mark at the target and the words whether it is met).

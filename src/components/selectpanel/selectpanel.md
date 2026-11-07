@@ -82,9 +82,3 @@ A chosen option shows by the check, the tint and the label weight.
 **Motion:** the panel grows from the button as a menu does: its clip opens and it scales on `--ds-ease-spatial` over
 `--ds-dur-medium` while it fades in over `--ds-dur-fast`; it leaves with a fade in `--ds-dur-instant`, and a close
 mid-way turns back from where it is.
-
-<!-- changelog -->
-- Select panel (3.0): `.ds-selectpanel` with `DS.selectpanel` (`create`, `open`, `close`, `summarize`;
-  `data-ds-selectpanel`): a popover through `DS.overlay` with a filter, a listbox to check and an apply foot; pending
-  until Apply, discarded by Escape or a press outside; the button's summary; anchored in the top layer where the engine
-  can.

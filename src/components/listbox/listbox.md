@@ -106,8 +106,3 @@ all), `--ds-listbox-radius` (`--ds-radius-field`), `--ds-check-size` (the box of
 **Motion:** the active option's layer fades in over `--ds-dur-micro` and goes at once, so a held arrow key leaves no
 trail; the check box fills over `--ds-dur-fast` while its check is drawn from left to right over `--ds-dur-medium`; the
 end check of one value fades over `--ds-dur-fast`.
-
-<!-- changelog -->
-- Listbox (3.0): `.ds-listbox` with `DS.listbox` (`data-ds-listbox`): one or several values, groups, descriptions,
-  type-ahead, data rendered and windowed through `DS.virtual`, fuzzy matching with marked letters
-  (`DS.listbox.fuzzy`, `filter`, `highlight`); the list engine of the combobox and the select panel.

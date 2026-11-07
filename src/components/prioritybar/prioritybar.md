@@ -86,9 +86,3 @@ the bar's height reads `--ds-btn-icon-size`.
 
 **Motion:** none of its own: a fold is a layout change, so it happens at once. The menu grows out of More
 ([Menu](#menu)).
-
-<!-- changelog -->
-- Priority action bar (3.0): `DS.prioritybar` (`data-ds-prioritybar`, `data-ds-priority`, `create`, `plan`; the More
-  button and its menu built when the markup has none), `.ds-priority-bar`, `.ds-priority-bar--end`,
-  `.ds-priority-bar__more`, `.ds-priority-bar__menu`, `data-ds-folded`; hooks `--ds-priority-bar-gap` and
-  `--ds-priority-bar-menu-width`. String `moreActions`.

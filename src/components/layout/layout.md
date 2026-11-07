@@ -60,8 +60,3 @@ The one-column stack is `.ds-stack` of [Page](#page); space any of them with the
   `--ds-split-min`, `--ds-switcher-at`, `--ds-measure-max`, `--ds-measure-pad`, `--ds-cover-min`, `--ds-cover-pad`,
   `--ds-frame-ratio`, `--ds-frame-radius`, `--ds-grid-min` ([theming.md](theming.md#component-hooks)); set them on the
   element (`style="--ds-grid-min: 12rem"`) or in the theme.
-
-<!-- changelog -->
-- Added: Layout, the layout primitives `.ds-cluster`, `.ds-push`, `.ds-split`, `.ds-switcher`, `.ds-measure`
-  (center), `.ds-cover`, `.ds-frame` and the auto-fit grid `.ds-grid` (`--ds-grid-min`, `--max-n`, `--fill`), with
-  their hooks.

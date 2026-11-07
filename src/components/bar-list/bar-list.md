@@ -67,8 +67,3 @@ Printed, the bars keep their colours.
 **Motion:** a new share glides on `--ds-ease-value` over `--ds-dur-glide`; the first render fills from zero with
 `.ds-enter--fill` (`DS.motion.enterAll(rows, 'fill')`); a figure counts with `DS.motion.countUp()`; reorders go through
 `DS.motion.flip()` (the "Data motion" rules of [motion.md](motion.md#data-motion)).
-
-<!-- changelog -->
-- Bar list (new, `bar-list`): `.ds-bar-list` with `__item`, `__label`, `__value` and `--plain`, ranked rows on
-  bars clipped at `--ds-share`, tones per row, links in labels; hooks `--ds-bar-list-height`, `--ds-bar-list-bar`,
-  `--ds-bar-list-ink`.

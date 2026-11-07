@@ -41,8 +41,3 @@ the window: a part of the page reacts to the room it has, in a side sheet, a car
 - Forced colours: nothing of their own. Print: a container keeps querying its own width on paper (the content of an
   A4 page in portrait is about 720px wide: medium); hide what paper does not need with `.ds-print-hide`
   ([Print](#print)).
-
-<!-- changelog -->
-- Added: Container presets, `.ds-container` and the visibility classes `.ds-hide-compact`, `.ds-hide-medium`,
-  `.ds-hide-expanded`, `.ds-only-compact`, `.ds-only-medium`, `.ds-only-expanded` and `.ds-stack-compact` on the
-  container sizes compact (under 600px), medium (600-839px) and expanded (840px and up).

@@ -85,10 +85,3 @@ Give the input `autocomplete="off"` (or `new-password` for a service password) a
 `--ds-field-warning-color` of [Form](#form).
 
 **Motion:** none; the parts of a state show at once and the focus moves with them.
-
-<!-- changelog
-- Secret field (`DS.secret`, `.ds-secret` with `__stored`, `__mask`, `__status`, `__actions`, `__replace`, `__clear`,
-  `__undo`, `__entry`, `__cancel`): set, replace and clear states that never show the value, a hidden
-  `[data-ds-secret-action]` of keep, set or clear for the server. Strings `secretSet`, `secretNotSet`,
-  `secretCleared`.
--->

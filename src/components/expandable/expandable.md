@@ -52,8 +52,3 @@ Nothing of its own: the toggle is a text link in the system's link colour.
 
 **Motion:** none. The text opens and closes at once: its height pushes the layout, and a clamp has no height to
 glide between.
-
-<!-- changelog -->
-- Expandable text (new, `expandable`): `data-ds-expandable` clamps `.ds-expandable__text` to `--ds-expandable-lines`
-  and adds a `.ds-expandable__toggle` ("Show more", "Show less") only while the text is longer; `DS.expandable.create`,
-  `overflows`.

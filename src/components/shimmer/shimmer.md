@@ -35,9 +35,3 @@ colour in the contrast theme) and `--ds-shimmer-peak` (`color-mix(in srgb, var(-
 `--ds-loop-loader` until that token is in the theme), linear and endless, on the progress wave's keyframe
 (`ds-progress-wave`, with `--ds-progress-wave-length` set to the tile): about 105px/s, so a short text sees one slow
 pass and a pause. Nothing else animates; the mask is the only repaint.
-
-<!-- changelog -->
-- Shimmer (`.ds-shimmer`, `data-shimmer`): a soft glint that travels over the words of a status line, on
-  `ds-progress-wave`. Hook `--ds-shimmer-length`; colour roles `--ds-shimmer-glint` and `--ds-shimmer-peak` and the
-  loop `--ds-loop-shimmer` requested (until then: a `light-dark()` of `--ds-surface` and
-  `--ds-on-primary-container`, and `--ds-loop-loader`).

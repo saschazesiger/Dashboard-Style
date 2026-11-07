@@ -87,8 +87,3 @@ popover's edge.
 ### Motion
 
 The popover grows from the button (the picker's); a turned month slides in from its side (the calendar's).
-
-<!-- changelog -->
-- Date picker (3.0): `DS.datepicker` (`create`), a date or date-time field with a calendar (and a list of times) in a
-  popover: min, max, blocked days, week numbers, today, clear, the zone of a wall time, all in the locale through
-  `Intl`.

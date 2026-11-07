@@ -646,20 +646,3 @@ print.
   widget never calls `followViewport()`: the host page owns the viewport.
 
 **Motion:** the [Navigation](motion.md#navigation) table (indicator, drawer, modal drawer, segmented, top bar) and [Views](motion.md#views) in motion.md.
-
-<!-- changelog -->
-- **App frame** (3.0): `DS.shell` (`src/components/shell/shell.js`), the frame's behaviour as `data-ds-*` attributes:
-  `data-ds-shell` (the menu button toggles the rail above 900px, remembered, and opens the modal drawer below; skip
-  links; the drawer's pill, edges and `data-scrolled`), `data-ds-drawer` (groups remembered open or closed, a filter
-  inside the drawer, `.ds-drawer__search` and `.ds-drawer__empty`, the arrow keys), `data-ds-search-sheet` (the top
-  bar's search as a full-width sheet at 720px and below, `.ds-topbar__search-open`, `.ds-topbar__search-back`,
-  `.ds-topbar__results`), `data-ds-launcher` (the app switcher, `.ds-launcher`, `.ds-launcher__app`,
-  `.ds-launcher__icon`, `.ds-launcher__label`, hooks `--ds-launcher-columns`, `--ds-launcher-app-width`,
-  `--ds-launcher-app-height`, `--ds-launcher-icon-size`, `--ds-launcher-font`), `data-ds-scheme-switch` and
-  `DS.shell.setScheme()` (light, dark, auto, remembered), the account menu (`.ds-account__trigger`,
-  `.ds-account__menu`, `.ds-account__head`, hook `--ds-account-menu-width`), and `data-ds-breadcrumbs` (the middle
-  folds into a menu behind `.ds-breadcrumbs__more` by the nav's width). Badges in drawer items (a dot on the rail),
-  a dot on a top bar icon button (the notification slot), and a drawer action that turns icon-only on the rail.
-  Strings `filterMatch`, `filterMatches`, `breadcrumbsMore`.
-- Segmented switch: icons and counts (`.ds-segmented__count`) on an option, icon-only options with half the side
-  padding; `data-label` now reserves the heavier width in a grid, so an icon keeps its column.

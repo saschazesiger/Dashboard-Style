@@ -51,8 +51,3 @@ chips) once the conversation moved on.
 **Hooks**: `--ds-suggestions-gap` (`--ds-space-2`) ([theming.md](theming.md#component-hooks)).
 
 **Motion.** None of its own: a drag follows the pointer one to one.
-
-<!-- changelog -->
-- Suggestions (3.0, new): `.ds-suggestions` (a row of action chips that scrolls sideways with `.ds-scroll-x`, or
-  `.ds-suggestions--wrap`) and `DS.suggestions` (`data-ds-suggestions`, `-for`, `-send`, `create`, `items`): drag to
-  scroll, `ds:select`, filling or sending a composer. Hook `--ds-suggestions-gap`.

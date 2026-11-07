@@ -92,9 +92,3 @@ DS.banner.priorityOf({ tone: 'error' });
 Shown, waiting and dismissed messages change inside `DS.motion.flip()` on the banner's parent (the `.ds-panel`): the
 view glides to its new place, and a message that appears fades in (`DS.motion.enter(alert, 'fade')`). Nothing
 animates a height. On load nothing plays.
-
-<!-- changelog -->
-- Banner (3.0): `DS.banner` (`create`, `order`, `priorityOf`) and `data-ds-banner` on the app frame's `.ds-banner`:
-  several messages in priority order (`data-ds-banner-priority`, else by tone), `data-ds-banner-max` with the
-  `.ds-banner__more` button, dismissal (`data-ds-banner-id`, `.ds-banner__dismiss`) remembered through `DS.store`
-  (`data-ds-banner-remember`); the string `bannerMore`.

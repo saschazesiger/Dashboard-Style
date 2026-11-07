@@ -87,9 +87,3 @@ ring `Highlight`. Printed, the cells keep their colours.
 `--ds-tracker-height`, `--ds-tracker-gap`: see [theming.md](theming.md).
 
 **Motion:** none: a cell that changes state takes its new shape at once. The focus ring snaps as everywhere.
-
-<!-- changelog -->
-- Tracker (new, `tracker`): `.ds-tracker` with `__head`, `__label`, `__summary`, `__cells`, `__cell` (`--success`,
-  `--info`, `--warning`, `--error`, `--empty`, each with its own shape), `__axis` and `__legend`; `data-ds-tracker`
-  makes the row one tab stop with the arrow keys; `DS.tracker.create`, `counts`; hooks `--ds-tracker-height`,
-  `--ds-tracker-gap`.

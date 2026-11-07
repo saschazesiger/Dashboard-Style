@@ -115,12 +115,3 @@ button's model.
 
 **Motion:** none of its own: the button's busy face rolls (after `--ds-delay-loader`, held for `--ds-hold-loader`), the
 status changes at once, and the new items are the page's `DS.motion.flip()`.
-
-<!-- changelog
-- Load more and infinite scroll (`DS.loadmore`, `.ds-loadmore`, `.ds-loadmore--inline`, `.ds-loadmore__status`,
-  `.ds-loadmore__text`, `.ds-loadmore__icon`, `.ds-loadmore__button`, hooks `--ds-loadmore-padding`,
-  `--ds-loadmore-error-color`): a status line and a Load more button with its busy face, an IntersectionObserver
-  sentinel with a limit of automatic loads, `ds:loadmore` with `respond()`, `aria-busy` on the list, announcements, an
-  error state that tries again, focus kept when the button goes. Strings `loadMoreStatus`, `loadMoreStatusOpen`,
-  `loadMoreDone`, `loadMoreLoaded`, `loadMoreLoading`, `loadMoreFailed`, `tryAgain`.
--->

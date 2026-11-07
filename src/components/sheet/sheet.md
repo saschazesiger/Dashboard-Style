@@ -199,12 +199,3 @@ docked panel itself), or call `DS.sheet.resizable(panel, { remember })`.
 A docked panel opens its width over `--ds-dur-long` on `--ds-ease-out` and gives it back in `--ds-dur-base` on
 `--ds-ease-exit`, through the registered `--ds-sheet-reveal` (0 to 1, internal: never set it); a drag follows the
 pointer.
-
-<!-- changelog
-- Side sheet: docked panels in a `.ds-sheet__layout` beside its `.ds-sheet__main`, `.ds-sheet__panel--push` (the
-  content narrows, focus moves in) and `.ds-sheet__panel--inspector` (beside a list that stays usable, focus stays in
-  the list), non-modal layers of `DS.overlay`; resizing with `.ds-sheet__resize` (a separator: pointer and keys, the
-  width remembered through `DS.store` under `data-ds-sheet-remember`, bounded by `data-ds-sheet-min` and `-max`,
-  `ds:resize`), `DS.sheet.resizable()`, `clampWidth()`, `dragWidth()`, `MIN_WIDTH`; hooks `--ds-sheet-docked-width`
-  and `--ds-sheet-docked-border`; string `resizePanel`. The separator's pill stays shown on a screen without hover.
--->

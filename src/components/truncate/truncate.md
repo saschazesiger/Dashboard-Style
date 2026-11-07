@@ -55,8 +55,3 @@ Nothing of its own: the text follows the system colours.
 ### Hooks
 
 `--ds-truncate-lines`: see [theming.md](theming.md).
-
-<!-- changelog -->
-- Truncate (new, `truncate`): `data-ds-truncate` (`end`, `start`, `middle`) cuts a text with an ellipsis, whole in an
-  owned tip while cut and in `.ds-sr` for screen readers; `.ds-truncate--lines`; `DS.truncate.create`, `cut`, `fit`;
-  hook `--ds-truncate-lines`.

@@ -93,8 +93,3 @@ gave a section.
 **Motion:** the bar glides from link to link as the tabs' indicator does (stretching toward its target, landing on
 `--ds-ease-spatial`); a jump scrolls smoothly within three heights of the scroller. The labels change colour on the
 indicator's timing.
-
-<!-- changelog
-- Jump links (`.ds-toc`, `DS.toc`, `toc.js`): a table of contents or a bar of anchors, sticky, with scroll-spy through
-  `IntersectionObserver` (`aria-current="location"`), jumps that move the focus, and `ds:change`.
--->

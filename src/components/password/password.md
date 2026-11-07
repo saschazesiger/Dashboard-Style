@@ -85,10 +85,3 @@ reveal button is a system button with its pressed state in `Highlight`.
 ([theming.md](theming.md#component-hooks)).
 
 **Motion:** a bar's colour changes on `--ds-dur-fast`; the reveal's icons swap as every `.ds-icon-swap`.
-
-<!-- changelog
-- Password (`DS.password`, `[data-ds-password]`, `.ds-password__meter`, `.ds-password__bars`, `.ds-password__strength`,
-  `.ds-password__caps`, hooks `--ds-password-meter-width`, `--ds-password-bar-height`): reveal with the caret kept and
-  spell checking off, a four-level strength meter in words, a caps-lock hint. Strings `showPassword`, `capsLock`,
-  `passwordStrength`, `strengthWeak`, `strengthFair`, `strengthGood`, `strengthStrong`.
--->

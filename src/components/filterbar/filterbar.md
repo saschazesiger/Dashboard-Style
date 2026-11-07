@@ -145,12 +145,3 @@ The chips (input chips), fields and buttons keep their own forced-colours models
 
 **Motion:** none of its own. Folding and unfolding change the row at once; the chips come and go at once (input chips);
 the sheet plays the side sheet's motion; the list's change is the page's `DS.motion.flip()`.
-
-<!-- changelog
-- Filter bar (`DS.filterbar`, `.ds-filterbar`, `.ds-filterbar__row`, `__search`, `__filters`, `__more`, `__badge`,
-  `__range`, `__count`, `__applied`, `__chips`, `__clear`, `__results`, `data-folded`, hooks `--ds-filterbar-gap`,
-  `--ds-filterbar-search-min`, `--ds-filterbar-field-width`, `--ds-filterbar-range-width`): inline filters that fold into a side sheet by the bar's
-  width, applied input chips with Clear all, a result count, `ds:filter`; `read()`, `write()`, `applied()`, `fold()` and
-  the `filters()` engine. Strings `removeFilter`, `filterRemoved`, `filtersCleared`, `filtersApplied`, `filterChip`,
-  `resultsOne`, `resultsOther`, `showResults`, `rangeMin`, `rangeMax`, `rangeBetween`.
--->

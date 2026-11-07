@@ -69,7 +69,3 @@ time. Say the state in the words ("Thinking", "Running npm test", "Done"); the s
 `--ds-thinking-icon-color` ([theming.md](theming.md#component-hooks)).
 
 **Motion.** The wheel's turn and the shimmer's travel; nothing else moves.
-
-<!-- changelog -->
-- Thinking indicator (`.ds-thinking`, `DS.thinking`, `data-ds-thinking`): the step on a wheel with the shimmer, the
-  thought, the elapsed time and the tokens. Strings `tokensOne`, `tokensOther`.

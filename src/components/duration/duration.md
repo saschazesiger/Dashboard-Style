@@ -58,7 +58,3 @@ under the field ("For example 1h 30m"), and the reason of an error in a `.ds-fie
 ### Forced colours
 
 The text field's: its border, `Highlight` when focused.
-
-<!-- changelog -->
-- Duration input (3.0, tier 2): `.ds-duration` and `DS.duration` (`create`, `parse`, `iso`, `format`), a text field
-  that reads "1h 30m", "90 min", "1:30" and ISO 8601 in the locale's words, steps with the arrow keys, keeps ISO 8601.

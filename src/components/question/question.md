@@ -101,8 +101,3 @@ form's.
 
 **Motion.** Once decided the actions leave (`DS.motion.leave()`, `.ds-leave`) and the answer line fades in
 (`ds-fade-in`, `--ds-dur-fast`); opened again the actions enter (`.ds-enter`).
-
-<!-- changelog -->
-- Question card (`.ds-question`, `DS.question`, `data-ds-question`): a question with radio or checkbox cards, an
-  answer of one's own, Answer and Skip; keys 1 to 9, a cancelable `ds:answer`, the answer kept in view and announced.
-  Strings `questionAnswered`, `questionSkipped`, `questionRequired`.

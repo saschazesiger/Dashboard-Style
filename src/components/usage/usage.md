@@ -81,7 +81,3 @@ stays.
 
 **Motion.** The meter's share glides on `--ds-ease-value` over `--ds-dur-glide` (the meter's own); the figures and
 the status change in place.
-
-<!-- changelog -->
-- Usage meter (`.ds-usage`, `DS.usage`, `data-ds-usage`): tokens and cost against a budget on a meter, with an icon
-  and a word near and over it (announced once). Strings `usageOf`, `usageShare`, `usageNear`, `usageOver`.

@@ -97,10 +97,3 @@ The type colours give way to `CanvasText` (the syntax still tells the types apar
 `--ds-jsonview-mark-bg`: see [theming.md](theming.md).
 
 **Motion:** the tree view's (a level opens with its height where the browser animates to `auto`; the chevron turns).
-
-<!-- changelog -->
-- JSON viewer (`.ds-jsonview`, `DS.jsonview`): a JSON document on the tree view, lazy (only what opens renders, more
-  than 100 entries open into ranges), with search and marks, copy value and copy path per row, and exact big numbers
-  (its own parser keeps each number's digits). New strings `jsonTree`, `jsonSearch`, `jsonFind`, `jsonPrevious`, `jsonNext`,
-  `jsonMatch`, `jsonExpandAll`, `jsonCollapseAll`, `jsonCopyValue`, `jsonCopyPath`, `jsonKey`, `jsonKeys`, `jsonItem`,
-  `jsonItems`, `jsonInvalid`.

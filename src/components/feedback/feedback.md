@@ -82,8 +82,3 @@ filled.
 
 **Motion.** The thumb fills on `--ds-dur-fast` (`.ds-icon--fillable`); the dialog opens and closes through
 `DS.overlay`.
-
-<!-- changelog -->
-- Feedback (3.0, new): `.ds-feedback` (`__label`, `__status`) and `DS.feedback` (`data-ds-feedback`,
-  `data-ds-feedback-value`, `-reason`, `-reason-for`, `-lock`; `create`, `toggle`, `asks`): thumbs as exclusive toggles,
-  `ds:change` and `ds:feedback`, an optional reason dialog. String `feedbackThanks`.

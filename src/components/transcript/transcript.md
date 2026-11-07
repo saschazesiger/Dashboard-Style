@@ -90,10 +90,3 @@ an edge.
 
 **Motion.** The pill comes and goes as a `.ds-presence`; "Latest" scrolls smoothly within one screen. Loading earlier
 messages moves nothing on screen. Print shows the whole log, without the pill and the load row.
-
-<!-- changelog -->
-- Transcript (3.0, new): `.ds-transcript` with `__list`, `__day`, `__earlier`, `__latest` and `__unread`, and
-  `DS.transcript` (`data-ds-transcript`, `create`, `day`): sticks to the end, the "Latest" pill with an unread count,
-  load earlier in place (`data-ds-transcript-earlier`, `ds:earlier`, `loaded()`), polite announcements of complete
-  replies (`data-ds-transcript-announce`). Hooks `--ds-transcript-max-width`, `--ds-transcript-gap`,
-  `--ds-transcript-pad`. Strings `latest`, `unreadCount`, `earlierLoaded`.

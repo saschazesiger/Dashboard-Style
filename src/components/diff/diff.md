@@ -137,12 +137,3 @@ px, rem or em), the width from which `data-ds-diff-view="auto"` shows the split 
 
 **Motion.** None of its own: a file's chevron turns with `.ds-chevron`, and a fold opens in one step (the rows
 appear, the focus follows).
-
-<!-- changelog -->
-- Diff view (`.ds-diff`, `DS.diff`): unified diff text parsed into files with headers, +/- counts, hunk headers, two
-  line-number gutters, word-level marks, folded unchanged lines with their buttons, unified, split and auto views, a
-  highlighter hook (`DS.diff.highlighter`, or `DS.highlight` from `ds.js`) and the lines between hunks through a
-  `load` callback. Files above 1,000 lines start folded and render when opened. New strings `diffAdded`, `diffRemoved`, `diffStats`, `diffFileAdded`, `diffFileDeleted`,
-  `diffFileRenamed`, `diffFileCopied`, `diffFileBinary`, `diffBinary`, `diffNoChanges`, `diffUntitled`,
-  `diffNoNewline`, `diffExpandOne`, `diffExpand`, `diffShownOne`, `diffShown`, `diffOldLine`, `diffNewLine`,
-  `diffChange`, `diffCode`, `diffOldCode`, `diffNewCode`.

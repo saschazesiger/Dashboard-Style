@@ -49,8 +49,3 @@ the shape changes at once.
 Hooks: `--ds-presence-dot-size`, `--ds-presence-ground` (the hollow of the away, busy and offline dots, `--ds-surface`:
 set it where the dot lies on another ground), `--ds-presence-online`, `--ds-presence-away`, `--ds-presence-busy`,
 `--ds-presence-offline` ([theming.md](theming.md#component-hooks)).
-
-<!-- changelog -->
-- Presence (3.0, new): `.ds-presence-dot` with `--online`, `--away`, `--busy` and `--offline`, each a shape of its own,
-  and `.ds-presence-label` (the dot with its word); the strings `presenceOnline`, `presenceAway`, `presenceBusy`,
-  `presenceOffline`.

@@ -115,8 +115,3 @@ The input's: `--ds-input-height`, `--ds-input-radius`, `--ds-input-padding-x`, `
 ### Motion
 
 Border, fill and ink change over `--ds-dur-fast`; the focus ring and the focused part show at once, as on every field.
-
-<!-- changelog -->
-- Date field (3.0): `.ds-datefield` and `DS.datefield`, a date, time, date-time or range typed part by part in the
-  locale's order and hour cycle (`create`, `hourCycle`, `layout`, `zoneName`, `toInstant`, `typeDigit`), with min and
-  max, paste, a hidden input for forms and the zone of a wall time.

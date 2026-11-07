@@ -81,10 +81,3 @@ separator is a `CanvasText` dash.
 field's `--ds-input-focus-color` for the caret ([theming.md](theming.md#component-hooks)).
 
 **Motion:** none of its own; a cell's focus ring is the field's.
-
-<!-- changelog
-- Code field (`DS.otp`, `.ds-otp`, `.ds-otp__cell`, `.ds-otp__sep`, `[data-ds-otp]` with `-type`, `-mask` and `-submit`,
-  hooks `--ds-otp-cell-width`, `--ds-otp-gap`, `--ds-otp-font`): one-time codes and PINs in n cells, auto-advance,
-  paste and one-time-code autofill spread over the cells, the keys of a split field. Strings `otpDigit`,
-  `otpCharacter`.
--->

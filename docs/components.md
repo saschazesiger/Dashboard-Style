@@ -790,23 +790,6 @@ print.
   widget never calls `followViewport()`: the host page owns the viewport.
 
 **Motion:** the [Navigation](motion.md#navigation) table (indicator, drawer, modal drawer, segmented, top bar) and [Views](motion.md#views) in motion.md.
-
-<!-- changelog -->
-- **App frame** (3.0): `DS.shell` (`src/components/shell/shell.js`), the frame's behaviour as `data-ds-*` attributes:
-  `data-ds-shell` (the menu button toggles the rail above 900px, remembered, and opens the modal drawer below; skip
-  links; the drawer's pill, edges and `data-scrolled`), `data-ds-drawer` (groups remembered open or closed, a filter
-  inside the drawer, `.ds-drawer__search` and `.ds-drawer__empty`, the arrow keys), `data-ds-search-sheet` (the top
-  bar's search as a full-width sheet at 720px and below, `.ds-topbar__search-open`, `.ds-topbar__search-back`,
-  `.ds-topbar__results`), `data-ds-launcher` (the app switcher, `.ds-launcher`, `.ds-launcher__app`,
-  `.ds-launcher__icon`, `.ds-launcher__label`, hooks `--ds-launcher-columns`, `--ds-launcher-app-width`,
-  `--ds-launcher-app-height`, `--ds-launcher-icon-size`, `--ds-launcher-font`), `data-ds-scheme-switch` and
-  `DS.shell.setScheme()` (light, dark, auto, remembered), the account menu (`.ds-account__trigger`,
-  `.ds-account__menu`, `.ds-account__head`, hook `--ds-account-menu-width`), and `data-ds-breadcrumbs` (the middle
-  folds into a menu behind `.ds-breadcrumbs__more` by the nav's width). Badges in drawer items (a dot on the rail),
-  a dot on a top bar icon button (the notification slot), and a drawer action that turns icon-only on the rail.
-  Strings `filterMatch`, `filterMatches`, `breadcrumbsMore`.
-- Segmented switch: icons and counts (`.ds-segmented__count`) on an option, icon-only options with half the side
-  padding; `data-label` now reserves the heavier width in a grid, so an icon keeps its column.
 ## Page
 
 The padded content area, one page of cards and its head: back link or breadcrumbs, title, status, actions, key facts
@@ -998,13 +981,6 @@ page, never inside `.ds-app`.
 ```js
 DS.motion.transition(() => { DS.dom.morphHtml(view, renderStep(2)); return view.firstElementChild; }, { type: 'forward', focus: true });
 ```
-
-<!-- changelog
-- Page head: `.ds-page-head--sticky` (`--ds-page-head-top`, `--ds-page-head-bg`) and a behaviour module (`DS.page`,
-  `data-ds-page-head`): the sticky head condenses once the reader has scrolled (`data-scrolled`, the content kept in
-  place; the hairline on a scroll timeline where supported), and the actions fold into a More menu
-  (`.ds-page-head__more`) by the row's width.
--->
 ## Tabs
 
 Sections of one page or record. ARIA tabs show one panel at a time; link tabs move between pages of a record.
@@ -1195,13 +1171,6 @@ tabs.addEventListener('click', (event) => {
 **Motion:** the "Tabs" row of [Navigation](motion.md#navigation) in motion.md. The contained pill and the vertical bar
 glide like the bar. The More menu opens and closes as every menu; a tab that comes back from it into the row takes
 its place at once (layout never animates) and the indicator glides to it.
-
-<!-- changelog
-- Tabs: `data-ds-tabs` (`DS.tabs`, `tabs.js`): selection, the keyboard, panels kept alive (`first` in `ds:change`),
-  the indicator, closing (`ds:close`, cancelable; Delete, the close button, `data-ds-tabs-close` in a panel), adding
-  (`.ds-tabs__add`, `ds:add`, `add()`) and the overflow into a "More" menu (`data-ds-tabs-overflow`,
-  `.ds-tabs__bar`, `.ds-tabs__more`). New strings `moreTabs`, `tabClosed`, `closeTab`.
--->
 ## Steps
 
 Where the user is in a form of a few steps, or a record in the stages of a pipeline. A step is no button unless it holds
@@ -1318,12 +1287,6 @@ announces. `aria-current` is owned state (`DS.dom.morphHtml` keeps it).
 
 **Motion:** the "Steps" row of [Navigation](motion.md#navigation) in motion.md. A stage's fill and ink change on
 `--ds-dur-medium`; a link's press is the state layer's morph and the ripple.
-
-<!-- changelog
-- Steps: clickable steps (`.ds-steps__link`, a button or a link around the mark and label, with state layer, ripple
-  and touch target), a stage path (`.ds-steps--path`, `--ds-steps-path-height`) and a behaviour module (`DS.steps`,
-  `data-ds-steps`): a press sends a cancelable `ds:change`, moves `aria-current` and announces the step.
--->
 ## Jump links
 
 The sections of a long page, and which one is being read: a table of contents beside the content, or a bar of anchors
@@ -1419,11 +1382,6 @@ gave a section.
 **Motion:** the bar glides from link to link as the tabs' indicator does (stretching toward its target, landing on
 `--ds-ease-spatial`); a jump scrolls smoothly within three heights of the scroller. The labels change colour on the
 indicator's timing.
-
-<!-- changelog
-- Jump links (`.ds-toc`, `DS.toc`, `toc.js`): a table of contents or a bar of anchors, sticky, with scroll-spy through
-  `IntersectionObserver` (`aria-current="location"`), jumps that move the focus, and `ds:change`.
--->
 ## Back to top
 
 A button that appears once the reader has scrolled a long page or box down, and takes them back to its top.
@@ -1485,11 +1443,6 @@ What the module writes is owned state (`DS.dom.morphHtml` keeps it): `hidden` on
 
 **Motion:** it enters with `ds-fade-in` and `ds-grow-in` and leaves with `ds-fade-out` and `ds-shrink-out` (the
 `.ds-enter--scale` and `.ds-leave--scale` pair); the way back scrolls smoothly within three heights of the scroller.
-
-<!-- changelog
-- Back to top (`.ds-backtop`, `.ds-backtop--fixed`, `DS.backtop`, `backtop.js`): a button that appears after a scroll
-  (with a threshold that does not flicker), scrolls back to the top and moves the focus there.
--->
 ## Object page
 
 One record on one page: the [page head](#page) with its key facts, the section anchors ([jump links](#jump-links) as a
@@ -1595,12 +1548,6 @@ the sections, `data-editing` on the sections and the `.ds-object`.
 
 **Motion:** a section's faces swap with `.ds-enter--swap` (the form in, then the view back); the head condenses and the
 bar's mark glides as on their own (Page, Jump links).
-
-<!-- changelog
-- Object page (`.ds-object`, `DS.object`, `object.js`): one record on one page, the page head with its key facts, the
-  section anchors as a sticky bar of jump links under it, sections as cards, and an edit mode that turns a section or
-  every section into its inline form (`ds:edit`, `ds:save` with the form's values, `ds:cancel`, `done()`).
--->
 ## Shortcut sheet
 
 Every keyboard shortcut of the page in one dialog: "?" opens it, and it lists what
@@ -1705,10 +1652,6 @@ Rows keep their hairlines (borders); a shortcut that is off reads `GrayText`.
 ### Motion
 
 The dialog's entrance and exit (`DS.overlay`); the list changes in place.
-
-<!-- changelog -->
-- Shortcut sheet (3.0): `.ds-shortcuts` in a `.ds-dialog`, `DS.shortcuts` (`create`, `open`, `close`, `render`,
-  `byScope`), `data-ds-shortcuts`; "?" lists every shortcut of `DS.hotkeys`, grouped by scope and group, with a filter.
 ## Button
 
 One component for every action: a pill at the default shape, in one of a few looks, at any size and density.
@@ -1882,11 +1825,6 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
 - Hooks: [theming.md](theming.md#component-hooks).
 
 **Motion:** the press, focus, busy and success rows of [Controls](motion.md#controls) in motion.md.
-
-<!-- changelog -->
-- Button: icon buttons in the standard (`--quiet`), `--filled`, `--tonal` and `--outlined` looks, each also a toggle,
-  documented with their required label and tooltip; a `--filled` or `--tonal` toggle shows the neutral container
-  while off and its own fill while on.
 ## Link
 
 A link that navigates: inline in text, standalone, external with its icon, or quiet next to the main one. An action that
@@ -1946,10 +1884,6 @@ Links never take a tone: a status is said with a [status chip](#status-chip) or 
 
 **Motion:** the ink and the underline colour fade on `--ds-dur-fast`; a press on a touch screen darkens the underline
 as hover does. A link is inline text: no state layer, no ripple, no press morph, and hover moves nothing.
-
-<!-- changelog -->
-- Link (3.0): `.ds-link` (inline), `.ds-link--standalone`, `.ds-link--external` with `.ds-link__icon`, and the hook
-  `--ds-link-font`; the quiet link (`.ds-link--quiet`) is documented with them and still ships in button.css.
 ## Toggle button and toggle group
 
 A button that stays on or off (`aria-pressed`), and a set of them where one or several are on: a view switch, the
@@ -2060,13 +1994,6 @@ sends nothing.
 
 **Motion:** the buttons' own: the fill and the label colour fade on `--ds-dur-fast`, the press morph and the ripple;
 an icon swap crossfades with a small scale. The group moves nothing.
-
-<!-- changelog -->
-- Toggle button and toggle group (3.0): `DS.toggle` (`data-ds-toggle`, `data-ds-toggle-group="single | multiple"`,
-  `data-ds-toggle-group-required`, `data-ds-value`, `data-ds-toggle-group-roving`; roving focus in a `role="toolbar"`),
-  `.ds-toggle-group` and the hook
-  `--ds-toggle-group-gap`. Button: a `--filled` or `--tonal` toggle shows the neutral container while off and its
-  fill while on (Material 3 icon toggles); an outlined, quiet or text toggle keeps the tint.
 ## Button group
 
 Related actions or toggles joined into one pill outline: zoom out, fit, zoom in; the views of a list; the two targets of
@@ -2131,11 +2058,6 @@ the button hooks; the group computes the pill of its ends from `--ds-btn-height`
 **Motion:** the press morphs the outer corners of the pressed button (`--ds-btn-radius-pressed` times `--ds-shape`, in
 `--ds-dur-micro`) and springs them back on `--ds-ease-spatial`; the inner corners stay square. The state layer, the
 ripple and the colour fades are the buttons' own. Nothing moves.
-
-<!-- changelog -->
-- Button group (3.0): `.ds-btn-group` (one pill outline: outer corners the pill times `--ds-shape`, shared borders, a
-  divider in filled and tonal groups, the press morph on the outer corners) and `.ds-btn-group--block`; hooks
-  `--ds-btn-group-radius` and `--ds-btn-group-divider`.
 ## Menu button
 
 A button that opens a [menu](#menu), with a chevron that turns while it is open. With a menu of radio items it is a
@@ -2216,6 +2138,10 @@ DS.menubutton.itemValue(item);      // an item's value
 
 `DS.menubutton.create(button, { menu, value, label })` takes a `label` element to show the chosen label in (default
 `.ds-menu-btn__value`); the [split button](#split-button) points it at its action.
+`DS.menubutton.open(button)` and `DS.menubutton.close(button)` open and close a button's menu through `DS.overlay` (the
+button is the opener); `DS.menubutton.menuOf(button)` finds the menu a button names (the attribute's selector or id,
+else `aria-controls`, else the `.ds-menu` right after it) and `DS.menubutton.itemValue(item)` reads an item's value
+(its `value` attribute, else `data-value`, else its label).
 
 ### Accessibility
 
@@ -2235,10 +2161,6 @@ The button's; `--ds-btn-padding-x` sets the side padding the chevron's end paddi
 **Motion:** the menu grows out of the button and leaves with a fade ([Menu](#menu)); the chevron turns over
 `--ds-dur-medium` on the spring (`.ds-chevron`, a named exception of the rotate rule) and turns back from where it is
 when the menu closes mid-way.
-
-<!-- changelog -->
-- Menu button (3.0): `DS.menubutton` (`data-ds-menubutton`, `data-ds-value`, `create`, `open`, `close`, `menuOf`,
-  `itemValue`), `.ds-menu-btn`, `.ds-menu-btn__value` and `.ds-menu-btn__chevron`.
 ## Split button
 
 One pill with two targets: the main action, and a menu of related actions or of the action's variants (save, or save
@@ -2336,11 +2258,6 @@ None of its own: the buttons read the button hooks, the pill reads `--ds-btn-gro
 
 **Motion:** each half presses on its own: the state layer, the ripple and the morph of its outer corners (the button
 group's). The menu grows out of the toggle ([Menu](#menu)) while the chevron turns over `--ds-dur-medium` on the spring.
-
-<!-- changelog -->
-- Split button (3.0): `DS.splitbutton` (`data-ds-splitbutton`, `data-ds-value`, `create`, `partsOf`),
-  `.ds-split-btn`, `.ds-split-btn__action`, `.ds-split-btn__label` and `.ds-split-btn__toggle`. String
-  `moreOptionsFor`.
 ## Copy button
 
 Copies a value, a key or a link with one press, shows "Copied" for a moment and says it to screen readers. Without the
@@ -2444,11 +2361,6 @@ to line up with the fields around it.
 
 **Motion:** the button's own: the icon swap crossfades with a small scale (`.ds-icon-swap`), the faces roll and the
 done check draws itself (`.ds-btn--done`); back after `--ds-hold-status`.
-
-<!-- changelog -->
-- Copy button (3.0): `DS.copy` (`data-ds-copy`, `data-ds-copy-value`, `copy`, `create`, `textOf`; the Clipboard API,
-  the copy command, then a selection and a hint), `.ds-copy`, `.ds-copy--field`, `.ds-copy__value`, `.ds-copy__manual`,
-  `.ds-copy__done`, hooks `--ds-copy-font` and `--ds-copy-field-bg`. String `copyManual`.
 ## Priority action bar
 
 A row of actions that stays on one line at any width: the least important ones fold into a "More" menu when the bar
@@ -2537,12 +2449,6 @@ the bar's height reads `--ds-btn-icon-size`.
 
 **Motion:** none of its own: a fold is a layout change, so it happens at once. The menu grows out of More
 ([Menu](#menu)).
-
-<!-- changelog -->
-- Priority action bar (3.0): `DS.prioritybar` (`data-ds-prioritybar`, `data-ds-priority`, `create`, `plan`; the More
-  button and its menu built when the markup has none), `.ds-priority-bar`, `.ds-priority-bar--end`,
-  `.ds-priority-bar__more`, `.ds-priority-bar__menu`, `data-ds-folded`; hooks `--ds-priority-bar-gap` and
-  `--ds-priority-bar-menu-width`. String `moreActions`.
 ## Card
 
 A block of related content on a surface, or a whole block that opens or picks something.
@@ -2804,12 +2710,6 @@ user knows what grew.
 `--ds-ease-out` (a size that pushes layout never overshoots) and reverse from where they are; a drag and the keys move at
 once. The line and the grip change colour over `--ds-dur-fast`. Focus: a ring around the grip, solid from the first
 frame, snapping from offset + width to the offset.
-
-<!-- changelog -->
-- Split pane (`.ds-splitpane`, `DS.splitpane`): two or three panes, side by side or stacked, with dividers that drag
-  and move by keyboard (APG window splitter), limits per pane, collapse and restore (keys, double click, toggle
-  buttons), sizes remembered through `DS.store`, stacking under a width of its own on a phone
-  (`data-ds-splitpane-stack`). New strings `splitpaneResize`, `splitpaneCollapsed`.
 ## List-detail layout
 
 A list, the detail of what is picked in it and, optionally, a sub-detail (a related record, a log line, a reply), as
@@ -2930,11 +2830,6 @@ no tab stop. Hidden columns are out of the tab order and the accessibility tree.
 `ds-shift-in` over `--ds-dur-slow` on `--ds-ease-spatial` with `ds-fade-in`), from the end going deeper and from the
 start going back (`data-direction="back"` turns `--ds-motion-distance` round); the column that goes is gone at once.
 Nothing plays at the start or when the layout folds by a resize.
-
-<!-- changelog -->
-- List-detail layout (`.ds-listdetail`, `DS.listdetail`): list, detail and sub-detail columns that fold by the
-  layout's own width to two and to one with a back button, declarative triggers (`data-ds-listdetail-show`), focus
-  that follows the level, the entering column sliding in. New string `back`.
 ## Dashboard panel
 
 A titled block of a dashboard (a chart, a table, a list, a few figures) with a menu at its end and the states its data
@@ -3017,11 +2912,6 @@ that becomes their edge.
 
 **Motion.** None of its own: the refresh dims through `.ds-stale`, the loading bar fades in after the loader delay
 ([loading](#loading)), and the content that arrives glides through the chart's `--ds-share` or `DS.motion.flip`.
-
-<!-- changelog -->
-- Dashboard panel (`.ds-dashpanel`): a titled panel with an actions slot for a menu, a loading bar along its head, a
-  body that keeps its place through the loading, refreshing, failed and no-data states, a foot; outlined, filled and
-  elevated.
 ## Tiles
 
 Key figures on tonal tiles that fill their row: a figure, how it moved and its trend. A tile can also open a list or
@@ -3157,11 +3047,6 @@ A selected tile is `Highlight` / `HighlightText`, its delta and sparkline with i
 `--ds-tile-value-line`, `--ds-tile-trend-color`, `--ds-tile-selected-bg`, `--ds-selected-ring`: see [theming.md](theming.md).
 
 **Motion:** the "Alert, tile, card" row of [Feedback](motion.md#feedback) (`countUp()`, the press morph) in motion.md.
-
-<!-- changelog -->
-- Tiles, KPI stat: `.ds-tile__unit` (a unit after the figure, which then sits in `.ds-tile__figure`, the element
-  `countUp()` writes) and `.ds-tile__target` with `.ds-tile__target-text`
-  (a meter with a threshold mark at the target and the words whether it is met).
 ## Disclosure
 
 A `<details>` with the system's summary: advanced settings, or an accordion whose sections open one at a time.
@@ -3494,14 +3379,6 @@ transparent border becomes its edge, in the current row too. The sticky heading'
 
 **Motion:** the "Row list, timeline" row of [Feedback](motion.md#feedback) and the press of
 [Controls](motion.md#controls) in motion.md.
-
-<!-- changelog -->
-- Lists: `DS.list` (`data-ds-list`): selectable rows (`data-ds-list-select`, `.ds-list__check`, shift ranges, a
-  "select all" box with `data-ds-list-all`, `--ds-list-selected-bg`), reorderable rows (`data-ds-list-reorder`,
-  `.ds-list__grip`, through `DS.dnd`) and a virtual list (`create(el, { virtual })`, `.ds-list--scroll`,
-  `--ds-list-max-height`). Facts: `.ds-facts--stacked`, `.ds-facts--grid` with `.ds-facts__wide` and `.ds-facts__full`,
-  `.ds-facts--bordered` (`--ds-facts-radius`) and copy per value (`data-ds-facts-copy`, `.ds-facts__copy`). New strings
-  `listMove`, `listSelected`, `factsCopy`.
 ## Tree view
 
 A hierarchy that opens and closes (folders, groups, nested records), the APG tree pattern: pick one row, or check many
@@ -3703,11 +3580,6 @@ are the system's checkboxes.
 `interpolate-size`, as `.ds-collapsible`: over `--ds-dur-medium` on `--ds-ease-out`, closing on `--ds-dur-base`,
 accelerating), else at once; the chevron turns a quarter on `--ds-ease-spatial`. A drop glides the item into place
 (`DS.dnd`).
-
-<!-- changelog -->
-- Tree view (`.ds-tree`, `DS.tree`): the APG tree with single selection, tri-state checkboxes, lazy children through a
-  loader, row actions, drag to move through `DS.dnd`, type-ahead and folder groups. New strings `treeMove`,
-  `treeMoveBefore`, `treeMoveAfter`, `treeMoveInside`, `treeDropped`, `treeLoaded`, `treeLoadFailed`, `treeError`.
 ## JSON viewer
 
 A JSON document to read: its levels open and close, a search marks keys and values, each row copies its value or its
@@ -3807,13 +3679,6 @@ The type colours give way to `CanvasText` (the syntax still tells the types apar
 `--ds-jsonview-mark-bg`: see [theming.md](theming.md).
 
 **Motion:** the tree view's (a level opens with its height where the browser animates to `auto`; the chevron turns).
-
-<!-- changelog -->
-- JSON viewer (`.ds-jsonview`, `DS.jsonview`): a JSON document on the tree view, lazy (only what opens renders, more
-  than 100 entries open into ranges), with search and marks, copy value and copy path per row, and exact big numbers
-  (its own parser keeps each number's digits). New strings `jsonTree`, `jsonSearch`, `jsonFind`, `jsonPrevious`, `jsonNext`,
-  `jsonMatch`, `jsonExpandAll`, `jsonCollapseAll`, `jsonCopyValue`, `jsonCopyPath`, `jsonKey`, `jsonKeys`, `jsonItem`,
-  `jsonItems`, `jsonInvalid`.
 ## Timeline
 
 The history of a record, an activity feed or a thread of comments: entries on a rail, grouped by day.
@@ -4066,15 +3931,6 @@ keeps its frame and hairlines; the timeline's marker and rail are its own.
 
 **Motion:** the timeline's: new entries come in through `DS.motion.flip` (a new row fades in, the rows below glide down;
 a live log waits while it is pointed at or holds the focus). Filtering re-renders at once.
-
-<!-- changelog -->
-- Audit log (`.ds-auditlog`, `DS.auditlog`): who, what and when on the activity timeline, grouped by day, with a diff of
-  each changed field (`.ds-auditlog__diff`: old struck through, new underlined, the words for a reader), a filter bar
-  with a live count, and the pure helpers `changes()`, `group()` and `matches()`. Hooks `--ds-auditlog-field-width`,
-  `--ds-auditlog-old-bg`, `--ds-auditlog-new-bg`, `--ds-auditlog-diff-radius`. New strings `auditlogToday`,
-  `auditlogYesterday`, `auditlogUndated`, `auditlogBefore`, `auditlogAfter`, `auditlogNotSet`, `auditlogEvent`,
-  `auditlogEvents`, `auditlogFiltered`, `auditlogMore`. A `limit` (200) with a "Show more" button
-  (`.ds-auditlog__more`) keeps a log of thousands of entries quick.
 ## Tasks
 
 The steps of a job: an import, a setup, a migration, each step pending, running, done or failed.
@@ -4208,12 +4064,6 @@ Rendered rich text (Markdown through [Markdown](#markdown), a help article, a re
   keeps its border. Print: tables wrap; anchor icons go.
 - Hooks: `--ds-prose-gap`, `--ds-prose-font`, `--ds-prose-strong-weight`, `--ds-prose-radius`
   ([theming.md](theming.md#component-hooks)).
-
-<!-- changelog -->
-- Prose (3.0): heading anchors (`.ds-prose__anchor`), footnote references and links back (`.ds-prose__fnref`,
-  `.ds-prose__fnback`, the `:target` note on the tint), `kbd` and `mark` in prose, the column alignment `data-align`.
-  `.ds-code-block` and `.ds-code-block--wrap` and the hook `--ds-code-block-radius` move to [Code block](#code-block)
-  (same names; prose requires code).
 ## Markdown
 
 Renders Markdown into [Prose](#prose-and-code) safely: a small renderer of the CommonMark subset a dashboard needs,
@@ -4319,14 +4169,6 @@ described by the hidden "Footnotes" heading; each note links back ("Back to refe
 `role="note"` with its word. Images keep their alt text. Links are plain links: the system adds no extra tab stops.
 
 **Forced colours, motion.** Those of [Prose](#prose-and-code) and [Code block](#code-block); the renderer adds none.
-
-<!-- changelog -->
-- Markdown (3.0): `DS.markdown` (`data-ds-markdown` with `-anchors`, `-breaks`, `-code`, `-images`; `render`,
-  `create`, `use`, `slug`): a safe CommonMark subset with GFM tables, task lists, strikethrough and autolinks,
-  footnotes and callouts, no HTML passthrough, links limited to http, https, mailto and relative URLs, the page's own
-  sanitiser or renderer as a hook; linear time on hostile input, nesting capped at 100. Strings `copyCode`,
-  `codeBlock`, `footnotes`, `footnoteBack`, `calloutNote`, `calloutTip`, `calloutImportant`, `calloutWarning`,
-  `calloutCaution`.
 ## Code block
 
 A block of code or a raw request, alone or in a frame with its file or language, a copy button, a wrap toggle, line
@@ -4464,15 +4306,6 @@ and `--ds-code-max` (the folded lines) on the frame; read them, never set them.
 
 **Hooks.** `--ds-code-block-radius` ([theming.md](theming.md#component-hooks)); the colours are the roles
 `--ds-code-bg` and the code roles of [Syntax highlighting](#syntax-highlighting).
-
-<!-- changelog -->
-- Code block (3.0): `.ds-code-block` and `.ds-code-block--wrap` move from prose.css to the new component `code` (same
-  classes; prose requires it). New: the frame `.ds-code` with `.ds-code--lines`, `.ds-code__head`, `.ds-code__title`,
-  `.ds-code__lang`, `.ds-code__actions`, `.ds-code__line` (`--mark`, `--inserted`, `--deleted`), `.ds-code__foot`,
-  `.ds-code__expand-label`; `DS.code` (`data-ds-code`, `-lang`, `-label`, `-start`, `-mark`, `-max`, `-wrap`,
-  `-remember`, `-expand`; `create`, `parseLines`, `linesHtml`). A `.ds-code-block` in prose now takes the prose's gap.
-  String `wrapLines`. Motion exception: the folded block's `height`. `get()` and `refresh()` read lines the page changed
-  underneath (a streamed Markdown answer); in forced colours a focused framed block keeps its ring.
 ## Syntax highlighting
 
 Colours code by its syntax with the system's own small tokenizers (D13): `json`, `js` and `ts`, `sh`, `html` and
@@ -4553,6 +4386,8 @@ view.destroy();                                   // the plain text again
   tried as one expression (the first rule that matches at the leftmost place wins); a kind may be a function
   `(text, state, index, end)` that returns a kind, `null` or a list of `[kind, text]` sub-tokens. Or pass a function
   `(code) => [kind, text][]` of your own.
+- `DS.highlight.language(name)` gives the language a name or alias stands for (`null` when none is registered) and
+  `DS.highlight.languages()` lists the registered names.
 - **The hook for an external highlighter**: `DS.highlight.use(fn)`, where `fn(code, language)` returns markup (taken
   as it comes: the page chose the highlighter and answers for its output) or `null` to leave the language to the
   system; `DS.highlight.use(null)` goes back. Give its token classes the code roles in the page's CSS
@@ -4574,14 +4409,6 @@ diff stay.
 **Roles.** `--ds-code-keyword`, `--ds-code-string`, `--ds-code-number`, `--ds-code-comment`, `--ds-code-function`,
 `--ds-code-type`, `--ds-code-property`, `--ds-code-meta`, `--ds-code-inserted`, `--ds-code-deleted`, on
 `--ds-code-bg` ([tokens.md](tokens.md)). A theme sets the roles, never the token classes.
-
-<!-- changelog -->
-- Syntax highlighting (3.0, D13): `DS.highlight` (`data-ds-highlight`; `tokenize`, `highlight`, `lines`, `language`,
-  `languages`, `register`, `use`, `create`, `KINDS`) with tokenizers for json, js, ts, sh, html, xml, css, sql, yaml,
-  go, py and diff; the token classes `.ds-highlight__*`; the colour roles `--ds-code-keyword`, `--ds-code-string`,
-  `--ds-code-number`, `--ds-code-comment`, `--ds-code-function`, `--ds-code-type`, `--ds-code-property`,
-  `--ds-code-meta`, `--ds-code-inserted`, `--ds-code-deleted` (light, dark and contrast values). Linear time, long single
-  lines included.
 ## Image
 
 A picture in a frame of a fixed shape, cropped or fitted, with a tint while it loads, words where it fails and a
@@ -4654,12 +4481,6 @@ The frame keeps a `CanvasText` edge; the fallback's glyph and words are `CanvasT
 **Motion:** a picture that arrives fades in over `--ds-dur-medium` on `--ds-ease-in-out` (`data-state` from
 `loading` to `loaded`); a new one fades out over `--ds-dur-fast` while it loads. A transition, so a change mid-way
 continues from where it is.
-
-<!-- changelog -->
-- Image (new, `image`): `.ds-image` with `__frame`, `__caption`, `__fallback`, the shapes `--square`, `--photo`,
-  `--wide` (or `--ds-image-ratio`) and `--contain`; `data-ds-image` writes `data-state` (`loading`, `loaded`,
-  `error`), fades the picture in, tries `data-ds-image-fallback` and shows the fallback with the alt text;
-  `DS.image.create`; hooks `--ds-image-ratio`, `--ds-image-radius`, `--ds-image-bg`.
 ## Diff view
 
 What changed in one or more files, from unified diff text (`git diff`, `git show`, `diff -u`): each file with its
@@ -4799,15 +4620,6 @@ px, rem or em), the width from which `data-ds-diff-view="auto"` shows the split 
 
 **Motion.** None of its own: a file's chevron turns with `.ds-chevron`, and a fold opens in one step (the rows
 appear, the focus follows).
-
-<!-- changelog -->
-- Diff view (`.ds-diff`, `DS.diff`): unified diff text parsed into files with headers, +/- counts, hunk headers, two
-  line-number gutters, word-level marks, folded unchanged lines with their buttons, unified, split and auto views, a
-  highlighter hook (`DS.diff.highlighter`, or `DS.highlight` from `ds.js`) and the lines between hunks through a
-  `load` callback. Files above 1,000 lines start folded and render when opened. New strings `diffAdded`, `diffRemoved`, `diffStats`, `diffFileAdded`, `diffFileDeleted`,
-  `diffFileRenamed`, `diffFileCopied`, `diffFileBinary`, `diffBinary`, `diffNoChanges`, `diffUntitled`,
-  `diffNoNewline`, `diffExpandOne`, `diffExpand`, `diffShownOne`, `diffShown`, `diffOldLine`, `diffNewLine`,
-  `diffChange`, `diffCode`, `diffOldCode`, `diffNewCode`.
 ## Log viewer
 
 A long or live log (a device's output, a build, a job run) that stays light at 100,000 lines: only the lines near the
@@ -4951,17 +4763,6 @@ colours `--ds-logview-black`, `--ds-logview-red`, `--ds-logview-green`, `--ds-lo
 
 **Motion.** The "Latest" pill comes and goes with `.ds-presence`; following the end is a scroll (smooth within one
 screen, else at once). Lines arrive in place, without motion.
-
-<!-- changelog -->
-- Log viewer (`.ds-logview`, `DS.logview`): a windowed log (`DS.virtual`, 100,000 lines by default) with ANSI colours
-  on theme roles (hooks `--ds-logview-black` ... `--ds-logview-white`), levels read from the text with an icon and a
-  word, level filter chips with counts, search with a count and next and previous, "Only matching lines", wrap,
-  timestamps (time of day, full or none), copy of a line or a range (a multi-select listbox), follow mode with the
-  "Latest" pill (`DS.dom.followEnd`), `append()` batched per frame, `DS.logview.parse` and `DS.logview.ansi`. New
-  strings `logName`, `logFatal`, `logError`, `logWarn`, `logInfo`, `logDebug`, `logTrace`, `logLevels`, `logSearch`,
-  `logSearchPlaceholder`, `logPrevious`, `logNext`, `logMatch`, `logMatchesOne`, `logMatches`, `logOnlyMatches`,
-  `logWrap`, `logTimestamps`, `logCopyLine`, `logCopyLines`, `logCopiedOne`, `logCopied`, `logSelected`,
-  `logLinesOne`, `logLines`, `logShown`, `logEmpty`, `logNoneShown`, `logLatest`, `logFollowing`.
 ## Terminal frame
 
 The chrome around a terminal emulator the page brings (xterm.js or its own): a head with the title, the connection
@@ -5082,16 +4883,6 @@ status keeps its icon and word, a held modifier is `Highlight` (the button's tog
 `--ds-terminal-cyan`, `--ds-terminal-white` ([theming.md](theming.md)); `DS.terminal.theme()` reads them too.
 
 **Motion.** The status chip's colour glides (`.ds-status`); the keys press as buttons. Nothing else moves.
-
-<!-- changelog -->
-- Terminal frame (`.ds-terminal`, `DS.terminal`, tier 2): the chrome around a terminal emulator the page brings: a
-  head with the title, a status chip (connecting, connected, disconnected) and the page's actions, the screen, and a
-  key bar (Esc, Tab, Ctrl, Alt, the arrows; more by name or character) shown under a coarse pointer, with Ctrl and
-  Alt held for the next key, also for a character typed on the soft keyboard. `DS.terminal.sequence` gives xterm's
-  bytes of a key, `DS.terminal.theme` the theme's colours for an emulator (hooks `--ds-terminal-*`); `--fill` for a
-  terminal page; plain output with `data-fg` spans. New strings `terminalKeys`, `terminalUp`, `terminalDown`,
-  `terminalLeft`, `terminalRight`, `terminalConnecting`, `terminalConnected`, `terminalDisconnected`,
-  `terminalHeld`, `terminalReleased`.
 ## Empty state
 
 Says that there is nothing to show and why, at the size of its place, or confirms that a job finished.
@@ -5258,11 +5049,6 @@ system colours.
 
 **Motion:** none of its own. A result that replaces content after a request comes in with `.ds-reveal`
 ([motion.md](motion.md)).
-
-<!-- changelog -->
-- Result page (new, `result`): `.ds-result` with the causes `--success`, `--forbidden`, `--not-found`, `--error`,
-  `--maintenance`, `--offline` (or a tone) and the parts `__disc`, `__media`, `__code`, `__title`, `__text`,
-  `__actions`, `__meta`; hooks `--ds-result-disc-size`, `--ds-result-media-size`, `--ds-result-padding`.
 ## Status chip
 
 The state of one item, always with an icon and a word.
@@ -5380,10 +5166,6 @@ A transparent outline becomes its `CanvasText` edge, the text `CanvasText`: the 
 
 **Motion:** a state that changes glides its colours over `--ds-dur-medium`; re-render with `DS.dom.morphHtml`, so
 the element stays and the class change transitions.
-
-<!-- changelog -->
-- State label (new, `lozenge`): `.ds-lozenge` and `--subtle`, a bold workflow state in the tone of the class on it,
-  with a word and an icon; hooks `--ds-lozenge-height`, `--ds-lozenge-radius`.
 ## Label group
 
 The tags of one item on one line, as many as fit, then a "+N" button that shows all of them in a popup: a ticket's
@@ -5472,12 +5254,6 @@ The popup's transparent outline becomes its edge; the button is a button.
 (`--ds-scale-popup`, its clip opening from the button's edge) on `--ds-ease-spatial` over `--ds-dur-medium`; the exit
 only fades, over `--ds-dur-instant`. Transitions keyed on `data-state`, so a close mid-way turns back from where it is.
 Tags hide and show at once: a line that slid would move the row.
-
-<!-- changelog -->
-- Label group (new, `labelgroup`): `.ds-label-group` with `__list`, `__more`, `__popup` and `__all`;
-  `data-ds-label-group` (and `-max`) keeps the tags that fit on one line and writes a "+N" button that opens every tag
-  in a popup through `DS.overlay`; `DS.labelgroup.create`, `visibleCount`; hook `--ds-label-group-gap`; strings
-  `labelGroupMore`, `labelGroupAll`.
 ## Badge
 
 A count or a dot on a button, chip, tab or drawer item:
@@ -5560,9 +5336,6 @@ visible; a tone changes nothing there, so the word carries the meaning.
 **Motion.** Colours glide on `--ds-dur-fast`. A count that appears pops in (`DS.motion.enter(badge, 'pop')`), one that
 goes pops out (`DS.motion.leave(badge, 'pop', { then: 'hide' })`), which the controller's `set()` does by itself; the
 number itself changes at once, and nothing plays on load ([motion.md](motion.md#a-count-badge)).
-
-<!-- changelog -->
-- Badge: `.ds-badge--corner` puts a count or a dot on the corner of an icon button (or an avatar, any positioned host); the host's ripple clips itself instead of the host, so the badge stays whole (catalogue D, reopened from after-2.0).
 ## Presence
 
 Whether a person can be reached now: online, away, busy or offline, as a dot and a word.
@@ -5614,11 +5387,6 @@ the shape changes at once.
 Hooks: `--ds-presence-dot-size`, `--ds-presence-ground` (the hollow of the away, busy and offline dots, `--ds-surface`:
 set it where the dot lies on another ground), `--ds-presence-online`, `--ds-presence-away`, `--ds-presence-busy`,
 `--ds-presence-offline` ([theming.md](theming.md#component-hooks)).
-
-<!-- changelog -->
-- Presence (3.0, new): `.ds-presence-dot` with `--online`, `--away`, `--busy` and `--offline`, each a shape of its own,
-  and `.ds-presence-label` (the dot with its word); the strings `presenceOnline`, `presenceAway`, `presenceBusy`,
-  `presenceOffline`.
 ## Avatar
 
 A person as a disc, or an entity (a team, a device, a service) as a rounded square: a picture, initials or an icon.
@@ -5784,14 +5552,6 @@ the corner pops in and out through `DS.badge`; a status dot glides its colours (
 
 Hooks: `--ds-avatar-size`, `--ds-avatar-bg`, `--ds-avatar-color`, `--ds-avatar-font`, `--ds-avatar-square-radius`,
 `--ds-avatar-edge-color`, `--ds-avatar-ring-color` ([theming.md](theming.md#component-hooks)).
-
-<!-- changelog -->
-- Avatar (3.0): `.ds-avatar` moves out of the app frame into a component of its own, with `.ds-avatar--hue-1` ... `-6`
-  (a colour from the name, 4.5:1 in every theme), `.ds-avatar--square` (entities), `.ds-avatar--ring` (activity), a
-  status dot (`.ds-presence-dot`) and a corner badge (`.ds-badge`) that are never cut, interactive avatars (state layer,
-  focus ring, touch hit area), and `.ds-avatar-group` with `--spread` and `__more`. `DS.avatar` (`initials`, `hue`,
-  `create`, `group`), `data-ds-avatar` and `data-ds-avatar-group`. New strings: `avatarStatus`, `avatarMore`,
-  `avatarOverflow`. An avatar's overflow is visible now (2.x clipped it); a picture inside clips itself.
 ## Persona
 
 A person (or an entity) in one block: the [avatar](#avatar), the name, a role and a status. For a list row, a table
@@ -5854,11 +5614,6 @@ keep their own forced looks.
 **Motion.** None of its own: the pressable's state layer and focus snap.
 
 Hooks: `--ds-persona-gap`, `--ds-persona-name-font`, `--ds-persona-role-font` ([theming.md](theming.md#component-hooks)).
-
-<!-- changelog -->
-- Persona (3.0, new): `.ds-persona` with `__text`, `__name`, `__role` and `__status`, the variants `--stacked` and
-  `--inline`, and an interactive persona with `.ds-pressable`; hooks `--ds-persona-gap`, `--ds-persona-name-font`,
-  `--ds-persona-role-font`.
 ## Media
 
 Files, photos, recordings or devices as thumbnails in a grid: each card opens, can be selected and carries its own
@@ -5982,12 +5737,6 @@ selection checkbox fades in on `--ds-dur-fast` and out on `--ds-dur-instant`, th
 
 Hooks: `--ds-media-min`, `--ds-media-gap`, `--ds-media-radius`, `--ds-media-border`, `--ds-media-bg`,
 `--ds-media-ratio`, `--ds-media-selected-bg`; reads `--ds-selected-ring` ([theming.md](theming.md#component-hooks)).
-
-<!-- changelog -->
-- Media (3.0, new): `.ds-media` cards (`__thumb`, `__tag`, `__select`, `__check`, `__open`, `__title`, `__meta`,
-  `__actions`; `--square`, `--wide`, `--bare`) in a `.ds-media-grid`; `DS.media` (`create`, `between`) and
-  `data-ds-media`: one tab stop, arrows in two dimensions, Space, Shift ranges, Ctrl+A and Escape. New strings:
-  `mediaSelected`, `mediaSelectionCleared`.
 ## Alert
 
 Tells the user something about a page or a section, in place, with an icon and a word; never colour alone.
@@ -6191,12 +5940,6 @@ DS.banner.priorityOf({ tone: 'error' });
 Shown, waiting and dismissed messages change inside `DS.motion.flip()` on the banner's parent (the `.ds-panel`): the
 view glides to its new place, and a message that appears fades in (`DS.motion.enter(alert, 'fade')`). Nothing
 animates a height. On load nothing plays.
-
-<!-- changelog -->
-- Banner (3.0): `DS.banner` (`create`, `order`, `priorityOf`) and `data-ds-banner` on the app frame's `.ds-banner`:
-  several messages in priority order (`data-ds-banner-priority`, else by tone), `data-ds-banner-max` with the
-  `.ds-banner__more` button, dismissal (`data-ds-banner-id`, `.ds-banner__dismiss`) remembered through `DS.store`
-  (`data-ds-banner-remember`); the string `bannerMore`.
 ## Table
 
 Records in columns, to compare, sort, select in bulk and act on per row. It stays a plain `<table>`: every option below
@@ -6875,14 +6618,6 @@ Events (bubbling, on the table, and through `on()`): `ds:sort` `{ sort }`, `ds:f
 the table's, the twist's chevron turns on the spring (`--ds-dur-medium`, `--ds-ease-spatial`), the selection bar
 crosses with the toolbar (`DS.motion.crossfade()`), a moved column's header glides into place (`DS.dnd`). Nothing else
 moves; a resize follows the pointer.
-
-<!-- changelog -->
-- Added: the data grid, `.ds-datagrid` and `js/datagrid.js` (`DS.datagrid`): multi-column sort, column resize, reorder and
-  chooser with presets (remembered through `DS.store`), client or server data through one contract, selection with
-  Shift ranges and "Select all N" across pages with the selection bar, details, tree rows and row groups with subtotals,
-  a summary row, inline edit, the APG grid keys (cell or row), row actions and a context menu, windowed rows
-  (`DS.virtual`), the empty, loading and error states, CSV and clipboard export. Strings `datagrid*` in
-  `DS.core.config({ strings })`. Hooks `--ds-datagrid-indent`, `--ds-datagrid-group-bg`.
 ## Pagination
 
 Moves through the pages of a long table or list: the footer of a table whose records come in pages.
@@ -7112,15 +6847,6 @@ button's model.
 
 **Motion:** none of its own: the button's busy face rolls (after `--ds-delay-loader`, held for `--ds-hold-loader`), the
 status changes at once, and the new items are the page's `DS.motion.flip()`.
-
-<!-- changelog
-- Load more and infinite scroll (`DS.loadmore`, `.ds-loadmore`, `.ds-loadmore--inline`, `.ds-loadmore__status`,
-  `.ds-loadmore__text`, `.ds-loadmore__icon`, `.ds-loadmore__button`, hooks `--ds-loadmore-padding`,
-  `--ds-loadmore-error-color`): a status line and a Load more button with its busy face, an IntersectionObserver
-  sentinel with a limit of automatic loads, `ds:loadmore` with `respond()`, `aria-busy` on the list, announcements, an
-  error state that tries again, focus kept when the button goes. Strings `loadMoreStatus`, `loadMoreStatusOpen`,
-  `loadMoreDone`, `loadMoreLoaded`, `loadMoreLoading`, `loadMoreFailed`, `tryAgain`.
--->
 ## Sort control
 
 The field and the direction of a list or a set of cards, outside a table (a [table](#table) sorts in its header). The
@@ -7237,15 +6963,6 @@ The arrow and the words are text in the system colours; the select and buttons k
 
 **Motion:** the arrow turns 180deg on the spring (`--ds-dur-medium`, `--ds-ease-spatial`) when the direction changes,
 as the table's sort arrow; the words change at once. The list's reorder is the page's `DS.motion.flip()`.
-
-<!-- changelog
-- Sort control (`DS.sort`, `.ds-sort`, `.ds-sort--menu`, `.ds-sort__field`, `.ds-sort__label`, `.ds-sort__order`,
-  `.ds-sort__trigger`, `.ds-sort__value`, `.ds-sort__words`, `.ds-sort__word`, `.ds-sort__arrow`, hook
-  `--ds-sort-field-width`): the field and direction of a list or cards outside a table, inline or as a menu, with the
-  direction in the field's words, `ds:sort`, an announcement, and `parse()` / `stringify()` for addresses. Strings
-  `sortAscending`, `sortDescending`, `sortAscendingText`, `sortDescendingText`, `sortAscendingNumber`,
-  `sortDescendingNumber`, `sortAscendingDate`, `sortDescendingDate`, `sortAnnounce`.
--->
 ## Facet filter panel
 
 The filters of a list in a panel beside it: one facet per field, each option with its count, a search inside a long
@@ -7428,17 +7145,6 @@ drawn in the system's text colour. A checked option keeps its check and its labe
 
 **Motion:** none of its own. Options show and hide at once; the chips are input chips; the sheet plays the side sheet's
 motion; the list's change is the page's `DS.motion.flip()`.
-
-<!-- changelog
-- Facet filter panel (`DS.facets`, `.ds-facets-layout`, `__main`, `.ds-facets`, `__head`, `__title`, `__clear`,
-  `__applied`, `__chips`, `__toggle`, `__badge`, `__count`, `__results`, `.ds-facet`, `--scroll`, `__title`,
-  `__options`, `__search`, `__empty`, `__more`, `__range`, `__dash`, `data-folded`, `data-ds-facets-sheet`,
-  `data-ds-facets-zero`, `data-ds-facet-limit`, hooks `--ds-facets-width`, `--ds-facets-main-min`, `--ds-facets-gap`,
-  `--ds-facet-max-height`): facets with counts, a search inside long facets, a limit with "Show all", ranges, applied
-  chips with Clear all, a side sheet when the layout is narrow; `counts()`, `count()`, `open()`, `visible()`,
-  `foldText()`; a second applied row in the main part while folded; the count announced once changes pause. Strings `facetShowAll`, `facetShowFewer`, `facetNoMatch`, `facetMatchesOne`, `facetMatchesOther`.
-- Filter bar: a radio of `value=""` is "Any" (no filter), and the one checked again once its filter is empty.
--->
 ## Filter bar
 
 A search and inline filters above a list, the applied filters as chips with "Clear all", and a result count. When the
@@ -7586,15 +7292,6 @@ The chips (input chips), fields and buttons keep their own forced-colours models
 
 **Motion:** none of its own. Folding and unfolding change the row at once; the chips come and go at once (input chips);
 the sheet plays the side sheet's motion; the list's change is the page's `DS.motion.flip()`.
-
-<!-- changelog
-- Filter bar (`DS.filterbar`, `.ds-filterbar`, `.ds-filterbar__row`, `__search`, `__filters`, `__more`, `__badge`,
-  `__range`, `__count`, `__applied`, `__chips`, `__clear`, `__results`, `data-folded`, hooks `--ds-filterbar-gap`,
-  `--ds-filterbar-search-min`, `--ds-filterbar-field-width`, `--ds-filterbar-range-width`): inline filters that fold into a side sheet by the bar's
-  width, applied input chips with Clear all, a result count, `ds:filter`; `read()`, `write()`, `applied()`, `fold()` and
-  the `filters()` engine. Strings `removeFilter`, `filterRemoved`, `filtersCleared`, `filtersApplied`, `filterChip`,
-  `resultsOne`, `resultsOther`, `showResults`, `rangeMin`, `rangeMax`, `rangeBetween`.
--->
 ## Saved views
 
 Named sets of a list's filters, sort and columns, picked from a menu: the page's own views come built in, the user
@@ -7716,15 +7413,6 @@ The words are text and the buttons, the menu and its checks keep their own model
 
 **Motion:** the trigger's chevron turns while its menu is open (`--ds-dur-medium`, `--ds-ease-spatial`); the menu,
 the dialogs and the snackbar play their own motion.
-
-<!-- changelog
-- Saved views (`DS.views`, `.ds-views`, `__trigger`, `__name`, `__edited`, `__chevron`, `__save`, `__list`,
-  `__default`, `data-ds-views-key`, `data-ds-views-url`, `data-ds-views-prefix`, `data-ds-view`, `data-ds-view-state`,
-  `data-ds-view-default`, `data-ds-views-action`, hook `--ds-views-name-max`): named filter, sort and column sets in a
-  menu, built-in and the user's own (in `DS.store`, followed across tabs), a default, "Edited" while the state differs,
-  a link that carries the view (`toQuery()`, `fromQuery()`, `history.replaceState` with `sync`), `ds:view` and
-  `ds:views`. Strings `viewEdited` ... `viewDeleteConfirm`.
--->
 ## Horizontal scroller
 
 Content wider or taller than its room scrolls on its own, with a fade at each end that still has content to show.
@@ -8308,15 +7996,6 @@ follows, so the page's filter runs) and the next Escape closes the layer (2.0, `
 **Motion:** the check, radio, focus, validation, confirmation, changed dot, search key and radio tile rows of
 [Controls](motion.md#controls) in motion.md. A checkbox card moves as a radio card; a warning hint enters as an error
 hint does.
-
-<!-- changelog
-- Form: `DS.form` (3.0), the module of the field. `data-ds-counter` keeps a `.ds-field__counter` ("14 / 200", the
-  `--over` class past a soft `data-ds-counter-max`) and says once that the limit is near or passed (strings
-  `charactersLeft`, `charactersLeftOne`, `charactersOver`, `charactersOverOne`); `DS.form.counter()`,
-  `DS.form.count()`. Every `textarea.ds-input--grow` grows by itself where `field-sizing` is missing (the behaviour
-  `autosize`). `.ds-select`: a customizable select where `appearance: base-select` exists (the menu's surface and rows,
-  a check, rich options, `<selectedcontent>`), the styled native select elsewhere.
--->
 ## Number input
 
 A number, an amount or a quantity with a unit, typed in the page's locale or stepped: `DS.number` turns an input
@@ -8426,13 +8105,6 @@ the steppers are buttons in the system colours, `GrayText` while disabled.
 and the field's hooks of [Form](#form) ([theming.md](theming.md#component-hooks)).
 
 **Motion:** none of its own. A value changes at once, never glides; the steppers press as buttons.
-
-<!-- changelog
-- Number input (`DS.number`, `.ds-number`, `.ds-number--split`, `.ds-number__step`, `.ds-number__steps`,
-  `.ds-number__down`, `.ds-number__up`, hook `--ds-number-step-size`): a spinbutton on an input group with steppers,
-  min, max, step and page, locale parsing and formatting through `DS.format`, currency and unit affixes from Intl,
-  a hidden input with the plain value. Strings `decrease`, `increase`.
--->
 ## Password
 
 A password to enter or to choose: `DS.password` adds the reveal, a strength meter and a caps-lock hint to a password
@@ -8520,13 +8192,6 @@ reveal button is a system button with its pressed state in `Highlight`.
 ([theming.md](theming.md#component-hooks)).
 
 **Motion:** a bar's colour changes on `--ds-dur-fast`; the reveal's icons swap as every `.ds-icon-swap`.
-
-<!-- changelog
-- Password (`DS.password`, `[data-ds-password]`, `.ds-password__meter`, `.ds-password__bars`, `.ds-password__strength`,
-  `.ds-password__caps`, hooks `--ds-password-meter-width`, `--ds-password-bar-height`): reveal with the caret kept and
-  spell checking off, a four-level strength meter in words, a caps-lock hint. Strings `showPassword`, `capsLock`,
-  `passwordStrength`, `strengthWeak`, `strengthFair`, `strengthGood`, `strengthStrong`.
--->
 ## Secret field
 
 A value the server keeps and never sends back to the page (an API key, a token, the password of a mail server): the
@@ -8614,13 +8279,6 @@ Give the input `autocomplete="off"` (or `new-password` for a service password) a
 `--ds-field-warning-color` of [Form](#form).
 
 **Motion:** none; the parts of a state show at once and the focus moves with them.
-
-<!-- changelog
-- Secret field (`DS.secret`, `.ds-secret` with `__stored`, `__mask`, `__status`, `__actions`, `__replace`, `__clear`,
-  `__undo`, `__entry`, `__cancel`): set, replace and clear states that never show the value, a hidden
-  `[data-ds-secret-action]` of keep, set or clear for the server. Strings `secretSet`, `secretNotSet`,
-  `secretCleared`.
--->
 ## Code field (one-time code, PIN)
 
 A one-time code from a text message or an authenticator app, or a PIN: one cell per character, with auto-advance,
@@ -8704,13 +8362,6 @@ separator is a `CanvasText` dash.
 field's `--ds-input-focus-color` for the caret ([theming.md](theming.md#component-hooks)).
 
 **Motion:** none of its own; a cell's focus ring is the field's.
-
-<!-- changelog
-- Code field (`DS.otp`, `.ds-otp`, `.ds-otp__cell`, `.ds-otp__sep`, `[data-ds-otp]` with `-type`, `-mask` and `-submit`,
-  hooks `--ds-otp-cell-width`, `--ds-otp-gap`, `--ds-otp-font`): one-time codes and PINs in n cells, auto-advance,
-  paste and one-time-code autofill spread over the cells, the keys of a split field. Strings `otpDigit`,
-  `otpCharacter`.
--->
 ## Search field
 
 The search pill of [Form](#form) with what a search needs around it: a shortcut that reaches it, a clear button, the
@@ -8762,6 +8413,8 @@ wherever the page shows it (beside the search, at the end of a toolbar), named b
   it too. "Clear recent searches" (the string `clearRecent`) under the list forgets them all. While the list exists
   the field is a `combobox` with `aria-controls` and `aria-activedescendant`; the list is a `listbox` named "Recent
   searches" (`recentSearches`).
+  The list is written by `DS.search`: a `.ds-search__popup` (the combobox's popup), each row with the
+  `.ds-search__history` glyph, and a `.ds-search__foot` holding the `.ds-search__forget` button.
 - **Events** on the root: `ds:search` with `{ value, source }` (`'enter'` or `'recent'`). The input's own `input`
   event is the change.
 
@@ -8793,14 +8446,6 @@ that reveal private data, and offer "Clear recent searches".
 combobox's.
 
 **Motion:** the list opens and closes as the combobox's (`DS.overlay`); the key fades as in [Form](#form).
-
-<!-- changelog
-- Search field (`DS.search`, `[data-ds-search]` with `-recent`, `-recent-max` and `-count`, `.ds-search__clear`,
-  `.ds-search__count`, the list's `.ds-search__popup`, `.ds-search__history`, `.ds-search__foot`,
-  `.ds-search__forget`, hook `--ds-search-clear-size`): a clear button and Escape in every engine, the shortcut's key
-  as the platform writes it, a result count shown and spoken, recent searches through `DS.store`. Strings
-  `recentSearches`, `clearRecent`, `searchResultsOne`, `searchResultsMany`.
--->
 ## Inline edit
 
 One value changed where it is shown: the text turns into a field in place, Enter saves and Escape leaves it. For a
@@ -8896,13 +8541,6 @@ an icon.
 
 **Motion:** none of its own: the view and the field swap at once and the focus moves with them; the save button's
 busy face is `DS.motion.busy`'s, the error message enters as every field error.
-
-<!-- changelog
-- Inline edit (`DS.inlineedit`, `.ds-inlineedit` with `__view`, `__value`, `__edit`, `__form`, `__actions`, `__error`,
-  `[data-ds-inlineedit]` with `-blur` and `-trim`, hook `--ds-inlineedit-field-min`): a value that turns into a field
-  in place, Enter and Escape, an async save through `ds:save` and `wait()` with a busy button and an error in words.
-  Strings `edit`, `save`, `saved`.
--->
 ## Type-to-confirm
 
 A destructive action that waits until the name of what goes has been typed: for what cannot be undone and hits more
@@ -8991,12 +8629,6 @@ it.
 **Hooks:** none of its own.
 
 **Motion:** none of its own: the dialog opens and closes through `DS.overlay`, the busy face is `DS.motion.busy`'s.
-
-<!-- changelog
-- Type-to-confirm (`DS.typeconfirm`, `[data-ds-typeconfirm]` with `-case`, `.ds-typeconfirm` with `__label`, `__name`,
-  `__input`, `__error`, `__confirm`): a destructive confirmation in a dialog whose filled error button (D10) waits until
-  the name is typed, with an async action through `ds:confirm` and `wait()`. String `typeToConfirm`.
--->
 ## Error summary
 
 The problems of a form after a submit, at its top: a title that counts them and a link per problem to its field. It
@@ -9081,13 +8713,6 @@ system's.
 **Hooks:** none of its own; the alert's.
 
 **Motion:** none of its own: the summary shows at once and its focus ring snaps as every ring does.
-
-<!-- changelog
-- Error summary (`DS.errorsummary`, `.ds-errorsummary`, `__title`, `__list`, `[data-ds-errorsummary]`): the problems
-  of a form at its top after a submit, from the fields' constraints and `aria-invalid`, a link per problem to its field,
-  focused; messages written into empty error hints; the list follows the fixes. Strings `errorSummaryOne`,
-  `errorSummaryMany`, `errorSummaryField`.
--->
 ## Key combos
 
 A keyboard shortcut written as the keys of the user's platform: `⇧ ⌘ K` on Apple systems, `Ctrl + Shift + K`
@@ -9140,11 +8765,6 @@ Nothing here takes focus.
 ### Forced colours
 
 The keys keep their edge (a border); the separators take the text colour.
-
-<!-- changelog -->
-- Key combos (new, `kbd`): `data-ds-kbd` writes a shortcut as the keys of the platform (`.ds-kbd-combo`,
-  `__keys`, `__combo`, `__plus`, `__then`) with the words in `.ds-sr`; `DS.kbd.create`, `keys`; strings `kbdCommand`,
-  `kbdOption`, `kbdControl`, `kbdThen`.
 ## Truncate
 
 A text too long for its place, cut at its end, its start or its middle with an ellipsis. While it is cut it shows
@@ -9202,11 +8822,6 @@ Nothing of its own: the text follows the system colours.
 ### Hooks
 
 `--ds-truncate-lines`: see [theming.md](theming.md).
-
-<!-- changelog -->
-- Truncate (new, `truncate`): `data-ds-truncate` (`end`, `start`, `middle`) cuts a text with an ellipsis, whole in an
-  owned tip while cut and in `.ds-sr` for screen readers; `.ds-truncate--lines`; `DS.truncate.create`, `cut`, `fit`;
-  hook `--ds-truncate-lines`.
 ## Expandable text
 
 A long text shows its first lines and a "Show more" button that reveals the rest: a description, a comment, a log
@@ -9261,11 +8876,6 @@ Nothing of its own: the toggle is a text link in the system's link colour.
 
 **Motion:** none. The text opens and closes at once: its height pushes the layout, and a clamp has no height to
 glide between.
-
-<!-- changelog -->
-- Expandable text (new, `expandable`): `data-ds-expandable` clamps `.ds-expandable__text` to `--ds-expandable-lines`
-  and adds a `.ds-expandable__toggle` ("Show more", "Show less") only while the text is longer; `DS.expandable.create`,
-  `overflows`.
 ## Search hits
 
 The hits of a search marked in a text: a list filtered by a search field, search results, a log. Each hit is a
@@ -9316,11 +8926,6 @@ The system's `Mark` and `MarkText`. Printed, the background stays.
 `--ds-hit-bg`, `--ds-hit-color`: see [theming.md](theming.md).
 
 **Motion:** none: a hit that faded in would trail the typing.
-
-<!-- changelog -->
-- Search hits (new, `hits`): `data-ds-hits` marks the hits of a query in a container's text as `.ds-hit`
-  (case and accents folded, words or `phrase` mode); `DS.hits.create`, `ranges`; hooks `--ds-hit-bg`,
-  `--ds-hit-color`.
 ## Chips
 
 Small pills that filter a list, pick a few options or hold entered values.
@@ -9875,14 +9480,6 @@ several values too: `--ds-input-border`, `--ds-input-bg`, `--ds-input-radius`, `
 and `data-ds-ripple` (off for a part: [Ripple](#ripple)) are described above.
 
 **Motion:** the "Combobox list" row of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog -->
-- Combobox: `data-ds-combobox` and `DS.combobox` (`create`, `open`, `close`): the behaviour by the system on the same
-  markup, through the list engine of `DS.listbox`: fuzzy filter with scoring and `.ds-combo__match`, an async `source`
-  with debounce, abort and a loading state, creatable (`ds:create`), clearable, several values with chips, nothing
-  found, windowed long lists, select-only keys. A page's own script keeps working without the attribute.
-- Combobox: `--ds-scroll-edge-start` and `--ds-scroll-edge-end` are registered once in `tokens.css` (no longer in
-  `scroller.css`), so the list's cut edges fade when `combobox.css` is linked without `scroller.css`.
 ## Listbox
 
 A list of options to choose one or several from, always in view: the WAI listbox pattern, with groups, descriptions,
@@ -9991,11 +9588,6 @@ all), `--ds-listbox-radius` (`--ds-radius-field`), `--ds-check-size` (the box of
 **Motion:** the active option's layer fades in over `--ds-dur-micro` and goes at once, so a held arrow key leaves no
 trail; the check box fills over `--ds-dur-fast` while its check is drawn from left to right over `--ds-dur-medium`; the
 end check of one value fades over `--ds-dur-fast`.
-
-<!-- changelog -->
-- Listbox (3.0): `.ds-listbox` with `DS.listbox` (`data-ds-listbox`): one or several values, groups, descriptions,
-  type-ahead, data rendered and windowed through `DS.virtual`, fuzzy matching with marked letters
-  (`DS.listbox.fuzzy`, `filter`, `highlight`); the list engine of the combobox and the select panel.
 ## Tag input
 
 Free values typed into one field box, each an input chip before the typing field: labels, recipients, keywords. For
@@ -10074,11 +9666,6 @@ is `GrayText`; the input chips keep their edge; the message is `CanvasText` with
 
 **Motion:** a new chip fades in, and a chip that goes leaves while the others glide into its place (`DS.motion.flip`,
 the chip rows of [Controls](motion.md#controls)); the message fades in over `--ds-dur-fast`.
-
-<!-- changelog -->
-- Tag input (3.0): `.ds-taginput` with `DS.taginput` (`data-ds-taginput`): free tags as input chips, Enter, a comma or a
-  pasted list, checks (unique, pattern, `validate`, max) with a message, removal by Backspace, Delete or a press, the
-  arrow keys across the chips, announcements; `DS.taginput.split` and `DS.taginput.check`.
 ## Choice list
 
 Several of a set of options as checkboxes, with what a long set needs: a "select all" box that shows all, none or
@@ -10135,6 +9722,8 @@ DS.choices.summary(boxes);               // 'all', 'none' or 'some' of { checked
 The controller: `get()`, `set(value)`, `on('change', fn)`, `filter(text)`, `refresh()` (the page added or removed rows)
 and `destroy()`. `ds:change` (`{ value }`) bubbles from the `.ds-choices` when the user changed a box. `DS.choices.create`
 takes `value` (the checked values to start with) and `count: false` (leave the count to the page).
+`DS.choices.summary(boxes)` says what a set of `{ checked, disabled }` adds up to, `'all'`, `'none'` or `'some'` (disabled
+boxes left out): the state the "select all" box shows.
 
 **Options** ([options.md](options.md)): the rows are `.ds-check` rows, which compute size, density and touch
 themselves.
@@ -10160,11 +9749,6 @@ line.
 
 **Motion:** the boxes' own (form.css: the check wipes in, the dash of "some" grows from the centre); the scrolling
 box's fades glide over `--ds-dur-fast`.
-
-<!-- changelog -->
-- Choice list (3.0): `.ds-choices` with `DS.choices` (`data-ds-choices`): "select all" with the indeterminate state, a
-  count, a fuzzy filter that marks its letters, columns (`.ds-choices--columns`) and a scrolling box
-  (`.ds-choices--scroll`) for long sets; `DS.choices.summary`.
 ## Select panel
 
 A button that opens a popover with a filter, a list of options to check and an apply foot: labels, assignees, filters
@@ -10249,12 +9833,6 @@ A chosen option shows by the check, the tint and the label weight.
 **Motion:** the panel grows from the button as a menu does: its clip opens and it scales on `--ds-ease-spatial` over
 `--ds-dur-medium` while it fades in over `--ds-dur-fast`; it leaves with a fade in `--ds-dur-instant`, and a close
 mid-way turns back from where it is.
-
-<!-- changelog -->
-- Select panel (3.0): `.ds-selectpanel` with `DS.selectpanel` (`create`, `open`, `close`, `summarize`;
-  `data-ds-selectpanel`): a popover through `DS.overlay` with a filter, a listbox to check and an apply foot; pending
-  until Apply, discarded by Escape or a press outside; the button's summary; anchored in the top layer where the engine
-  can.
 ## Ordered choice
 
 A multi-select whose order matters: the columns of a table, the order of fallbacks, priorities. Every option is a row
@@ -10328,11 +9906,6 @@ compute size, density and touch themselves.
 **Motion:** rows glide to their places (`DS.dnd` through `DS.motion.flip`, on `--ds-ease-spatial`); a lifted row is
 raised with the dragged state layer, nothing scales; the rank disc fades in over `--ds-dur-fast` and out in
 `--ds-dur-instant`.
-
-<!-- changelog -->
-- Ordered choice (3.0): `.ds-orderedchoice` with `DS.orderedchoice` (`data-ds-orderedchoice`): checked rows in an order
-  of their own, moved by `DS.dnd` (pointer and keys) and by Alt with the arrows, Home and End; the place of each checked
-  row in a disc and in words; a maximum; `DS.orderedchoice.arrange` and `DS.orderedchoice.ranks`.
 ## Transfer list
 
 Two lists side by side, the available options and the chosen ones, with buttons that move the marked options across:
@@ -10404,11 +9977,6 @@ density, shape and touch themselves; the transfer adds only gaps. No tone.
 
 **Motion:** none of its own: the options change sides at once, as a listbox renders new data; the check boxes are the
 listbox's.
-
-<!-- changelog -->
-- Transfer list (3.0, tier 2): `.ds-transfer` with `DS.transfer` (`data-ds-transfer`): two listboxes of the
-  `DS.listbox` engine, add and remove buttons, Enter and a double-click to move, filters, windowed data, announcements;
-  stacks below 560px; `DS.transfer.move`.
 ## Calendar
 
 The month grid every date picker shares, and the date engine under it: a day or a range to pick in one or two months,
@@ -10533,11 +10101,6 @@ picked day has a `CanvasText` ring.
 A turned page slides in from its side: `DS.motion.enter(month, 'slide')` (`ds-fade-in` and `ds-shift-in` on the spring),
 its `--ds-motion-distance` set from `data-turn` (`next`, `back`; mirrored right to left). The band and the fills change
 colour over `--ds-dur-fast`; a day presses as every action (`--ds-dur-micro`, the ripple, the press morph).
-
-<!-- changelog -->
-- Calendar (3.0): `.ds-calendar` and `DS.calendar`, the month grid of every date picker and its date engine (`parse`,
-  `iso`, `add`, `compare`, `weekInfo`, `weekNumber`, `grid`, `available`, `label`, `rangeLabel`): one or two months, a
-  day or a range with a preview, min and max, blocked days, week numbers, the locale's first day through `Intl`.
 ## Date field
 
 A date, a time, a date and a time, or a range of dates, typed part by part in the order, separators and hour cycle of
@@ -10655,11 +10218,6 @@ The input's: `--ds-input-height`, `--ds-input-radius`, `--ds-input-padding-x`, `
 ### Motion
 
 Border, fill and ink change over `--ds-dur-fast`; the focus ring and the focused part show at once, as on every field.
-
-<!-- changelog -->
-- Date field (3.0): `.ds-datefield` and `DS.datefield`, a date, time, date-time or range typed part by part in the
-  locale's order and hour cycle (`create`, `hourCycle`, `layout`, `zoneName`, `toInstant`, `typeDigit`), with min and
-  max, paste, a hidden input for forms and the zone of a wall time.
 ## Date picker
 
 One date, or a date and a time: typed into a segmented date field, or chosen in a calendar in a popover (the WAI-ARIA
@@ -10749,11 +10307,6 @@ popover's edge.
 ### Motion
 
 The popover grows from the button (the picker's); a turned month slides in from its side (the calendar's).
-
-<!-- changelog -->
-- Date picker (3.0): `DS.datepicker` (`create`), a date or date-time field with a calendar (and a list of times) in a
-  popover: min, max, blocked days, week numbers, today, clear, the zone of a wall time, all in the locale through
-  `Intl`.
 ## Time picker
 
 A time of day: typed into a segmented time field or chosen from a list of times in a popover, in the hour cycle of the
@@ -10837,10 +10390,6 @@ chosen one).
 
 The popover's (it grows from the button). The active row's layer comes in over `--ds-dur-micro` and goes at once, so a
 held arrow key leaves no trail. A row picks and closes the popover, so it takes no ripple; its layer is the feedback.
-
-<!-- changelog -->
-- Time picker (3.0): `DS.timepicker` (`create`, `list`, `times`), a segmented time field and a list of times in a
-  popover, in the locale's hour cycle, with step, min, max and seconds.
 ## Date range picker
 
 A range of dates, typed into a field of two dates or chosen in a popover with presets ("Today", "Last 7 days", "This
@@ -10931,10 +10480,6 @@ The tag keeps a `CanvasText` border; the preset in force is `SelectedItem`; the 
 ### Motion
 
 The popover's and the calendar's; the band and its preview change colour over `--ds-dur-fast`.
-
-<!-- changelog -->
-- Date range picker (3.0): `DS.daterange` (`create`, `resolve`, `presetLabel`), a field of two dates and a popover with
-  presets, relative ranges that resolve against today and two months with a hover preview.
 ## Time range
 
 The range control of a monitoring view: a button names the range ("Last 1 hour") and opens a popover with quick
@@ -11062,11 +10607,6 @@ It reads `--ds-btn-height` for the pill, so it lines up with the buttons beside 
 
 The popover's; the chevron of the trigger turns with it (`aria-expanded`, `rotate` on the spring, a named exception of
 disclosure chevrons); the interval pill's tint over `--ds-dur-fast`.
-
-<!-- changelog -->
-- Time range (3.0): `.ds-timerange` and `DS.timerange` (`create`, `parse`, `resolve`, `label`, `query`, `spanMs`),
-  the range control of a monitoring view: quick relative ranges, absolute from and to, recent ranges remembered through
-  `DS.store`, an auto-refresh interval that sends `ds:refresh`, URL-friendly values.
 ## Duration input
 
 A length of time typed the way people write it ("1h 30m", "90 min", "1:30", "1.5h", "2 days 4 hours") and kept as ISO
@@ -11127,10 +10667,6 @@ under the field ("For example 1h 30m"), and the reason of an error in a `.ds-fie
 ### Forced colours
 
 The text field's: its border, `Highlight` when focused.
-
-<!-- changelog -->
-- Duration input (3.0, tier 2): `.ds-duration` and `DS.duration` (`create`, `parse`, `iso`, `format`), a text field
-  that reads "1h 30m", "90 min", "1:30" and ISO 8601 in the locale's words, steps with the arrow keys, keeps ISO 8601.
 ## Menu
 
 Actions for one item, or the overflow of a toolbar, opened from a button:
@@ -11323,17 +10859,6 @@ as in 2.x.
 **JS API.** `js/menu.js` (`DS.menu`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`; `openAt(el, options)` opens a menu at a point (`x`, `y`, `opener`, `returnTo`: a context menu; without a point, under the opener); `create(el)` returns the controller that `data-ds-menu` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`).
 
 **Motion:** the "Menu", "Submenu" and "Context menu" rows of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog
-- Menu: submenus (an item with `aria-haspopup="menu"` and `aria-controls`, `.ds-menu__chevron`; beside the item in
-  the top layer, ArrowRight / ArrowLeft, hover intent, the chain closes together), a search at the top of a long menu
-  (`.ds-menu__search` over the items in a `.ds-menu__list`, `.ds-menu__empty` written with the string `noResults`), and context menus
-  (`data-ds-contextmenu`: right click, long press, Shift+F10 and the ContextMenu key; `ds:contextmenu`;
-  `DS.menu.openAt()`). The items, check and radio items of a menu ignore those of a submenu inside it. New motion
-  tokens for them: `--ds-delay-submenu` (100ms, hover intent), `--ds-delay-submenu-close` (300ms, the grace) and
-  `--ds-delay-long-press` (500ms, the touch that opens a context menu). A searchable menu puts its items in a
-  `.ds-menu__list` with `role="menu"`, since a menu owns only items.
--->
 ## Popover
 
 A small panel next to the control that opened it: a filter form, a share box, the details of a value. It is
@@ -11434,14 +10959,6 @@ DS.popover.open(popover, { anchor: { x: event.clientX, y: event.clientY }, opene
 `--ds-scale-popup` and its clip opens from the anchor's edge over `--ds-dur-medium` on `--ds-ease-spatial`; it leaves
 with a fade over `--ds-dur-instant`, and a popover closed mid-way turns back from where it is. The "Popover" and
 "Help card" rows of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog
-- Popover (`.ds-popover`, `js/popover.js`, `DS.popover`): an anchored non-modal panel with an optional arrow
-  (`.ds-popover--arrow`), a help card variant (`.ds-popover--tip`), placement and alignment
-  (`data-ds-popover-placement`, `data-ds-popover-align`), the top layer as `popover="manual"`, light dismiss
-  through `DS.overlay`, and the hover card (`data-ds-popover-trigger="hover"`). Hooks `--ds-popover-width`,
-  `--ds-popover-tip-width`, `--ds-popover-padding`, `--ds-popover-tip-padding`, `--ds-popover-radius`.
--->
 ## Dialog
 
 A modal box for a decision or a short task: the page waits until it is done.
@@ -11859,13 +11376,6 @@ dialog that `DS.get(el, 'dialog')` serves.
 **JS API.** `js/dialog.js` (`DS.dialog`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`; `confirm(options)`, `alert(options)` and `prompt(options)` are also `DS.overlay.confirm()`, `alert()` and `prompt()`; `form(el, { onSubmit, errorText })` runs a form dialog's submit; `create(el)` returns the controller that `data-ds-dialog` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`).
 
 **Motion:** the "Scrim", "Dialog", "Nested dialog", "Dialog on a phone", "Full-screen dialog" and "Action sheet" rows of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog
-- Dialog: `.ds-dialog--scroll-outside` (the window scrolls the whole box; the body scrolling inside stays the default),
-  a non-modal box `.ds-dialog__box--modeless` (no frame or scrim, the page stays usable; DS.overlay's non-modal layer,
-  focus moved in by `DS.dialog` once it opened; hook `--ds-dialog-modeless-inset`), and `lines` and `facts` on
-  `confirm()`, `alert()` and `prompt()` (`.ds-dialog__lines`, `.ds-dialog__facts`). Stacked dialogs documented.
--->
 ## Tearsheet
 
 A tall create or edit flow over the page (a new device with its network and owner, a bulk edit): taller than a
@@ -12013,15 +11523,6 @@ the rail gives way to the progress line in the head.
 `--ds-scale-enter` and up by `--ds-distance-lg` on the spring over `--ds-dur-slow`, and comes back the same way. A step
 enters with the swap of `DS.motion.enter()`. By hand (no `data-state`) the keyframes `ds-lift-in` and `ds-drop-out`
 with the fades.
-
-<!-- changelog
-- Tearsheet (`DS.tearsheet`, `[data-ds-tearsheet]`, `.ds-tearsheet` with `--narrow`, `__box`, `__head`, `__heading`,
-  `__label`, `__description`, `__progress`, `__main`, `__steps`, `__body`, `__step`, `__foot`; the buttons
-  `[data-ds-tearsheet-back]`, `-next`, `-submit`): a tall create or edit flow in a modal dialog with steps checked one
-  by one, a submit with `wait()`, unsaved changes guarded by a destructive question (and `beforeunload`), and stacking
-  (`data-stacked`). Hooks `--ds-tearsheet-width`, `-width-narrow`, `-gap`, `-padding`, `-rail-width`, `-radius`.
-  Strings `stepOf`, `stepDone`, `stepError`, `discardTitle`, `discardText`, `discard`, `keepEditing`.
--->
 ## Command palette
 
 One search field over every command of the app, in a dialog: Ctrl+K (Command+K on Apple systems) opens it, typing finds
@@ -12177,11 +11678,6 @@ The active option takes a `Highlight` ring, a match its underline, blocked optio
 
 The dialog's entrance and exit (`DS.overlay`). The active option's layer fades in over `--ds-dur-micro` and goes at
 once, so a held arrow key leaves no trail. Results change in place, without motion.
-
-<!-- changelog -->
-- Command palette (3.0): `.ds-command` in a `.ds-dialog`, `DS.command` (`create`, `open`, `close`, `fuzzy`, `rank`),
-  `data-ds-command`; Ctrl+K through `DS.hotkeys`, groups, recent commands through `DS.store`, fuzzy search with
-  marks, shortcuts, pages and prefixes, async providers.
 ## Lightbox
 
 The images of a record (the photos of a device, the screenshots of a ticket) one at a time over the whole window, with
@@ -12300,17 +11796,6 @@ at that image (a click with Ctrl, Cmd or Shift keeps the link's own behaviour), 
 `--ds-dur-slow`, leaves in `--ds-dur-base`); a new image enters with the swap of `DS.motion.enter()`; zoom and pan glide
 over `--ds-dur-medium` on `--ds-ease-out` (it fills the frame, so it never overshoots); a drag and a swipe follow the
 pointer (direct manipulation, as the drag of `DS.dnd`), and a swipe that does not go far enough glides back.
-
-<!-- changelog
-- Lightbox (`DS.lightbox`, `[data-ds-lightbox]` with `[data-ds-lightbox-item]`, `.ds-lightbox__gallery`, `__item`, and
-  the viewer `.ds-lightbox` with `__box`, `__bar`, `__count`, `__stage`, `__nav` (`--prev`, `--next`), `__figure`,
-  `__frame`, `__image`, `__caption`, `__error`, `__thumbs`, `__thumb`): images one at a time in a modal dialog, with
-  thumbnails, keys, zoom and pan (buttons, keys, double click, wheel, pinch), a caption, swipe on touch, loading and
-  error states; `create()`, `open()`, `close()`, `show()`, `nextZoom()`, `clampPan()`, `MAX_ZOOM`. Hooks
-  `--ds-lightbox-bg`, `-ink`, `-thumb-size`, `-item-size`, `-radius`. Strings `imageOf`, `images`, `zoomIn`, `zoomOut`,
-  `imageFailed`. Integrator: the glyphs `zoomIn` and `zoomOut` (a magnifier with plus and minus) would read better than
-  `plus` and `minimize` in the bar.
--->
 ## Side sheet
 
 Details or a form beside the page, in a panel that slides in from the side (from the bottom on phones).
@@ -12512,15 +11997,6 @@ docked panel itself), or call `DS.sheet.resizable(panel, { remember })`.
 A docked panel opens its width over `--ds-dur-long` on `--ds-ease-out` and gives it back in `--ds-dur-base` on
 `--ds-ease-exit`, through the registered `--ds-sheet-reveal` (0 to 1, internal: never set it); a drag follows the
 pointer.
-
-<!-- changelog
-- Side sheet: docked panels in a `.ds-sheet__layout` beside its `.ds-sheet__main`, `.ds-sheet__panel--push` (the
-  content narrows, focus moves in) and `.ds-sheet__panel--inspector` (beside a list that stays usable, focus stays in
-  the list), non-modal layers of `DS.overlay`; resizing with `.ds-sheet__resize` (a separator: pointer and keys, the
-  width remembered through `DS.store` under `data-ds-sheet-remember`, bounded by `data-ds-sheet-min` and `-max`,
-  `ds:resize`), `DS.sheet.resizable()`, `clampWidth()`, `dragWidth()`, `MIN_WIDTH`; hooks `--ds-sheet-docked-width`
-  and `--ds-sheet-docked-border`; string `resizePanel`. The separator's pill stays shown on a screen without hover.
--->
 ## Bottom sheet
 
 A panel that rises from the bottom edge, for a phone first (filters, the details of a row, a short choice), with a
@@ -12605,14 +12081,6 @@ and the side sheet's.
 of its own background below it covers the overshoot); a detent change springs there over `--ds-dur-long`; a drag
 follows the finger, the named exception of conventions section 8; it drops back down in `--ds-dur-base`, accelerating.
 By hand (no `data-state`): `ds-lift-in`, and `ds-drop-out` its full height with `ds-fade-out`.
-
-<!-- changelog
-- Bottom sheet (`DS.bottomsheet`, `[data-ds-bottomsheet]` with `data-ds-bottomsheet-detents`, `.ds-bottomsheet` with
-  `__panel` and `__handle`, on the side sheet's markup): a modal sheet at the bottom edge with detents, a handle (click
-  and keys), drag that follows the finger (the named motion exception) and drag to dismiss (reason `drag`);
-  `open()`, `close()`, `create()`, `parseDetents()`, `settleDetent()`. Hooks `--ds-bottomsheet-width`, `-gap`,
-  `-radius`. Strings `resizeSheet`, `sheetDetent`.
--->
 ## Snackbar
 
 A short message about something that just happened, at the bottom of the content panel, with an optional action.
@@ -12800,13 +12268,6 @@ What `promise()` and `progress()` build (the close button as on any message that
 **JS API.** `js/toast.js` (`DS.toast`): `toast(region, content, options)`, `closeToasts(region, filter)`, `announce(text, options)` and `toastRegion(doc)`, the same functions as under `DS.overlay`; and (3.0) `promise(region, work, options)` and `progress(region, text, options)`, above.
 
 **Motion:** the "Snackbar" row of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog -->
-- Snackbar (3.0): `DS.toast.promise()` (a waiting message with a spinner that turns into its outcome in place) and
-  `DS.toast.progress()` (a message with a progress bar: `set()`, `done()`, `fail()`); `.ds-toasts--stack`, a
-  collapsed stack that expands on focus or a click (never on hover), with the hook `--ds-toast-stack-width`;
-  `data-ds-toast-limit` on a region (1 to 5 messages at once). New classes `.ds-toast--progress`, `.ds-toast__body`,
-  `.ds-toast__spinner`, `.ds-toast__value`; the system's string `done`.
 ## Notification centre
 
 What happened for someone while they worked: a bell with the unread count in the top bar opens a [side
@@ -12944,13 +12405,6 @@ the bar reads the sheet's `--ds-sheet-padding` ([theming.md](theming.md#componen
 The sheet's own (DS.overlay). With the sheet open, an arriving notification fades in (`DS.motion.enter(row, 'fade')`)
 while the others glide down (`DS.motion.flip()`); the unread switch glides the rows that stay. The unread dot comes in
 over `--ds-dur-fast` and goes at once. The badge pops in and out ([badge](#badge)).
-
-<!-- changelog -->
-- Notification centre (3.0): `.ds-notifications` on a `.ds-sheet`, `.ds-notifications__bell` with its count badge,
-  `DS.notifications` (`create`, `open`, `close`, `groupByDay`, `dayOf`), `data-ds-notifications`: groups by day,
-  read and unread, mark all read, actions per notification, an unread-only switch, the empty state and a live
-  announcement on arrival. Hooks `--ds-notifications-icon-size`, `--ds-notifications-item-padding`,
-  `--ds-notifications-dot-size`; the `notifications*` strings.
 ## Tooltip
 
 A short text that names an icon button or explains a control, on hover and on focus.
@@ -13027,12 +12481,6 @@ a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-orig
 
 For a help text with a title, a link or anything to click, use a [toggletip](#toggletip) (on a click or tap) or a
 hover card ([popover](#popover), `data-ds-popover-trigger="hover"`): a tooltip holds text only and never takes focus.
-
-<!-- changelog
-- Tooltip: `data-tip-placement` (bottom, top, start, end; the tooltip carries the asked side as `data-side`, and
-  `data-placement` now also says `start` and `end`) and `data-tip-delay` (none, short, long) on the trigger. The
-  shortcut slot (`data-tip-shortcut`) is documented with `aria-keyshortcuts`.
--->
 ## Picker popover
 
 The popover the date and time pickers open from their button: a small modal dialog (the WAI-ARIA date picker dialog)
@@ -13132,11 +12580,6 @@ from `--ds-scale-popup` at the button (`--ds-motion-origin`), both over `--ds-du
 a fade over `--ds-dur-instant`. Transitions keyed on `data-state`, so a picker closed mid-way turns back from where it
 is; shown by hand (no `data-state`) it plays `ds-fade-in` and `ds-clip-in` once. A preset presses as every action
 (`--ds-dur-micro`, the ripple, the press morph).
-
-<!-- changelog -->
-- Picker popover (3.0): `.ds-picker` and `DS.picker` (`create`, `open`, `close`), the popover of the date and time
-  pickers, also for a page's own panel: a modal dialog through `DS.overlay`, in the top layer, placed below its field,
-  with presets, panes and a foot.
 ## Toggletip
 
 An info button "i" next to a field label, a heading or a figure that opens a help card on a click or a tap: a title,
@@ -13209,12 +12652,6 @@ tells that the card opened; `on('open' | 'close', fn)` hears the card's own even
 
 **Motion:** the card is a popover: it grows out of the button (the arrow's tip) and leaves with a fade. The button
 morphs on press like every pill. The "Help card" row of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog
-- Toggletip (`.ds-toggletip`, `js/toggletip.js`, `DS.toggletip`): the info button that opens a help card
-  (`.ds-popover--tip`) on a click or a tap and announces its text; sits on the label row of a `.ds-field`. Hook
-  `--ds-toggletip-size`. New string `moreInfo` ("More information").
--->
 ## Save bar
 
 A bar with the unsaved edits of a view and the actions that save or discard them, or the actions of a long form kept in
@@ -13426,12 +12863,6 @@ turns `CanvasText`.
 **Strings:** `unsavedOne`, `unsavedMany`, `unsavedSaveKey`, `unsavedSaved`, `unsavedFailed`, `unsavedDiscarded`,
 `unsavedLeaveTitle`, `unsavedLeaveText`, `unsavedLeave`, `unsavedStay` and `unsavedChangedWord`
 ([install.md](install.md#language-and-locale)).
-
-<!-- changelog -->
-- Unsaved-changes guard (`data-ds-unsaved`, `DS.unsaved`): dirty tracking of a form against its baseline, the count
-  and Form's changed dots, the Save bar shown and hidden, save through a cancelable `ds:save` with `waitUntil()` (busy
-  face, new baseline, spoken result), discard, Ctrl or Command+S through `DS.hotkeys`, `beforeunload` only while
-  dirty, and a guarded in-app navigation (`navigate()`, `[data-ds-unsaved-link]`); `isDirty()`, `snapshot()`, `diff()`.
 ## Form wizard
 
 A long form split into steps, each checked before the next, with Back and Next and a summary to review before sending.
@@ -13521,11 +12952,6 @@ connector turns ([Steps](#steps)).
 **Strings:** `wizardDone`, `wizardFix`, `wizardStepOf`, `wizardStep`, `wizardError`, `wizardErrors`, `wizardEmpty`,
 `wizardEdit`, `wizardEditShort`, `wizardYes`, `wizardNo`, `optional` and `valueRequired`
 ([install.md](install.md#language-and-locale)).
-
-<!-- changelog -->
-- Form wizard (`.ds-wizard`, `DS.wizard`): a form in steps on Steps, each checked before the next (constraint
-  validation and a cancelable `ds:validate`), Back and Next, errors in words with focus on the first, and a summary
-  step with an Edit button per step; `fieldLabel()` and `fieldValue()`.
 ## Loading
 
 Holds the place of content that is loading: the app start, a loading line, skeleton presets and the page's load bar.
@@ -13814,14 +13240,6 @@ No tone: waiting is no status. The overlay takes the region's radius (`border-ra
 **Motion:** after `--ds-delay-loader` the veil and the box fade in over `--ds-dur-fast` while the box rises
 `--ds-distance-sm` on `--ds-ease-out`; it leaves over `--ds-dur-instant` (falling back on `--ds-ease-in`), after
 `--ds-hold-loader` of being visible. By hand (no `data-state`): `ds-fade-in` after the delay.
-
-<!-- changelog
-- Loading overlay (`DS.loadingoverlay`, `[data-ds-loadingoverlay]` with `[data-ds-loadingoverlay-cancel]`,
-  `.ds-loadingoverlay` with `--opaque`, `__box`, `__message`, `__detail`): blocks one region with a spinner and a message
-  (the region inert and `aria-busy`, focus kept, the message announced, no flash through `--ds-delay-loader` and
-  `--ds-hold-loader`, a cancel); `show()`, `hide()`, `wait()`, `create()`, `holdMs()`. Hooks
-  `--ds-loadingoverlay-veil`, `-radius`, `-padding`, `-spinner-size`.
--->
 ## Progress
 
 Shows how far a known or unknown amount of work has come.
@@ -13973,11 +13391,6 @@ loud stays a word.
 
 Hooks: `--ds-levelmeter-height`, `--ds-levelmeter-fill`, `--ds-levelmeter-track`, `--ds-levelmeter-segment`,
 `--ds-levelmeter-length` ([theming.md](theming.md#component-hooks)).
-
-<!-- changelog -->
-- Level meter (3.0, new): `.ds-levelmeter` with `__label`, `__track`, `__fill`, `__peak` and `__note`, the variants
-  `--segmented` and `--vertical`; `DS.levelmeter` (`create`, `level`, `peak`, `decibels`) and `data-ds-levelmeter`: reads a
-  page-supplied AnalyserNode every frame, peak hold, "Too loud" in words when the sample peak reaches -1 dBFS. New strings: `levelmeterValue`, `levelmeterLoud`.
 ## Charts
 
 `DS.chart` draws dependency-free SVG charts from a table or a spec: line, area and stacked area (time series with
@@ -14295,22 +13708,6 @@ stop of its own when nothing inside takes focus. A meter with its own figure is 
 [theming.md](theming.md).
 
 **Motion:** the "Charts" row of [Feedback](motion.md#feedback) in motion.md.
-
-<!-- changelog -->
-<!--
-- Added: `DS.chart` (`chart.js`), dependency-free SVG charts on `.ds-chart`: line, area and stacked area (time series
-  with gaps), column and bar (grouped, stacked, horizontal, 100%), combo with two axes, sparkline, donut, pie, ring,
-  gauge and bar gauge, from a `<table>` or JSON in `data-ds-chart`, or `DS.chart.create(el, spec)`. A cursor with a
-  crosshair and a tooltip, a legend that toggles series, keyboard navigation along the points with announcements, a
-  table view, thresholds and annotations, container-driven layout, dashes, markers and hatchings that tell series
-  apart without colour; lines and areas morph to new data (D14), bars glide, figures count. The engine is exported:
-  `scale`, `ticks`, `timeTicks`, `path`, `stack`, `nearest`, `parse`, `layout`.
-- Added: hooks `--ds-chart-height`, `--ds-chart-radial-height`, `--ds-chart-gauge-height`, `--ds-chart-spark-height`,
-  `--ds-chart-bar`, `--ds-chart-radius`, `--ds-chart-stroke`, `--ds-chart-marker`, `--ds-chart-grid`,
-  `--ds-chart-area-opacity`, `--ds-chart-stack-opacity`, `--ds-chart-dash-2` to `--ds-chart-dash-4`; strings
-  `chartTableView`, `chartRole`, `chartKeys`, `chartKeysBars`, `chartKeysSlices`, `chartPoint`, `chartSummary`,
-  `chartTotal`, `chartOther`, `chartShown`, `chartHidden`, `chartEmpty`.
--->
 ## Meter variants
 
 A share of a known whole (disk used, a quota, a score, a load) beyond the thin [`.ds-meter`](#charts): a segmented bar,
@@ -14403,11 +13800,6 @@ apart without colour. Printed, the fills keep their colours.
 
 **Motion:** the share glides on `--ds-ease-value` over `--ds-dur-glide` (the "Data motion" rules of
 [motion.md](motion.md#data-motion)); the first render fills with `.ds-enter--fill`.
-
-<!-- changelog -->
-- Meter variants (new, `meter`): `.ds-meter--segmented` and `.ds-meter__threshold` on the chart meter, the ring and
-  gauge `.ds-gauge` (`--arc`, `__value`, `__label`, `__threshold`) and the bar gauge `.ds-bar-gauge` with warning and
-  error zones, all on `--ds-share`.
 ## Bar list
 
 Ranked rows of a label and a figure, each on a bar as long as its share of the largest value: tickets per device
@@ -14477,11 +13869,6 @@ Printed, the bars keep their colours.
 **Motion:** a new share glides on `--ds-ease-value` over `--ds-dur-glide`; the first render fills from zero with
 `.ds-enter--fill` (`DS.motion.enterAll(rows, 'fill')`); a figure counts with `DS.motion.countUp()`; reorders go through
 `DS.motion.flip()` (the "Data motion" rules of [motion.md](motion.md#data-motion)).
-
-<!-- changelog -->
-- Bar list (new, `bar-list`): `.ds-bar-list` with `__item`, `__label`, `__value` and `--plain`, ranked rows on
-  bars clipped at `--ds-share`, tones per row, links in labels; hooks `--ds-bar-list-height`, `--ds-bar-list-bar`,
-  `--ds-bar-list-ink`.
 ## Category bar
 
 The parts of a whole on one bar, with a legend that names each part and its figure: tickets by status, storage by
@@ -14557,11 +13944,6 @@ their colours.
 
 **Motion:** the shares glide on `--ds-ease-value` over `--ds-dur-glide` (the widths follow); the first render fills
 from zero with `.ds-enter--fill` on the parts; the legend's figures count with `DS.motion.countUp()`.
-
-<!-- changelog -->
-- Category bar (new, `category-bar`): `.ds-category-bar` with `__head`, `__label`, `__total`, `__track`, `__part`
-  (`--s2` ... `--s4`, tones), `__marker`, `__value` and `--rest`, parts on `--ds-share` with the chart legend;
-  hooks `--ds-category-bar-height`, `--ds-category-bar-gap`.
 ## Tracker
 
 A row of status cells, one per day, run or check: the uptime of a device over 90 days, the last 30 runs of a job.
@@ -14651,12 +14033,6 @@ ring `Highlight`. Printed, the cells keep their colours.
 `--ds-tracker-height`, `--ds-tracker-gap`: see [theming.md](theming.md).
 
 **Motion:** none: a cell that changes state takes its new shape at once. The focus ring snaps as everywhere.
-
-<!-- changelog -->
-- Tracker (new, `tracker`): `.ds-tracker` with `__head`, `__label`, `__summary`, `__cells`, `__cell` (`--success`,
-  `--info`, `--warning`, `--error`, `--empty`, each with its own shape), `__axis` and `__legend`; `data-ds-tracker`
-  makes the row one tab stop with the arrow keys; `DS.tracker.create`, `counts`; hooks `--ds-tracker-height`,
-  `--ds-tracker-gap`.
 ## Drop zone and file field
 
 A drop zone and a file field: files by drop, the file dialog or paste. For the whole upload (the chosen files with their
@@ -14773,9 +14149,6 @@ DS.motion.sortable(steps, { onChange: (order) => save(order.map((row) => row.dat
   leaves it alone, as every icon button. The row's look has no option of its own.
 
 **Motion:** `sortable()` in [DS.motion](motion.md#dsmotion-jsmotionjs); the row glides like every `flip()` item.
-
-<!-- changelog -->
-- Drag and files: the section of the drop zone is now "Drop zone and file field"; `#file-upload` names the new [File upload](#file-upload), which renders the chosen files around the same zone.
 ## Formatted values and relative time
 
 Figures and times in the page's locale, through `Intl`: a number, a count in short form, a percentage, an amount of
@@ -14845,12 +14218,6 @@ The dotted underline takes the text colour.
 
 **Motion:** none. A figure that should count to its new value goes through `DS.motion.countUp()` with
 `format: (v) => DS.formatted.text(v, options)` instead.
-
-<!-- changelog -->
-- Formatted value (new, `formatted`): `data-ds-format` (`number`, `compact`, `percent`, `currency`, `bytes`,
-  `duration`) with `data-ds-value` and `data-ds-format-*` options, the exact value in a tooltip; `DS.formatted.create`,
-  `text`, `exact`; `.ds-value--plain`. Relative time (`data-ds-time` of the core) documented beside it, with its
-  dotted underline and tabular figures.
 ## File upload
 
 Files by drop, the file dialog or paste, with their progress, retry and remove, previews, limits that say what is wrong,
@@ -15002,11 +14369,6 @@ the bar glides on `--ds-ease-value` (Progress); the error line fades in (`ds-fad
 `uploadWrongType`, `uploadTooMany`, `uploadTooLarge`, `uploadEmpty`, `uploadAdded`, `uploadAddedCount`,
 `uploadRemoved`, `uploadDoneAnnounce`, `uploadFailedAnnounce` and `retry`, `remove`
 ([install.md](install.md#language-and-locale)).
-
-<!-- changelog -->
-- File upload (`.ds-upload`, `DS.upload`): the drop zone grows into a full upload: rows or a preview grid with progress
-  per file, retry and remove, paste, limits on type, size and count with errors in words, and pictures resized in the
-  browser (`resize`). The page uploads through `ds:files` and reports with `progress()`, `done()` and `fail()`.
 ## Key-value editor
 
 Pairs of a key and a value (environment variables, labels, request headers): add and remove rows, paste `KEY=value`
@@ -15099,11 +14461,6 @@ a hint fades in (`ds-fade-in`, `--ds-dur-fast`).
 
 **Strings:** `kvAdd`, `kvKeyLabel`, `kvValueLabel`, `kvValueOf`, `kvRemove`, `kvRemoveRow`, `kvShow`, `kvShowRow`,
 `kvDuplicate`, `kvNoKey`, `kvRemoved`, `kvRemovedRow`, `kvPasted` and `remove` ([install.md](install.md#language-and-locale)).
-
-<!-- changelog -->
-- Key-value editor (`.ds-kveditor`, `DS.kveditor`): rows of a key and a value with add and remove, paste of
-  `KEY=value` lines, a warning on duplicate keys, secret values with reveal, a hidden input for plain forms and
-  `toObject()`; the helpers `parse()`, `stringify()`, `duplicates()` and `toObject()`.
 ## Query input
 
 A search field whose filters become tokens, such as `status:open` or `priority:>2`, with suggestions for keys,
@@ -15208,12 +14565,6 @@ come and go at once.
 `querySavedHint`, `queryAdded`, `queryRemoved`, `queryEditing`, `queryCleared`, `queryApplied`, `queryClear`,
 `querySave`, `querySaveTitle`, `querySaveName`, `querySaveConfirm`, `querySavedAs` and `querySavedRemoved`
 ([install.md](install.md#language-and-locale)).
-
-<!-- changelog -->
-- Query input (`.ds-query`, `DS.query`): filters as tokens (`key:value`, several values, quotes, `-key:` and `!`,
-  `>`, `>=`, `<`, `<=`), suggestions for keys, operators and values (static or from `values()`), invalid tokens in the
-  error tone with the reason, keyboard editing of the tokens, saved queries in `DS.store`, a hidden input and a
-  structured query in `ds:change`; `parse()`, `stringify()`, `toQuery()`, `suggest()`.
 ## Ripple
 
 A press on an action grows a circle of the content colour from the pointer (Enter or Space: from the centre) and
@@ -15296,9 +14647,6 @@ Forced colours show no ripple (`display: none`); the host's own forced-colours r
 `--ds-ripple-color`: [theming.md](theming.md#component-hooks).
 
 **Motion:** the press rows of [Controls](motion.md#controls) in motion.md, and "Pointer ripple" in the Motion Lab.
-
-<!-- changelog -->
-- Ripple: a host that holds a `.ds-badge--corner` is isolated but no longer clipped while it ripples; its ripple clips itself (a box over the host with the host's radius, the circle as its `::before`), as a tab's and a table row's did. Every other host clips as before.
 ## Indicator
 
 One pill behind the items of a track that glides to the active item, instead of each item painting its own background.
@@ -15489,10 +14837,6 @@ Hooks: `--ds-pressable-radius`, `--ds-pressable-layer`, `--ds-kbd-border`, `--ds
 and keys are borders, so they stay.
 
 **Motion:** `.ds-stale`: the "Loading bar" row of [Feedback](motion.md#feedback) in motion.md.
-
-<!-- changelog -->
-- Added: `.ds-divider--start` and `.ds-divider--end` (a caption near one end), the upright divider around a caption
-  (`.ds-divider--vertical.ds-divider--label`), the upright inset divider, and the hook `--ds-divider-color`.
 ## Layout
 
 The layout primitives: a row that wraps, a side and main column, equal parts, a centred column, a full-height cover,
@@ -15555,11 +14899,6 @@ The one-column stack is `.ds-stack` of [Page](#page); space any of them with the
   `--ds-split-min`, `--ds-switcher-at`, `--ds-measure-max`, `--ds-measure-pad`, `--ds-cover-min`, `--ds-cover-pad`,
   `--ds-frame-ratio`, `--ds-frame-radius`, `--ds-grid-min` ([theming.md](theming.md#component-hooks)); set them on the
   element (`style="--ds-grid-min: 12rem"`) or in the theme.
-
-<!-- changelog -->
-- Added: Layout, the layout primitives `.ds-cluster`, `.ds-push`, `.ds-split`, `.ds-switcher`, `.ds-measure`
-  (center), `.ds-cover`, `.ds-frame` and the auto-fit grid `.ds-grid` (`--ds-grid-min`, `--max-n`, `--fill`), with
-  their hooks.
 ## Container presets
 
 Three widths a region can have (compact, medium, expanded), as classes that query the nearest container instead of
@@ -15603,11 +14942,6 @@ the window: a part of the page reacts to the room it has, in a side sheet, a car
 - Forced colours: nothing of their own. Print: a container keeps querying its own width on paper (the content of an
   A4 page in portrait is about 720px wide: medium); hide what paper does not need with `.ds-print-hide`
   ([Print](#print)).
-
-<!-- changelog -->
-- Added: Container presets, `.ds-container` and the visibility classes `.ds-hide-compact`, `.ds-hide-medium`,
-  `.ds-hide-expanded`, `.ds-only-compact`, `.ds-only-medium`, `.ds-only-expanded` and `.ds-stack-compact` on the
-  container sizes compact (under 600px), medium (600-839px) and expanded (840px and up).
 ## Spacing
 
 The gap between the parts of a flex or grid container and, for the rare case, a top margin, both on the space
@@ -15640,10 +14974,6 @@ scale (a 4px grid).
 - An exact step: density does not change it. The primitives' own default gaps follow density instead
   ([Layout](#layout)).
 - Options, forced colours, motion: none; these classes set space only.
-
-<!-- changelog -->
-- Added: Spacing, the gap classes `.ds-gap-0` to `.ds-gap-12` and the top margins `.ds-mt-0` to `.ds-mt-12` and
-  `.ds-mt-auto`, on the space scale.
 ## Text utilities
 
 How a run of text wraps, cuts and sets its figures: clamp, break, mono, tabular, balance. One line cut with an
@@ -15679,10 +15009,6 @@ ellipsis at its end, start or middle is [Truncate](#truncate).
 - Forced colours: nothing of their own; the ellipsis is text.
 - Progressive: `.ds-pretty` (`text-wrap: pretty`) wraps as usual where it is missing. `.ds-balance` is at the floor.
 - Hooks: `--ds-clamp-lines` ([theming.md](theming.md#component-hooks)), on the element.
-
-<!-- changelog -->
-- Added: Text utilities, `.ds-clamp-1` to `.ds-clamp-5`, `.ds-clamp` (`--ds-clamp-lines`),
-  `.ds-break`, `.ds-mono`, `.ds-tabular`, `.ds-balance` and `.ds-pretty`.
 ## Sticky
 
 A head, a foot or a side that stays in view while its scroller moves, with a raised edge (a hairline and a shadow
@@ -15749,11 +15075,6 @@ it sticks, so put a head first in its scroller.
 
 **Motion:** the edge fades on `ds-scroll-fade` along the scroll position, or on `--ds-dur-fast` in the fallback;
 the box itself never moves on its own.
-
-<!-- changelog -->
-- Added: Sticky, `.ds-sticky` with `--head`, `--foot`, `--start`, `--end`, `--side` and `--flat`: a raised edge
-  once content passes under the box, on the scroller's scroll timeline or through `DS.dom.watchScrolled()` and `DS.dom.scrollEdges()`. Hooks
-  `--ds-sticky-offset`, `--ds-sticky-bg`, `--ds-sticky-line`, `--ds-sticky-shadow`.
 ## Print
 
 What goes on paper and how it breaks into sheets. Every component already prints itself sensibly: the app frame's
@@ -15795,11 +15116,6 @@ off. These classes are for the page's own content.
 - Options: shape multiplies the sheet's radius on screen; size, density, tone and touch are its content's own.
 - Forced colours: the sheet keeps a transparent outline that becomes its edge.
 - Hooks: `--ds-print-page-width`, `--ds-print-page-pad` ([theming.md](theming.md#component-hooks)).
-
-<!-- changelog -->
-- Added: Print, `.ds-print-only`, `.ds-print-hide`, `.ds-print-break-before`, `.ds-print-break-after`,
-  `.ds-print-avoid`, `.ds-print-exact`, `.ds-print-urls` and the printable sheet `.ds-print-page`
-  (`--ds-print-page-width`, `--ds-print-page-pad`).
 ## Wheel
 
 A live status line that says what is running right now ("Thinking", "Running npm test", "Writing"), readable at every
@@ -15874,13 +15190,6 @@ on the standard curve, never 3D and never a blur, so the text stays as sharp in 
   first runs to its end, so the line never jumps. The line that goes and the line that comes in one task share the turn's delay.
 - **First render.** A slot that is new shows its line at once; only a line inserted into a slot that was already there
   rolls.
-
-<!-- changelog -->
-- Wheel (`.ds-wheel`, `DS.wheel`): a live status line whose new line pushes the old one out, with a hold so a quick run
-  of changes rolls once; morph hooks (`DS.wheel.hooks`), `DS.wheel.roll()`, `DS.wheel.create()` and `data-ds-wheel`.
-  Hooks `--ds-wheel-travel`, `--ds-wheel-fade`. The reference implementation of plans/wheel-and-shimmer.md, as a
-  component module (`DS.wheel.hooks` and `DS.wheel.roll` stand for the plan's `DS.motion.wheelHooks` and
-  `DS.motion.wheel`).
 ## Shimmer
 
 "Something is at work" on the words themselves: a soft glint travels over the text of a status line, left to right, a
@@ -15918,12 +15227,6 @@ colour in the contrast theme) and `--ds-shimmer-peak` (`color-mix(in srgb, var(-
 `--ds-loop-loader` until that token is in the theme), linear and endless, on the progress wave's keyframe
 (`ds-progress-wave`, with `--ds-progress-wave-length` set to the tile): about 105px/s, so a short text sees one slow
 pass and a pause. Nothing else animates; the mask is the only repaint.
-
-<!-- changelog -->
-- Shimmer (`.ds-shimmer`, `data-shimmer`): a soft glint that travels over the words of a status line, on
-  `ds-progress-wave`. Hook `--ds-shimmer-length`; colour roles `--ds-shimmer-glint` and `--ds-shimmer-peak` and the
-  loop `--ds-loop-shimmer` requested (until then: a `light-dark()` of `--ds-surface` and
-  `--ds-on-primary-container`, and `--ds-loop-loader`).
 ## Thinking indicator
 
 What an assistant or an agent is doing right now, while it works: the step it is on (a [wheel](#wheel) line with the
@@ -15995,10 +15298,6 @@ time. Say the state in the words ("Thinking", "Running npm test", "Done"); the s
 `--ds-thinking-icon-color` ([theming.md](theming.md#component-hooks)).
 
 **Motion.** The wheel's turn and the shimmer's travel; nothing else moves.
-
-<!-- changelog -->
-- Thinking indicator (`.ds-thinking`, `DS.thinking`, `data-ds-thinking`): the step on a wheel with the shimmer, the
-  thought, the elapsed time and the tokens. Strings `tokensOne`, `tokensOther`.
 ## Reasoning disclosure
 
 An assistant's thinking, collapsed under one summary line: "Thinking" with the [shimmer](#shimmer) while it runs,
@@ -16064,11 +15363,6 @@ it. The shimmer's copy is left out of the name.
 
 **Motion.** The disclosure's (the body opens as a `.ds-collapsible`, the chevron turns), the shimmer on the running
 line; with `data-ds-reasoning-auto` it opens when it starts and closes when it ends.
-
-<!-- changelog -->
-- Reasoning disclosure (`.ds-reasoning`, `DS.reasoning`, `data-ds-reasoning`): thinking collapsed under a summary line
-  ("Thinking" with the shimmer, then "Thought for 12s" or the page's own), the thoughts following their end while they
-  stream, an optional auto open and close. Strings `reasoningRunning`, `reasoningDone`.
 ## Tool call
 
 One call an assistant or agent made (a command, a search, a request to an API), as a row that opens: its name and
@@ -16183,11 +15477,6 @@ its word, and the spinner takes its system colours.
 
 **Motion.** The disclosure's: the body opens as a `.ds-collapsible` and the chevron turns. A new status swaps its
 mark at once.
-
-<!-- changelog -->
-- Tool call (`.ds-toolcall`, `DS.toolcall`, `data-ds-toolcall`): a disclosure row in a frame with the call's name,
-  arguments, status (icon and word), live duration, input, output and nested calls; announces its end. String
-  `toolStatus`, and the status words `toolPending`, `toolRunning`, `toolDone`, `toolFailed`, `toolCancelled`.
 ## Sources and citations
 
 Where a generated answer's facts come from: numbered markers in the text that open a card with their source (on
@@ -16267,11 +15556,6 @@ toggle model), the card its transparent outline as its edge.
 **Motion.** The card enters and leaves as the popups do (transitions keyed on `data-state`, so a close mid-way turns
 back from where it is): it fades in on `--ds-dur-fast` and grows from `--ds-scale-popup` at the marker on the spring
 over `--ds-dur-medium`, and fades out in `--ds-dur-instant`. The marker's layers fade on `--ds-dur-fast`.
-
-<!-- changelog -->
-- Sources and citations (`.ds-cite`, `.ds-cite__card`, `.ds-cite-list`, `DS.cite`, `data-ds-cite`): numbered markers
-  that open a source card on hover (WCAG 1.4.13: hoverable, dismissible) and on a press (focus moves into it), through
-  `DS.overlay` in the top layer, placed by `DS.position`; and the list of sources.
 ## Plan card
 
 A plan an assistant or an agent proposes before it acts: what it will do, step by step, and the person's decision.
@@ -16361,11 +15645,6 @@ falls to the page when the actions go. Keep the step texts plain: they are what 
 
 **Motion.** Once decided, the actions leave (`DS.motion.leave()`, `.ds-leave`); back to waiting they enter
 (`.ds-enter`). The word and the glyph change in place; the steps move as the task list does.
-
-<!-- changelog -->
-- Plan card (`.ds-plan`, `DS.plan`, `data-ds-plan`): a proposed plan with its steps (a `.ds-tasks` list) and the
-  decision, approve or reject, with a cancelable `ds:decide`, the state as an icon and a word, announced. Strings
-  `planWaiting`, `planApproved`, `planRejected`.
 ## Question card
 
 A question an assistant or an agent asks while it works: options to choose (one or several), an answer of one's
@@ -16469,11 +15748,6 @@ form's.
 
 **Motion.** Once decided the actions leave (`DS.motion.leave()`, `.ds-leave`) and the answer line fades in
 (`ds-fade-in`, `--ds-dur-fast`); opened again the actions enter (`.ds-enter`).
-
-<!-- changelog -->
-- Question card (`.ds-question`, `DS.question`, `data-ds-question`): a question with radio or checkbox cards, an
-  answer of one's own, Answer and Skip; keys 1 to 9, a cancelable `ds:answer`, the answer kept in view and announced.
-  Strings `questionAnswered`, `questionSkipped`, `questionRequired`.
 ## Usage meter
 
 What an assistant or an agent used against a budget: tokens, what they cost, or both, as a [meter](#charts) with its
@@ -16557,10 +15831,6 @@ stays.
 
 **Motion.** The meter's share glides on `--ds-ease-value` over `--ds-dur-glide` (the meter's own); the figures and
 the status change in place.
-
-<!-- changelog -->
-- Usage meter (`.ds-usage`, `DS.usage`, `data-ds-usage`): tokens and cost against a budget on a meter, with an icon
-  and a word near and over it (announced once). Strings `usageOf`, `usageShare`, `usageNear`, `usageOver`.
 ## Composer
 
 The message field of a conversation: a filled shell with a textarea that grows with its text, attachments as chips,
@@ -16690,15 +15960,6 @@ the active option is `SelectedItem` / `SelectedItemText`, a blocked one `GrayTex
 (`DS.overlay`), so a palette closed mid-way turns back from where it is. Chips pop in and out
 (`DS.motion.enter` / `leave`, `'pop'`); the send icon swaps to stop through `.ds-icon-swap`. The field's height follows
 the text at once, never animated.
-
-<!-- changelog -->
-- Composer (3.0): `.ds-composer` moves out of the form into a folder of its own, with a behaviour module
-  (`DS.composer`, `data-ds-composer`): attachments as chips (`.ds-composer__attachments`, `.ds-composer__attachment`,
-  `.ds-composer__picker`, drop and paste), a slash-command and mention palette at the caret (`.ds-composer__palette`,
-  `.ds-composer__option`), send and stop (`data-ds-composer-busy`), Enter / Shift+Enter, remembered drafts
-  (`data-ds-composer-draft`). New hooks `--ds-composer-bg`, `--ds-composer-chip-height`,
-  `--ds-composer-chip-max-width`, `--ds-composer-palette-width`, `--ds-composer-palette-radius`,
-  `--ds-composer-option-height`. The 2.x markup keeps its look.
 ## Message
 
 One turn of a conversation: the user's own message, the assistant's reply, a system line or a tool result, with
@@ -16816,14 +16077,6 @@ error note keeps its icon and word in the system colours.
 
 **Motion.** None of its own: the text that streams in is the motion, so the cursor stands still. The copy button swaps
 its icon through `.ds-icon-swap`. Print leaves the footer and the cursor out.
-
-<!-- changelog -->
-- Message (3.0, new): `.ds-message` with the roles `--assistant`, `--user`, `--system` and `--tool`, its parts
-  (`__avatar`, `__main`, `__head`, `__author`, `__time`, `__content`, `__note`, `__footer`), the states streaming
-  (a cursor, `aria-busy`), partial and error (a note), and `DS.message` (`data-ds-message`, `create`, `state`) with the
-  footer actions copy, retry and edit. Hooks `--ds-message-avatar-size`, `--ds-message-gap`, `--ds-message-user-bg`,
-  `--ds-message-user-color`, `--ds-message-user-max`, `--ds-message-radius`, `--ds-message-tool-bg`. Strings
-  `messageStopped`, `messageFailed`.
 ## Transcript
 
 The scrolling log of a conversation: it sticks to its end while the reader is there, offers a "Latest" jump with the
@@ -16916,13 +16169,6 @@ an edge.
 
 **Motion.** The pill comes and goes as a `.ds-presence`; "Latest" scrolls smoothly within one screen. Loading earlier
 messages moves nothing on screen. Print shows the whole log, without the pill and the load row.
-
-<!-- changelog -->
-- Transcript (3.0, new): `.ds-transcript` with `__list`, `__day`, `__earlier`, `__latest` and `__unread`, and
-  `DS.transcript` (`data-ds-transcript`, `create`, `day`): sticks to the end, the "Latest" pill with an unread count,
-  load earlier in place (`data-ds-transcript-earlier`, `ds:earlier`, `loaded()`), polite announcements of complete
-  replies (`data-ds-transcript-announce`). Hooks `--ds-transcript-max-width`, `--ds-transcript-gap`,
-  `--ds-transcript-pad`. Strings `latest`, `unreadCount`, `earlierLoaded`.
 ## Suggestions
 
 Follow-up prompts as a row of action chips, under a reply or over the composer: one row that scrolls sideways and a
@@ -16976,11 +16222,6 @@ chips) once the conversation moved on.
 **Hooks**: `--ds-suggestions-gap` (`--ds-space-2`) ([theming.md](theming.md#component-hooks)).
 
 **Motion.** None of its own: a drag follows the pointer one to one.
-
-<!-- changelog -->
-- Suggestions (3.0, new): `.ds-suggestions` (a row of action chips that scrolls sideways with `.ds-scroll-x`, or
-  `.ds-suggestions--wrap`) and `DS.suggestions` (`data-ds-suggestions`, `-for`, `-send`, `create`, `items`): drag to
-  scroll, `ds:select`, filling or sending a composer. Hook `--ds-suggestions-gap`.
 ## Feedback
 
 Thumbs up and down on a reply, with an optional dialog that asks why: two quiet icon toggles whose thumb fills while
@@ -17065,11 +16306,6 @@ filled.
 
 **Motion.** The thumb fills on `--ds-dur-fast` (`.ds-icon--fillable`); the dialog opens and closes through
 `DS.overlay`.
-
-<!-- changelog -->
-- Feedback (3.0, new): `.ds-feedback` (`__label`, `__status`) and `DS.feedback` (`data-ds-feedback`,
-  `data-ds-feedback-value`, `-reason`, `-reason-for`, `-lock`; `create`, `toggle`, `asks`): thumbs as exclusive toggles,
-  `ds:change` and `ds:feedback`, an optional reason dialog. String `feedbackThanks`.
 ## AI label
 
 Marks content a model generated, with an icon and a word, and optionally a toggletip that explains it: a small pill
@@ -17129,11 +16365,6 @@ tip keeps a transparent outline as its edge.
 **Motion.** The tip fades in on `--ds-dur-fast` and grows from `--ds-scale-popup` at the label on the spring
 (`--ds-dur-medium`); it leaves in `--ds-dur-instant`, fading only, and a tip closed mid-way turns back from where it is.
 Print keeps the label and leaves the tip out.
-
-<!-- changelog -->
-- AI label (3.0, new): `.ds-ailabel` (`--outlined`, `--plain`, `--icon`) with its toggletip `.ds-ailabel__tip`
-  (`__title`) and `DS.ailabel` (`data-ds-ailabel`, `create`), opened through `DS.overlay`. Hooks `--ds-ailabel-height`,
-  `--ds-ailabel-bg`, `--ds-ailabel-color`, `--ds-ailabel-tip-width`.
 ## Motion classes
 
 Documented in [motion.md](motion.md): `.ds-enter` with `.ds-enter--fade`, `.ds-enter--scale`, `.ds-enter--slide`,

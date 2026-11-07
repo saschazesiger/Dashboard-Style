@@ -72,10 +72,3 @@ on the standard curve, never 3D and never a blur, so the text stays as sharp in 
   first runs to its end, so the line never jumps. The line that goes and the line that comes in one task share the turn's delay.
 - **First render.** A slot that is new shows its line at once; only a line inserted into a slot that was already there
   rolls.
-
-<!-- changelog -->
-- Wheel (`.ds-wheel`, `DS.wheel`): a live status line whose new line pushes the old one out, with a hold so a quick run
-  of changes rolls once; morph hooks (`DS.wheel.hooks`), `DS.wheel.roll()`, `DS.wheel.create()` and `data-ds-wheel`.
-  Hooks `--ds-wheel-travel`, `--ds-wheel-fade`. The reference implementation of plans/wheel-and-shimmer.md, as a
-  component module (`DS.wheel.hooks` and `DS.wheel.roll` stand for the plan's `DS.motion.wheelHooks` and
-  `DS.motion.wheel`).

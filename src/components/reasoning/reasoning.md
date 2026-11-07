@@ -63,8 +63,3 @@ it. The shimmer's copy is left out of the name.
 
 **Motion.** The disclosure's (the body opens as a `.ds-collapsible`, the chevron turns), the shimmer on the running
 line; with `data-ds-reasoning-auto` it opens when it starts and closes when it ends.
-
-<!-- changelog -->
-- Reasoning disclosure (`.ds-reasoning`, `DS.reasoning`, `data-ds-reasoning`): thinking collapsed under a summary line
-  ("Thinking" with the shimmer, then "Thought for 12s" or the page's own), the thoughts following their end while they
-  stream, an optional auto open and close. Strings `reasoningRunning`, `reasoningDone`.

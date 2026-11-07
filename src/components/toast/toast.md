@@ -185,10 +185,3 @@ What `promise()` and `progress()` build (the close button as on any message that
 **JS API.** `js/toast.js` (`DS.toast`): `toast(region, content, options)`, `closeToasts(region, filter)`, `announce(text, options)` and `toastRegion(doc)`, the same functions as under `DS.overlay`; and (3.0) `promise(region, work, options)` and `progress(region, text, options)`, above.
 
 **Motion:** the "Snackbar" row of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog -->
-- Snackbar (3.0): `DS.toast.promise()` (a waiting message with a spinner that turns into its outcome in place) and
-  `DS.toast.progress()` (a message with a progress bar: `set()`, `done()`, `fail()`); `.ds-toasts--stack`, a
-  collapsed stack that expands on focus or a click (never on hover), with the hook `--ds-toast-stack-width`;
-  `data-ds-toast-limit` on a region (1 to 5 messages at once). New classes `.ds-toast--progress`, `.ds-toast__body`,
-  `.ds-toast__spinner`, `.ds-toast__value`; the system's string `done`.

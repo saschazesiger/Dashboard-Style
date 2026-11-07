@@ -180,14 +180,3 @@ drawn in the system's text colour. A checked option keeps its check and its labe
 
 **Motion:** none of its own. Options show and hide at once; the chips are input chips; the sheet plays the side sheet's
 motion; the list's change is the page's `DS.motion.flip()`.
-
-<!-- changelog
-- Facet filter panel (`DS.facets`, `.ds-facets-layout`, `__main`, `.ds-facets`, `__head`, `__title`, `__clear`,
-  `__applied`, `__chips`, `__toggle`, `__badge`, `__count`, `__results`, `.ds-facet`, `--scroll`, `__title`,
-  `__options`, `__search`, `__empty`, `__more`, `__range`, `__dash`, `data-folded`, `data-ds-facets-sheet`,
-  `data-ds-facets-zero`, `data-ds-facet-limit`, hooks `--ds-facets-width`, `--ds-facets-main-min`, `--ds-facets-gap`,
-  `--ds-facet-max-height`): facets with counts, a search inside long facets, a limit with "Show all", ranges, applied
-  chips with Clear all, a side sheet when the layout is narrow; `counts()`, `count()`, `open()`, `visible()`,
-  `foldText()`; a second applied row in the main part while folded; the count announced once changes pause. Strings `facetShowAll`, `facetShowFewer`, `facetNoMatch`, `facetMatchesOne`, `facetMatchesOther`.
-- Filter bar: a radio of `value=""` is "Any" (no filter), and the one checked again once its filter is empty.
--->

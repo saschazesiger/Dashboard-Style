@@ -145,12 +145,3 @@ the rail gives way to the progress line in the head.
 `--ds-scale-enter` and up by `--ds-distance-lg` on the spring over `--ds-dur-slow`, and comes back the same way. A step
 enters with the swap of `DS.motion.enter()`. By hand (no `data-state`) the keyframes `ds-lift-in` and `ds-drop-out`
 with the fades.
-
-<!-- changelog
-- Tearsheet (`DS.tearsheet`, `[data-ds-tearsheet]`, `.ds-tearsheet` with `--narrow`, `__box`, `__head`, `__heading`,
-  `__label`, `__description`, `__progress`, `__main`, `__steps`, `__body`, `__step`, `__foot`; the buttons
-  `[data-ds-tearsheet-back]`, `-next`, `-submit`): a tall create or edit flow in a modal dialog with steps checked one
-  by one, a submit with `wait()`, unsaved changes guarded by a destructive question (and `beforeunload`), and stacking
-  (`data-stacked`). Hooks `--ds-tearsheet-width`, `-width-narrow`, `-gap`, `-padding`, `-rail-width`, `-radius`.
-  Strings `stepOf`, `stepDone`, `stepError`, `discardTitle`, `discardText`, `discard`, `keepEditing`.
--->

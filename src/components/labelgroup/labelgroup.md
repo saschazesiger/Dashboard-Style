@@ -86,9 +86,3 @@ The popup's transparent outline becomes its edge; the button is a button.
 (`--ds-scale-popup`, its clip opening from the button's edge) on `--ds-ease-spatial` over `--ds-dur-medium`; the exit
 only fades, over `--ds-dur-instant`. Transitions keyed on `data-state`, so a close mid-way turns back from where it is.
 Tags hide and show at once: a line that slid would move the row.
-
-<!-- changelog -->
-- Label group (new, `labelgroup`): `.ds-label-group` with `__list`, `__more`, `__popup` and `__all`;
-  `data-ds-label-group` (and `-max`) keeps the tags that fit on one line and writes a "+N" button that opens every tag
-  in a popup through `DS.overlay`; `DS.labelgroup.create`, `visibleCount`; hook `--ds-label-group-gap`; strings
-  `labelGroupMore`, `labelGroupAll`.

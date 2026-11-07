@@ -49,6 +49,8 @@ wherever the page shows it (beside the search, at the end of a toolbar), named b
   it too. "Clear recent searches" (the string `clearRecent`) under the list forgets them all. While the list exists
   the field is a `combobox` with `aria-controls` and `aria-activedescendant`; the list is a `listbox` named "Recent
   searches" (`recentSearches`).
+  The list is written by `DS.search`: a `.ds-search__popup` (the combobox's popup), each row with the
+  `.ds-search__history` glyph, and a `.ds-search__foot` holding the `.ds-search__forget` button.
 - **Events** on the root: `ds:search` with `{ value, source }` (`'enter'` or `'recent'`). The input's own `input`
   event is the change.
 
@@ -80,11 +82,3 @@ that reveal private data, and offer "Clear recent searches".
 combobox's.
 
 **Motion:** the list opens and closes as the combobox's (`DS.overlay`); the key fades as in [Form](#form).
-
-<!-- changelog
-- Search field (`DS.search`, `[data-ds-search]` with `-recent`, `-recent-max` and `-count`, `.ds-search__clear`,
-  `.ds-search__count`, the list's `.ds-search__popup`, `.ds-search__history`, `.ds-search__foot`,
-  `.ds-search__forget`, hook `--ds-search-clear-size`): a clear button and Escape in every engine, the shortcut's key
-  as the platform writes it, a result count shown and spoken, recent searches through `DS.store`. Strings
-  `recentSearches`, `clearRecent`, `searchResultsOne`, `searchResultsMany`.
--->

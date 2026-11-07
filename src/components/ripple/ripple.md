@@ -80,6 +80,3 @@ Forced colours show no ripple (`display: none`); the host's own forced-colours r
 `--ds-ripple-color`: [theming.md](theming.md#component-hooks).
 
 **Motion:** the press rows of [Controls](motion.md#controls) in motion.md, and "Pointer ripple" in the Motion Lab.
-
-<!-- changelog -->
-- Ripple: a host that holds a `.ds-badge--corner` is isolated but no longer clipped while it ripples; its ripple clips itself (a box over the host with the host's radius, the circle as its `::before`), as a tab's and a table row's did. Every other host clips as before.

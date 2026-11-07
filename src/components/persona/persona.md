@@ -60,8 +60,3 @@ keep their own forced looks.
 **Motion.** None of its own: the pressable's state layer and focus snap.
 
 Hooks: `--ds-persona-gap`, `--ds-persona-name-font`, `--ds-persona-role-font` ([theming.md](theming.md#component-hooks)).
-
-<!-- changelog -->
-- Persona (3.0, new): `.ds-persona` with `__text`, `__name`, `__role` and `__status`, the variants `--stacked` and
-  `--inline`, and an interactive persona with `.ds-pressable`; hooks `--ds-persona-gap`, `--ds-persona-name-font`,
-  `--ds-persona-role-font`.

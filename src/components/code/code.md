@@ -135,12 +135,3 @@ and `--ds-code-max` (the folded lines) on the frame; read them, never set them.
 
 **Hooks.** `--ds-code-block-radius` ([theming.md](theming.md#component-hooks)); the colours are the roles
 `--ds-code-bg` and the code roles of [Syntax highlighting](#syntax-highlighting).
-
-<!-- changelog -->
-- Code block (3.0): `.ds-code-block` and `.ds-code-block--wrap` move from prose.css to the new component `code` (same
-  classes; prose requires it). New: the frame `.ds-code` with `.ds-code--lines`, `.ds-code__head`, `.ds-code__title`,
-  `.ds-code__lang`, `.ds-code__actions`, `.ds-code__line` (`--mark`, `--inserted`, `--deleted`), `.ds-code__foot`,
-  `.ds-code__expand-label`; `DS.code` (`data-ds-code`, `-lang`, `-label`, `-start`, `-mark`, `-max`, `-wrap`,
-  `-remember`, `-expand`; `create`, `parseLines`, `linesHtml`). A `.ds-code-block` in prose now takes the prose's gap.
-  String `wrapLines`. Motion exception: the folded block's `height`. `get()` and `refresh()` read lines the page changed
-  underneath (a streamed Markdown answer); in forced colours a focused framed block keeps its ring.

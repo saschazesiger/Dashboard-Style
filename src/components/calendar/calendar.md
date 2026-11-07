@@ -122,8 +122,3 @@ picked day has a `CanvasText` ring.
 A turned page slides in from its side: `DS.motion.enter(month, 'slide')` (`ds-fade-in` and `ds-shift-in` on the spring),
 its `--ds-motion-distance` set from `data-turn` (`next`, `back`; mirrored right to left). The band and the fills change
 colour over `--ds-dur-fast`; a day presses as every action (`--ds-dur-micro`, the ripple, the press morph).
-
-<!-- changelog -->
-- Calendar (3.0): `.ds-calendar` and `DS.calendar`, the month grid of every date picker and its date engine (`parse`,
-  `iso`, `add`, `compare`, `weekInfo`, `weekNumber`, `grid`, `available`, `label`, `rangeLabel`): one or two months, a
-  day or a range with a preview, min and max, blocked days, week numbers, the locale's first day through `Intl`.

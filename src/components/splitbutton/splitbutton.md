@@ -95,8 +95,3 @@ None of its own: the buttons read the button hooks, the pill reads `--ds-btn-gro
 
 **Motion:** each half presses on its own: the state layer, the ripple and the morph of its outer corners (the button
 group's). The menu grows out of the toggle ([Menu](#menu)) while the chevron turns over `--ds-dur-medium` on the spring.
-
-<!-- changelog -->
-- Split button (3.0): `DS.splitbutton` (`data-ds-splitbutton`, `data-ds-value`, `create`, `partsOf`),
-  `.ds-split-btn`, `.ds-split-btn__action`, `.ds-split-btn__label` and `.ds-split-btn__toggle`. String
-  `moreOptionsFor`.

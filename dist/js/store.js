@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Remembered UI preferences (3.0): columns, density, dismissed banners, sheet
  * widths. JSON values in localStorage under `ds:<namespace>:<key>`, so a host

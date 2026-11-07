@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /** Types of DS.calendar (js/calendar.js): the date engine of every picker, and the month grid. */
 
 /** A date without a time or a time zone; month 1-12. */

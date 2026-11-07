@@ -108,10 +108,3 @@ sends nothing.
 
 **Motion:** the buttons' own: the fill and the label colour fade on `--ds-dur-fast`, the press morph and the ripple;
 an icon swap crossfades with a small scale. The group moves nothing.
-
-<!-- changelog -->
-- Toggle button and toggle group (3.0): `DS.toggle` (`data-ds-toggle`, `data-ds-toggle-group="single | multiple"`,
-  `data-ds-toggle-group-required`, `data-ds-value`, `data-ds-toggle-group-roving`; roving focus in a `role="toolbar"`),
-  `.ds-toggle-group` and the hook
-  `--ds-toggle-group-gap`. Button: a `--filled` or `--tonal` toggle shows the neutral container while off and its
-  fill while on (Material 3 icon toggles); an outlined, quiet or text toggle keeps the tint.

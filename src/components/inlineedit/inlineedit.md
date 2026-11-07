@@ -93,10 +93,3 @@ an icon.
 
 **Motion:** none of its own: the view and the field swap at once and the focus moves with them; the save button's
 busy face is `DS.motion.busy`'s, the error message enters as every field error.
-
-<!-- changelog
-- Inline edit (`DS.inlineedit`, `.ds-inlineedit` with `__view`, `__value`, `__edit`, `__form`, `__actions`, `__error`,
-  `[data-ds-inlineedit]` with `-blur` and `-trim`, hook `--ds-inlineedit-field-min`): a value that turns into a field
-  in place, Enter and Escape, an async save through `ds:save` and `wait()` with a busy button and an error in words.
-  Strings `edit`, `save`, `saved`.
--->

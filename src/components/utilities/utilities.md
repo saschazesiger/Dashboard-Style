@@ -108,7 +108,3 @@ Hooks: `--ds-pressable-radius`, `--ds-pressable-layer`, `--ds-kbd-border`, `--ds
 and keys are borders, so they stay.
 
 **Motion:** `.ds-stale`: the "Loading bar" row of [Feedback](motion.md#feedback) in motion.md.
-
-<!-- changelog -->
-- Added: `.ds-divider--start` and `.ds-divider--end` (a caption near one end), the upright divider around a caption
-  (`.ds-divider--vertical.ds-divider--label`), the upright inset divider, and the hook `--ds-divider-color`.

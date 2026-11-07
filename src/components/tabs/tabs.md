@@ -188,10 +188,3 @@ tabs.addEventListener('click', (event) => {
 **Motion:** the "Tabs" row of [Navigation](motion.md#navigation) in motion.md. The contained pill and the vertical bar
 glide like the bar. The More menu opens and closes as every menu; a tab that comes back from it into the row takes
 its place at once (layout never animates) and the indicator glides to it.
-
-<!-- changelog
-- Tabs: `data-ds-tabs` (`DS.tabs`, `tabs.js`): selection, the keyboard, panels kept alive (`first` in `ds:change`),
-  the indicator, closing (`ds:close`, cancelable; Delete, the close button, `data-ds-tabs-close` in a panel), adding
-  (`.ds-tabs__add`, `ds:add`, `add()`) and the overflow into a "More" menu (`data-ds-tabs-overflow`,
-  `.ds-tabs__bar`, `.ds-tabs__more`). New strings `moreTabs`, `tabClosed`, `closeTab`.
--->

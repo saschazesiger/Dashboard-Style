@@ -81,8 +81,3 @@ loud stays a word.
 
 Hooks: `--ds-levelmeter-height`, `--ds-levelmeter-fill`, `--ds-levelmeter-track`, `--ds-levelmeter-segment`,
 `--ds-levelmeter-length` ([theming.md](theming.md#component-hooks)).
-
-<!-- changelog -->
-- Level meter (3.0, new): `.ds-levelmeter` with `__label`, `__track`, `__fill`, `__peak` and `__note`, the variants
-  `--segmented` and `--vertical`; `DS.levelmeter` (`create`, `level`, `peak`, `decibels`) and `data-ds-levelmeter`: reads a
-  page-supplied AnalyserNode every frame, peak hold, "Too loud" in words when the sample peak reaches -1 dBFS. New strings: `levelmeterValue`, `levelmeterLoud`.

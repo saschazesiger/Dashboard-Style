@@ -87,8 +87,3 @@ falls to the page when the actions go. Keep the step texts plain: they are what 
 
 **Motion.** Once decided, the actions leave (`DS.motion.leave()`, `.ds-leave`); back to waiting they enter
 (`.ds-enter`). The word and the glyph change in place; the steps move as the task list does.
-
-<!-- changelog -->
-- Plan card (`.ds-plan`, `DS.plan`, `data-ds-plan`): a proposed plan with its steps (a `.ds-tasks` list) and the
-  decision, approve or reject, with a cancelable `ds:decide`, the state as an icon and a word, announced. Strings
-  `planWaiting`, `planApproved`, `planRejected`.

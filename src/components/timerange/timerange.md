@@ -125,8 +125,3 @@ It reads `--ds-btn-height` for the pill, so it lines up with the buttons beside 
 
 The popover's; the chevron of the trigger turns with it (`aria-expanded`, `rotate` on the spring, a named exception of
 disclosure chevrons); the interval pill's tint over `--ds-dur-fast`.
-
-<!-- changelog -->
-- Time range (3.0): `.ds-timerange` and `DS.timerange` (`create`, `parse`, `resolve`, `label`, `query`, `spanMs`),
-  the range control of a monitoring view: quick relative ranges, absolute from and to, recent ranges remembered through
-  `DS.store`, an auto-refresh interval that sends `ds:refresh`, URL-friendly values.

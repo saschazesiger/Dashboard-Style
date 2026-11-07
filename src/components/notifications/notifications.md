@@ -135,10 +135,3 @@ the bar reads the sheet's `--ds-sheet-padding` ([theming.md](theming.md#componen
 The sheet's own (DS.overlay). With the sheet open, an arriving notification fades in (`DS.motion.enter(row, 'fade')`)
 while the others glide down (`DS.motion.flip()`); the unread switch glides the rows that stay. The unread dot comes in
 over `--ds-dur-fast` and goes at once. The badge pops in and out ([badge](#badge)).
-
-<!-- changelog -->
-- Notification centre (3.0): `.ds-notifications` on a `.ds-sheet`, `.ds-notifications__bell` with its count badge,
-  `DS.notifications` (`create`, `open`, `close`, `groupByDay`, `dayOf`), `data-ds-notifications`: groups by day,
-  read and unread, mark all read, actions per notification, an unread-only switch, the empty state and a live
-  announcement on arrival. Hooks `--ds-notifications-icon-size`, `--ds-notifications-item-padding`,
-  `--ds-notifications-dot-size`; the `notifications*` strings.

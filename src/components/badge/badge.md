@@ -80,6 +80,3 @@ visible; a tone changes nothing there, so the word carries the meaning.
 **Motion.** Colours glide on `--ds-dur-fast`. A count that appears pops in (`DS.motion.enter(badge, 'pop')`), one that
 goes pops out (`DS.motion.leave(badge, 'pop', { then: 'hide' })`), which the controller's `set()` does by itself; the
 number itself changes at once, and nothing plays on load ([motion.md](motion.md#a-count-badge)).
-
-<!-- changelog -->
-- Badge: `.ds-badge--corner` puts a count or a dot on the corner of an icon button (or an avatar, any positioned host); the host's ripple clips itself instead of the host, so the badge stays whole (catalogue D, reopened from after-2.0).

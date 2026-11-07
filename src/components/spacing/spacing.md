@@ -30,7 +30,3 @@ scale (a 4px grid).
 - An exact step: density does not change it. The primitives' own default gaps follow density instead
   ([Layout](#layout)).
 - Options, forced colours, motion: none; these classes set space only.
-
-<!-- changelog -->
-- Added: Spacing, the gap classes `.ds-gap-0` to `.ds-gap-12` and the top margins `.ds-mt-0` to `.ds-mt-12` and
-  `.ds-mt-auto`, on the space scale.

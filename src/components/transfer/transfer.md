@@ -69,8 +69,3 @@ density, shape and touch themselves; the transfer adds only gaps. No tone.
 
 **Motion:** none of its own: the options change sides at once, as a listbox renders new data; the check boxes are the
 listbox's.
-
-<!-- changelog -->
-- Transfer list (3.0, tier 2): `.ds-transfer` with `DS.transfer` (`data-ds-transfer`): two listboxes of the
-  `DS.listbox` engine, add and remove buttons, Enter and a double-click to move, filters, windowed data, announcements;
-  stacks below 560px; `DS.transfer.move`.

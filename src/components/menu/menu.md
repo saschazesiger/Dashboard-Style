@@ -190,14 +190,3 @@ as in 2.x.
 **JS API.** `js/menu.js` (`DS.menu`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`; `openAt(el, options)` opens a menu at a point (`x`, `y`, `opener`, `returnTo`: a context menu; without a point, under the opener); `create(el)` returns the controller that `data-ds-menu` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`).
 
 **Motion:** the "Menu", "Submenu" and "Context menu" rows of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog
-- Menu: submenus (an item with `aria-haspopup="menu"` and `aria-controls`, `.ds-menu__chevron`; beside the item in
-  the top layer, ArrowRight / ArrowLeft, hover intent, the chain closes together), a search at the top of a long menu
-  (`.ds-menu__search` over the items in a `.ds-menu__list`, `.ds-menu__empty` written with the string `noResults`), and context menus
-  (`data-ds-contextmenu`: right click, long press, Shift+F10 and the ContextMenu key; `ds:contextmenu`;
-  `DS.menu.openAt()`). The items, check and radio items of a menu ignore those of a submenu inside it. New motion
-  tokens for them: `--ds-delay-submenu` (100ms, hover intent), `--ds-delay-submenu-close` (300ms, the grace) and
-  `--ds-delay-long-press` (500ms, the touch that opens a context menu). A searchable menu puts its items in a
-  `.ds-menu__list` with `role="menu"`, since a menu owns only items.
--->

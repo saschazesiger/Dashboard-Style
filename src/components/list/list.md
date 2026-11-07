@@ -277,11 +277,3 @@ transparent border becomes its edge, in the current row too. The sticky heading'
 
 **Motion:** the "Row list, timeline" row of [Feedback](motion.md#feedback) and the press of
 [Controls](motion.md#controls) in motion.md.
-
-<!-- changelog -->
-- Lists: `DS.list` (`data-ds-list`): selectable rows (`data-ds-list-select`, `.ds-list__check`, shift ranges, a
-  "select all" box with `data-ds-list-all`, `--ds-list-selected-bg`), reorderable rows (`data-ds-list-reorder`,
-  `.ds-list__grip`, through `DS.dnd`) and a virtual list (`create(el, { virtual })`, `.ds-list--scroll`,
-  `--ds-list-max-height`). Facts: `.ds-facts--stacked`, `.ds-facts--grid` with `.ds-facts__wide` and `.ds-facts__full`,
-  `.ds-facts--bordered` (`--ds-facts-radius`) and copy per value (`data-ds-facts-copy`, `.ds-facts__copy`). New strings
-  `listMove`, `listSelected`, `factsCopy`.

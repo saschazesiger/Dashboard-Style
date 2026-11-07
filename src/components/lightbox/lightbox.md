@@ -116,14 +116,3 @@ at that image (a click with Ctrl, Cmd or Shift keeps the link's own behaviour), 
 `--ds-dur-slow`, leaves in `--ds-dur-base`); a new image enters with the swap of `DS.motion.enter()`; zoom and pan glide
 over `--ds-dur-medium` on `--ds-ease-out` (it fills the frame, so it never overshoots); a drag and a swipe follow the
 pointer (direct manipulation, as the drag of `DS.dnd`), and a swipe that does not go far enough glides back.
-
-<!-- changelog
-- Lightbox (`DS.lightbox`, `[data-ds-lightbox]` with `[data-ds-lightbox-item]`, `.ds-lightbox__gallery`, `__item`, and
-  the viewer `.ds-lightbox` with `__box`, `__bar`, `__count`, `__stage`, `__nav` (`--prev`, `--next`), `__figure`,
-  `__frame`, `__image`, `__caption`, `__error`, `__thumbs`, `__thumb`): images one at a time in a modal dialog, with
-  thumbnails, keys, zoom and pan (buttons, keys, double click, wheel, pinch), a caption, swipe on touch, loading and
-  error states; `create()`, `open()`, `close()`, `show()`, `nextZoom()`, `clampPan()`, `MAX_ZOOM`. Hooks
-  `--ds-lightbox-bg`, `-ink`, `-thumb-size`, `-item-size`, `-radius`. Strings `imageOf`, `images`, `zoomIn`, `zoomOut`,
-  `imageFailed`. Integrator: the glyphs `zoomIn` and `zoomOut` (a magnifier with plus and minus) would read better than
-  `plus` and `minimize` in the bar.
--->

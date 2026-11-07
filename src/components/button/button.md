@@ -171,8 +171,3 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
 - Hooks: [theming.md](theming.md#component-hooks).
 
 **Motion:** the press, focus, busy and success rows of [Controls](motion.md#controls) in motion.md.
-
-<!-- changelog -->
-- Button: icon buttons in the standard (`--quiet`), `--filled`, `--tonal` and `--outlined` looks, each also a toggle,
-  documented with their required label and tooltip; a `--filled` or `--tonal` toggle shows the neutral container
-  while off and its own fill while on.

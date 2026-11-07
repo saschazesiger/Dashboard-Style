@@ -189,10 +189,3 @@ page, never inside `.ds-app`.
 ```js
 DS.motion.transition(() => { DS.dom.morphHtml(view, renderStep(2)); return view.firstElementChild; }, { type: 'forward', focus: true });
 ```
-
-<!-- changelog
-- Page head: `.ds-page-head--sticky` (`--ds-page-head-top`, `--ds-page-head-bg`) and a behaviour module (`DS.page`,
-  `data-ds-page-head`): the sticky head condenses once the reader has scrolled (`data-scrolled`, the content kept in
-  place; the hairline on a scroll timeline where supported), and the actions fold into a More menu
-  (`.ds-page-head__more`) by the row's width.
--->

@@ -118,8 +118,3 @@ no tab stop. Hidden columns are out of the tab order and the accessibility tree.
 `ds-shift-in` over `--ds-dur-slow` on `--ds-ease-spatial` with `ds-fade-in`), from the end going deeper and from the
 start going back (`data-direction="back"` turns `--ds-motion-distance` round); the column that goes is gone at once.
 Nothing plays at the start or when the layout folds by a resize.
-
-<!-- changelog -->
-- List-detail layout (`.ds-listdetail`, `DS.listdetail`): list, detail and sub-detail columns that fold by the
-  layout's own width to two and to one with a back button, declarative triggers (`data-ds-listdetail-show`), focus
-  that follows the level, the entering column sliding in. New string `back`.

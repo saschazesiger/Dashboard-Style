@@ -59,8 +59,3 @@ What the module writes is owned state (`DS.dom.morphHtml` keeps it): `hidden` on
 
 **Motion:** it enters with `ds-fade-in` and `ds-grow-in` and leaves with `ds-fade-out` and `ds-shrink-out` (the
 `.ds-enter--scale` and `.ds-leave--scale` pair); the way back scrolls smoothly within three heights of the scroller.
-
-<!-- changelog
-- Back to top (`.ds-backtop`, `.ds-backtop--fixed`, `DS.backtop`, `backtop.js`): a button that appears after a scroll
-  (with a threshold that does not flicker), scrolls back to the top and moves the focus there.
--->

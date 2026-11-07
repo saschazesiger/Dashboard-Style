@@ -315,19 +315,3 @@ stop of its own when nothing inside takes focus. A meter with its own figure is 
 [theming.md](theming.md).
 
 **Motion:** the "Charts" row of [Feedback](motion.md#feedback) in motion.md.
-
-<!-- changelog -->
-<!--
-- Added: `DS.chart` (`chart.js`), dependency-free SVG charts on `.ds-chart`: line, area and stacked area (time series
-  with gaps), column and bar (grouped, stacked, horizontal, 100%), combo with two axes, sparkline, donut, pie, ring,
-  gauge and bar gauge, from a `<table>` or JSON in `data-ds-chart`, or `DS.chart.create(el, spec)`. A cursor with a
-  crosshair and a tooltip, a legend that toggles series, keyboard navigation along the points with announcements, a
-  table view, thresholds and annotations, container-driven layout, dashes, markers and hatchings that tell series
-  apart without colour; lines and areas morph to new data (D14), bars glide, figures count. The engine is exported:
-  `scale`, `ticks`, `timeTicks`, `path`, `stack`, `nearest`, `parse`, `layout`.
-- Added: hooks `--ds-chart-height`, `--ds-chart-radial-height`, `--ds-chart-gauge-height`, `--ds-chart-spark-height`,
-  `--ds-chart-bar`, `--ds-chart-radius`, `--ds-chart-stroke`, `--ds-chart-marker`, `--ds-chart-grid`,
-  `--ds-chart-area-opacity`, `--ds-chart-stack-opacity`, `--ds-chart-dash-2` to `--ds-chart-dash-4`; strings
-  `chartTableView`, `chartRole`, `chartKeys`, `chartKeysBars`, `chartKeysSlices`, `chartPoint`, `chartSummary`,
-  `chartTotal`, `chartOther`, `chartShown`, `chartHidden`, `chartEmpty`.
--->

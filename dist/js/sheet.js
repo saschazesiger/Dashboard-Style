@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * The side sheet's module (DS.sheet). The modal sheet's behaviour is the
  * core's (js/overlay.js: the stack, the trap, focus return, Escape,

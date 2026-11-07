@@ -107,10 +107,3 @@ the steppers are buttons in the system colours, `GrayText` while disabled.
 and the field's hooks of [Form](#form) ([theming.md](theming.md#component-hooks)).
 
 **Motion:** none of its own. A value changes at once, never glides; the steppers press as buttons.
-
-<!-- changelog
-- Number input (`DS.number`, `.ds-number`, `.ds-number--split`, `.ds-number__step`, `.ds-number__steps`,
-  `.ds-number__down`, `.ds-number__up`, hook `--ds-number-step-size`): a spinbutton on an input group with steppers,
-  min, max, step and page, locale parsing and formatting through `DS.format`, currency and unit affixes from Intl,
-  a hidden input with the plain value. Strings `decrease`, `increase`.
--->

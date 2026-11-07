@@ -153,8 +153,3 @@ The active option takes a `Highlight` ring, a match its underline, blocked optio
 
 The dialog's entrance and exit (`DS.overlay`). The active option's layer fades in over `--ds-dur-micro` and goes at
 once, so a held arrow key leaves no trail. Results change in place, without motion.
-
-<!-- changelog -->
-- Command palette (3.0): `.ds-command` in a `.ds-dialog`, `DS.command` (`create`, `open`, `close`, `fuzzy`, `rank`),
-  `data-ds-command`; Ctrl+K through `DS.hotkeys`, groups, recent commands through `DS.store`, fuzzy search with
-  marks, shortcuts, pages and prefixes, async providers.
