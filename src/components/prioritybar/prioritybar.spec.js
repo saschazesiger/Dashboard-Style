@@ -140,6 +140,69 @@ test('a focused action that folds hands its focus to More', async ({ page }) => 
   await expect(bar(page).locator('.ds-priority-bar__more')).toBeFocused();
 });
 
+test('a focused More that hides hands its focus and the tab stop to the last action', async ({ page }) => {
+  await open(page);
+  await resize(page, '300px');
+  await expect.poll(() => shown(page)).toEqual(['Edit', 'Assign']);
+  const more = bar(page).locator('.ds-priority-bar__more');
+  await focusByKeyboard(page, bar(page).locator('[data-demo-action="Edit"]'));
+  await page.keyboard.press('End');
+  await expect(more).toBeFocused();
+  await resize(page, '100%');
+  await expect.poll(() => shown(page)).toHaveLength(7);
+  await expect(more).toBeHidden();
+  const last = bar(page).locator('[data-demo-action="Delete"]');
+  await expect(last).toBeFocused();
+  expect(await bar(page).evaluate((el) => [...el.querySelectorAll(':scope > .ds-btn')].filter((b) => b.tabIndex === 0).map((b) => b.getAttribute('data-demo-action')))).toEqual(['Delete']);
+});
+
+test('an open menu: a resize keeps its items and the focus in it; when More hides, it closes and focus stays in the bar', async ({ page }) => {
+  await open(page);
+  await resize(page, '300px');
+  await expect.poll(() => shown(page)).toEqual(['Edit', 'Assign']);
+  const more = bar(page).locator('.ds-priority-bar__more');
+  const menu = bar(page).locator('.ds-priority-bar__menu');
+  await focusByKeyboard(page, more);
+  await page.keyboard.press('ArrowDown');
+  await expect(menu).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.activeElement?.textContent.trim())).toBe('Label');
+  // The fold changes under the open menu: the focus stays on its item.
+  await resize(page, '400px');
+  await expect.poll(() => shown(page)).not.toEqual(['Edit', 'Assign']);
+  await expect(menu).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.activeElement?.textContent.trim())).toBe('Label');
+  // Wide enough for everything: the menu closes, focus lands on an action.
+  await resize(page, '100%');
+  await expect.poll(() => shown(page)).toHaveLength(7);
+  await expect(menu).toBeHidden();
+  await expect(more).toBeHidden();
+  expect(await page.evaluate(() => document.activeElement?.closest('.ds-priority-bar') ? document.activeElement.getAttribute('data-demo-action') : document.activeElement?.tagName)).toBe('Delete');
+});
+
+test('a press inside an action does not measure the bar again', async ({ page }) => {
+  await open(page);
+  await resize(page, '300px');
+  await expect.poll(() => shown(page)).toEqual(['Edit', 'Assign']);
+  await page.evaluate(() => {
+    window.__measured = 0;
+    const read = Element.prototype.getBoundingClientRect;
+    Element.prototype.getBoundingClientRect = function () {
+      if (this.closest?.('.ds-priority-bar')) window.__measured += 1;
+      return read.call(this);
+    };
+  });
+  await bar(page).locator('[data-demo-action="Edit"]').click();
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const measured = await page.evaluate(() => window.__measured);
+  // The ripple reads the action's box once or twice; a measure would read every action.
+  expect(measured).toBeLessThan(5);
+});
+
+test('create() on a bar the attribute set up: the same controller', async ({ page }) => {
+  await open(page);
+  expect(await bar(page).evaluate((el) => DS.prioritybar.create(el) === DS.get(el, 'prioritybar'))).toBe(true);
+});
+
 test('the imperative API: create, get, update; plan() decides', async ({ page }) => {
   await open(page);
   const out = await page.evaluate(() => {

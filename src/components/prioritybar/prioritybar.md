@@ -55,7 +55,7 @@ re-render of the bar with `DS.dom.morphHtml` keeps them.
 ### JS API
 
 ```js
-const bar = DS.prioritybar.create(element);       // the controller data-ds-prioritybar makes
+const bar = DS.prioritybar.create(element);       // the controller data-ds-prioritybar makes (the same one)
 bar.get();                                         // the folded actions
 bar.update();                                      // measure again (the observers do it by themselves)
 bar.on('change', ({ folded }) => { /* also a bubbling ds:change on the bar */ });
@@ -64,13 +64,15 @@ DS.prioritybar.plan({ widths: [80, 96, 72], priorities: [2, 0, 0], available: 20
 ```
 
 `DS.prioritybar.create(bar)` returns the controller (`get`, `update`, `on('change')`, `destroy`, which unfolds every
-action and removes what the module added); `DS.prioritybar.plan(input)` is the pure rule behind the fold.
+action and removes what the module added), one per bar: on a bar the attribute set up it returns that controller; `DS.prioritybar.plan(input)` is the pure rule behind the fold.
 
 ### Accessibility
 
 - A `role="toolbar"` bar with an `aria-label` is one tab stop ([`DS.a11y.roving`](core.md)): ArrowLeft and ArrowRight
   move between the shown actions and More, Home and End to the ends; a bar without the role leaves every action in
-  the Tab order. A focused action that folds hands its focus to More.
+  the Tab order. A focused action that folds hands its focus to More; a focused More that hides (nothing folds any
+  more) hands it, and the tab stop, to the last action, its open menu closed first. An open menu keeps its items when
+  the fold changes under it (a resize, a rotation), so the focus in it stays; the next open lists the fold as it is.
 - More is a [menu button](#menu-button): Enter, Space or ArrowDown open the menu on its first item, ArrowUp on its
   last; the menu's arrows, Home, End and type-ahead; Escape closes it and focus returns to More.
 - A folded action is not displayed, so it is out of the accessibility tree; its menu item carries the same name and
