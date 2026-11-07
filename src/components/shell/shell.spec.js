@@ -12,6 +12,13 @@
 import { test, expect } from '../../../test/browser/base-test.js';
 import { ready, settle, focusByKeyboard } from '../../../test/browser/helpers/motion.js';
 
+/*
+ * 3.0, DS.shell (from "the rail is remembered" on): the frame's behaviour on
+ * its demo, the filter and the keys of the drawer, the phone search sheet,
+ * the launcher, the bell, the account menu with the scheme switch and the
+ * folding breadcrumbs, each with its keys, names and forced colours.
+ */
+
 const URL = '/test/browser/fixtures/component.html?c=shell';
 const SIZES = [['ds-xs', -2], ['ds-sm', -1], ['ds-md', 0], ['ds-lg', 1], ['ds-xl', 2]];
 const DENSITIES = [['ds-density-comfortable', 0], ['ds-density-compact', -1], ['ds-density-dense', -2], ['ds-density-tight', -3]];
@@ -196,7 +203,8 @@ test('.ds-touch: the brand link and the skip link are a finger\'s target; the ra
 
 test('.ds-touch: the account avatar keeps its disc, and its hit area is a finger\'s target', async ({ page }) => {
   await open(page, 600);
-  const measure = () => page.$eval('[data-demo="app"] .ds-account__avatar', (el) => {
+  // The capsule's avatar is the tab stop (the frame's account is a menu button since 3.0).
+  const measure = () => page.$eval('[data-demo="capsule"] .ds-account__avatar', (el) => {
     el.scrollIntoView({ block: 'center' });
     const rect = el.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
@@ -206,7 +214,7 @@ test('.ds-touch: the account avatar keeps its disc, and its hit area is a finger
   });
   expect((await measure()).size).toEqual([32, 32]);
   expect((await measure()).far, 'no larger than its disc without touch').toBe(false);
-  await page.$eval('[data-demo="app"]', (el) => el.classList.add('ds-touch'));
+  await page.$eval('[data-demo="capsule"]', (el) => el.classList.add('ds-touch'));
   expect(await measure()).toEqual({ size: [32, 32], near: true, far: true, outside: false });
 });
 
@@ -439,4 +447,465 @@ test('forced colours: a current row and a selected option SelectedItem, blocked 
   // The modal drawer keeps its edge.
   await page.setViewportSize({ width: 800, height: 800 });
   expect(await page.$eval('[data-demo="drawer"]', (el) => getComputedStyle(el).outlineStyle)).toBe('solid');
+});
+
+/* ── 3.0: DS.shell ─────────────────────────────────── */
+
+const app = '[data-demo="app"]';
+const drawerField = '[data-demo="drawer"] .ds-drawer__search input';
+const shown = (page, selector) => page.$$eval(selector, (els) => els.filter((el) => el.getClientRects().length).map((el) => el.textContent.trim().replace(/\s+/g, ' ')));
+
+test('the rail is remembered; the menu button is a toggle above 900px and a disclosure below', async ({ page }) => {
+  await open(page);
+  const menu = page.locator('[data-demo="menu"]');
+  await expect(menu).toHaveAttribute('aria-pressed', 'false');
+  expect(await menu.getAttribute('aria-expanded')).toBeNull();
+  const changes = page.evaluate(() => new Promise((resolve) => document.querySelector('[data-demo="app"]').addEventListener('ds:change', (event) => resolve(event.detail), { once: true })));
+  await menu.click();
+  expect(await changes).toEqual({ rail: true });
+  await expect(page.locator(app)).toHaveAttribute('data-drawer-collapsed', '');
+  expect(await page.evaluate(() => DS.get(document.querySelector('[data-demo="app"]'), 'shell').get())).toEqual({ rail: true, open: false });
+  await page.reload();
+  await ready(page);
+  await expect(page.locator(app)).toHaveAttribute('data-drawer-collapsed', '');
+  await expect(menu).toHaveAttribute('aria-pressed', 'true');
+  await page.setViewportSize({ width: 800, height: 800 });
+  await expect(menu).toHaveAttribute('aria-expanded', 'false');
+  expect(await menu.getAttribute('aria-pressed')).toBeNull();
+  // The modal drawer is unaffected by the rail.
+  await menu.click();
+  await expect(page.locator(app)).toHaveAttribute('data-drawer-open', '');
+  expect(await page.$eval('[data-demo="drawer"]', (el) => el.getBoundingClientRect().width)).toBeGreaterThan(200);
+});
+
+test('the rail: a drawer action turns icon-only, a badge becomes a dot, the filter goes', async ({ page }) => {
+  await open(page);
+  await openGroups(page);
+  await page.locator('[data-demo="menu"]').click();
+  await settle(page);
+  const action = page.locator('[data-demo="drawer"] .ds-drawer__actions .ds-btn');
+  const box = await action.evaluate((el) => { const r = el.getBoundingClientRect(); return [r.width, r.height]; });
+  expect(box).toEqual([40, 40]);
+  await expect(action).toHaveAccessibleName('New ticket');
+  const dot = await page.$eval('[data-demo="list"] .ds-drawer__item .ds-badge', (el) => {
+    const r = el.getBoundingClientRect();
+    const item = el.parentElement.getBoundingClientRect();
+    return { w: r.width, h: r.height, inside: r.right <= item.right && r.top >= item.top };
+  });
+  expect(dot).toEqual({ w: 8, h: 8, inside: true });
+  await expect(page.getByRole('link', { name: /^Updates ?, 4 new$/ })).toHaveCount(1);
+  await expect(page.locator(drawerField)).toBeHidden();
+});
+
+test('the drawer filter: every word, accents and case aside; groups open for a match and close again', async ({ page }) => {
+  await open(page);
+  const field = page.locator(drawerField);
+  const events = [];
+  await page.exposeFunction('sgFilter', (detail) => events.push(detail));
+  await page.$eval('[data-demo="drawer"]', (el) => el.addEventListener('ds:filter', (event) => window.sgFilter(event.detail)));
+  await page.$eval('[data-demo="list"] details details details', (el) => { el.open = false; });
+  await field.fill('ARCH');
+  // "Archive" matches as a heading: its items show, its closed sub-group opens.
+  expect(await shown(page, '[data-demo="list"] .ds-drawer__item')).toEqual(['This year', '2025', '2024']);
+  await expect(page.locator('[data-demo="list"] details details details')).toHaveJSProperty('open', true);
+  await expect(page.locator('[data-demo="list"] .ds-drawer__heading:not(.ds-drawer__toggle)', { hasText: 'Inventory' })).toBeHidden();
+  await field.fill('waiting');
+  expect(await shown(page, '[data-demo="list"] .ds-drawer__item')).toEqual(['Waiting, 2']);
+  await expect(page.locator('[aria-live], [role="status"]').filter({ hasText: /^1 match$/ }).first()).toBeAttached({ timeout: 5000 });
+  await field.fill('nothing like it');
+  await expect(page.locator('[data-demo="list"] .ds-drawer__empty')).toHaveText('No results');
+  await field.fill('ope');
+  expect(await shown(page, '[data-demo="list"] .ds-drawer__item')).toEqual(['Open, 3']);
+  // ArrowDown goes to the first match; Escape in the field clears it.
+  await field.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.locator('[data-demo="list"] .ds-drawer__item', { hasText: 'Open' })).toBeFocused();
+  await field.focus();
+  // The item's tooltip takes an Escape while it leaves: wait until it has gone.
+  await expect(page.locator('.ds-tooltip')).toBeHidden();
+  await page.keyboard.press('Escape');
+  await expect(field).toHaveValue('');
+  await expect(page.locator('[data-demo="list"] .ds-drawer__empty')).toBeHidden();
+  await expect(page.locator('[data-demo="list"] details details details'), 'a group the filter opened closes again').toHaveJSProperty('open', false);
+  expect(events.at(-1).query).toBe('');
+  expect(events.at(-1).count, 'every item of the list shows again').toBeGreaterThan(8);
+  expect(events.some((detail) => detail.query === 'waiting' && detail.count === 1)).toBe(true);
+});
+
+test('the drawer remembers its groups open or closed; the way to the current item opens', async ({ page }) => {
+  await open(page);
+  const tickets = page.locator('[data-demo="list"] > details');
+  await expect(tickets).toHaveJSProperty('open', true);
+  await tickets.locator(':scope > summary').click();
+  await expect(tickets).toHaveJSProperty('open', false);
+  await page.waitForTimeout(50);
+  await page.reload();
+  await ready(page);
+  await expect(tickets).toHaveJSProperty('open', false);
+  expect(await page.evaluate(() => DS.get(document.querySelector('[data-demo="drawer"]'), 'drawer').get().open)).toEqual(['sg-demo-archive']);
+  // The current item inside a closed group opens its way on the next load.
+  await page.evaluate(() => {
+    const link = [...document.querySelectorAll('[data-demo="list"] .ds-drawer__item')].find((el) => el.textContent.includes('2025'));
+    for (const other of document.querySelectorAll('[data-demo="list"] [aria-current]')) other.removeAttribute('aria-current');
+    link.setAttribute('aria-current', 'page');
+    const nav = document.querySelector('[data-demo="drawer"]');
+    DS.get(nav, 'drawer').destroy();
+    DS.shell.drawer(nav, { key: 'sg-demo' });
+  });
+  await expect(tickets).toHaveJSProperty('open', true);
+  await expect(page.locator('#sg-demo-earlier')).toHaveJSProperty('open', true);
+});
+
+test('the drawer\'s keys: arrows, Home and End over the shown items and toggles, Up from the first to the filter', async ({ page }) => {
+  await open(page);
+  const overview = page.locator('[data-demo="list"] .ds-drawer__item', { hasText: 'Overview' });
+  await focusByKeyboard(page, overview);
+  await page.keyboard.press('ArrowDown');
+  await expect(page.locator('[data-demo="list"] .ds-drawer__item', { hasText: 'Devices' })).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  await expect(page.locator('[data-demo="list"] .ds-drawer__toggle', { hasText: 'Tickets' })).toBeFocused();
+  await page.keyboard.press('End');
+  await expect(page.locator('[data-demo="drawer"] .ds-drawer__foot .ds-drawer__item', { hasText: 'Help' })).toBeFocused();
+  await page.keyboard.press('Home');
+  await expect(page.locator('[data-demo="drawer"] .ds-drawer__back .ds-drawer__item')).toBeFocused();
+  await page.keyboard.press('ArrowUp');
+  await expect(page.locator(drawerField)).toBeFocused();
+});
+
+test('the phone search sheet: opens over the frame, keeps the focus inside, Escape clears then closes', async ({ page }) => {
+  await open(page, 390);
+  const opener = page.locator('[data-demo="search-open"]');
+  const sheet = page.locator('[data-demo="search"]');
+  const input = sheet.locator('input');
+  await expect(sheet).toBeHidden();
+  await expect(opener).toHaveAttribute('aria-expanded', 'false');
+  expect(await opener.getAttribute('aria-controls')).toBe(await sheet.getAttribute('id'));
+  await opener.click();
+  await expect(sheet).toHaveAttribute('data-state', 'open');
+  await expect(opener).toHaveAttribute('aria-expanded', 'true');
+  await expect(input).toBeFocused();
+  await settle(page);
+  const box = await sheet.evaluate((el) => { const r = el.getBoundingClientRect(); return [r.left, r.top, r.width, r.height]; });
+  expect(box).toEqual([0, 0, 390, 800]);
+  // The rest of the page is inert; the bar's own buttons do not paint over the sheet.
+  expect(await page.$eval('[data-demo="panel"]', (el) => el.closest('[inert]') !== null)).toBe(true);
+  expect(await page.evaluate(() => document.elementFromPoint(380, 400)?.closest('[data-demo="search"]') !== null)).toBe(true);
+  expect(await page.evaluate(() => getComputedStyle(document.body).overflow)).toBe('hidden');
+  await input.fill('lap');
+  await expect(sheet.locator('.ds-topbar__results .ds-list__item')).toHaveCount(3);
+  // Tab goes round inside.
+  const stops = await sheet.evaluate((el) => [...el.querySelectorAll('button, input, a[href]')].filter((n) => n.getClientRects().length).length);
+  for (let i = 0; i < stops; i += 1) await page.keyboard.press('Tab');
+  expect(await page.evaluate(() => document.activeElement.closest('[data-demo="search"]') !== null)).toBe(true);
+  await input.focus();
+  await page.keyboard.press('Escape');
+  await expect(input).toHaveValue('');
+  await expect(sheet).toHaveAttribute('data-state', 'open');
+  await page.keyboard.press('Escape');
+  await expect(sheet).toBeHidden();
+  await expect(opener).toBeFocused();
+  await expect(opener).toHaveAttribute('aria-expanded', 'false');
+  expect(await page.$eval('[data-demo="panel"]', (el) => el.closest('[inert]') === null)).toBe(true);
+  // The back button closes it too; a wider window puts the search back in the bar.
+  await opener.click();
+  await expect(sheet).toHaveAttribute('data-state', 'open');
+  await sheet.locator('.ds-topbar__search-back').click();
+  await expect(sheet).toBeHidden();
+  await opener.click();
+  await expect(sheet).toHaveAttribute('data-state', 'open');
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(sheet).toBeVisible();
+  await expect(opener).toBeHidden();
+  await expect.poll(() => sheet.evaluate((el) => [getComputedStyle(el).position, el.getBoundingClientRect().height < 64])).toEqual(['static', true]);
+  expect(await page.$eval('[data-demo="panel"]', (el) => el.closest('[inert]') === null)).toBe(true);
+});
+
+test('the launcher: a menu of apps in a grid, two-dimensional keys, the current app marked', async ({ page }) => {
+  await open(page);
+  const trigger = page.locator('[data-demo="apps"]');
+  const menu = page.getByRole('menu', { name: 'Apps' });
+  await trigger.focus();
+  await page.keyboard.press('Enter');
+  await expect(menu).toBeVisible();
+  await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  const apps = menu.getByRole('menuitem');
+  await expect(apps).toHaveCount(9);
+  await expect(apps.first()).toBeFocused();
+  await expect(apps.first()).toHaveAttribute('aria-current', 'true');
+  const rows = await apps.evaluateAll((els) => new Set(els.map((el) => Math.round(el.getBoundingClientRect().top))).size);
+  expect(rows).toBe(3);
+  await page.keyboard.press('ArrowRight');
+  await expect(apps.nth(1)).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(apps.nth(4)).toBeFocused();
+  await page.keyboard.press('ArrowLeft');
+  await expect(apps.nth(3)).toBeFocused();
+  await page.keyboard.press('ArrowUp');
+  await expect(apps.nth(0)).toBeFocused();
+  await page.keyboard.press('ArrowUp');
+  await expect(apps.nth(0), 'no wrap at the top edge').toBeFocused();
+  await page.keyboard.press('End');
+  await expect(apps.nth(8)).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(apps.nth(8), 'no wrap at the bottom edge').toBeFocused();
+  await page.keyboard.press('Home');
+  await expect(apps.nth(0)).toBeFocused();
+  // The current app: the tint on its disc and the label weight, not colour alone.
+  const look = await apps.evaluateAll((els) => els.slice(0, 2).map((el) => [getComputedStyle(el).fontWeight, getComputedStyle(el.querySelector('.ds-launcher__icon')).backgroundColor]));
+  expect(look[0][0]).not.toBe(look[1][0]);
+  expect(look[0][1]).not.toBe(look[1][1]);
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
+test('the launcher follows size, density, shape and touch', async ({ page }) => {
+  await open(page);
+  const measure = (classes) => page.evaluate((cls) => {
+    const menu = document.querySelector('.ds-launcher');
+    menu.hidden = false;
+    menu.style.position = 'static';
+    menu.className = `ds-menu ds-launcher ${cls}`;
+    const appEl = menu.querySelector('.ds-launcher__app');
+    const disc = appEl.querySelector('.ds-launcher__icon');
+    const out = { app: appEl.getBoundingClientRect().height, disc: disc.getBoundingClientRect().width, radius: parseFloat(getComputedStyle(appEl).borderTopLeftRadius) };
+    menu.hidden = true;
+    menu.removeAttribute('style');
+    return out;
+  }, classes);
+  expect((await measure('')).app).toBe(88);
+  expect((await measure('')).disc).toBe(40);
+  expect(await measure('ds-xs')).toMatchObject({ app: 72, disc: 24 });
+  expect(await measure('ds-xl')).toMatchObject({ app: 104, disc: 56 });
+  expect((await measure('ds-density-tight')).app).toBe(76);
+  expect((await measure('ds-xs ds-density-tight')).app).toBe(60);
+  // Touch wins as a minimum: the smallest app computes 60px, a finger's target at least 48px.
+  const floor = (cls) => page.evaluate((c) => {
+    const probe = document.createElement('div');
+    probe.className = `ds-menu ds-launcher ${c}`;
+    probe.innerHTML = '<a class="ds-menu__item ds-launcher__app" href="#">App</a>';
+    document.querySelector('.ds-launcher').after(probe);
+    probe.style.setProperty('--ds-launcher-app-height', '24px');
+    const value = getComputedStyle(probe.firstChild).minHeight;
+    probe.remove();
+    return value;
+  }, cls);
+  expect(await floor('ds-xs')).toBe('8px');
+  expect(await floor('ds-xs ds-touch')).toBe('48px');
+  expect((await measure('ds-shape-square')).radius).toBe(0);
+  const base = (await measure('')).radius;
+  expect((await measure('ds-shape-soft')).radius).toBeCloseTo(base / 2, 1);
+});
+
+test('the bell: a dot on its icon\'s corner, inside the button, and a name that says the count', async ({ page }) => {
+  await open(page);
+  const bell = page.locator('[data-demo="bell"]');
+  await expect(bell).toHaveAccessibleName('Notifications, 3 unread');
+  // At md, lg and under touch: the box grows, the 20px glyph stays, the dot (a step larger at lg) keeps its corner.
+  for (const [option, size] of [['', 8], ['ds-lg', 10], ['ds-touch', 8]]) {
+    const placed = await bell.evaluate((button, name) => {
+      button.classList.remove('ds-lg', 'ds-touch');
+      if (name) button.classList.add(name);
+      const dot = button.querySelector('.ds-badge--dot').getBoundingClientRect();
+      const box = button.getBoundingClientRect();
+      const glyph = button.querySelector('svg').getBoundingClientRect();
+      return { inside: dot.left >= box.left && dot.right <= box.right && dot.top >= box.top && dot.bottom <= box.bottom, corner: Math.abs(dot.right - glyph.right) < 1 && Math.abs(dot.top - glyph.top) < 1, size: dot.width };
+    }, option);
+    expect(placed, option || 'md').toEqual({ inside: true, corner: true, size });
+  }
+});
+
+test('the account menu: named by its head, a theme switch that pins the scheme and is remembered', async ({ page }) => {
+  await open(page);
+  const trigger = page.getByRole('button', { name: 'Account: Ada Lovelace' });
+  await expect(trigger).toHaveAttribute('aria-haspopup', 'menu');
+  await trigger.click();
+  const menu = page.getByRole('menu', { name: 'Ada Lovelace ada@example.org', exact: true });
+  await expect(menu).toBeVisible();
+  const theme = menu.getByRole('group', { name: 'Theme' });
+  await expect(theme.getByRole('menuitemradio', { name: 'Device' })).toHaveAttribute('aria-checked', 'true');
+  const change = page.evaluate(() => new Promise((resolve) => document.querySelector('[data-ds-scheme-switch]').addEventListener('ds:change', (event) => resolve(event.detail), { once: true })));
+  await theme.getByRole('menuitemradio', { name: 'Dark' }).click();
+  expect(await change).toEqual({ value: 'dark' });
+  const pinned = () => page.evaluate(() => document.querySelector('[data-ds-scheme-switch]').closest('.ds-theme').getAttribute('data-ds-scheme'));
+  expect(await pinned()).toBe('dark');
+  await expect(page.locator('[data-ds-scheme-value="dark"]')).toHaveAttribute('aria-checked', 'true');
+  await expect(page.locator('[data-ds-scheme-value="auto"]')).toHaveAttribute('aria-checked', 'false');
+  await page.reload();
+  await ready(page);
+  expect(await pinned()).toBe('dark');
+  // The page pins the theme itself: the switch follows; auto removes the pin.
+  await page.evaluate(() => document.querySelector('[data-ds-scheme-switch]').closest('.ds-theme').setAttribute('data-ds-scheme', 'light'));
+  await expect(page.locator('[data-ds-scheme-value="light"]')).toHaveAttribute('aria-checked', 'true');
+  await page.evaluate(() => DS.get(document.querySelector('[data-ds-scheme-switch]'), 'scheme-switch').set('auto'));
+  expect(await pinned()).toBeNull();
+  // Sign out is the page's: a plain menu item.
+  await trigger.click();
+  await expect(page.getByRole('menuitem', { name: 'Sign out' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(trigger).toBeFocused();
+});
+
+test('the breadcrumbs fold their middle into a menu by the width of their nav', async ({ page }) => {
+  await open(page);
+  const box = page.locator('[data-demo="crumbs-box"]');
+  const nav = box.locator('.ds-breadcrumbs');
+  const more = nav.locator('.ds-breadcrumbs__more button');
+  const visible = () => shown(page, '[data-demo="crumbs-box"] li:not(.ds-breadcrumbs__more)');
+  await expect(more).toBeHidden();
+  expect(await visible()).toEqual(['Home', 'Sites', 'Building A', 'Floor 2', 'Devices', 'LAPTOP-0042']);
+  await box.evaluate((el) => { el.style.inlineSize = '360px'; });
+  await expect(more).toBeVisible();
+  const middle = await visible();
+  expect(middle[0]).toBe('Home');
+  expect(middle.at(-1)).toBe('LAPTOP-0042');
+  expect(middle.length).toBeLessThan(6);
+  await expect(more).toHaveAccessibleName(`Show ${6 - middle.length} more`);
+  expect(await nav.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+  await box.evaluate((el) => { el.style.inlineSize = '160px'; });
+  await expect.poll(visible, 'the parent goes last; the current page never').toEqual(['LAPTOP-0042']);
+  await expect(more).toHaveAccessibleName('Show 5 more');
+  await box.evaluate((el) => { el.style.inlineSize = '280px'; });
+  await expect.poll(visible).toEqual(['Devices', 'LAPTOP-0042']);
+  await expect(more).toHaveAccessibleName('Show 4 more');
+  // The menu lists the folded crumbs in order, as links; the keys open it on the first.
+  await more.focus();
+  await page.keyboard.press('ArrowDown');
+  const menu = page.getByRole('menu', { name: 'Show 4 more' });
+  await expect(menu).toBeVisible();
+  await expect(more).toHaveAttribute('aria-expanded', 'true');
+  expect(await menu.getByRole('menuitem').allTextContents()).toEqual(['Home', 'Sites', 'Building A', 'Floor 2']);
+  await expect(menu.getByRole('menuitem').first()).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  await expect(more).toBeFocused();
+  await box.evaluate((el) => { el.style.inlineSize = '100%'; });
+  await expect(more).toBeHidden();
+  await expect.poll(visible).toEqual(['Home', 'Sites', 'Building A', 'Floor 2', 'Devices', 'LAPTOP-0042']);
+});
+
+test('a re-render with DS.dom.morphHtml keeps the drawer\'s filter and the folded trail, and follows what changed', async ({ page }) => {
+  await open(page);
+  // The page's template: the list and the trail as rendered, without the parts and marks of the system.
+  const template = (selector) => page.$eval(selector, (el) => {
+    const copy = el.cloneNode(true);
+    for (const kept of copy.querySelectorAll('[data-ds-keep]')) kept.remove();
+    for (const marked of copy.querySelectorAll('[data-ds-filtered], [data-ds-collapsed]')) marked.removeAttribute(marked.hasAttribute('data-ds-filtered') ? 'data-ds-filtered' : 'data-ds-collapsed');
+    return copy.innerHTML;
+  });
+  const listHtml = await template('[data-demo="list"]');
+  const field = page.locator(drawerField);
+  await field.fill('waiting');
+  const items = () => shown(page, '[data-demo="list"] .ds-drawer__item');
+  expect(await items()).toEqual(['Waiting, 2']);
+  await page.$eval('[data-demo="list"]', (el, html) => DS.dom.morphHtml(el, html), listHtml);
+  expect(await items(), 'the same list again: the filter stays').toEqual(['Waiting, 2']);
+  await expect(field).toHaveValue('waiting');
+  expect(await page.$eval('[data-demo="drawer"]', (el) => DS.get(el, 'drawer').get().count)).toBe(1);
+  // New items during the filter follow the query.
+  const more = '<a class="ds-drawer__item" href="#"><span class="ds-drawer__label">Waiting list</span></a><a class="ds-drawer__item" href="#"><span class="ds-drawer__label">Zebra</span></a>';
+  await page.$eval('[data-demo="list"]', (el, html) => DS.dom.morphHtml(el, html), listHtml + more);
+  await expect.poll(items).toEqual(['Waiting, 2', 'Waiting list']);
+  expect(await page.$eval('[data-demo="drawer"]', (el) => DS.get(el, 'drawer').get().count)).toBe(2);
+  await field.fill('');
+  await expect.poll(async () => (await items()).includes('Zebra')).toBe(true);
+
+  const box = page.locator('[data-demo="crumbs-box"]');
+  const crumbs = () => shown(page, '[data-demo="crumbs-box"] li:not(.ds-breadcrumbs__more)');
+  const trailHtml = await template('[data-demo="crumbs-box"] .ds-breadcrumbs ol');
+  await box.evaluate((el) => { el.style.inlineSize = '280px'; });
+  await expect.poll(crumbs).toEqual(['Devices', 'LAPTOP-0042']);
+  await page.$eval('[data-demo="crumbs-box"] .ds-breadcrumbs ol', (el, html) => DS.dom.morphHtml(el, html), trailHtml);
+  expect(await crumbs(), 'the same trail again: the fold stays').toEqual(['Devices', 'LAPTOP-0042']);
+  await expect(box.locator('.ds-breadcrumbs__more button')).toBeVisible();
+  // Another text: the trail folds again and still fits.
+  await page.$eval('[data-demo="crumbs-box"] .ds-breadcrumbs ol', (el, html) => DS.dom.morphHtml(el, html), trailHtml.replace('>Devices<', '>Every device on the second floor of Building A<'));
+  await expect.poll(crumbs).toEqual(['LAPTOP-0042']);
+  await expect(box.locator('.ds-breadcrumbs__more button')).toHaveAccessibleName('Show 5 more');
+  expect(await box.locator('.ds-breadcrumbs').evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+});
+
+test('the theme switch as radios: one tab stop, the arrow keys move and choose, round at the ends', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const group = document.createElement('div');
+    group.className = 'ds-segmented';
+    group.setAttribute('role', 'radiogroup');
+    group.setAttribute('aria-label', 'Colour scheme');
+    group.setAttribute('data-ds-scheme-switch', 'sg-test-radios');
+    group.setAttribute('data-ds-scheme-switch-remember', 'off');
+    group.innerHTML = ['light', 'dark', 'auto'].map((value) => `<button class="ds-segmented__option" type="button" role="radio" aria-checked="false" data-ds-scheme-value="${value}">${value}</button>`).join('');
+    document.querySelector('#fx-component').append(group);
+  });
+  const group = page.getByRole('radiogroup', { name: 'Colour scheme' });
+  const radio = (name) => group.getByRole('radio', { name });
+  await expect(radio('auto')).toHaveAttribute('aria-checked', 'true');
+  const stops = () => group.evaluate((el) => [...el.querySelectorAll('[role="radio"]')].map((item) => item.getAttribute('tabindex')));
+  expect(await stops()).toEqual(['-1', '-1', '0']);
+  const pinned = () => page.evaluate(() => document.querySelector('[data-ds-scheme-switch="sg-test-radios"]').closest('.ds-theme').getAttribute('data-ds-scheme'));
+  await radio('auto').focus();
+  await page.keyboard.press('ArrowLeft');
+  await expect(radio('dark')).toBeFocused();
+  await expect(radio('dark')).toHaveAttribute('aria-checked', 'true');
+  expect(await pinned()).toBe('dark');
+  expect(await stops()).toEqual(['-1', '0', '-1']);
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  await expect(radio('light')).toBeFocused();
+  expect(await pinned()).toBe('light');
+  await page.keyboard.press('ArrowUp');
+  await expect(radio('auto')).toBeFocused();
+  expect(await pinned()).toBeNull();
+  // Nothing was stored (remember off), and the menu's switch follows the pin.
+  expect(await page.evaluate(() => DS.store.open('shell').get('sg-test-radios', null))).toBeNull();
+});
+
+test('a phone at 360px: the bar keeps every action and the account inside the frame', async ({ page }) => {
+  await open(page, 360);
+  const fits = await page.evaluate(() => {
+    const bar = document.querySelector('[data-demo="app"] > .ds-topbar').getBoundingClientRect();
+    return [...document.querySelectorAll('[data-demo="app"] > .ds-topbar :is(.ds-topbar__menu, .ds-topbar__actions > .ds-btn, .ds-account__trigger)')]
+      .filter((el) => el.getClientRects().length)
+      .map((el) => { const r = el.getBoundingClientRect(); return [el.getAttribute('aria-label'), r.width, r.left >= bar.left && r.right <= bar.right]; });
+  });
+  expect(fits.map(([name]) => name)).toEqual(['Menu', 'Search', 'Apps', 'Notifications, 3 unread', 'Account: Ada Lovelace']);
+  for (const [name, width, inside] of fits) expect([name, width, inside]).toEqual([name, 40, true]);
+});
+
+test('names and roles of the 3.0 parts', async ({ page }) => {
+  await open(page);
+  await expect(page.getByRole('searchbox', { name: 'Filter the navigation' })).toBeVisible();
+  await expect(page.getByRole('searchbox', { name: 'Search devices' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Apps' })).toHaveAttribute('aria-haspopup', 'menu');
+  await expect(page.getByRole('navigation', { name: 'Breadcrumb', exact: true })).toBeVisible();
+  await expect(page.locator('[data-demo="crumbs-box"] [aria-current="page"]')).toHaveText('LAPTOP-0042');
+  expect(await page.$eval('[data-demo="menu"]', (el) => el.getAttribute('aria-controls'))).toBe(await page.$eval('[data-demo="drawer"]', (el) => el.id));
+});
+
+test('forced colours: the current app SelectedItem, a rail badge Highlight, the sheet and discs keep their edges', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'forced colours are emulated in Chromium only');
+  await page.emulateMedia({ forcedColors: 'active' });
+  await open(page);
+  const system = await page.evaluate(() => {
+    const probe = (value) => {
+      const el = document.createElement('span');
+      el.style.forcedColorAdjust = 'none';
+      el.style.backgroundColor = value;
+      document.querySelector('.ds-theme').append(el);
+      const colour = getComputedStyle(el).backgroundColor;
+      el.remove();
+      return colour;
+    };
+    return { item: probe('SelectedItem'), highlight: probe('Highlight') };
+  });
+  await page.locator('[data-demo="apps"]').click();
+  await expect.poll(() => page.$eval('.ds-launcher__app[aria-current="true"]', (el) => getComputedStyle(el).backgroundColor)).toBe(system.item);
+  expect(await page.$eval('.ds-launcher__icon', (el) => getComputedStyle(el).outlineStyle)).toBe('solid');
+  await page.keyboard.press('Escape');
+  await page.locator('[data-demo="menu"]').click();
+  await expect.poll(() => page.$eval('[data-demo="list"] .ds-drawer__item .ds-badge', (el) => getComputedStyle(el).backgroundColor)).toBe(system.highlight);
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.locator('[data-demo="search-open"]').click();
+  expect(await page.$eval('[data-demo="search"]', (el) => getComputedStyle(el).outlineStyle)).toBe('solid');
 });

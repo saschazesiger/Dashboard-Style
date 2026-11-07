@@ -75,6 +75,8 @@ export const SYSTEM_ATTRIBUTES = [
   'data-ds-keyboard',
   'data-ds-savebar',
   'data-ds-savebar-rest',
+  'data-ds-filtered',
+  'data-ds-collapsed',
 ];
 const SHARED_ATTRIBUTES = ['data-toast-reserve'];
 
@@ -408,7 +410,7 @@ export function checkProject(config, root) {
       if (listed.some(([start, end]) => match.index >= start && match.index < end)) continue;
       add('error', file, lineAt(source, match.index), 'attributes', `${match[1]} is written by the system; the page never writes it${SHARED_ATTRIBUTES.includes(match[1]) ? ' (unless it passes reserve: false to toast())' : ''}`);
     }
-    for (const match of source.matchAll(/\.dataset\.(scrolled|dsSentinel|dsEdges|dsOverflowStart|dsOverflowEnd|dsDragover|dsDragging|dsKeyboard|dsSavebar|dsSavebarRest)\s*=(?!=)/g)) {
+    for (const match of source.matchAll(/\.dataset\.(scrolled|dsSentinel|dsEdges|dsOverflowStart|dsOverflowEnd|dsDragover|dsDragging|dsKeyboard|dsSavebar|dsSavebarRest|dsFiltered|dsCollapsed)\s*=(?!=)/g)) {
       if (listed.some(([start, end]) => match.index >= start && match.index < end)) continue;
       add('error', file, lineAt(source, match.index), 'attributes', `dataset.${match[1]} is written by the system; the page never writes it`);
     }

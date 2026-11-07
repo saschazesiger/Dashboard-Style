@@ -498,6 +498,9 @@ const DEFAULT_STRINGS = Object.freeze({
   imageFailed: 'The image could not be loaded.',
   resizeSheet: 'Resize the sheet',
   sheetDetent: 'Sheet at {percent} percent of the screen',
+  filterMatch: '{count} match',
+  filterMatches: '{count} matches',
+  breadcrumbsMore: 'Show {count} more',
 });
 
 /**

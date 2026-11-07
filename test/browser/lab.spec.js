@@ -352,6 +352,9 @@ const CONTINUITY = {
   'bottomsheet-open': { in: 'doc', sel: '#sg-lab-bottomsheet .ds-bottomsheet__panel', props: ['top'] },
   'tearsheet-open': { in: 'doc', sel: '#sg-lab-tearsheet-device .ds-dialog__box', props: ['opacity', 'top'] },
   'sheet-push': { in: 'stage', sel: '[data-lab-panel]', props: ['--ds-sheet-reveal'] },
+  'shell-search-sheet': { in: 'stage', sel: '[data-lab-sheet]', props: ['opacity', 'translate.y'] },
+  'shell-launcher': { in: 'stage', sel: '#sg-lab-launcher', props: ['opacity'] },
+  'shell-account': { in: 'stage', sel: '#sg-lab-account', props: ['opacity'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */
@@ -750,6 +753,9 @@ const LAYERS = {
   Popover: { drive: 'lab', part: '#sg-lab-popover', variants: [['sg-lab-popover', 'popover-open']] },
   'Help card': { drive: 'lab', part: '#sg-lab-toggletip', variants: [['sg-lab-toggletip', 'toggletip-open']] },
   'Combobox list': { drive: 'popup', part: '.ds-combo__popup', variants: [['sg-lab-combo', 'combobox']] },
+  'Search sheet (phone)': { drive: 'popup', phone: true, part: '[data-lab-sheet]', opener: '[data-lab-open]', variants: [['shell-search-sheet', 'shell-search-sheet']] },
+  Menu: { drive: 'popup', part: '#sg-lab-menu', opener: '[data-menu-trigger]', variants: [['sg-lab-menu', 'menu']] },
+  'Combobox list': { drive: 'popup', part: '.ds-combo__popup', opener: '.ds-combo__input', variants: [['sg-lab-combo', 'combobox']] },
 };
 
 /**
@@ -834,7 +840,7 @@ function layerStep(page, layer, step, variant, row) {
     } else {
       part = stage.querySelector(spec.part);
       root = part;
-      const opener = demo === 'menu' ? stage.querySelector('[data-menu-trigger]') : stage.querySelector('.ds-combo__input');
+      const opener = stage.querySelector(spec.opener);
       if (act === 'open') DS.overlay.open(part, { opener });
       else DS.overlay.close(part);
       done = act === 'open' ? () => part.getAttribute('data-state') === 'open' : () => !part.hasAttribute('data-state');

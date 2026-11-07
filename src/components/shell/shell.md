@@ -49,7 +49,8 @@ is the only scroller. At 900px and below the drawer becomes modal.
 | Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container (the compact theme sets dense) | 4px less height per step on drawer rows (48, 44, 40, 36px) and the switch; type, side padding and avatars stay |
 | Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | multiplies the radius of drawer rows and the pill (rest and pressed), the switch and its press clip, the skip link, the account capsule, the panel's top corners, the modal drawer's open side and the avatar |
 | Touch | `.ds-touch` | the theme or a container | drawer rows, the switch, the skip link and the brand link are at least `--ds-touch-target` (48px) whatever the size and density; the menu button's box moves the bar's padding and the modal drawer's lock-up with it |
-| Tone | none | | the frame states no status; a banner's alert does |
+| Size, density, shape, touch: launcher | the same classes | the `.ds-launcher` menu or any ancestor | an app 72 to 104px high (8px per size step, 4px per density step), its disc 24 to 56px (8px per size step), the size's type role; the shape multiplies the app's and the disc's radius; `.ds-touch` makes every app at least `--ds-touch-target` |
+| Tone | none | | the frame states no status; a banner's alert does; a badge takes its own tone |
 
 The frame itself (the top bar's height, the drawer's and the rail's width, the panel's margins) is layout, set through
 its roles (`--ds-topbar-height`, `--ds-drawer-width`, `--ds-drawer-rail-width`): no option moves it.
@@ -199,7 +200,8 @@ its roles (`--ds-topbar-height`, `--ds-drawer-width`, `--ds-drawer-rail-width`):
   symmetric room, `auto` for none), so a classic scrollbar that appears never shifts the content. Overlay
   scrollbars need no room; Safari before 18.2 ignores it.
 - Keyboard: the skip link is the first tab stop and shows only while focused. Drawer items are links or buttons, each a
-  tab stop; a group's `<summary>` opens and closes it with Enter or Space. In the modal drawer focus stays inside, and
+  tab stop; a group's `<summary>` opens and closes it with Enter or Space; with `data-ds-drawer` the arrow keys, Home
+  and End move between them too. In the modal drawer focus stays inside, and
   Escape closes it and returns focus to the menu button. The rail's toggle is a button with `aria-pressed`; hover never
   expands the rail. A segmented switch of buttons is one tab stop (`DS.dom.roving()`); one of links keeps a stop per
   link.
@@ -351,7 +353,12 @@ never expands the rail: only its toggle does. Items are squares of the height th
 as wide as the column allows.
 
 The toggle is the top bar's menu button: with `aria-pressed` it also shows above 900px, on the drawer icons' axis.
-The page sets the attribute, keeps it across loads and leaves the modal drawer to `DS.overlay` below 900px:
+`data-ds-shell` on the `.ds-app` does all of it (3.0, [below](#dsshell-the-frames-behaviour)): the button toggles the
+rail above 900px and opens the modal drawer at and below it, and the choice is remembered. A drawer action whose
+label is a `.ds-drawer__label` (`<button class="ds-btn ds-btn--tonal" data-tip="New ticket">[icon plus 18]<span
+class="ds-drawer__label">New ticket</span></button>`) turns into an icon button of its height on the rail, named by
+its tooltip. A page without `DS.shell` sets the attribute itself, keeps it across loads and leaves the modal drawer to
+`DS.overlay` below 900px:
 
 ```js
 const wide = matchMedia('(min-width: 901px)');
@@ -363,6 +370,187 @@ menu.addEventListener('click', () => {
   localStorage.setItem('drawer', collapsed ? 'rail' : 'full');
 });
 ```
+
+### DS.shell: the frame's behaviour
+
+`src/components/shell/shell.js` (3.0) wires what a 2.x page wrote by hand around the frame. Each part is a
+`data-ds-*` attribute that `DS.init()` picks up, or an export that returns the same controller (`get()`, `set()`,
+`on(type, fn)`, `destroy()`):
+
+| Attribute | Export | What it does |
+|---|---|---|
+| `data-ds-shell="<key>"` on `.ds-app` | `DS.shell.create(app, { key, rail, remember })` | the menu button: the rail above 900px (a toggle, `aria-pressed`), the modal drawer at and below it (a disclosure, `aria-expanded`, through `DS.overlay`); a choice in the modal drawer closes it; skip links; the drawer's pill (`DS.indicator`), cut edges (`DS.dom.scrollEdges`) and the view's `data-scrolled` (`DS.dom.watchScrolled`) |
+| `data-ds-drawer="<key>"` on `.ds-drawer` | `DS.shell.drawer(nav, { key, remember })` | groups remembered open or closed, the filter, the arrow keys |
+| `data-ds-search-sheet` on `.ds-topbar__search` | `DS.shell.searchSheet(el, { opener })` | the search as a full-width sheet at 720px and below (`DS.shell.SEARCH_QUERY`) |
+| `data-ds-launcher` on `.ds-menu.ds-launcher` | `DS.shell.launcher(menu)` | the launcher's arrow keys in two dimensions |
+| `data-ds-scheme-switch="<key>"` on a group | `DS.shell.schemeSwitch(el, { key, target, link, remember })` | light, dark and auto, remembered, in step everywhere |
+| `data-ds-breadcrumbs` on `.ds-breadcrumbs` | `DS.shell.breadcrumbs(nav)` | the crumbs that do not fit fold into a menu |
+
+Three helpers: `DS.shell.setScheme(value, { target, link, key, remember })` applies a scheme the way the switch does
+(and every switch follows); `DS.shell.matchText(text, query)`, the drawer filter's match (every word, any case, without
+accents) for a page's own search, and `DS.shell.fitCrumbs(widths, room, more)`, the breadcrumbs' fold, are pure
+functions.
+
+- **Frame** (`data-ds-shell`): the rail is remembered under the key through [`DS.store`](core.md) (namespace
+  `shell`); `data-ds-shell-rail="off"` keeps the drawer full (the button then shows only with the modal drawer) and
+  `data-ds-shell-remember="off"` stores nothing. Hover never expands the rail. `set({ rail })` and
+  `set({ open })` drive it from the page; `get()` returns `{ rail, open }`; `ds:change` (`{ rail }`) fires on the
+  `.ds-app`. The rail clears the drawer's filter (it has no room for the field). A skip link focuses its target (a
+  target that cannot take focus gets `tabindex="-1"`); one that leads into the drawer opens the modal drawer, one that
+  leads into a phone search sheet opens it.
+- **Push or overlay.** The width decides, not the page: above 900px the drawer is docked and pushes the panel (full
+  or as the rail); at and below it the drawer overlays the page as a modal sheet over the scrim. `DS.overlay` decides
+  by `DS.overlay.DRAWER_QUERY`. There is no modal drawer at desktop widths yet; a console that wants all the width for
+  its content uses the rail.
+- **Drawer** (`data-ds-drawer`): see [Filter, remembered groups and badges](#filter-remembered-groups-and-badges).
+- Every part this module adds (the "more" crumb and its menu, the drawer's "No results") carries `data-ds-keep`, so
+  a re-render with `DS.dom.morphHtml` leaves it. The marks it writes (`data-ds-filtered`, `data-ds-collapsed`, the
+  `open` of a group the filter opened) are owned state, so a re-render keeps them, and a re-render that changes the
+  drawer's list or the trail (new items, other labels) filters or folds again. Its strings come from `DS.core.config({ strings })`:
+  `filterMatch`, `filterMatches`, `noResults`, `breadcrumbsMore` ([install.md](install.md), "Language and locale").
+
+### Filter, remembered groups and badges
+
+```html
+<nav class="ds-drawer" aria-label="Main" tabindex="-1" data-ds-drawer="main">
+  <div class="ds-drawer__search">
+    <div class="ds-search">[icon filter 20]<input class="ds-input" type="search" aria-label="Filter the navigation" placeholder="Filter"></div>
+  </div>
+  <div class="ds-drawer__list">
+    <details class="ds-drawer__group ds-collapsible" id="nav-tickets" open> ... </details>
+    <a class="ds-drawer__item" href="/updates" data-tip="Updates">[icon bell 20]<span class="ds-drawer__label">Updates</span><span class="ds-badge"><span class="ds-sr">, </span>4<span class="ds-sr"> new</span></span></a>
+  </div>
+</nav>
+```
+
+- **Remembered groups.** Each `<details class="ds-drawer__group">` is remembered open or closed under the drawer's
+  key, by its `id` (else `data-ds-key`, else its heading's text). The groups around the current item
+  (`aria-current="page"`) open on load, without motion. `get()` returns `{ query, count, open }`, `set({ open:
+  { '<key>': true } })` opens or closes groups, `set({ query })` filters.
+- **The filter.** `.ds-drawer__search` (between the actions and the list) holds a search field. Typing filters the
+  items by their labels: every word, in any case, without accents; a group whose heading matches shows all of its
+  items. Groups that hold a match open until the field is cleared (then they close again and nothing of it is
+  remembered); filtered items, rows and groups take no room (`data-ds-filtered`, written by the module). Without a
+  match `.ds-drawer__empty` says "No results". The count is announced once the typing pauses
+  (`--ds-delay-tooltip`): "3 matches". Escape clears a filled field, ArrowDown goes to the first match. `ds:filter`
+  (`{ query, count }`) fires on the drawer. The rail hides the field.
+- **Keys** (the optional keys of the [APG disclosure navigation](https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation/)):
+  ArrowDown and ArrowUp move between the shown items and group toggles, Home and End to the first and the last;
+  ArrowUp from the first goes back to the field. Tab still reaches every link; Enter and Space open a group.
+- **Badges.** A `.ds-badge` ([Badge](#badge)) at the end of an item or a group toggle takes the count's place, when the
+  count is news (unread). Give it its words in `.ds-sr` (", 4 new"). On the rail it becomes a dot on the icon's corner
+  (`--ds-badge-dot-size`, `--ds-primary` or the badge's tone), its figure still read with the label; in forced colours
+  the dot is `Highlight`.
+- **Folder groups**: a nested `<details>` group is a folder; it indents its rows by `--ds-drawer-indent` per level (2-3
+  levels) and is remembered like any group.
+
+### Top bar: search, launcher, notifications and account
+
+```html
+<div class="ds-topbar">
+  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu">[icon menu 20]</button>
+  <a class="ds-brand" href="/"><span class="ds-brand__name">Product</span></a>
+  <div class="ds-topbar__search" data-ds-search-sheet>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__search-back" type="button" aria-label="Close search" data-ds-close>[icon arrowLeft 20]</button>
+    <div class="ds-search">[icon search 20]<input class="ds-input" type="search" aria-label="Search devices" placeholder="Search devices"></div>
+    <div class="ds-topbar__results"> (what the page shows for the query on phones) </div>
+  </div>
+  <div class="ds-topbar__actions">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__search-open" type="button" aria-label="Search" data-tip="Search">[icon search 20]</button>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Apps" aria-haspopup="menu" aria-expanded="false" aria-controls="apps" data-ds-open="#apps" data-tip="Apps">[icon apps 20]</button>
+    <div class="ds-menu ds-launcher" role="menu" id="apps" aria-label="Apps" data-ds-launcher hidden>
+      <a class="ds-menu__item ds-launcher__app" role="menuitem" href="/devices" aria-current="true"><span class="ds-launcher__icon">[icon laptop 24]</span><span class="ds-launcher__label">Devices</span></a>
+      <a class="ds-menu__item ds-launcher__app" role="menuitem" href="/tickets"><span class="ds-launcher__icon">[icon ticket 24]</span><span class="ds-launcher__label">Tickets</span></a>
+    </div>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Notifications, 3 unread" data-tip="Notifications">[icon bell 20]<span class="ds-badge ds-badge--dot ds-tone-error" aria-hidden="true"></span></button>
+  </div>
+  <div class="ds-account">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+    <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+      <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+      <div class="ds-menu__divider" role="separator"></div>
+      <div role="group" aria-labelledby="theme-heading" data-ds-scheme-switch>
+        <p class="ds-menu__heading" id="theme-heading">Theme</p>
+        <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="false" data-ds-scheme-value="light">[icon check 20 .ds-menu__check]<span class="ds-menu__label">Light</span>[icon sun 20]</button>
+        <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="false" data-ds-scheme-value="dark">[icon check 20 .ds-menu__check]<span class="ds-menu__label">Dark</span>[icon moon 20]</button>
+        <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="true" data-ds-scheme-value="auto">[icon check 20 .ds-menu__check]<span class="ds-menu__label">Device</span>[icon monitor 20]</button>
+      </div>
+      <div class="ds-menu__divider" role="separator"></div>
+      <button class="ds-menu__item" role="menuitem" type="button">[icon logout 20]<span class="ds-menu__label">Sign out</span></button>
+    </div>
+  </div>
+</div>
+```
+
+- **Global search, a sheet on phones** (`data-ds-search-sheet`). Above 720px the search sits in the bar as before;
+  the page shows its results its own way (a [Combobox](#combobox) list, or a results page). At 720px and below the
+  bar shows `.ds-topbar__search-open` instead, and that button opens the search as a full-width sheet over the whole
+  frame (`DS.overlay`): the head is `.ds-topbar__search-back` (a `data-ds-close` button) and the field on the bar's
+  height, `.ds-topbar__results` below it scrolls and holds what the page renders for the query (re-render it with
+  `DS.dom.morphHtml`). The field takes the focus; the rest of the page is inert (`DS.a11y.inert`), Tab stays inside,
+  the scroll is locked; Escape (a filled field's own clearing first) closes it and the focus returns to the button.
+  Widening the window closes it and the search is back in the bar. `get()` says whether it is open, `set(true)`
+  opens it (at phone width only). It fades in while it slides down by `--ds-distance-md` on the spring
+  (`--ds-dur-medium`) and leaves in `--ds-dur-fast`, accelerating; a close mid-way turns back. Forced colours: its
+  transparent outline becomes its edge.
+- **App switcher** (`.ds-launcher`): a [Menu](#menu) laid out as a grid of apps, opened by an icon button
+  (`data-ds-open`, `aria-haspopup="menu"`). Each app is a `.ds-menu__item.ds-launcher__app`: an icon on a tonal disc
+  (`.ds-launcher__icon`) over a label of up to two lines (`.ds-launcher__label`). The current app has
+  `aria-current="true"`: its disc takes the tint (`--ds-accent`) and its label the label weight, never colour alone;
+  forced colours make it `SelectedItem`. `data-ds-launcher` adds the grid's keys: Left and Right along a row, Up and
+  Down by a column (no wrap at the edges), Home and End; the menu does the rest (type-ahead, Escape, Tab closes).
+  `--ds-launcher-columns` (3) sets the columns, `--ds-launcher-app-width` (96px) a column's width (the grid is at
+  most the window's width), `--ds-launcher-app-height` (88px at md) and `--ds-launcher-icon-size` (40px) step 8px
+  per size; density takes 4px per step off an app and 2px off the grid's padding; `.ds-touch` makes every app at least
+  `--ds-target-min`; the shape multiplies the app's and the disc's radius.
+- **Notification bell** (the slot). An icon button in `.ds-topbar__actions` whose name carries the count
+  ("Notifications, 3 unread") and, while there is news, a `.ds-badge.ds-badge--dot` on its icon's corner, inside the
+  button (`aria-hidden`: the name says it). The notification centre itself is its own component: give the button its
+  `data-ds-open` (or open the centre from the page's click handler) and update the name and the dot when the count
+  changes. Without a centre, the button links to a notifications page.
+- **Account menu.** `.ds-account__trigger` is a quiet icon button around the `.ds-account__avatar` disc (its state
+  layer, ring, ripple and target; the disc keeps its size); it opens `.ds-account__menu` (a [Menu](#menu), at most
+  `--ds-account-menu-width`, 280px), headed by `.ds-account__head` (the avatar `.ds-lg`, name and email; `aria-hidden`,
+  since the menu's `aria-labelledby` names the ids of `.ds-account__name` and `.ds-account__email`: the menu is
+  "Ada Lovelace ada@example.org", without the avatar's initial). Then the theme switch, the page's own links (profile, settings) and sign out, a
+  `menuitem` whose click the page handles. The trigger never shrinks; on phones a brand of only a name gives way
+  with an ellipsis instead.
+- **Theme switch** (`data-ds-scheme-switch="<key>"`): items with `data-ds-scheme-value="light | dark | auto"` and
+  `aria-checked` (`menuitemradio` in a menu, whose keys are the menu's; `radio` in a `radiogroup` elsewhere, such as a
+`.ds-segmented`: the switch makes the checked radio the one tab stop, and the arrow keys move to the next or previous
+radio and choose it, round at the ends, Space chooses, as in the
+[APG radio group](https://www.w3.org/WAI/ARIA/apg/patterns/radio/)). A choice sets `data-ds-scheme` on
+  the `.ds-theme` around the switch (`auto` removes it: the system decides) or on the one
+  `data-ds-scheme-switch-target` names, which needs a theme that holds both schemes (a preset, `light-dark()`); with
+  `themes/dark.css` name its `<link>` in `data-ds-scheme-switch-link`, whose `media` follows (`all`, `not all`,
+  `(prefers-color-scheme: dark)`). The choice is stored under the key (default `scheme`; `data-ds-scheme-switch-remember="off"`
+  stores nothing) and applied on the next load (call `DS.init()` early, or apply it before the first paint with
+  `DS.shell.setScheme(DS.store.open('shell').get('scheme', 'auto'), { remember: false })`). Every switch on the page
+  and in other tabs follows, and so does a switch whose theme the page pins itself. `ds:change` (`{ value }`) fires on
+  the switch.
+
+### Breadcrumbs that fold
+
+```html
+<nav class="ds-breadcrumbs" aria-label="Breadcrumb" data-ds-breadcrumbs>
+  <ol>
+    <li><a href="/">Home</a></li>
+    <li><a href="/sites">Sites</a></li>
+    <li><a href="/sites/a">Building A</a></li>
+    <li><a href="/sites/a/devices">Devices</a></li>
+    <li><a href="/sites/a/devices/42" aria-current="page">LAPTOP-0042</a></li>
+  </ol>
+</nav>
+```
+
+`data-ds-breadcrumbs` measures the trail against the width of its nav (a `ResizeObserver`, so a narrower column, a
+panel or a resized window folds it, not only the window's width). When it does not fit, the crumbs after the first
+go into a menu behind `.ds-breadcrumbs__more` (a quiet `.ds-xs` icon button after the first crumb, named "Show 3
+more", `aria-haspopup="menu"`), from the start of the middle; then the first crumb; then the parent; the current
+page never. Folded crumbs carry `data-ds-collapsed` (written by the module). The menu lists them in order as links,
+opens with a click, Enter, Space, ArrowDown or ArrowUp, and moves and closes as every [Menu](#menu). It replaces the
+[Page](#page)'s narrow rule (only the parent on phones) with the measured fold. A trail the page changes
+folds again. `get()` lists the folded crumbs, `set()` measures again, `ds:change` (`{ folded }`) fires on the nav.
 
 ### Top bar parts
 
@@ -455,3 +643,18 @@ print.
   widget never calls `followViewport()`: the host page owns the viewport.
 
 **Motion:** the [Navigation](motion.md#navigation) table (indicator, drawer, modal drawer, segmented, top bar) and [Views](motion.md#views) in motion.md.
+
+<!-- changelog -->
+- **App frame** (3.0): `DS.shell` (`src/components/shell/shell.js`), the frame's behaviour as `data-ds-*` attributes:
+  `data-ds-shell` (the menu button toggles the rail above 900px, remembered, and opens the modal drawer below; skip
+  links; the drawer's pill, edges and `data-scrolled`), `data-ds-drawer` (groups remembered open or closed, a filter
+  inside the drawer, `.ds-drawer__search` and `.ds-drawer__empty`, the arrow keys), `data-ds-search-sheet` (the top
+  bar's search as a full-width sheet at 720px and below, `.ds-topbar__search-open`, `.ds-topbar__search-back`,
+  `.ds-topbar__results`), `data-ds-launcher` (the app switcher, `.ds-launcher`, `.ds-launcher__app`,
+  `.ds-launcher__icon`, `.ds-launcher__label`, hooks `--ds-launcher-columns`, `--ds-launcher-app-width`,
+  `--ds-launcher-app-height`, `--ds-launcher-icon-size`, `--ds-launcher-font`), `data-ds-scheme-switch` and
+  `DS.shell.setScheme()` (light, dark, auto, remembered), the account menu (`.ds-account__trigger`,
+  `.ds-account__menu`, `.ds-account__head`, hook `--ds-account-menu-width`), and `data-ds-breadcrumbs` (the middle
+  folds into a menu behind `.ds-breadcrumbs__more` by the nav's width). Badges in drawer items (a dot on the rail),
+  a dot on a top bar icon button (the notification slot), and a drawer action that turns icon-only on the rail.
+  Strings `filterMatch`, `filterMatches`, `breadcrumbsMore`.

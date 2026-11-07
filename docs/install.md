@@ -726,6 +726,9 @@ strings a script adds have an option, so a page in another language passes its o
 | `The image could not be loaded.` | a lightbox image that failed (the system's string `imageFailed`) | `DS.core.config({ strings: { imageFailed } })` |
 | `Resize the sheet` | the name of a bottom sheet's drag handle without one of its own (`DS.bottomsheet`; the system's string `resizeSheet`) | `DS.core.config({ strings: { resizeSheet } })` |
 | `Sheet at {percent} percent of the screen` | what a bottom sheet says when it stops at another height (the system's string `sheetDetent`) | `DS.core.config({ strings: { sheetDetent } })` |
+| `{count} match` | what the drawer's filter (`data-ds-drawer`) announces for one match (the system's string `filterMatch`; the plural rules of the locale pick it) | `DS.core.config({ strings: { filterMatch } })` |
+| `{count} matches` | the same for any other count (the system's string `filterMatches`) | `DS.core.config({ strings: { filterMatches } })` |
+| `Show {count} more` | the name and tooltip of the breadcrumbs' "more" button (`data-ds-breadcrumbs`; the system's string `breadcrumbsMore`) | `DS.core.config({ strings: { breadcrumbsMore } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 | `Command` | the system's string `kbdCommand`: the spoken name of ⌘ in a key combo (`DS.kbd`) on Apple systems | `DS.core.config({ strings: { kbdCommand } })` |
 | `Option` | the system's string `kbdOption`: the spoken name of ⌥ in a key combo (`DS.kbd`) on Apple systems | `DS.core.config({ strings: { kbdOption } })` |
