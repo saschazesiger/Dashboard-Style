@@ -80,7 +80,9 @@ test('renders the status chip and the key bar as a named toolbar; the frame is a
   expect(await frame.locator('.ds-terminal__head > *').evaluateAll((els) => els.map((el) => el.className.split(' ').find((name) => name.startsWith('ds-terminal__'))))).toEqual(['ds-terminal__title', 'ds-terminal__status', 'ds-terminal__actions']);
   const bar = frame.getByRole('toolbar', { name: 'Terminal keys' });
   await expect(bar).toBeVisible();
-  await expect(bar).toHaveAttribute('aria-controls', await frame.locator('.ds-terminal__screen').getAttribute('id'));
+  // The frame gives the page's screen no id (a morph would take it for a key): aria-controls only names one it has.
+  await expect(frame.locator('.ds-terminal__screen')).not.toHaveAttribute('id', /.*/);
+  await expect(bar).not.toHaveAttribute('aria-controls', /.*/);
   const names = await bar.getByRole('button').evaluateAll((els) => els.map((el) => el.getAttribute('aria-label') || el.textContent));
   expect(names).toEqual(['Esc', 'Tab', 'Ctrl', 'Alt', 'Arrow left', 'Arrow up', 'Arrow down', 'Arrow right']);
   await expect(bar.getByRole('button', { name: 'Ctrl' })).toHaveAttribute('aria-pressed', 'false');
@@ -90,7 +92,10 @@ test('renders the status chip and the key bar as a named toolbar; the frame is a
   expect(await bar.locator('[tabindex="0"]').count()).toBe(1);
   // A page's aria-label wins over the title.
   await page.evaluate(() => { const el = document.querySelector('#probe'); el.setAttribute('aria-label', 'Shell on device 42'); });
-  await expect(page.getByRole('group', { name: 'Shell on device 42' })).toHaveCount(1);
+  await expect(frame).toHaveAccessibleName('Shell on device 42');
+  // ... and stays when the title changes.
+  await page.evaluate(() => window.probeFrame.set({ title: 'ada@device-42: /tmp' }));
+  await expect(frame).toHaveAccessibleName('Shell on device 42');
 });
 
 test('the bar shows under a coarse pointer by default, always with "always", never with "off"', async ({ page }) => {
@@ -234,7 +239,60 @@ test('set() changes the status, the title and the keys, with ds:change; update()
   await expect(frame.getByRole('status')).toHaveText('Connected');
   await page.evaluate(() => window.probeFrame.destroy());
   await expect(frame.locator('.ds-terminal__keys, .ds-terminal__status')).toHaveCount(0);
-  expect(await frame.evaluate((el) => [el.getAttribute('role'), el.getAttribute('aria-labelledby'), el.getAttribute('data-bar')])).toEqual([null, null, null]);
+  expect(await frame.evaluate((el) => [el.getAttribute('role'), el.getAttribute('aria-label'), el.getAttribute('data-bar')])).toEqual([null, null, null]);
+});
+
+test('a status change keeps the focus on its key and the tab stop where it was', async ({ page }) => {
+  await open(page);
+  const frame = await mount(page, { attributes: { 'data-ds-terminal-status': 'connecting', 'data-ds-terminal-bar': 'always' } });
+  const bar = frame.getByRole('toolbar');
+  await bar.getByRole('button', { name: 'Esc' }).focus();
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowRight');
+  const ctrl = bar.getByRole('button', { name: 'Ctrl' });
+  await expect(ctrl).toBeFocused();
+  const before = await ctrl.elementHandle();
+  await page.evaluate(() => document.querySelector('#probe').setAttribute('data-ds-terminal-status', 'connected'));
+  await expect(frame.getByRole('status')).toHaveText('Connected');
+  await expect(ctrl).toBeFocused();
+  // The bar was not rebuilt: the same button, still the one tab stop.
+  expect(await ctrl.evaluate((el, old) => el === old, before)).toBe(true);
+  await expect(bar.locator('[tabindex="0"]')).toHaveCount(1);
+  await expect(ctrl).toHaveAttribute('tabindex', '0');
+  // New keys rebuild it; the focused key keeps the focus.
+  await page.evaluate(() => document.querySelector('#probe').setAttribute('data-ds-terminal-keys', 'tab ctrl up'));
+  await expect(bar.getByRole('button')).toHaveCount(3);
+  await expect(bar.getByRole('button', { name: 'Ctrl' })).toBeFocused();
+  await expect(bar.getByRole('button', { name: 'Ctrl' })).toHaveAttribute('tabindex', '0');
+});
+
+test('a re-render of the page with DS.dom.morphHtml keeps the key bar, the status chip, the name and the page\'s nodes', async ({ page }) => {
+  await open(page);
+  const frame = await mount(page, { attributes: { 'data-ds-terminal-status': 'connected', 'data-ds-terminal-bar': 'always' } });
+  const result = await page.evaluate(() => {
+    const host = document.querySelector('#probe');
+    const wrap = document.createElement('div');
+    wrap.id = 'probe-wrap';
+    host.before(wrap);
+    wrap.append(host);
+    const action = host.querySelector('.ds-terminal__actions button');
+    const screen = host.querySelector('.ds-terminal__screen');
+    const html = (title) => '<div id="probe" class="ds-terminal" data-ds-terminal data-ds-terminal-status="connected" data-ds-terminal-bar="always">'
+      + `<div class="ds-terminal__head"><span class="ds-terminal__title">${title}</span>`
+      + '<span class="ds-terminal__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Reconnect">R</button></span></div>'
+      + `<div class="ds-terminal__screen">${screen.innerHTML}</div></div>`;
+    DS.dom.morphHtml(wrap, html('ada@device-42: ~'));
+    DS.dom.morphHtml(wrap, html('ada@device-42: /var/log'));
+    return { same: wrap.firstElementChild === host, action: host.querySelector('.ds-terminal__actions button') === action, screen: host.querySelector('.ds-terminal__screen') === screen };
+  });
+  expect(result).toEqual({ same: true, action: true, screen: true });
+  await expect(frame).toHaveAttribute('role', 'group');
+  await expect(frame).toHaveAttribute('data-bar', 'always');
+  await expect(frame).toHaveAttribute('data-status', 'connected');
+  await expect(frame.getByRole('toolbar', { name: 'Terminal keys' })).toBeVisible();
+  await expect(frame.getByRole('status')).toHaveText('Connected');
+  await expect(page.getByRole('group', { name: 'ada@device-42: /var/log' })).toHaveCount(1);
+  expect(await frame.locator('.ds-terminal__head > *').evaluateAll((els) => els.map((el) => el.className.split(' ').find((name) => name.startsWith('ds-terminal__'))))).toEqual(['ds-terminal__title', 'ds-terminal__status', 'ds-terminal__actions']);
 });
 
 test('theme() gives an emulator the theme\'s colours of the place, the hooks and the scheme', async ({ page }) => {

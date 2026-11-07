@@ -51,8 +51,8 @@ export interface TerminalController {
   press(key: TerminalKey): void;
   on(type: 'key', fn: (detail: TerminalKeyDetail) => void): () => void;
   on(type: 'change', fn: (detail: { status: TerminalStatus | null; title: string }) => void): () => void;
-  /** Reads the data-ds-terminal-* options again. */
-  update(): void;
+  /** Applies the data-ds-terminal-* options whose attributes changed; without `names`, all of them. */
+  update(names?: string[]): void;
   destroy(): void;
 }
 

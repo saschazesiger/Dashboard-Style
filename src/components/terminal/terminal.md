@@ -52,7 +52,11 @@ read-only session) it writes a `<pre>` into the screen: spans with `data-fg` (`b
 | | `title` | the text of `.ds-terminal__title` |
 
 The frame writes `data-bar` and `data-status` on itself, `role="group"` (unless it has a role) and, without an
-`aria-label`, `aria-labelledby` on its title.
+`aria-label` or `aria-labelledby` of the page's, an `aria-label` that is the title's text, kept in step when the title
+changes. It gives the title and the screen no id. All of it is owned state, and the key bar and the status chip carry
+`data-ds-keep`: a page that re-renders around the frame with `DS.dom.morphHtml` keeps them. A change of
+`data-ds-terminal-keys`, `-bar` or `-status` applies that option alone; the bar is rebuilt only when its keys change,
+and the key that had the focus keeps it.
 
 | Variant | Class | What |
 |---|---|---|
@@ -99,7 +103,7 @@ that one. `DS.terminal.sequence(key, modifiers)` gives the bytes of a key (null 
 ones the same), through a `.ds-terminal__probe` it adds to the screen for the moment it reads; read it again after
 the scheme changes and pass it to the emulator.
 
-**Accessibility.** The frame is a group named by its `aria-label`, else its title. The status chip is a polite live
+**Accessibility.** The frame is a group named by its `aria-label`, else its title's text. The status chip is a polite live
 region. The key bar is a toolbar (APG toolbar): one tab stop, the arrow keys, Home and End move between the keys,
 Enter and Space press one; the arrow keys have names ("Arrow up"), Ctrl and Alt are toggle buttons whose hold and
 release are announced ("Ctrl held for the next key"). The screen shows the focus ring while the emulator inside has

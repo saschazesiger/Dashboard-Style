@@ -40,17 +40,25 @@
  * (the emulator never sees it) and sends with the modifier: Ctrl+C sends
  * \x03. A second press lets the modifier go.
  *
+ * A page that re-renders around the frame with DS.dom.morphHtml keeps it:
+ * the key bar and the status chip carry data-ds-keep, and what the frame
+ * writes on the element (role, aria-label, data-bar, data-status) is owned
+ * state. The frame gives the page's title and screen no id (a generated id
+ * would key them, and a morph would replace them): without an aria-label
+ * of the page's, the frame's aria-label is the title's text, kept in step.
+ * A change of data-ds-terminal-keys, -bar or -status applies that option
+ * alone; the key bar is rebuilt only when its keys changed, and keeps the
+ * focus and the tab stop on the same key.
+ *
  * Events on the element: ds:key { key, data, ctrl, alt } for every key
  * the frame sends, ds:change { status, title } after set().
  *
  * ES2022. Progressive: none.
  */
-import { define, emit, get, runtime, t } from '../../js/core.js';
+import { define, emit, get, t } from '../../js/core.js';
 import { announce, roving } from '../../js/a11y.js';
+import { own, disown } from '../../js/dom.js';
 import { iconElement, arrowUp, arrowDown, arrowLeft, arrowRight, plug, unlink } from '../../js/icons.js';
-
-/** The page-wide state: the numbering of ids. */
-const shared = runtime.state('terminal', () => ({ ids: 0 }));
 
 const CSI = '\u001b[';
 
@@ -190,8 +198,6 @@ function controller(el, start, outer) {
   outer?.addEventListener('abort', () => life.abort(), { once: true });
   const { signal } = life;
   const listeners = { key: new Set(), change: new Set() };
-  shared.ids += 1;
-  const id = `ds-terminal-${shared.ids}`;
   const state = {
     keys: keyList(start.keys ?? DEFAULT_KEYS),
     bar: start.bar === 'always' || start.bar === 'off' ? start.bar : 'auto',
@@ -207,15 +213,36 @@ function controller(el, start, outer) {
   const title = head?.querySelector('.ds-terminal__title') ?? null;
   if (title && start.title !== undefined) title.textContent = String(start.title);
 
-  /* The name: the page's aria-label, else the title. */
+  /* The name: the page's aria-label, else the title's text (an aria-label of the frame's, kept in step). */
   const ownRole = !el.hasAttribute('role');
-  if (ownRole) el.setAttribute('role', 'group');
-  let ownLabel = false;
-  if (title && !el.hasAttribute('aria-label') && !el.hasAttribute('aria-labelledby')) {
-    if (!title.id) title.id = `${id}-title`;
-    el.setAttribute('aria-labelledby', title.id);
-    ownLabel = true;
+  if (ownRole) {
+    el.setAttribute('role', 'group');
+    own(el, 'attrs', 'role');
   }
+  /** The aria-label the frame wrote, or null while the name is the page's. */
+  let ownLabel = null;
+  const syncLabel = () => {
+    if (ownLabel === null || !title) return;
+    const current = el.getAttribute('aria-label');
+    if (current !== null && current !== ownLabel) {
+      // The page named the frame: its name from now on.
+      disown(el, 'attrs', 'aria-label');
+      ownLabel = null;
+      return;
+    }
+    const text = (title.textContent ?? '').replace(/\s+/g, ' ').trim();
+    if (text) {
+      if (current !== text) el.setAttribute('aria-label', text);
+    } else el.removeAttribute('aria-label');
+    ownLabel = text;
+  };
+  if (title && !el.hasAttribute('aria-label') && !el.hasAttribute('aria-labelledby')) {
+    ownLabel = '';
+    own(el, 'attrs', 'aria-label');
+    syncLabel();
+  }
+  own(el, 'attrs', 'data-bar');
+  own(el, 'attrs', 'data-status');
 
   /* The status: a .ds-status chip in the head, kept while the status changes so its colour glides. */
   let status = null;
@@ -231,6 +258,8 @@ function controller(el, start, outer) {
     if (!status) {
       status = doc.createElement('span');
       status.setAttribute('role', 'status');
+      // The frame's own: a re-render of the head leaves it.
+      status.setAttribute('data-ds-keep', '');
       const actions = head.querySelector(':scope > .ds-terminal__actions');
       head.insertBefore(status, actions);
     }
@@ -253,10 +282,8 @@ function controller(el, start, outer) {
   bar.className = 'ds-terminal__keys';
   bar.setAttribute('role', 'toolbar');
   bar.setAttribute('aria-label', t('terminalKeys'));
-  if (screen) {
-    if (!screen.id) screen.id = `${id}-screen`;
-    bar.setAttribute('aria-controls', screen.id);
-  }
+  bar.setAttribute('data-ds-keep', '');
+  if (screen?.id) bar.setAttribute('aria-controls', screen.id);
   const keyButton = (key) => {
     const spec = KEYS[key];
     const button = doc.createElement('button');
@@ -271,12 +298,18 @@ function controller(el, start, outer) {
     } else button.textContent = spec ? t(spec.label) : key;
     return button;
   };
+  const keyOf = (key) => (key === null ? null : [...bar.querySelectorAll('.ds-terminal__key')].find((button) => button.getAttribute('data-ds-terminal-key') === key) ?? null);
   const renderBar = () => {
+    // The key that held the focus and the one with the tab stop keep them when they are still there.
+    const active = doc.activeElement;
+    const focused = active && bar.contains(active) ? active.closest('.ds-terminal__key')?.getAttribute('data-ds-terminal-key') ?? null : null;
+    const stopped = bar.querySelector('.ds-terminal__key[tabindex="0"]')?.getAttribute('data-ds-terminal-key') ?? null;
     bar.replaceChildren(...state.keys.map(keyButton));
-    const first = bar.querySelector('button');
-    if (first) first.tabIndex = 0;
+    const stop = keyOf(focused) ?? keyOf(stopped) ?? bar.querySelector('.ds-terminal__key');
+    if (stop) stop.tabIndex = 0;
     bar.hidden = state.keys.length === 0;
     el.setAttribute('data-bar', state.bar);
+    if (focused !== null && stop && !bar.hidden) stop.focus();
   };
   renderBar();
   el.append(bar);
@@ -350,6 +383,11 @@ function controller(el, start, outer) {
 
   renderStatus();
 
+  // A title that changes (set(), or a re-render of the page) renames the frame.
+  const Watch = doc.defaultView?.MutationObserver;
+  const watcher = head && ownLabel !== null && Watch ? new Watch(syncLabel) : null;
+  watcher?.observe(head, { childList: true, characterData: true, subtree: true });
+
   const handle = {
     /** @returns {{ status: string|null, title: string, keys: string[], bar: string, ctrl: boolean, alt: boolean }} */
     get() {
@@ -367,11 +405,15 @@ function controller(el, start, outer) {
       }
       if (value.title !== undefined && title && title.textContent !== String(value.title)) {
         title.textContent = String(value.title);
+        syncLabel();
         changed = true;
       }
       if (value.keys !== undefined) {
-        state.keys = keyList(value.keys);
-        renderBar();
+        const keys = keyList(value.keys);
+        if (keys.join('\u0000') !== state.keys.join('\u0000')) {
+          state.keys = keys;
+          renderBar();
+        }
       }
       if (value.bar !== undefined) {
         state.bar = value.bar === 'always' || value.bar === 'off' ? value.bar : 'auto';
@@ -389,20 +431,35 @@ function controller(el, start, outer) {
       set.add(fn);
       return () => set.delete(fn);
     },
-    update() {
+    /** Applies the data-ds-terminal-* options whose attributes changed (`names`, from DS.core), else all of them. */
+    update(names) {
+      const has = (attribute) => !Array.isArray(names) || names.includes(attribute);
       const options = readOptions(el);
-      handle.set({ keys: options.keys ?? DEFAULT_KEYS, bar: options.bar, status: options.status ?? null });
+      const next = {};
+      if (has('data-ds-terminal-keys')) next.keys = options.keys ?? DEFAULT_KEYS;
+      if (has('data-ds-terminal-bar')) next.bar = options.bar;
+      if (has('data-ds-terminal-status')) next.status = options.status ?? null;
+      handle.set(next);
     },
     destroy() {
       if (destroyed) return;
       destroyed = true;
       rover?.destroy?.();
+      watcher?.disconnect();
       life.abort();
       Object.values(listeners).forEach((set) => set.clear());
       bar.remove();
       status?.remove();
-      if (ownRole) el.removeAttribute('role');
-      if (ownLabel) el.removeAttribute('aria-labelledby');
+      if (ownRole) {
+        disown(el, 'attrs', 'role');
+        el.removeAttribute('role');
+      }
+      if (ownLabel !== null) {
+        disown(el, 'attrs', 'aria-label');
+        el.removeAttribute('aria-label');
+      }
+      disown(el, 'attrs', 'data-bar');
+      disown(el, 'attrs', 'data-status');
       el.removeAttribute('data-bar');
       el.removeAttribute('data-status');
     },
