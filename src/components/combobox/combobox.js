@@ -13,11 +13,13 @@
  *   const combo = DS.combobox.create(el, { items, source: (query, { signal }) => fetch(...).then(...) });
  *   combo.get(); combo.set('laptop-14'); combo.on('change', ({ value }) => ...);
  *
- * What it does: reads the options of the markup once (or takes `items`),
- * filters them as the field changes with DS.listbox.fuzzy (best first, the
- * matched letters marked in .ds-combo__match), or asks `source(query, {
- * signal })` after --ds-delay-loader without a key (a spinner and
- * aria-busy while it runs; a newer query aborts the older one). Nothing
+ * What it does: filters the options of the markup in place as the field
+ * changes, with DS.listbox.fuzzy (`hidden` on the others, the matched
+ * letters marked in .ds-combo__match; the options keep their content, ids
+ * and order), or renders `items` (best first; windowed when long, through
+ * DS.virtual), or asks `source(query, { signal })` after --ds-delay-loader
+ * without a key (a spinner and aria-busy while it runs; a newer query
+ * aborts the older one; with minLength 0 an open asks at once). Nothing
  * found: the list part hides and the status line says so; the list stays
  * open. Creatable (data-ds-combobox-creatable or `creatable`): a last
  * option creates the typed text when no option has that name, after a
@@ -25,8 +27,8 @@
  * something to clear. Several values (.ds-combo--multi): input chips before
  * the field, the list stays open, Backspace in the empty field removes the
  * last one (announced). Select-only (.ds-combo--select): the WAI keys of a
- * select (Enter, Space and the arrows open, type-ahead, Home and End).
- * Long lists are windowed (DS.virtual, through DS.listbox).
+ * select (Enter, Space, the arrows, Home and End open, type-ahead; Tab
+ * chooses the active option and moves on).
  *
  * Opening and closing go through DS.overlay (Escape, the placement, the
  * cut edges); the focus stays in the field; a press in the list never
@@ -57,7 +59,7 @@ let sequence = 0;
 const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ESCAPES[char]);
 
-/** The options of the markup as items: value, label, description, meta, group, disabled. */
+/** The options of the markup as items: value, label, description, meta, group, disabled (the labels and the select's meta). */
 function itemsOf(list) {
   return [...list.querySelectorAll('.ds-combo__option')].filter((option) => !option.classList.contains('ds-combo__option--create')).map((option) => {
     const name = option.querySelector('.ds-combo__name');
@@ -121,9 +123,9 @@ export function create(element, options = {}) {
   if (!select) input.setAttribute('autocomplete', 'off');
   if (multiple) list.setAttribute('aria-multiselectable', 'true');
 
-  // The status line: the system's own part, made when the markup has none.
+  // The status line: the system's own part, made when the markup has none (a select-only list counts nothing).
   let status = popup.querySelector('.ds-combo__status');
-  if (!status) {
+  if (!status && !select) {
     status = doc.createElement('p');
     status.className = 'ds-combo__status';
     status.setAttribute('role', 'status');
@@ -133,6 +135,9 @@ export function create(element, options = {}) {
   /* The data: items from the markup or the page, the labels of every value
      ever chosen (a source may not return them again). */
   const markupItems = itemsOf(list);
+  /* Without items or a source the engine works on the markup itself, so
+     the options keep their content (a progress bar, an icon), ids and groups. */
+  let fromMarkup = !options.items && !source;
   let base = options.items ? [...options.items] : markupItems;
   const labels = new Map();
   const remember = (items) => {
@@ -148,6 +153,8 @@ export function create(element, options = {}) {
   let searching = 0;
   let timer = 0;
   let pending = null;
+  /** The query whose results the list holds (a source), so an open asks only for what it lacks. */
+  let resultsFor = null;
   let destroyed = false;
 
   const createItem = {
@@ -163,8 +170,27 @@ export function create(element, options = {}) {
 
   const withCreate = (items) => (creatable ? [...items, createItem] : items);
 
+  /* The markup's "Create" option: the page's, else one of the system's. */
+  const optionTag = list.localName === 'ul' || list.localName === 'ol' ? 'li' : 'div';
+  let createEl = fromMarkup && creatable ? list.querySelector('.ds-combo__option--create') : null;
+  const madeCreate = fromMarkup && creatable && !createEl;
+  if (madeCreate) {
+    createEl = doc.createElement(optionTag);
+    createEl.className = 'ds-combo__option ds-combo__option--create';
+    createEl.setAttribute('role', 'option');
+    createEl.setAttribute('aria-selected', 'false');
+    createEl.hidden = true;
+    const createName = doc.createElement('span');
+    createName.className = 'ds-combo__name';
+    createEl.append(iconElement(plus, 20, '', doc), createName);
+    list.append(createEl);
+  }
+  if (createEl) createEl.setAttribute('data-value', CREATE);
+  const isCreate = (el) => el.classList.contains('ds-combo__option--create');
+
   const engine = createList(list, {
-    items: withCreate(base),
+    ...(fromMarkup ? {} : { items: withCreate(base) }),
+    pinned: (el) => (isCreate(el) ? createItem.pinned : false),
     multiple,
     focus: input,
     prefix: 'ds-combo',
@@ -180,6 +206,17 @@ export function create(element, options = {}) {
       : `<span class="ds-combo__name">${nameHtml}</span>${item?.description ? `<span class="ds-combo__description">${esc(item.description)}</span>` : ''}${item?.meta ? `<span class="ds-combo__meta">${esc(item.meta)}</span>` : ''}`),
   });
   const engineEntries = () => engine.entries();
+
+  /** Filters what the list holds by `text`; the markup's "Create" option names it. */
+  function filterNow(text) {
+    query = text;
+    if (fromMarkup && createEl) {
+      const nameEl = createEl.querySelector('.ds-combo__name');
+      if (nameEl) nameEl.textContent = t('createOption', { text: text.trim() });
+    }
+    engine.filter(text);
+  }
+  if (fromMarkup) filterNow('');
 
   /* The value. */
   let value = multiple ? [] : null;
@@ -270,6 +307,7 @@ export function create(element, options = {}) {
   function setStatus(text, busy = false) {
     list.setAttribute('aria-busy', String(busy));
     if (!busy) list.removeAttribute('aria-busy');
+    if (!status) return;
     const parts = [];
     if (busy) {
       const spinner = doc.createElement('span');
@@ -298,7 +336,7 @@ export function create(element, options = {}) {
   function run() {
     query = select ? '' : input.value;
     if (!source) {
-      engine.filter(query);
+      filterNow(query);
       settle();
       return;
     }
@@ -306,6 +344,7 @@ export function create(element, options = {}) {
     pending?.abort();
     if (query.trim().length < minLength) {
       searching = 0;
+      resultsFor = null;
       engine.setItems(withCreate([]));
       settle();
       return;
@@ -328,21 +367,33 @@ export function create(element, options = {}) {
         base = [...(items ?? [])];
         remember(base);
         searching = 0;
+        resultsFor = asked;
         engine.setItems(withCreate(base), { keep: true, query: asked });
         settle();
       }, (error) => {
         if (controller.signal.aborted || destroyed || error?.name === 'AbortError') return;
         searching = 0;
+        resultsFor = null;
         engine.setItems(withCreate([]));
         list.hidden = true;
         setStatus(t('actionFailed'));
       });
   }
 
-  /* Open and close. */
-  function openList() {
+  /* Open and close. `all`: every option, whatever the field shows. */
+  function openList({ all = false } = {}) {
     if (isOpen() || disabled()) return;
-    if (!source) engine.filter(select ? '' : input.value);
+    if (!source) filterNow(select || all ? '' : input.value);
+    else if (!select) {
+      // Asked once for what the list does not hold yet (minLength 0: the empty field too), at once.
+      const wanted = input.value;
+      if (wanted.trim().length >= minLength && wanted !== resultsFor && !(searching && wanted === query)) {
+        clearTimeout(timer);
+        pending?.abort();
+        query = wanted;
+        search();
+      }
+    }
     settle();
     openOverlay(popup, { opener: input });
   }
@@ -358,8 +409,9 @@ export function create(element, options = {}) {
   list.addEventListener('ds:change', (/** @type {CustomEvent} */ event) => {
     event.stopPropagation();
     const detail = event.detail;
-    const item = detail.item;
-    if (item && typeof item === 'object' && item.value === CREATE) {
+    // An option of the markup comes as its value: the page gets its item, as with data.
+    const item = typeof detail.item === 'string' && fromMarkup ? base.find((each) => each.value === detail.item) ?? detail.item : detail.item;
+    if (item === CREATE || (item && typeof item === 'object' && item.value === CREATE)) {
       engine.set(value);
       createFrom(query.trim());
       return;
@@ -379,7 +431,15 @@ export function create(element, options = {}) {
     value = detail.value;
     showValue();
     closeList();
-    if (!select) run();
+    if (source) {
+      // The field shows the choice now, not a query: nothing to ask, and nothing still waiting.
+      clearTimeout(timer);
+      pending?.abort();
+      searching = 0;
+      query = input.value;
+      resultsFor = query;
+      settle();
+    } else if (!select) run();
     changed(item);
   }, { signal });
 
@@ -389,7 +449,21 @@ export function create(element, options = {}) {
     const item = { value: text, label: text };
     base = [...base, item];
     remember([item]);
-    engine.setItems(withCreate(base));
+    if (fromMarkup) {
+      // A new option of the markup, before the "Create" one.
+      const option = doc.createElement(optionTag);
+      option.className = 'ds-combo__option';
+      option.setAttribute('role', 'option');
+      option.setAttribute('aria-selected', 'false');
+      option.setAttribute('data-value', text);
+      const nameEl = doc.createElement('span');
+      nameEl.className = 'ds-combo__name';
+      nameEl.textContent = text;
+      option.append(nameEl);
+      if (createEl?.parentElement === list) createEl.before(option);
+      else list.append(option);
+      engine.refresh();
+    } else engine.setItems(withCreate(base));
     if (multiple) {
       value = [...value, text];
       announce(t('added', { label: text }));
@@ -440,6 +514,12 @@ export function create(element, options = {}) {
         else engine.activate(k === 'ArrowUp' ? 'last' : 'first');
         return;
       }
+      if (select && (k === 'Home' || k === 'End')) {
+        event.preventDefault();
+        openList();
+        engine.activate(k === 'Home' ? 'first' : 'last');
+        return;
+      }
       if (select && k.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
         openList();
         if (engine.key(event)) event.preventDefault();
@@ -457,7 +537,8 @@ export function create(element, options = {}) {
       return;
     }
     if (k === 'Tab') {
-      // Tab chooses nothing: the list closes and the focus moves on.
+      // A field's Tab chooses nothing; a select-only one takes the active option, as a select does. The focus moves on.
+      if (select && engine.active()) engine.pick();
       closeList();
       return;
     }
@@ -505,7 +586,8 @@ export function create(element, options = {}) {
     input.focus({ preventScroll: true });
     if (isOpen()) closeList();
     else {
-      openList();
+      // "Show all": a field that shows the choice shows every option; typed text stays a filter.
+      openList({ all: !multiple && value !== null && input.value === labelOf(/** @type {string} */ (value)) });
       const chosen = [].concat(value ?? [])[0];
       if (chosen !== undefined) engine.activate(chosen);
     }
@@ -557,6 +639,7 @@ export function create(element, options = {}) {
     },
     /** New data (items, as DS.listbox); the query kept. */
     setItems(items) {
+      fromMarkup = false;
       base = [...items];
       remember(base);
       engine.setItems(withCreate(base));
@@ -575,6 +658,7 @@ export function create(element, options = {}) {
       pending?.abort();
       abort.abort();
       engine.destroy();
+      if (madeCreate) createEl?.remove();
       controllers.delete(element);
     },
   };

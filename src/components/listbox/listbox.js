@@ -267,7 +267,10 @@ function parseValue(text, multiple) {
  * parts; default ds-listbox), `check` (render the check mark; default on
  * for ds-listbox), `wrap` (the arrows go round; default off), `render(entry,
  * name)` (the inner markup of a data option), `name` (hidden inputs of that
- * name carry the value in a form).
+ * name carry the value in a form), `pinned(option)` (a markup option that
+ * comes last whatever the query: true, or a function of the query and the
+ * number of matches; a "Create" option). A listbox with
+ * aria-disabled="true" leaves the tab order while it is blocked.
  * @param {Element} element
  * @param {object} [options]
  * @returns {any}
@@ -306,6 +309,10 @@ export function create(element, options = {}) {
   let entries = [];
   /** Entry indices that show, in their order. @type {number[]} */
   let visible = [];
+  /** Each shown entry's position in `visible`, so a lookup never scans the list. @type {Map<number, number>} */
+  let positions = new Map();
+  /** Every entry's value, so the value of thousands of choices is one pass. @type {Set<string>} */
+  let known = new Set();
   /** Ranges of the query in each shown entry's label. @type {Map<number, Array<[number, number]>>} */
   let marks = new Map();
   let query = '';
@@ -322,14 +329,24 @@ export function create(element, options = {}) {
   /** The options whose data-active this module owns, so a page's re-render keeps it. */
   const ownsActive = new WeakSet();
   const ownsTab = standalone && !element.hasAttribute('tabindex');
+  const isDisabled = () => element.getAttribute('aria-disabled') === 'true';
 
+  /* A blocked listbox leaves the tab order, and comes back with its use. */
+  const syncTab = () => {
+    const tab = isDisabled() ? '-1' : '0';
+    if (element.getAttribute('tabindex') !== tab) element.setAttribute('tabindex', tab);
+  };
+  let tabWatch = null;
   if (ownsTab) {
-    element.setAttribute('tabindex', '0');
+    syncTab();
     own(element, 'attrs', 'tabindex');
+    const Observer = doc.defaultView?.MutationObserver;
+    if (Observer) {
+      tabWatch = new Observer(syncTab);
+      tabWatch.observe(element, { attributes: true, attributeFilter: ['aria-disabled'] });
+    }
   }
   own(focusEl, 'attrs', 'aria-activedescendant');
-
-  const isDisabled = () => element.getAttribute('aria-disabled') === 'true';
   const optionId = (entry) => entry.el?.id || `${baseId}-o${entry.index}`;
 
   /* Markup source. */
@@ -347,10 +364,12 @@ export function create(element, options = {}) {
         meta: '',
         group: '',
         disabled: el.getAttribute('aria-disabled') === 'true',
+        pinned: options.pinned?.(el) ?? false,
         item: null,
         el,
       };
     });
+    known = new Set(entries.map((entry) => entry.value));
   }
 
   function selectedFromMarkup() {
@@ -361,8 +380,17 @@ export function create(element, options = {}) {
   function setData(items) {
     data = [...(items ?? [])];
     entries = data.map(entryOf);
+    known = new Set(entries.map((entry) => entry.value));
     active = -1;
   }
+
+  /** Who shows, in order; the positions follow. */
+  function show(list) {
+    visible = list;
+    positions = new Map(list.map((index, at) => [index, at]));
+  }
+
+  const positionOf = (index) => positions.get(index) ?? -1;
 
   function useWindow() {
     return data !== null && visible.length >= virtualFrom;
@@ -390,7 +418,7 @@ export function create(element, options = {}) {
     if (data === null) return;
     if (useWindow()) {
       const count = visible.length;
-      const position = Math.max(0, visible.indexOf(active));
+      const position = Math.max(0, positionOf(active));
       if (!windowed) {
         element.replaceChildren();
         windowed = createWindow(scroller, { content: element, count, keyboard: false, active: position, estimate: estimateOf(), render: (index) => optionHtml(entries[visible[index]]) });
@@ -444,7 +472,7 @@ export function create(element, options = {}) {
   /** Markup source: hide what does not match, mark the letters that do. */
   function applyMarkupFilter() {
     for (const entry of entries) {
-      const shows = visible.includes(entry.index);
+      const shows = positions.has(entry.index);
       if (entry.el.hidden === shows) entry.el.hidden = !shows;
       const name = entry.el.querySelector(`.${part('name')}`);
       if (!name) continue;
@@ -473,7 +501,7 @@ export function create(element, options = {}) {
     const entry = entries[index];
     if (!entry) return null;
     if (windowed) {
-      const position = visible.indexOf(index);
+      const position = positionOf(index);
       if (position < 0) return null;
       const row = reveal ? windowed.scrollTo(position) : windowed.row(position);
       entry.el = row;
@@ -506,7 +534,7 @@ export function create(element, options = {}) {
       if (windowed) windowed.set({});
       return;
     }
-    if (windowed) windowed.set({ active: visible.indexOf(index) });
+    if (windowed) windowed.set({ active: positionOf(index) });
     const el = elementOf(index, scroll);
     if (el) {
       el.setAttribute('data-active', '');
@@ -537,7 +565,7 @@ export function create(element, options = {}) {
       const box = scroller.getBoundingClientRect();
       const rect = el?.isConnected ? el.getBoundingClientRect() : null;
       if (!rect || (rect.height <= box.height && (rect.top < box.top - 1 || rect.bottom > box.bottom + 1))) {
-        windowed.scrollTo(visible.indexOf(index));
+        windowed.scrollTo(positionOf(index));
         setActive(index, { scroll: false });
       }
       if (frames > 1) keepInView(index, frames - 1);
@@ -565,12 +593,12 @@ export function create(element, options = {}) {
 
   /* The value. */
   function syncSelected() {
-    for (const index of visible) {
-      const entry = entries[index];
-      const el = entry.el?.isConnected ? entry.el : elementOf(index, false);
-      if (el) el.setAttribute('aria-selected', String(selected.has(entry.value)));
+    if (windowed) {
+      // Only the rendered rows exist; the others render from `selected` when they come.
+      for (const el of element.querySelectorAll('[role="option"]')) el.setAttribute('aria-selected', String(selected.has(/** @type {HTMLElement} */ (el).dataset.value)));
+    } else {
+      for (const entry of data === null ? entries : visible.map((index) => entries[index])) entry.el?.setAttribute('aria-selected', String(selected.has(entry.value)));
     }
-    if (data === null) for (const entry of entries) entry.el?.setAttribute('aria-selected', String(selected.has(entry.value)));
     writeHidden();
   }
 
@@ -592,7 +620,8 @@ export function create(element, options = {}) {
     }));
   }
 
-  const value = () => (multiple ? entries.filter((entry) => selected.has(entry.value)).map((entry) => entry.value).concat([...selected].filter((v) => !entries.some((entry) => entry.value === v))) : [...selected][0] ?? null);
+  /* The entries' order first, then values no entry has (set by the page, or gone with new data). */
+  const value = () => (multiple ? entries.filter((entry) => selected.has(entry.value)).map((entry) => entry.value).concat([...selected].filter((each) => !known.has(each))) : [...selected][0] ?? null);
 
   function changed(entry, isSelected) {
     emit(element, 'change', { value: value(), item: entry ? entry.item ?? entry.value : null, selected: isSelected });
@@ -636,10 +665,11 @@ export function create(element, options = {}) {
     marks = new Map();
     const pinned = entries.filter((entry) => entry.pinned);
     const pool = entries.filter((entry) => !entry.pinned);
-    if (!query.trim()) visible = pool.map((entry) => entry.index);
+    let list;
+    if (!query.trim()) list = pool.map((entry) => entry.index);
     else if (how.keep) {
       // Matched elsewhere (a server): every entry stays, in its order, marked where the query is found.
-      visible = pool.map((entry) => entry.index);
+      list = pool.map((entry) => entry.index);
       for (const entry of pool) {
         const hit = fuzzy(query, entry.label);
         if (hit?.ranges.length) marks.set(entry.index, hit.ranges);
@@ -648,15 +678,16 @@ export function create(element, options = {}) {
       const hits = filter(pool, query, { label: (entry) => entry.label });
       // The page's markup keeps its order; data comes best first.
       if (data === null) hits.sort((a, b) => a.index - b.index);
-      visible = hits.map((hit) => hit.item.index);
+      list = hits.map((hit) => hit.item.index);
       for (const hit of hits) marks.set(hit.item.index, hit.ranges);
     }
     // Pinned entries (a "Create" option) come last, when they say so.
-    const matches = visible.length;
-    for (const entry of pinned) if (typeof entry.pinned !== 'function' || entry.pinned(query, matches)) visible.push(entry.index);
+    const matches = list.length;
+    for (const entry of pinned) if (typeof entry.pinned !== 'function' || entry.pinned(query, matches)) list.push(entry.index);
+    show(list);
     if (data === null) applyMarkupFilter();
     else render();
-    if (!visible.includes(active)) setActive(-1);
+    if (!positions.has(active)) setActive(-1);
     return visible.length;
   }
 
@@ -740,7 +771,7 @@ export function create(element, options = {}) {
       if (key(event)) event.preventDefault();
     }, { signal });
     element.addEventListener('focus', () => {
-      if (active >= 0 && visible.includes(active)) {
+      if (active >= 0 && positions.has(active)) {
         setActive(active);
         return;
       }
@@ -762,7 +793,7 @@ export function create(element, options = {}) {
     selected.clear();
     selected.add(first);
   }
-  visible = entries.map((entry) => entry.index);
+  show(entries.map((entry) => entry.index));
   render();
   syncSelected();
 
@@ -801,7 +832,7 @@ export function create(element, options = {}) {
       if (which === null) return setActive(-1);
       if (which === 'first' || which === 'last') return setActive(edge(which));
       const entry = entries.find((each) => each.value === String(which));
-      return setActive(entry && visible.includes(entry.index) ? entry.index : -1);
+      return setActive(entry && positions.has(entry.index) ? entry.index : -1);
     },
     /** Moves the active option `step` usable options on (wrapping with `wrap`). */
     move(step) {
@@ -818,6 +849,7 @@ export function create(element, options = {}) {
     key,
     /** Reads the markup's options again (the page changed them). */
     refresh() {
+      if (ownsTab) syncTab();
       if (data !== null) return render();
       scan();
       runFilter(query);
@@ -828,6 +860,7 @@ export function create(element, options = {}) {
       destroyed = true;
       doc.defaultView?.cancelAnimationFrame(viewFrame);
       abort.abort();
+      tabWatch?.disconnect();
       controllers.delete(element);
       windowed?.destroy();
       edges?.destroy();

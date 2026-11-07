@@ -159,17 +159,57 @@ test('a disabled listbox is no tab stop and chooses nothing', async ({ page }) =
     el.setAttribute('role', 'listbox');
     el.setAttribute('aria-label', 'Probe');
     el.setAttribute('aria-disabled', 'true');
-    el.setAttribute('tabindex', '-1');
     el.innerHTML = '<div class="ds-listbox__option" role="option" aria-selected="false" data-value="a"><span class="ds-listbox__name">A</span></div>';
     document.querySelector('#fx-component').append(el);
     const list = DS.listbox.create(el);
     el.querySelector('[role="option"]').click();
-    const out = list.get();
-    list.destroy();
-    el.remove();
-    return out;
+    return { value: list.get(), tabIndex: el.tabIndex };
   });
-  expect(result).toBeNull();
+  expect(result).toEqual({ value: null, tabIndex: -1 });
+  // Usable again, it is a tab stop again; blocked again, it leaves.
+  const probe = page.locator('[aria-label="Probe"]');
+  await probe.evaluate((el) => el.removeAttribute('aria-disabled'));
+  await expect.poll(() => probe.evaluate((el) => el.tabIndex)).toBe(0);
+  await probe.evaluate((el) => el.setAttribute('aria-disabled', 'true'));
+  await expect.poll(() => probe.evaluate((el) => el.tabIndex)).toBe(-1);
+  // Tab passes it by.
+  await page.evaluate(() => {
+    const before = document.createElement('button');
+    before.id = 'probe-before';
+    before.textContent = 'Before';
+    document.querySelector('[aria-label="Probe"]').before(before);
+  });
+  await page.locator('#probe-before').focus();
+  await page.keyboard.press('Tab');
+  await expect(probe).not.toBeFocused();
+});
+
+test('data: all of 10,000 options chosen and one more click, each at once', async ({ page }) => {
+  await open(page);
+  const times = await page.locator('[data-demo="long"]').evaluate((el) => {
+    // The demo made it with create(): a second call returns that controller.
+    const list = DS.listbox.create(el);
+    let reads = 0;
+    // A page that reads the value on every change, as the transfer list and the select panel do.
+    el.addEventListener('ds:change', () => { reads += list.get().length; });
+    el.focus();
+    const start = performance.now();
+    el.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', ctrlKey: true, bubbles: true, cancelable: true }));
+    const all = performance.now() - start;
+    const chosenAll = list.get().length;
+    const option = el.querySelector('[role="option"]:not([aria-disabled="true"])');
+    const before = performance.now();
+    option.click();
+    const click = performance.now() - before;
+    return { all, click, chosenAll, chosenAfter: list.get().length, reads };
+  });
+  expect(times.chosenAll).toBe(10000);
+  expect(times.chosenAfter).toBe(9999);
+  expect(times.reads).toBe(10000 + 9999);
+  // Linear work: tens of ms in every engine (a scan of the entries per value took 1.8 s and 0.8 s); the bound leaves a
+  // loaded runner room and still fails the quadratic.
+  expect(times.all).toBeLessThan(250);
+  expect(times.click).toBeLessThan(250);
 });
 
 test('forced colours: the chosen option in the selection colours, the check box keeps its edge', async ({ page }) => {

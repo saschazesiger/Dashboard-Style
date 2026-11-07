@@ -44,9 +44,9 @@ function groupList(h, id) {
   }).join('') + '</div>';
 }
 
-function selectField(h, id) {
+function selectField(h, id, attrs) {
   return '<div class="ds-field"><span class="ds-field__label" id="' + id + '-label">Plan</span>' +
-    '<div class="ds-combo ds-combo--select" data-demo="select">' +
+    '<div class="ds-combo ds-combo--select"' + (attrs || ' data-demo="select"') + '>' +
     '<button class="ds-input ds-combo__input" id="' + id + '" type="button" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="' + id + '-list" aria-labelledby="' + id + '-label ' + id + '-value">' +
     '<span class="ds-combo__value" id="' + id + '-value">Standard</span><span class="ds-combo__meta">5 devices</span></button>' +
     '<button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show plans">' + h.icon('chevronDown', 20) + '</button>' +
@@ -122,10 +122,11 @@ function systemSections(h) {
   var remote = h.uid('combo');
   var many = h.uid('combo');
   var tags = h.uid('combo');
+  var plan = h.uid('combo');
   return h.section('By the system: filter, clear and create', '<div class="ds-form" data-demo="sys">' +
       sysField(h, fuzzy, 'Model', ' data-ds-combobox-creatable data-demo="sys-fuzzy"', '', sysClear(h, 'model'), sysOptions(fuzzy)) +
       '<p class="ds-field__hint" data-demo-out="sys-fuzzy">Nothing chosen</p></div>',
-    'The same markup with data-ds-combobox: the system filters as you type, best match first, words in any order and letters in order ("lp 16"), and marks the letters. A name no model has gets a last option that creates it. The clear button shows while there is something to clear.') +
+    'The same markup with data-ds-combobox: the system filters the options in place as you type, words in any order and letters in order ("lp 16"), and marks the letters. A name no model has gets a last option that creates it. The clear button shows while there is something to clear; after a choice the chevron shows every model.') +
     h.section('By the system: a search on a server', '<div class="ds-form">' +
       sysField(h, remote, 'Assignee', ' data-demo="sys-remote"', '', sysClear(h, 'assignee')) + '</div>',
     'A source asked after a pause in typing: a spinner while it runs, a newer query aborts the older one, the status line counts what came back. Try "ada", or "zz" for nothing found.') +
@@ -134,7 +135,9 @@ function systemSections(h) {
     'Choosing keeps the list open; each value becomes an input chip, and a press on a chip or Backspace in the empty field removes it, which a screen reader hears.') +
     h.section('By the system: 5,000 options', '<div class="ds-form">' +
       sysField(h, many, 'Device', ' data-demo="sys-many"', '', sysClear(h, 'device')) + '</div>',
-    'Only the options near the viewport exist (DS.virtual through DS.listbox), so a long list opens and filters at once.');
+    'Only the options near the viewport exist (DS.virtual through DS.listbox), so a long list opens and filters at once.') +
+    h.section('By the system: select-only', '<div class="ds-form">' + selectField(h, plan, ' data-ds-combobox data-demo="sys-select"') + '</div>',
+    'The same rich options, each with its share of the quota: the system opens on the choice (Enter, Space, the arrows; Home and End on the ends), jumps by the typed letters, and Enter, Space or Tab chooses. Premium cannot be chosen.');
 }
 
 SG.demo('combobox', {

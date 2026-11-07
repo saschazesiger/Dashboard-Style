@@ -138,6 +138,26 @@ test('a disabled button does not open', async ({ page }) => {
   await sites.locator('.ds-selectpanel__trigger').click({ force: true });
   await expect(sites.locator('.ds-selectpanel__panel')).toBeHidden();
   await expect(sites.locator('.ds-selectpanel__summary')).toHaveText('North building');
+  // Disabled is one model: the summary takes the disabled ink of the button's name.
+  const inks = await sites.locator('.ds-selectpanel__trigger').evaluate((button) => [getComputedStyle(button).color, getComputedStyle(button.querySelector('.ds-selectpanel__summary')).color]);
+  expect(inks[1]).toBe(inks[0]);
+});
+
+test('forced colours: a disabled button\'s summary is GrayText with its name', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'forced colours are emulated in Chromium only');
+  await page.emulateMedia({ forcedColors: 'active' });
+  await open(page);
+  const button = page.locator('.ds-selectpanel__trigger:disabled');
+  const inks = await button.evaluate((el) => {
+    const probe = document.createElement('span');
+    probe.style.color = 'GrayText';
+    document.body.append(probe);
+    const gray = getComputedStyle(probe).color;
+    probe.remove();
+    return [getComputedStyle(el).color, getComputedStyle(el.querySelector('.ds-selectpanel__summary')).color, gray];
+  });
+  expect(inks[1]).toBe(inks[0]);
+  expect(inks[0]).toBe(inks[2]);
 });
 
 test('forced colours: the panel keeps an edge', async ({ page }) => {

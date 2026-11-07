@@ -55,6 +55,8 @@ export interface ListboxOptions {
   render?: (item: ListboxItem, name: string) => string;
   /** Hidden inputs of this name carry the value in a form. */
   name?: string;
+  /** A markup option that comes last whatever the query (true), or while `(query, matches)` says so (a "Create" option). */
+  pinned?: (option: Element) => boolean | ((query: string, matches: number) => boolean);
 }
 
 export interface ListboxChange {

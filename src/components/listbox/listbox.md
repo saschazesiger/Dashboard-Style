@@ -55,7 +55,7 @@ each carries `aria-setsize` and `aria-posinset`. A windowed list has no group he
 | `follow` | | one choice follows the active option (default on, as in a native `<select size>`) |
 | `focus` | | the element that keeps the focus and `aria-activedescendant` (a combobox's field); default the listbox |
 | `scroller` | | what scrolls, default the listbox |
-| `prefix`, `check`, `render(item, name)`, `wrap` | | for an engine user: the class block of the parts (default `ds-listbox`), the check mark, the inner markup of a data option (`name` with the matched letters marked), arrows that go round |
+| `prefix`, `check`, `render(item, name)`, `wrap`, `pinned(option)` | | for an engine user: the class block of the parts (default `ds-listbox`), the check mark, the inner markup of a data option (`name` with the matched letters marked), arrows that go round, a markup option that comes last whatever the query (`true`, or a function of the query and the number of matches: a "Create" option) |
 
 **The controller** (`DS.listbox.create()`, or `DS.get(el)` of `data-ds-listbox`): `get()` (one value or `null`; several
 as a list), `set(value)` (from the page, no event), `on('change', fn)`, `setItems(items)` (new data, the query kept),

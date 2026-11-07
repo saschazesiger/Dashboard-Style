@@ -319,8 +319,11 @@ export function create(element, options = {}) {
     input.value = addText(typed, true);
   }, { signal });
 
-  input.addEventListener('blur', () => {
+  input.addEventListener('blur', (/** @type {FocusEvent} */ event) => {
     if (!addOnBlur || disabled() || !input.value.trim()) return;
+    // Walking into the chips with the keys is no leaving: the half-typed text waits.
+    const next = /** @type {Element|null} */ (event.relatedTarget);
+    if (next?.closest?.('.ds-chip[data-ds-taginput-tag]')?.parentElement === element) return;
     input.value = addText(input.value);
   }, { signal });
 

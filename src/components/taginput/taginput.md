@@ -28,7 +28,7 @@ the field, and a `.ds-taginput__message` (`role="status"`) after the box, which 
 
 - **Adding.** Enter or a separator (a comma; `separators`, `data-ds-taginput-separators`) turns the typed text into a
   tag. A pasted text with line breaks, tabs, semicolons or separators becomes several tags at once. Leaving the field
-  adds what is typed (`addOnBlur: false` keeps it). An empty Enter submits the form, as in a field.
+  adds what is typed (`addOnBlur: false` keeps it); the arrow keys into the chips do not. An empty Enter submits the form, as in a field.
 - **Checks.** Each tag is trimmed; an empty one is dropped. Refused: a repeat (case aside; `unique: false` allows
   them), one that does not match `data-ds-taginput-pattern` (`pattern`, the whole text), one that `validate(text,
   value)` turns down (`false`, or a message of its own), and every tag past the maximum (`data-ds-taginput-max`,

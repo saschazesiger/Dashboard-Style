@@ -131,6 +131,18 @@ test('a press on a chip removes it and keeps the focus in the field; leaving the
   await page.keyboard.type('spare');
   await page.keyboard.press('Tab');
   expect(await tags(page, 'labels')).toEqual(['printer', 'shared', 'spare']);
+  // Walking into the chips with the keys is no leaving: the half-typed text stays typed.
+  await input.focus();
+  await page.keyboard.type('half');
+  await page.keyboard.press('Home');
+  await page.keyboard.press('ArrowLeft');
+  await expect(box(page, 'labels').locator('.ds-chip').last()).toBeFocused();
+  expect(await tags(page, 'labels')).toEqual(['printer', 'shared', 'spare']);
+  await expect(input).toHaveValue('half');
+  await page.keyboard.press('ArrowRight');
+  await expect(input).toBeFocused();
+  await page.keyboard.press('Tab');
+  expect(await tags(page, 'labels')).toEqual(['printer', 'shared', 'spare', 'half']);
 });
 
 test('ds:add can refuse a tag; set() changes the tags without an event', async ({ page }) => {

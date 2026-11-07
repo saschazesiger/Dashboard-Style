@@ -94,6 +94,12 @@
     display: none;
   }
 
+  /* Disabled is one model: the summary takes the button's disabled ink with
+     its name (in forced colours too, where that ink is GrayText). */
+  .ds-selectpanel__trigger:is(:disabled, [aria-disabled="true"]) .ds-selectpanel__summary {
+    color: inherit;
+  }
+
   .ds-selectpanel__panel {
     position: absolute;
     top: calc(100% + var(--ds-space-1));
