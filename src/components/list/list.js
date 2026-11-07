@@ -32,7 +32,9 @@
  * { count, render(index), key(index), estimate } and the other options of
  * DS.virtual.create; the list scrolls itself (.ds-list--scroll) unless
  * `scroller` names another element. One tab stop, the active row; the
- * arrows, Home, End, PageUp and PageDown move it.
+ * arrows, Home, End, PageUp and PageDown move it. A virtual list that
+ * selects is a listbox (aria-multiselectable for "multiple"): each row an
+ * option with aria-selected, its box inert, Space and a press toggle it.
  *
  * Facts (data-ds-facts-copy on a .ds-facts): a .ds-facts__copy button
  * after each value (data-ds-facts-nocopy on a dd leaves it out) copies
@@ -52,6 +54,7 @@
 import { define, emit, t } from '../../js/core.js';
 import { motionDuration } from '../../js/motion.js';
 import { announce } from '../../js/a11y.js';
+import { own, disown } from '../../js/dom.js';
 import { create as virtualOf } from '../../js/virtual.js';
 import { create as draggable } from '../../js/dnd.js';
 import { copy as copyGlyph, check as checkGlyph, grip as gripGlyph, iconElement } from '../../js/icons.js';
@@ -134,6 +137,34 @@ function controller(list, initial) {
   let windowed = null;
   /** The "select all" boxes listened to. */
   const wired = new WeakSet();
+  /** The attributes this controller wrote, with the value each had before (null: none). */
+  const saved = new WeakMap();
+
+  /** Writes an attribute this controller owns (a morph leaves it); null gives the page's value back. */
+  const put = (element, name, value) => {
+    let names = saved.get(element);
+    if (value === null) {
+      if (!names?.has(name)) return;
+      const before = names.get(name);
+      names.delete(name);
+      disown(element, 'attrs', name);
+      if (before === null) element.removeAttribute(name);
+      else element.setAttribute(name, before);
+      return;
+    }
+    if (!names) saved.set(element, (names = new Map()));
+    if (!names.has(name)) {
+      names.set(name, element.getAttribute(name));
+      own(element, 'attrs', name);
+    }
+    if (element.getAttribute(name) !== value) element.setAttribute(name, value);
+  };
+  /**
+   * A virtual list that selects holds the focus on its rows, so the rows say
+   * their state: a listbox of options with aria-selected, the box inert (a
+   * press on it reaches the row, which toggles it).
+   */
+  const asListbox = () => Boolean(windowed) && Boolean(options.select);
 
   const rows = () => Array.from(list.querySelectorAll(`:scope > ${ITEM}`));
   const boxOf = (row) => row.querySelector(`:scope > ${CHECK}, :scope ${CHECK}`);
@@ -153,10 +184,16 @@ function controller(list, initial) {
   };
 
   const sync = () => {
+    const listbox = asListbox();
+    put(list, 'role', listbox ? 'listbox' : null);
+    put(list, 'aria-multiselectable', listbox && options.select === 'multiple' ? 'true' : null);
     for (const row of rows()) {
       const box = boxOf(row);
       const key = keyOf(row);
       if (box && key !== null) box.checked = selected.has(key);
+      put(row, 'role', listbox ? 'option' : null);
+      put(row, 'aria-selected', listbox ? String(key !== null && selected.has(key)) : null);
+      if (box) put(box, 'inert', listbox ? '' : null);
     }
     if (options.select === 'multiple') {
       const all = keys();
@@ -343,6 +380,15 @@ function controller(list, initial) {
       stopDrag();
       windowed?.destroy();
       windowed = null;
+      // The roles and states go back to the page's.
+      put(list, 'role', null);
+      put(list, 'aria-multiselectable', null);
+      for (const row of rows()) {
+        put(row, 'role', null);
+        put(row, 'aria-selected', null);
+        const box = boxOf(row);
+        if (box) put(box, 'inert', null);
+      }
       if (lists.get(list) === handle) lists.delete(list);
     },
   };

@@ -482,10 +482,24 @@ test('virtual: only rows near the viewport exist, keyed and counted; the arrows 
   await focusByKeyboard(page, first);
   // An inset ring on the focused row.
   expect(await first.evaluate((row) => getComputedStyle(row).outlineStyle)).not.toBe('none');
+  // A listbox of options: the focused row says its state (its box is inert, out of the tab order and the tree).
+  await expect(list).toHaveAttribute('role', 'listbox');
+  await expect(list).toHaveAttribute('aria-multiselectable', 'true');
+  await expect(first).toHaveAttribute('role', 'option');
+  await expect(first).toHaveAttribute('aria-selected', 'false');
+  expect(await first.locator('.ds-list__check').evaluate((box) => box.inert)).toBe(true);
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('Space');
   expect(await list.evaluate((el) => DS.list.create(el).get())).toEqual(['v0002']);
   await expect(page.locator('[data-demo="virtual-out"]')).toHaveText('5,000 devices, 1 selected');
+  await expect(list.locator('[data-ds-key="v0002"]')).toBeFocused();
+  await expect(page.getByRole('option', { name: /DEVICE-0002/, selected: true })).toBeFocused();
+  await expect(list.locator('[data-ds-key="v0001"]')).toHaveAttribute('aria-selected', 'false');
+  // A press on the (inert) box reaches the row, which toggles it.
+  await list.locator('[data-ds-key="v0003"] .ds-list__check').click({ force: true });
+  await expect(list.locator('[data-ds-key="v0003"]')).toHaveAttribute('aria-selected', 'true');
+  await list.locator('[data-ds-key="v0003"] .ds-list__check').click({ force: true });
+  await expect(list.locator('[data-ds-key="v0003"]')).toHaveAttribute('aria-selected', 'false');
   await page.keyboard.press('End');
   await expect(list.locator('[data-ds-key="v5000"]')).toBeFocused();
   await expect(list.locator('[data-ds-key="v0002"]')).toHaveCount(0);
@@ -495,6 +509,12 @@ test('virtual: only rows near the viewport exist, keyed and counted; the arrows 
   await list.evaluate((el) => DS.list.create(el).set(['v4999', 'v0001']));
   await expect(list.locator('[data-ds-key="v0001"] .ds-list__check')).toBeChecked();
   await expect(list.locator('[data-ds-key="v0002"] .ds-list__check')).not.toBeChecked();
+  await expect(list.locator('[data-ds-key="v0001"]')).toHaveAttribute('aria-selected', 'true');
+  // destroy() gives the page its roles back.
+  await list.evaluate((el) => DS.list.create(el).destroy());
+  await expect(list).not.toHaveAttribute('role', /.*/);
+  await expect(list.locator('[data-ds-key="v0001"]')).not.toHaveAttribute('role', /.*/);
+  expect(await list.locator('[data-ds-key="v0001"] .ds-list__check').evaluate((box) => box.inert)).toBe(false);
 });
 
 test('facts: stacked is one column, a grid spans wide and full facts (one column where one fits), bordered cells frame them', async ({ page }) => {

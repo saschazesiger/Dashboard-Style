@@ -152,6 +152,10 @@ all.on('change', ({ keys }) => bar.show(keys.length));
   scroller, at most `--ds-list-max-height` (24rem) high; `virtual.scroller` names another. One tab stop, the active row
   (an inset ring while it has the focus); `↑` `↓` `Home` `End` `PageUp` `PageDown` move it, `Tab` reaches its controls,
   `Space` toggles its box. Rows get `aria-setsize` and `aria-posinset`. Reorder is not offered on a virtual list.
+  A virtual list that selects is a listbox, since the focus sits on the row and the row must say its state: the
+  module writes `role="listbox"` (and `aria-multiselectable="true"` for `multiple`) on the list, `role="option"` and
+  `aria-selected` on each row, and makes the row's box `inert` (a reader hears "DEVICE-0002, selected"; a press on the
+  box toggles the row). Keep other controls out of such rows: an option's content is read as text.
 
 | Export | What |
 |---|---|
