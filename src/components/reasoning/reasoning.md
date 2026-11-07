@@ -46,6 +46,8 @@ thinking.on('change', (state) => {});                                  // also d
 DS.reasoning.summaryText(12000, true);                                 // 'Thought for 12s'
 ```
 
+Exports: `DS.reasoning.create(el, options)` (the controller) and `DS.reasoning.summaryText(ms, done)` (the line it writes: strings `reasoningRunning` and `reasoningDone`).
+
 **Options.** The summary is the plain disclosure's: size (8px of height per step and its type), density (4px of
 height per step, and 2px of room above the thoughts), shape (its radius, the press morph) and touch (its target). Tone
 is not read: it shows no meaning.

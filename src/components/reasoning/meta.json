@@ -35,7 +35,9 @@
     "reasoning"
   ],
   "module": true,
-  "progressive": [],
+  "progressive": [
+    "scrollbar-color"
+  ],
   "ripple": false,
   "labExempt": {
     "DS.reasoning.summaryText": "a pure function: the summary's string, no motion"

@@ -21,7 +21,8 @@
     "ds-toolcall__part--error",
     "ds-toolcall__status",
     "ds-toolcall__time",
-    "ds-toolcall__title"
+    "ds-toolcall__title",
+    "ds-toolcall__word"
   ],
   "attributes": [
     "data-status"
@@ -54,7 +55,9 @@
     "toolcall"
   ],
   "module": true,
-  "progressive": [],
+  "progressive": [
+    "scrollbar-color"
+  ],
   "ripple": false,
   "labExempt": {
     "DS.toolcall.durationText": "a pure function: formatting, no motion"

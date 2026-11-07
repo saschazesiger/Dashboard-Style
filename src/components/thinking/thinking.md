@@ -48,6 +48,8 @@ DS.thinking.isoDuration(65000);                   // 'PT1M5S'
 DS.thinking.sinceOf('2026-11-05T09:00:00Z');      // a timestamp in ms, or null
 ```
 
+Exports: `DS.thinking.create(el, options)` (the controller), `DS.thinking.elapsedText(ms)` (the time as the line shows it), `DS.thinking.isoDuration(ms)` (the `datetime` of its `<time>`), `DS.thinking.tokensText(count)` (the compact count, string `tokensOne` / `tokensOther`) and `DS.thinking.sinceOf(value)` (a start as a timestamp: a number, a `Date` or an ISO string).
+
 `set()` drives it from the page and never writes the attributes: use one path per indicator.
 
 **Options.**

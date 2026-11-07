@@ -44,6 +44,10 @@
  *
  * Forced colours: the rail stays (a border); the summary keeps its words,
  * the shimmer's copy goes.
+ *
+ * Progressive:
+ * - scrollbar-color and scrollbar-width (a thin, quiet scrollbar on the
+ *   thoughts): without them the platform scrollbar shows.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -82,6 +86,7 @@
   }
 
   .ds-reasoning__text {
+    position: relative;
     max-height: var(--ds-reasoning-max-height, 320px);
     margin-inline-start: var(--ds-space-2);
     padding-inline: var(--ds-space-3) var(--ds-space-2);

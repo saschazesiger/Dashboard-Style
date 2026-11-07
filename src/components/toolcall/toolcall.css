@@ -65,6 +65,10 @@
  * Forced colours: the frame and the code's edge stay (borders); the marks
  * and the icon take CanvasText, and every status keeps its word; the
  * spinner takes its system colours (spinner.css).
+ *
+ * Progressive:
+ * - scrollbar-color and scrollbar-width (a thin, quiet scrollbar on the
+ *   code): without them the platform scrollbar shows.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -153,6 +157,11 @@
     height: 16px;
   }
 
+  /* The word stays whole: with the mark it is the status. */
+  .ds-toolcall__word {
+    white-space: nowrap;
+  }
+
   .ds-toolcall[data-status="done"] > summary .ds-toolcall__mark {
     color: var(--ds-success);
   }
@@ -205,6 +214,7 @@
   }
 
   .ds-toolcall__code {
+    position: relative;
     max-height: var(--ds-toolcall-code-max-height, 240px);
     margin: 0;
     padding: var(--ds-space-2) var(--ds-space-3);

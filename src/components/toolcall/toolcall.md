@@ -78,6 +78,8 @@ DS.toolcall.durationText(240);                                // '240ms'
 DS.toolcall.STATUSES;                                         // ['pending', 'running', 'done', 'failed', 'cancelled']
 ```
 
+Exports: `DS.toolcall.create(el, options)` (the controller), `DS.toolcall.durationText(ms)` (the duration as the summary shows it) and `DS.toolcall.STATUSES` (the statuses `data-status` takes).
+
 `set()` writes the mark (the spinner, or `hourglass`, `checkCircle`, `alertCircle`, `ban` of `DS.icons`) and, with a
 `label`, the word; a page that renders the row writes them in its markup.
 
