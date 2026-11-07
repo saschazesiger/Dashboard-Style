@@ -99,4 +99,9 @@ SG_LAB.add({
     gridOf.get(stage).expand('a', true);
     return gridQuiet(stage, sg);
   },
+  state: function (stage) { return stage.querySelector('tr[data-ds-datagrid-row="a"]').getAttribute('aria-expanded') === 'true'; },
+  toggle: function (stage, on, sg) {
+    gridOf.get(stage).expand('a', on);
+    return gridQuiet(stage, sg);
+  },
 });

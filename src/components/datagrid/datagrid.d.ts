@@ -80,7 +80,8 @@ export interface GridOptions {
   /** Client data: filtered, sorted, grouped and paged by the grid. */
   rows?: any[];
   /** Server data: called with the query; returns (a promise of) the page of rows. */
-  source?: (query: GridQuery, context: { signal: AbortSignal }) => GridResult | any[] | Promise<GridResult | any[]>;
+  /** Server data. An export asks for every row: `page` null and `export: true` in the context. */
+  source?: (query: GridQuery, context: { signal: AbortSignal; export?: boolean }) => GridResult | any[] | Promise<GridResult | any[]>;
   /** A row's key: a property name (default 'id') or a function. */
   key?: string | ((row: any, index: number) => string);
   /** Names a row (checkbox labels, announcements; default its first column's text). */
@@ -159,9 +160,11 @@ export interface GridController {
   preset(id: string): void;
   toggleColumn(key: string, show?: boolean): void;
   resize(key: string, width: number): void;
-  csv(options?: { selected?: boolean; separator?: string; header?: boolean }): string;
+  /** The CSV text; with `source`, a promise of it (every row comes from the source again). */
+  csv(options?: { selected?: boolean; separator?: string; header?: boolean }): string | Promise<string>;
   copy(options?: { selected?: boolean; header?: boolean }): Promise<boolean>;
-  download(name?: string, options?: { selected?: boolean; separator?: string; header?: boolean }): string;
+  /** Saves the CSV and returns its text; with `source`, a promise of it. */
+  download(name?: string, options?: { selected?: boolean; separator?: string; header?: boolean }): string | Promise<string>;
   menu(key: string, options?: { x?: number; y?: number; opener?: Element | null }): boolean;
   destroy(): void;
 }

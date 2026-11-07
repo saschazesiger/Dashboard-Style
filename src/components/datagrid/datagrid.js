@@ -75,6 +75,9 @@ const SORT_DIRS = ['ascending', 'descending'];
 /** The controller of each table. @type {WeakMap<Element, any>} */
 const instances = new WeakMap();
 
+/** The grids made so far: each grid's ids start with its number. */
+let gridCount = 0;
+
 const isObject = (value) => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 
 /** Text escaped for markup. */
@@ -166,12 +169,15 @@ function normalizeSort(sort) {
   return out;
 }
 
-/** Sorts a copy of `rows` by `sort` (stable; empty values last in either direction). */
-function sortRows(rows, sort, columns, locale) {
+/**
+ * Sorts a copy of `list` by `sort` (stable; empty values last in either
+ * direction). `rowOf` reads the row of an entry (tree nodes sort as they are).
+ */
+function sortRows(list, sort, columns, locale, rowOf = (entry) => entry) {
   const keys = sort.map((entry) => ({ entry, column: columns.find((column) => column.key === entry.key) })).filter((item) => item.column);
-  if (!keys.length) return rows.slice();
+  if (!keys.length) return list.slice();
   const collator = collatorFor(locale);
-  return rows.map((row, index) => ({ row, index })).sort((a, b) => {
+  return list.map((entry, index) => ({ entry, row: rowOf(entry), index })).sort((a, b) => {
     for (const { entry, column } of keys) {
       const va = column.sortValue ? column.sortValue(a.row) : valueOf(column, a.row);
       const vb = column.sortValue ? column.sortValue(b.row) : valueOf(column, b.row);
@@ -185,7 +191,7 @@ function sortRows(rows, sort, columns, locale) {
       if (order) return entry.dir === 'descending' ? -order : order;
     }
     return a.index - b.index;
-  }).map((item) => item.row);
+  }).map((item) => item.entry);
 }
 
 /** Whether a row passes `filter`: text (any filterable column contains it), a function, or { key: value | fn }. */
@@ -268,10 +274,8 @@ export function query(rows, options = {}) {
       return { row, key, kids, self, hasChildren: (childrenOf(row) ?? []).length > 0, forced: !self || kids.some((kid) => !kid.self || kid.forced) };
     };
     const filtering = options.filter !== null && options.filter !== undefined && options.filter !== '';
-    const order = (nodes) => {
-      const sorted = sortRows(nodes.map((node) => node.row), sort, columns, locale);
-      return sorted.map((row) => nodes.find((node) => node.row === row));
-    };
+    // The nodes sort as they are: mapping sorted rows back to their nodes would be quadratic.
+    const order = (nodes) => sortRows(nodes, sort, columns, locale, (node) => node.row);
     const roots = order(all.map((row, index) => keep(row, index, null)).filter(Boolean));
     const total = roots.length;
     const size = options.page?.size;
@@ -328,11 +332,19 @@ export function query(rows, options = {}) {
   return { items, rows: paged, total, filtered: sorted };
 }
 
+/**
+ * A negative figure as text: the minus, digits with their grouping and
+ * decimal marks (spaces, no-break spaces, apostrophes), a currency sign
+ * before or after, a percent sign. A spreadsheet reads it as a number, never
+ * as a formula.
+ */
+const FIGURE = /^-(?:\p{Sc}[ \u00a0\u202f]?)?\d[\d.,' \u00a0\u202f\u2019]*(?:%|[ \u00a0\u202f]?\p{Sc})?$/u;
+
 /** One field of CSV: quoted when it holds the separator, a quote or a line break; a formula start is defused. */
 function csvField(text, separator, safe) {
   let value = String(text ?? '');
   // A spreadsheet runs a cell that starts with = + - @ (or a tab or return) as a formula.
-  if (safe && /^[=+\-@\t\r]/.test(value) && !/^-?\d+([.,]\d+)?$/.test(value)) value = `'${value}`;
+  if (safe && /^[=+\-@\t\r]/.test(value) && !FIGURE.test(value)) value = `'${value}`;
   return /["\n\r]/.test(value) || value.includes(separator) ? `"${value.replace(/"/g, '""')}"` : value;
 }
 
@@ -501,7 +513,8 @@ function makeGrid(table, input) {
   const abort = new AbortController();
   const signal = abort.signal;
   const listeners = new Map();
-  const uid = `ds-datagrid-${(view.__dsGridSeq = (view.__dsGridSeq ?? 0) + 1)}`;
+  gridCount += 1;
+  const uid = `ds-datagrid-${gridCount}`;
 
   // Declarative markup unless the page gives data.
   const markup = !input.rows && typeof input.source !== 'function' && !input.columns ? readTable(table) : null;
@@ -710,6 +723,11 @@ function makeGrid(table, input) {
     return state.layout === 'fixed' && width ? ` style="width:${width}px"` : '';
   };
 
+  /** The id of a header's label, which names the header cell. */
+  const headId = (key) => `${uid}-h-${String(key).replace(/[^\w-]/g, '_')}`;
+  /** The widths of the columns as laid out (no width set), for their separators' values. */
+  const measured = new Map();
+
   const headHtml = () => {
     let html = '<tr data-ds-key="head">';
     if (selecting) {
@@ -734,16 +752,23 @@ function makeGrid(table, input) {
       if (entry) attrs.push(`data-ds-datagrid-dir="${entry.dir}"`);
       let inner = '';
       const label = column.head ?? esc(column.label);
-      if (can(column, 'reorderable')) inner += `<button class="ds-grip ds-datagrid__grip" type="button" aria-label="${esc(t('datagridMove', { column: column.label }))}">${icon(gripHorizontal, 16)}</button>`;
+      const grip = can(column, 'reorderable');
+      const resizable = can(column, 'resizable');
+      // A grip or a separator would join the header's name (taken from its content): the label names it alone.
+      const named = grip || resizable ? headId(column.key) : null;
+      if (named) attrs.push(`aria-labelledby="${named}"`);
+      const labelId = named ? ` id="${named}"` : '';
+      if (grip) inner += `<button class="ds-grip ds-datagrid__grip" type="button" aria-label="${esc(t('datagridMove', { column: column.label }))}">${icon(gripHorizontal, 16)}</button>`;
       if (sortable) {
         let extra = '';
         if (entry) extra += icon(arrowUp, 16, 'ds-table__sort-arrow');
         if (entry && state.sort.length > 1) extra += `<span class="ds-datagrid__rank" aria-hidden="true">${rank + 1}</span>`;
         if (entry && !primary) extra += `<span class="ds-sr">${esc(t('datagridSortRank', { rank: rank + 1, direction: t(entry.dir === 'descending' ? 'datagridDescending' : 'datagridAscending') }))}</span>`;
-        inner += `<button class="ds-table__sort" type="button" data-ds-datagrid-sort>${label}${extra}</button>`;
-      } else inner += label;
-      if (can(column, 'resizable')) {
-        const width = Math.round(state.widths.get(column.key) ?? 0);
+        inner += `<button class="ds-table__sort" type="button"${labelId} data-ds-datagrid-sort>${label}${extra}</button>`;
+      } else inner += named ? `<span${labelId}>${label}</span>` : label;
+      if (resizable) {
+        // Its value: the width set, else the one measured after the last render (syncSeparators()).
+        const width = Math.round(state.widths.get(column.key) ?? measured.get(column.key) ?? 0);
         inner += `<span class="ds-datagrid__resize" role="separator" aria-orientation="vertical" aria-label="${esc(t('datagridResize', { column: column.label }))}" aria-valuemin="${column.minWidth}" aria-valuemax="${column.maxWidth}"${width ? ` aria-valuenow="${width}"` : ''} tabindex="${state.focus === 'cell' ? '-1' : '0'}"></span>`;
       }
       html += `<th ${attrs.join(' ')}${widthStyle(column)}${cellTab()}>${inner}</th>`;
@@ -782,7 +807,7 @@ function makeGrid(table, input) {
     if (first && treeOn && !editing) {
       const twist = item.expanded === null
         ? '<span class="ds-datagrid__twist-room" aria-hidden="true"></span>'
-        : `<button class="ds-btn ds-btn--quiet ds-btn--icon ds-table__toggle ds-datagrid__twist" type="button" tabindex="-1" aria-expanded="${item.expanded}" aria-label="${esc(t(item.expanded ? 'collapse' : 'expand'))} ${esc(rowLabel(row))}" data-ds-datagrid-twist>${icon(chevronRight, 20, 'ds-datagrid__chevron')}</button>`;
+        : `<button class="ds-btn ds-btn--quiet ds-btn--icon ds-table__toggle ds-datagrid__twist" type="button"${state.focus ? ' tabindex="-1"' : ''} aria-expanded="${item.expanded}" aria-label="${esc(t(item.expanded ? 'collapse' : 'expand'))} ${esc(rowLabel(row))}" data-ds-datagrid-twist>${icon(chevronRight, 20, 'ds-datagrid__chevron')}</button>`;
       content = `<span class="ds-datagrid__tree" style="--ds-datagrid-level:${item.level - 1}">${twist}<span class="ds-datagrid__label">${content}</span></span>`;
     }
     const cls = [column.className, own?.className, column.edit && !editing ? 'ds-datagrid__editable' : '', editing ? 'ds-datagrid__editing' : ''].filter(Boolean).join(' ');
@@ -814,7 +839,11 @@ function makeGrid(table, input) {
     }
     if (state.focus === 'row') attrs.push('tabindex="-1"');
     let html = `<tr ${attrs.join(' ')}>`;
-    if (selecting) html += `<td class="ds-datagrid__select"${cellTab()}><input type="checkbox" aria-label="${esc(t('datagridSelectRow', { label: rowLabel(row) }))}" data-ds-datagrid-check${selected ? ' checked' : ''}></td>`;
+    if (selecting) {
+      // One row at a time is a radio's meaning: a set of radios, one per row.
+      const input = multiple ? 'type="checkbox"' : `type="radio" class="ds-radio-input" name="${uid}-select"`;
+      html += `<td class="ds-datagrid__select"${cellTab()}><input ${input} aria-label="${esc(t('datagridSelectRow', { label: rowLabel(row) }))}" data-ds-datagrid-check${selected ? ' checked' : ''}></td>`;
+    }
     if (detailOf) {
       const open = state.expanded.has(key);
       html += `<td class="ds-datagrid__toggle"${cellTab()}><button class="ds-btn ds-btn--quiet ds-btn--icon ds-table__toggle" type="button" aria-expanded="${open}" aria-controls="${detailId(key)}" aria-label="${esc(t('datagridDetailsOf', { label: rowLabel(row) }))}" data-ds-datagrid-detail>${icon(chevronDown, 20, 'ds-chevron')}</button></td>`;
@@ -903,6 +932,8 @@ function makeGrid(table, input) {
 
   let windowed = null;
   let rendering = false;
+  /** Whether the view was computed once (render({ keep }) needs it). */
+  let computed = false;
   /** Rows that carry an aria-rowindex of the grid's (paged data). */
   const indexed = new WeakSet();
 
@@ -961,23 +992,65 @@ function makeGrid(table, input) {
       const count = keys.filter(isSelected).length;
       all.indeterminate = count > 0 && count < keys.length;
     }
+    syncSeparators();
     if (state.focus) rove();
     syncBar();
     syncPager();
     syncChooser();
   };
 
-  /** Renders everything; `glide` (a user's sort or filter) moves the rows through DS.motion.flip. */
-  const render = ({ glide = false } = {}) => {
+  /**
+   * A focusable separator needs its value from the start: a column with no
+   * width set reports the width it is laid out at (measured after each
+   * render, whenever its header cell changes size, and on focus).
+   */
+  const watched = new WeakSet();
+  const sizes = typeof view.ResizeObserver === 'function'
+    ? new view.ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const handle = entry.target.querySelector(':scope > .ds-datagrid__resize');
+        if (handle) syncSeparator(handle);
+      }
+    })
+    : null;
+  const syncSeparators = () => {
+    for (const handle of head.querySelectorAll('.ds-datagrid__resize')) {
+      syncSeparator(handle);
+      const th = handle.parentElement;
+      if (sizes && !watched.has(th)) {
+        watched.add(th);
+        sizes.observe(th);
+      }
+    }
+  };
+  const syncSeparator = (handle) => {
+    const th = handle.closest('th');
+    const key = th?.getAttribute('data-ds-datagrid-col');
+    if (!key || state.widths.has(key)) return;
+    const width = Math.round(th.getBoundingClientRect?.().width ?? 0);
+    if (width <= 0) return;
+    measured.set(key, width);
+    if (handle.getAttribute('aria-valuenow') !== String(width)) handle.setAttribute('aria-valuenow', String(width));
+  };
+
+  /**
+   * Renders everything; `glide` (a user's sort or filter) moves the rows
+   * through DS.motion.flip. `keep`: the view is as it was (a selection or the
+   * columns changed), so the pipeline does not run again: with ten thousand
+   * rows a checkbox would take as long as a sort.
+   */
+  const render = ({ glide = false, keep = false } = {}) => {
     if (signal.aborted) return;
     rendering = true;
     try {
-      compute();
+      const again = !keep || !computed;
+      if (again) compute();
+      computed = true;
       renderHead();
       renderFoot();
       if (options.virtual) {
         ensureWindow();
-        windowed.set({ count: state.items.length, total: state.page || server ? state.total : null, forget: true });
+        if (again) windowed.set({ count: state.items.length, total: state.page || server ? state.total : null, forget: true });
         windowed.refresh();
       } else {
         const html = state.items.map((item, index) => rowHtml(item, index)).join('');
@@ -1018,7 +1091,9 @@ function makeGrid(table, input) {
       render: (index) => rowHtml(state.items[index], index),
     });
     // Windowed rows need fixed columns: the automatic layout would size them by the rows that exist.
-    view.requestAnimationFrame?.(() => freeze());
+    view.requestAnimationFrame?.(() => {
+      if (!signal.aborted) freeze();
+    });
   };
 
   /** Fixes every column at its current width (before a resize, and for windowed rows). */
@@ -1075,7 +1150,8 @@ function makeGrid(table, input) {
       state.error = error;
       state.rows = [];
       render();
-      announce(options.errorText ?? t('datagridError'), { assertive: true });
+      // The default error state is an alert itself; a page's own template may not be.
+      if (templateOf('error') !== null) announce(options.errorText ?? t('datagridError'), { assertive: true });
       fire('error', { error });
     }
   };
@@ -1149,7 +1225,7 @@ function makeGrid(table, input) {
     return { count, keys: sel.all ? [] : [...sel.keys], all: sel.all, except: [...sel.except] };
   };
   const selectionChanged = () => {
-    render();
+    render({ keep: true });
     fire('select', selectionDetail());
   };
   const setSelected = (key, on) => {
@@ -1304,7 +1380,9 @@ function makeGrid(table, input) {
 
   const columnsChanged = (announceText) => {
     saveColumns();
-    render();
+    // The view does not depend on the columns shown, their order or widths (a sort of a hidden column went with it).
+    render({ keep: !sortDropped });
+    sortDropped = false;
     fire('columns', { order: [...state.order], hidden: [...state.hidden], widths: sizedWidths() });
     if (announceText) announce(announceText);
   };
@@ -1317,6 +1395,8 @@ function makeGrid(table, input) {
     columnsChanged(t('datagridPresetApplied', { preset: preset.label }));
   };
 
+  /** A column that went took its sort with it: the rows sort again. */
+  let sortDropped = false;
   const toggleColumn = (key, show) => {
     const column = byKey(key);
     if (!column || !can(column, 'hideable')) return;
@@ -1325,7 +1405,10 @@ function makeGrid(table, input) {
     if (visible) state.hidden.delete(key);
     else state.hidden.add(key);
     // The sort of a column that went goes with it.
-    if (!visible && sortEntry(key)) state.sort = state.sort.filter((entry) => entry.key !== key);
+    if (!visible && sortEntry(key)) {
+      state.sort = state.sort.filter((entry) => entry.key !== key);
+      sortDropped = true;
+    }
     columnsChanged(t(visible ? 'datagridColumnShown' : 'datagridColumnHidden', { column: column.label }));
   };
 
@@ -1369,7 +1452,8 @@ function makeGrid(table, input) {
   if (options.reorder) {
     const headRow = () => head.rows[0];
     reorder = dragAndDrop(head, {
-      items: 'th[data-ds-datagrid-col]',
+      // Only the cells with a grip move or make room: a pinned column (and one that cannot move) is no place to drop at.
+      items: 'th[data-ds-datagrid-col]:has(> .ds-datagrid__grip)',
       handle: '.ds-datagrid__grip',
       axis: 'inline',
       label: (th) => byKey(th.getAttribute('data-ds-datagrid-col'))?.label ?? '',
@@ -1378,9 +1462,14 @@ function makeGrid(table, input) {
     head.addEventListener('ds:drop', () => {
       // The header cells are in their new order: the rows follow.
       const now = Array.from(headRow()?.cells ?? []).map((cell) => cell.getAttribute('data-ds-datagrid-col')).filter(Boolean);
-      const queue = [...now];
-      state.order = state.order.map((key) => (now.includes(key) ? queue.shift() : key));
       // A pinned column stays where it was: put it back at its end.
+      const shown = visibleColumns();
+      const first = table.classList.contains('ds-table--pin-first') ? shown[0]?.key : null;
+      const last = table.classList.contains('ds-table--pin-last') && shown.length > 1 ? shown.at(-1)?.key : null;
+      const middle = now.filter((key) => key !== first && key !== last);
+      const placed = [...(first && now.includes(first) ? [first] : []), ...middle, ...(last && now.includes(last) ? [last] : [])];
+      const queue = [...placed];
+      state.order = state.order.map((key) => (placed.includes(key) ? queue.shift() : key));
       columnsChanged('');
     }, { signal });
   }
@@ -1411,6 +1500,7 @@ function makeGrid(table, input) {
     columnsChanged('');
   };
 
+  const rtl = (node) => view.getComputedStyle(node).direction === 'rtl';
   let dragging = null;
   head.addEventListener('pointerdown', (event) => {
     const handle = event.target.closest?.('.ds-datagrid__resize');
@@ -1421,12 +1511,13 @@ function makeGrid(table, input) {
     event.preventDefault();
     freeze();
     handle.setPointerCapture?.(event.pointerId);
-    dragging = { key, handle, pointer: event.pointerId, x: event.clientX, width: th.getBoundingClientRect().width };
+    // Right to left the separator sits at the left edge: a move to the left widens.
+    dragging = { key, handle, pointer: event.pointerId, x: event.clientX, width: th.getBoundingClientRect().width, sign: rtl(th) ? -1 : 1 };
     write(handle, 'data-ds-datagrid-resizing', '');
   }, { signal });
   head.addEventListener('pointermove', (event) => {
     if (!dragging || event.pointerId !== dragging.pointer) return;
-    resizeTo(dragging.key, dragging.width + (event.clientX - dragging.x), { save: false });
+    resizeTo(dragging.key, dragging.width + dragging.sign * (event.clientX - dragging.x), { save: false });
   }, { signal });
   const endDrag = (event) => {
     if (!dragging || event.pointerId !== dragging.pointer) return;
@@ -1437,6 +1528,10 @@ function makeGrid(table, input) {
     void key;
   };
   head.addEventListener('pointerup', endDrag, { signal });
+  // A separator about to be read (focus) reports the width the column has now.
+  head.addEventListener('focusin', (event) => {
+    if (event.target.matches?.('.ds-datagrid__resize')) syncSeparator(event.target);
+  }, { signal });
   head.addEventListener('pointercancel', endDrag, { signal });
   head.addEventListener('dblclick', (event) => {
     const handle = event.target.closest?.('.ds-datagrid__resize');
@@ -1449,7 +1544,8 @@ function makeGrid(table, input) {
     const column = byKey(key);
     if (!column) return false;
     const now = state.widths.get(key) ?? handle.closest('th').getBoundingClientRect().width;
-    const step = event.shiftKey ? RESIZE_BIG_STEP : RESIZE_STEP;
+    // The arrow toward the separator's side widens: ArrowRight left to right, ArrowLeft right to left.
+    const step = (event.shiftKey ? RESIZE_BIG_STEP : RESIZE_STEP) * (rtl(handle) ? -1 : 1);
     const to = { ArrowRight: now + step, ArrowLeft: now - step, PageUp: now + RESIZE_BIG_STEP, PageDown: now - RESIZE_BIG_STEP, Home: column.minWidth, End: column.maxWidth }[event.key];
     if (to !== undefined) {
       resizeTo(key, to);
@@ -1734,7 +1830,8 @@ function makeGrid(table, input) {
 
     // Tree rows and groups: Right opens, Left closes or goes to the parent.
     const treeItem = item && (item.kind === 'group' || (item.kind === 'row' && item.expanded !== null));
-    const onTreeColumn = state.focus === 'row' || col === systemBefore();
+    // A group's head cell spans the selection and details columns as well: anywhere on it counts.
+    const onTreeColumn = state.focus === 'row' || col === systemBefore() || (item?.kind === 'group' && Boolean(tr) && cellAt(tr, col) === tr.cells[0]);
     if (!header && item && (key === 'ArrowRight' || key === 'ArrowLeft') && onTreeColumn && (treeItem || (item.kind === 'row' && item.parent !== null && key === 'ArrowLeft') || (state.focus === 'row' && detailOf && item.kind === 'row'))) {
       if (treeItem) {
         const kind = item.kind === 'group' ? 'group' : 'tree';
@@ -1897,7 +1994,8 @@ function makeGrid(table, input) {
       return;
     }
     if (target.matches?.('[data-ds-datagrid-check]')) {
-      toggleRow(keyOfRow(target), { range: event.shiftKey, on: target.checked });
+      // A radio reports through change (the arrow keys check one without a click).
+      if (target.type !== 'radio') toggleRow(keyOfRow(target), { range: event.shiftKey, on: target.checked });
       return;
     }
     const detail = target.closest?.('[data-ds-datagrid-detail]');
@@ -1927,6 +2025,11 @@ function makeGrid(table, input) {
       const key = keyOfRow(target);
       if (key !== null) toggleRow(key, { on: true });
     }
+  }, { signal });
+
+  table.addEventListener('change', (event) => {
+    const radio = event.target;
+    if (radio.type === 'radio' && radio.checked && radio.matches?.('[data-ds-datagrid-check]')) toggleRow(keyOfRow(radio), { on: true });
   }, { signal });
 
   table.addEventListener('dblclick', (event) => {
@@ -2022,11 +2125,15 @@ function makeGrid(table, input) {
       }
     }
 
-    // Copy: the selected rows, else the focused cell's text.
+    // Copy: the selected rows, else the focused cell's text (row mode: the focused row).
     if (ctrl && key.toLowerCase() === 'c' && state.focus && !typesText(target) && !String(view.getSelection?.() ?? '')) {
       event.preventDefault();
+      const cell = state.focus === 'cell' ? target.closest('td, th') : null;
+      const item = cell ? null : findItem(keyOfRow(target));
       if (selectionDetail().count) copy({ selected: true });
-      else writeClipboard(textIn(target.closest('td, th')), 1);
+      else if (cell) writeClipboard(textIn(cell), 1);
+      else if (item) writeClipboard(csv([item.row], exportColumns(), { separator: '\t', locale: locale() }), 1);
+      else writeClipboard(textIn(target.closest('tr')), 1);
       return;
     }
 
@@ -2124,13 +2231,39 @@ function makeGrid(table, input) {
 
   /** The rows an export writes: every row that passes the filter, in order (tree rows with their children), or the selected ones. */
   const exportRows = ({ selected = false } = {}) => {
-    const rows = server ? state.rows : state.view.filtered;
+    const rows = state.view.filtered;
     if (!selected || !selectionDetail().count) return rows.slice();
     const index = new Map(state.rows.map((row, at) => [row, at]));
     return rows.filter((row) => isSelected(keyOf(row, index.get(row) ?? 0)));
   };
+
+  /**
+   * Server data: the grid holds one page, so an export asks the source again
+   * for every row (`page: null`, `{ export: true }` in its context), unless
+   * every selected row is on the page already.
+   */
+  let exporting = null;
+  const serverExportRows = async ({ selected = false } = {}) => {
+    const sel = state.selection;
+    const pick = selected && selectionDetail().count > 0;
+    if (pick && !sel.all) {
+      const here = state.rows.filter((row, at) => sel.keys.has(keyOf(row, at)));
+      if (here.length === sel.keys.size) return here;
+    }
+    exporting?.abort();
+    const control = new AbortController();
+    exporting = control;
+    const result = await options.source({ sort: state.sort.map((entry) => ({ ...entry })), filter: state.filter, page: null }, { signal: control.signal, export: true });
+    if (control.signal.aborted || signal.aborted) throw Object.assign(new Error('The export was aborted'), { name: 'AbortError' });
+    const all = Array.isArray(result) ? result : result?.rows ?? [];
+    return pick ? all.filter((row, at) => isSelected(keyOf(row, at))) : all;
+  };
+  /** The export rows of either kind of data: a list (client), a promise of one (server). */
+  const rowsToExport = (opts) => (server ? serverExportRows(opts) : exportRows(opts));
   const exportColumns = () => visibleColumns().filter((column) => column.export !== false);
-  const toCsv = (opts = {}) => csv(exportRows(opts), exportColumns(), { separator: opts.separator, locale: locale(), header: opts.header });
+  const csvOf = (rows, opts = {}) => csv(rows, exportColumns(), { separator: opts.separator, locale: locale(), header: opts.header });
+  /** CSV of the export rows: text (client) or a promise of it (server). */
+  const toCsv = (opts = {}) => (server ? serverExportRows(opts).then((rows) => csvOf(rows, opts)) : csvOf(exportRows(opts), opts));
 
   const writeClipboard = (text, count) => {
     const clipboard = view.navigator?.clipboard;
@@ -2146,12 +2279,23 @@ function makeGrid(table, input) {
       return false;
     });
   };
+  /** An export of server data that did not come: said, and the promise answers what it would have. */
+  const exportFailed = (error, value) => {
+    if (error?.name !== 'AbortError') announce(t('actionFailed'), { assertive: true });
+    return value;
+  };
   const copy = (opts = {}) => {
-    const rows = exportRows({ selected: opts.selected ?? true });
-    return writeClipboard(csv(rows, exportColumns(), { separator: '\t', locale: locale(), header: opts.header ?? true }), rows.length);
+    const write = (rows) => writeClipboard(csv(rows, exportColumns(), { separator: '\t', locale: locale(), header: opts.header ?? true }), rows.length);
+    const rows = rowsToExport({ selected: opts.selected ?? true });
+    return Array.isArray(rows) ? write(rows) : rows.then(write, (error) => exportFailed(error, false));
   };
   const download = (name, opts = {}) => {
     const text = toCsv(opts);
+    if (typeof text !== 'string') return text.then((done) => save(done, name), (error) => exportFailed(error, ''));
+    return save(text, name);
+  };
+  const save = (text, name) => {
+    if (signal.aborted) return text;
     // A byte-order mark, so a spreadsheet reads the file as UTF-8.
     const blob = new view.Blob([`\ufeff${text}`], { type: 'text/csv;charset=utf-8' });
     const url = view.URL.createObjectURL(blob);
@@ -2272,6 +2416,8 @@ function makeGrid(table, input) {
       if (signal.aborted) return;
       abort.abort();
       loading?.abort();
+      exporting?.abort();
+      sizes?.disconnect();
       instances.delete(table);
       windowed?.destroy();
       reorder?.destroy();
@@ -2310,7 +2456,11 @@ function makeGrid(table, input) {
   if (state.widths.size) state.layout = 'fixed';
   if (server) load();
   else render();
-  if (state.layout === 'fixed') view.requestAnimationFrame?.(() => decorate());
+  if (state.layout === 'fixed') {
+    view.requestAnimationFrame?.(() => {
+      if (!signal.aborted) decorate();
+    });
+  }
   return controller;
 }
 

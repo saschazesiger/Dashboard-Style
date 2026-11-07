@@ -63,7 +63,7 @@ Each option adds one thing; none is on by default.
 |---|---|---|
 | `columns` | list of columns (below) | the columns, in their default order (the "Default" preset) |
 | `rows` | array | client data: the grid filters, sorts, groups and pages it |
-| `source` | `(query, { signal }) => result` | server data: `query` is `{ sort, filter, page }`; return (a promise of) `{ rows, total, summary }`. A newer query aborts the older one (`signal`). See [One data contract](#one-data-contract) |
+| `source` | `(query, { signal, export }) => result` | server data: `query` is `{ sort, filter, page }`; return (a promise of) `{ rows, total, summary }`. A newer query aborts the older one (`signal`). An export asks for every row: `page` is `null` and `export` is `true`. See [One data contract](#one-data-contract) |
 | `key` | property name or `(row, index) => key` | a row's key (default `id`) |
 | `label` | `(row) => text` | a row's name in checkbox labels and announcements (default its first column's text) |
 | `sortable`, `multiSort` | `true` | every column sorts (else only those with `sortable: true`); Shift adds a column to the sort |
@@ -122,8 +122,8 @@ your own markup.
 `select: 'multiple'` adds a checkbox per row and a select-all box in the header (mixed for some, `indeterminate`). A
 click with Shift selects the range from the last row clicked. In the header box selects the page; once the page is
 selected and more rows exist, the selection bar offers "Select all N" (`.ds-datagrid__every`), which selects every row
-that passes the filter on every page (`all: true`; rows unchecked after it are listed in `except`). `'single'`: a click
-on a row (outside its controls) selects it alone. A selected row has `.ds-table__row--selected` (and its checked box), so
+that passes the filter on every page (`all: true`; rows unchecked after it are listed in `except`). `'single'`: a radio
+per row (`.ds-radio-input`, one group per grid), and a click on a row (outside its controls) selects it alone. A selected row has `.ds-table__row--selected` (and its checked box), so
 the table colours it; in focus mode it also carries `aria-selected`.
 
 ```html
@@ -148,15 +148,18 @@ box.
   `multiSort` a Shift+click adds it to the sort, turns it, then takes it off. The first sorted column carries `aria-sort`;
   every sorted column shows its arrow (`data-ds-datagrid-dir` turns it), and with more than one a `.ds-datagrid__rank` figure
   and hidden words ("sort 2, descending"). A sort is announced. Rows glide to their places (`DS.motion.flip`).
-- **Resize**: `.ds-datagrid__resize` is a `role="separator"` with `aria-valuenow` (px), `aria-valuemin` and
-  `aria-valuemax`. Drag it, or press ArrowLeft and ArrowRight (8px; with Shift, PageUp or PageDown 64px), Home and End
+- **Resize**: `.ds-datagrid__resize` is a `role="separator"` with `aria-valuenow` (px: the width set, else the width the
+  column is laid out at, measured after each render and on focus), `aria-valuemin` and `aria-valuemax`. Drag it, or
+  press ArrowLeft and ArrowRight (8px, the arrow toward the separator widens, so right to left ArrowLeft does; with
+  Shift, PageUp or PageDown 64px), Home and End
   (the least and most width); Enter or a double click gives the column its natural width back. The first resize fixes
   every column at its width (`data-ds-datagrid-layout="fixed"`, `table-layout: fixed`, the table as wide as its columns), so
   only that column changes; long cells then end in an ellipsis. Only the widths a person (or the page, `width` and
   `resize()`) set are remembered; once none is left, the automatic layout comes back.
 - **Reorder**: `.ds-datagrid__grip` (a `.ds-grip` button in the cell's start padding, shown on hover and focus) moves the
   column through `DS.dnd`: drag it, or press Space, then ArrowLeft and ArrowRight, then Space (Escape cancels); every step
-  is announced. The rows follow on the drop.
+  is announced. The rows follow on the drop. A pinned first or last column (`.ds-table--pin-first`, `.ds-table--pin-last`)
+  has no grip and keeps its place: no column drops before or after it.
 - **Chooser**: `chooser` names an empty `.ds-menu` (with a trigger, `aria-haspopup="menu"` and `data-ds-open`); the grid
   fills it with the presets ("Default", "All columns", your `presets`) as `menuitemradio` items and a `menuitemcheckbox`
   per column that can hide. A column box toggles and the menu stays open, as a list of boxes would; a preset applies and
@@ -201,7 +204,11 @@ box.
 `grid.csv(options)` returns CSV (RFC 4180) of the visible columns and every row that passes the filter, in order (with
 `selected: true` the selected ones); `grid.download(name)` saves it (UTF-8 with a byte-order mark); `grid.copy()` puts the
 selected rows (else all) on the clipboard as tab-separated text, ready for a spreadsheet, and announces it. Fields that a
-spreadsheet would run as a formula (`=`, `+`, `-`, `@`) start with an apostrophe. Buttons outside the table run them by
+spreadsheet would run as a formula (`=`, `+`, `-`, `@`) start with an apostrophe; a figure (`-1,234.5`, `-12%`,
+`-€5`, grouped by spaces or apostrophes) stays a figure. With `source` the grid holds only the page on screen, so an
+export asks the source once more for every row that passes the filter (`page: null`, `{ export: true }` in its context;
+the selected ones are picked from those, unless every selected row is on the page): `grid.csv()` and
+`grid.download()` then return a promise of the text. Buttons outside the table run them by
 `data-ds-datagrid-command` (`csv`, `copy`, `clear`, `every`, `reset`, `retry`) and `aria-controls` naming the table:
 
 ```html
@@ -216,7 +223,7 @@ pattern) and every control inside it waits at `tabindex="-1"`:
 
 | Key | Cell mode | Row mode |
 |---|---|---|
-| ArrowRight, ArrowLeft | the next, previous cell; on a tree row's first cell: opens, closes, or goes to the parent | opens, closes (tree rows, groups, details), or goes to the parent |
+| ArrowRight, ArrowLeft | the next, previous cell; on a tree row's first cell or a group's head: opens, closes, or goes to the parent | opens, closes (tree rows, groups, details), or goes to the parent |
 | ArrowDown, ArrowUp | the cell below, above (from the first row up to the header) | the next, previous row; with Shift extends the selection |
 | PageDown, PageUp | ten rows on | ten rows on |
 | Home, End | the row's first, last cell; with Ctrl the grid's first, last cell | the first, last row |
@@ -224,7 +231,7 @@ pattern) and every control inside it waits at `tabindex="-1"`:
 | F2 | edits, or enters a cell; again (or Escape) goes back to the cell | enters the row |
 | Tab inside a cell | goes round its controls | goes round its controls |
 | Space | Shift+Space (or Space on a cell without a control) selects the row | selects the row |
-| Ctrl+A, Ctrl+C | selects the page; copies the selected rows, else the cell | the same |
+| Ctrl+A, Ctrl+C | selects the page; copies the selected rows, else the cell | selects the page; copies the selected rows, else the focused row |
 | Shift+F10, menu key | the row's context menu | the row's context menu |
 
 A cell with one control (a checkbox, a toggle, a link) takes the focus on that control. The focused cell or row shows
@@ -233,7 +240,8 @@ the ring, inset, and the focus layer at once.
 ### Accessibility
 
 - **Roles and names**: `role="grid"` (or `treegrid`) only in focus mode, with `aria-multiselectable`; give the table
-  a name (`aria-label` or a `<caption>`). Header cells keep `scope="col"`; the selection, details and actions columns
+  a name (`aria-label` or a `<caption>`). Header cells keep `scope="col"`; a header with a grip or a separator is named
+  by its label alone (`aria-labelledby` on the sort button or a span), so neither joins its name; the selection, details and actions columns
   have hidden names; every checkbox and toggle names its row. A paged or server table carries `aria-rowcount` and each
   row its `aria-rowindex`.
 - **Announcements** (`DS.a11y.announce`): a sort, the number of rows a filter leaves, a page, a column shown or hidden,

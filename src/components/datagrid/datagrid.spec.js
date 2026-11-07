@@ -27,6 +27,11 @@ const focusedInfo = (page) => page.evaluate(() => {
 });
 /** What the page announced through DS.a11y.announce (the snackbar region's live announcers). */
 const said = (page) => page.evaluate(() => [...document.querySelectorAll('[aria-live]')].map((node) => node.textContent).join(' | '));
+/** A clipboard that keeps what it is given in window.specClip. */
+const stubClipboard = (page) => page.evaluate(() => {
+  window.specClip = [];
+  Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: (text) => { window.specClip.push(text); return Promise.resolve(); } } });
+});
 
 test('a grid without options stays the table it was; focus mode makes it a grid with one tab stop', async ({ page }) => {
   await open(page);
@@ -127,7 +132,59 @@ test('resizes a column by keys and pointer, and Enter gives its width back', asy
   // The other columns kept their widths.
   await handle.focus();
   await page.keyboard.press('Enter');
-  await expect(th.locator('.ds-datagrid__resize')).not.toHaveAttribute('aria-valuenow');
+  // The width given back: the automatic layout again, and the separator reports the width the column is laid out at.
+  await expect(table).not.toHaveAttribute('data-ds-datagrid-layout');
+  const natural = Math.round((await th.boundingBox()).width);
+  expect(Math.abs(Number(await th.locator('.ds-datagrid__resize').getAttribute('aria-valuenow')) - natural)).toBeLessThanOrEqual(1);
+});
+
+test('a header is named by its label alone, and every separator has its value from the start', async ({ page }) => {
+  await open(page);
+  const table = full(page);
+  const expected = { name: 'Device', model: 'Model', owner: 'Owner', tickets: 'Tickets', load: 'Load' };
+  for (const [key, name] of Object.entries(expected)) {
+    const th = table.locator(`thead th[data-ds-datagrid-col="${key}"]`);
+    // The grip ("Move …") and the separator ("Resize …", its value) stay out of the header's name.
+    await expect(th).toHaveAccessibleName(name);
+    const handle = th.locator('.ds-datagrid__resize');
+    const now = Number(await handle.getAttribute('aria-valuenow'));
+    expect(Math.abs(now - (await th.boundingBox()).width)).toBeLessThanOrEqual(1);
+  }
+  // A cell's column header is that name too.
+  const declared = page.locator('[data-demo="declared"] table');
+  for (const name of ['Device', 'Owner', 'Load']) await expect(declared.getByRole('columnheader', { name, exact: true })).toHaveCount(1);
+  const values = await page.evaluate(() => [...document.querySelectorAll('.ds-datagrid__resize')].filter((el) => el.getClientRects().length).map((el) => el.getAttribute('aria-valuenow')));
+  expect(values.length).toBeGreaterThan(5);
+  expect(values.every((value) => Number(value) > 0)).toBe(true);
+});
+
+test('right to left: dragging the separator outward widens, and ArrowLeft widens', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const wrap = document.createElement('div');
+    wrap.className = 'ds-table-wrap';
+    wrap.dir = 'rtl';
+    wrap.innerHTML = '<table class="ds-table ds-datagrid" aria-label="Probe" data-spec="rtl"></table>';
+    document.querySelector('#fx-component').prepend(wrap);
+    DS.datagrid.create(wrap.firstChild, { columns: [{ key: 'a', label: 'Alpha' }, { key: 'b', label: 'Beta' }, { key: 'c', label: 'Gamma' }], rows: [{ id: 1, a: 'one', b: 'two', c: 'three' }], resize: true });
+  });
+  const th = page.locator('[data-spec="rtl"] th[data-ds-datagrid-col="a"]');
+  const handle = th.locator('.ds-datagrid__resize');
+  const before = (await th.boundingBox()).width;
+  const box = await handle.boundingBox();
+  // The separator sits at the left edge, right to left.
+  expect(box.x).toBeLessThan((await th.boundingBox()).x + 12);
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 - 40, box.y + box.height / 2, { steps: 4 });
+  await page.mouse.up();
+  const dragged = Number(await handle.getAttribute('aria-valuenow'));
+  expect(Math.abs(dragged - (before + 40))).toBeLessThanOrEqual(1);
+  await handle.focus();
+  await page.keyboard.press('ArrowLeft');
+  await expect(handle).toHaveAttribute('aria-valuenow', String(dragged + 8));
+  await page.keyboard.press('ArrowRight');
+  await expect(handle).toHaveAttribute('aria-valuenow', String(dragged));
 });
 
 test('moves a column with its grip by keys, and the cells follow', async ({ page }) => {
@@ -144,6 +201,48 @@ test('moves a column with its grip by keys, and the cells follow', async ({ page
   await expect.poll(async () => (await heads(table)).slice(0, 3)).toEqual(['name', 'owner', 'model']);
   const cells = await bodyRows(table).first().locator('td[data-ds-key^="c:"]').evaluateAll((list) => list.map((cell) => cell.getAttribute('data-ds-key')));
   expect(cells.slice(0, 3)).toEqual(['c:name', 'c:owner', 'c:model']);
+});
+
+test('a pinned first or last column keeps its place when the others move', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const wrap = document.createElement('div');
+    wrap.className = 'ds-table-wrap';
+    wrap.innerHTML = '<table class="ds-table ds-table--pin-first ds-table--pin-last ds-datagrid" aria-label="Probe" data-spec="pinned"></table>';
+    document.querySelector('#fx-component').prepend(wrap);
+    window.specPinned = DS.datagrid.create(wrap.firstChild, { columns: ['a', 'b', 'c', 'd'].map((key) => ({ key, label: key.toUpperCase() })), rows: [{ id: 1, a: 1, b: 2, c: 3, d: 4 }], reorder: true });
+  });
+  const table = page.locator('[data-spec="pinned"]');
+  await expect(table.locator('th[data-ds-datagrid-col="a"] .ds-datagrid__grip')).toHaveCount(0);
+  await expect(table.locator('th[data-ds-datagrid-col="d"] .ds-datagrid__grip')).toHaveCount(0);
+  // B to the left: A is no place to drop at.
+  await table.locator('th[data-ds-datagrid-col="b"] .ds-datagrid__grip').focus();
+  await page.keyboard.press('Space');
+  await page.keyboard.press('ArrowLeft');
+  await page.keyboard.press('Space');
+  // C to the right: nor is D.
+  await table.locator('th[data-ds-datagrid-col="c"] .ds-datagrid__grip').focus();
+  await page.keyboard.press('Space');
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('Space');
+  expect(await heads(table)).toEqual(['a', 'b', 'c', 'd']);
+  // B past C moves.
+  await table.locator('th[data-ds-datagrid-col="b"] .ds-datagrid__grip').focus();
+  await page.keyboard.press('Space');
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('Space');
+  await expect.poll(() => heads(table)).toEqual(['a', 'c', 'b', 'd']);
+  // A drop that put a pinned column in the middle anyway: it goes back to its end.
+  await table.evaluate((el) => {
+    const row = el.tHead.rows[0];
+    row.insertBefore(row.cells[0], row.cells[2]);
+    row.append(row.cells[1]);
+    if (row.cells[3].getAttribute('data-ds-datagrid-col') !== 'a') throw new Error('the probe drop did not move A to the end');
+    el.tHead.dispatchEvent(new CustomEvent('ds:drop', { bubbles: true }));
+  });
+  // The cells as such a drop left them: C, B, D, A.
+  await expect.poll(() => heads(table)).toEqual(['a', 'c', 'b', 'd']);
+  expect(await page.evaluate(() => window.specPinned.get().columns.order)).toEqual(['a', 'c', 'b', 'd']);
 });
 
 test('the chooser hides and shows columns and stays open; a preset applies and closes it', async ({ page }) => {
@@ -311,6 +410,49 @@ test('tree rows: a treegrid with levels; ArrowRight opens, ArrowLeft closes and 
   await expect(table.locator('tr[data-ds-datagrid-row="b0"]')).toBeVisible();
 });
 
+test('tree rows without focus mode: the twists are tab stops and open from the keyboard', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const wrap = document.createElement('div');
+    wrap.className = 'ds-table-wrap';
+    wrap.innerHTML = '<button type="button" data-spec="before">Before</button><table class="ds-table ds-datagrid" aria-label="Probe" data-spec="tree-table"></table>';
+    document.querySelector('#fx-component').prepend(wrap);
+    DS.datagrid.create(wrap.querySelector('table'), { columns: [{ key: 'name', label: 'Name' }], rows: [{ id: 'p', name: 'Parent', children: [{ id: 'c', name: 'Child' }] }], tree: true, focus: false });
+  });
+  const table = page.locator('[data-spec="tree-table"]');
+  await expect(table).not.toHaveAttribute('role');
+  const twist = table.locator('tr[data-ds-datagrid-row="p"] .ds-datagrid__twist');
+  await expect(twist).not.toHaveAttribute('tabindex');
+  await page.locator('[data-spec="before"]').focus();
+  await page.keyboard.press('Tab');
+  await expect(twist).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(twist).toHaveAttribute('aria-expanded', 'true');
+  await expect(table.locator('tr[data-ds-datagrid-row="c"]')).toHaveCount(1);
+});
+
+test('row groups in cell mode with a selection column: the arrows close and open a group on its head', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const wrap = document.createElement('div');
+    wrap.className = 'ds-table-wrap';
+    wrap.innerHTML = '<table class="ds-table ds-datagrid" aria-label="Probe" data-spec="groups-cell"></table>';
+    document.querySelector('#fx-component').prepend(wrap);
+    DS.datagrid.create(wrap.firstChild, { columns: [{ key: 'name', label: 'Name' }, { key: 'kind', label: 'Kind' }], rows: [{ id: 1, name: 'One', kind: 'A' }, { id: 2, name: 'Two', kind: 'A' }, { id: 3, name: 'Three', kind: 'B' }], group: 'kind', select: 'multiple', focus: 'cell' });
+  });
+  const table = page.locator('[data-spec="groups-cell"]');
+  await expect(table).toHaveAttribute('role', 'treegrid');
+  const head = table.locator('tr[data-ds-datagrid-group="A"]');
+  await head.locator('th').focus();
+  await page.keyboard.press('ArrowLeft');
+  await expect(head).toHaveAttribute('aria-expanded', 'false');
+  await expect(table.locator('tr[data-ds-datagrid-row="1"]')).toHaveCount(0);
+  await expect(head.locator('th')).toBeFocused();
+  await page.keyboard.press('ArrowRight');
+  await expect(head).toHaveAttribute('aria-expanded', 'true');
+  await expect(table.locator('tr[data-ds-datagrid-row="1"]')).toHaveCount(1);
+});
+
 test('row groups: head rows with counts and subtotals, collapsible, and the summary row', async ({ page }) => {
   await open(page);
   const table = page.locator('[data-demo="groups"]');
@@ -466,10 +608,7 @@ test('a filter narrows the rows and is announced; export writes CSV of what show
 
 test('copy puts the selected rows on the clipboard as tab-separated text, and Ctrl+C copies a cell', async ({ page }) => {
   await open(page);
-  await page.evaluate(() => {
-    window.specClip = [];
-    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: (text) => { window.specClip.push(text); return Promise.resolve(); } } });
-  });
+  await stubClipboard(page);
   const table = full(page);
   const boxes = table.locator('tbody [data-ds-datagrid-check]');
   await boxes.nth(0).click();
@@ -489,6 +628,88 @@ test('copy puts the selected rows on the clipboard as tab-separated text, and Ct
   await page.keyboard.press('ArrowRight');
   await page.keyboard.press('ControlOrMeta+c');
   await expect.poll(() => page.evaluate(() => window.specClip.at(-1))).toBe('Desktop 7');
+});
+
+test('row mode: Ctrl+C with nothing selected copies the focused row', async ({ page }) => {
+  await open(page);
+  await stubClipboard(page);
+  const table = page.locator('[data-demo="declared"] table');
+  const row = table.locator('tbody tr[data-ds-datagrid-row]').first();
+  const name = (await row.locator('td:not(.ds-datagrid__select)').first().textContent()).trim();
+  await row.focus();
+  await page.keyboard.press('ControlOrMeta+c');
+  await expect.poll(() => page.evaluate(() => window.specClip.length)).toBe(1);
+  const lines = (await page.evaluate(() => window.specClip[0])).split('\r\n');
+  expect(lines[0]).toBe('Device\tOwner\tLoad');
+  expect(lines).toHaveLength(2);
+  expect(lines[1].split('\t')[0]).toBe(name);
+  await expect.poll(() => said(page)).toContain('1 row copied.');
+});
+
+test('server data: an export and a copy of every selected row ask the source for every row', async ({ page }) => {
+  await open(page);
+  await stubClipboard(page);
+  await page.evaluate(() => {
+    const rows = Array.from({ length: 64 }, (_, at) => ({ id: `t${at + 1}`, title: `Ticket ${at + 1}`, opened: at % 9 }));
+    const wrap = document.createElement('div');
+    wrap.className = 'ds-table-wrap';
+    wrap.innerHTML = '<table class="ds-table ds-datagrid" aria-label="Probe" data-spec="server-export"></table>';
+    document.querySelector('#fx-component').prepend(wrap);
+    window.specQueries = [];
+    const columns = [{ key: 'title', label: 'Ticket' }, { key: 'opened', label: 'Open for', type: 'number' }];
+    window.specServer = DS.datagrid.create(wrap.firstChild, {
+      columns,
+      select: 'multiple',
+      page: { size: 10 },
+      source: (query, context) => {
+        window.specQueries.push({ page: query.page, export: Boolean(context.export) });
+        const result = DS.datagrid.query(rows, { columns, sort: query.sort, filter: query.filter, page: query.page });
+        return Promise.resolve({ rows: result.rows, total: result.total });
+      },
+    });
+  });
+  const table = page.locator('[data-spec="server-export"]');
+  await expect(table.locator('tbody tr[data-ds-datagrid-row]')).toHaveCount(10);
+  const text = await page.evaluate(() => window.specServer.csv());
+  expect(text.split('\r\n')).toHaveLength(65);
+  expect(await page.evaluate(() => window.specQueries.at(-1))).toEqual({ page: null, export: true });
+  // Every row selected, two unchecked: the copy holds the other 62.
+  await page.evaluate(() => window.specServer.select('all'));
+  await table.locator('tbody [data-ds-datagrid-check]').nth(0).click();
+  await table.locator('tbody [data-ds-datagrid-check]').nth(1).click();
+  expect(await page.evaluate(() => window.specServer.copy())).toBe(true);
+  const lines = (await page.evaluate(() => window.specClip.at(-1))).split('\r\n');
+  expect(lines).toHaveLength(63);
+  expect(lines[1].split('\t')[0]).toBe('Ticket 3');
+  await expect.poll(() => said(page)).toContain('62 rows copied.');
+  // Rows selected on this page only: no second trip to the source.
+  const trips = await page.evaluate(() => window.specQueries.length);
+  await page.evaluate(() => window.specServer.select(['t4', 't5']));
+  await page.evaluate(() => window.specServer.copy());
+  expect(await page.evaluate(() => window.specQueries.length)).toBe(trips);
+  expect((await page.evaluate(() => window.specClip.at(-1))).split('\r\n')).toHaveLength(3);
+});
+
+test('single selection: a radio per row, one group; checking one leaves the other', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const wrap = document.createElement('div');
+    wrap.className = 'ds-table-wrap';
+    wrap.innerHTML = '<table class="ds-table ds-datagrid" aria-label="Probe" data-spec="single"></table>';
+    document.querySelector('#fx-component').prepend(wrap);
+    DS.datagrid.create(wrap.firstChild, { columns: [{ key: 'name', label: 'Name' }], rows: [{ id: 1, name: 'One' }, { id: 2, name: 'Two' }, { id: 3, name: 'Three' }], select: 'single' });
+  });
+  const table = page.locator('[data-spec="single"]');
+  const radios = table.getByRole('radio');
+  await expect(radios).toHaveCount(3);
+  await expect(table.getByRole('checkbox')).toHaveCount(0);
+  await radios.nth(0).click();
+  await expect(table.locator('tr[data-ds-datagrid-row="1"]')).toHaveClass(/ds-table__row--selected/);
+  await radios.nth(0).focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(table.locator('tr[data-ds-datagrid-row="2"]')).toHaveClass(/ds-table__row--selected/);
+  await expect(table.locator('tr[data-ds-datagrid-row="1"]')).not.toHaveClass(/ds-table__row--selected/);
+  await expect(radios.nth(0)).not.toBeChecked();
 });
 
 test('options: size and density change the rows; touch widens the grip and the separator', async ({ page }) => {
@@ -511,6 +732,23 @@ test('options: size and density change the rows; touch widens the grip and the s
   expect(touch.row).toBeGreaterThanOrEqual(48);
   expect(touch.grip).toBeCloseTo(16, 0);
   expect(touch.resize).toBeCloseTo(12, 0);
+  // .ds-touch on the table itself, with a bigger target: the grip widens past the padding, and the padding with it.
+  await page.evaluate(() => {
+    document.querySelector('[data-demo="full"]').classList.remove('ds-touch');
+    const table = document.querySelector('[data-demo="full-table"]');
+    table.classList.add('ds-touch');
+    table.style.setProperty('--ds-touch-target', '72px');
+  });
+  const room = await page.evaluate(() => {
+    const th = document.querySelector('[data-demo="full-table"] th[data-ds-datagrid-col="model"]');
+    const grip = th.querySelector('.ds-datagrid__grip').getBoundingClientRect();
+    const label = th.querySelector('.ds-table__sort');
+    const text = label.getBoundingClientRect().left + parseFloat(getComputedStyle(label).paddingLeft);
+    return { grip: grip.width, gripEnd: grip.right, text, padding: parseFloat(getComputedStyle(th).paddingInlineStart) };
+  });
+  expect(room.grip).toBeCloseTo(24, 0);
+  expect(room.padding).toBeGreaterThanOrEqual(24);
+  expect(room.text).toBeGreaterThanOrEqual(room.gripEnd - 0.5);
 });
 
 test('a phone at 360px: the grid scrolls inside its wrapper and the page does not', async ({ page }) => {
@@ -567,4 +805,24 @@ test('destroy() gives the table back what the grid wrote', async ({ page }) => {
     return { role: table.getAttribute('role'), multi: table.getAttribute('aria-multiselectable'), stops: table.querySelectorAll('[data-ds-datagrid-stop]').length };
   });
   expect(left).toEqual({ role: null, multi: null, stops: 0 });
+});
+
+test('destroy() before the next frame: the frames it asked for write nothing', async ({ page }) => {
+  await open(page);
+  const left = await page.evaluate(async () => {
+    const make = (options) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'ds-table-wrap';
+      wrap.innerHTML = '<table class="ds-table ds-datagrid" aria-label="Probe"></table>';
+      document.querySelector('#fx-component').append(wrap);
+      const table = wrap.firstChild;
+      DS.datagrid.create(table, { columns: [{ key: 'a', label: 'A', width: 100 }, { key: 'b', label: 'B' }], rows: Array.from({ length: 40 }, (_, at) => ({ id: at, a: at, b: at })), ...options }).destroy();
+      return table;
+    };
+    const tables = [make({ focus: 'cell' }), make({ virtual: true, focus: 'cell' })];
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    return tables.map((table) => ({ role: table.getAttribute('role'), layout: table.getAttribute('data-ds-datagrid-layout'), width: table.style.getPropertyValue('--ds-datagrid-width') }));
+  });
+  expect(left).toEqual([{ role: null, layout: null, width: '' }, { role: null, layout: null, width: '' }]);
 });

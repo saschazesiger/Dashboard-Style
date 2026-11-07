@@ -47,7 +47,9 @@
     "table",
     "utilities"
   ],
-  "context": [],
+  "context": [
+    "card"
+  ],
   "hooks": {
     "--ds-datagrid-indent": {
       "default": "`--ds-space-6`",
@@ -58,6 +60,9 @@
       "description": "the head row of a row group in a `.ds-datagrid`"
     },
     "--ds-table-sticky-bg": {
+      "owner": "table"
+    },
+    "--ds-table-padding": {
       "owner": "table"
     },
     "--ds-btn-icon-size": {

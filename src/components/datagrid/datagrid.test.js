@@ -133,6 +133,17 @@ describe('DS.datagrid.query: tree rows', () => {
     assert.deepEqual(keys(paged), ['b', 'b1']);
   });
 
+  it('sorts ten thousand roots in linear time, not by looking each row up again', () => {
+    const many = Array.from({ length: 10000 }, (_, at) => ({ id: `r${at}`, name: `n${(at * 7919) % 10000}`, load: (at * 31) % 977, children: [{ id: `c${at}`, name: 'child' }] }));
+    const started = performance.now();
+    const result = query(many, { columns: [{ key: 'name' }, { key: 'load', type: 'number' }], tree: true, sort: [{ key: 'load', dir: 'descending' }, { key: 'name' }] });
+    const took = performance.now() - started;
+    assert.equal(result.items.length, 10000);
+    assert.equal(result.items[0].row.load, 976);
+    // Looked up by find() it took seconds; a sort of node and row together, a few hundred milliseconds at most.
+    assert.ok(took < 1500, `query() took ${Math.round(took)}ms`);
+  });
+
   it('reads children through a property name or a function', () => {
     const flat = [{ id: 'p', name: 'Parent', kids: [{ id: 'c', name: 'Child' }] }];
     assert.deepEqual(keys(query(flat, { columns: cols, tree: { children: 'kids' }, expanded: ['p'] })), ['p', 'c']);
@@ -203,6 +214,17 @@ describe('DS.datagrid.csv', () => {
     const text = csv([{ a: '=SUM(A1:A9)', b: '+1', c: '@cmd', d: '-12.5', e: '-x' }], ['a', 'b', 'c', 'd', 'e'], { header: false });
     assert.equal(text, "'=SUM(A1:A9),'+1,'@cmd,-12.5,'-x");
     assert.equal(csv([{ a: '=1' }], ['a'], { header: false, safe: false }), '=1');
+  });
+
+  it('keeps a formatted negative figure a figure: grouped, localized, a percent or currency sign', () => {
+    const figures = ['-1,234.5', '-1,234,567', '-1.234,5', '-1\u00a0234,5', '-1\u202f234', "-1'234.50", '-12%', '-$1,234.50', '-€ 5', '-1 234,50 €'];
+    for (const value of figures) assert.equal(csv([{ a: value }], ['a'], { header: false, separator: ';' }), value, value);
+    const formatted = csv([{ n: -1234.5 }, { n: -1234567 }], [{ key: 'n', type: 'number' }], { header: false, locale: 'en', separator: ';' });
+    assert.equal(formatted, '-1,234.5\r\n-1,234,567');
+    assert.equal(csv([{ n: -1234.5 }], [{ key: 'n', type: 'number' }], { header: false, locale: 'de', separator: ';' }), '-1.234,5');
+    // Still defused: anything a formula could do.
+    const risky = ['-1+2', '-2*3', '-1,2;cmd', '+5', '+A1', '-SUM(1)', '-1)', '- 1'];
+    for (const value of risky) assert.match(csv([{ a: value }], ['a'], { header: false, separator: '\t' }), /^"?'/, value);
   });
 
   it('takes another separator, leaves out export: false, and writes exportValue() and raw values', () => {

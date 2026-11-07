@@ -159,10 +159,30 @@
       outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
-  /* Under .ds-touch the wider grip takes room of its own, so the label
-     stays clear of it. */
-  .ds-touch .ds-datagrid > thead > tr > th:has(> .ds-datagrid__grip) {
-    padding-inline-start: max(var(--ds-space-4), calc(var(--ds-target-min, 0px) / 3));
+  /* A touch target (--ds-target-min, from .ds-touch on the table or any
+     container) widens the grip past the cell's start padding: the padding
+     grows with it, so the label stays clear. The table's side padding is
+     computed again here (table.css: the hook, 2px per density step, the
+     card's padding on a first cell, three quarters on phones, half at
+     320px). */
+  .ds-datagrid > thead > tr > th:has(> .ds-datagrid__grip) {
+    padding-inline-start: max(calc(var(--ds-table-padding, var(--ds-space-4)) + var(--ds-density, 0) * 2px), calc(var(--ds-target-min, 0px) / 3));
+  }
+
+  .ds-card .ds-table-wrap .ds-datagrid > thead > tr > th:first-child:has(> .ds-datagrid__grip) {
+    padding-inline-start: max(var(--ds-card-pad), calc(var(--ds-target-min, 0px) / 3));
+  }
+
+  @media (max-width: 600px) {
+    .ds-datagrid > thead > tr > th:has(> .ds-datagrid__grip) {
+      padding-inline-start: max(var(--ds-space-1), calc(var(--ds-table-padding, var(--ds-space-4)) * 0.75 + var(--ds-density, 0) * 2px), calc(var(--ds-target-min, 0px) / 3));
+    }
+  }
+
+  @media (max-width: 359px) {
+    .ds-datagrid > thead > tr > th:has(> .ds-datagrid__grip) {
+      padding-inline-start: max(var(--ds-space-1), calc(var(--ds-table-padding, var(--ds-space-4)) * 0.5 + var(--ds-density, 0) * 2px), calc(var(--ds-target-min, 0px) / 3));
+    }
   }
 
   .ds-datagrid th:focus-within > .ds-datagrid__grip,
