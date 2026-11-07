@@ -15,7 +15,7 @@ export interface PageHeadController {
   /** Condenses or unfolds a sticky head until the next scroll decides again. */
   set(value: boolean): void;
   on(type: 'change', fn: (detail: { condensed: boolean }) => void): () => void;
-  /** Lays the actions out again and reads the scroll. */
+  /** Lays the actions out again, measures the head's place and what folds, and reads the scroll. */
   refresh(): void;
   destroy(): void;
 }

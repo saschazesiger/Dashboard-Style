@@ -85,18 +85,23 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
   in over the first `--ds-space-2` of scroll (`ds-scroll-fade`, progressive), elsewhere with `data-scrolled` over
   `--ds-dur-fast`. Print puts it back in the flow.
 - **Condensing** (`data-ds-page-head` on a sticky head; `data-ds-page-head-condense="off"` keeps it whole): once the
-  reader has scrolled past what folds, the module writes `data-scrolled` on the head and the back link or breadcrumbs,
+  head sticks (a head under a banner or a toolbar first scrolls up to its sticky top) and the reader has scrolled past
+  what folds, the module writes `data-scrolled` on the head and the back link or breadcrumbs,
   the lead, the status and the key facts fold away; the title takes `--ds-font-title` on one line (an ellipsis when
   short of room) with the actions at its end, also on a narrow page; the tabs stay. What folded keeps its room in the
   flow (a bottom margin as tall, `--ds-page-head-fold`, a runtime property the module writes), so the content under it
   stays where it was, a running scroll goes on, and the state follows the scroll position alone: nothing jumps,
-  nothing flickers. The scroller is the nearest scrolling ancestor of the head, else the page.
+  nothing flickers. The scroller is the nearest scrolling ancestor of the head, else the page. A head prints whole,
+  also while condensed.
 - **Folding actions** (`data-ds-page-head` on any head): the module writes `.ds-page-head__more` (a quiet icon button
   named "More actions", the string `moreActions`) and its `.ds-menu` after the actions. Actions that do not fit the
   title row (on its own line under the title as well; half of it beside the title of a condensed head) hide, the first
   ones first and a filled one last, and the menu lists them with their icon and label; an item presses its action (a
   link item follows the link), a blocked action stays blocked in the menu. The row's width decides (a
-  `ResizeObserver`), so a narrow content panel folds as a phone does.
+  `ResizeObserver`), so a narrow content panel folds as a phone does. An action that opens an overlay with itself as
+  the opener passes the More button instead while it is folded (`hidden`), so the popup is placed against a button on
+  screen and the focus returns to it on close:
+  `DS.overlay.open(dialog, { opener: button.hidden ? head.querySelector('.ds-page-head__more') : button })`.
 - `ds:change` on the head: `{ condensed }`.
 
 | Attribute | Option | What |
@@ -106,7 +111,7 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
 
 The controller (`DS.get(head, 'page')`, or what `DS.page.create(head, options)` returns): `get()` (whether it is
 condensed), `set(condensed)` (until the next scroll decides), `on('change', fn)`, `refresh()` (lays the actions out
-again) and `destroy()`. `DS.page.fold(widths, { room, gap, more, order })` is the folding rule alone: the indices of the
+again and measures the head's place, after content above it changed) and `destroy()`. `DS.page.fold(widths, { room, gap, more, order })` is the folding rule alone: the indices of the
 actions that fold.
 
 What the module writes is owned state (`DS.dom.morphHtml` keeps it): `data-scrolled` and its `style` (the fold) on the

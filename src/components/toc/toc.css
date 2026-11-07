@@ -19,9 +19,10 @@
  *   A bar of anchors: <nav class="ds-toc ds-toc--bar ds-toc--sticky" aria-label="Sections" data-ds-toc> (the same list; nested lists stay off the bar)
  *
  * Current: aria-current="location" on the link of the section being read
- * (toc.js writes it). It takes the primary ink, the label weight and the
- * indicator (DS.indicator, .ds-toc__indicator): a bar on the column's line
- * at its start, under the link in a bar; never colour alone.
+ * (toc.js writes it). It takes the primary ink, the label weight (in a
+ * column; a bar keeps the weight, so the links after it never move) and
+ * the indicator (DS.indicator, .ds-toc__indicator): a bar on the column's
+ * line at its start, under the link in a bar; never colour alone.
  *
  * Variants:
  *   .ds-toc            a column: a hairline at its start, a row per link,
@@ -156,6 +157,14 @@
   .ds-toc__link[aria-current]:not([aria-current="false"]) {
     color: var(--ds-primary);
     font-weight: var(--ds-weight-label);
+  }
+
+  /* In a bar the links sit side by side: a heavier current one would push
+     the ones after it sideways at every change of the scroll-spy, and the
+     indicator would glide to a moving target. The weight stays; the ink and
+     the indicator under the link mark it. */
+  .ds-toc--bar .ds-toc__link[aria-current]:not([aria-current="false"]) {
+    font-weight: var(--ds-weight-regular);
   }
 
   .ds-toc__count {

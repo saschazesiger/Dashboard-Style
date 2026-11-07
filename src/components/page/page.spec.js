@@ -223,6 +223,41 @@ test('a sticky head condenses once its fold has scrolled past, keeps the content
   expect(await page.evaluate(() => window.__condensed)).toEqual([true, false]);
 });
 
+test('a sticky head under other content condenses only once it sticks and its fold has scrolled past; it prints whole', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await open(page);
+  const box = page.locator('[data-demo="sticky-box"]');
+  const head = box.locator('.ds-page-head');
+  // 400px of content above the head (a banner, a toolbar), then the head measured again.
+  await head.evaluate((el) => {
+    const above = document.createElement('div');
+    above.style.blockSize = '400px';
+    el.before(above);
+    DS.get(el, 'page').refresh();
+  });
+  await box.evaluate((el) => { el.scrollTop = 200; });
+  await page.waitForTimeout(100);
+  await expect(head).not.toHaveAttribute('data-scrolled');
+  await box.evaluate((el) => { el.scrollTop = 800; });
+  await expect(head).toHaveAttribute('data-scrolled', '');
+  // Printed while condensed: whole, without the fold's margin.
+  await page.emulateMedia({ media: 'print' });
+  const printed = await head.evaluate((el) => ({
+    details: getComputedStyle(el.querySelector('.ds-page-head__details')).display,
+    lead: getComputedStyle(el.querySelector('.ds-page-head__lead')).display,
+    margin: parseFloat(getComputedStyle(el).marginBottom),
+    wraps: getComputedStyle(el.querySelector('.ds-page-head__title')).whiteSpace,
+  }));
+  expect(printed.details).not.toBe('none');
+  expect(printed.lead).not.toBe('none');
+  expect(printed.margin).toBeLessThan(20);
+  expect(printed.wraps).not.toBe('nowrap');
+  await page.emulateMedia({ media: 'screen' });
+  // Back above where it sticks: whole again.
+  await box.evaluate((el) => { el.scrollTop = 300; });
+  await expect(head).not.toHaveAttribute('data-scrolled');
+});
+
 test('the condensing keeps the content where it was: no jump at the moment the head folds', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await open(page);

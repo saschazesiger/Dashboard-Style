@@ -26,7 +26,7 @@ scrolls (scroll-spy), and a link scrolls to its section and moves the focus ther
 | Option | Classes | Where it applies | Effect |
 |---|---|---|---|
 | Variant | column (default), `--bar`; `--sticky` | the nav | a column with a line at its start, or a row of anchors over a hairline; `--sticky` with either |
-| Size | `.ds-xs` ... `.ds-xl` | the nav or a group | a link 16 to 48px high in a column (`--ds-toc-height`, 32px at md), 32 to 64px in a bar (`--ds-toc-bar-height`, 48px), 8px per step; side padding 4px per step; the size's type role (`--ds-toc-font`) at the regular weight (the current link alone takes the label weight) |
+| Size | `.ds-xs` ... `.ds-xl` | the nav or a group | a link 16 to 48px high in a column (`--ds-toc-height`, 32px at md), 32 to 64px in a bar (`--ds-toc-bar-height`, 48px), 8px per step; side padding 4px per step; the size's type role (`--ds-toc-font`) at the regular weight (the current link of a column alone takes the label weight) |
 | Density | `.ds-density-*` | any container | 4px of height per step; padding and type stay |
 | Shape | `.ds-shape-*` | any container or the theme | multiplies the radius of the ring and the state layer, at rest and pressed |
 | Touch | `.ds-touch` | the theme or a container | a link is at least `--ds-touch-target` high |
@@ -36,7 +36,7 @@ scrolls (scroll-spy), and a link scrolls to its section and moves the focus ther
   (by padding, so the bar stays on the line). `.ds-toc__title` is the meta role above the list; name the nav by it
   (`aria-labelledby`) or by an `aria-label`.
 - **Current**: `aria-current="location"` on the link of the section being read. It takes `--ds-primary` ink, the label
-  weight and the indicator (`.ds-toc__indicator`, `DS.indicator`): a `--ds-toc-indicator-width` (3px) bar in
+  weight (in a column; in a bar the weight stays, so the links after it never move) and the indicator (`.ds-toc__indicator`, `DS.indicator`): a `--ds-toc-indicator-width` (3px) bar in
   `--ds-toc-indicator-color` on the line, under the link in a bar. It glides from link to link; never colour alone.
 - **`.ds-toc--bar`**: a row of anchors over a hairline, as line tabs (48px links, the bar under the current one). It
   scrolls sideways without a scrollbar and keeps the current link in view; only the first level shows.

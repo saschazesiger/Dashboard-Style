@@ -8,8 +8,9 @@
  *
  * Condensing (a .ds-page-head--sticky head; data-ds-page-head-condense="off"
  * keeps it whole): the scroller is the nearest scrolling ancestor of the
- * head, else the page. Once the reader has scrolled past what folds (the
- * back link or breadcrumbs, the lead, the status, the key facts), the head
+ * head, else the page. Once the head sticks and the reader has scrolled
+ * past what folds (the back link or breadcrumbs, the lead, the status, the
+ * key facts; measured with the head's place in the scroller), the head
  * takes data-scrolled and the stylesheet folds those parts away; scrolled
  * back above that it gives it up. The head keeps its room in the flow (a
  * bottom margin as tall as what folded, --ds-page-head-fold, a runtime
@@ -23,7 +24,8 @@
  * do not fit the title row (half of it in a condensed head, beside the
  * title) hide (owned `hidden`), first to last with the filled ones last, and the menu lists them: its items press the action
  * (a click on the hidden button, or the link's address), with its icon,
- * label and blocked state. A ResizeObserver on the row and a
+ * label and blocked state. An action that opens an overlay passes the More
+ * button as its opener while it is folded (page.md). A ResizeObserver on the row and a
  * MutationObserver on the actions lay them out again.
  *
  * Owned state (DS.dom.morphHtml keeps it): data-scrolled and the style (the
@@ -120,6 +122,12 @@ function controller(head, options, signal) {
   let condensed = head.hasAttribute('data-scrolled');
   /** How much the head lost the last time it condensed: no trial before the reader has scrolled that far. */
   let foldHeight = 0;
+  /**
+   * Where the head starts to stick, in the scroller's content: its place in
+   * the flow less its sticky top. A head below a banner or a toolbar
+   * condenses only once it sticks and the reader has scrolled past what folds.
+   */
+  let offset = 0;
   if (sticky) {
     take(head, 'data-scrolled');
     take(head, 'style');
@@ -160,6 +168,14 @@ function controller(head, options, signal) {
     if (!sticky || condensed) return;
     const start = box().scrollTop;
     quiet(() => {
+      // The head's place in the flow: unstuck for a moment (static ignores its top).
+      const before = head.style.position;
+      head.style.position = 'static';
+      const place = head.getBoundingClientRect().top;
+      head.style.position = before;
+      const stick = parseFloat(view.getComputedStyle(head).top) || 0;
+      const origin = scroller ? scroller.getBoundingClientRect().top + scroller.clientTop : 0;
+      offset = Math.max(0, Math.round(place - origin + start - stick));
       const tall = head.getBoundingClientRect().height;
       apply(true);
       foldHeight = Math.max(0, Math.round(tall - head.getBoundingClientRect().height));
@@ -179,7 +195,7 @@ function controller(head, options, signal) {
   const condense = (on, force = false) => {
     if (on === condensed) return false;
     if (on) {
-      if (!force && box().scrollTop <= foldHeight + TOP) return false;
+      if (!force && box().scrollTop <= offset + foldHeight + TOP) return false;
       quiet(() => {
         const tall = head.getBoundingClientRect().height;
         apply(true, foldHeight);
@@ -204,8 +220,8 @@ function controller(head, options, signal) {
     frame = 0;
     if (!sticky) return;
     const top = box().scrollTop;
-    if (!condensed && top > TOP + foldHeight) condense(true);
-    else if (condensed && top <= foldHeight) condense(false);
+    if (!condensed && top > offset + foldHeight + TOP) condense(true);
+    else if (condensed && top <= offset + foldHeight) condense(false);
   };
   const later = () => {
     if (frame) return;
@@ -370,9 +386,10 @@ function controller(head, options, signal) {
       listeners.add(fn);
       return () => listeners.delete(fn);
     },
-    /** Lays the actions out again (after a change the observers cannot see, such as a font). */
+    /** Lays the actions out again and measures the head (after a change the observers cannot see, such as a font or content above it). */
     refresh() {
       layout();
+      measureFold();
       update();
     },
     destroy() {

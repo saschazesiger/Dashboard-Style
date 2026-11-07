@@ -114,6 +114,12 @@ test('the bar sticks at the top of its scroller, scrolls sideways without a scro
     return { stuck: Math.round(el.getBoundingClientRect().top - box.top), scrolls: list.scrollWidth > list.clientWidth, bar: getComputedStyle(list).scrollbarWidth, visible: link.left >= rect.left - 1 && link.right <= rect.right + 1, height: el.querySelector('.ds-toc__link').getBoundingClientRect().height };
   });
   expect(look).toEqual({ stuck: 1, scrolls: true, bar: 'none', visible: true, height: 48 });
+  // The current link keeps the weight of the others: a change of the scroll-spy moves no link sideways.
+  const lefts = () => row.evaluate((el) => [...el.querySelectorAll(':scope > .ds-toc__list > li > .ds-toc__link')].map((link) => [Math.round(link.getBoundingClientRect().left + el.querySelector('.ds-toc__list').scrollLeft), getComputedStyle(link).fontWeight]));
+  const before = await lefts();
+  await scrollTo(page, 'bar-box', 'Hardware', 60);
+  await expect(current(row)).not.toHaveText('Notes');
+  expect(await lefts()).toEqual(before);
   // Nested lists stay off the bar.
   await expect(row.getByRole('link', { name: 'Storage' })).toBeHidden();
 });
