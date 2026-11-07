@@ -636,6 +636,42 @@ strings a script adds have an option, so a page in another language passes its o
 | `Delete “{name}”?` | the title of the dialog of `DS.views` that asks before deleting a view (the system's string `viewDeleteTitle`) | `DS.core.config({ strings: { viewDeleteTitle } })` |
 | `The view goes from this browser. The list and its data stay as they are.` | the text of that dialog (the system's string `viewDeleteText`) | `DS.core.config({ strings: { viewDeleteText } })` |
 | `Delete view` | its confirm button, in the error tone (D10) (the system's string `viewDeleteConfirm`) | `DS.core.config({ strings: { viewDeleteConfirm } })` |
+| `Move {label}` | the accessible name of the drag handle of a `.ds-tree` row (the system's string `treeMove`) | `DS.core.config({ strings: { treeMove } })` |
+| `Before {target}, in {parent}.` | what a keyboard drag of `DS.tree` announces at a place before a row (the system's string `treeMoveBefore`) | `DS.core.config({ strings: { treeMoveBefore } })` |
+| `After {target}, in {parent}.` | the same, after a row (the system's string `treeMoveAfter`) | `DS.core.config({ strings: { treeMoveAfter } })` |
+| `Into {target}.` | the same, into a folder (the system's string `treeMoveInside`) | `DS.core.config({ strings: { treeMoveInside } })` |
+| `Moved {label} to {parent}, position {position} of {total}.` | what `DS.tree` announces on a drop (the system's string `treeDropped`) | `DS.core.config({ strings: { treeDropped } })` |
+| `Loaded {label}.` | what `DS.tree` announces when lazy children arrive (the system's string `treeLoaded`) | `DS.core.config({ strings: { treeLoaded } })` |
+| `Could not load {label}.` | what `DS.tree` announces when lazy children fail (the system's string `treeLoadFailed`) | `DS.core.config({ strings: { treeLoadFailed } })` |
+| `Could not load` | the word in the row of a folder whose children failed (the system's string `treeError`) | `DS.core.config({ strings: { treeError } })` |
+| `JSON` | the name of a `.ds-jsonview` tree whose element has no `aria-label` (the system's string `jsonTree`) | `DS.core.config({ strings: { jsonTree } })` |
+| `Search keys and values` | the label and placeholder of the search field of `DS.jsonview` (the system's string `jsonSearch`) | `DS.core.config({ strings: { jsonSearch } })` |
+| `Previous match` | the button of `DS.jsonview` that goes to the match before (the system's string `jsonPrevious`) | `DS.core.config({ strings: { jsonPrevious } })` |
+| `Next match` | the button of `DS.jsonview` that goes to the next match (the system's string `jsonNext`) | `DS.core.config({ strings: { jsonNext } })` |
+| `{current} of {total}` | the count of matches of `DS.jsonview`, shown and announced (the system's string `jsonMatch`) | `DS.core.config({ strings: { jsonMatch } })` |
+| `Expand all` | the button of `DS.jsonview` that opens every level (the system's string `jsonExpandAll`) | `DS.core.config({ strings: { jsonExpandAll } })` |
+| `Collapse all` | the button of `DS.jsonview` that closes every level (the system's string `jsonCollapseAll`) | `DS.core.config({ strings: { jsonCollapseAll } })` |
+| `Copy the value of {label}` | the name of a row's copy button in `DS.jsonview` (the system's string `jsonCopyValue`) | `DS.core.config({ strings: { jsonCopyValue } })` |
+| `Copy the path of {label}` | the name of a row's path button in `DS.jsonview` (the system's string `jsonCopyPath`) | `DS.core.config({ strings: { jsonCopyPath } })` |
+| `{count} key` | the size of an object of one key in `DS.jsonview` (the system's string `jsonKey`) | `DS.core.config({ strings: { jsonKey } })` |
+| `{count} keys` | the size of an object in `DS.jsonview` (the system's string `jsonKeys`) | `DS.core.config({ strings: { jsonKeys } })` |
+| `{count} item` | the size of an array of one item in `DS.jsonview` (the system's string `jsonItem`) | `DS.core.config({ strings: { jsonItem } })` |
+| `{count} items` | the size of an array in `DS.jsonview` (the system's string `jsonItems`) | `DS.core.config({ strings: { jsonItems } })` |
+| `Not valid JSON: line {line}, column {column}.` | what `DS.jsonview` shows for text that is no JSON (the system's string `jsonInvalid`) | `DS.core.config({ strings: { jsonInvalid } })` |
+| `Search` | the placeholder of the search field of `DS.jsonview` (the system's string `jsonFind`) | `DS.core.config({ strings: { jsonFind } })` |
+| `Copy {label}` | the name of a copy button that `DS.list` writes after a value of a `.ds-facts` list (the system's string `factsCopy`) | `DS.core.config({ strings: { factsCopy } })` |
+| `Move {label}` | the accessible name of the drag handle `DS.list` writes into a reorderable row (the system's string `listMove`) | `DS.core.config({ strings: { listMove } })` |
+| `{count} selected` | what `DS.list` announces after a range or "select all" (the system's string `listSelected`) | `DS.core.config({ strings: { listSelected } })` |
+| `Today` | the day heading of today in `DS.auditlog` (the system's string `auditlogToday`) | `DS.core.config({ strings: { auditlogToday } })` |
+| `Yesterday` | the day heading of yesterday in `DS.auditlog` (the system's string `auditlogYesterday`) | `DS.core.config({ strings: { auditlogYesterday } })` |
+| `No date` | the heading of the entries of `DS.auditlog` without a valid time (the system's string `auditlogUndated`) | `DS.core.config({ strings: { auditlogUndated } })` |
+| `Before:` | the hidden word before the old value of a change in `DS.auditlog` (the system's string `auditlogBefore`) | `DS.core.config({ strings: { auditlogBefore } })` |
+| `After:` | the hidden word before the new value of a change in `DS.auditlog` (the system's string `auditlogAfter`) | `DS.core.config({ strings: { auditlogAfter } })` |
+| `Not set` | a value of a change in `DS.auditlog` that was not set, before or after (the system's string `auditlogNotSet`) | `DS.core.config({ strings: { auditlogNotSet } })` |
+| `{count} event` | the count of `DS.auditlog` for one entry, no filter set (the system's string `auditlogEvent`) | `DS.core.config({ strings: { auditlogEvent } })` |
+| `{count} events` | the count of `DS.auditlog`, no filter set (the system's string `auditlogEvents`) | `DS.core.config({ strings: { auditlogEvents } })` |
+| `{shown} of {total} events` | the count of `DS.auditlog` while a filter is set, shown and announced (the system's string `auditlogFiltered`) | `DS.core.config({ strings: { auditlogFiltered } })` |
+| `Show {count} more` | the button of `DS.auditlog` under the list that draws the next entries past `limit` (the system's string `auditlogMore`) | `DS.core.config({ strings: { auditlogMore } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

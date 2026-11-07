@@ -68,7 +68,23 @@
  * .ds-list__heading (a letter, a day) that stays at the top of the nearest
  * scroller while its rows pass under it (--ds-list-group-top under a sticky
  * page head); the controls of those rows scroll to a stop below it when
- * focus moves up. Selectable and reorderable rows come with their module.
+ * focus moves up.
+ *
+ * DS.list (list.js, 3.0): .ds-list__check, a checkbox or a radio at a
+ * row's start (data-ds-list-select); a checked row takes
+ * --ds-list-selected-bg and keeps its box; a row of a selectable list
+ * without an action takes the hover layer (a press toggles its box).
+ * .ds-list__grip, the drag handle the module writes (data-ds-list-reorder,
+ * DS.dnd; a dragged row, data-ds-dragging, keeps an opaque fill).
+ * .ds-list--scroll: the list scrolls itself, up to --ds-list-max-height (a
+ * virtual list); a row that holds the focus itself shows an inset ring.
+ *
+ * Facts (3.0): .ds-facts--stacked (one column), .ds-facts--grid (facts
+ * span with .ds-facts__wide and .ds-facts__full; the grid is its own
+ * container, so a wide fact takes the one column where only one fits),
+ * .ds-facts--bordered (cells with hairlines and a frame,
+ * --ds-facts-radius), .ds-facts__copy (the copy button DS.list writes after
+ * a value with data-ds-facts-copy; data-state="copied" shows its check).
  *
  * Options (src/core/options.css, docs/options.md), on the list or any
  * ancestor; each is computed here, in the rule that uses it:
@@ -94,7 +110,9 @@
  * --ds-list-media-size (40px), --ds-list-media-radius (--ds-radius-sm),
  * --ds-list-text-min (12rem), --ds-list-current-bg (--ds-accent),
  * --ds-list-group-bg (--ds-surface), --ds-list-group-top (0px),
- * --ds-kv-list-padding (--ds-space-3), --ds-facts-label-width (36%).
+ * --ds-kv-list-padding (--ds-space-3), --ds-facts-label-width (36%),
+ * --ds-list-selected-bg (--ds-accent), --ds-list-max-height (24rem),
+ * --ds-facts-radius (--ds-radius-card).
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -319,7 +337,12 @@
     padding: var(--_pad-y) var(--_pad-x);
     border-top: 1px solid var(--ds-line);
     font: var(--ds-font-body);
-    transition: background-color var(--ds-dur-fast) var(--ds-ease-in-out);
+    /* A row that takes the focus itself (a virtual list's): an inset ring
+       that rests on the row's edge and snaps inward. */
+    outline-offset: 0;
+    transition:
+      background-color var(--ds-dur-fast) var(--ds-ease-in-out),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
   .ds-list > :is(.ds-list__item, .ds-list__group):first-child {
@@ -814,6 +837,194 @@
     margin-inline-start: var(--ds-space-1);
     vertical-align: -3px;
     color: var(--ds-text-2);
+  }
+
+  /* ── Selectable, reorderable and scrolling rows (DS.list, 3.0) ── */
+
+  /* A checkbox (or a radio) at the row's start; the row tints while it is
+     checked, and the box says so (never the colour alone). */
+  .ds-list__check {
+    flex: none;
+    margin: 0;
+  }
+
+  .ds-list__item:has(> .ds-list__check:checked) {
+    background-color: var(--ds-list-selected-bg, var(--ds-accent));
+  }
+
+  .ds-list[data-ds-glide] > .ds-list__item:has(> .ds-list__check:checked) {
+    background-image:
+      linear-gradient(var(--ds-list-selected-bg, var(--ds-accent)), var(--ds-list-selected-bg, var(--ds-accent))),
+      linear-gradient(var(--ds-flip-backdrop, var(--ds-surface)), var(--ds-flip-backdrop, var(--ds-surface)));
+  }
+
+  /* A row of a selectable list without an action of its own: a press
+     anywhere on it toggles its box, so it takes the state layer, the
+     press and the ripple (a row whose box is disabled shows none). */
+  .ds-list[data-ds-list-select] > .ds-list__item:not(:has(.ds-list__action)) {
+    position: relative;
+    isolation: isolate;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .ds-list[data-ds-list-select] > .ds-list__item:not(:has(.ds-list__action)):not(:has(> .ds-list__check:disabled)) {
+    cursor: pointer;
+  }
+
+  .ds-list[data-ds-list-select] > .ds-list__item:not(:has(.ds-list__action))::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  @media (hover: hover) {
+    .ds-list[data-ds-list-select] > .ds-list__item:not(:has(.ds-list__action)):not(:has(> .ds-list__check:disabled)):hover::before {
+      opacity: var(--ds-state-hover-lg);
+    }
+  }
+
+  /* Press-in in --ds-dur-micro (.ds-pressed: js/ripple.js holds it); not
+     while the box itself is pressed (it has its own halo). */
+  .ds-list[data-ds-list-select] > .ds-list__item:not(:has(.ds-list__action)):not(:has(> .ds-list__check:disabled)):active:not(:has(> .ds-list__check:active))::before,
+  .ds-list[data-ds-list-select] > .ds-list__item:not(:has(.ds-list__action)):not(:has(> .ds-list__check:disabled)).ds-pressed::before {
+    opacity: var(--ds-state-pressed);
+    transition-duration: var(--ds-dur-micro);
+  }
+
+  /* With DS.ripple.attach() the ripple brings the press; the flat layer
+     stays at its hover value. */
+  :where(.ds-ripples) .ds-list[data-ds-list-select] > .ds-list__item:not(:has(.ds-list__action)):not(:has(> .ds-list__check:disabled)):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+    opacity: 0;
+  }
+
+  @media (hover: hover) {
+    :where(.ds-ripples) .ds-list[data-ds-list-select] > .ds-list__item:not(:has(.ds-list__action)):not(:has(> .ds-list__check:disabled)):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+      opacity: var(--ds-state-hover-lg);
+    }
+  }
+
+  .ds-list[data-ds-list-select] > .ds-list__item:not(:has(.ds-list__action)):has(> .ds-list__check:disabled) {
+    cursor: not-allowed;
+  }
+
+  /* The drag handle DS.list writes at the start of each row. */
+  .ds-list__grip {
+    flex: none;
+    margin-inline-start: calc(-1 * var(--ds-space-2));
+    touch-action: none;
+    color: var(--ds-text-2);
+  }
+
+  /* While it is dragged a row keeps an opaque fill and its corners. */
+  .ds-list__item[data-ds-dragging] {
+    border-radius: var(--_inner);
+    background-color: var(--ds-surface);
+  }
+
+  /* A list that scrolls by itself (a long list, a virtual one): its rows
+     scroll inside its border, the sticky headings stop at its top. */
+  .ds-list--scroll {
+    position: relative;
+    max-block-size: var(--ds-list-max-height, 24rem);
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* A row that holds the focus itself (DS.list with a virtual window). */
+  .ds-list__item:focus-visible {
+    outline: var(--ds-focus-outline);
+    outline-offset: calc(-1 * var(--ds-focus-width));
+  }
+
+  /* ── Facts, 3.0: stacked, a grid with spans, bordered, copy per value ── */
+
+  /* Stacked: one fact under the other, the label above its value. */
+  .ds-facts--stacked {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* A grid whose facts may span: the columns of .ds-facts, and the grid
+     itself the container its facts measure, so a wide fact takes one
+     column when only one fits. */
+  .ds-facts--grid {
+    container: ds-facts / inline-size;
+  }
+
+  .ds-facts--grid > .ds-facts__wide {
+    grid-column: span 2;
+  }
+
+  .ds-facts--grid > .ds-facts__full {
+    grid-column: 1 / -1;
+  }
+
+  /* Under two columns of 220px and the gap, a wide fact takes the one. */
+  @container ds-facts (max-width: 471px) {
+    .ds-facts--grid > .ds-facts__wide {
+      grid-column: auto;
+    }
+  }
+
+  /* Bordered: each fact in a cell, hairlines between them and a frame
+     around (the cells hang 1px under the frame, so no edge doubles and an
+     empty end of the last line stays blank). */
+  .ds-facts--bordered {
+    gap: 0;
+    overflow: clip;
+    border: 1px solid var(--ds-line);
+    border-radius: calc(var(--ds-facts-radius, var(--ds-radius-card)) * var(--ds-shape, 1));
+    background: var(--ds-surface);
+  }
+
+  .ds-facts--bordered > div {
+    --_pad: max(0px, calc(var(--ds-kv-list-padding, var(--ds-space-3)) + var(--ds-size-step, 0) * 4px + var(--ds-density, 0) * 2px));
+    margin-block: 0 -1px;
+    margin-inline: 0 -1px;
+    padding: var(--_pad) var(--ds-space-4);
+    border-inline-end: 1px solid var(--ds-line);
+    border-block-end: 1px solid var(--ds-line);
+  }
+
+  .ds-facts--bordered.ds-facts--rows > div,
+  .ds-facts--bordered.ds-facts--rows > div:first-child,
+  .ds-facts--bordered.ds-facts--rows > div:last-child {
+    padding: var(--_pad) var(--ds-space-4);
+    border-block-start: 0;
+  }
+
+  /* Copy per value: the button DS.list writes after each value. It shows
+     on the fact under the pointer or in use, and always without hover. */
+  .ds-facts__copy {
+    margin-block: calc(-1 * var(--ds-space-1));
+    margin-inline-start: var(--ds-space-1);
+    vertical-align: middle;
+  }
+
+  .ds-facts__copy > svg + svg,
+  .ds-facts__copy[data-state="copied"] > svg:first-child {
+    display: none;
+  }
+
+  .ds-facts__copy[data-state="copied"] > svg + svg {
+    display: block;
+  }
+
+  @media (hover: hover) {
+    .ds-facts dd > .ds-facts__copy {
+      opacity: 0;
+      transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+    }
+
+    .ds-facts > div:is(:hover, :focus-within) > dd > .ds-facts__copy,
+    .ds-facts dd > .ds-facts__copy[data-state="copied"] {
+      opacity: 1;
+    }
   }
 
   @media (forced-colors: active) {

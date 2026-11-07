@@ -8,7 +8,13 @@
   "status": "stable",
   "classes": [
     "ds-facts",
+    "ds-facts--bordered",
+    "ds-facts--grid",
     "ds-facts--rows",
+    "ds-facts--stacked",
+    "ds-facts__copy",
+    "ds-facts__full",
+    "ds-facts__wide",
     "ds-kv-list",
     "ds-kv-list--bars",
     "ds-kv-list--interactive",
@@ -19,12 +25,15 @@
     "ds-kv-list__row",
     "ds-list",
     "ds-list--interactive",
+    "ds-list--scroll",
     "ds-list--stacked",
     "ds-list__action",
     "ds-list__actions",
     "ds-list__aside",
+    "ds-list__check",
     "ds-list__chevron",
     "ds-list__description",
+    "ds-list__grip",
     "ds-list__group",
     "ds-list__heading",
     "ds-list__icon",
@@ -40,10 +49,17 @@
     "ds-plain-list"
   ],
   "attributes": [
-    "data-ds-glide"
+    "data-ds-dragging",
+    "data-ds-glide",
+    "data-ds-list-select",
+    "data-ds-ripple",
+    "data-state"
   ],
   "requires": [
+    "button",
     "chart",
+    "drag",
+    "form",
     "status"
   ],
   "context": [
@@ -102,14 +118,38 @@
     "--ds-facts-label-width": {
       "default": "36%",
       "description": "the label column of `.ds-facts--rows`"
+    },
+    "--ds-list-selected-bg": {
+      "default": "`--ds-accent`",
+      "description": "a row of a `.ds-list` whose `.ds-list__check` is checked"
+    },
+    "--ds-list-max-height": {
+      "default": "24rem",
+      "description": "the height past which a `.ds-list--scroll` scrolls its rows inside its border"
+    },
+    "--ds-facts-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "the corners of `.ds-facts--bordered` (times `--ds-shape`)"
     }
   },
   "keyframes": [],
-  "js": [],
+  "js": [
+    "dnd",
+    "list",
+    "virtual"
+  ],
+  "module": true,
   "progressive": [],
   "ripple": true,
   "rippleHosts": [
     ".ds-list--interactive > .ds-list__item",
-    ":is(a, button).ds-kv-list__row"
-  ]
+    ":is(a, button).ds-kv-list__row",
+    ".ds-list[data-ds-list-select] > .ds-list__item:not(:has(.ds-list__action)):not(:has(> .ds-list__check:disabled))"
+  ],
+  "labExempt": {
+    "DS.list.create": "the drag of its rows is DS.dnd's (the dnd entries play it); selection and the window move nothing",
+    "DS.list.facts": "copy buttons: a glyph swap, no motion",
+    "DS.list.rangeKeys": "a pure function: no motion",
+    "DS.list.allState": "a pure function: no motion"
+  }
 }

@@ -4,6 +4,10 @@
  * media and a key-value row; the tone on an icon and its 2.x aliases; the
  * parts of a row (media, description, aside); stacked rows; a sticky group
  * heading; the keyboard path and the names of the demo; forced colours.
+ * DS.list (3.0): selection by boxes, shift ranges and "select all";
+ * single selection; reorder by keys and pointer; the virtual window with
+ * selection; facts stacked, in a grid with spans, bordered, and copy per
+ * value.
  * The 2.x behaviour stays in test/browser/lists.spec.js. Runs in the
  * `fallback` project too.
  */
@@ -383,4 +387,181 @@ test('forced colours: the current row is SelectedItem, its parts in the same ink
   }
   const blocked = await page.locator('[data-demo="kv"] .ds-kv-list__row[aria-disabled="true"]').evaluate((el) => getComputedStyle(el).color);
   expect(blocked).toBe(system.gray);
+});
+
+/* ── DS.list (3.0) ─────────────────────────────────────────── */
+
+const titles = (locator) => locator.locator('.ds-list__item .ds-list__title').allTextContents();
+
+test('select: a box or a press on the row checks it, the row tints and keeps its box; Shift checks a range; ds:change tells the keys', async ({ page }) => {
+  await open(page);
+  const list = page.locator('[data-demo="select"]');
+  await list.evaluate((el) => { window.__changes = []; el.addEventListener('ds:change', (event) => window.__changes.push(event.detail.keys)); });
+  const rows = list.locator('.ds-list__item');
+  await rows.nth(0).locator('.ds-list__title').click();
+  await expect(rows.nth(0).locator('.ds-list__check')).toBeChecked();
+  await settle(page);
+  const tint = await rows.nth(0).evaluate((row) => getComputedStyle(row).backgroundColor);
+  const accent = await page.evaluate(() => { const el = document.createElement('span'); el.style.color = 'var(--ds-accent)'; document.querySelector('#fx-component').append(el); const c = getComputedStyle(el).color; el.remove(); return c; });
+  expect(tint).toBe(accent);
+  // Shift and a click on a box: the range, past the disabled row.
+  await rows.nth(4).locator('.ds-list__check').click({ modifiers: ['Shift'] });
+  for (const index of [0, 1, 2, 4]) await expect(rows.nth(index).locator('.ds-list__check')).toBeChecked();
+  await expect(rows.nth(3).locator('.ds-list__check')).not.toBeChecked();
+  expect(await list.evaluate((el) => DS.list.create(el).get())).toEqual(['t41', 't42', 't43', 't45']);
+  expect(await page.evaluate(() => window.__changes.at(-1))).toEqual(['t41', 't42', 't43', 't45']);
+  await expect(page.locator('[data-demo="picked"]')).toHaveText('4 selected');
+  // The all box: checked, since every row that can be is.
+  const all = page.locator('[data-demo="all"]');
+  await expect(all).toBeChecked();
+  await rows.nth(1).locator('.ds-list__check').click();
+  await expect(all).not.toBeChecked();
+  expect(await all.evaluate((box) => box.indeterminate)).toBe(true);
+  await all.click();
+  expect(await list.evaluate((el) => DS.list.create(el).get())).toEqual(['t41', 't42', 't43', 't45']);
+  await all.click();
+  expect(await list.evaluate((el) => DS.list.create(el).get())).toEqual([]);
+  expect(await all.evaluate((box) => box.indeterminate)).toBe(false);
+  // The keyboard: Space on a box.
+  await focusByKeyboard(page, rows.nth(2).locator('.ds-list__check'));
+  await page.keyboard.press('Space');
+  expect(await list.evaluate((el) => DS.list.create(el).get())).toEqual(['t43']);
+  // set() from the page.
+  await list.evaluate((el) => DS.list.create(el).set(['t45']));
+  await expect(rows.nth(4).locator('.ds-list__check')).toBeChecked();
+  await expect(rows.nth(2).locator('.ds-list__check')).not.toBeChecked();
+});
+
+test('single: radios choose one, a press on another row moves it', async ({ page }) => {
+  await open(page);
+  const list = page.locator('[data-demo="single"]');
+  const rows = list.locator('.ds-list__item');
+  await rows.nth(1).locator('.ds-list__title').click();
+  expect(await list.evaluate((el) => DS.list.create(el).get())).toBe('t42');
+  await rows.nth(2).locator('.ds-list__check').click();
+  expect(await list.evaluate((el) => DS.list.create(el).get())).toBe('t43');
+  await expect(rows.nth(1).locator('.ds-list__check')).not.toBeChecked();
+});
+
+test('reorder: each row gets a named grip; Space lifts, the arrows move, Space drops; ds:drop tells the place', async ({ page }) => {
+  await open(page);
+  const list = page.locator('[data-demo="reorder-list"]');
+  await expect(list.getByRole('button', { name: 'Move Building A' })).toHaveCount(1);
+  await expect(list.locator('.ds-list__grip')).toHaveCount(4);
+  await list.evaluate((el) => el.addEventListener('ds:drop', (event) => { window.__drop = event.detail.to.index; }));
+  await focusByKeyboard(page, list.getByRole('button', { name: 'Move Building A' }));
+  await page.keyboard.press('Space');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Space');
+  await settle(page);
+  expect(await titles(list)).toEqual(['Building B', 'Lab', 'Building A', 'Storage']);
+  expect(await page.evaluate(() => window.__drop)).toBe(2);
+  // By pointer: Storage to the top.
+  const grip = list.getByRole('button', { name: 'Move Storage' });
+  await list.scrollIntoViewIfNeeded();
+  const from = await grip.boundingBox();
+  const top = await list.locator('.ds-list__item').first().boundingBox();
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(from.x + from.width / 2, from.y - 10, { steps: 3 });
+  await page.mouse.move(from.x + from.width / 2, top.y - 8, { steps: 16 });
+  await page.mouse.up();
+  await settle(page);
+  expect((await titles(list))[0]).toBe('Storage');
+});
+
+test('virtual: only rows near the viewport exist, keyed and counted; the arrows walk; Space checks; the selection survives scrolling', async ({ page }) => {
+  await open(page);
+  const list = page.locator('[data-demo="virtual"]');
+  const count = await list.locator('.ds-list__item').count();
+  expect(count).toBeGreaterThan(3);
+  expect(count).toBeLessThan(40);
+  await expect(list.locator('.ds-list__item').first()).toHaveAttribute('aria-setsize', '5000');
+  const first = list.locator('.ds-list__item').first();
+  await focusByKeyboard(page, first);
+  // An inset ring on the focused row.
+  expect(await first.evaluate((row) => getComputedStyle(row).outlineStyle)).not.toBe('none');
+  // A listbox of options: the focused row says its state (its box is inert, out of the tab order and the tree).
+  await expect(list).toHaveAttribute('role', 'listbox');
+  await expect(list).toHaveAttribute('aria-multiselectable', 'true');
+  await expect(first).toHaveAttribute('role', 'option');
+  await expect(first).toHaveAttribute('aria-selected', 'false');
+  expect(await first.locator('.ds-list__check').evaluate((box) => box.inert)).toBe(true);
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Space');
+  expect(await list.evaluate((el) => DS.list.create(el).get())).toEqual(['v0002']);
+  await expect(page.locator('[data-demo="virtual-out"]')).toHaveText('5,000 devices, 1 selected');
+  await expect(list.locator('[data-ds-key="v0002"]')).toBeFocused();
+  await expect(page.getByRole('option', { name: /DEVICE-0002/, selected: true })).toBeFocused();
+  await expect(list.locator('[data-ds-key="v0001"]')).toHaveAttribute('aria-selected', 'false');
+  // A press on the (inert) box reaches the row, which toggles it.
+  await list.locator('[data-ds-key="v0003"] .ds-list__check').click({ force: true });
+  await expect(list.locator('[data-ds-key="v0003"]')).toHaveAttribute('aria-selected', 'true');
+  await list.locator('[data-ds-key="v0003"] .ds-list__check').click({ force: true });
+  await expect(list.locator('[data-ds-key="v0003"]')).toHaveAttribute('aria-selected', 'false');
+  await page.keyboard.press('End');
+  await expect(list.locator('[data-ds-key="v5000"]')).toBeFocused();
+  await expect(list.locator('[data-ds-key="v0002"]')).toHaveCount(0);
+  await page.keyboard.press('Home');
+  await expect(list.locator('[data-ds-key="v0002"] .ds-list__check')).toBeChecked();
+  // Select all through the API: every key, rendered or not.
+  await list.evaluate((el) => DS.list.create(el).set(['v4999', 'v0001']));
+  await expect(list.locator('[data-ds-key="v0001"] .ds-list__check')).toBeChecked();
+  await expect(list.locator('[data-ds-key="v0002"] .ds-list__check')).not.toBeChecked();
+  await expect(list.locator('[data-ds-key="v0001"]')).toHaveAttribute('aria-selected', 'true');
+  // destroy() gives the page its roles back.
+  await list.evaluate((el) => DS.list.create(el).destroy());
+  await expect(list).not.toHaveAttribute('role', /.*/);
+  await expect(list.locator('[data-ds-key="v0001"]')).not.toHaveAttribute('role', /.*/);
+  expect(await list.locator('[data-ds-key="v0001"] .ds-list__check').evaluate((box) => box.inert)).toBe(false);
+});
+
+test('facts: stacked is one column, a grid spans wide and full facts (one column where one fits), bordered cells frame them', async ({ page }) => {
+  await open(page);
+  const grid = page.locator('[data-demo="grid"]');
+  const boxes = await grid.evaluate((dl) => [...dl.children].map((div) => { const r = div.getBoundingClientRect(); return { cls: div.className, w: r.width, x: r.x }; }));
+  const single = boxes.find((box) => !box.cls).w;
+  const wide = boxes.find((box) => box.cls === 'ds-facts__wide').w;
+  const full = boxes.find((box) => box.cls === 'ds-facts__full').w;
+  expect(wide).toBeGreaterThan(single * 1.9);
+  expect(full).toBeCloseTo(await grid.evaluate((dl) => dl.clientWidth), -1);
+  expect(await grid.evaluate((dl) => getComputedStyle(dl).borderTopStyle)).toBe('solid');
+  expect(await grid.evaluate((dl) => getComputedStyle(dl.firstElementChild).borderInlineEndStyle)).toBe('solid');
+  // Narrow: one column, the wide fact in it.
+  await grid.evaluate((dl) => { dl.style.width = '360px'; });
+  const narrow = await grid.evaluate((dl) => [...dl.children].map((div) => div.getBoundingClientRect().width));
+  for (const width of narrow) expect(width).toBeCloseTo(narrow[0], 0);
+  expect(await grid.evaluate((dl) => dl.scrollWidth <= dl.clientWidth + 1)).toBe(true);
+  const stacked = await page.locator('.ds-facts--stacked').first().evaluate((dl) => getComputedStyle(dl).gridTemplateColumns.split(' ').length);
+  expect(stacked).toBe(1);
+});
+
+test('facts: a copy button per value, named by its label, copies the value without the button; the check shows; nocopy leaves one out', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__copied = [];
+    const clipboard = { writeText: (text) => { window.__copied.push(text); return Promise.resolve(); } };
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, get: () => clipboard });
+  });
+  await open(page);
+  const grid = page.locator('[data-demo="grid"]');
+  await expect(grid.locator('.ds-facts__copy')).toHaveCount(5);
+  await expect(grid.locator('[data-ds-facts-nocopy] .ds-facts__copy')).toHaveCount(0);
+  const button = grid.getByRole('button', { name: 'Copy Serial' });
+  // At rest it waits; on the fact under the pointer it shows.
+  if (await page.evaluate(() => matchMedia('(hover: hover)').matches)) {
+    await settle(page);
+    await expect(button).toHaveCSS('opacity', '0');
+  }
+  await button.hover();
+  await settle(page);
+  await expect(button).toHaveCSS('opacity', '1');
+  await button.click();
+  await expect.poll(() => page.evaluate(() => window.__copied.at(-1))).toBe('5CD1234XYZ');
+  await expect(button).toHaveAttribute('data-state', 'copied');
+  await expect(button).not.toHaveAttribute('data-state', 'copied', { timeout: 5000 });
+  // Keyboard: Tab reaches it, and it shows while focused.
+  await focusByKeyboard(page, grid.getByRole('button', { name: 'Copy Model' }));
+  await settle(page);
+  await expect(grid.getByRole('button', { name: 'Copy Model' })).toHaveCSS('opacity', '1');
 });
