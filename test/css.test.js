@@ -2162,6 +2162,8 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
       }
       for (const block of atRuleBlocks(css, scoped)) {
         for (const { property, value } of declarations(block)) {
+          // A nested element may drop a name again (scroll-timeline: none), inside the same guard.
+          if (property === 'scroll-timeline' && value === 'none') continue;
           if (/^(animation-timeline|scroll-timeline|timeline-scope)$/.test(property)) assert.match(value, /^--ds-[\w-]+(\s+block|\s+inline)?$/, `${file}: ${property}: ${value}`);
         }
       }

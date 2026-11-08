@@ -423,8 +423,9 @@ test('clickable: the three forms open by pointer and keyboard; a press morphs an
   expect(pressed.radius, 'squarer while pressed').toBe(8);
   expect(pressed.width, 'nothing scales on press').toBe(rest.width);
   await page.mouse.up();
+  // The ripple holds the press for its minimum time, then the radius springs back.
+  await expect.poll(async () => (await state(button)).radius, { message: 'it springs back', timeout: 5000 }).toBe(rest.radius);
   await settle(page);
-  expect((await state(button)).radius, 'it springs back').toBe(rest.radius);
 
   // Blocked: no layer on hover or press, no morph, in both kinds.
   for (const name of [/Disabled/, /Blocked/]) {

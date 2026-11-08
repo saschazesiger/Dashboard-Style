@@ -35,6 +35,18 @@ Everything is additive: no 2.x name changes meaning.
 - **meta.json**: `motionExceptions.morph` registers a shape JS morphs frame by frame (the chart's lines, areas and
   arcs, D14). The project check knows the new system-written attributes `data-ds-dirty`, `data-ds-unsaved-marked` and
   `data-ds-wizard-error`.
+- **Fixed after the merge** (the browser suite on the merged tree):
+  - Three new selectors (the nowrap cluster with a title, the toggletip in a field, the query's placeholder) styled
+    what follows an element that `:has()` something; in Chromium any change on the page then restyled and laid out
+    the whole page. They pass their state through a private property or select from the sibling's side.
+  - A changed word in a diff sits on the success or error container itself, so every code colour reads at 4.5:1.
+  - A `.ds-view` inside another view no longer names the view's scroll timeline (an ambiguous name left the frame's
+    top bar tint without a timeline); a view of a nested `.ds-app` still does.
+  - The page head ignores the helper the More menu's placement inserts (the focus stayed on More); a closed tool
+    call's code blocks run no focus transition (Firefox never ends one inside a closed `<details>`); the jump links
+    mark the current link before they make their pill; `data-ds-moving` also stops `::before` and `::after`
+    transitions; charts add their pointer listeners in a microtask (WebKit lays out once per listener after an SVG
+    `<text>`).
 - The wheel and the shimmer ([plans/wheel-and-shimmer.md](plans/wheel-and-shimmer.md)) ship as components:
   `DS.wheel.hooks`, `DS.wheel.roll()` and `DS.wheel.create()` instead of the proposal's `DS.motion.wheelHooks` and
   `DS.motion.wheel()`.

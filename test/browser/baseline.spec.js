@@ -193,6 +193,12 @@ async function shootViewport(page, name) {
 
 test.describe('styleguide pages', () => {
   test.use({ viewport: PAGES_TALL });
+  // Demos that show today (a calendar, a date picker, relative times) would
+  // change their shot every day: the page's Date stands still on one day.
+  // Timers and animations keep running.
+  test.beforeEach(async ({ page }) => {
+    await page.clock.setFixedTime(new Date('2026-11-04T10:00:00'));
+  });
 
   test('the overview and every foundation, settled', async ({ page }) => {
     for (const key of FOUNDATIONS) {

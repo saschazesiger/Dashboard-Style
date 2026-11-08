@@ -1575,6 +1575,18 @@
       scroll-timeline: --ds-view-scroll block;
     }
 
+    /* A view inside another view (a demo of a page) names nothing: a
+       second element with the name inside one scope leaves the timeline
+       ambiguous, and the outer bar's tint would never resolve. A view of a
+       frame of its own (.ds-app, its own scope) names it again. */
+    .ds-view .ds-view {
+      scroll-timeline: none;
+    }
+
+    .ds-view .ds-app .ds-view {
+      scroll-timeline: --ds-view-scroll block;
+    }
+
     .ds-topbar::before {
       animation: ds-scroll-fade linear both;
       animation-timeline: --ds-view-scroll;

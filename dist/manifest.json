@@ -2420,8 +2420,8 @@
         "scrollbar-color",
         "scrollbar-gutter"
       ],
-      "bytes": 42668,
-      "gzip": 7393
+      "bytes": 42772,
+      "gzip": 7408
     },
     "tabs": {
       "css": "css/components/tabs.css",
