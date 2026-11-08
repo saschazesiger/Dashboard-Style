@@ -120,7 +120,8 @@ describe('repository', () => {
     }
     // Hook classes without a rule of their own, read by a module.
     const HOOKS = new Map([['ds-toast__action', 'the action button of a snackbar: DS.overlay finds it next to .ds-toast__close']]);
-    const scope = ALL_FILES.filter((path) => /^(docs\/.*\.md|README\.md|(styleguide|example|demo)\/.*\.(html|js)|src\/patterns\/[^/]+\.(html|js))$/.test(path));
+    // The tour's bundle (demo/ds/, written by tools/bundle.mjs) is a copy of dist/, not markup of its own.
+    const scope = ALL_FILES.filter((path) => /^(docs\/.*\.md|README\.md|(styleguide|example|demo)\/.*\.(html|js)|src\/patterns\/[^/]+\.(html|js))$/.test(path) && !path.startsWith('demo/ds/'));
     assert.ok(scope.includes('docs/components.md') && scope.includes('styleguide/shell.js') && scope.includes('styleguide/demos.js') && scope.includes('example/index.html') && scope.includes('src/patterns/sign-in.html'), 'the walk finds the files');
     const offenders = [];
     for (const path of scope) {

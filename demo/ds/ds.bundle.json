@@ -1,0 +1,2492 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.5",
+  "entry": "bundle",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.bundle.css",
+      "bytes": 646729,
+      "gzip": 93419
+    },
+    "js": {
+      "file": "ds.bundle.js",
+      "bytes": 1641619,
+      "gzip": 392053
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 39
+    }
+  },
+  "components": [
+    {
+      "name": "layout",
+      "reason": "demo.js:226 ds-grid",
+      "bytes": 3326,
+      "gzip": 1048
+    },
+    {
+      "name": "utilities",
+      "reason": "demo.js:487 ds-nowrap",
+      "bytes": 5304,
+      "gzip": 1436
+    },
+    {
+      "name": "scroller",
+      "reason": "index.html:1067 ds-scroll-x",
+      "bytes": 3876,
+      "gzip": 991
+    },
+    {
+      "name": "spinner",
+      "reason": "demo.js:569 ds-spinner",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "loader",
+      "reason": "index.html:712 ds-loader",
+      "bytes": 923,
+      "gzip": 465
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by module indicator",
+      "bytes": 2868,
+      "gzip": 619
+    },
+    {
+      "name": "button",
+      "reason": "demo.js:423 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "loading",
+      "reason": "index.html:712 ds-loading",
+      "bytes": 6865,
+      "gzip": 1666
+    },
+    {
+      "name": "disclosure",
+      "reason": "index.html:1039 ds-disclosure",
+      "bytes": 3367,
+      "gzip": 1022
+    },
+    {
+      "name": "timeline",
+      "reason": "index.html:773 ds-timeline",
+      "bytes": 5511,
+      "gzip": 1367
+    },
+    {
+      "name": "tasks",
+      "reason": "demo.js:951 ds-tasks__item",
+      "bytes": 1864,
+      "gzip": 686
+    },
+    {
+      "name": "status",
+      "reason": "demo.js:494 ds-status",
+      "bytes": 3164,
+      "gzip": 921
+    },
+    {
+      "name": "alert",
+      "reason": "demo.js:778 ds-alert",
+      "bytes": 6191,
+      "gzip": 1561
+    },
+    {
+      "name": "switch",
+      "reason": "index.html:232 ds-switch",
+      "bytes": 13984,
+      "gzip": 2262
+    },
+    {
+      "name": "slider",
+      "reason": "index.html:285 ds-slider",
+      "bytes": 5711,
+      "gzip": 1090
+    },
+    {
+      "name": "progress",
+      "reason": "demo.js:422 ds-progress",
+      "bytes": 6008,
+      "gzip": 1430
+    },
+    {
+      "name": "chart",
+      "reason": "demo.js:227 data-ds-chart",
+      "bytes": 23341,
+      "gzip": 4433
+    },
+    {
+      "name": "tile",
+      "reason": "demo.js:217 ds-tile__value",
+      "bytes": 6931,
+      "gzip": 1673
+    },
+    {
+      "name": "list",
+      "reason": "demo.js:414 ds-list",
+      "bytes": 18637,
+      "gzip": 3412
+    },
+    {
+      "name": "card",
+      "reason": "demo.js:226 ds-card",
+      "bytes": 16606,
+      "gzip": 2659
+    },
+    {
+      "name": "prose",
+      "reason": "demo.js:1130 ds-prose",
+      "bytes": 10564,
+      "gzip": 1980
+    },
+    {
+      "name": "empty",
+      "reason": "demo.js:654 ds-empty",
+      "bytes": 3869,
+      "gzip": 1174
+    },
+    {
+      "name": "menu",
+      "reason": "demo.js:828 ds-menu__item",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "chip",
+      "reason": "demo.js:632 ds-chip",
+      "bytes": 8706,
+      "gzip": 1866
+    },
+    {
+      "name": "badge",
+      "reason": "index.html:897 ds-badge",
+      "bytes": 3754,
+      "gzip": 964
+    },
+    {
+      "name": "sheet",
+      "reason": "index.html:1246 ds-sheet",
+      "bytes": 12282,
+      "gzip": 2502
+    },
+    {
+      "name": "dialog",
+      "reason": "index.html:1217 ds-dialog",
+      "bytes": 15994,
+      "gzip": 2482
+    },
+    {
+      "name": "table",
+      "reason": "demo.js:594 ds-col--text",
+      "bytes": 32925,
+      "gzip": 4735
+    },
+    {
+      "name": "pagination",
+      "reason": "demo.js:1025 ds-pagination__range",
+      "bytes": 2697,
+      "gzip": 807
+    },
+    {
+      "name": "form",
+      "reason": "demo.js:346 ds-field",
+      "bytes": 49285,
+      "gzip": 7087
+    },
+    {
+      "name": "drag",
+      "reason": "demo.js:425 ds-dropzone__input",
+      "bytes": 8418,
+      "gzip": 1901
+    },
+    {
+      "name": "combobox",
+      "reason": "demo.js:227 ds-combo",
+      "bytes": 13500,
+      "gzip": 3016
+    },
+    {
+      "name": "tooltip",
+      "reason": "demo.js:423 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "demo.js:226 ds-grid-2",
+      "bytes": 8000,
+      "gzip": 2189
+    },
+    {
+      "name": "shell",
+      "reason": "demo.js:90 ds-topbar",
+      "bytes": 39266,
+      "gzip": 6590
+    },
+    {
+      "name": "tabs",
+      "reason": "demo.js:228 data-ds-tabs",
+      "bytes": 7866,
+      "gzip": 1960
+    },
+    {
+      "name": "steps",
+      "reason": "demo.js:978 ds-steps__step",
+      "bytes": 12125,
+      "gzip": 2356
+    },
+    {
+      "name": "toast",
+      "reason": "index.html:1215 ds-toasts",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "calendar",
+      "reason": "index.html:163 data-ds-value",
+      "bytes": 5935,
+      "gzip": 1528
+    },
+    {
+      "name": "popover",
+      "reason": "index.html:651 ds-popover",
+      "bytes": 3921,
+      "gzip": 1188
+    },
+    {
+      "name": "splitpane",
+      "reason": "demo.js:226 ds-splitpane",
+      "bytes": 4530,
+      "gzip": 1171
+    },
+    {
+      "name": "upload",
+      "reason": "demo.js:420 data-ds-key",
+      "bytes": 3706,
+      "gzip": 1134
+    },
+    {
+      "name": "datefield",
+      "reason": "index.html:297 ds-datefield",
+      "bytes": 4124,
+      "gzip": 1154
+    },
+    {
+      "name": "kveditor",
+      "reason": "demo.js:420 data-ds-key",
+      "bytes": 2253,
+      "gzip": 807
+    },
+    {
+      "name": "sort",
+      "reason": "index.html:163 data-ds-value",
+      "bytes": 1120,
+      "gzip": 534
+    },
+    {
+      "name": "toggletip",
+      "reason": "index.html:659 ds-toggletip",
+      "bytes": 3163,
+      "gzip": 974
+    },
+    {
+      "name": "dashpanel",
+      "reason": "demo.js:1038 ds-dashpanel",
+      "bytes": 2819,
+      "gzip": 881
+    },
+    {
+      "name": "picker",
+      "reason": "demo.js:227 ds-picker",
+      "bytes": 6042,
+      "gzip": 1674
+    },
+    {
+      "name": "timepicker",
+      "reason": "index.html:305 data-ds-timepicker",
+      "bytes": 2046,
+      "gzip": 788
+    },
+    {
+      "name": "datepicker",
+      "reason": "index.html:296 data-ds-datepicker",
+      "bytes": 607,
+      "gzip": 320
+    },
+    {
+      "name": "query",
+      "reason": "index.html:163 data-ds-value",
+      "bytes": 943,
+      "gzip": 434
+    },
+    {
+      "name": "datagrid",
+      "reason": "demo.js:420 data-ds-key",
+      "bytes": 8213,
+      "gzip": 1914
+    },
+    {
+      "name": "daterange",
+      "reason": "index.html:315 data-ds-daterange",
+      "bytes": 741,
+      "gzip": 386
+    },
+    {
+      "name": "timerange",
+      "reason": "demo.js:227 ds-timerange",
+      "bytes": 3124,
+      "gzip": 1051
+    },
+    {
+      "name": "duration",
+      "reason": "index.html:163 data-ds-value",
+      "bytes": 123,
+      "gzip": 125
+    },
+    {
+      "name": "link",
+      "reason": "index.html:1164 ds-link",
+      "bytes": 1699,
+      "gzip": 567
+    },
+    {
+      "name": "toggle",
+      "reason": "demo.js:229 data-ds-toggle-group",
+      "bytes": 279,
+      "gzip": 220
+    },
+    {
+      "name": "button-group",
+      "reason": "index.html:163 ds-btn-group",
+      "bytes": 2391,
+      "gzip": 776
+    },
+    {
+      "name": "menubutton",
+      "reason": "demo.js:229 data-ds-menubutton",
+      "bytes": 463,
+      "gzip": 283
+    },
+    {
+      "name": "splitbutton",
+      "reason": "demo.js:229 data-ds-splitbutton",
+      "bytes": 396,
+      "gzip": 254
+    },
+    {
+      "name": "copy",
+      "reason": "index.html:207 ds-copy",
+      "bytes": 1927,
+      "gzip": 659
+    },
+    {
+      "name": "prioritybar",
+      "reason": "demo.js:229 data-ds-prioritybar",
+      "bytes": 637,
+      "gzip": 349
+    },
+    {
+      "name": "listbox",
+      "reason": "index.html:163 data-ds-value",
+      "bytes": 7975,
+      "gzip": 1832
+    },
+    {
+      "name": "number",
+      "reason": "demo.js:228 data-ds-number",
+      "bytes": 478,
+      "gzip": 284
+    },
+    {
+      "name": "tree",
+      "reason": "demo.js:227 data-ds-tree",
+      "bytes": 7086,
+      "gzip": 1718
+    },
+    {
+      "name": "jsonview",
+      "reason": "demo.js:227 data-ds-jsonview",
+      "bytes": 3218,
+      "gzip": 967
+    },
+    {
+      "name": "password",
+      "reason": "demo.js:228 data-ds-password",
+      "bytes": 1527,
+      "gzip": 554
+    },
+    {
+      "name": "taginput",
+      "reason": "demo.js:228 data-ds-taginput",
+      "bytes": 3035,
+      "gzip": 944
+    },
+    {
+      "name": "otp",
+      "reason": "demo.js:228 data-ds-otp",
+      "bytes": 892,
+      "gzip": 474
+    },
+    {
+      "name": "selectpanel",
+      "reason": "index.html:163 data-ds-value",
+      "bytes": 3335,
+      "gzip": 1112
+    },
+    {
+      "name": "inlineedit",
+      "reason": "index.html:163 data-ds-value",
+      "bytes": 1068,
+      "gzip": 456
+    },
+    {
+      "name": "errorsummary",
+      "reason": "demo.js:420 data-ds-key",
+      "bytes": 1120,
+      "gzip": 419
+    },
+    {
+      "name": "search",
+      "reason": "demo.js:420 data-ds-key",
+      "bytes": 1402,
+      "gzip": 580
+    },
+    {
+      "name": "meter",
+      "reason": "index.html:846 ds-bar-gauge",
+      "bytes": 6523,
+      "gzip": 1652
+    },
+    {
+      "name": "bar-list",
+      "reason": "index.html:540 ds-bar-list",
+      "bytes": 2600,
+      "gzip": 987
+    },
+    {
+      "name": "formatted",
+      "reason": "demo.js:423 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "tracker",
+      "reason": "demo.js:520 ds-tracker__cell--success",
+      "bytes": 2658,
+      "gzip": 922
+    },
+    {
+      "name": "composer",
+      "reason": "demo.js:420 data-ds-key",
+      "bytes": 7077,
+      "gzip": 1739
+    },
+    {
+      "name": "message",
+      "reason": "demo.js:227 ds-message",
+      "bytes": 4637,
+      "gzip": 1153
+    },
+    {
+      "name": "transcript",
+      "reason": "demo.js:1127 data-ds-message",
+      "bytes": 1957,
+      "gzip": 777
+    },
+    {
+      "name": "suggestions",
+      "reason": "index.html:1067 ds-suggestions",
+      "bytes": 711,
+      "gzip": 385
+    },
+    {
+      "name": "feedback",
+      "reason": "index.html:1057 ds-feedback",
+      "bytes": 451,
+      "gzip": 268
+    },
+    {
+      "name": "ailabel",
+      "reason": "index.html:1033 ds-ailabel",
+      "bytes": 3562,
+      "gzip": 1210
+    },
+    {
+      "name": "highlight",
+      "reason": "needed by module markdown",
+      "bytes": 789,
+      "gzip": 275
+    },
+    {
+      "name": "markdown",
+      "reason": "needed by module markdown",
+      "bytes": 161,
+      "gzip": 151
+    },
+    {
+      "name": "code",
+      "reason": "demo.js:229 data-ds-code",
+      "bytes": 5372,
+      "gzip": 1386
+    },
+    {
+      "name": "diff",
+      "reason": "demo.js:227 data-ds-diff",
+      "bytes": 6272,
+      "gzip": 1548
+    },
+    {
+      "name": "logview",
+      "reason": "demo.js:227 data-ds-logview",
+      "bytes": 9768,
+      "gzip": 2103
+    },
+    {
+      "name": "shimmer",
+      "reason": "required by reasoning",
+      "bytes": 798,
+      "gzip": 430
+    },
+    {
+      "name": "wheel",
+      "reason": "index.html:1066 ds-wheel",
+      "bytes": 595,
+      "gzip": 355
+    },
+    {
+      "name": "thinking",
+      "reason": "index.html:1066 ds-thinking",
+      "bytes": 1617,
+      "gzip": 658
+    },
+    {
+      "name": "toolcall",
+      "reason": "index.html:1043 ds-toolcall-list",
+      "bytes": 3569,
+      "gzip": 1059
+    },
+    {
+      "name": "reasoning",
+      "reason": "index.html:1039 ds-reasoning",
+      "bytes": 1263,
+      "gzip": 530
+    },
+    {
+      "name": "cite",
+      "reason": "demo.js:1193 ds-cite__title",
+      "bytes": 5169,
+      "gzip": 1446
+    },
+    {
+      "name": "presence",
+      "reason": "demo.js:1057 ds-presence-dot--online",
+      "bytes": 1438,
+      "gzip": 558
+    },
+    {
+      "name": "avatar",
+      "reason": "demo.js:1056 ds-avatar--hue-1",
+      "bytes": 5871,
+      "gzip": 1523
+    },
+    {
+      "name": "persona",
+      "reason": "demo.js:1063 ds-persona",
+      "bytes": 1710,
+      "gzip": 604
+    },
+    {
+      "name": "media",
+      "reason": "demo.js:420 data-ds-key",
+      "bytes": 5664,
+      "gzip": 1483
+    },
+    {
+      "name": "command",
+      "reason": "demo.js:420 data-ds-key",
+      "bytes": 5567,
+      "gzip": 1485
+    },
+    {
+      "name": "notifications",
+      "reason": "demo.js:420 data-ds-key",
+      "bytes": 4028,
+      "gzip": 1228
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "demo.js:46 DS.motion"
+    },
+    {
+      "name": "indicator",
+      "reason": "demo.js:190 DS.indicator.create"
+    },
+    {
+      "name": "dom",
+      "reason": "demo.js:21 DS.dom.dropzone"
+    },
+    {
+      "name": "ripple",
+      "reason": "demo.js:95 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "demo.js:49 DS.icons.icon"
+    },
+    {
+      "name": "position",
+      "reason": "needed by picker"
+    },
+    {
+      "name": "overlay",
+      "reason": "demo.js:807 data-ds-busy"
+    },
+    {
+      "name": "a11y",
+      "reason": "demo.js:1012 DS.a11y.roving"
+    },
+    {
+      "name": "hotkeys",
+      "reason": "needed by command"
+    },
+    {
+      "name": "format",
+      "reason": "needed by timerange"
+    },
+    {
+      "name": "store",
+      "reason": "needed by timerange"
+    },
+    {
+      "name": "virtual",
+      "reason": "needed by list"
+    },
+    {
+      "name": "dnd",
+      "reason": "needed by list"
+    },
+    {
+      "name": "ailabel",
+      "reason": "needed by ailabel"
+    },
+    {
+      "name": "avatar",
+      "reason": "demo.js:1063 DS.avatar.hue"
+    },
+    {
+      "name": "badge",
+      "reason": "needed by notifications"
+    },
+    {
+      "name": "calendar",
+      "reason": "needed by timerange"
+    },
+    {
+      "name": "chart",
+      "reason": "needed by chart"
+    },
+    {
+      "name": "cite",
+      "reason": "needed by cite"
+    },
+    {
+      "name": "command",
+      "reason": "demo.js:1335 DS.command.create"
+    },
+    {
+      "name": "composer",
+      "reason": "needed by composer"
+    },
+    {
+      "name": "copy",
+      "reason": "needed by copy"
+    },
+    {
+      "name": "datefield",
+      "reason": "needed by timerange"
+    },
+    {
+      "name": "dialog",
+      "reason": "needed by command"
+    },
+    {
+      "name": "diff",
+      "reason": "needed by diff"
+    },
+    {
+      "name": "duration",
+      "reason": "needed by duration"
+    },
+    {
+      "name": "errorsummary",
+      "reason": "needed by errorsummary"
+    },
+    {
+      "name": "feedback",
+      "reason": "needed by feedback"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "highlight",
+      "reason": "imported by markdown"
+    },
+    {
+      "name": "code",
+      "reason": "needed by code"
+    },
+    {
+      "name": "inlineedit",
+      "reason": "needed by inlineedit"
+    },
+    {
+      "name": "kveditor",
+      "reason": "needed by kveditor"
+    },
+    {
+      "name": "list",
+      "reason": "needed by list"
+    },
+    {
+      "name": "listbox",
+      "reason": "needed by combobox"
+    },
+    {
+      "name": "combobox",
+      "reason": "needed by combobox"
+    },
+    {
+      "name": "logview",
+      "reason": "needed by logview"
+    },
+    {
+      "name": "markdown",
+      "reason": "demo.js:1090 DS.markdown.create"
+    },
+    {
+      "name": "media",
+      "reason": "needed by media"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by page"
+    },
+    {
+      "name": "datagrid",
+      "reason": "demo.js:485 DS.datagrid.create"
+    },
+    {
+      "name": "menubutton",
+      "reason": "needed by prioritybar"
+    },
+    {
+      "name": "message",
+      "reason": "demo.js:1165 DS.message"
+    },
+    {
+      "name": "number",
+      "reason": "needed by number"
+    },
+    {
+      "name": "otp",
+      "reason": "needed by otp"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "password",
+      "reason": "needed by password"
+    },
+    {
+      "name": "picker",
+      "reason": "needed by picker"
+    },
+    {
+      "name": "daterange",
+      "reason": "needed by daterange"
+    },
+    {
+      "name": "popover",
+      "reason": "needed by popover"
+    },
+    {
+      "name": "prioritybar",
+      "reason": "needed by prioritybar"
+    },
+    {
+      "name": "query",
+      "reason": "needed by query"
+    },
+    {
+      "name": "search",
+      "reason": "needed by search"
+    },
+    {
+      "name": "selectpanel",
+      "reason": "needed by selectpanel"
+    },
+    {
+      "name": "sheet",
+      "reason": "needed by sheet"
+    },
+    {
+      "name": "shell",
+      "reason": "demo.js:1283 DS.shell.setScheme"
+    },
+    {
+      "name": "sort",
+      "reason": "needed by sort"
+    },
+    {
+      "name": "splitbutton",
+      "reason": "needed by splitbutton"
+    },
+    {
+      "name": "splitpane",
+      "reason": "needed by splitpane"
+    },
+    {
+      "name": "steps",
+      "reason": "needed by steps"
+    },
+    {
+      "name": "suggestions",
+      "reason": "needed by suggestions"
+    },
+    {
+      "name": "tabs",
+      "reason": "needed by tabs"
+    },
+    {
+      "name": "taginput",
+      "reason": "needed by taginput"
+    },
+    {
+      "name": "timepicker",
+      "reason": "needed by datepicker"
+    },
+    {
+      "name": "datepicker",
+      "reason": "needed by datepicker"
+    },
+    {
+      "name": "timerange",
+      "reason": "needed by timerange"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by notifications"
+    },
+    {
+      "name": "notifications",
+      "reason": "needed by notifications"
+    },
+    {
+      "name": "toggle",
+      "reason": "needed by toggle"
+    },
+    {
+      "name": "toggletip",
+      "reason": "needed by toggletip"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    },
+    {
+      "name": "tracker",
+      "reason": "demo.js:528 DS.tracker.counts"
+    },
+    {
+      "name": "transcript",
+      "reason": "needed by transcript"
+    },
+    {
+      "name": "tree",
+      "reason": "needed by tree"
+    },
+    {
+      "name": "jsonview",
+      "reason": "needed by jsonview"
+    },
+    {
+      "name": "upload",
+      "reason": "needed by upload"
+    },
+    {
+      "name": "wheel",
+      "reason": "needed by wheel"
+    },
+    {
+      "name": "thinking",
+      "reason": "needed by thinking"
+    },
+    {
+      "name": "reasoning",
+      "reason": "needed by reasoning"
+    },
+    {
+      "name": "toolcall",
+      "reason": "needed by toolcall"
+    }
+  ],
+  "icons": [
+    {
+      "name": "arrowRight",
+      "reason": "index.html:93"
+    },
+    {
+      "name": "arrowLeft",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "arrowUp",
+      "reason": "demo.js:605"
+    },
+    {
+      "name": "arrowDown",
+      "reason": "index.html:91"
+    },
+    {
+      "name": "chevronDown",
+      "reason": "index.html:404"
+    },
+    {
+      "name": "chevronUp",
+      "reason": "used by module jsonview"
+    },
+    {
+      "name": "chevronRight",
+      "reason": "index.html:502"
+    },
+    {
+      "name": "chevronLeft",
+      "reason": "index.html:501"
+    },
+    {
+      "name": "chevronFirst",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "chevronLast",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "cornerDownLeft",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "external",
+      "reason": "index.html:505"
+    },
+    {
+      "name": "plus",
+      "reason": "index.html:125"
+    },
+    {
+      "name": "close",
+      "reason": "demo.js:423"
+    },
+    {
+      "name": "minimize",
+      "reason": "index.html:340"
+    },
+    {
+      "name": "menu",
+      "reason": "index.html:26"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "demo.js:503"
+    },
+    {
+      "name": "moreHorizontal",
+      "reason": "used by module shell"
+    },
+    {
+      "name": "grip",
+      "reason": "used by module list"
+    },
+    {
+      "name": "search",
+      "reason": "demo.js:656"
+    },
+    {
+      "name": "filter",
+      "reason": "used by module logview"
+    },
+    {
+      "name": "sort",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "compose",
+      "reason": "index.html:53"
+    },
+    {
+      "name": "pencil",
+      "reason": "index.html:146"
+    },
+    {
+      "name": "save",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "reset",
+      "reason": "index.html:1130"
+    },
+    {
+      "name": "sync",
+      "reason": "index.html:57"
+    },
+    {
+      "name": "undo",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "history",
+      "reason": "used by module search"
+    },
+    {
+      "name": "copy",
+      "reason": "index.html:152"
+    },
+    {
+      "name": "download",
+      "reason": "index.html:41"
+    },
+    {
+      "name": "upload",
+      "reason": "index.html:459"
+    },
+    {
+      "name": "clipboard",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "paperclip",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "printer",
+      "reason": "index.html:541"
+    },
+    {
+      "name": "play",
+      "reason": "demo.js:1344"
+    },
+    {
+      "name": "pause",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "stopCircle",
+      "reason": "used by module message"
+    },
+    {
+      "name": "trash",
+      "reason": "index.html:198"
+    },
+    {
+      "name": "archive",
+      "reason": "index.html:147"
+    },
+    {
+      "name": "logout",
+      "reason": "index.html:182"
+    },
+    {
+      "name": "chat",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "send",
+      "reason": "index.html:1075"
+    },
+    {
+      "name": "bell",
+      "reason": "index.html:897"
+    },
+    {
+      "name": "mic",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "micOff",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "volume",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "mail",
+      "reason": "used by module notifications"
+    },
+    {
+      "name": "phone",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "globe",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "link",
+      "reason": "used by module markdown"
+    },
+    {
+      "name": "flag",
+      "reason": "used by module markdown"
+    },
+    {
+      "name": "thumbUp",
+      "reason": "index.html:52"
+    },
+    {
+      "name": "thumbDown",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "check",
+      "reason": "demo.js:913"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "demo.js:874"
+    },
+    {
+      "name": "alert",
+      "reason": "index.html:543"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "demo.js:346"
+    },
+    {
+      "name": "info",
+      "reason": "demo.js:1346"
+    },
+    {
+      "name": "helpCircle",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "eye",
+      "reason": "index.html:367"
+    },
+    {
+      "name": "eyeOff",
+      "reason": "index.html:367"
+    },
+    {
+      "name": "clock",
+      "reason": "demo.js:1343"
+    },
+    {
+      "name": "ban",
+      "reason": "used by module toolcall"
+    },
+    {
+      "name": "calendar",
+      "reason": "index.html:298"
+    },
+    {
+      "name": "activity",
+      "reason": "index.html:55"
+    },
+    {
+      "name": "wifi",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "wifiOff",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "home",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "panelLeft",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "keyboard",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "terminal",
+      "reason": "index.html:1045"
+    },
+    {
+      "name": "tag",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "sun",
+      "reason": "demo.js:1338"
+    },
+    {
+      "name": "moon",
+      "reason": "demo.js:1339"
+    },
+    {
+      "name": "overview",
+      "reason": "demo.js:1349"
+    },
+    {
+      "name": "apps",
+      "reason": "index.html:64"
+    },
+    {
+      "name": "list",
+      "reason": "index.html:159"
+    },
+    {
+      "name": "columns",
+      "reason": "index.html:56"
+    },
+    {
+      "name": "rows",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "barChart",
+      "reason": "demo.js:1345"
+    },
+    {
+      "name": "settings",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "cpu",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "lock",
+      "reason": "index.html:555"
+    },
+    {
+      "name": "key",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "shield",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "user",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "users",
+      "reason": "index.html:60"
+    },
+    {
+      "name": "userPlus",
+      "reason": "index.html:195"
+    },
+    {
+      "name": "ticket",
+      "reason": "index.html:506"
+    },
+    {
+      "name": "file",
+      "reason": "used by module upload"
+    },
+    {
+      "name": "fileText",
+      "reason": "demo.js:420"
+    },
+    {
+      "name": "fileCode",
+      "reason": "demo.js:1348"
+    },
+    {
+      "name": "folder",
+      "reason": "used by module tree"
+    },
+    {
+      "name": "box",
+      "reason": "index.html:100"
+    },
+    {
+      "name": "building",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "mapPin",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "laptop",
+      "reason": "demo.js:1350"
+    },
+    {
+      "name": "monitor",
+      "reason": "demo.js:1340"
+    },
+    {
+      "name": "hardDrive",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "server",
+      "reason": "index.html:879"
+    },
+    {
+      "name": "graduationCap",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "presentation",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "camera",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "video",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "image",
+      "reason": "demo.js:1313"
+    },
+    {
+      "name": "leaf",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "wrench",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "sparkles",
+      "reason": "index.html:51"
+    },
+    {
+      "name": "fileImage",
+      "reason": "used by module upload"
+    },
+    {
+      "name": "fileArchive",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "fileSpreadsheet",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "fileJson",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "filePlus",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "fileCheck",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "fileDown",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "fileUp",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "files",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "folderOpen",
+      "reason": "used by module tree"
+    },
+    {
+      "name": "folderPlus",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "cloudUpload",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "cloudDownload",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "lineChart",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "areaChart",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "barChartHorizontal",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "pieChart",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "donutChart",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "scatterChart",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "gauge",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "trendingUp",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "trendingDown",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "table",
+      "reason": "index.html:54"
+    },
+    {
+      "name": "tableProperties",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "filterX",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "sortAscending",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "sortDescending",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "group",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "layoutGrid",
+      "reason": "index.html:59"
+    },
+    {
+      "name": "listTree",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "kanban",
+      "reason": "index.html:161"
+    },
+    {
+      "name": "bold",
+      "reason": "index.html:164"
+    },
+    {
+      "name": "italic",
+      "reason": "index.html:165"
+    },
+    {
+      "name": "code",
+      "reason": "index.html:166"
+    },
+    {
+      "name": "quote",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "heading",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "listOrdered",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "unlink",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "redo",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "cut",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "paste",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "duplicate",
+      "reason": "index.html:181"
+    },
+    {
+      "name": "gripHorizontal",
+      "reason": "used by module datagrid"
+    },
+    {
+      "name": "move",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "resize",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "expandAll",
+      "reason": "used by module jsonview"
+    },
+    {
+      "name": "collapseAll",
+      "reason": "used by module jsonview"
+    },
+    {
+      "name": "fullscreen",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "fullscreenExit",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "splitView",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "panelRight",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "wrapText",
+      "reason": "index.html:922"
+    },
+    {
+      "name": "shieldCheck",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "shieldAlert",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "unlock",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "fingerprint",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "verified",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "bug",
+      "reason": "used by module logview"
+    },
+    {
+      "name": "bookmark",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "pin",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "star",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "starHalf",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "heart",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "smilePlus",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "bellOff",
+      "reason": "index.html:196"
+    },
+    {
+      "name": "volumeOff",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "circleX",
+      "reason": "used by module logview"
+    },
+    {
+      "name": "octagonAlert",
+      "reason": "used by module logview"
+    },
+    {
+      "name": "circle",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "circleDot",
+      "reason": "used by module logview"
+    },
+    {
+      "name": "square",
+      "reason": "index.html:1075"
+    },
+    {
+      "name": "squareCheck",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "squareMinus",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "toggleOn",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "toggleOff",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "userMinus",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "userCheck",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "userX",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "userCircle",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "idCard",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "network",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "database",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "cloud",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "cloudOff",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "memory",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "router",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "smartphone",
+      "reason": "index.html:544"
+    },
+    {
+      "name": "tablet",
+      "reason": "index.html:562"
+    },
+    {
+      "name": "terminalSquare",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "braces",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "gitBranch",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "gitCommit",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "gitMerge",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "gitPullRequest",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "gitCompare",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "webhook",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "plug",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "power",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "qrCode",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "barcode",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "scan",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "calendarDays",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "calendarCheck",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "calendarPlus",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "calendarRange",
+      "reason": "index.html:317"
+    },
+    {
+      "name": "timer",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "hourglass",
+      "reason": "used by module toolcall"
+    },
+    {
+      "name": "refresh",
+      "reason": "index.html:838"
+    },
+    {
+      "name": "repeat",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "arrowUpRight",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "arrowUpLeft",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "arrowDownRight",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "arrowDownLeft",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "arrowLeftRight",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "cornerUpLeft",
+      "reason": "used by module markdown"
+    },
+    {
+      "name": "chevronsLeft",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "chevronsRight",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "login",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "launch",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "sparkle",
+      "reason": "index.html:1040"
+    },
+    {
+      "name": "wand",
+      "reason": "index.html:1097"
+    },
+    {
+      "name": "bot",
+      "reason": "demo.js:1128"
+    },
+    {
+      "name": "chatText",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "chatDots",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "reply",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "audioLines",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "videoOff",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "skipForward",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "skipBack",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "atSign",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "creditCard",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "receipt",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "wallet",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "coupon",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "tags",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "cart",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "truck",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "map",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "route",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "compass",
+      "reason": "index.html:58"
+    },
+    {
+      "name": "anchor",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "languages",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "palette",
+      "reason": "demo.js:1341"
+    },
+    {
+      "name": "brush",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "contrast",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "mailOpen",
+      "reason": "used by module notifications"
+    },
+    {
+      "name": "inbox",
+      "reason": "index.html:736"
+    },
+    {
+      "name": "archiveRestore",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "clipboardCheck",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "share",
+      "reason": "index.html:149"
+    },
+    {
+      "name": "sliders",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "layers",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "stack",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "puzzle",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "rocket",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "lightbulb",
+      "reason": "used by module markdown"
+    },
+    {
+      "name": "beaker",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "book",
+      "reason": "index.html:1054"
+    },
+    {
+      "name": "newspaper",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "megaphone",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "gift",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "trophy",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "medal",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "target",
+      "reason": "config \"icons\": \"all\""
+    },
+    {
+      "name": "zap",
+      "reason": "demo.js:1342"
+    },
+    {
+      "name": "scrollText",
+      "reason": "config \"icons\": \"all\""
+    }
+  ],
+  "classes": {
+    "ds-action-bar": "index.html:481",
+    "ds-ailabel": "index.html:1033",
+    "ds-ailabel--plain": "index.html:1033",
+    "ds-ailabel__tip": "index.html:1034",
+    "ds-ailabel__title": "index.html:1035",
+    "ds-alert": "demo.js:778",
+    "ds-alert__text": "demo.js:778",
+    "ds-app": "index.html:22",
+    "ds-app--drawer": "index.html:22",
+    "ds-avatar": "demo.js:1063",
+    "ds-avatar--hue-1": "demo.js:1056",
+    "ds-avatar--hue-2": "demo.js:1056",
+    "ds-avatar--hue-3": "demo.js:1056",
+    "ds-avatar--hue-4": "demo.js:1056",
+    "ds-avatar--hue-5": "demo.js:1056",
+    "ds-avatar--hue-6": "demo.js:1056",
+    "ds-avatar--square": "index.html:879",
+    "ds-avatar-group": "index.html:883",
+    "ds-avatar-group__more": "demo.js:1073",
+    "ds-badge": "index.html:897",
+    "ds-badge--dot": "index.html:897",
+    "ds-bar-gauge": "index.html:846",
+    "ds-bar-gauge__label": "index.html:846",
+    "ds-bar-gauge__note": "index.html:847",
+    "ds-bar-gauge__track": "index.html:846",
+    "ds-bar-gauge__value": "index.html:846",
+    "ds-bar-list": "index.html:540",
+    "ds-bar-list__item": "index.html:541",
+    "ds-bar-list__label": "index.html:541",
+    "ds-bar-list__value": "index.html:541",
+    "ds-base": "index.html:2",
+    "ds-brand": "index.html:27",
+    "ds-brand__name": "index.html:27",
+    "ds-breadcrumbs": "index.html:755",
+    "ds-btn": "demo.js:423",
+    "ds-btn--elevated": "index.html:121",
+    "ds-btn--filled": "index.html:91",
+    "ds-btn--icon": "demo.js:423",
+    "ds-btn--quiet": "demo.js:423",
+    "ds-btn--text": "demo.js:637",
+    "ds-btn--tonal": "demo.js:658",
+    "ds-btn-group": "index.html:163",
+    "ds-btn__face": "index.html:134",
+    "ds-btn__face--busy": "index.html:135",
+    "ds-btn__face--done": "index.html:136",
+    "ds-btn__faces": "index.html:133",
+    "ds-card": "demo.js:226",
+    "ds-card--filled": "index.html:1200",
+    "ds-card--interactive": "index.html:1200",
+    "ds-card__row": "index.html:479",
+    "ds-card__subtitle": "index.html:130",
+    "ds-card__title": "index.html:116",
+    "ds-chart": "index.html:518",
+    "ds-check": "index.html:253",
+    "ds-check-group": "index.html:252",
+    "ds-check-group__children": "index.html:254",
+    "ds-chevron": "index.html:177",
+    "ds-chip": "demo.js:632",
+    "ds-chip--input": "demo.js:632",
+    "ds-chip__body": "demo.js:633",
+    "ds-chip__check": "index.html:268",
+    "ds-chip__icon": "index.html:1068",
+    "ds-chip__input": "index.html:268",
+    "ds-chip__label": "demo.js:633",
+    "ds-chip__trailing": "demo.js:633",
+    "ds-chips": "index.html:266",
+    "ds-cite": "index.html:1052",
+    "ds-cite__card": "index.html:1053",
+    "ds-cite__icon": "index.html:1053",
+    "ds-cite__snippet": "index.html:1053",
+    "ds-cite__source": "index.html:1053",
+    "ds-cite__title": "demo.js:1193",
+    "ds-cluster": "index.html:90",
+    "ds-code": "index.html:913",
+    "ds-code--lines": "index.html:913",
+    "ds-code-block": "index.html:926",
+    "ds-code-block--wrap": "index.html:1140",
+    "ds-code__actions": "index.html:921",
+    "ds-code__head": "index.html:914",
+    "ds-code__lang": "index.html:920",
+    "ds-code__title": "index.html:1135",
+    "ds-col--secondary": "demo.js:595",
+    "ds-col--text": "demo.js:594",
+    "ds-collapsible": "index.html:723",
+    "ds-combo": "demo.js:227",
+    "ds-combo__clear": "index.html:403",
+    "ds-combo__group": "index.html:407",
+    "ds-combo__heading": "index.html:408",
+    "ds-combo__input": "index.html:402",
+    "ds-combo__list": "index.html:406",
+    "ds-combo__meta": "index.html:409",
+    "ds-combo__name": "index.html:409",
+    "ds-combo__option": "index.html:409",
+    "ds-combo__popup": "index.html:405",
+    "ds-combo__status": "index.html:426",
+    "ds-combo__toggle": "index.html:404",
+    "ds-command": "index.html:1217",
+    "ds-command__close": "index.html:1222",
+    "ds-command__foot": "index.html:1225",
+    "ds-command__input": "index.html:1221",
+    "ds-command__list": "index.html:1224",
+    "ds-command__search": "index.html:1220",
+    "ds-composer": "index.html:1073",
+    "ds-composer__input": "index.html:1074",
+    "ds-content": "index.html:79",
+    "ds-copy": "index.html:207",
+    "ds-copy--field": "index.html:207",
+    "ds-copy__value": "index.html:207",
+    "ds-dashpanel": "demo.js:1038",
+    "ds-dashpanel__actions": "index.html:838",
+    "ds-dashpanel__body": "index.html:840",
+    "ds-dashpanel__foot": "index.html:841",
+    "ds-dashpanel__head": "index.html:837",
+    "ds-dashpanel__heading": "index.html:837",
+    "ds-dashpanel__subtitle": "index.html:837",
+    "ds-dashpanel__title": "index.html:837",
+    "ds-datagrid": "index.html:496",
+    "ds-datefield": "index.html:297",
+    "ds-datefield__toggle": "index.html:298",
+    "ds-dialog": "index.html:1217",
+    "ds-dialog__actions": "index.html:1234",
+    "ds-dialog__backdrop": "index.html:1218",
+    "ds-dialog__box": "index.html:1219",
+    "ds-dialog__text": "index.html:1233",
+    "ds-dialog__title": "index.html:1232",
+    "ds-diff": "index.html:976",
+    "ds-diff__source": "index.html:977",
+    "ds-disclosure": "index.html:1039",
+    "ds-disclosure--row": "index.html:1044",
+    "ds-disclosure__body": "index.html:1041",
+    "ds-disclosure__title": "index.html:1045",
+    "ds-drawer": "index.html:46",
+    "ds-drawer__group": "index.html:49",
+    "ds-drawer__head": "index.html:47",
+    "ds-drawer__heading": "index.html:50",
+    "ds-drawer__item": "demo.js:105",
+    "ds-drawer__label": "index.html:51",
+    "ds-drawer__list": "index.html:48",
+    "ds-dropzone": "index.html:457",
+    "ds-dropzone__browse": "index.html:461",
+    "ds-dropzone__disc": "index.html:459",
+    "ds-dropzone__hint": "index.html:464",
+    "ds-dropzone__idle": "index.html:461",
+    "ds-dropzone__input": "demo.js:425",
+    "ds-dropzone__over": "index.html:462",
+    "ds-dropzone__title": "index.html:460",
+    "ds-empty": "demo.js:654",
+    "ds-empty--done": "index.html:853",
+    "ds-empty__disc": "demo.js:656",
+    "ds-empty__text": "demo.js:657",
+    "ds-empty__title": "demo.js:657",
+    "ds-errors": "index.html:723",
+    "ds-errors__chevron": "index.html:724",
+    "ds-facts": "demo.js:772",
+    "ds-feedback": "index.html:1057",
+    "ds-field": "demo.js:346",
+    "ds-field--full": "index.html:430",
+    "ds-field--grow": "index.html:595",
+    "ds-field__counter": "index.html:435",
+    "ds-field__foot": "index.html:433",
+    "ds-field__hint": "demo.js:346",
+    "ds-field__hint--error": "demo.js:346",
+    "ds-field__hint--warning": "index.html:370",
+    "ds-field__label": "index.html:206",
+    "ds-field__row": "index.html:284",
+    "ds-filters": "index.html:594",
+    "ds-form": "index.html:383",
+    "ds-form-actions": "index.html:440",
+    "ds-form-grid": "index.html:293",
+    "ds-form-grid--2": "index.html:293",
+    "ds-grid": "demo.js:226",
+    "ds-grid-2": "demo.js:226",
+    "ds-icon--fillable": "index.html:150",
+    "ds-icon-swap": "demo.js:314",
+    "ds-icon-swap__a": "index.html:152",
+    "ds-icon-swap__b": "index.html:152",
+    "ds-input": "demo.js:410",
+    "ds-input--filled": "index.html:499",
+    "ds-input--grow": "index.html:432",
+    "ds-input-group": "index.html:336",
+    "ds-input-group__prefix": "index.html:349",
+    "ds-input-group__suffix": "index.html:338",
+    "ds-input-group__trailing": "index.html:339",
+    "ds-jsonview": "index.html:569",
+    "ds-kbd": "index.html:29",
+    "ds-kv-list": "index.html:770",
+    "ds-leave": "demo.js:660",
+    "ds-lg": "index.html:126",
+    "ds-link": "index.html:1164",
+    "ds-link-btn": "demo.js:626",
+    "ds-list": "demo.js:414",
+    "ds-list--interactive": "index.html:819",
+    "ds-list__action": "index.html:820",
+    "ds-list__actions": "demo.js:423",
+    "ds-list__icon": "demo.js:420",
+    "ds-list__item": "demo.js:420",
+    "ds-list__meta": "demo.js:421",
+    "ds-list__text": "demo.js:421",
+    "ds-list__title": "demo.js:421",
+    "ds-loadbar": "index.html:839",
+    "ds-loadbar__bar": "index.html:839",
+    "ds-loader": "index.html:712",
+    "ds-loader--contained": "index.html:713",
+    "ds-loading": "index.html:712",
+    "ds-logview": "index.html:1000",
+    "ds-logview__source": "index.html:1000",
+    "ds-menu": "index.html:179",
+    "ds-menu-btn": "index.html:184",
+    "ds-menu-btn__chevron": "index.html:184",
+    "ds-menu-btn__value": "index.html:184",
+    "ds-menu__check": "index.html:186",
+    "ds-menu__divider": "index.html:507",
+    "ds-menu__item": "demo.js:828",
+    "ds-menu__item--danger": "index.html:508",
+    "ds-menu__label": "demo.js:834",
+    "ds-message": "demo.js:227",
+    "ds-message--assistant": "demo.js:1127",
+    "ds-message--user": "demo.js:1127",
+    "ds-message__author": "demo.js:1129",
+    "ds-message__avatar": "demo.js:1128",
+    "ds-message__content": "demo.js:1130",
+    "ds-message__footer": "index.html:1055",
+    "ds-message__head": "demo.js:1129",
+    "ds-message__main": "demo.js:1129",
+    "ds-meta": "demo.js:770",
+    "ds-muted": "demo.js:779",
+    "ds-nowrap": "demo.js:487",
+    "ds-num": "demo.js:596",
+    "ds-number": "index.html:336",
+    "ds-number__down": "index.html:340",
+    "ds-number__step": "index.html:340",
+    "ds-number__steps": "index.html:339",
+    "ds-number__up": "index.html:341",
+    "ds-otp": "index.html:374",
+    "ds-otp__cell": "index.html:375",
+    "ds-otp__sep": "index.html:375",
+    "ds-page": "index.html:80",
+    "ds-pagination": "index.html:497",
+    "ds-pagination--simple": "index.html:800",
+    "ds-pagination__label": "index.html:498",
+    "ds-pagination__range": "demo.js:1025",
+    "ds-pagination__size": "index.html:498",
+    "ds-panel": "index.html:77",
+    "ds-password__bars": "index.html:368",
+    "ds-password__caps": "index.html:370",
+    "ds-password__meter": "index.html:368",
+    "ds-password__strength": "index.html:368",
+    "ds-persona": "demo.js:1063",
+    "ds-persona__name": "demo.js:1064",
+    "ds-persona__role": "demo.js:1064",
+    "ds-persona__status": "demo.js:1065",
+    "ds-persona__text": "demo.js:1064",
+    "ds-picker": "demo.js:227",
+    "ds-popover": "index.html:651",
+    "ds-popover--arrow": "index.html:651",
+    "ds-popover--tip": "index.html:660",
+    "ds-popover__body": "index.html:654",
+    "ds-popover__close": "index.html:653",
+    "ds-popover__foot": "index.html:656",
+    "ds-popover__head": "index.html:652",
+    "ds-popover__title": "index.html:652",
+    "ds-presence-dot": "demo.js:1063",
+    "ds-presence-dot--away": "demo.js:1057",
+    "ds-presence-dot--busy": "demo.js:1057",
+    "ds-presence-dot--offline": "demo.js:1057",
+    "ds-presence-dot--online": "demo.js:1057",
+    "ds-presence-label": "demo.js:1065",
+    "ds-pressable": "demo.js:1300",
+    "ds-priority-bar": "index.html:193",
+    "ds-progress": "demo.js:422",
+    "ds-progress--flat": "demo.js:422",
+    "ds-progress__bar": "demo.js:422",
+    "ds-progress__detail": "index.html:701",
+    "ds-progress__label": "index.html:700",
+    "ds-progress__track": "demo.js:422",
+    "ds-prose": "demo.js:1130",
+    "ds-prose--compact": "demo.js:1130",
+    "ds-radio": "demo.js:1256",
+    "ds-radio--disabled": "index.html:279",
+    "ds-radio__note": "index.html:280",
+    "ds-radios": "index.html:274",
+    "ds-reasoning": "index.html:1039",
+    "ds-reasoning__body": "index.html:1041",
+    "ds-reasoning__icon": "index.html:1040",
+    "ds-reasoning__summary": "index.html:1040",
+    "ds-reasoning__text": "index.html:1041",
+    "ds-reasoning__time": "index.html:1040",
+    "ds-scrim": "index.html:45",
+    "ds-scroll-x": "index.html:1067",
+    "ds-search": "index.html:482",
+    "ds-segmented": "index.html:31",
+    "ds-segmented__count": "index.html:795",
+    "ds-segmented__indicator": "demo.js:190",
+    "ds-segmented__option": "demo.js:193",
+    "ds-selection-bar": "index.html:486",
+    "ds-selection-bar__actions": "index.html:489",
+    "ds-selection-bar__count": "index.html:488",
+    "ds-sheet": "index.html:1246",
+    "ds-sheet__backdrop": "index.html:1247",
+    "ds-sheet__body": "index.html:1257",
+    "ds-sheet__head": "index.html:1249",
+    "ds-sheet__panel": "index.html:1248",
+    "ds-sheet__title": "index.html:1250",
+    "ds-skip": "index.html:23",
+    "ds-slider": "index.html:285",
+    "ds-slider__value": "index.html:286",
+    "ds-sm": "demo.js:637",
+    "ds-spinner": "demo.js:569",
+    "ds-spinner--determinate": "index.html:703",
+    "ds-spinner--ink": "demo.js:874",
+    "ds-split-btn": "index.html:175",
+    "ds-split-btn__action": "index.html:176",
+    "ds-split-btn__label": "index.html:176",
+    "ds-split-btn__toggle": "index.html:177",
+    "ds-splitpane": "demo.js:226",
+    "ds-splitpane--outlined": "index.html:817",
+    "ds-splitpane__body": "index.html:828",
+    "ds-splitpane__divider": "index.html:826",
+    "ds-splitpane__pane": "index.html:818",
+    "ds-splitpane__pane--fill": "index.html:827",
+    "ds-sr": "demo.js:633",
+    "ds-stack": "index.html:828",
+    "ds-status": "demo.js:494",
+    "ds-status--running": "demo.js:545",
+    "ds-status__spinner": "demo.js:569",
+    "ds-steps": "index.html:783",
+    "ds-steps__label": "demo.js:988",
+    "ds-steps__link": "index.html:784",
+    "ds-steps__mark": "demo.js:986",
+    "ds-steps__step": "demo.js:978",
+    "ds-suggestions": "index.html:1067",
+    "ds-swap": "index.html:480",
+    "ds-switch": "index.html:232",
+    "ds-switch__label": "index.html:235",
+    "ds-switch__off": "index.html:236",
+    "ds-switch__on": "index.html:236",
+    "ds-switch__state": "index.html:236",
+    "ds-switch__track": "index.html:234",
+    "ds-table": "index.html:496",
+    "ds-table--interactive": "index.html:496",
+    "ds-table-wrap": "demo.js:710",
+    "ds-table__sort": "demo.js:605",
+    "ds-table__sort-arrow": "demo.js:605",
+    "ds-tabs": "index.html:764",
+    "ds-tabs--flush": "index.html:915",
+    "ds-tabs__count": "index.html:766",
+    "ds-tabs__panel": "index.html:769",
+    "ds-tabs__tab": "index.html:765",
+    "ds-taginput": "index.html:361",
+    "ds-taginput__input": "index.html:361",
+    "ds-tasks": "index.html:730",
+    "ds-tasks__head": "index.html:729",
+    "ds-tasks__item": "demo.js:951",
+    "ds-tasks__mark": "demo.js:951",
+    "ds-tasks__text": "demo.js:951",
+    "ds-theme": "index.html:2",
+    "ds-thinking": "index.html:1066",
+    "ds-thinking__icon": "index.html:1066",
+    "ds-thinking__meta": "index.html:1066",
+    "ds-thinking__step": "index.html:1066",
+    "ds-thinking__time": "index.html:1066",
+    "ds-thinking__tokens": "index.html:1066",
+    "ds-tile": "demo.js:584",
+    "ds-tile__label": "demo.js:584",
+    "ds-tile__note": "demo.js:585",
+    "ds-tile__value": "demo.js:217",
+    "ds-tiles": "index.html:96",
+    "ds-timeline": "index.html:773",
+    "ds-timeline__head": "index.html:774",
+    "ds-timeline__item": "index.html:774",
+    "ds-timeline__item--muted": "index.html:776",
+    "ds-timeline__meta": "index.html:774",
+    "ds-timeline__title": "index.html:774",
+    "ds-timerange": "demo.js:227",
+    "ds-toasts": "index.html:1215",
+    "ds-toggle-group": "index.html:158",
+    "ds-toggletip": "index.html:659",
+    "ds-tone-error": "demo.js:459",
+    "ds-tone-neutral": "demo.js:459",
+    "ds-tone-success": "demo.js:459",
+    "ds-tone-warning": "demo.js:459",
+    "ds-toolbar": "index.html:480",
+    "ds-toolcall": "index.html:1044",
+    "ds-toolcall-list": "index.html:1043",
+    "ds-toolcall__args": "index.html:1045",
+    "ds-toolcall__body": "index.html:1046",
+    "ds-toolcall__code": "index.html:1046",
+    "ds-toolcall__icon": "index.html:1045",
+    "ds-toolcall__label": "index.html:1046",
+    "ds-toolcall__mark": "index.html:1045",
+    "ds-toolcall__name": "index.html:1045",
+    "ds-toolcall__part": "index.html:1046",
+    "ds-toolcall__status": "index.html:1045",
+    "ds-toolcall__time": "index.html:1045",
+    "ds-toolcall__title": "index.html:1045",
+    "ds-toolcall__word": "index.html:1045",
+    "ds-topbar": "demo.js:90",
+    "ds-topbar__actions": "index.html:28",
+    "ds-topbar__menu": "index.html:26",
+    "ds-tracker": "index.html:530",
+    "ds-tracker__axis": "index.html:533",
+    "ds-tracker__cell": "demo.js:527",
+    "ds-tracker__cell--error": "demo.js:520",
+    "ds-tracker__cell--success": "demo.js:520",
+    "ds-tracker__cell--warning": "demo.js:520",
+    "ds-tracker__cells": "index.html:532",
+    "ds-tracker__head": "index.html:531",
+    "ds-tracker__label": "index.html:531",
+    "ds-tracker__legend": "index.html:534",
+    "ds-tracker__summary": "index.html:531",
+    "ds-transcript": "index.html:1023",
+    "ds-transcript__list": "index.html:1024",
+    "ds-tree": "index.html:549",
+    "ds-tree__group": "index.html:552",
+    "ds-tree__icon": "index.html:551",
+    "ds-tree__item": "index.html:550",
+    "ds-tree__label": "index.html:551",
+    "ds-tree__meta": "index.html:551",
+    "ds-tree__row": "index.html:551",
+    "ds-tree__toggle": "index.html:551",
+    "ds-view": "index.html:78",
+    "ds-wheel": "index.html:1066",
+    "ds-xl": "index.html:878",
+    "ds-xs": "index.html:212"
+  },
+  "unknown": [
+    "index.html:1189 module DS.init"
+  ]
+}
