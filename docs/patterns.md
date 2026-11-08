@@ -317,3 +317,47 @@ ask, on a public page.
   the questions as an exclusive [disclosure list](components.md#disclosure) (`name="faq"`).
 - **The project wires:** the period switch: the prices and their unit change at once (no figure counts: a price is
   not data that moved).
+
+### Webhooks and delivery log
+
+[webhooks.html](../src/patterns/webhooks.html): the endpoints that get events, the signing secret and every delivery,
+in the app frame.
+
+- **Components:** the endpoints as a [row list](components.md#row-list) (the address in `.ds-mono .ds-break`, its
+  events and success rate in the meta line, a failing one with an error [status chip](components.md#status-chip), a
+  [switch](components.md#switch) named after the address to pause it), the signing secret in a
+  [copy field](components.md#copy-button) (`.ds-copy--field`: a masked value on screen, the secret in
+  `data-ds-copy-value`), the deliveries as a [table](components.md#table) filtered by radio
+  [chips](components.md#chips), a [side sheet](components.md#side-sheet) for one delivery (`.ds-facts`, two
+  [code frames](components.md#code-block) with their copy buttons, Resend in the foot), a
+  [form dialog](components.md#a-form-dialog) to add an endpoint.
+- **The project wires:** the lists from its data with `DS.dom.morphHtml` (keyed rows; a status chip comes from a
+  `<template>`, so its glyph stays in the markup) inside `DS.motion.flip()`, the filter's count through
+  `DS.overlay.announce()`, the sheet through `DS.overlay.open(sheet, { opener })` with the code set by
+  `DS.get(figure, 'code').set()`, Resend inside `DS.motion.busy()` (the new delivery leads the log), "at least one
+  event" as a custom validity in the dialog, and rolling the secret after `DS.overlay.confirm({ destructive: true })`.
+- **Demo rule:** the ticket endpoint fails now and then (a 500 or a timeout); a resend always gets through.
+
+### Status page
+
+[status-page.html](../src/patterns/status-page.html): how each part of the service runs now, its uptime over 90 days
+and the incidents, on a public page.
+
+- **Components:** a public head (`.pt-bar`: the brand, Subscribe, the dark-theme button), the incident under way as a
+  warning [alert](components.md#alert) with its title over a [timeline](components.md#timeline) of its updates, one
+  [tracker](components.md#tracker) per part (90 cells, one tab stop each, the date and state of a cell in its name and
+  tooltip, the uptime and the incidents in words in its summary) under a shared legend, the past incidents as a
+  timeline grouped by day (planned maintenance `--muted`), a [form dialog](components.md#a-form-dialog) to subscribe.
+- **The project wires:** the trackers from its data, `DS.tracker.create(row).set(cells)` per part with the summary
+  counted by `DS.tracker.counts()`, and the subscription through `DS.dialog.form()`.
+
+### Changelog
+
+[changelog.html](../src/patterns/changelog.html): what changed in each release, newest first.
+
+- **Components:** a [split](components.md#layout) with the releases as sticky [jump links](components.md#jump-links)
+  (`data-ds-toc`: the release being read is marked; above the list on a phone), filter
+  [chips](components.md#chips) for the kinds, a card per release (`<article>`, its date in a `.ds-meta`), the items as a
+  `.ds-plain-list` led by a [tag](components.md#tags) in words ("New", "Improved", "Fixed"; the tone repeats it).
+- **The project wires:** the filter (items of the other kinds hide, a release left empty says so, the count is
+  announced).

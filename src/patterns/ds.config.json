@@ -7,7 +7,9 @@
     "form": ["form.html", "form-sent.html"],
     "onboarding": ["onboarding.html"],
     "wizard": ["wizard.html"],
-    "billing": ["billing.html", "invoice.html", "pricing.html"]
+    "billing": ["billing.html", "invoice.html", "pricing.html"],
+    "webhooks": ["webhooks.html"],
+    "public": ["status-page.html", "changelog.html"]
   },
   "out": "ds"
 }
