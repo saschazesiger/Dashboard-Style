@@ -1,0 +1,48 @@
+/* Project components (prefix app-) and the placement of ds components in them. */
+@layer reset, ds, app;
+
+@layer reset {
+  button { font: inherit; }
+}
+
+.app-toolbar {
+  display: flex;
+  gap: var(--ds-space-2);
+}
+
+.app-toolbar .ds-btn.ds-sm {
+  margin-inline-start: auto;
+}
+
+.app-toolbar .ds-btn.ds-btn--filled {
+  min-width: 120px;
+}
+
+.app-panel .ds-card__section + .ds-card__more {
+  margin-block-start: var(--ds-space-3);
+}
+
+.app-panel .ds-table.ds-density-tight {
+  --ds-table-row-height: 36px;
+}
+
+.app-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  color: var(--ds-text-2);
+  transition: color var(--ds-dur-fast) var(--ds-ease-emphasized);
+}
+
+[data-ds-close] {
+  scroll-margin-block: var(--ds-space-4);
+}
+
+/* A project chip that sits below the utilities. */
+@layer ds.components {
+  .app-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-space-1);
+  }
+}

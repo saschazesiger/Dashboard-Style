@@ -1,0 +1,9 @@
+{
+  "major": 3,
+  "prefix": "app",
+  "css": ["css/**/*.css"],
+  "js": ["js/**/*.js", "js/**/*.mjs"],
+  "html": ["*.html"],
+  "themes": ["css/theme.css"],
+  "vendor": "vendor/dashboard-style"
+}

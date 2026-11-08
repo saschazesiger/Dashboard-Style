@@ -1,0 +1,18 @@
+/*
+ * The project theme (Dashboard-Style 2.x): roles and hooks on .ds-theme,
+ * loaded after ds.css.
+ */
+.ds-theme {
+  --ds-primary: #1d4e89;
+  --ds-on-primary: #ffffff;
+  --ds-font: "Inter", system-ui, sans-serif;
+  --ds-radius-card: 12px;
+
+  /* Wider forms in the device dialog. */
+  --ds-dialog-width-wide: 640px;
+  /* The small buttons of the toolbars. */
+  --ds-btn-sm-height: 30px;
+  /* The fleet table holds many rows. */
+  --ds-table-dense-row-height: 36px;
+  --ds-loader-sm-size: 20px;
+}
