@@ -32,7 +32,12 @@ node dist/tools/bundle.mjs --config demo/ds.config.json
   own, `scheduler.yield()` where it exists), then runs the stop's own setup steps, one task each. A link to a stop
   (the drawer, `#theme`, the command palette) sets that stop up first and lines the view up once it is ready.
 - **Far stops are not rendered.** Each stop below the first has `content-visibility: auto` (`demo.css`): far from the
-  view it is a box of its last known height, so a theme change or an open dialog restyles only what is near.
+  view it is a box of its last known height, so a theme change or an open dialog restyles only what is near. Inside a
+  stop, the heavy cards without a popup of their own (`.demo-part`: the charts, the log, the code, the diff) and each
+  icon of the grid do the same, so a stop that scrolls in is styled a card at a time, not all at once. The icon grid
+  arrives in three tasks.
+- **A jump lands where it aims.** Stops on the way take their true height as they pass; the smooth scroll of a link
+  is aimed again from where it is, then the view lines the stop up once it is set up.
 - **Work only in view.** The live data polls and the device log streams only while their stop is in view.
 - The theme generator (`styleguide/theme-generator.js`) loads with the first colour of the visitor's own; the presets
   are plain stylesheets.

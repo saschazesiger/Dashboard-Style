@@ -112,7 +112,7 @@
                 frame. Hover never moves anything.</p>
             </header>
             <div class="ds-grid-2">
-              <section class="ds-card" aria-labelledby="buttons-title">
+              <section class="ds-card demo-part" aria-labelledby="buttons-title">
                 <h3 class="ds-card__title" id="buttons-title">Buttons</h3>
                 <div class="ds-cluster">
                   <button class="ds-btn ds-btn--filled" type="button">Filled</button>
@@ -200,7 +200,7 @@
                 <p class="ds-muted">Narrow the window: the least important actions fold into More, and come back when there is room.</p>
               </section>
 
-              <section class="ds-card" aria-labelledby="copy-title">
+              <section class="ds-card demo-part" aria-labelledby="copy-title">
                 <h3 class="ds-card__title" id="copy-title">Copy</h3>
                 <div class="ds-field">
                   <span class="ds-field__label" id="api-key-label">API key</span>
@@ -227,7 +227,7 @@
                 your locale, or picked from a calendar and a list.</p>
             </header>
             <div class="ds-grid-2">
-              <section class="ds-card" aria-labelledby="switches-title">
+              <section class="ds-card demo-part" aria-labelledby="switches-title">
                 <h3 class="ds-card__title" id="switches-title">Switches and checkboxes</h3>
                 <label class="ds-switch">
                   <input type="checkbox" role="switch" checked>
@@ -261,7 +261,7 @@
                 <p class="ds-muted">"All channels" turns into a dash while only some are on.</p>
               </section>
 
-              <section class="ds-card" aria-labelledby="chips-title">
+              <section class="ds-card demo-part" aria-labelledby="chips-title">
                 <h3 class="ds-card__title" id="chips-title">Chips, radio cards and a slider</h3>
                 <fieldset class="ds-chips" id="demo-chips">
                   <legend class="ds-sr">Device type</legend>
@@ -328,7 +328,7 @@
                 </div>
               </section>
 
-              <section class="ds-card" aria-labelledby="secure-title">
+              <section class="ds-card demo-part" aria-labelledby="secure-title">
                 <h3 class="ds-card__title" id="secure-title">Numbers, tags and secrets</h3>
                 <div class="ds-form-grid ds-form-grid--2">
                   <div class="ds-field">
@@ -450,7 +450,7 @@
               </div>
             </form>
 
-            <section class="ds-card demo-import" aria-labelledby="csv-title">
+            <section class="ds-card demo-import demo-part" aria-labelledby="csv-title">
               <h3 class="ds-card__title" id="csv-title">Import a CSV file</h3>
               <p class="ds-muted">Drop files on the zone, browse for them, or paste one while the zone has the focus. Each file uploads with its
                 progress; remove one and the focus moves to the next.</p>
@@ -510,22 +510,22 @@
             </section>
 
             <div class="ds-grid-2">
-              <section class="ds-card" aria-labelledby="latency-title">
+              <section class="ds-card demo-part" aria-labelledby="latency-title">
                 <div class="ds-card__row">
                   <h3 class="ds-card__title" id="latency-title">Response time</h3>
                   <button class="ds-btn ds-sm" type="button" id="chart-new" data-icon="sync" data-icon-size="16" data-icon-place="start">New data</button>
                 </div>
                 <figure class="ds-chart" id="chart-line" data-ds-chart='{"type":"line","curve":"monotone","labels":["2026-11-04T00:00","2026-11-04T01:00","2026-11-04T02:00","2026-11-04T03:00","2026-11-04T04:00","2026-11-04T05:00","2026-11-04T06:00","2026-11-04T07:00","2026-11-04T08:00","2026-11-04T09:00","2026-11-04T10:00","2026-11-04T11:00","2026-11-04T12:00","2026-11-04T13:00","2026-11-04T14:00","2026-11-04T15:00","2026-11-04T16:00","2026-11-04T17:00","2026-11-04T18:00","2026-11-04T19:00","2026-11-04T20:00","2026-11-04T21:00","2026-11-04T22:00","2026-11-04T23:00"],"series":[{"name":"API","values":[244,262,270,262,244,226,206,182,164,156,162,180,204,226,240,248,250,246,232,214,196,180,174,180]},{"name":"Web","values":[300,286,282,292,316,346,null,null,384,370,346,316,292,282,286,300,320,342,360,368,362,346,326,306]}],"y":{"label":"ms"},"format":{"maximumFractionDigits":0},"thresholds":[{"value":400,"label":"Limit 400 ms","tone":"error"}],"annotations":[{"at":"2026-11-04T14:00","label":"Deploy"}]}'><figcaption>Response time per hour, in ms</figcaption></figure>
               </section>
-              <section class="ds-card" aria-labelledby="tickets-chart-title">
+              <section class="ds-card demo-part" aria-labelledby="tickets-chart-title">
                 <h3 class="ds-card__title" id="tickets-chart-title">Tickets</h3>
                 <figure class="ds-chart" id="chart-columns" data-ds-chart='{"type":"column","stack":"normal","labels":["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],"series":[{"name":"Low","values":[8,6,9,7,10,2,1]},{"name":"Normal","values":[14,12,16,13,11,3,2]},{"name":"High","values":[3,5,2,6,4,1,0]}]}'><figcaption>Tickets per day, by priority</figcaption></figure>
               </section>
-              <section class="ds-card" aria-labelledby="channels-title">
+              <section class="ds-card demo-part" aria-labelledby="channels-title">
                 <h3 class="ds-card__title" id="channels-title">Where tickets come from</h3>
                 <figure class="ds-chart" data-ds-chart='{"type":"donut","labels":["Email","Portal","Phone","Chat"],"series":[{"name":"Tickets","values":[184,122,86,54]}]}'><figcaption>Tickets by channel</figcaption></figure>
               </section>
-              <section class="ds-card" aria-labelledby="health-title">
+              <section class="ds-card demo-part" aria-labelledby="health-title">
                 <h3 class="ds-card__title" id="health-title">Health</h3>
                 <figure class="ds-tracker">
                   <figcaption class="ds-tracker__head"><span class="ds-tracker__label">Printer 7</span><span class="ds-tracker__summary" id="tracker-summary">Uptime of the last 60 days</span></figcaption>
@@ -544,7 +544,7 @@
                   <li class="ds-bar-list__item" style="--ds-share: .12"><span class="ds-bar-list__label" data-icon="smartphone" data-icon-size="16" data-icon-place="start"><span>Phones</span></span><span class="ds-bar-list__value">5</span></li>
                 </ol>
               </section>
-              <section class="ds-card" aria-labelledby="tree-title">
+              <section class="ds-card demo-part" aria-labelledby="tree-title">
                 <h3 class="ds-card__title" id="tree-title">Sites</h3>
                 <ul class="ds-tree" role="tree" aria-label="Sites and devices" data-ds-tree>
                   <li class="ds-tree__item" role="treeitem" aria-expanded="true" data-ds-key="a">
@@ -564,7 +564,7 @@
                   </li>
                 </ul>
               </section>
-              <section class="ds-card" aria-labelledby="json-title">
+              <section class="ds-card demo-part" aria-labelledby="json-title">
                 <h3 class="ds-card__title" id="json-title">Raw record</h3>
                 <div class="ds-jsonview" role="region" data-ds-jsonview data-ds-jsonview-open="1" aria-label="Response of GET /devices/42"><script type="application/json">{"id":42,"name":"LAPTOP-0042","model":"Laptop 14","owner":{"name":"Ada Lovelace","email":"ada@example.org"},"retired":false,"ports":[80,443],"serial":12345678901234567890,"tags":["printer","floor-2"],"note":null}</script></div>
               </section>
@@ -910,7 +910,7 @@
               <p class="demo-section__lead">Code in colour from the system's own small tokenizers, a safe Markdown renderer that lets no
                 HTML through, diffs with word marks, and a log viewer that keeps only the lines near the viewport in the page.</p>
             </header>
-            <figure class="ds-code ds-code--lines" data-ds-code>
+            <figure class="ds-code ds-code--lines demo-part" data-ds-code>
               <div class="ds-code__head ds-sm">
                 <div class="ds-tabs ds-tabs--flush" role="tablist" aria-label="Files">
                   <button class="ds-tabs__tab" role="tab" type="button" id="file-json" aria-selected="true" aria-controls="block-json" data-label="device.json">device.json</button>
@@ -951,7 +951,7 @@ export async function retire(device: Device): Promise&lt;void&gt; {
 }</code></pre>
             </figure>
             <div class="ds-grid-2">
-              <section class="ds-card" aria-labelledby="md-title">
+              <section class="ds-card demo-part" aria-labelledby="md-title">
                 <h3 class="ds-card__title" id="md-title">Markdown, rendered as you type</h3>
                 <div class="ds-field">
                   <label class="ds-field__label" for="md-source">Markdown</label>
@@ -971,7 +971,7 @@ Back up the device and note its **asset tag**. Run `devicectl backup` first.
                 </div>
                 <div class="ds-prose" id="md-preview" aria-live="off"></div>
               </section>
-              <section class="ds-card" aria-labelledby="diff-title">
+              <section class="ds-card demo-part" aria-labelledby="diff-title">
                 <h3 class="ds-card__title" id="diff-title">What changed</h3>
                 <div class="ds-diff" data-ds-diff data-ds-diff-view="unified" aria-label="Changes to the sync settings">
 <pre class="ds-diff__source">diff --git a/sync.yaml b/sync.yaml
@@ -988,7 +988,7 @@ Back up the device and note its **asset tag**. Run `devicectl backup` first.
                 </div>
               </section>
             </div>
-            <section class="ds-card" aria-labelledby="log-title">
+            <section class="ds-card demo-part" aria-labelledby="log-title">
               <div class="ds-card__row">
                 <h3 class="ds-card__title" id="log-title">Device log</h3>
                 <label class="ds-switch">

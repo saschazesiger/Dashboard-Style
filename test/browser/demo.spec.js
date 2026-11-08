@@ -327,6 +327,9 @@ test('the data grid pages, filters and sorts; new data reaches the charts', asyn
   await page.locator('#grid-filter').fill('');
   await expect(page.locator('#chart-line svg').first()).toBeVisible();
   const before = await page.locator('#chart-line').innerHTML();
+  // A card far from the view skips its rendering (.demo-part); WebKit scrolls nothing inside it into view by
+  // script (focus does), so the card comes first.
+  await page.locator('#chart-new').evaluate((button) => button.closest('.demo-part').scrollIntoView({ block: 'center' }));
   await page.locator('#chart-new').click();
   await expect.poll(() => page.locator('#chart-line').innerHTML(), { timeout: 5000 }).not.toBe(before);
   await expect(page.locator('#tracker .ds-tracker__cell')).toHaveCount(60);

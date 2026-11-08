@@ -23,13 +23,13 @@
   "components": [
     {
       "name": "layout",
-      "reason": "demo.js:226 ds-grid",
+      "reason": "demo.js:246 ds-grid",
       "bytes": 3326,
       "gzip": 1048
     },
     {
       "name": "utilities",
-      "reason": "demo.js:487 ds-nowrap",
+      "reason": "demo.js:507 ds-nowrap",
       "bytes": 5304,
       "gzip": 1436
     },
@@ -41,7 +41,7 @@
     },
     {
       "name": "spinner",
-      "reason": "demo.js:569 ds-spinner",
+      "reason": "demo.js:589 ds-spinner",
       "bytes": 3235,
       "gzip": 901
     },
@@ -59,7 +59,7 @@
     },
     {
       "name": "button",
-      "reason": "demo.js:423 ds-btn",
+      "reason": "demo.js:443 ds-btn",
       "bytes": 15255,
       "gzip": 2524
     },
@@ -83,19 +83,19 @@
     },
     {
       "name": "tasks",
-      "reason": "demo.js:951 ds-tasks__item",
+      "reason": "demo.js:971 ds-tasks__item",
       "bytes": 1864,
       "gzip": 686
     },
     {
       "name": "status",
-      "reason": "demo.js:494 ds-status",
+      "reason": "demo.js:514 ds-status",
       "bytes": 3164,
       "gzip": 921
     },
     {
       "name": "alert",
-      "reason": "demo.js:778 ds-alert",
+      "reason": "demo.js:798 ds-alert",
       "bytes": 6191,
       "gzip": 1561
     },
@@ -113,55 +113,55 @@
     },
     {
       "name": "progress",
-      "reason": "demo.js:422 ds-progress",
+      "reason": "demo.js:442 ds-progress",
       "bytes": 6008,
       "gzip": 1430
     },
     {
       "name": "chart",
-      "reason": "demo.js:227 data-ds-chart",
+      "reason": "demo.js:247 data-ds-chart",
       "bytes": 23341,
       "gzip": 4433
     },
     {
       "name": "tile",
-      "reason": "demo.js:217 ds-tile__value",
+      "reason": "demo.js:237 ds-tile__value",
       "bytes": 6931,
       "gzip": 1673
     },
     {
       "name": "list",
-      "reason": "demo.js:414 ds-list",
+      "reason": "demo.js:434 ds-list",
       "bytes": 18637,
       "gzip": 3412
     },
     {
       "name": "card",
-      "reason": "demo.js:226 ds-card",
+      "reason": "demo.js:246 ds-card",
       "bytes": 16606,
       "gzip": 2659
     },
     {
       "name": "prose",
-      "reason": "demo.js:1130 ds-prose",
+      "reason": "demo.js:1150 ds-prose",
       "bytes": 10564,
       "gzip": 1980
     },
     {
       "name": "empty",
-      "reason": "demo.js:654 ds-empty",
+      "reason": "demo.js:674 ds-empty",
       "bytes": 3869,
       "gzip": 1174
     },
     {
       "name": "menu",
-      "reason": "demo.js:828 ds-menu__item",
+      "reason": "demo.js:848 ds-menu__item",
       "bytes": 8287,
       "gzip": 2087
     },
     {
       "name": "chip",
-      "reason": "demo.js:632 ds-chip",
+      "reason": "demo.js:652 ds-chip",
       "bytes": 8706,
       "gzip": 1866
     },
@@ -185,43 +185,43 @@
     },
     {
       "name": "table",
-      "reason": "demo.js:594 ds-col--text",
+      "reason": "demo.js:614 ds-col--text",
       "bytes": 32925,
       "gzip": 4735
     },
     {
       "name": "pagination",
-      "reason": "demo.js:1025 ds-pagination__range",
+      "reason": "demo.js:1045 ds-pagination__range",
       "bytes": 2697,
       "gzip": 807
     },
     {
       "name": "form",
-      "reason": "demo.js:346 ds-field",
+      "reason": "demo.js:366 ds-field",
       "bytes": 49285,
       "gzip": 7087
     },
     {
       "name": "drag",
-      "reason": "demo.js:425 ds-dropzone__input",
+      "reason": "demo.js:445 ds-dropzone__input",
       "bytes": 8418,
       "gzip": 1901
     },
     {
       "name": "combobox",
-      "reason": "demo.js:227 ds-combo",
+      "reason": "demo.js:247 ds-combo",
       "bytes": 13500,
       "gzip": 3016
     },
     {
       "name": "tooltip",
-      "reason": "demo.js:423 data-tip",
+      "reason": "demo.js:443 data-tip",
       "bytes": 2413,
       "gzip": 811
     },
     {
       "name": "page",
-      "reason": "demo.js:226 ds-grid-2",
+      "reason": "demo.js:246 ds-grid-2",
       "bytes": 8000,
       "gzip": 2189
     },
@@ -233,13 +233,13 @@
     },
     {
       "name": "tabs",
-      "reason": "demo.js:228 data-ds-tabs",
+      "reason": "demo.js:248 data-ds-tabs",
       "bytes": 7866,
       "gzip": 1960
     },
     {
       "name": "steps",
-      "reason": "demo.js:978 ds-steps__step",
+      "reason": "demo.js:998 ds-steps__step",
       "bytes": 12125,
       "gzip": 2356
     },
@@ -263,13 +263,13 @@
     },
     {
       "name": "splitpane",
-      "reason": "demo.js:226 ds-splitpane",
+      "reason": "demo.js:246 ds-splitpane",
       "bytes": 4530,
       "gzip": 1171
     },
     {
       "name": "upload",
-      "reason": "demo.js:420 data-ds-key",
+      "reason": "demo.js:440 data-ds-key",
       "bytes": 3706,
       "gzip": 1134
     },
@@ -281,7 +281,7 @@
     },
     {
       "name": "kveditor",
-      "reason": "demo.js:420 data-ds-key",
+      "reason": "demo.js:440 data-ds-key",
       "bytes": 2253,
       "gzip": 807
     },
@@ -299,13 +299,13 @@
     },
     {
       "name": "dashpanel",
-      "reason": "demo.js:1038 ds-dashpanel",
+      "reason": "demo.js:1058 ds-dashpanel",
       "bytes": 2819,
       "gzip": 881
     },
     {
       "name": "picker",
-      "reason": "demo.js:227 ds-picker",
+      "reason": "demo.js:247 ds-picker",
       "bytes": 6042,
       "gzip": 1674
     },
@@ -329,7 +329,7 @@
     },
     {
       "name": "datagrid",
-      "reason": "demo.js:420 data-ds-key",
+      "reason": "demo.js:440 data-ds-key",
       "bytes": 8213,
       "gzip": 1914
     },
@@ -341,7 +341,7 @@
     },
     {
       "name": "timerange",
-      "reason": "demo.js:227 ds-timerange",
+      "reason": "demo.js:247 ds-timerange",
       "bytes": 3124,
       "gzip": 1051
     },
@@ -359,7 +359,7 @@
     },
     {
       "name": "toggle",
-      "reason": "demo.js:229 data-ds-toggle-group",
+      "reason": "demo.js:249 data-ds-toggle-group",
       "bytes": 279,
       "gzip": 220
     },
@@ -371,13 +371,13 @@
     },
     {
       "name": "menubutton",
-      "reason": "demo.js:229 data-ds-menubutton",
+      "reason": "demo.js:249 data-ds-menubutton",
       "bytes": 463,
       "gzip": 283
     },
     {
       "name": "splitbutton",
-      "reason": "demo.js:229 data-ds-splitbutton",
+      "reason": "demo.js:249 data-ds-splitbutton",
       "bytes": 396,
       "gzip": 254
     },
@@ -389,7 +389,7 @@
     },
     {
       "name": "prioritybar",
-      "reason": "demo.js:229 data-ds-prioritybar",
+      "reason": "demo.js:249 data-ds-prioritybar",
       "bytes": 637,
       "gzip": 349
     },
@@ -401,37 +401,37 @@
     },
     {
       "name": "number",
-      "reason": "demo.js:228 data-ds-number",
+      "reason": "demo.js:248 data-ds-number",
       "bytes": 478,
       "gzip": 284
     },
     {
       "name": "tree",
-      "reason": "demo.js:227 data-ds-tree",
+      "reason": "demo.js:247 data-ds-tree",
       "bytes": 7086,
       "gzip": 1718
     },
     {
       "name": "jsonview",
-      "reason": "demo.js:227 data-ds-jsonview",
+      "reason": "demo.js:247 data-ds-jsonview",
       "bytes": 3218,
       "gzip": 967
     },
     {
       "name": "password",
-      "reason": "demo.js:228 data-ds-password",
+      "reason": "demo.js:248 data-ds-password",
       "bytes": 1527,
       "gzip": 554
     },
     {
       "name": "taginput",
-      "reason": "demo.js:228 data-ds-taginput",
+      "reason": "demo.js:248 data-ds-taginput",
       "bytes": 3035,
       "gzip": 944
     },
     {
       "name": "otp",
-      "reason": "demo.js:228 data-ds-otp",
+      "reason": "demo.js:248 data-ds-otp",
       "bytes": 892,
       "gzip": 474
     },
@@ -449,13 +449,13 @@
     },
     {
       "name": "errorsummary",
-      "reason": "demo.js:420 data-ds-key",
+      "reason": "demo.js:440 data-ds-key",
       "bytes": 1120,
       "gzip": 419
     },
     {
       "name": "search",
-      "reason": "demo.js:420 data-ds-key",
+      "reason": "demo.js:440 data-ds-key",
       "bytes": 1402,
       "gzip": 580
     },
@@ -473,31 +473,31 @@
     },
     {
       "name": "formatted",
-      "reason": "demo.js:423 data-tip",
+      "reason": "demo.js:443 data-tip",
       "bytes": 596,
       "gzip": 300
     },
     {
       "name": "tracker",
-      "reason": "demo.js:520 ds-tracker__cell--success",
+      "reason": "demo.js:540 ds-tracker__cell--success",
       "bytes": 2658,
       "gzip": 922
     },
     {
       "name": "composer",
-      "reason": "demo.js:420 data-ds-key",
+      "reason": "demo.js:440 data-ds-key",
       "bytes": 7077,
       "gzip": 1739
     },
     {
       "name": "message",
-      "reason": "demo.js:227 ds-message",
+      "reason": "demo.js:247 ds-message",
       "bytes": 4637,
       "gzip": 1153
     },
     {
       "name": "transcript",
-      "reason": "demo.js:1127 data-ds-message",
+      "reason": "demo.js:1147 data-ds-message",
       "bytes": 1957,
       "gzip": 777
     },
@@ -533,19 +533,19 @@
     },
     {
       "name": "code",
-      "reason": "demo.js:229 data-ds-code",
+      "reason": "demo.js:249 data-ds-code",
       "bytes": 5372,
       "gzip": 1386
     },
     {
       "name": "diff",
-      "reason": "demo.js:227 data-ds-diff",
+      "reason": "demo.js:247 data-ds-diff",
       "bytes": 6272,
       "gzip": 1548
     },
     {
       "name": "logview",
-      "reason": "demo.js:227 data-ds-logview",
+      "reason": "demo.js:247 data-ds-logview",
       "bytes": 9768,
       "gzip": 2103
     },
@@ -581,43 +581,43 @@
     },
     {
       "name": "cite",
-      "reason": "demo.js:1193 ds-cite__title",
+      "reason": "demo.js:1213 ds-cite__title",
       "bytes": 5169,
       "gzip": 1446
     },
     {
       "name": "presence",
-      "reason": "demo.js:1057 ds-presence-dot--online",
+      "reason": "demo.js:1077 ds-presence-dot--online",
       "bytes": 1438,
       "gzip": 558
     },
     {
       "name": "avatar",
-      "reason": "demo.js:1056 ds-avatar--hue-1",
+      "reason": "demo.js:1076 ds-avatar--hue-1",
       "bytes": 5871,
       "gzip": 1523
     },
     {
       "name": "persona",
-      "reason": "demo.js:1063 ds-persona",
+      "reason": "demo.js:1083 ds-persona",
       "bytes": 1710,
       "gzip": 604
     },
     {
       "name": "media",
-      "reason": "demo.js:420 data-ds-key",
+      "reason": "demo.js:440 data-ds-key",
       "bytes": 5664,
       "gzip": 1483
     },
     {
       "name": "command",
-      "reason": "demo.js:420 data-ds-key",
+      "reason": "demo.js:440 data-ds-key",
       "bytes": 5567,
       "gzip": 1485
     },
     {
       "name": "notifications",
-      "reason": "demo.js:420 data-ds-key",
+      "reason": "demo.js:440 data-ds-key",
       "bytes": 4028,
       "gzip": 1228
     },
@@ -639,7 +639,7 @@
     },
     {
       "name": "indicator",
-      "reason": "demo.js:190 DS.indicator.create"
+      "reason": "demo.js:210 DS.indicator.create"
     },
     {
       "name": "dom",
@@ -659,11 +659,11 @@
     },
     {
       "name": "overlay",
-      "reason": "demo.js:807 data-ds-busy"
+      "reason": "demo.js:827 data-ds-busy"
     },
     {
       "name": "a11y",
-      "reason": "demo.js:1012 DS.a11y.roving"
+      "reason": "demo.js:1032 DS.a11y.roving"
     },
     {
       "name": "hotkeys",
@@ -691,7 +691,7 @@
     },
     {
       "name": "avatar",
-      "reason": "demo.js:1063 DS.avatar.hue"
+      "reason": "demo.js:1083 DS.avatar.hue"
     },
     {
       "name": "badge",
@@ -711,7 +711,7 @@
     },
     {
       "name": "command",
-      "reason": "demo.js:1335 DS.command.create"
+      "reason": "demo.js:1364 DS.command.create"
     },
     {
       "name": "composer",
@@ -787,7 +787,7 @@
     },
     {
       "name": "markdown",
-      "reason": "demo.js:1090 DS.markdown.create"
+      "reason": "demo.js:1110 DS.markdown.create"
     },
     {
       "name": "media",
@@ -799,7 +799,7 @@
     },
     {
       "name": "datagrid",
-      "reason": "demo.js:485 DS.datagrid.create"
+      "reason": "demo.js:505 DS.datagrid.create"
     },
     {
       "name": "menubutton",
@@ -807,7 +807,7 @@
     },
     {
       "name": "message",
-      "reason": "demo.js:1165 DS.message"
+      "reason": "demo.js:1185 DS.message"
     },
     {
       "name": "number",
@@ -859,7 +859,7 @@
     },
     {
       "name": "shell",
-      "reason": "demo.js:1283 DS.shell.setScheme"
+      "reason": "demo.js:1303 DS.shell.setScheme"
     },
     {
       "name": "sort",
@@ -923,7 +923,7 @@
     },
     {
       "name": "tracker",
-      "reason": "demo.js:528 DS.tracker.counts"
+      "reason": "demo.js:548 DS.tracker.counts"
     },
     {
       "name": "transcript",
@@ -969,7 +969,7 @@
     },
     {
       "name": "arrowUp",
-      "reason": "demo.js:605"
+      "reason": "demo.js:625"
     },
     {
       "name": "arrowDown",
@@ -1013,7 +1013,7 @@
     },
     {
       "name": "close",
-      "reason": "demo.js:423"
+      "reason": "demo.js:443"
     },
     {
       "name": "minimize",
@@ -1025,7 +1025,7 @@
     },
     {
       "name": "moreVertical",
-      "reason": "demo.js:503"
+      "reason": "demo.js:523"
     },
     {
       "name": "moreHorizontal",
@@ -1037,7 +1037,7 @@
     },
     {
       "name": "search",
-      "reason": "demo.js:656"
+      "reason": "demo.js:676"
     },
     {
       "name": "filter",
@@ -1101,7 +1101,7 @@
     },
     {
       "name": "play",
-      "reason": "demo.js:1344"
+      "reason": "demo.js:1373"
     },
     {
       "name": "pause",
@@ -1177,11 +1177,11 @@
     },
     {
       "name": "check",
-      "reason": "demo.js:913"
+      "reason": "demo.js:933"
     },
     {
       "name": "checkCircle",
-      "reason": "demo.js:874"
+      "reason": "demo.js:894"
     },
     {
       "name": "alert",
@@ -1189,11 +1189,11 @@
     },
     {
       "name": "alertCircle",
-      "reason": "demo.js:346"
+      "reason": "demo.js:366"
     },
     {
       "name": "info",
-      "reason": "demo.js:1346"
+      "reason": "demo.js:1375"
     },
     {
       "name": "helpCircle",
@@ -1209,7 +1209,7 @@
     },
     {
       "name": "clock",
-      "reason": "demo.js:1343"
+      "reason": "demo.js:1372"
     },
     {
       "name": "ban",
@@ -1253,15 +1253,15 @@
     },
     {
       "name": "sun",
-      "reason": "demo.js:1338"
+      "reason": "demo.js:1367"
     },
     {
       "name": "moon",
-      "reason": "demo.js:1339"
+      "reason": "demo.js:1368"
     },
     {
       "name": "overview",
-      "reason": "demo.js:1349"
+      "reason": "demo.js:1378"
     },
     {
       "name": "apps",
@@ -1281,7 +1281,7 @@
     },
     {
       "name": "barChart",
-      "reason": "demo.js:1345"
+      "reason": "demo.js:1374"
     },
     {
       "name": "settings",
@@ -1325,11 +1325,11 @@
     },
     {
       "name": "fileText",
-      "reason": "demo.js:420"
+      "reason": "demo.js:440"
     },
     {
       "name": "fileCode",
-      "reason": "demo.js:1348"
+      "reason": "demo.js:1377"
     },
     {
       "name": "folder",
@@ -1349,11 +1349,11 @@
     },
     {
       "name": "laptop",
-      "reason": "demo.js:1350"
+      "reason": "demo.js:1379"
     },
     {
       "name": "monitor",
-      "reason": "demo.js:1340"
+      "reason": "demo.js:1369"
     },
     {
       "name": "hardDrive",
@@ -1381,7 +1381,7 @@
     },
     {
       "name": "image",
-      "reason": "demo.js:1313"
+      "reason": "demo.js:1339"
     },
     {
       "name": "leaf",
@@ -1881,7 +1881,7 @@
     },
     {
       "name": "bot",
-      "reason": "demo.js:1128"
+      "reason": "demo.js:1148"
     },
     {
       "name": "chatText",
@@ -1965,7 +1965,7 @@
     },
     {
       "name": "palette",
-      "reason": "demo.js:1341"
+      "reason": "demo.js:1370"
     },
     {
       "name": "brush",
@@ -2053,7 +2053,7 @@
     },
     {
       "name": "zap",
-      "reason": "demo.js:1342"
+      "reason": "demo.js:1371"
     },
     {
       "name": "scrollText",
@@ -2066,20 +2066,20 @@
     "ds-ailabel--plain": "index.html:1033",
     "ds-ailabel__tip": "index.html:1034",
     "ds-ailabel__title": "index.html:1035",
-    "ds-alert": "demo.js:778",
-    "ds-alert__text": "demo.js:778",
+    "ds-alert": "demo.js:798",
+    "ds-alert__text": "demo.js:798",
     "ds-app": "index.html:22",
     "ds-app--drawer": "index.html:22",
-    "ds-avatar": "demo.js:1063",
-    "ds-avatar--hue-1": "demo.js:1056",
-    "ds-avatar--hue-2": "demo.js:1056",
-    "ds-avatar--hue-3": "demo.js:1056",
-    "ds-avatar--hue-4": "demo.js:1056",
-    "ds-avatar--hue-5": "demo.js:1056",
-    "ds-avatar--hue-6": "demo.js:1056",
+    "ds-avatar": "demo.js:1083",
+    "ds-avatar--hue-1": "demo.js:1076",
+    "ds-avatar--hue-2": "demo.js:1076",
+    "ds-avatar--hue-3": "demo.js:1076",
+    "ds-avatar--hue-4": "demo.js:1076",
+    "ds-avatar--hue-5": "demo.js:1076",
+    "ds-avatar--hue-6": "demo.js:1076",
     "ds-avatar--square": "index.html:879",
     "ds-avatar-group": "index.html:883",
-    "ds-avatar-group__more": "demo.js:1073",
+    "ds-avatar-group__more": "demo.js:1093",
     "ds-badge": "index.html:897",
     "ds-badge--dot": "index.html:897",
     "ds-bar-gauge": "index.html:846",
@@ -2095,19 +2095,19 @@
     "ds-brand": "index.html:27",
     "ds-brand__name": "index.html:27",
     "ds-breadcrumbs": "index.html:755",
-    "ds-btn": "demo.js:423",
+    "ds-btn": "demo.js:443",
     "ds-btn--elevated": "index.html:121",
     "ds-btn--filled": "index.html:91",
-    "ds-btn--icon": "demo.js:423",
-    "ds-btn--quiet": "demo.js:423",
-    "ds-btn--text": "demo.js:637",
-    "ds-btn--tonal": "demo.js:658",
+    "ds-btn--icon": "demo.js:443",
+    "ds-btn--quiet": "demo.js:443",
+    "ds-btn--text": "demo.js:657",
+    "ds-btn--tonal": "demo.js:678",
     "ds-btn-group": "index.html:163",
     "ds-btn__face": "index.html:134",
     "ds-btn__face--busy": "index.html:135",
     "ds-btn__face--done": "index.html:136",
     "ds-btn__faces": "index.html:133",
-    "ds-card": "demo.js:226",
+    "ds-card": "demo.js:246",
     "ds-card--filled": "index.html:1200",
     "ds-card--interactive": "index.html:1200",
     "ds-card__row": "index.html:479",
@@ -2118,21 +2118,21 @@
     "ds-check-group": "index.html:252",
     "ds-check-group__children": "index.html:254",
     "ds-chevron": "index.html:177",
-    "ds-chip": "demo.js:632",
-    "ds-chip--input": "demo.js:632",
-    "ds-chip__body": "demo.js:633",
+    "ds-chip": "demo.js:652",
+    "ds-chip--input": "demo.js:652",
+    "ds-chip__body": "demo.js:653",
     "ds-chip__check": "index.html:268",
     "ds-chip__icon": "index.html:1068",
     "ds-chip__input": "index.html:268",
-    "ds-chip__label": "demo.js:633",
-    "ds-chip__trailing": "demo.js:633",
+    "ds-chip__label": "demo.js:653",
+    "ds-chip__trailing": "demo.js:653",
     "ds-chips": "index.html:266",
     "ds-cite": "index.html:1052",
     "ds-cite__card": "index.html:1053",
     "ds-cite__icon": "index.html:1053",
     "ds-cite__snippet": "index.html:1053",
     "ds-cite__source": "index.html:1053",
-    "ds-cite__title": "demo.js:1193",
+    "ds-cite__title": "demo.js:1213",
     "ds-cluster": "index.html:90",
     "ds-code": "index.html:913",
     "ds-code--lines": "index.html:913",
@@ -2142,10 +2142,10 @@
     "ds-code__head": "index.html:914",
     "ds-code__lang": "index.html:920",
     "ds-code__title": "index.html:1135",
-    "ds-col--secondary": "demo.js:595",
-    "ds-col--text": "demo.js:594",
+    "ds-col--secondary": "demo.js:615",
+    "ds-col--text": "demo.js:614",
     "ds-collapsible": "index.html:723",
-    "ds-combo": "demo.js:227",
+    "ds-combo": "demo.js:247",
     "ds-combo__clear": "index.html:403",
     "ds-combo__group": "index.html:407",
     "ds-combo__heading": "index.html:408",
@@ -2169,7 +2169,7 @@
     "ds-copy": "index.html:207",
     "ds-copy--field": "index.html:207",
     "ds-copy__value": "index.html:207",
-    "ds-dashpanel": "demo.js:1038",
+    "ds-dashpanel": "demo.js:1058",
     "ds-dashpanel__actions": "index.html:838",
     "ds-dashpanel__body": "index.html:840",
     "ds-dashpanel__foot": "index.html:841",
@@ -2204,25 +2204,25 @@
     "ds-dropzone__disc": "index.html:459",
     "ds-dropzone__hint": "index.html:464",
     "ds-dropzone__idle": "index.html:461",
-    "ds-dropzone__input": "demo.js:425",
+    "ds-dropzone__input": "demo.js:445",
     "ds-dropzone__over": "index.html:462",
     "ds-dropzone__title": "index.html:460",
-    "ds-empty": "demo.js:654",
+    "ds-empty": "demo.js:674",
     "ds-empty--done": "index.html:853",
-    "ds-empty__disc": "demo.js:656",
-    "ds-empty__text": "demo.js:657",
-    "ds-empty__title": "demo.js:657",
+    "ds-empty__disc": "demo.js:676",
+    "ds-empty__text": "demo.js:677",
+    "ds-empty__title": "demo.js:677",
     "ds-errors": "index.html:723",
     "ds-errors__chevron": "index.html:724",
-    "ds-facts": "demo.js:772",
+    "ds-facts": "demo.js:792",
     "ds-feedback": "index.html:1057",
-    "ds-field": "demo.js:346",
+    "ds-field": "demo.js:366",
     "ds-field--full": "index.html:430",
     "ds-field--grow": "index.html:595",
     "ds-field__counter": "index.html:435",
     "ds-field__foot": "index.html:433",
-    "ds-field__hint": "demo.js:346",
-    "ds-field__hint--error": "demo.js:346",
+    "ds-field__hint": "demo.js:366",
+    "ds-field__hint--error": "demo.js:366",
     "ds-field__hint--warning": "index.html:370",
     "ds-field__label": "index.html:206",
     "ds-field__row": "index.html:284",
@@ -2231,13 +2231,13 @@
     "ds-form-actions": "index.html:440",
     "ds-form-grid": "index.html:293",
     "ds-form-grid--2": "index.html:293",
-    "ds-grid": "demo.js:226",
-    "ds-grid-2": "demo.js:226",
+    "ds-grid": "demo.js:246",
+    "ds-grid-2": "demo.js:246",
     "ds-icon--fillable": "index.html:150",
-    "ds-icon-swap": "demo.js:314",
+    "ds-icon-swap": "demo.js:334",
     "ds-icon-swap__a": "index.html:152",
     "ds-icon-swap__b": "index.html:152",
-    "ds-input": "demo.js:410",
+    "ds-input": "demo.js:430",
     "ds-input--filled": "index.html:499",
     "ds-input--grow": "index.html:432",
     "ds-input-group": "index.html:336",
@@ -2247,19 +2247,19 @@
     "ds-jsonview": "index.html:569",
     "ds-kbd": "index.html:29",
     "ds-kv-list": "index.html:770",
-    "ds-leave": "demo.js:660",
+    "ds-leave": "demo.js:680",
     "ds-lg": "index.html:126",
     "ds-link": "index.html:1164",
-    "ds-link-btn": "demo.js:626",
-    "ds-list": "demo.js:414",
+    "ds-link-btn": "demo.js:646",
+    "ds-list": "demo.js:434",
     "ds-list--interactive": "index.html:819",
     "ds-list__action": "index.html:820",
-    "ds-list__actions": "demo.js:423",
-    "ds-list__icon": "demo.js:420",
-    "ds-list__item": "demo.js:420",
-    "ds-list__meta": "demo.js:421",
-    "ds-list__text": "demo.js:421",
-    "ds-list__title": "demo.js:421",
+    "ds-list__actions": "demo.js:443",
+    "ds-list__icon": "demo.js:440",
+    "ds-list__item": "demo.js:440",
+    "ds-list__meta": "demo.js:441",
+    "ds-list__text": "demo.js:441",
+    "ds-list__title": "demo.js:441",
     "ds-loadbar": "index.html:839",
     "ds-loadbar__bar": "index.html:839",
     "ds-loader": "index.html:712",
@@ -2273,22 +2273,22 @@
     "ds-menu-btn__value": "index.html:184",
     "ds-menu__check": "index.html:186",
     "ds-menu__divider": "index.html:507",
-    "ds-menu__item": "demo.js:828",
+    "ds-menu__item": "demo.js:848",
     "ds-menu__item--danger": "index.html:508",
-    "ds-menu__label": "demo.js:834",
-    "ds-message": "demo.js:227",
-    "ds-message--assistant": "demo.js:1127",
-    "ds-message--user": "demo.js:1127",
-    "ds-message__author": "demo.js:1129",
-    "ds-message__avatar": "demo.js:1128",
-    "ds-message__content": "demo.js:1130",
+    "ds-menu__label": "demo.js:854",
+    "ds-message": "demo.js:247",
+    "ds-message--assistant": "demo.js:1147",
+    "ds-message--user": "demo.js:1147",
+    "ds-message__author": "demo.js:1149",
+    "ds-message__avatar": "demo.js:1148",
+    "ds-message__content": "demo.js:1150",
     "ds-message__footer": "index.html:1055",
-    "ds-message__head": "demo.js:1129",
-    "ds-message__main": "demo.js:1129",
-    "ds-meta": "demo.js:770",
-    "ds-muted": "demo.js:779",
-    "ds-nowrap": "demo.js:487",
-    "ds-num": "demo.js:596",
+    "ds-message__head": "demo.js:1149",
+    "ds-message__main": "demo.js:1149",
+    "ds-meta": "demo.js:790",
+    "ds-muted": "demo.js:799",
+    "ds-nowrap": "demo.js:507",
+    "ds-num": "demo.js:616",
     "ds-number": "index.html:336",
     "ds-number__down": "index.html:340",
     "ds-number__step": "index.html:340",
@@ -2301,19 +2301,19 @@
     "ds-pagination": "index.html:497",
     "ds-pagination--simple": "index.html:800",
     "ds-pagination__label": "index.html:498",
-    "ds-pagination__range": "demo.js:1025",
+    "ds-pagination__range": "demo.js:1045",
     "ds-pagination__size": "index.html:498",
     "ds-panel": "index.html:77",
     "ds-password__bars": "index.html:368",
     "ds-password__caps": "index.html:370",
     "ds-password__meter": "index.html:368",
     "ds-password__strength": "index.html:368",
-    "ds-persona": "demo.js:1063",
-    "ds-persona__name": "demo.js:1064",
-    "ds-persona__role": "demo.js:1064",
-    "ds-persona__status": "demo.js:1065",
-    "ds-persona__text": "demo.js:1064",
-    "ds-picker": "demo.js:227",
+    "ds-persona": "demo.js:1083",
+    "ds-persona__name": "demo.js:1084",
+    "ds-persona__role": "demo.js:1084",
+    "ds-persona__status": "demo.js:1085",
+    "ds-persona__text": "demo.js:1084",
+    "ds-picker": "demo.js:247",
     "ds-popover": "index.html:651",
     "ds-popover--arrow": "index.html:651",
     "ds-popover--tip": "index.html:660",
@@ -2322,23 +2322,24 @@
     "ds-popover__foot": "index.html:656",
     "ds-popover__head": "index.html:652",
     "ds-popover__title": "index.html:652",
-    "ds-presence-dot": "demo.js:1063",
-    "ds-presence-dot--away": "demo.js:1057",
-    "ds-presence-dot--busy": "demo.js:1057",
-    "ds-presence-dot--offline": "demo.js:1057",
-    "ds-presence-dot--online": "demo.js:1057",
-    "ds-presence-label": "demo.js:1065",
-    "ds-pressable": "demo.js:1300",
+    "ds-presence-dot": "demo.js:1083",
+    "ds-presence-dot--away": "demo.js:1077",
+    "ds-presence-dot--busy": "demo.js:1077",
+    "ds-presence-dot--offline": "demo.js:1077",
+    "ds-presence-dot--online": "demo.js:1077",
+    "ds-presence-label": "demo.js:1085",
+    "ds-pressable": "demo.js:1321",
+    "ds-pressable--inset": "demo.js:1321",
     "ds-priority-bar": "index.html:193",
-    "ds-progress": "demo.js:422",
-    "ds-progress--flat": "demo.js:422",
-    "ds-progress__bar": "demo.js:422",
+    "ds-progress": "demo.js:442",
+    "ds-progress--flat": "demo.js:442",
+    "ds-progress__bar": "demo.js:442",
     "ds-progress__detail": "index.html:701",
     "ds-progress__label": "index.html:700",
-    "ds-progress__track": "demo.js:422",
-    "ds-prose": "demo.js:1130",
-    "ds-prose--compact": "demo.js:1130",
-    "ds-radio": "demo.js:1256",
+    "ds-progress__track": "demo.js:442",
+    "ds-prose": "demo.js:1150",
+    "ds-prose--compact": "demo.js:1150",
+    "ds-radio": "demo.js:1276",
     "ds-radio--disabled": "index.html:279",
     "ds-radio__note": "index.html:280",
     "ds-radios": "index.html:274",
@@ -2353,8 +2354,8 @@
     "ds-search": "index.html:482",
     "ds-segmented": "index.html:31",
     "ds-segmented__count": "index.html:795",
-    "ds-segmented__indicator": "demo.js:190",
-    "ds-segmented__option": "demo.js:193",
+    "ds-segmented__indicator": "demo.js:210",
+    "ds-segmented__option": "demo.js:213",
     "ds-selection-bar": "index.html:486",
     "ds-selection-bar__actions": "index.html:489",
     "ds-selection-bar__count": "index.html:488",
@@ -2367,30 +2368,30 @@
     "ds-skip": "index.html:23",
     "ds-slider": "index.html:285",
     "ds-slider__value": "index.html:286",
-    "ds-sm": "demo.js:637",
-    "ds-spinner": "demo.js:569",
+    "ds-sm": "demo.js:657",
+    "ds-spinner": "demo.js:589",
     "ds-spinner--determinate": "index.html:703",
-    "ds-spinner--ink": "demo.js:874",
+    "ds-spinner--ink": "demo.js:894",
     "ds-split-btn": "index.html:175",
     "ds-split-btn__action": "index.html:176",
     "ds-split-btn__label": "index.html:176",
     "ds-split-btn__toggle": "index.html:177",
-    "ds-splitpane": "demo.js:226",
+    "ds-splitpane": "demo.js:246",
     "ds-splitpane--outlined": "index.html:817",
     "ds-splitpane__body": "index.html:828",
     "ds-splitpane__divider": "index.html:826",
     "ds-splitpane__pane": "index.html:818",
     "ds-splitpane__pane--fill": "index.html:827",
-    "ds-sr": "demo.js:633",
+    "ds-sr": "demo.js:653",
     "ds-stack": "index.html:828",
-    "ds-status": "demo.js:494",
-    "ds-status--running": "demo.js:545",
-    "ds-status__spinner": "demo.js:569",
+    "ds-status": "demo.js:514",
+    "ds-status--running": "demo.js:565",
+    "ds-status__spinner": "demo.js:589",
     "ds-steps": "index.html:783",
-    "ds-steps__label": "demo.js:988",
+    "ds-steps__label": "demo.js:1008",
     "ds-steps__link": "index.html:784",
-    "ds-steps__mark": "demo.js:986",
-    "ds-steps__step": "demo.js:978",
+    "ds-steps__mark": "demo.js:1006",
+    "ds-steps__step": "demo.js:998",
     "ds-suggestions": "index.html:1067",
     "ds-swap": "index.html:480",
     "ds-switch": "index.html:232",
@@ -2401,9 +2402,9 @@
     "ds-switch__track": "index.html:234",
     "ds-table": "index.html:496",
     "ds-table--interactive": "index.html:496",
-    "ds-table-wrap": "demo.js:710",
-    "ds-table__sort": "demo.js:605",
-    "ds-table__sort-arrow": "demo.js:605",
+    "ds-table-wrap": "demo.js:730",
+    "ds-table__sort": "demo.js:625",
+    "ds-table__sort-arrow": "demo.js:625",
     "ds-tabs": "index.html:764",
     "ds-tabs--flush": "index.html:915",
     "ds-tabs__count": "index.html:766",
@@ -2413,9 +2414,9 @@
     "ds-taginput__input": "index.html:361",
     "ds-tasks": "index.html:730",
     "ds-tasks__head": "index.html:729",
-    "ds-tasks__item": "demo.js:951",
-    "ds-tasks__mark": "demo.js:951",
-    "ds-tasks__text": "demo.js:951",
+    "ds-tasks__item": "demo.js:971",
+    "ds-tasks__mark": "demo.js:971",
+    "ds-tasks__text": "demo.js:971",
     "ds-theme": "index.html:2",
     "ds-thinking": "index.html:1066",
     "ds-thinking__icon": "index.html:1066",
@@ -2423,10 +2424,10 @@
     "ds-thinking__step": "index.html:1066",
     "ds-thinking__time": "index.html:1066",
     "ds-thinking__tokens": "index.html:1066",
-    "ds-tile": "demo.js:584",
-    "ds-tile__label": "demo.js:584",
-    "ds-tile__note": "demo.js:585",
-    "ds-tile__value": "demo.js:217",
+    "ds-tile": "demo.js:604",
+    "ds-tile__label": "demo.js:604",
+    "ds-tile__note": "demo.js:605",
+    "ds-tile__value": "demo.js:237",
     "ds-tiles": "index.html:96",
     "ds-timeline": "index.html:773",
     "ds-timeline__head": "index.html:774",
@@ -2434,14 +2435,14 @@
     "ds-timeline__item--muted": "index.html:776",
     "ds-timeline__meta": "index.html:774",
     "ds-timeline__title": "index.html:774",
-    "ds-timerange": "demo.js:227",
+    "ds-timerange": "demo.js:247",
     "ds-toasts": "index.html:1215",
     "ds-toggle-group": "index.html:158",
     "ds-toggletip": "index.html:659",
-    "ds-tone-error": "demo.js:459",
-    "ds-tone-neutral": "demo.js:459",
-    "ds-tone-success": "demo.js:459",
-    "ds-tone-warning": "demo.js:459",
+    "ds-tone-error": "demo.js:479",
+    "ds-tone-neutral": "demo.js:479",
+    "ds-tone-success": "demo.js:479",
+    "ds-tone-warning": "demo.js:479",
     "ds-toolbar": "index.html:480",
     "ds-toolcall": "index.html:1044",
     "ds-toolcall-list": "index.html:1043",
@@ -2462,10 +2463,10 @@
     "ds-topbar__menu": "index.html:26",
     "ds-tracker": "index.html:530",
     "ds-tracker__axis": "index.html:533",
-    "ds-tracker__cell": "demo.js:527",
-    "ds-tracker__cell--error": "demo.js:520",
-    "ds-tracker__cell--success": "demo.js:520",
-    "ds-tracker__cell--warning": "demo.js:520",
+    "ds-tracker__cell": "demo.js:547",
+    "ds-tracker__cell--error": "demo.js:540",
+    "ds-tracker__cell--success": "demo.js:540",
+    "ds-tracker__cell--warning": "demo.js:540",
     "ds-tracker__cells": "index.html:532",
     "ds-tracker__head": "index.html:531",
     "ds-tracker__label": "index.html:531",

@@ -171,7 +171,27 @@
       return;
     }
     jumping = true;
-    whenScrollEnds(align);
+    // Stops on the way render as they pass and take their true height, which moves the target: the smooth
+    // scroll is aimed again from where it is, so it ends on the stop instead of far past it.
+    const placeOf = () => offsetOf(section) + view.scrollTop;
+    let aimed = placeOf();
+    let frame = 0;
+    const reaim = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const place = placeOf();
+        if (Math.abs(place - aimed) < 32) return;
+        aimed = place;
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    };
+    view.addEventListener('scroll', reaim, { passive: true });
+    whenScrollEnds(() => {
+      view.removeEventListener('scroll', reaim);
+      cancelAnimationFrame(frame);
+      align();
+    });
   }
   const scrollMargin = (section) => parseFloat(getComputedStyle(section).scrollMarginTop) || 0;
 
@@ -1297,14 +1317,20 @@
   /* ── Icons ─────────────────────────────────────────────────────────── */
 
   const NAMES = Object.keys(DS.icons).filter((name) => typeof DS.icons[name] === 'string' && DS.icons[name].startsWith('<')).sort();
-  const iconItem = (name) => `<li data-ds-key="${name}"><button class="demo-icon ds-pressable" type="button" data-name="${name}" aria-label="Copy ${name}">${icon(name, 24)}<span>${name}</span></button></li>`;
+  // Each item skips its rendering far from the view (demo.css), which would clip a ring outside it: the inset ring.
+  const iconItem = (name) => `<li data-ds-key="${name}"><button class="demo-icon ds-pressable ds-pressable--inset" type="button" data-name="${name}" aria-label="Copy ${name}">${icon(name, 24)}<span>${name}</span></button></li>`;
+  /* The whole set arrives in three tasks; a search before the last one shows its own result instead. */
+  let iconsSearched = false;
+  const iconsUpTo = (count) => () => {
+    if (!iconsSearched) DS.dom.morphHtml($('#icon-grid'), NAMES.slice(0, count).map(iconItem).join(''));
+  };
 
   SETUP.icons = [
     () => {
       const grid = $('#icon-grid');
       const empty = $('#icon-empty');
-      DS.dom.morphHtml(grid, NAMES.map(iconItem).join(''));
       $('#icon-search').addEventListener('input', (event) => {
+        iconsSearched = true;
         const q = event.target.value.trim().toLowerCase();
         const shown = NAMES.filter((name) => name.toLowerCase().includes(q));
         M.flip(grid, (morph) => DS.dom.morphHtml(grid, shown.map(iconItem).join(''), morph), { items: 'li' });
@@ -1320,7 +1346,10 @@
         const line = 'DS.icons.icon(DS.icons.' + button.getAttribute('data-name') + ', 20)';
         copy(line, `Copied ${line}.`);
       });
+      iconsUpTo(Math.ceil(NAMES.length / 3))();
     },
+    iconsUpTo(Math.ceil(NAMES.length * 2 / 3)),
+    iconsUpTo(NAMES.length),
   ];
 
   /* ── Command palette (Ctrl+K) ──────────────────────────────────────── */

@@ -13,6 +13,10 @@
  *                     below the first skips its rendering while it is far from
  *                     the view (content-visibility), so a style change (a theme,
  *                     an open dialog) restyles only what is near
+ *   .demo-part        a card of a stop that renders on its own (content-visibility):
+ *                     a stop that scrolls in styles one card per frame, not all
+ *                     at once. Only on cards without a popup of their own (a
+ *                     menu, a list, a calendar), which the containment would clip
  *   .demo-hero        the welcome block on the accent: __kicker, __title, __lead, __actions
  *   .demo-tip         a hint line with an icon
  *   .demo-progress    a linear and a round progress side by side
@@ -89,6 +93,12 @@
   /* Far from the view a stop is a box of its last known height: no style, layout or paint inside it. */
   content-visibility: auto;
   contain-intrinsic-block-size: auto 1400px;
+}
+
+/* Far from the view a heavy card is a box of its last known height as well (charts, the log, the code). */
+.demo-part {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 360px;
 }
 
 /* The card's rhythm between its parts, also where a part sets its own margin to 0 (a chip row, a tracker). */
@@ -342,6 +352,12 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* 275 icons, about 2000 elements: only the rows near the view are styled and laid out. */
+.demo-icons > li {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 80px;
 }
 
 /* A project control on the system's press model (.ds-pressable: state layer, focus snap, ripple host); the radius through its hook. */
