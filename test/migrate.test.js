@@ -81,16 +81,17 @@ describe('tools/migrate.mjs', () => {
         'js/charts.mjs:4 module',
         'js/charts.mjs:4 module',
         'js/charts.mjs:16 ds-badge--…',
+        'report.html:8 css/core/',
       ]);
       const review = result.files.flatMap((file) => file.changes.filter((change) => change.review).map((change) => `${file.path}:${change.line} ${change.name}`));
       assert.deepEqual(review, ['index.html:76 .ds-input-group__affix', 'js/app.js:39 detach()', "js/charts.mjs:7 enter(el, 'fill-y')"]);
       const report = formatReport(result);
       assert.match(report, /^To rewrite \(\d+\):$/m);
       assert.match(report, /^To rewrite, check each \(3\):$/m);
-      assert.match(report, /^Needs a person \(8\):$/m);
+      assert.match(report, /^Needs a person \(9\):$/m);
       assert.match(report, /js\/charts\.mjs:4 toast of js\/overlay\.js runs in js\/toast\.js in 3\.0: add import '\.\.\/vendor\/dashboard-style\/js\/toast\.js';/);
       assert.match(report, /css\/theme\.css:14 --ds-btn-sm-height \(removed in 3\.0\.0\): the size and density options compute it from the base --ds-btn-height/);
-      assert.match(report, /^migrate: 7 files read, 7 to change \(57 rewrites, 3 to check\), 8 for a person \(to 3\.x, deprecations\.json 3\.0\.0[^)]*\); run again with --write to apply$/m);
+      assert.match(report, /^migrate: 8 files read, 8 to change \(61 rewrites, 3 to check\), 9 for a person \(to 3\.x, deprecations\.json 3\.0\.0[^)]*\); run again with --write to apply$/m);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -194,6 +195,19 @@ describe('tools/migrate.mjs', () => {
     assert.equal(run('DS.motion.settleLoader(t0, now);').text, 'DS.motion.settleLoader(t0, { now });');
     assert.equal(run('settleLoader(t0, 1200)').text, 'settleLoader(t0, { now: 1200 })');
     assert.equal(run('settleLoader(t0, { now: 5 })').text, 'settleLoader(t0, { now: 5 })', 'the 3.0 form stays');
+  });
+
+  it('moves links and imports of the copy\'s core stylesheets to css/core/, and says what single stylesheets need now', () => {
+    const page = '<link rel="stylesheet" href="/static/ds/css/tokens.css">\n<link rel="stylesheet" href="/static/ds/css/components/button.css">\n<link rel="stylesheet" href="css/base.css">\n';
+    const moved = migrateText(page, RULES, { copies: ['static/ds'] });
+    assert.equal(moved.text, page.replace('/ds/css/tokens.css', '/ds/css/core/tokens.css'), 'the project\'s own css/base.css stays');
+    assert.deepEqual(moved.manual.map((item) => `${item.line} ${item.name}`), ['1 css/core/']);
+    assert.match(moved.manual[0].message, /link css\/core\/options\.css \(the option classes\) after css\/core\/tokens\.css and css\/core\/global\.css/);
+    assert.equal(run("@import url('../vendor/dashboard-style/css/motion.min.css');").text, "@import url('../vendor/dashboard-style/css/core/motion.min.css');");
+    assert.equal(run('<link href="vendor/x/css/tokens.css">').text, '<link href="vendor/x/css/tokens.css">', 'not a copy the run knows');
+    const done = '<link href="vendor/dashboard-style/css/core/tokens.css"><link href="vendor/dashboard-style/css/core/options.css">';
+    assert.deepEqual(run(done).manual, [], 'a 3.0 page');
+    assert.equal(run(done).text, done);
   });
 
   it('lists the per-size hooks, removed recipes, run-time class names and the 3.0 changes no name shows', () => {
@@ -308,7 +322,7 @@ describe('tools/migrate.mjs', () => {
       writeFileSync(join(copy, 'deprecations.json'), deprecationsJson(read('src/deprecations.json'), packageInfo()));
       const result = spawnSync(process.execPath, [join(copy, 'tools/migrate.mjs'), '--config', 'ds-check.json', '--no-diff'], { cwd: dir, encoding: 'utf8' });
       assert.equal(result.status, 1, result.stderr);
-      assert.match(result.stdout, /^migrate: 7 files read, 7 to change/m);
+      assert.match(result.stdout, /^migrate: 8 files read, 8 to change/m);
     } finally {
       rmSync(copy, { recursive: true, force: true });
       rmSync(dir, { recursive: true, force: true });

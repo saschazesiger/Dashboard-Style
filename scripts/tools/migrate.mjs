@@ -24,6 +24,9 @@
  *              createIndicator }) and destructuring
  *   strings    the renamed event (ds-close -> ds:close) and variant strings
  *              ('fill-x' -> 'fill'), and settleLoader(t, now) -> settleLoader(t, { now })
+ *   paths      the core stylesheets of the copy moved: <copy>/css/tokens.css
+ *              -> <copy>/css/core/tokens.css (base and motion too), in links
+ *              and imports that name the copy (its folder, or dashboard-style)
  *
  * Everything else a deprecations.json entry finds is listed for a person
  * with its note: changed markup, removed exports and tokens without a
@@ -243,20 +246,25 @@ export const CHECKS = [
   },
 ];
 
+/** The core stylesheets that moved in 3.0: css/<name>.css -> css/core/<name>.css. */
+const CORE_SHEETS = ['tokens', 'base', 'motion'];
+
 /**
- * Migrates one text. `rules` is [{ entry, rule }] (prepare()). Returns
+ * Migrates one text. `rules` is [{ entry, rule }] (prepare()); `copies` the
+ * path parts that name the vendored copy in a link or an import (the
+ * config's vendor folder; "dashboard-style" always counts). Returns
  * { text, changes: [{ line, name, from, to, review? }], manual: [{ line, name, message }] }.
  */
-export function migrateText(text, rules) {
+export function migrateText(text, rules, { copies = [] } = {}) {
   const edits = [];
   const manual = [];
   const changes = [];
   /** A list of classes keeps each option once: list start -> the classes it has after this run. */
   const lists = new Map();
-  const edit = (start, end, replacement, entry, rule) => {
+  const edit = (start, end, replacement, entry, rule, label = null) => {
     if (edits.some((other) => start < other.end && end > other.start)) return;
     edits.push({ start, end, replacement });
-    changes.push({ line: lineOf(text, start), name: entry.name, from: text.slice(start, end).trim(), to: replacement.trim() || '(removed)', ...(rule.review ? { review: rule.review } : {}) });
+    changes.push({ line: lineOf(text, start), name: entry.name, from: label?.from ?? text.slice(start, end).trim(), to: label?.to ?? (replacement.trim() || '(removed)'), ...(rule.review ? { review: rule.review } : {}) });
   };
   const note = (index, entry, message) => manual.push({ line: lineOf(text, index), name: entry.name, message });
   const aliased = new Map();
@@ -340,6 +348,21 @@ export function migrateText(text, rules) {
         edit(start, start + key.length, camel(rule.to.slice('data-'.length)), entry, rule);
       }
     }
+  }
+
+  // The single stylesheets of the core moved to css/core/ (3.0.0-alpha.0); 3.0 adds options.css and global.css.
+  const names = [...new Set(['dashboard-style', ...copies.map((path) => path.replace(/\/+$/, '').split('/').at(-1)).filter(Boolean)])];
+  const copyPath = new RegExp(`(["'(])([^"'()\\s]*(?:${names.map(escape).join('|')})/css/)(${CORE_SHEETS.join('|')})((?:\\.min)?\\.css)(?=["')])`, 'g');
+  const sheetEntry = { name: 'css/core/' };
+  let single = null;
+  for (const match of text.matchAll(copyPath)) {
+    const start = match.index + match[1].length + match[2].length;
+    edit(start, start, 'core/', sheetEntry, {}, { from: `${match[2]}${match[3]}${match[4]}`, to: `${match[2]}core/${match[3]}${match[4]}` });
+    single ??= match.index;
+  }
+  if (single === null) single = new RegExp(`(?:${names.map(escape).join('|')})/css/core/tokens(?:\\.min)?\\.css`).exec(text)?.index ?? null;
+  if (single !== null && !/\/css\/core\/options(?:\.min)?\.css/.test(text)) {
+    manual.push({ line: lineOf(text, single), name: 'css/core/', message: 'single stylesheets in 3.0: link css/core/options.css (the option classes) after css/core/tokens.css and css/core/global.css (the rules for every element) before the components; then node tools/check-project.mjs names every component file a class needs (some classes moved into a component of their own, such as .ds-avatar)' });
   }
 
   // A class built at run time from a prefix that removed names start with: the scan cannot see its values.
@@ -475,7 +498,7 @@ export function migrate({ root = process.cwd(), files, config = null, configPath
     const before = raw.toString('utf8');
     // A file the system wrote (a bundle, a copied stylesheet): rebuilt, never migrated.
     if (before.startsWith('/*! Dashboard-Style')) continue;
-    const { text: after, changes, manual } = migrateText(before, rules);
+    const { text: after, changes, manual } = migrateText(before, rules, { copies: config?.vendor ? [posix(config.vendor)] : [] });
     results.push({ path, before, after, changes, manual });
   }
   if (configPath) {
