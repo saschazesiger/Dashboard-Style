@@ -227,9 +227,13 @@ describe('tools/check-theme.mjs', () => {
   it('lets a variant pass where it is meant to be used: over the base or with a --with theme', () => {
     const dark = [{ path: 'dark.css', css: read('themes/dark.css') }];
     const warnings = (css, extra) => check(css, extra).filter((f) => f.rule === 'contrast' && f.level === 'warning').map((f) => f.message);
-    // The reference app: a light and a dark tone of each accent (the dark ones under data-ex-dark).
-    assert.ok(warnings(read('example/theme.css')).some((m) => m.includes('[data-ex-dark]')), 'a dark variant over the light base fails');
-    assert.deepEqual(warnings(read('example/theme.css'), { withFiles: dark }), [], 'each variant passes over the base or with dark.css');
+    // A light and a dark tone of an accent (the dark one under an attribute the page sets while dark.css applies).
+    const accents = [
+      '.ds-theme[data-accent="teal"] { --ds-primary: #006a6a; --ds-accent: #cce8e7; --ds-on-accent: #002020; --ds-inverse-primary: #4cdada; }',
+      '.ds-theme[data-dark][data-accent="teal"] { --ds-primary: #4cdada; --ds-on-primary: #003737; --ds-accent: #004f4f; --ds-on-accent: #c1f5f4; --ds-inverse-primary: #006a6a; }',
+    ].join('\n');
+    assert.ok(warnings(accents).some((m) => m.includes('[data-dark]')), 'a dark variant over the light base fails');
+    assert.deepEqual(warnings(accents, { withFiles: dark }), [], 'each variant passes over the base or with dark.css');
     // A variant that fails in every context still warns, in each of them.
     const pale = warnings('.ds-theme[data-brand="pale"] { --ds-primary: #c2e7ff; --ds-on-primary: #d3e3fd; }', { withFiles: dark });
     assert.ok(pale.some((m) => m.includes('(.ds-theme[data-brand="pale"])')) && pale.some((m) => m.includes('(.ds-theme[data-brand="pale"], with dark.css)')), pale.join('\n'));
