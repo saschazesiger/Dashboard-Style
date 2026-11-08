@@ -13,7 +13,7 @@ import { transform } from 'lightningcss';
 import {
   COMPONENT_FILES, CORE, CSS_TARGETS, LAYERS, META_KEYS, META_REQUIRED, META_SCHEMA, MODULES, build, componentNames, components, componentsMd, cssFacts,
   componentKeyframes, diffGenerated, generatedFiles, hooksTable, indexCss, labComponentsJs, motionCss, moduleRequires, ownedHooks, packageInfo, replaceBlock, stripJs, sublayerStatement, validateSchema,
-  moduleFiles, verifyComponents, verifyModuleRequires, withBanner, cascadeFacts, withoutConditions,
+  moduleFiles, sharedAttributes, verifyComponents, verifyModuleRequires, withBanner, cascadeFacts, withoutConditions,
 } from '../scripts/build.mjs';
 import { scan, selectorList } from '../scripts/tools/css-scan.mjs';
 import { filesIn, read, rules, stripComments } from './helpers.js';
@@ -22,6 +22,7 @@ const list = components();
 const out = build();
 const text = (path) => out.get(path).toString('utf8');
 const manifest = JSON.parse(text('manifest.json'));
+const shared = sharedAttributes();
 
 describe('src/components/<name>/', () => {
   it('holds one folder per component, each with its stylesheet and meta.json', () => {
@@ -357,9 +358,10 @@ describe('dist/manifest.json', () => {
       assert.equal(entry.min, `css/components/${name}.min.css`);
       for (const field of ['group', 'requires', 'context', 'classes', 'keyframes', 'js', 'ripple', 'progressive']) assert.deepEqual(entry[field], meta[field], `${name}.${field}`);
       assert.equal(entry.layer, `ds.components.${name}`, `${name}: its own sublayer`);
-      // The attributes the stylesheet selects, plus the data-ds-* attributes its module reads (a bundle finds a behaviour by them), but for those a core module claims.
+      // The attributes the stylesheet selects, plus the data-ds-* attributes its module reads (a bundle finds a behaviour by them), but for those a core module
+      // claims and the shared vocabulary (data-ds-key, data-ds-value ...), which leads to no component.
       const claimed = Object.values(manifest.js).flatMap((module) => module.attributes);
-      const behaviour = meta.module ? [...read(moduleFiles(name).source).matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]).filter((attribute) => !claimed.includes(attribute)) : [];
+      const behaviour = meta.module ? [...read(moduleFiles(name).source).matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]).filter((attribute) => !claimed.includes(attribute) && !shared.has(attribute)) : [];
       assert.deepEqual(entry.attributes, [...new Set([...meta.attributes, ...behaviour])].sort(), `${name}.attributes`);
       assert.deepEqual(entry.hooks, Object.keys(meta.hooks).sort(), `${name}.hooks: the names, sorted`);
       assert.equal(entry.bytes, out.get(entry.min).length, `${name}: bytes of the .min.css`);

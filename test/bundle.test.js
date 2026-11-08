@@ -575,15 +575,15 @@ describe('tools/bundle.mjs on this checkout\'s dist/ (its manifest.json)', () =>
     });
   });
 
-  it('leads to no component by the core\'s own attributes: keyed rows and a leaving element need no upload or composer', () => {
+  it('leads to no component by the shared vocabulary: keyed rows, a leaving element, data-ds-value and data-ds-config', () => {
     withTemp((dir) => {
       const config = tempProject(dir, {
-        'index.html': '<ul class="ds-plain-list"><li data-ds-key="a" data-ds-keep>A</li></ul>\n<script>row.hasAttribute("data-ds-leaving");</script>',
+        'index.html': '<div class="ds-theme"><ul><li data-ds-key="a" data-ds-keep data-ds-value="1" data-ds-config="{}">A</li></ul></div>\n<script>row.hasAttribute("data-ds-leaving");</script>',
       }, { dist: relative(dir, dist) });
       const result = bundle({ config, write: false });
       assert.deepEqual(result.errors, []);
       const report = result.entries[0].report;
-      for (const name of ['upload', 'composer', 'tree', 'datagrid', 'command', 'wheel', 'kveditor']) {
+      for (const name of ['upload', 'composer', 'tree', 'datagrid', 'command', 'wheel', 'kveditor', 'taginput', 'sort', 'number', 'chart', 'list']) {
         assert.ok(!names(report.components).includes(name) && !names(report.modules).includes(name), `${name} left out`);
       }
     });
