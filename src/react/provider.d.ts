@@ -10,7 +10,7 @@ export type DSProviderProps = Omit<React.HTMLAttributes<HTMLElement>, 'className
   theme?: boolean;
   /** The opt-in page base, .ds-base. */
   base?: boolean;
-  /** Pin a scheme (data-ds-scheme); none follows the system. */
+  /** Pin the scheme (data-ds-scheme) of a theme for both schemes (a preset or a generated theme); none follows the system. */
   scheme?: 'light' | 'dark';
   size?: Size;
   density?: Density;

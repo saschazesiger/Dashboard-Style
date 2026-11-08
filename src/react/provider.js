@@ -14,7 +14,8 @@
  * Props: as (default 'div'), theme (default true: the element carries
  * .ds-theme; false when the page's <html> or a host element is the theme),
  * base (the opt-in page base, .ds-base), scheme ('light' | 'dark':
- * data-ds-scheme; none follows the system), size, density, shape and touch
+ * data-ds-scheme of a theme for both schemes, a preset or a generated
+ * one; none follows the system), size, density, shape and touch
  * (option classes on the whole tree), root ('document': DS.init(document)
  * instead of the element, for a single-page app that owns the page),
  * observe (default true), locale and strings (DS.config(), page-wide),
@@ -40,13 +41,14 @@ export const DSProvider = forwardRef(function DSProvider(props, ref) {
     const handle = init(target, { observe });
     return () => handle.destroy();
   }, [root, observe]);
-  // The strings and the locale are the page's (one runtime per page); a change dispatches ds:config.
-  const stringsKey = strings ? JSON.stringify(Object.entries(strings).map(([key, value]) => [key, typeof value === 'function' ? String(value) : value])) : '';
-  useIsomorphicLayoutEffect(() => {
-    if (locale === undefined && !strings) return;
+  // The strings and the locale are the page's (one runtime per page). They are set while rendering, before the
+  // children render (they read t() then), once per change; config() is idempotent and dispatches ds:config.
+  const configured = useRef(null);
+  const key = locale === undefined && !strings ? '' : JSON.stringify([locale ?? null, Object.entries(strings ?? {}).map(([name, value]) => [name, typeof value === 'function' ? String(value) : value])]);
+  if (key && configured.current !== key) {
+    configured.current = key;
     config({ ...(locale === undefined ? {} : { locale }), ...(strings ? { strings } : {}) });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locale, stringsKey]);
+  }
   return createElement(as, {
     ...rest,
     ref: merged,

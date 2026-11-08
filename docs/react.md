@@ -50,7 +50,7 @@ Plain `data-ds-*` markup that React renders outside the adapter's components is 
 | `as` | `'div'` | the element |
 | `theme` | `true` | carry `.ds-theme`; `false` when `<html>` or a host element is the theme |
 | `base` | `false` | the opt-in page base `.ds-base` ([theming.md](theming.md)) |
-| `scheme` | none | `'light'` or `'dark'` pins the scheme (`data-ds-scheme`); none follows the system |
+| `scheme` | none | `'light'` or `'dark'` pins the scheme (`data-ds-scheme`) of a theme for both schemes (a [preset](theme-generator.md) or a generated theme); none follows the system |
 | `size`, `density`, `shape`, `touch` | none | option classes on the whole tree ([options.md](options.md)) |
 | `root` | the element | `'document'`: `DS.init(document)`, for an app that owns the page |
 | `observe` | `true` | keep initialising plain markup React adds later |

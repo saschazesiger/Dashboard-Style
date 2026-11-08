@@ -4,7 +4,8 @@
  * them. Each adapter file is imported alone, as the docs recommend.
  *
  * window.harness:
- *   mount(name, props)  renders scenario `name` (flushSync: committed on return)
+ *   mount(name, props, provider)  renders scenario `name` (flushSync: committed on return),
+ *                       provider: props of <DSProvider>
  *   update(props)       renders it again with new props
  *   unmount()           unmounts the root
  *   set                 the scenario's own state setters (a re-render from inside)
@@ -27,8 +28,9 @@ import { useToast } from '/dist/react/toast.js';
 import { MenuButton } from '/dist/react/menubutton.js';
 import { Menu } from '/dist/react/menu.js';
 import { ToggleGroup } from '/dist/react/toggle-group.js';
+import { Sheet } from '/dist/react/sheet.js';
 import { Icon } from '/dist/react/shared.js';
-import { chevronDown, layoutGrid, list, pencil, plus } from '/dist/js/icons.js';
+import { chevronDown, close, layoutGrid, list, pencil, plus } from '/dist/js/icons.js';
 
 const harness = { log: [], set: {} };
 window.harness = harness;
@@ -47,7 +49,7 @@ function Buttons({ variant = 'filled' }) {
       id: 'publish',
       variant: 'tonal',
       faces: { busy: 'Publishing', done: 'Published', failed: 'Not published' },
-      action: () => new Promise((resolve) => setTimeout(resolve, 50)),
+      action: () => new Promise((resolve) => { harness.release = resolve; }),
     }, 'Publish'));
 }
 
@@ -148,6 +150,7 @@ function Content() {
 
 function Generic() {
   const [tick, setTick] = useState(0);
+  const [sheet, setSheet] = useState(false);
   harness.set.tick = () => setTick((n) => n + 1);
   return h('div', { className: 'ds-form-actions', 'data-tick': tick },
     h(MenuButton, {
@@ -168,7 +171,23 @@ function Generic() {
       onDsChange: (event) => log('view', event.detail?.value ?? null),
     },
     h('button', { className: 'ds-btn', type: 'button', 'aria-pressed': 'true', value: 'list' }, h(Icon, { glyph: list, size: 16 }), 'List'),
-    h('button', { className: 'ds-btn', type: 'button', 'aria-pressed': 'false', value: 'grid' }, h(Icon, { glyph: layoutGrid, size: 16 }), 'Grid')));
+    h('button', { className: 'ds-btn', type: 'button', 'aria-pressed': 'false', value: 'grid' }, h(Icon, { glyph: layoutGrid, size: 16 }), 'Grid')),
+    h(Button, { id: 'details', 'aria-haspopup': 'dialog', onClick: () => setSheet(true) }, 'Details'),
+    h(Sheet, {
+      id: 'sheet',
+      open: sheet,
+      'aria-labelledby': 'sheet-title',
+      onClose: (reason) => {
+        log('sheet', reason);
+        setSheet(false);
+      },
+    },
+    h('div', { className: 'ds-sheet__backdrop', 'data-ds-close': '' }),
+    h('section', { className: 'ds-sheet__panel' },
+      h('div', { className: 'ds-sheet__head' },
+        h('h2', { className: 'ds-sheet__title', id: 'sheet-title' }, 'Laptop 14'),
+        h(Button, { variant: 'quiet', icon: close, 'aria-label': 'Close', 'data-ds-close': '' })),
+      h('div', { className: 'ds-sheet__body', tabIndex: 0 }, h('p', null, 'Owner: Ada Lovelace')))));
 }
 
 const SCENARIOS = { buttons: Buttons, tabs: TabsScenario, dialog: DialogScenario, content: Content, generic: Generic };
@@ -176,12 +195,15 @@ const SCENARIOS = { buttons: Buttons, tabs: TabsScenario, dialog: DialogScenario
 let root = null;
 let current = null;
 
+let providerProps = {};
+
 function render(props) {
   const scenario = SCENARIOS[current];
-  flushSync(() => root.render(h(StrictMode, null, h(DSProvider, { id: 'provider', className: 'ds-page', style: { padding: '16px' } }, h(scenario, props)))));
+  flushSync(() => root.render(h(StrictMode, null, h(DSProvider, { id: 'provider', className: 'ds-page', style: { padding: '16px' }, ...providerProps }, h(scenario, props)))));
 }
 
-harness.mount = (name, props = {}) => {
+harness.mount = (name, props = {}, provider = {}) => {
+  providerProps = provider;
   if (!SCENARIOS[name]) throw new Error(`no scenario ${name}`);
   harness.log.length = 0;
   harness.set = {};

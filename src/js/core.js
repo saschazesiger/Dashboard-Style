@@ -841,7 +841,9 @@ export function get(el, name) {
  * itself (the React adapter, on a root marked [data-ds-managed], which
  * init() and its observer leave alone). The behaviour's own init() makes
  * the controller, as for markup that init() finds, so the element's
- * data-ds-* attributes are its options; get(el, name) returns it. Returns a
+ * data-ds-* attributes are its options; get(el, name) returns it. An
+ * element that does not match the behaviour yet (its attribute not
+ * written) gets its controller once update() sees it match. Returns a
  * handle, or null when no behaviour `name` initialises elements (its module
  * is not loaded):
  * - controller: the controller (null when init() returned a function or
@@ -863,7 +865,8 @@ export function manage(el, name) {
   const state = { root: el.getRootNode?.() ?? el.ownerDocument, live: new Set() };
   const watched = [spec.attribute, ...spec.attributes].filter(Boolean);
   const read = () => watched.map((attribute) => el.getAttribute(attribute));
-  attachOne(el, name, spec, state);
+  // Without its attribute (yet), nothing runs; update() starts it once the owner writes it.
+  if (el.matches(spec.match)) attachOne(el, name, spec, state);
   let seen = read();
   let held = true;
   const own = () => {

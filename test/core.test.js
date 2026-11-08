@@ -424,6 +424,16 @@ describe('DS.core.init', () => {
     await tick();
     assert.deepEqual(plain.log, [], 'init() leaves a managed root alone');
     assert.equal(core.manage(a, 'no-such-behaviour'), null);
+    const bare = h(doc, 'div', { id: 'bare', 'data-ds-managed': '' });
+    doc.body.append(bare);
+    const waiting = core.manage(bare, plain.name);
+    assert.equal(waiting.controller, null, 'no attribute, no controller');
+    bare.setAttribute(plain.attribute, '');
+    waiting.update();
+    assert.ok(waiting.controller, 'the attribute written: a controller');
+    waiting.destroy();
+    plain.log.length = 0;
+    plain.made.length = 0;
     const first = core.manage(a, plain.name);
     assert.deepEqual(plain.log, ['init a']);
     assert.equal(first.controller, plain.made[0]);

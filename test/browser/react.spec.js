@@ -98,7 +98,14 @@ test('a badge counts through DS.badge, and a busy action shows its faces', async
   await expect(publish.locator('.ds-btn__faces > .ds-btn__face')).toHaveCount(4);
   await publish.click();
   await expect(publish).toHaveAttribute('aria-busy', 'true');
+  // A re-render while busy keeps what DS.motion.busy() wrote.
+  await page.evaluate(() => window.harness.set.count(4));
+  await expect(publish).toHaveAttribute('aria-busy', 'true');
+  await page.evaluate(() => window.harness.release());
+  await expect(publish).toHaveClass(/\bds-btn--done\b/);
   await expect(publish).not.toHaveAttribute('aria-busy', 'true');
+  await page.evaluate(() => window.harness.update({ variant: 'outlined' }));
+  await expect(publish).toHaveClass(/\bds-btn--done\b/);
   expect(errors).toEqual([]);
 });
 
@@ -220,7 +227,53 @@ test('menu button and toggle group: keyboard flows, and popover and data-state s
   await expect(listButton).toHaveAttribute('aria-pressed', 'false');
   await page.evaluate(() => window.harness.set.tick());
   await expect(gridButton).toHaveAttribute('aria-pressed', 'true');
-  expect(await logOf(page)).toEqual(['menu json', 'view grid']);
+  // A generated overlay (Sheet): open as a prop, Escape asks onClose, focus back on the opener.
+  const sheet = page.locator('#sheet');
+  await expect(sheet).toHaveAttribute('data-ds-managed', '');
+  await expect(sheet).toBeHidden();
+  await page.locator('#details').click();
+  await expect(sheet).toHaveAttribute('data-state', 'open');
+  await expect(page.getByRole('dialog', { name: 'Laptop 14' })).toBeVisible();
+  await expect.poll(() => sheet.evaluate((el) => el.contains(document.activeElement))).toBe(true);
+  // Away from the close button, whose tooltip would take the first Escape (by design).
+  await page.locator('#sheet .ds-sheet__body').focus();
+  await expect(page.locator('.ds-tooltip:visible')).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(sheet).toBeHidden();
+  await expect(page.locator('#details')).toBeFocused();
+  await page.locator('#details').click();
+  await page.getByRole('button', { name: 'Close' }).click();
+  await expect(sheet).toBeHidden();
+  expect(await logOf(page)).toEqual(['menu json', 'view grid', 'sheet escape', 'sheet close']);
+  expect(errors).toEqual([]);
+});
+
+test('the provider pins a scheme and options for its tree; tabs follow forced colours', async ({ page, browserName }) => {
+  const errors = await open(page);
+  await page.evaluate(() => window.harness.mount('tabs', {}, { scheme: 'dark', density: 'compact', touch: true, strings: { close: 'Schliessen' } }));
+  const provider = page.locator('#provider');
+  await expect(provider).toHaveAttribute('data-ds-scheme', 'dark');
+  await expect(provider).toHaveClass(/\bds-density-compact\b/);
+  await expect(provider).toHaveClass(/\bds-touch\b/);
+  expect(await provider.evaluate((el) => getComputedStyle(el).colorScheme)).toBe('dark');
+  // Touch wins over the compact density: a tab is at least the touch target high.
+  expect((await page.getByRole('tab', { name: 'Details' }).boundingBox()).height).toBeGreaterThanOrEqual(48);
+  // The strings reach the system's own texts (the close button's tip of a closable tab).
+  await expect(page.locator('.ds-tabs__close')).toHaveAttribute('data-tip', 'Schliessen');
+  await page.getByRole('tab', { name: 'History' }).click();
+  test.skip(browserName !== 'chromium', 'forced colours are emulated in Chromium only');
+  await page.emulateMedia({ forcedColors: 'active' });
+  const selected = await page.evaluate(() => {
+    const probe = document.createElement('div');
+    probe.style.cssText = 'forced-color-adjust: none; background-color: SelectedItem; color: SelectedItemText';
+    // In the provider: system colours follow its color-scheme (dark here).
+    document.getElementById('provider').append(probe);
+    const colours = [getComputedStyle(probe).backgroundColor, getComputedStyle(probe).color];
+    probe.remove();
+    return colours;
+  });
+  // The colours glide (--ds-dur-fast): poll until they settle.
+  await expect.poll(() => page.getByRole('tab', { name: 'History' }).evaluate((el) => [getComputedStyle(el).backgroundColor, getComputedStyle(el).color])).toEqual(selected);
   expect(errors).toEqual([]);
 });
 
