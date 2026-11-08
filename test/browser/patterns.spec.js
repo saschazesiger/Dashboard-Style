@@ -255,6 +255,238 @@ test.describe('with the keyboard', () => {
   });
 });
 
+test.describe('the pages of the app, with the keyboard', () => {
+  test('dashboard: the range moves with the arrow keys and the charts follow; a panel menu opens and gives the focus back', async ({ page }) => {
+    await open(page, 'dashboard');
+    await expect(page.locator('#chart-tickets .ds-chart__svg')).toHaveCount(1);
+    const seven = page.getByRole('radio', { name: '7 days' });
+    await seven.focus();
+    await page.keyboard.press('ArrowRight');
+    const thirty = page.getByRole('radio', { name: '30 days' });
+    await expect(thirty).toBeFocused();
+    await expect(thirty).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('#panel-tickets [data-range-text]')).toHaveText('Last 30 days');
+    await expect(page.locator('#chart-tickets tbody tr')).toHaveCount(30);
+
+    const more = page.getByRole('button', { name: 'Actions for tickets per day' });
+    await more.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('menuitem', { name: 'Refresh' }).first()).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(more).toBeFocused();
+  });
+
+  test('list: search, sort, select in bulk, a saved view', async ({ page }) => {
+    await open(page, 'list');
+    await expect(page.locator('#rows tr')).toHaveCount(25);
+    await expect(page.locator('#range')).toHaveText('1–25 of 132');
+
+    const search = page.getByRole('searchbox', { name: 'Search devices' });
+    await search.fill('grace');
+    await expect(page.locator('.ds-filterbar__count')).toContainText(/\d+ devices?/);
+    const filtered = await page.locator('#rows tr').count();
+    expect(filtered).toBeGreaterThan(0);
+    expect(filtered).toBeLessThan(25);
+    await expect(page.locator('.ds-views__edited')).toBeVisible();
+    await search.fill('');
+
+    const device = page.locator('th[data-sort="name"]');
+    await device.getByRole('button').focus();
+    await page.keyboard.press('Enter');
+    await expect(device).toHaveAttribute('aria-sort', 'descending');
+    const seen = page.locator('th[data-sort="seen"]');
+    await seen.getByRole('button').click();
+    await expect(seen).toHaveAttribute('aria-sort', 'ascending');
+    await expect(device).not.toHaveAttribute('aria-sort');
+    await expect(seen.locator('.ds-table__sort-arrow')).toHaveCount(1);
+
+    const first = page.locator('#rows tr').first().getByRole('checkbox');
+    await first.focus();
+    await page.keyboard.press('Space');
+    await expect(page.locator('.ds-selection-bar__count')).toHaveText('1 selected');
+    await expect(page.locator('#select-all')).toHaveJSProperty('indeterminate', true);
+    await page.getByRole('button', { name: 'Clear selection' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#select-all')).toBeFocused();
+    await expect(page.locator('.ds-selection-bar')).toHaveCount(0);
+
+    const trigger = page.locator('.ds-views__trigger');
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    await page.getByRole('menuitemradio', { name: 'Offline' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.ds-views__name')).toHaveText('Offline');
+    await expect(page.locator('#f-status')).toHaveValue('offline');
+    await expect(page.locator('#rows .ds-status')).not.toHaveCount(0);
+    expect(await page.locator('#rows tr').count()).toBe(await page.locator('#rows .ds-status.ds-tone-warning').count());
+  });
+
+  test('record: a section edits in place, refuses a taken name at its field, saves; delete waits for the typed name', async ({ page }) => {
+    await open(page, 'record');
+    const edit = page.locator('#general .ds-object__edit');
+    await edit.focus();
+    await page.keyboard.press('Enter');
+    const name = page.locator('#f-name');
+    await expect(name).toBeFocused();
+    await name.fill('LAPTOP-0043');
+    await name.press('Enter');
+    await expect(name).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.locator('#f-name-error')).toContainText('is taken');
+    await expect(name).toBeFocused();
+    await name.fill('LAPTOP-0044');
+    await name.press('Enter');
+    await expect(page.locator('#general [data-field="name"]')).toHaveText('LAPTOP-0044');
+    await expect(edit).toBeFocused();
+
+    const remove = page.locator('#delete');
+    await remove.focus();
+    await page.keyboard.press('Enter');
+    const confirm = page.locator('.ds-typeconfirm__confirm');
+    await expect(page.getByRole('button', { name: 'Cancel' }).last()).toBeFocused();
+    await expect(confirm).toHaveAttribute('aria-disabled', 'true');
+    await page.locator('#delete-name').fill('LAPTOP-0042');
+    await expect(confirm).not.toHaveAttribute('aria-disabled', 'true');
+    await page.keyboard.press('Escape');
+    await expect(remove).toBeFocused();
+  });
+
+  test('settings: a change shows the save bar with its count, Discard puts it back, a reserved address is refused at its field', async ({ page }) => {
+    await open(page, 'settings');
+    const bar = page.getByRole('region', { name: 'Unsaved changes' });
+    await expect(bar).toBeHidden();
+    await page.locator('#name').fill('Operations');
+    await expect(bar).toBeVisible();
+    await expect(bar).toContainText('1 unsaved change');
+    await page.locator('[name="mail-tickets"]').focus();
+    await page.keyboard.press('Space');
+    await expect(bar).toContainText('2 unsaved changes');
+    await bar.getByRole('button', { name: 'Discard' }).click();
+    await expect(page.locator('#name')).toHaveValue('Product Operations');
+    await expect(bar).toBeHidden();
+
+    await page.locator('#address').fill('admin');
+    await bar.getByRole('button', { name: 'Save changes' }).click();
+    await expect(page.locator('#address')).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.locator('#address-error')).toContainText('reserved');
+    await page.locator('#address').fill('operations-2');
+    await bar.getByRole('button', { name: 'Save changes' }).click();
+    await expect(bar).toBeHidden();
+    await expect(page.locator('#address')).not.toHaveAttribute('aria-invalid', 'true');
+  });
+
+  test('profile: a wrong current password is said at the field; a session signs out and leaves the list', async ({ page }) => {
+    await open(page, 'profile');
+    await page.locator('#current').fill('wrong password');
+    await page.locator('#new-password').fill('a long new passphrase');
+    await page.getByRole('button', { name: 'Change password' }).click();
+    await expect(page.locator('#current')).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.locator('#current')).toBeFocused();
+
+    await page.getByRole('button', { name: 'Sign out of Safari on a phone' }).click();
+    await expect(page.locator('#sessions .ds-list__item')).toHaveCount(2);
+    await expect(page.locator('.ds-toasts')).toContainText('Signed out of 1 session.');
+  });
+
+  test('team: the invitation needs an address, then adds the person; a new role says so with Undo', async ({ page }) => {
+    await open(page, 'team');
+    const invite = page.getByRole('button', { name: 'Invite people' });
+    await invite.focus();
+    await page.keyboard.press('Enter');
+    const field = page.locator('#invite-emails');
+    await expect(field).toBeFocused();
+    await page.getByRole('button', { name: 'Send invitations' }).click();
+    await expect(field).toHaveAttribute('aria-invalid', 'true');
+    await field.fill('alan.kay@example.org');
+    await field.press('Enter');
+    await page.getByRole('button', { name: 'Send invitations' }).click();
+    await expect(page.getByRole('dialog')).toBeHidden();
+    await expect(invite).toBeFocused();
+    await expect(page.locator('#members')).toContainText('alan.kay@example.org');
+
+    await page.getByRole('combobox', { name: 'Role of Joan Clarke' }).selectOption('admin');
+    await expect(page.locator('.ds-toasts')).toContainText('Joan Clarke is now an administrator.');
+  });
+
+  test('permissions: a check counts as a change and saves; a locked cell says why', async ({ page }) => {
+    await open(page, 'permissions');
+    await expect(page.getByRole('img', { name: /^Owner: Delete devices, always on/ })).toHaveCount(1);
+    const box = page.getByRole('checkbox', { name: 'Member: Delete devices' });
+    await box.focus();
+    await page.keyboard.press('Space');
+    const bar = page.getByRole('region', { name: 'Unsaved changes' });
+    await expect(bar).toContainText('1 unsaved change');
+    await bar.getByRole('button', { name: 'Save permissions' }).click();
+    await expect(bar).toBeHidden();
+    await expect(box).toBeChecked();
+  });
+
+  test('API keys: a new key shows once and Done waits for "stored"; a key in use asks for its name', async ({ page }) => {
+    await open(page, 'api-keys');
+    await page.getByRole('button', { name: 'Create key' }).click();
+    await page.locator('#key-name').fill('Backup script');
+    await page.locator('#key-name').press('Enter');
+    const once = page.getByRole('alertdialog', { name: 'Copy your new key' });
+    await expect(once).toBeVisible();
+    await expect(page.locator('#new-key')).toHaveText(/^pk_[0-9a-f]{48}$/);
+    const done = page.getByRole('button', { name: 'Done' });
+    await expect(done).toHaveAttribute('aria-disabled', 'true');
+    await page.keyboard.press('Escape');
+    await expect(once).toBeVisible();
+    await page.getByText('I have stored the key').click();
+    await done.click();
+    await expect(once).toBeHidden();
+    await expect(page.locator('#keys')).toContainText('Backup script');
+
+    await page.getByRole('button', { name: 'Revoke Ticket sync' }).click();
+    const revoke = page.locator('.ds-typeconfirm__confirm');
+    await expect(revoke).toHaveAttribute('aria-disabled', 'true');
+    await page.locator('#revoke-name').fill('Ticket sync');
+    await page.locator('#revoke-name').press('Enter');
+    await expect(page.locator('#keys')).not.toContainText('Ticket sync');
+  });
+
+  test('integrations: the filter narrows the grid; Connect turns a card connected', async ({ page }) => {
+    await open(page, 'integrations');
+    await expect(page.locator('#grid .ds-card')).toHaveCount(9);
+    const all = page.getByRole('radio', { name: 'All' });
+    await all.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.locator('#grid .ds-card')).toHaveCount(4);
+    await page.keyboard.press('ArrowRight');
+    await expect(page.locator('#grid .ds-card')).toHaveCount(5);
+    const connect = page.getByRole('button', { name: 'Connect Calendar' });
+    await connect.click();
+    await expect(page.getByRole('dialog', { name: 'Connect Calendar' })).toBeVisible();
+    await page.getByRole('dialog').getByRole('button', { name: 'Connect' }).click();
+    await expect(page.locator('.ds-toasts')).toContainText('Calendar connected.');
+    await page.getByRole('radio', { name: /^All/ }).click();
+    await expect(page.locator('[data-ds-key="calendar"] .ds-status')).toContainText('Connected');
+  });
+
+  test('audit log: the kinds and the search narrow the log and the count follows', async ({ page }) => {
+    await open(page, 'audit-log');
+    const count = page.locator('.ds-auditlog__count');
+    await expect(count).toHaveText('18 events');
+    await page.locator('.ds-chip', { hasText: 'Syncs' }).click();
+    await expect(count).toHaveText('3 of 18 events');
+    await page.getByRole('searchbox', { name: 'Search the log' }).fill('katherine');
+    await expect(count).toHaveText('1 of 18 events');
+    await page.getByRole('button', { name: 'Clear' }).click();
+    await expect(count).toHaveText('18 events');
+  });
+
+  test('the frame on a phone: the menu opens the modal drawer on the current page and Escape gives the focus back', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await open(page, 'team');
+    const menu = page.getByRole('button', { name: 'Menu' });
+    await menu.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.ds-drawer__item[aria-current="page"]')).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeFocused();
+  });
+});
+
 test.describe('the styleguide area', () => {
   test('lists every pattern with its need line and loads a preview only on its page, at the chosen width', async ({ page }) => {
     const errors = collectErrors(page);
