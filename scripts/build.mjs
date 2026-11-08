@@ -1648,7 +1648,21 @@ function moduleAttributes(name, claimed = new Set()) {
   if (!MODULES.includes(name)) return [];
   const source = repoText(moduleFiles(name).source);
   const text = moduleFiles(name).component ? source : [...source.matchAll(/^\s+attributes?:\s*(?:'[^'\n]*'|\[[^\]\n]*\])/gm)].map((match) => match[0]).join(' ');
-  return [...text.matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]).filter((attribute) => !claimed.has(attribute));
+  const core = moduleFiles(name).component ? coreAttributes() : new Set();
+  return [...text.matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]).filter((attribute) => !claimed.has(attribute) && !core.has(attribute));
+}
+
+/**
+ * Every data-ds-* literal a core module names: the core's own vocabulary
+ * (data-ds-key and data-ds-keep of morphHtml, data-ds-leaving of leave()),
+ * which a component module reads as well but which never leads a bundle to
+ * that component: a page that keys its rows needs no upload, tree or
+ * composer.
+ */
+function coreAttributes() {
+  // Code only: a comment's example (core.js shows a data-ds-copy behaviour) claims nothing.
+  const code = (source) => source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  return new Set(CORE_MODULES.flatMap((name) => [...code(repoText(moduleFiles(name).source)).matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1])));
 }
 
 /** The exports and sibling imports of each module of MODULES, and the CSS it needs (moduleRequires). */

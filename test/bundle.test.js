@@ -574,6 +574,24 @@ describe('tools/bundle.mjs on this checkout\'s dist/ (its manifest.json)', () =>
       assert.ok(!modules.includes('indicator') && !modules.includes('ripple'), `data-ds-keep is the side of morphHtml: ${modules}`);
     });
   });
+
+  it('leads to no component by the core\'s own attributes: keyed rows and a leaving element need no upload or composer', () => {
+    withTemp((dir) => {
+      const config = tempProject(dir, {
+        'index.html': '<ul class="ds-plain-list"><li data-ds-key="a" data-ds-keep>A</li></ul>\n<script>row.hasAttribute("data-ds-leaving");</script>',
+      }, { dist: relative(dir, dist) });
+      const result = bundle({ config, write: false });
+      assert.deepEqual(result.errors, []);
+      const report = result.entries[0].report;
+      for (const name of ['upload', 'composer', 'tree', 'datagrid', 'command', 'wheel', 'kveditor']) {
+        assert.ok(!names(report.components).includes(name) && !names(report.modules).includes(name), `${name} left out`);
+      }
+    });
+    // A component module's own behaviour attribute still finds it.
+    const manifest = JSON.parse(read('dist/manifest.json'));
+    assert.ok(manifest.components.datagrid.attributes.includes('data-ds-datagrid'));
+    assert.ok(!manifest.components.datagrid.attributes.includes('data-ds-key'));
+  });
 });
 
 describe('tools/vite-plugin.mjs (stubbed Vite API)', () => {
