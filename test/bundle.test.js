@@ -444,6 +444,26 @@ describe('tools/bundle.mjs on this checkout\'s dist/ (its manifest.json)', () =>
     });
   });
 
+  it('follows imports of the React adapter to the stylesheets its components render (manifest.json "react")', () => {
+    withTemp((dir) => {
+      const config = tempProject(dir, {
+        'src/app.tsx': [
+          "import { DSProvider } from '../vendor/ds/react/provider.js';",
+          "import { Tabs } from '../vendor/ds/react/tabs.js';",
+          "import { CopyButton, Status } from '../vendor/ds/react/index.js';",
+          'export const App = () => <DSProvider><Tabs items={[]} /><CopyButton data-ds-copy="#key" /><Status tone="success">OK</Status></DSProvider>;',
+        ].join('\n'),
+      }, { dist: relative(dir, dist), content: ['src/**/*.tsx'], js: false });
+      const result = bundle({ config, write: false });
+      assert.deepEqual(result.errors, []);
+      const components = names(result.entries[0].report.components);
+      for (const name of ['tabs', 'menu', 'button', 'copy', 'status', 'spinner', 'ripple', 'tooltip']) assert.ok(components.includes(name), `${name}: ${components.join(', ')}`);
+      for (const name of ['dialog', 'datagrid', 'chart', 'sheet']) assert.ok(!components.includes(name), `${name} left out`);
+      const reason = result.entries[0].report.components.find((item) => item.name === 'tabs').reason;
+      assert.match(reason, /src\/app\.tsx:2 import '\.\.\/vendor\/ds\/react\/tabs\.js'/);
+    });
+  });
+
   it('leaves out the overlay behaviours a page does not use, and keeps the ones it does (3.0)', () => {
     withTemp((dir) => {
       const modulesOf = (text) => {

@@ -31,7 +31,8 @@
  *
  * The scan reads every file as plain text: complete ds-* class names and
  * data-ds-* attributes (and data-tip) against the manifest, DS.<module>.<export> and
- * imports of js/<module>.js, and icon names (DS.icons.<name>,
+ * imports of js/<module>.js and of the React adapter's react/<file>.js
+ * (manifest.json "react": the stylesheets that file renders), and icon names (DS.icons.<name>,
  * icon('<name>'), data-icon / data-ds-icon="<name>", named imports of
  * js/icons.js). A class built at run time ('ds-btn--' + kind,
  * `ds-${name}`) is an error with its file and line, unless a safelist
@@ -218,7 +219,9 @@ export function loadCopy({ dist = resolve(HERE, '..'), manifest } = {}) {
     }
     moduleGlyphs.set(name, used);
   }
-  return { root, manifest: data, read, classes, attributes, moduleAttributes, keyframes, coreClasses, modules, glyphs, iconSource, moduleGlyphs };
+  // The React adapter's files (react/<name>.js): the stylesheets each needs, since the classes sit in the adapter, not the project.
+  const react = new Map(Object.entries(data.react ?? {}));
+  return { root, manifest: data, read, classes, attributes, moduleAttributes, keyframes, coreClasses, modules, glyphs, iconSource, moduleGlyphs, react };
 }
 
 /** The glyph exports of an icons module: `export const name = '<...>';`. */
@@ -241,6 +244,20 @@ function lineIndex(text) {
     }
     return low + 1;
   };
+}
+
+/**
+ * The React adapter files an import specifier names, as [file, entry]
+ * pairs: one, or for react/index.js the files of the names imported from it
+ * (every file when the import names none, or is a namespace).
+ */
+function adapterFiles(specifier, names, copy) {
+  if (!copy.react?.size) return [];
+  const path = specifier.replace(/[?#].*$/, '');
+  const hit = [...copy.react].find(([file]) => path === file || path.endsWith(`/${file}`));
+  if (!hit) return [];
+  if (!hit[0].endsWith('/index.js')) return [hit];
+  return [...copy.react].filter(([file, entry]) => file !== hit[0] && (!names?.length || entry.exports.some((name) => names.includes(name))));
 }
 
 /** The module of the copy an import specifier names, or null. */
@@ -350,6 +367,17 @@ export function scanText(text, file, copy) {
     if (glyph && copy.modules.has('icons')) {
       use('module', 'icons', match.index, { via });
       icon(glyph[1], match.index);
+      continue;
+    }
+    // An adapter component: the stylesheets it renders (and those its modules always need); its modules load themselves.
+    const names = match[2]?.split(',').map((part) => part.trim().replace(/^type\s+/, '').split(/\s+as\s+/)[0]).filter(Boolean);
+    const adapters = adapterFiles(specifier, names, copy);
+    if (adapters.length) {
+      for (const [, entry] of adapters) {
+        const needed = new Set(entry.components ?? []);
+        for (const name of entry.modules ?? []) for (const other of copy.modules.get(name)?.requires ?? []) needed.add(other);
+        for (const name of needed) use('component', name, match.index, { via });
+      }
       continue;
     }
     const module = moduleOf(specifier, copy);
@@ -468,7 +496,8 @@ export function resolveBundle(scans, copy, { safelist = [], icons = 'auto' } = {
       } else if (entry.kind === 'attribute') {
         for (const name of copy.attributes.get(entry.name) ?? []) addComponent(name, `${where} ${entry.name}`);
         for (const name of copy.moduleAttributes?.get(entry.name) ?? []) addModule(name, `${where} ${entry.name}`);
-      } else if (entry.kind === 'module') addModule(entry.name, `${where} ${entry.via ?? `DS.${entry.name}`}`);
+      } else if (entry.kind === 'component') addComponent(entry.name, `${where} ${entry.via}`);
+      else if (entry.kind === 'module') addModule(entry.name, `${where} ${entry.via ?? `DS.${entry.name}`}`);
       else if (entry.kind === 'export') {
         const via = entry.via ?? `DS.${entry.module}.${entry.name}`;
         addModule(entry.module, `${where} ${via}`);
