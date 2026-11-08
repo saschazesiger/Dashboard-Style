@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Settings · Product</title>
+<meta name="pt-title" content="Settings">
+<meta name="pt-need" content="The settings of a workspace in titled sections beside their index, saved together from a bar that shows what changed">
+<meta name="pt-group" content="App pages">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.settings.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<div class="ds-app ds-app--drawer" data-ds-shell="patterns">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" data-icon="menu"></button>
+    <a class="ds-brand" href="dashboard.html"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></a>
+    <div class="ds-topbar__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="#help" aria-label="Help" data-tip="Help" data-icon="helpCircle"></a>
+    </div>
+    <div class="ds-account">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+      <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+        <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+        <div class="ds-menu__divider" role="separator"></div>
+        <a class="ds-menu__item" role="menuitem" href="profile.html" data-icon="user" data-icon-place="start"><span class="ds-menu__label">Profile</span></a>
+        <a class="ds-menu__item" role="menuitem" href="sign-in.html" data-icon="logout" data-icon-place="start"><span class="ds-menu__label">Sign out</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></div>
+    <div class="ds-drawer__list">
+      <div class="ds-drawer__group">
+        <a class="ds-drawer__item" href="dashboard.html" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="list.html" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="audit-log.html" data-icon="history" data-icon-place="start"><span class="ds-drawer__label">Audit log</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Administration</p>
+        <a class="ds-drawer__item" href="settings.html" aria-current="page" data-icon="settings" data-icon-place="start"><span class="ds-drawer__label">Settings</span></a>
+        <a class="ds-drawer__item" href="team.html" data-icon="users" data-icon-place="start"><span class="ds-drawer__label">Team</span></a>
+        <a class="ds-drawer__item" href="permissions.html" data-icon="shield" data-icon-place="start"><span class="ds-drawer__label">Permissions</span></a>
+        <a class="ds-drawer__item" href="api-keys.html" data-icon="key" data-icon-place="start"><span class="ds-drawer__label">API keys</span></a>
+        <a class="ds-drawer__item" href="integrations.html" data-icon="puzzle" data-icon-place="start"><span class="ds-drawer__label">Integrations</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content">
+        <div class="ds-page">
+          <header class="ds-page-head">
+            <h1 class="ds-page-head__title" tabindex="-1">Settings</h1>
+            <p class="ds-page-head__lead">How the workspace works for everyone in it. Changes apply once you save them.</p>
+          </header>
+
+          <div class="ds-split ds-split--stretch" style="--ds-split-side: 13rem">
+            <div class="ds-split__side">
+            <nav class="ds-toc ds-toc--sticky" aria-labelledby="toc-title" data-ds-toc data-ds-toc-hash="off">
+              <p class="ds-toc__title" id="toc-title">Sections</p>
+              <ol class="ds-toc__list">
+                <li><a class="ds-toc__link" href="#workspace">Workspace</a></li>
+                <li><a class="ds-toc__link" href="#notifications">Notifications</a></li>
+                <li><a class="ds-toc__link" href="#security">Security</a></li>
+                <li><a class="ds-toc__link" href="#data">Data and backups</a></li>
+              </ol>
+            </nav>
+            </div>
+
+            <form class="ds-split__main ds-form ds-stack" id="settings" data-ds-unsaved aria-labelledby="settings-title" novalidate>
+              <h2 class="ds-sr" id="settings-title">Workspace settings</h2>
+
+              <section class="ds-card" id="workspace" aria-labelledby="workspace-title">
+                <h2 class="ds-card__title" id="workspace-title">Workspace</h2>
+                <div class="ds-form-grid ds-form-grid--2">
+                  <div class="ds-field">
+                    <label class="ds-field__label" for="name">Name <span class="ds-field__changed ds-sr">(changed)</span></label>
+                    <input class="ds-input" id="name" name="name" value="Product Operations" required aria-describedby="name-hint">
+                    <small class="ds-field__hint" id="name-hint">Shown in the top bar and in every email.</small>
+                  </div>
+                  <div class="ds-field">
+                    <label class="ds-field__label" for="address">Address <span class="ds-field__changed ds-sr">(changed)</span></label>
+                    <div class="ds-input-group">
+                      <span class="ds-input-group__prefix" aria-hidden="true">app.example.com/</span>
+                      <input class="ds-input" id="address" name="address" value="operations" required pattern="[a-z0-9\-]{3,32}" autocomplete="off" spellcheck="false" aria-describedby="address-hint">
+                    </div>
+                    <small class="ds-field__hint" id="address-hint">3 to 32 small letters, digits or dashes. Old links stop working.</small>
+                  </div>
+                  <div class="ds-field">
+                    <label class="ds-field__label" for="zone">Time zone <span class="ds-field__changed ds-sr">(changed)</span></label>
+                    <select class="ds-input" id="zone" name="zone">
+                      <option value="utc">UTC</option>
+                      <option value="europe-london">Europe, London</option>
+                      <option value="europe-central" selected>Central Europe</option>
+                      <option value="america-new-york">America, New York</option>
+                      <option value="asia-tokyo">Asia, Tokyo</option>
+                    </select>
+                  </div>
+                  <div class="ds-field">
+                    <label class="ds-field__label" for="week">Week starts on <span class="ds-field__changed ds-sr">(changed)</span></label>
+                    <select class="ds-input" id="week" name="week"><option value="monday" selected>Monday</option><option value="sunday">Sunday</option><option value="saturday">Saturday</option></select>
+                  </div>
+                </div>
+              </section>
+
+              <section class="ds-card" id="notifications" aria-labelledby="notifications-title">
+                <h2 class="ds-card__title" id="notifications-title">Notifications</h2>
+                <p class="ds-muted">Who hears about what. Each person can turn their own copies off in their profile.</p>
+                <div class="ds-switch-list">
+                  <label class="ds-switch">
+                    <input type="checkbox" role="switch" name="mail-offline" checked aria-labelledby="sw-offline" aria-describedby="sw-offline-hint">
+                    <span class="ds-switch__track" aria-hidden="true"></span>
+                    <span class="ds-switch__label" id="sw-offline">Device offline</span>
+                    <small class="ds-switch__hint" id="sw-offline-hint">To its owner, after a day without contact</small>
+                    <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
+                  </label>
+                  <label class="ds-switch">
+                    <input type="checkbox" role="switch" name="mail-weekly" checked aria-labelledby="sw-weekly" aria-describedby="sw-weekly-hint">
+                    <span class="ds-switch__track" aria-hidden="true"></span>
+                    <span class="ds-switch__label" id="sw-weekly">Weekly report</span>
+                    <small class="ds-switch__hint" id="sw-weekly-hint">Every Monday at 08:00</small>
+                    <span class="ds-switch__meta"><span class="ds-tag ds-tone-neutral">3 recipients</span></span>
+                    <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
+                  </label>
+                  <label class="ds-switch">
+                    <input type="checkbox" role="switch" name="mail-tickets" aria-labelledby="sw-tickets" aria-describedby="sw-tickets-hint">
+                    <span class="ds-switch__track" aria-hidden="true"></span>
+                    <span class="ds-switch__label" id="sw-tickets">Every new ticket</span>
+                    <small class="ds-switch__hint" id="sw-tickets-hint">To the administrators</small>
+                    <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
+                  </label>
+                </div>
+              </section>
+
+              <section class="ds-card" id="security" aria-labelledby="security-title">
+                <h2 class="ds-card__title" id="security-title">Security</h2>
+                <div class="ds-switch-list">
+                  <label class="ds-switch">
+                    <input type="checkbox" role="switch" name="two-step" checked aria-labelledby="sw-two-step" aria-describedby="sw-two-step-hint">
+                    <span class="ds-switch__track" aria-hidden="true"></span>
+                    <span class="ds-switch__label" id="sw-two-step">Require two-step verification</span>
+                    <small class="ds-switch__hint" id="sw-two-step-hint">Everyone signs in with a code from their phone</small>
+                    <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
+                  </label>
+                  <label class="ds-switch ds-switch--locked">
+                    <input type="checkbox" role="switch" checked aria-disabled="true" aria-labelledby="sw-sso" aria-describedby="sw-sso-hint" data-ds-unsaved-ignore>
+                    <span class="ds-switch__track" aria-hidden="true"><svg class="ds-switch__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+                    <span class="ds-switch__label" id="sw-sso">Single sign-on</span>
+                    <small class="ds-switch__hint" id="sw-sso-hint">Set by your identity provider: change it there</small>
+                  </label>
+                </div>
+                <div class="ds-form-grid ds-form-grid--2">
+                  <div class="ds-field">
+                    <label class="ds-field__label" for="session">Sign out after <span class="ds-field__changed ds-sr">(changed)</span></label>
+                    <select class="ds-input" id="session" name="session"><option value="8h">8 hours</option><option value="1d">1 day</option><option value="7d" selected>7 days</option><option value="30d">30 days</option></select>
+                  </div>
+                  <div class="ds-field">
+                    <label class="ds-field__label" for="domains">Who may join <span class="ds-field__changed ds-sr">(changed)</span></label>
+                    <input class="ds-input" id="domains" name="domains" value="example.org" aria-describedby="domains-hint" autocomplete="off" spellcheck="false">
+                    <small class="ds-field__hint" id="domains-hint">Email domains, separated by commas. Others need an invitation.</small>
+                  </div>
+                </div>
+              </section>
+
+              <section class="ds-card" id="data" aria-labelledby="data-title">
+                <h2 class="ds-card__title" id="data-title">Data and backups</h2>
+                <div class="ds-form-grid ds-form-grid--2">
+                  <div class="ds-field">
+                    <label class="ds-field__label" for="retention">Keep the history for <span class="ds-field__changed ds-sr">(changed)</span></label>
+                    <select class="ds-input" id="retention" name="retention" aria-describedby="retention-hint"><option value="90">90 days</option><option value="365" selected>1 year</option><option value="1095">3 years</option></select>
+                    <small class="ds-field__hint" id="retention-hint">Older entries of the audit log are deleted every night.</small>
+                  </div>
+                  <fieldset class="ds-field ds-field--full">
+                  <legend class="ds-field__label">Backups</legend>
+                  <div class="ds-radios" role="radiogroup" aria-label="Backups">
+                    <label class="ds-radio"><input type="radio" name="backups" value="nightly" checked>
+                      <span><strong>Every night</strong><small>Kept for 30 days.</small></span></label>
+                    <label class="ds-radio"><input type="radio" name="backups" value="hourly">
+                      <span><strong>Every hour</strong><small>Kept for 7 days, then one a night.</small></span></label>
+                  </div>
+                  </fieldset>
+                </div>
+                <nav class="ds-card__links" aria-label="Data">
+                  <a class="ds-btn ds-btn--text ds-card__link" href="audit-log.html" data-icon="arrowRight" data-icon-size="16" data-icon-place="end">Open the audit log</a>
+                </nav>
+              </section>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="ds-savebar">
+        <div class="ds-savebar__bar ds-presence" role="region" aria-label="Unsaved changes" hidden>
+          <p class="ds-savebar__text ds-unsaved__count" data-ds-unsaved-count></p>
+          <div class="ds-savebar__actions">
+            <button class="ds-btn ds-btn--text" type="button" data-ds-unsaved-discard>Discard</button>
+            <button class="ds-btn ds-btn--filled" type="button" data-ds-unsaved-save>
+              <span class="ds-btn__faces"><span class="ds-btn__face">Save changes</span>
+                <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Saving</span></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="ds-toasts" id="toasts"></div>
+
+<script src="ds/ds.settings.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  var form = document.getElementById('settings');
+  var toasts = document.getElementById('toasts');
+
+  // An error at its field: the hint with an icon and words, linked to the field (Form).
+  function setError(input, text) {
+    var field = input.closest('.ds-field');
+    var hint = field.querySelector('.ds-field__hint--error');
+    if (!text) {
+      if (hint) hint.remove();
+      input.removeAttribute('aria-invalid');
+      input.setAttribute('aria-describedby', input.id + '-hint');
+      return;
+    }
+    if (!hint) {
+      hint = document.createElement('small');
+      hint.className = 'ds-field__hint ds-field__hint--error';
+      hint.id = input.id + '-error';
+      field.append(hint);
+    }
+    hint.replaceChildren(DS.icons.iconElement(DS.icons.alertCircle, 16), document.createTextNode(text));
+    input.setAttribute('aria-invalid', 'true');
+    input.setAttribute('aria-describedby', hint.id + ' ' + input.id + '-hint');
+  }
+
+  // Save (the bar's button or Ctrl+S): the rules first, at their fields; then the request, busy on the button.
+  // The guard makes the values the new baseline, hides the bar and says "Changes saved."
+  form.addEventListener('ds:save', function (event) {
+    var name = form.elements.name;
+    var address = form.elements.address;
+    setError(name, name.value.trim() ? '' : 'Enter a name.');
+    setError(address, address.validity.valid ? '' : 'Use 3 to 32 small letters, digits or dashes.');
+    var first = form.querySelector('[aria-invalid="true"]');
+    if (first) {
+      event.preventDefault();
+      first.focus();
+      return;
+    }
+    event.detail.waitUntil(new Promise(function (done, fail) {
+      // Demo rule: the address "admin" is reserved.
+      setTimeout(function () {
+        if (address.value === 'admin') {
+          setError(address, 'The address admin is reserved: choose another.');
+          fail(new Error('reserved'));
+        } else done();
+      }, 800);
+    }));
+  });
+  form.addEventListener('ds:error', function () { form.elements.address.focus(); });
+  form.addEventListener('ds:discard', function () {
+    [form.elements.name, form.elements.address].forEach(function (input) { setError(input, ''); });
+  });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

@@ -15,6 +15,9 @@
  *                     button; it wraps and centres on a phone
  *   .pt-bar           the head of a full-screen task (the wizard): close, the
  *                     title, the dark-theme button, on .ds-sticky--head
+ *   .pt-col-min       the header cell of a table column that must not get
+ *                     narrower (a role select, the names of a matrix's rows):
+ *                     a narrow table scrolls instead of squeezing it
  */
 
 .pt-auth {
@@ -70,4 +73,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* The header cell of a column that must keep its width: the table's
+   automatic layout would squeeze a select to its arrow, or a row's name to
+   a word per line, on a phone; with a least width the table scrolls
+   sideways in its wrapper instead. */
+.pt-col-min {
+  min-inline-size: calc(var(--ds-space-8) * 4);
 }

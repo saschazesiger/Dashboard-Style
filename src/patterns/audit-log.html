@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Audit log · Product</title>
+<meta name="pt-title" content="Audit log">
+<meta name="pt-need" content="Who did what in the workspace and when, with old and new values, narrowed by person, kind, day and words">
+<meta name="pt-group" content="App pages">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.audit-log.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<div class="ds-app ds-app--drawer" data-ds-shell="patterns">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" data-icon="menu"></button>
+    <a class="ds-brand" href="dashboard.html"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></a>
+    <div class="ds-topbar__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="#help" aria-label="Help" data-tip="Help" data-icon="helpCircle"></a>
+    </div>
+    <div class="ds-account">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+      <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+        <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+        <div class="ds-menu__divider" role="separator"></div>
+        <a class="ds-menu__item" role="menuitem" href="profile.html" data-icon="user" data-icon-place="start"><span class="ds-menu__label">Profile</span></a>
+        <a class="ds-menu__item" role="menuitem" href="sign-in.html" data-icon="logout" data-icon-place="start"><span class="ds-menu__label">Sign out</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></div>
+    <div class="ds-drawer__list">
+      <div class="ds-drawer__group">
+        <a class="ds-drawer__item" href="dashboard.html" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="list.html" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="audit-log.html" aria-current="page" data-icon="history" data-icon-place="start"><span class="ds-drawer__label">Audit log</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Administration</p>
+        <a class="ds-drawer__item" href="settings.html" data-icon="settings" data-icon-place="start"><span class="ds-drawer__label">Settings</span></a>
+        <a class="ds-drawer__item" href="team.html" data-icon="users" data-icon-place="start"><span class="ds-drawer__label">Team</span></a>
+        <a class="ds-drawer__item" href="permissions.html" data-icon="shield" data-icon-place="start"><span class="ds-drawer__label">Permissions</span></a>
+        <a class="ds-drawer__item" href="api-keys.html" data-icon="key" data-icon-place="start"><span class="ds-drawer__label">API keys</span></a>
+        <a class="ds-drawer__item" href="integrations.html" data-icon="puzzle" data-icon-place="start"><span class="ds-drawer__label">Integrations</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content">
+        <div class="ds-page">
+          <header class="ds-page-head">
+            <div class="ds-page-head__row">
+              <div class="ds-page-head__text">
+                <h1 class="ds-page-head__title" tabindex="-1">Audit log</h1>
+                <p class="ds-page-head__lead">Every change and sign-in of the workspace, kept for a year.</p>
+              </div>
+              <div class="ds-page-head__actions">
+                <button class="ds-btn" type="button" id="export">
+                  <span class="ds-btn__faces"><span class="ds-btn__face" data-icon="download" data-icon-size="18" data-icon-place="start">Export</span>
+                    <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Exporting</span></span>
+                </button>
+              </div>
+            </div>
+          </header>
+
+          <section class="ds-card">
+            <div class="ds-auditlog" id="log" role="region" aria-label="Audit log">
+              <form class="ds-auditlog__filters" role="group" aria-label="Filter the log">
+                <div class="ds-search" data-icon="search" data-icon-place="start"><input class="ds-input" type="search" aria-label="Search the log" placeholder="Search the log" data-ds-auditlog-filter="text"></div>
+                <select class="ds-input ds-input--filled" aria-label="Who" data-ds-auditlog-filter="actor">
+                  <option value="">Everyone</option>
+                  <option value="ada">Ada Lovelace</option>
+                  <option value="grace">Grace Hopper</option>
+                  <option value="alan">Alan Turing</option>
+                  <option value="sync">Directory sync</option>
+                  <option value="api">API keys</option>
+                </select>
+                <input class="ds-input ds-input--filled" type="date" aria-label="From" data-ds-auditlog-filter="from" max="2026-11-06">
+                <fieldset class="ds-chips"><legend class="ds-sr">What</legend>
+                  <label class="ds-chip"><input class="ds-chip__input" type="checkbox" value="change" data-ds-auditlog-filter="kind"><span class="ds-chip__body"><svg class="ds-chip__check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M4 12l5 5L20 6"/></svg><span>Changes</span></span></label>
+                  <label class="ds-chip"><input class="ds-chip__input" type="checkbox" value="access" data-ds-auditlog-filter="kind"><span class="ds-chip__body"><svg class="ds-chip__check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M4 12l5 5L20 6"/></svg><span>Access</span></span></label>
+                  <label class="ds-chip"><input class="ds-chip__input" type="checkbox" value="sync" data-ds-auditlog-filter="kind"><span class="ds-chip__body"><svg class="ds-chip__check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M4 12l5 5L20 6"/></svg><span>Syncs</span></span></label>
+                </fieldset>
+                <button class="ds-btn ds-btn--text" type="reset">Clear</button>
+                <p class="ds-auditlog__count"></p>
+              </form>
+              <ol class="ds-timeline ds-timeline--activity" role="list" aria-label="Events"></ol>
+              <div class="ds-empty ds-empty--no-results" data-ds-auditlog-empty hidden>
+                <span class="ds-empty__disc" aria-hidden="true" data-icon="search" data-icon-size="24"></span>
+                <p class="ds-empty__title">No events match the filters</p>
+                <p class="ds-empty__text">Clear a filter, or start from an earlier day.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="ds-toasts" id="toasts"></div>
+
+<script src="ds/ds.audit-log.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  // What the API returns: the newest first. "Now" is fixed, so the day headings read the same on every load.
+  var ADA = { name: 'Ada Lovelace', id: 'ada' };
+  var GRACE = { name: 'Grace Hopper', id: 'grace' };
+  var ALAN = { name: 'Alan Turing', id: 'alan' };
+  var SYNC = { name: 'Directory sync', id: 'sync', icon: 'sync' };
+  var KEY = { name: 'Key "Nightly inventory export"', id: 'api', icon: 'globe' };
+  var WEB_ADA = 'Web · 10.20.4.17';
+  var WEB_GRACE = 'Web · 10.20.4.31';
+  var events = [
+    { id: 'e18', at: '2026-11-06T08:47:00', actor: GRACE, action: 'took', target: { label: 'LAPTOP-0051', href: 'record.html' }, source: WEB_GRACE, facets: { kind: 'change' },
+      changes: [{ field: 'Owner', before: null, after: 'Grace Hopper' }] },
+    { id: 'e17', at: '2026-11-06T08:20:00', actor: ADA, action: 'closed', target: 'ticket #1042', source: WEB_ADA, facets: { kind: 'change' },
+      changes: [{ field: 'Status', before: 'Open', after: 'Closed' }] },
+    { id: 'e16', at: '2026-11-06T08:02:00', actor: ADA, action: 'signed in', target: '', source: WEB_ADA, facets: { kind: 'access' } },
+    { id: 'e15', at: '2026-11-06T07:55:00', actor: ALAN, action: 'added', target: '4 devices', source: 'Import · devices.csv', facets: { kind: 'change' } },
+    { id: 'e14', at: '2026-11-06T07:30:00', actor: { name: 'Joan Clarke', id: 'joan' }, action: 'joined', target: 'the workspace', source: 'Invitation of 5 Nov', facets: { kind: 'access' } },
+    { id: 'e13', at: '2026-11-06T02:00:00', actor: KEY, action: 'exported', target: '1,312 devices', source: 'API · 203.0.113.8', facets: { kind: 'access' } },
+    { id: 'e12', at: '2026-11-06T02:00:00', actor: SYNC, action: 'checked', target: '1,204 people', source: 'Nightly job', facets: { kind: 'sync' }, muted: true, note: 'Nothing changed.' },
+    { id: 'e11', at: '2026-11-05T17:12:00', actor: GRACE, action: 'changed the role of', target: { label: 'Alan Turing', href: 'team.html' }, source: WEB_GRACE, facets: { kind: 'access' },
+      changes: [{ field: 'Role', before: 'Member', after: 'Administrator' }] },
+    { id: 'e10', at: '2026-11-05T16:40:00', actor: ADA, action: 'changed', target: { label: 'the settings', href: 'settings.html' }, source: WEB_ADA, facets: { kind: 'change' },
+      changes: [{ field: 'Sign out after', before: '1 day', after: '7 days' }, { field: 'Who may join', before: null, after: 'example.org' }] },
+    { id: 'e9', at: '2026-11-05T11:40:00', actor: GRACE, action: 'commented on', target: { label: 'LAPTOP-0042', href: 'record.html' }, source: WEB_GRACE, facets: { kind: 'change' },
+      note: 'Ada asked for a bigger disk; ordered one, arrives Monday.' },
+    { id: 'e8', at: '2026-11-05T09:03:00', actor: ALAN, action: 'tried to delete', target: { label: 'PRINTER-0003', href: 'record.html' }, source: 'Phone app', facets: { kind: 'change' },
+      status: { tone: 'error', text: 'Denied' }, note: 'Only an administrator can delete a device.' },
+    { id: 'e7', at: '2026-11-05T02:14:00', actor: SYNC, action: 'updated', target: 'Katherine Johnson', source: 'Nightly job', facets: { kind: 'sync' },
+      changes: [{ field: 'Team', before: 'Support', after: 'Research' }, { field: 'Phone', before: '+1 555 0100', after: null }] },
+    { id: 'e6', at: '2026-11-04T15:20:00', actor: ADA, action: 'revoked', target: { label: 'the key "Old export"', href: 'api-keys.html' }, source: WEB_ADA, facets: { kind: 'access' } },
+    { id: 'e5', at: '2026-11-04T10:02:00', actor: ALAN, action: 'signed in', target: '', source: 'Phone app', facets: { kind: 'access' }, status: { tone: 'warning', text: 'New device' } },
+    { id: 'e4', at: '2026-11-03T14:05:00', actor: ADA, action: 'connected', target: { label: 'Monitoring', href: 'integrations.html' }, source: WEB_ADA, facets: { kind: 'change' } },
+    { id: 'e3', at: '2026-11-03T09:30:00', actor: GRACE, action: 'changed', target: { label: 'LAPTOP-0042', href: 'record.html' }, source: WEB_GRACE, facets: { kind: 'change' },
+      changes: [{ field: 'Owner', before: 'Grace Hopper', after: 'Ada Lovelace' }, { field: 'Location', before: 'Building B, room 214', after: 'Building A, room 101' }] },
+    { id: 'e2', at: '2026-11-02T02:00:00', actor: SYNC, action: 'added', target: 'Joan Clarke', source: 'Nightly job', facets: { kind: 'sync' } },
+    { id: 'e1', at: '2026-11-01T18:44:00', actor: ADA, action: 'signed in', target: '', source: WEB_ADA, facets: { kind: 'access' }, status: { tone: 'error', text: 'Wrong code' }, note: 'The second step failed; the next try worked.' },
+  ];
+
+  DS.auditlog.create(document.getElementById('log'), { entries: events, now: '2026-11-06T09:12:00', timeZone: 'UTC', locale: 'en-GB', limit: 50 });
+
+  // The export runs on the server and arrives by email: the button is busy while it is asked for.
+  var exportButton = document.getElementById('export');
+  exportButton.addEventListener('click', function () {
+    DS.motion.busy(exportButton, new Promise(function (done) { setTimeout(done, 800); }), { done: false }).then(function () {
+      DS.overlay.toast(document.getElementById('toasts'), 'The export is on its way to ada@example.org.');
+    });
+  });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

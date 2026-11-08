@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Devices · Product</title>
+<meta name="pt-title" content="List with filters and saved views">
+<meta name="pt-need" content="A long list to search, filter, sort, page and act on in bulk, with views a person saves and shares">
+<meta name="pt-group" content="App pages">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.list.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<div class="ds-app ds-app--drawer" data-ds-shell="patterns">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" data-icon="menu"></button>
+    <a class="ds-brand" href="dashboard.html"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></a>
+    <div class="ds-topbar__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="#help" aria-label="Help" data-tip="Help" data-icon="helpCircle"></a>
+    </div>
+    <div class="ds-account">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+      <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+        <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+        <div class="ds-menu__divider" role="separator"></div>
+        <a class="ds-menu__item" role="menuitem" href="profile.html" data-icon="user" data-icon-place="start"><span class="ds-menu__label">Profile</span></a>
+        <a class="ds-menu__item" role="menuitem" href="sign-in.html" data-icon="logout" data-icon-place="start"><span class="ds-menu__label">Sign out</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></div>
+    <div class="ds-drawer__list">
+      <div class="ds-drawer__group">
+        <a class="ds-drawer__item" href="dashboard.html" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="list.html" aria-current="page" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="audit-log.html" data-icon="history" data-icon-place="start"><span class="ds-drawer__label">Audit log</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Administration</p>
+        <a class="ds-drawer__item" href="settings.html" data-icon="settings" data-icon-place="start"><span class="ds-drawer__label">Settings</span></a>
+        <a class="ds-drawer__item" href="team.html" data-icon="users" data-icon-place="start"><span class="ds-drawer__label">Team</span></a>
+        <a class="ds-drawer__item" href="permissions.html" data-icon="shield" data-icon-place="start"><span class="ds-drawer__label">Permissions</span></a>
+        <a class="ds-drawer__item" href="api-keys.html" data-icon="key" data-icon-place="start"><span class="ds-drawer__label">API keys</span></a>
+        <a class="ds-drawer__item" href="integrations.html" data-icon="puzzle" data-icon-place="start"><span class="ds-drawer__label">Integrations</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content">
+        <div class="ds-page">
+          <header class="ds-page-head" data-ds-page-head>
+            <div class="ds-page-head__row">
+              <div class="ds-page-head__text">
+                <h1 class="ds-page-head__title" tabindex="-1">Devices</h1>
+                <p class="ds-page-head__lead">Every laptop, desktop, phone and tablet, synced every night.</p>
+              </div>
+              <div class="ds-page-head__actions">
+                <button class="ds-btn ds-menu-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="export-menu" data-ds-menubutton="#export-menu" data-icon="download" data-icon-size="16" data-icon-place="start">Export<svg class="ds-chevron ds-menu-btn__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+                <div class="ds-menu" id="export-menu" role="menu" aria-label="Export" hidden>
+                  <button class="ds-menu__item" role="menuitem" type="button" data-export="CSV" data-icon="fileSpreadsheet" data-icon-place="start"><span class="ds-menu__label">CSV</span></button>
+                  <button class="ds-menu__item" role="menuitem" type="button" data-export="JSON" data-icon="fileJson" data-icon-place="start"><span class="ds-menu__label">JSON</span></button>
+                </div>
+                <a class="ds-btn ds-btn--filled" href="wizard.html" data-icon="plus" data-icon-size="18" data-icon-place="start">Add device</a>
+              </div>
+            </div>
+          </header>
+
+          <div class="ds-stack">
+            <div class="ds-cluster ds-cluster--between">
+              <div class="ds-views" id="views" data-ds-views data-ds-views-key="pattern-devices" data-ds-views-url="sync" data-ds-views-prefix="d.">
+                <button class="ds-btn ds-views__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="views-menu" data-ds-open="#views-menu" data-icon="layers" data-icon-place="start"><span class="ds-sr">View: </span><span class="ds-views__name">All devices</span>
+                  <span class="ds-views__edited" hidden>Edited</span><svg class="ds-views__chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+                <button class="ds-btn ds-btn--text ds-views__save" type="button" hidden>Save view</button>
+                <div class="ds-menu" id="views-menu" role="menu" aria-label="Views" hidden>
+                  <div class="ds-views__list" role="group" aria-label="Views">
+                    <button class="ds-menu__item" role="menuitemradio" aria-checked="false" type="button" data-ds-view="all" data-ds-view-default><svg class="ds-menu__check" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M4 12l5 5L20 6"/></svg><span class="ds-menu__label">All devices</span></button>
+                    <button class="ds-menu__item" role="menuitemradio" aria-checked="false" type="button" data-ds-view="offline" data-ds-view-state="status=offline&amp;sort=-seen"><svg class="ds-menu__check" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M4 12l5 5L20 6"/></svg><span class="ds-menu__label">Offline</span></button>
+                    <button class="ds-menu__item" role="menuitemradio" aria-checked="false" type="button" data-ds-view="laptops" data-ds-view-state="kind=laptop&amp;sort=name"><svg class="ds-menu__check" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M4 12l5 5L20 6"/></svg><span class="ds-menu__label">Laptops</span></button>
+                    <button class="ds-menu__item" role="menuitemradio" aria-checked="false" type="button" data-ds-view="mine" data-ds-view-state="mine=yes"><svg class="ds-menu__check" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M4 12l5 5L20 6"/></svg><span class="ds-menu__label">Mine</span></button>
+                  </div>
+                  <div class="ds-menu__divider" role="separator"></div>
+                  <button class="ds-menu__item" role="menuitem" type="button" data-ds-views-action="save" data-icon="save" data-icon-place="start"><span class="ds-menu__label">Save changes</span></button>
+                  <button class="ds-menu__item" role="menuitem" type="button" data-ds-views-action="create" data-icon="plus" data-icon-place="start"><span class="ds-menu__label">Save as new view …</span></button>
+                  <button class="ds-menu__item" role="menuitem" type="button" data-ds-views-action="rename" data-icon="pencil" data-icon-place="start"><span class="ds-menu__label">Rename …</span></button>
+                  <button class="ds-menu__item" role="menuitem" type="button" data-ds-views-action="default" data-icon="star" data-icon-place="start"><span class="ds-menu__label">Make default</span></button>
+                  <button class="ds-menu__item" role="menuitem" type="button" data-ds-views-action="share" data-icon="link" data-icon-place="start"><span class="ds-menu__label">Copy link</span></button>
+                  <div class="ds-menu__divider" role="separator"></div>
+                  <button class="ds-menu__item ds-menu__item--danger" role="menuitem" type="button" data-ds-views-action="delete" data-icon="trash" data-icon-place="start"><span class="ds-menu__label">Delete view</span></button>
+                </div>
+              </div>
+            </div>
+
+            <div class="ds-filterbar" id="filters" data-ds-filterbar data-ds-filterbar-sheet="#filters-sheet" role="search" aria-label="Filter devices">
+              <div class="ds-filterbar__row">
+                <div class="ds-search ds-filterbar__search" data-icon="search" data-icon-place="start">
+                  <input class="ds-input" type="search" name="q" aria-label="Search devices" placeholder="Search devices"></div>
+                <div class="ds-filterbar__filters">
+                  <div class="ds-field"><label class="ds-field__label" for="f-status">Status</label>
+                    <select class="ds-input" id="f-status" name="status"><option value="">Any</option><option value="online">Online</option><option value="offline">Offline</option><option value="repair">In repair</option></select></div>
+                  <div class="ds-field"><label class="ds-field__label" for="f-kind">Kind</label>
+                    <select class="ds-input" id="f-kind" name="kind"><option value="">Any</option><option value="laptop">Laptop</option><option value="desktop">Desktop</option><option value="phone">Phone</option><option value="tablet">Tablet</option></select></div>
+                  <label class="ds-check"><input type="checkbox" name="mine" value="yes" data-ds-filter-chip="value"><span>Only mine</span></label>
+                </div>
+                <button class="ds-btn ds-filterbar__more" type="button" aria-haspopup="dialog" data-icon="filter" data-icon-place="start">Filters<span class="ds-badge ds-filterbar__badge" hidden></span></button>
+                <p class="ds-filterbar__count"></p>
+              </div>
+              <div class="ds-filterbar__applied" hidden>
+                <div class="ds-chips ds-filterbar__chips" role="group" aria-label="Applied filters"></div>
+                <button class="ds-btn ds-btn--text ds-filterbar__clear" type="button">Clear all</button>
+              </div>
+            </div>
+
+            <div class="ds-toolbar">
+              <div class="ds-swap" id="bulk-slot">
+                <div class="ds-action-bar" id="list-bar">
+                  <p class="ds-meta" data-icon="sync" data-icon-size="16" data-icon-place="start">Synced <time datetime="2026-11-06T02:00">today, 02:00</time></p>
+                  <button class="ds-btn ds-btn--quiet ds-sm ds-push" type="button" id="refresh" data-icon="refresh" data-icon-size="16" data-icon-place="start">Refresh</button>
+                </div>
+              </div>
+            </div>
+
+            <section class="ds-card" aria-label="Devices">
+              <div class="ds-table-wrap" id="table-wrap">
+                <table class="ds-table ds-table--interactive">
+                  <caption class="ds-sr">Devices</caption>
+                  <thead><tr>
+                    <th scope="col"><input type="checkbox" id="select-all" aria-label="Select all devices on this page"></th>
+                    <th scope="col" data-sort="name" aria-sort="ascending"><button class="ds-table__sort" type="button">Device<svg class="ds-table__sort-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg></button></th>
+                    <th scope="col" class="ds-col--secondary">Kind</th>
+                    <th scope="col" class="ds-col--secondary" data-sort="owner"><button class="ds-table__sort" type="button">Owner</button></th>
+                    <th scope="col">Status</th>
+                    <th scope="col" class="ds-num" data-sort="seen"><button class="ds-table__sort" type="button">Last seen</button></th>
+                  </tr></thead>
+                  <tbody id="rows"></tbody>
+                </table>
+              </div>
+              <div class="ds-empty ds-empty--no-results" id="no-results" role="status" hidden>
+                <span class="ds-empty__disc" aria-hidden="true" data-icon="search" data-icon-size="24"></span>
+                <p class="ds-empty__title">No devices match</p>
+                <p class="ds-empty__text">Try other words, or clear the filters.</p>
+                <button class="ds-btn ds-btn--tonal" type="button" id="clear-filters">Clear filters</button>
+              </div>
+              <nav class="ds-pagination" id="pages" aria-label="Pages of devices">
+                <div class="ds-pagination__size">
+                  <label class="ds-pagination__label" for="per-page">Rows per page</label>
+                  <select class="ds-input ds-input--filled" id="per-page"><option>10</option><option selected>25</option><option>50</option></select>
+                </div>
+                <p class="ds-pagination__range" aria-live="polite" id="range"></p>
+                <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="First page" data-tip="First page" data-page="first" data-icon="chevronFirst"></button>
+                <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Previous page" data-tip="Previous page" data-page="prev" data-icon="chevronLeft"></button>
+                <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Next page" data-tip="Next page" data-page="next" data-icon="chevronRight"></button>
+                <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Last page" data-tip="Last page" data-page="last" data-icon="chevronLast"></button>
+              </nav>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<dialog class="ds-sheet" id="filters-sheet" aria-labelledby="filters-title">
+  <div class="ds-sheet__backdrop" data-ds-close></div>
+  <section class="ds-sheet__panel">
+    <div class="ds-sheet__head"><h2 class="ds-sheet__title" id="filters-title">Filters</h2>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close data-icon="close"></button></div>
+    <div class="ds-sheet__body" tabindex="0"></div>
+    <div class="ds-sheet__foot">
+      <button class="ds-btn ds-btn--text ds-filterbar__clear" type="button">Clear all</button>
+      <button class="ds-btn ds-btn--filled ds-filterbar__results" type="button" data-ds-close>Show results</button>
+    </div>
+  </section>
+</dialog>
+<div class="ds-toasts" id="toasts"></div>
+
+<template id="selection-bar">
+  <div class="ds-selection-bar" role="toolbar" aria-label="Selected devices">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Clear selection" data-tip="Clear selection" data-bulk="clear" data-icon="close"></button>
+    <p class="ds-selection-bar__count" aria-live="polite"></p>
+    <div class="ds-selection-bar__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-bulk="export" data-icon="download" data-icon-size="18" data-icon-place="start">Export</button>
+      <button class="ds-btn ds-btn--text" type="button" data-bulk="retire" data-icon="archive" data-icon-size="18" data-icon-place="start">Retire</button>
+    </div>
+  </div>
+</template>
+
+<script src="ds/ds.list.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  // A fake backend: 132 devices, the same on every load (a seeded random walk), "now" is 6 Nov 2026, 09:12.
+  var NOW = new Date(2026, 10, 6, 9, 12);
+  var PEOPLE = ['Ada Lovelace', 'Grace Hopper', 'Alan Turing', 'Joan Clarke', 'Katherine Johnson', 'Margaret Hamilton', 'Edsger Dijkstra', 'Barbara Liskov'];
+  var KINDS = { laptop: 'Laptop', desktop: 'Desktop', phone: 'Phone', tablet: 'Tablet' };
+  var seed = 7;
+  var random = function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  var devices = [];
+  for (var i = 1; i <= 132; i += 1) {
+    var kind = Object.keys(KINDS)[Math.floor(random() * 4)];
+    var roll = random();
+    var status = roll < 0.12 ? 'offline' : roll < 0.18 ? 'repair' : 'online';
+    var hoursAgo = status === 'offline' ? 72 + Math.floor(random() * 300) : Math.floor(random() * 30);
+    devices.push({
+      id: 'd' + i, name: kind.toUpperCase() + '-' + String(1000 + i * 7).slice(-4), kind: kind,
+      owner: PEOPLE[Math.floor(random() * PEOPLE.length)], status: status, seen: new Date(NOW.getTime() - hoursAgo * 3600000),
+    });
+  }
+
+  var rows = document.getElementById('rows');
+  var bar = DS.get(document.getElementById('filters'), 'filterbar');
+  var views = DS.get(document.getElementById('views'), 'views');
+  var toasts = document.getElementById('toasts');
+  var state = { sort: 'name', page: 1, perPage: 25 };
+  var selected = new Set();
+  var shown = [];
+
+  var esc = function (text) { return String(text).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var dayFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' });
+  var timeFormat = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' });
+  function seenText(date) {
+    if (date.toDateString() === NOW.toDateString()) return timeFormat.format(date);
+    return dayFormat.format(date);
+  }
+  // Status in words and an icon; the normal case (online) is plain text, a deviation a chip.
+  var STATUS = {
+    online: '<span class="ds-muted">Online</span>',
+    offline: '<span class="ds-status ds-tone-warning">' + DS.icons.icon(DS.icons.wifiOff, 16) + '<span>Offline</span></span>',
+    repair: '<span class="ds-status">' + DS.icons.icon(DS.icons.wrench, 16) + '<span>In repair</span></span>',
+  };
+
+  function matching() {
+    var filters = bar.get();
+    var words = (filters.q || []).join(' ').toLowerCase().split(/\s+/).filter(Boolean);
+    var list = devices.filter(function (d) {
+      if (filters.status && filters.status.indexOf(d.status) < 0) return false;
+      if (filters.kind && filters.kind.indexOf(d.kind) < 0) return false;
+      if (filters.mine && d.owner !== 'Ada Lovelace') return false;
+      var text = (d.name + ' ' + d.owner + ' ' + KINDS[d.kind]).toLowerCase();
+      return words.every(function (word) { return text.indexOf(word) >= 0; });
+    });
+    var key = state.sort.replace(/^-/, '');
+    var dir = state.sort.charAt(0) === '-' ? -1 : 1;
+    return list.sort(function (a, b) { return (a[key] > b[key] ? 1 : a[key] < b[key] ? -1 : 0) * dir; });
+  }
+
+  function rowHtml(d) {
+    var checked = selected.has(d.id);
+    return '<tr data-ds-key="' + d.id + '"' + (checked ? ' class="ds-table__row--selected"' : '') + '>' +
+      '<td><input type="checkbox" aria-label="Select ' + esc(d.name) + '" value="' + d.id + '"' + (checked ? ' checked' : '') + '></td>' +
+      '<td class="ds-col--text"><a class="ds-link-btn ds-table__row-link ds-nowrap" href="record.html">' + esc(d.name) + '</a></td>' +
+      '<td class="ds-col--secondary">' + KINDS[d.kind] + '</td>' +
+      '<td class="ds-col--secondary">' + esc(d.owner) + '</td>' +
+      '<td>' + STATUS[d.status] + '</td>' +
+      '<td class="ds-num"><time datetime="' + d.seen.toISOString() + '">' + seenText(d.seen) + '</time></td></tr>';
+  }
+
+  var tableWrap = document.getElementById('table-wrap');
+  var empty = document.getElementById('no-results');
+  var pages = document.getElementById('pages');
+  var range = document.getElementById('range');
+  var number = new Intl.NumberFormat('en-GB');
+  var arrow = document.querySelector('.ds-table__sort-arrow');
+
+  // One render for every change: the rows of the page (keyed, so they glide), the header box, the range and its buttons.
+  function render(options) {
+    var list = matching();
+    var last = Math.max(1, Math.ceil(list.length / state.perPage));
+    state.page = Math.min(state.page, last);
+    var from = (state.page - 1) * state.perPage;
+    shown = list.slice(from, from + state.perPage);
+    DS.motion.flip(rows, function (o) { DS.dom.morphHtml(rows, shown.map(rowHtml).join(''), o); }, { items: 'tr' });
+    var none = list.length === 0;
+    if (none && empty.hidden) DS.motion.enter(empty, 'fade');
+    empty.hidden = !none;
+    tableWrap.hidden = none;
+    pages.hidden = none;
+    range.textContent = none ? '' : number.format(from + 1) + '–' + number.format(from + shown.length) + ' of ' + number.format(list.length);
+    pages.querySelectorAll('[data-page]').forEach(function (button) {
+      var back = /first|prev/.test(button.getAttribute('data-page'));
+      button.setAttribute('aria-disabled', String(back ? state.page === 1 : state.page === last));
+    });
+    // The arrow stands at the sorted column only; the same node moves there, and descending turns it.
+    document.querySelectorAll('th[data-sort]').forEach(function (th) {
+      var key = th.getAttribute('data-sort');
+      var button = th.querySelector('.ds-table__sort');
+      if (state.sort.replace(/^-/, '') === key) {
+        th.setAttribute('aria-sort', state.sort.charAt(0) === '-' ? 'descending' : 'ascending');
+        if (!button.contains(arrow)) {
+          if (th.classList.contains('ds-num')) button.prepend(arrow); else button.append(arrow);
+        }
+      } else th.removeAttribute('aria-sort');
+    });
+    syncSelection();
+    bar.count(list.length, { one: '{count} device', other: '{count} devices' });
+    if (!(options && options.quiet)) views.set({ state: { filters: bar.get(), sort: state.sort } });
+  }
+
+  // The saved view in force: its filters and sort; a new view starts at page 1.
+  function apply(viewState) {
+    bar.clear();
+    bar.set((viewState && viewState.filters) || {});
+    state.sort = (viewState && viewState.sort) || 'name';
+    state.page = 1;
+    render({ quiet: true });
+  }
+  views.on('view', function (detail) { apply(detail.state); });
+  bar.on('change', function () { state.page = 1; render(); });
+
+  document.querySelector('thead').addEventListener('click', function (event) {
+    var button = event.target.closest('.ds-table__sort');
+    if (!button) return;
+    var key = button.closest('th').getAttribute('data-sort');
+    state.sort = state.sort === key ? '-' + key : key;
+    render();
+  });
+  pages.addEventListener('click', function (event) {
+    var button = event.target.closest('[data-page]');
+    if (!button || button.getAttribute('aria-disabled') === 'true') return;
+    var last = Math.max(1, Math.ceil(matching().length / state.perPage));
+    var to = { first: 1, prev: state.page - 1, next: state.page + 1, last: last }[button.getAttribute('data-page')];
+    state.page = Math.max(1, Math.min(last, to));
+    render({ quiet: true });
+  });
+  document.getElementById('per-page').addEventListener('change', function (event) {
+    state.perPage = Number(event.target.value);
+    state.page = 1;
+    render({ quiet: true });
+  });
+  document.getElementById('clear-filters').addEventListener('click', function () {
+    bar.clear();
+    state.page = 1;
+    render();
+    document.querySelector('#filters input[type="search"]').focus();
+  });
+
+  // Selection: the boxes of the rows, the header box (mixed for some), and the bar that takes the toolbar's slot.
+  var slot = document.getElementById('bulk-slot');
+  var listBar = document.getElementById('list-bar');
+  var selectionBar = null;
+  var all = document.getElementById('select-all');
+  function syncSelection() {
+    var onPage = shown.filter(function (d) { return selected.has(d.id); }).length;
+    all.checked = onPage > 0 && onPage === shown.length;
+    all.indeterminate = onPage > 0 && onPage < shown.length;
+    if (selected.size && !selectionBar) {
+      selectionBar = document.getElementById('selection-bar').content.firstElementChild.cloneNode(true);
+      DS.icons.fill(selectionBar);
+      DS.motion.crossfade(slot, selectionBar);
+    } else if (!selected.size && selectionBar) {
+      selectionBar = null;
+      DS.motion.crossfade(slot, listBar);
+    }
+    if (selectionBar) selectionBar.querySelector('.ds-selection-bar__count').textContent = selected.size + ' selected';
+  }
+  rows.addEventListener('change', function (event) {
+    var box = event.target;
+    if (box.checked) selected.add(box.value); else selected.delete(box.value);
+    box.closest('tr').classList.toggle('ds-table__row--selected', box.checked);
+    syncSelection();
+  });
+  all.addEventListener('change', function () {
+    shown.forEach(function (d) { if (all.checked) selected.add(d.id); else selected.delete(d.id); });
+    render({ quiet: true });
+  });
+  slot.addEventListener('click', function (event) {
+    var action = event.target.closest('[data-bulk]');
+    if (!action) return;
+    var kind = action.getAttribute('data-bulk');
+    var count = selected.size;
+    if (kind === 'clear') {
+      selected.clear();
+      render({ quiet: true });
+      all.focus();
+    } else if (kind === 'export') {
+      DS.overlay.toast(toasts, 'Exporting ' + count + (count === 1 ? ' device.' : ' devices.'));
+    } else if (kind === 'retire') {
+      // Retired at once, with Undo: no question first, since nothing is lost.
+      var gone = devices.filter(function (d) { return selected.has(d.id); });
+      devices = devices.filter(function (d) { return !selected.has(d.id); });
+      selected.clear();
+      render({ quiet: true });
+      all.focus();
+      DS.overlay.toast(toasts, count + (count === 1 ? ' device retired.' : ' devices retired.'), {
+        action: { label: 'Undo', onClick: function () { devices = devices.concat(gone); render({ quiet: true }); } },
+      });
+    }
+  });
+
+  document.getElementById('export-menu').addEventListener('click', function (event) {
+    var item = event.target.closest('[data-export]');
+    if (item) DS.overlay.toast(toasts, 'The ' + item.getAttribute('data-export') + ' file is on its way to your email.');
+  });
+
+  // Refresh: the rows stay, dimmed after the loader delay under the loading bar, then the new ones glide in.
+  document.getElementById('refresh').addEventListener('click', function () {
+    var card = tableWrap.closest('.ds-card');
+    DS.motion.refresh(card, function () { return new Promise(function (done) { setTimeout(done, 800); }); }).then(function () {
+      render({ quiet: true });
+      DS.overlay.announce('Devices are up to date.');
+    });
+  });
+
+  apply(views.get().state);
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>
