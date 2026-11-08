@@ -1249,11 +1249,15 @@
   }
 
   /* A choice of the visitor's own colour goes through the generator; a preset is a file that ships. */
+  /* The latest choice wins: a colour that waits for the generator never lands over a choice made after it. */
+  let themeTurn = 0;
   async function chooseTheme(next) {
+    const turn = ++themeTurn;
     const choice = { ...DemoTheme.saved(), ...next };
     if (!choice.preset) {
       try {
         const tool = await loadGenerator();
+        if (turn !== themeTurn) return;
         const result = tool.generateTheme({ seed: choice.seed, scheme: choice.scheme, contrast: choice.contrast, name: 'tour' });
         themeCss = result.css;
         const moved = result.moves.length;

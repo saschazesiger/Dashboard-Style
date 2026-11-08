@@ -384,7 +384,8 @@ test('the theme: a preset swaps the file, a colour of your own goes through the 
   const primary = () => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--ds-primary').trim());
   const before = await primary();
   await expect(page.locator('#theme-code')).toContainText('default preset');
-  await page.locator('#theme-seeds input[value="ocean"]').check({ force: true });
+  await page.locator('#theme-seeds label', { hasText: 'Ocean' }).click();
+  await expect(page.locator('#theme-seeds input[value="ocean"]')).toBeChecked();
   await expect(page.locator('#demo-preset')).toHaveAttribute('href', '../dist/themes/presets/ocean.css');
   await expect.poll(primary).not.toBe(before);
   await expect(page.locator('#theme-code')).toContainText('presets/ocean.css');

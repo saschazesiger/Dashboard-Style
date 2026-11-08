@@ -711,7 +711,7 @@
     },
     {
       "name": "command",
-      "reason": "demo.js:1364 DS.command.create"
+      "reason": "demo.js:1368 DS.command.create"
     },
     {
       "name": "composer",
@@ -859,7 +859,7 @@
     },
     {
       "name": "shell",
-      "reason": "demo.js:1303 DS.shell.setScheme"
+      "reason": "demo.js:1307 DS.shell.setScheme"
     },
     {
       "name": "sort",
@@ -1101,7 +1101,7 @@
     },
     {
       "name": "play",
-      "reason": "demo.js:1373"
+      "reason": "demo.js:1377"
     },
     {
       "name": "pause",
@@ -1193,7 +1193,7 @@
     },
     {
       "name": "info",
-      "reason": "demo.js:1375"
+      "reason": "demo.js:1379"
     },
     {
       "name": "helpCircle",
@@ -1209,7 +1209,7 @@
     },
     {
       "name": "clock",
-      "reason": "demo.js:1372"
+      "reason": "demo.js:1376"
     },
     {
       "name": "ban",
@@ -1253,15 +1253,15 @@
     },
     {
       "name": "sun",
-      "reason": "demo.js:1367"
+      "reason": "demo.js:1371"
     },
     {
       "name": "moon",
-      "reason": "demo.js:1368"
+      "reason": "demo.js:1372"
     },
     {
       "name": "overview",
-      "reason": "demo.js:1378"
+      "reason": "demo.js:1382"
     },
     {
       "name": "apps",
@@ -1281,7 +1281,7 @@
     },
     {
       "name": "barChart",
-      "reason": "demo.js:1374"
+      "reason": "demo.js:1378"
     },
     {
       "name": "settings",
@@ -1329,7 +1329,7 @@
     },
     {
       "name": "fileCode",
-      "reason": "demo.js:1377"
+      "reason": "demo.js:1381"
     },
     {
       "name": "folder",
@@ -1349,11 +1349,11 @@
     },
     {
       "name": "laptop",
-      "reason": "demo.js:1379"
+      "reason": "demo.js:1383"
     },
     {
       "name": "monitor",
-      "reason": "demo.js:1369"
+      "reason": "demo.js:1373"
     },
     {
       "name": "hardDrive",
@@ -1381,7 +1381,7 @@
     },
     {
       "name": "image",
-      "reason": "demo.js:1339"
+      "reason": "demo.js:1343"
     },
     {
       "name": "leaf",
@@ -1965,7 +1965,7 @@
     },
     {
       "name": "palette",
-      "reason": "demo.js:1370"
+      "reason": "demo.js:1374"
     },
     {
       "name": "brush",
@@ -2053,7 +2053,7 @@
     },
     {
       "name": "zap",
-      "reason": "demo.js:1371"
+      "reason": "demo.js:1375"
     },
     {
       "name": "scrollText",
@@ -2328,8 +2328,8 @@
     "ds-presence-dot--offline": "demo.js:1077",
     "ds-presence-dot--online": "demo.js:1077",
     "ds-presence-label": "demo.js:1085",
-    "ds-pressable": "demo.js:1321",
-    "ds-pressable--inset": "demo.js:1321",
+    "ds-pressable": "demo.js:1325",
+    "ds-pressable--inset": "demo.js:1325",
     "ds-priority-bar": "index.html:193",
     "ds-progress": "demo.js:442",
     "ds-progress--flat": "demo.js:442",
@@ -2339,7 +2339,7 @@
     "ds-progress__track": "demo.js:442",
     "ds-prose": "demo.js:1150",
     "ds-prose--compact": "demo.js:1150",
-    "ds-radio": "demo.js:1276",
+    "ds-radio": "demo.js:1280",
     "ds-radio--disabled": "index.html:279",
     "ds-radio__note": "index.html:280",
     "ds-radios": "index.html:274",
