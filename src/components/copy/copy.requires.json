@@ -1,4 +1,5 @@
 {
   "requires": ["toast", "utilities"],
-  "exportRequires": {}
+  "exportRequires": {},
+  "attributes": ["data-ds-copy"]
 }

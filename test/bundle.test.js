@@ -175,6 +175,13 @@ describe('tools/bundle.mjs: globs and scan', () => {
     assert.deepEqual(scan.unknown.map((entry) => entry.name), ['ds-unknown-thing']);
     assert.deepEqual(scan.partials, []);
   });
+
+  it('reads DS.init, DS.get, DS.define and DS.config as the core\'s, which every classic bundle puts on DS itself', () => {
+    const copy = loadCopy({ dist: join(ROOT, 'dist') });
+    const scan = scanText('DS.init(document); DS.get(el, "otp"); DS.define("x", {}); DS.config({ locale: "en" });', 'a.js', copy);
+    assert.deepEqual(scan.unknown, []);
+    assert.deepEqual(scan.uses.map((use) => `${use.kind}:${use.module}.${use.name}`), ['export:core.init', 'export:core.get', 'export:core.define', 'export:core.config']);
+  });
 });
 
 describe('tools/bundle.mjs: the fixture projects', () => {

@@ -58,6 +58,8 @@ const CONFIG_KEYS = ['$schema', 'content', 'out', 'entries', 'safelist', 'minify
 const SKIP_DIRS = new Set(['node_modules', '.git']);
 /** Icon helpers of the icons module: exports that are not glyphs. */
 const ICON_HELPERS = new Set(['icon', 'iconElement', 'fill', 'ICON_SIZE']);
+/** The exports of the core that ds.js and every classic bundle also put on DS itself: DS.init(document). */
+const CORE_ALIASES = new Set(['init', 'get', 'define', 'config']);
 
 const posix = (path) => path.split(sep).join('/');
 const unique = (list) => [...new Set(list)];
@@ -313,6 +315,10 @@ export function scanText(text, file, copy) {
   for (const match of text.matchAll(/(?<![\w$])DS\s*\.\s*([A-Za-z_$][\w$]*)(?:\s*\.\s*([A-Za-z_$][\w$]*)|\s*\[\s*(['"])([\w$]+)\3\s*\]|(\s*\[))?/g)) {
     const [, module, dotted, , quoted, dynamic] = match;
     if (module === 'version') continue;
+    if (CORE_ALIASES.has(module) && copy.modules.get('core')?.exports?.includes(module)) {
+      use('export', module, match.index, { module: 'core' });
+      continue;
+    }
     if (!copy.modules.has(module)) {
       unknown.push({ kind: 'module', name: `DS.${module}`, line: line(match.index) });
       continue;
