@@ -238,9 +238,11 @@ export function reactDist(context) {
     files.set(`react/${name}.js`, rewriteReactImports(source));
     files.set(`react/${name}.d.ts`, rewriteReactImports(read(`src/react/${name}.d.ts`)));
     manifest[`react/${name}.js`] = { exports, components: REACT_HAND[name].components, modules: importedModules(source), generated: false };
-    if (name !== 'shared' && exports.length) {
-      index.push(`export { ${exports.join(', ')} } from './${name}.js';`);
-      indexTypes.push(`export { ${exports.join(', ')} } from './${name}.js';`);
+    // Of the shared part only Icon is a component; the rest are the helpers of the generated modules.
+    const listed = name === 'shared' ? exports.filter((id) => id === 'Icon') : exports;
+    if (listed.length) {
+      index.push(`export { ${listed.join(', ')} } from './${name}.js';`);
+      indexTypes.push(`export { ${listed.join(', ')} } from './${name}.js';`);
     }
   }
   for (const name of Object.keys(REACT_HAND)) if (!hand.includes(name)) throw new Error(`scripts/react.mjs: REACT_HAND names ${name}, but src/react/${name}.js is missing`);
