@@ -1043,13 +1043,14 @@ It prints `<file>:<line> <rule> <message>` per finding (warnings say so) and exi
 configuration. An exception silences one rule for a file (a path or a glob) and, when it names one, a selector; its
 `reason` is required. `themesWith` (optional) names the shipped themes your theme is used with; the `themes` rule passes
 them to `check-theme.mjs --with`. `major` is the major version the config and the project are for: the `vendor` rule
-fails when the copy has another one (a 2.x project on a 3.0 copy: [migration.md](migration.md)) and warns when the
-config names none. `bundle` (optional) is the config of the project bundle ([bundle.md](bundle.md)); the `bundle`
+fails when the copy has another one (a 2.x project on a 3.0 copy: [migration.md](migration.md)), and when the
+config names none on a copy of 3.0 or later (no 2.x config names it, so such a config predates 3.0); on an older copy
+none only warns. `bundle` (optional) is the config of the project bundle ([bundle.md](bundle.md)); the `bundle`
 rule runs `tools/bundle.mjs --check` on it with this copy.
 
 | Rule | Level | What |
 |---|---|---|
-| `vendor` | error, warning | the copy verifies against its `SHA256SUMS` ("Verify a copy"), and `major` is the copy's major version (none: a warning) |
+| `vendor` | error, warning | the copy verifies against its `SHA256SUMS` ("Verify a copy"), and `major` is the copy's major version (none: an error on a 3.0 copy or later, a warning before) |
 | `classes` | error | every `ds-` class in markup (`class="..."` in pages and template strings), in selectors of scripts and stylesheets and in `classList` calls exists in `ds.css`; a page that links single stylesheets (`css/components/*.css`) links one that defines it: a file whose rules style the class itself, not one that only places it inside another component (`.ds-alert .ds-btn` in `alert.css`); `.ds-theme` needs `css/core/tokens.css`; the `.min.css` of a stylesheet counts as the stylesheet |
 | `deprecated` | error, warning | a name of `deprecations.json`: removed names fail, deprecated ones warn |
 | `literals` | error | a colour, radius, font, shadow, duration or curve literal in a rule of your prefix (`.app-*`): read tokens (`--ds-*`, `--app-*`). `linear` is the curve of the system's loops and has no token: it passes on a `--ds-loop-*` duration (`animation: ds-spin var(--ds-loop-spin) linear infinite`), as do a zero duration (`0s`) and its curve |

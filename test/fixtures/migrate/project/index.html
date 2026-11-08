@@ -9,78 +9,96 @@
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-  <div class="ds-app">
-    <main class="ds-view" id="main">
-      <header class="ds-page-head">
-        <h1 class="ds-page-head__title">Devices</h1>
-        <div class="app-toolbar">
-          <button class="ds-btn ds-btn--sm" type="button" id="refresh">Refresh</button>
-          <button class="ds-btn ds-btn--primary" type="button" data-open-dialog="add-device">Add device</button>
+  <div class="ds-app ds-app--drawer">
+    <a class="ds-skip" href="#main">Skip to content</a>
+    <div class="ds-topbar">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false"><svg aria-hidden="true"></svg></button>
+      <a class="ds-brand" href="/"><span class="ds-brand__name">Product</span></a>
+    </div>
+    <div class="ds-scrim"></div>
+    <nav class="ds-drawer" aria-label="Main" tabindex="-1">
+      <div class="ds-drawer__list">
+        <div class="ds-drawer__group">
+          <p class="ds-drawer__heading">Inventory</p>
+          <a class="ds-drawer__item" href="/" aria-current="page"><svg aria-hidden="true"></svg><span class="ds-drawer__label">Devices</span></a>
+          <a class="ds-drawer__item" href="tickets.html"><svg aria-hidden="true"></svg><span class="ds-drawer__label">Tickets</span></a>
         </div>
-      </header>
-
-      <div class="ds-alert ds-alert--error" role="alert">
-        <span class="ds-alert__text">Two devices did not report in the last hour.</span>
       </div>
+    </nav>
+    <div class="ds-panel">
+      <main class="ds-view" id="main" tabindex="-1">
+        <div class="ds-content"><div class="ds-page">
+          <header class="ds-page-head">
+            <h1 class="ds-page-head__title">Devices</h1>
+            <div class="app-toolbar">
+              <button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Filter" data-tip="Filter"><svg aria-hidden="true"></svg></button>
+              <button class="ds-btn ds-btn--sm" type="button" id="refresh">Refresh</button>
+              <button class="ds-btn ds-btn--primary" type="button" data-open-dialog="add-device">Add device</button>
+            </div>
+          </header>
 
-      <section class="ds-card app-panel">
-        <h2 class="ds-card__title">Fleet</h2>
-        <div class="ds-subsection">
-          <ul class="ds-kv-list">
-            <li><div class="ds-kv-list__row"><span>Backup</span><strong><span class="ds-kv-list__icon ds-kv-list__icon--ok" aria-hidden="true"></span><span class="ds-sr">Passed:</span> Today, 02:00</strong></div></li>
-            <li><div class="ds-kv-list__row"><span>Storage</span><strong><span class="ds-kv-list__icon ds-kv-list__icon--warning" aria-hidden="true"></span><span class="ds-sr">Warning:</span> 82% used</strong></div></li>
+          <div class="ds-alert ds-alert--error" role="alert"><svg aria-hidden="true"></svg><span class="ds-alert__text">Two devices did not report in the last hour.</span></div>
+
+          <section class="ds-card app-panel">
+            <h2 class="ds-card__title">Fleet</h2>
+            <div class="ds-subsection">
+              <ul class="ds-kv-list">
+                <li><div class="ds-kv-list__row"><span>Backup</span><strong><svg class="ds-kv-list__icon ds-kv-list__icon--ok" aria-hidden="true"></svg><span class="ds-sr">Passed:</span> Today, 02:00</strong></div></li>
+                <li><div class="ds-kv-list__row"><span>Storage</span><strong><svg class="ds-kv-list__icon ds-kv-list__icon--warning" aria-hidden="true"></svg><span class="ds-sr">Warning:</span> 82% used</strong></div></li>
+              </ul>
+              <span class="ds-meter ds-meter--warning" role="meter" aria-label="Storage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="82" aria-valuetext="82% used"></span>
+            </div>
+            <a class="ds-more" href="#all">All devices</a>
+          </section>
+
+          <div class="ds-table-wrap">
+            <table class="ds-table ds-table--dense">
+              <thead><tr><th scope="col">Device</th><th scope="col">Owner</th><th scope="col">Status</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>Gateway 12</td>
+                  <td><span class="ds-avatar ds-avatar--sm" aria-hidden="true">AL</span> Ada Lovelace</td>
+                  <td><span class="ds-status ds-status--ok">Online</span> <span class="ds-badge ds-badge--ok">Updated</span></td>
+                </tr>
+                <tr>
+                  <td>Sensor 4</td>
+                  <td><span class="ds-avatar ds-avatar--sm" aria-hidden="true">AL</span> Ada Lovelace</td>
+                  <td><span class="ds-status ds-status--warning">Late</span> <span class="ds-tag ds-tag--neutral">Lab</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <ul class="ds-legend">
+            <li><span class="ds-legend__key ds-legend__key--neutral"></span> Idle</li>
+            <li><span class="ds-legend__key ds-legend__key--error"></span> Offline</li>
           </ul>
-          <div class="ds-meter ds-meter--warning" role="meter" aria-label="Storage" aria-valuenow="82" aria-valuemin="0" aria-valuemax="100"><span class="ds-meter__fill" style="--ds-share: .82"></span></div>
-        </div>
-        <a class="ds-more" href="#all">All devices</a>
-      </section>
 
-      <div class="ds-table-wrap">
-        <table class="ds-table ds-table--dense">
-          <thead><tr><th scope="col">Device</th><th scope="col">Owner</th><th scope="col">Status</th></tr></thead>
-          <tbody>
-            <tr>
-              <td>Gateway 12</td>
-              <td><span class="ds-avatar ds-avatar--sm" aria-hidden="true">AL</span> Ada Lovelace</td>
-              <td><span class="ds-status ds-status--ok">Online</span> <span class="ds-badge ds-badge--ok">Updated</span></td>
-            </tr>
-            <tr>
-              <td>Sensor 4</td>
-              <td><span class="ds-avatar ds-avatar--sm" aria-hidden="true">AL</span> Ada Lovelace</td>
-              <td><span class="ds-status ds-status--warning">Late</span> <span class="ds-tag ds-tag--neutral">Lab</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <ul class="ds-legend">
-        <li><span class="ds-legend__key ds-legend__key--neutral"></span> Idle</li>
-        <li><span class="ds-legend__key ds-legend__key--error"></span> Offline</li>
-      </ul>
-
-      <p class="app-loading"><span class="ds-spinner ds-spinner--sm" aria-hidden="true"></span> Loading devices</p>
-      <div class="ds-loader ds-loader--sm" role="status" aria-label="Loading"></div>
-    </main>
+          <p class="app-loading"><span class="ds-spinner ds-spinner--sm" aria-hidden="true"></span> Loading devices</p>
+          <div class="ds-loader ds-loader--sm" role="status" aria-label="Loading"></div>
+        </div></div>
+      </main>
+    </div>
   </div>
 
   <dialog class="ds-dialog ds-dialog--wide" id="add-device" aria-labelledby="add-device-title">
+    <div class="ds-dialog__backdrop" data-close></div>
     <form class="ds-dialog__box" method="dialog">
-      <header class="ds-dialog__head">
-        <h2 class="ds-dialog__title" id="add-device-title">Add device</h2>
-        <button class="ds-icon-btn" type="button" data-close aria-label="Close"><svg aria-hidden="true"></svg></button>
-      </header>
+      <h2 class="ds-dialog__title" id="add-device-title">Add device</h2>
       <div class="ds-dialog__body">
-        <label class="ds-label" for="disk">Disk</label>
-        <div class="ds-input-group">
-          <input class="ds-input" id="disk" inputmode="numeric">
-          <span class="ds-input-group__affix" aria-hidden="true">GB</span>
+        <div class="ds-field">
+          <label class="ds-field__label" for="disk">Disk</label>
+          <div class="ds-input-group">
+            <input class="ds-input" id="disk" inputmode="numeric">
+            <span class="ds-input-group__affix" aria-hidden="true">GB</span>
+          </div>
         </div>
-        <label class="ds-check ds-check--sm"><input type="checkbox"> Notify the owner</label>
+        <label class="ds-check ds-check--sm"><input type="checkbox"><span>Notify the owner</span></label>
       </div>
-      <footer class="ds-dialog__foot">
-        <button class="ds-btn" type="button" data-close>Cancel</button>
+      <div class="ds-dialog__actions">
+        <button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button>
         <button class="ds-btn ds-btn--primary ds-btn--sm" type="submit">Add</button>
-      </footer>
+      </div>
     </form>
   </dialog>
 

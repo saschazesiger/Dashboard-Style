@@ -22,15 +22,22 @@
         <span class="ds-badge ds-badge--neutral">Draft</span> Replace the lobby display
       </li>
     </ul>
-    <ol class="ds-columns__plot" aria-hidden="true">
-      <li class="ds-columns__col ds-columns__col--warning"><span class="ds-columns__fill"></span></li>
-      <li class="ds-columns__col ds-columns__col--error"><span class="ds-columns__fill"></span></li>
-    </ol>
+    <figure class="ds-columns">
+      <figcaption class="ds-sr">Tickets per state</figcaption>
+      <ol class="ds-columns__plot">
+        <li class="ds-columns__col ds-columns__col--warning"><span class="ds-columns__value">4</span><span class="ds-columns__fill" style="--ds-share: .4"></span><span class="ds-columns__label">Waiting</span></li>
+        <li class="ds-columns__col ds-columns__col--error"><span class="ds-columns__value">2</span><span class="ds-columns__fill" style="--ds-share: .2"></span><span class="ds-columns__label">Overdue</span></li>
+      </ol>
+    </figure>
     <div class="ds-alert ds-alert--warning"><span class="ds-alert__text">Two tickets wait for a reply.</span></div>
     <span class="ds-avatar ds-avatar--lg" aria-hidden="true">AL</span>
-    <div class="ds-meter ds-meter--error" role="meter" aria-label="Overdue share" aria-valuenow="12" aria-valuemin="0" aria-valuemax="100"><span class="ds-meter__fill" style="--ds-share: .12"></span></div>
-    <span class="ds-kv-list__icon ds-kv-list__icon--error" aria-hidden="true"></span>
-    <span class="ds-legend__key ds-legend__key--warning"></span>
+    <span class="ds-meter ds-meter--error" role="meter" aria-label="Overdue share" aria-valuemin="0" aria-valuemax="100" aria-valuenow="12" aria-valuetext="12% overdue"></span>
+    <ul class="ds-kv-list">
+      <li><div class="ds-kv-list__row"><span>Escalated</span><strong><svg class="ds-kv-list__icon ds-kv-list__icon--error" aria-hidden="true"></svg><span class="ds-sr">Error:</span> 1</strong></div></li>
+    </ul>
+    <ul class="ds-legend">
+      <li><span class="ds-legend__key ds-legend__key--warning"></span> Waiting</li>
+    </ul>
   </main>
   <script type="module" src="js/charts.mjs"></script>
 </body>

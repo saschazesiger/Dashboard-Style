@@ -19,31 +19,39 @@
  *              a renamed custom property or keyframe, wherever it is named
  *   attribute  a renamed attribute (data-close -> data-ds-close), in markup,
  *              selectors, strings and dataset (dataset.close -> dataset.dsClose)
- *   export     a renamed function: member calls (.detach() -> .destroy()),
- *              named imports (import { createIndicator } -> import { create as
- *              createIndicator }) and destructuring
+ *   export     a renamed function: member calls (.createIndicator() ->
+ *              .create()), named imports of its module (import {
+ *              createIndicator } from '<copy>/js/indicator.js' -> import {
+ *              create as createIndicator }) and destructuring of DS.<module>;
+ *              a handle's method (.detach() -> .destroy()) only on a name the
+ *              file binds from DS.ripple.attach(), every other call is listed
  *   strings    the renamed event (ds-close -> ds:close) and variant strings
  *              ('fill-x' -> 'fill'), and settleLoader(t, now) -> settleLoader(t, { now })
  *   paths      the core stylesheets of the copy moved: <copy>/css/tokens.css
  *              -> <copy>/css/core/tokens.css (base and motion too), in links
- *              and imports that name the copy (its folder, or dashboard-style)
+ *              and imports that name the copy (its folder, or dashboard-style,
+ *              in any case, with or without dist/); any other path to a
+ *              css/tokens.css (base, motion) is listed
  *
  * Everything else a deprecations.json entry finds is listed for a person
  * with its note: changed markup, removed exports and tokens without a
  * replacement, a per-size hook (whose value the size option now computes
  * from the base hook), a class built at run time from a removed prefix
- * ('ds-badge--' + kind). So are the 3.0 changes no name shows: an ES module
- * import of DS.overlay's toast(), confirm() or tooltips() without the
- * module that now holds it, and project rules in @layer ds.components. A
- * rewrite that a wide pattern finds (any detach() call) is made and listed
- * under "review". With --config, the files are those of ds-check.json
- * (css, js, html, themes) and its "major" is set to the copy's.
+ * ('ds-badge--' + kind), a hook that a rewritten selector now sets under an
+ * option class (.ds-table--dense { --ds-table-row-height } -> under
+ * .ds-density-tight, which check-project's options rule rejects). So are
+ * the 3.0 changes no name shows: an ES module import of DS.overlay's
+ * toast(), confirm() or tooltips() without the module that now holds it,
+ * and project rules in @layer ds.components. A rewrite that a wide pattern
+ * finds is made and listed under "review". With --config, the files are
+ * those of ds-check.json (css, js, html, themes) and its "major" is set to
+ * the copy's.
  *
  * Without --write it is a dry run: a unified diff of every change, then the
  * report. Files are those named (folders are walked for the extensions of
  * EXTENSIONS), or the current folder; node_modules, .git, vendored copies
- * (a folder with SHA256SUMS and deprecations.json), minified files and
- * files the system wrote (its banner) are skipped.
+ * (a folder with SHA256SUMS and deprecations.json), symbolic links,
+ * minified files and files the system wrote (its banner) are skipped.
  *
  * Exit codes: 0 nothing left to do; 1 a dry run that would change files or
  * found something for a person, or a --write run that left something for a
@@ -83,7 +91,9 @@ const SPECIAL = {
   'ds-fill-x': { review: 'the mark sets --ds-share (its share, 0 to 1) instead of its own scaleX(); .ds-enter--fill plays it' },
   'ds-fill-y': { review: 'the mark sets --ds-share (its share, 0 to 1) instead of its own scaleY(); .ds-enter--fill plays it' },
   '.ds-input-group__affix': { review: 'a slot before the input is .ds-input-group__prefix; the tool wrote the suffix' },
-  'detach()': { type: 'export', from: 'detach', to: 'destroy', review: 'any detach() call: keep it where the handle is not DS.ripple.attach()\'s' },
+  // No module exports detach(): it is a method of the handle that DS.ripple.attach() returns, so only a name bound from
+  // attach() in the same file is renamed (`handle`); every other .detach() (a DOM library's) is listed.
+  'detach()': { type: 'export', from: 'detach', to: 'destroy', handle: true },
   '.ds-enter--fill-x': { review: 'the mark sets --ds-share (its share, 0 to 1) instead of its own scaleX()' },
   '.ds-enter--fill-y': { review: 'the mark sets --ds-share (its share, 0 to 1) instead of its own scaleY()' },
   "enter(el, 'fill-x')": { type: 'string', from: 'fill-x', to: 'fill', review: 'the mark sets --ds-share instead of its own scaleX()' },
@@ -128,7 +138,10 @@ export function ruleFor(entry) {
         return /^data-[\w-]+$/.test(entry.name) && /^data-[\w-]+$/.test(replacement) ? { type: 'attribute', from: entry.name, to: replacement } : { type: 'manual' };
       case 'export': {
         const fn = (text) => /^(?:DS\.\w+\.)?([A-Za-z_$][\w$]*)\(\)$/.exec(text)?.[1];
-        return fn(entry.name) && fn(replacement) ? { type: 'export', from: fn(entry.name), to: fn(replacement) } : { type: 'manual' };
+        if (!fn(entry.name) || !fn(replacement)) return { type: 'manual' };
+        // The module that exports it (DS.indicator.create() -> indicator): only its imports and destructuring are renamed.
+        const module = /^DS\.(\w+)\./.exec(entry.name)?.[1] ?? /^DS\.(\w+)\./.exec(replacement)?.[1];
+        return { type: 'export', from: fn(entry.name), to: fn(replacement), ...(module ? { module } : {}) };
       }
       default:
         return { type: 'manual' };
@@ -183,6 +196,33 @@ function specifierAt(text, index) {
   const kind = /\bimport\s*(type\s*)?$/.test(before) ? 'import' : /\b(const|let|var)\s*$/.test(before) ? 'destructure' : null;
   if (!kind) return null;
   return /(?:\bas\s+|:\s*)$/.test(head) ? 'local' : kind;
+}
+
+/** The module path of the named import whose specifier stands at `index` (`import { a } from './x.js'` -> ./x.js), or null. */
+function importSource(text, index) {
+  const close = text.indexOf('}', index);
+  return close === -1 ? null : /^\}\s*from\s*(['"])([^'"]*)\1/.exec(text.slice(close))?.[2] ?? null;
+}
+
+/** The right-hand side of the destructuring whose key stands at `index` (`const { a } = DS.x;` -> DS.x), or null. */
+function destructureSource(text, index) {
+  const close = text.indexOf('}', index);
+  return close === -1 ? null : /^\}\s*=\s*([^;\n]+)/.exec(text.slice(close))?.[1].trim() ?? null;
+}
+
+/** A call of DS.ripple.attach() (or of an attach() imported from it): what returns the handle with destroy(). */
+const ATTACH_CALL = /^(?:await\s+)?(?:(?:[\w$]+\.)*ripple\.attach|attach)\(/;
+
+/** The names (`ripple`, `this.ripple`) a text binds to the handle of DS.ripple.attach(). */
+function attachHandles(text) {
+  const names = new Set();
+  for (const match of text.matchAll(/(?<![\w$.])((?:this\.)?[\w$]+(?:\.[\w$]+)*)\s*=\s*(?=(?:await\s+)?(?:(?:[\w$]+\.)*ripple\.attach|(?<![\w$.])attach)\()/g)) names.add(match[1]);
+  return names;
+}
+
+/** The receiver of the member call whose name stands at `index` (`this.ripple.detach()` -> this.ripple), or null. */
+function receiverOf(text, index) {
+  return /((?:this\.)?[\w$]+(?:\.[\w$]+)*)\??\.$/.exec(text.slice(Math.max(0, index - 120), index))?.[1] ?? null;
 }
 
 /** The arguments of the call whose `(` is at `open`: [{ text, start, end }] and the index of its `)`. */
@@ -246,6 +286,34 @@ export const CHECKS = [
   },
 ];
 
+/** An option class in a selector compound (check-theme.mjs, OPTION_CLASS). */
+const OPTION_IN = /\.(ds-(?:xs|sm|md|lg|xl|density-[a-z]+|shape-[a-z]+|tone-[a-z]+|touch))(?![\w-])/;
+
+/**
+ * The CSS rules that set a --ds-* hook under an option class (`.ds-table.ds-density-tight { --ds-table-row-height }`,
+ * which a modifier's rewrite leaves behind): check-project's options rule rejects them, as they redefine what the
+ * option means. A compound with .ds-theme is the theme's root (`.ds-theme.ds-touch`), not an option. Each is
+ * { index, message }, at the option class.
+ */
+export function optionHooks(text) {
+  const found = [];
+  const plain = text.replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, ' '));
+  for (const match of plain.matchAll(/([^{};]*)\{([^{}]*)\}/g)) {
+    const hooks = [...new Set([...match[2].matchAll(/(?:^|[;\s])(--ds-[\w-]+)\s*:/g)].map((hook) => hook[1]))];
+    if (!hooks.length) continue;
+    for (const one of match[1].split(',')) {
+      const bare = one.replace(/:(?:not|has)\((?:[^()]|\([^()]*\))*\)/g, (inner) => ' '.repeat(inner.length));
+      const compound = bare.split(/(?=[\s>+~])/).find((part) => OPTION_IN.test(part) && !/\.ds-theme(?![\w-])/.test(part));
+      if (!compound) continue;
+      const option = OPTION_IN.exec(compound)[1];
+      const at = match.index + match[1].indexOf(one) + bare.indexOf(compound) + compound.indexOf(`.${option}`);
+      found.push({ index: at, message: `${one.trim()} sets ${hooks.join(', ')} under .${option}, which redefines what .${option} means (check-project, rule options; a 2.x modifier became the option): set the base hook on the element or in the theme (the option computes from it) and drop the rule` });
+      break;
+    }
+  }
+  return found;
+}
+
 /** The core stylesheets that moved in 3.0: css/<name>.css -> css/core/<name>.css. */
 const CORE_SHEETS = ['tokens', 'base', 'motion'];
 
@@ -268,21 +336,40 @@ export function migrateText(text, rules, { copies = [] } = {}) {
   };
   const note = (index, entry, message) => manual.push({ line: lineOf(text, index), name: entry.name, message });
   const aliased = new Map();
+  const handles = attachHandles(text);
+  // The path parts that name the copy in an import or a link: its folder, and "dashboard-style" always.
+  const names = [...new Set(['dashboard-style', ...copies.map((path) => path.replace(/\/+$/, '').split('/').at(-1)).filter(Boolean)])];
+  const namesCopy = (path) => names.some((name) => path.toLowerCase().includes(`${name.toLowerCase()}/`));
 
   for (const { entry, rule } of rules) {
     const pattern = new RegExp(entry.pattern, 'g');
     const matches = [...text.matchAll(pattern)];
     if (rule.type === 'export') {
       // Named imports and destructuring, wherever the name stands (a pattern may find only calls): the new name
-      // under the old local one, so the calls below keep working and need no note.
+      // under the old local one, so the calls below keep working and need no note. Only those of the copy: an
+      // import of its module (js/<module>.js) or destructuring of DS.<module>, and for a handle method of the
+      // handle that attach() returns. A local name bound from anything else is not the system's, so its bare
+      // calls need no note either.
       for (const match of text.matchAll(new RegExp(`(?<![\\w$.])${escape(rule.from)}(?![\\w$])`, 'g'))) {
         const index = match.index;
         const kind = specifierAt(text, index);
         if (!kind) continue;
         aliased.set(entry.name, true);
         const after = text.slice(index + rule.from.length);
-        if (kind === 'import') edit(index, index + rule.from.length, /^\s+as\b/.test(after) ? rule.to : `${rule.to} as ${rule.from}`, entry, rule);
-        else if (kind === 'destructure') edit(index, index + rule.from.length, /^\s*:/.test(after) ? rule.to : `${rule.to}: ${rule.from}`, entry, rule);
+        if (kind === 'import') {
+          const source = importSource(text, index) ?? '';
+          const ours = !rule.handle && (rule.module
+            ? new RegExp(`(?:^|/)js/${escape(rule.module)}(?:\\.min)?\\.js$`).test(source)
+            : namesCopy(source) && /\/js\/[\w-]+(?:\.min)?\.js$/.test(source));
+          if (ours) edit(index, index + rule.from.length, /^\s+as\b/.test(after) ? rule.to : `${rule.to} as ${rule.from}`, entry, rule);
+        } else if (kind === 'destructure') {
+          const source = destructureSource(text, index) ?? '';
+          const ours = rule.handle
+            ? ATTACH_CALL.test(source) || handles.has(source)
+            : new RegExp(`^(?:window\\.|globalThis\\.)?DS\\.${rule.module ? `${escape(rule.module)}(?![\\w$])` : '\\w'}`).test(source);
+          if (ours) edit(index, index + rule.from.length, /^\s*:/.test(after) ? rule.to : `${rule.to}: ${rule.from}`, entry, rule);
+          else if (!rule.handle && source) note(index, entry, `${entry.name} (${status(entry)}) destructured from ${source}: if that is ${rule.module ? `DS.${rule.module}` : 'the system\'s'}, rename the key ({ ${rule.to}: ${rule.from} })`);
+        }
       }
     }
     for (const match of matches) {
@@ -319,8 +406,11 @@ export function migrateText(text, rules, { copies = [] } = {}) {
         }
         case 'export': {
           const index = at + word.indexOf(rule.from);
-          if (text[index - 1] === '.') edit(index, index + rule.from.length, rule.to, entry, rule);
-          else if (specifierAt(text, index)) break;
+          if (text[index - 1] === '.') {
+            const receiver = receiverOf(text, index);
+            if (!rule.handle || handles.has(receiver)) edit(index, index + rule.from.length, rule.to, entry, rule);
+            else note(index, entry, `${entry.name} (${status(entry)}): ${receiver ? `${receiver}.` : '.'}${rule.from}() is not called on a name this file binds from DS.ripple.attach(): if it is that handle, call ${rule.to}(); another library's ${rule.from}() stays`);
+          } else if (specifierAt(text, index)) break;
           else if (!aliased.has(entry.name)) {
             note(index, entry, `${entry.name} (${status(entry)}): use ${entry.replacement}, or import it as { ${rule.to} as ${rule.from} }${entry.note ? `. ${entry.note}` : ''}`);
           }
@@ -351,17 +441,26 @@ export function migrateText(text, rules, { copies = [] } = {}) {
   }
 
   // The single stylesheets of the core moved to css/core/ (3.0.0-alpha.0); 3.0 adds options.css and global.css.
-  const names = [...new Set(['dashboard-style', ...copies.map((path) => path.replace(/\/+$/, '').split('/').at(-1)).filter(Boolean)])];
-  const copyPath = new RegExp(`(["'(])([^"'()\\s]*(?:${names.map(escape).join('|')})/css/)(${CORE_SHEETS.join('|')})((?:\\.min)?\\.css)(?=["')])`, 'g');
+  // A path names the copy by its folder (any case; a CDN's `Dashboard-Style@main`), with or without dist/.
+  const copyRoot = `(?:${names.map(escape).join('|')})(?:@[^/"'()\\s]*)?/(?:dist/)?css/`;
+  const copyPath = new RegExp(`(["'(])([^"'()\\s]*${copyRoot})(${CORE_SHEETS.join('|')})((?:\\.min)?\\.css)(?=["')])`, 'gi');
   const sheetEntry = { name: 'css/core/' };
   let single = null;
+  const moved = new Set();
   for (const match of text.matchAll(copyPath)) {
     const start = match.index + match[1].length + match[2].length;
     edit(start, start, 'core/', sheetEntry, {}, { from: `${match[2]}${match[3]}${match[4]}`, to: `${match[2]}core/${match[3]}${match[4]}` });
+    moved.add(match.index);
     single ??= match.index;
   }
-  if (single === null) single = new RegExp(`(?:${names.map(escape).join('|')})/css/core/tokens(?:\\.min)?\\.css`).exec(text)?.index ?? null;
-  if (single !== null && !/\/css\/core\/options(?:\.min)?\.css/.test(text)) {
+  // Any other path to a css/tokens.css (base, motion) may be the copy under a name the run does not know: a person
+  // decides, and the run does not pass as done.
+  for (const match of text.matchAll(new RegExp(`(["'(])([^"'()\\s]*/css/)(${CORE_SHEETS.join('|')})((?:\\.min)?\\.css)(?=["')])`, 'gi'))) {
+    if (moved.has(match.index)) continue;
+    manual.push({ line: lineOf(text, match.index), name: 'css/core/', message: `${match[2]}${match[3]}${match[4]}: if this is the copy's stylesheet, it moved to ${match[2]}core/${match[3]}${match[4]} in 3.0 (run with --config, whose vendor names the copy, to rewrite it); a project's own file stays` });
+  }
+  if (single === null) single = new RegExp(`${copyRoot}core/tokens(?:\\.min)?\\.css`, 'i').exec(text)?.index ?? null;
+  if (single !== null && !/\/css\/core\/options(?:\.min)?\.css/i.test(text)) {
     manual.push({ line: lineOf(text, single), name: 'css/core/', message: 'single stylesheets in 3.0: link css/core/options.css (the option classes) after css/core/tokens.css and css/core/global.css (the rules for every element) before the components; then node tools/check-project.mjs names every component file a class needs (some classes moved into a component of their own, such as .ds-avatar)' });
   }
 
@@ -380,6 +479,8 @@ export function migrateText(text, rules, { copies = [] } = {}) {
   edits.sort((a, b) => b.start - a.start);
   let out = text;
   for (const { start, end, replacement } of edits) out = out.slice(0, start) + replacement + out.slice(end);
+  // On the result, so a run after --write lists them again until a person moved the hook (a rewrite keeps lines).
+  for (const found of optionHooks(out)) manual.push({ line: lineOf(out, found.index), name: 'options', message: found.message });
   changes.sort((a, b) => a.line - b.line);
   manual.sort((a, b) => a.line - b.line);
   return { text: out, changes, manual };
@@ -432,17 +533,19 @@ function isCopy(dir) {
   return existsSync(join(dir, 'SHA256SUMS')) && existsSync(join(dir, 'deprecations.json'));
 }
 
-/** Every file under `root` (posix paths relative to it), skipping node_modules, .git and copies. */
+/**
+ * Every file under `root` (posix paths relative to it), skipping node_modules, .git, copies and symbolic links: a
+ * link may loop, or lead out of the project into files a --write run must not touch.
+ */
 function walk(root, prefix = '') {
   const out = [];
   const dir = join(root, prefix);
   if (prefix && isCopy(dir)) return out;
-  for (const name of readdirSync(dir).sort()) {
-    if (SKIP_DIRS.has(name)) continue;
-    const path = prefix ? `${prefix}/${name}` : name;
-    const stat = statSync(join(root, path));
-    if (stat.isDirectory()) out.push(...walk(root, path));
-    else if (stat.isFile()) out.push(path);
+  for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))) {
+    if (SKIP_DIRS.has(entry.name) || entry.isSymbolicLink()) continue;
+    const path = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) out.push(...walk(root, path));
+    else if (entry.isFile()) out.push(path);
   }
   return out;
 }
@@ -455,6 +558,16 @@ const EXTENSION = new RegExp(`\\.(${EXTENSIONS.join('|')})$`, 'i');
  * folders walked for EXTENSIONS, or globs); with neither, `root` walked.
  */
 export function collectFiles(root, { config = null, targets = [] } = {}) {
+  try {
+    return collect(root, { config, targets });
+  } catch (problem) {
+    // A folder the run cannot read (permissions, a link that leads nowhere) is a usage error, not a crash.
+    if (problem instanceof UsageError || !problem?.code) throw problem;
+    throw new UsageError(`${problem.path ? `${posix(relative(root, problem.path)) || '.'}: ` : ''}${problem.code} (${problem.syscall ?? 'fs'})`);
+  }
+}
+
+function collect(root, { config, targets }) {
   const found = new Set();
   let all = null;
   const everything = () => (all ??= walk(root));

@@ -56,7 +56,8 @@
  *
  * The vendor rule also compares "major" with the copy's version: another
  * major is an error (a 2.x config on a 3.0 copy: run tools/migrate.mjs),
- * none a warning.
+ * and so is none on a copy of 3.0 or later (no 2.x config names it); none
+ * on an older copy is a warning.
  */
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
@@ -215,8 +216,9 @@ function compounds(selector) {
 /**
  * The files of the copy (css/...) that define each class. A file defines a
  * class when one of its selectors has the class in the subject compound and
- * no other component's class before it (`.ds-alert .ds-btn` in alert.css
- * places a button, it does not define one); a class only ever used in
+ * no other component's class before it or in the same compound (`.ds-alert
+ * .ds-btn` in alert.css places a button, `.ds-toast__action.ds-sm` in
+ * toast.css sizes the action: neither defines the other); a class only ever used in
  * context falls back to the files whose subjects carry it, then to every
  * file that mentions it. The scopes are fixed: .ds-theme is tokens.css,
  * .ds-base is base.css.
@@ -240,7 +242,10 @@ export function definingFiles(sheets) {
         for (const name of names(selector)) note(2, name, path);
         for (const name of subject) {
           note(1, name, path);
-          if (context.every((other) => block(other) === block(name))) note(0, name, path);
+          // Another component's class in the same compound places this one too (`.ds-toast__action.ds-sm` in
+          // toast.css does not define .ds-sm): only the compounds of its own block define it.
+          const others = [...context, ...subject.filter((other) => other !== name && !NEUTRAL.has(other))];
+          if (others.every((other) => block(other) === block(name))) note(0, name, path);
         }
       }
     }
@@ -341,7 +346,10 @@ export function checkProject(config, root) {
   const copy = readCopy(vendorDir);
   const copyMajor = majorOf(copy.version);
   if (copyMajor !== null && config.major === undefined) {
-    add('warning', 'ds-check.json', 0, 'vendor', `the config names no "major": add "major": ${copyMajor} (the copy is ${copy.version}); a 2.x project moves with node ${vendor}/tools/migrate.mjs --config ds-check.json`);
+    // No 2.x config names "major": on a 3.0 copy (or later) a config without it is one from before 3.0, so the
+    // nightly stops here instead of committing a copy the project was never moved to.
+    if (copyMajor >= 3) add('error', 'ds-check.json', 0, 'vendor', `the config names no "major", so it predates 3.0 and the copy is ${copy.version}: migrate the project (node ${vendor}/tools/migrate.mjs --config ds-check.json, docs/migration.md), which sets "major": ${copyMajor}`);
+    else add('warning', 'ds-check.json', 0, 'vendor', `the config names no "major": add "major": ${copyMajor} (the copy is ${copy.version})`);
   } else if (copyMajor !== null && config.major !== copyMajor) {
     add('error', 'ds-check.json', 0, 'vendor', `the config is for ${config.major}.x, the copy is ${copy.version}: ${config.major < copyMajor ? `migrate the project (node ${vendor}/tools/migrate.mjs --config ds-check.json, docs/migration.md), which sets "major": ${copyMajor}` : 'vendor that major, or set "major" to the copy\'s'}`);
   }

@@ -14,9 +14,12 @@ rewrites what it can map and lists the rest. This guide is the whole list, with 
 
 ## Before you start
 
-- **Keep the 2.x copy until the project moves.** The nightly update vendors `main`. Before 3.0 reaches `main`, each
-  project's update tracks the `v2` branch, which keeps 2.x fixes coming; a project moves to 3.0 by pointing its update
-  back to `main` in the same commit as its migration ([install.md](install.md#updating)).
+- **Keep the 2.x copy until the project moves.** The nightly update vendors `main`, and the update workflow has no
+  setting for another branch yet. A project that is not ready for 3.0 when it reaches `main` disables its "Update
+  Dashboard-Style" workflow (Actions, "Disable workflow") and, for a 2.x fix, vendors a 2.x tag or commit by hand
+  (`sh vendor.sh <ref> vendor/dashboard-style`, [install.md](install.md#updating)). It turns the workflow back on in
+  the same commit as its migration. A 2.x `ds-check.json` has no `"major"`, so `check-project` of a 3.0 copy fails
+  on it: a nightly that picks up 3.0 stops before it commits the copy.
 - **The browser floor rises** to Safari 17.5, Chrome and Edge 123, Firefox 130 ([rules.md](rules.md)). A product that
   must run on older browsers stays on 2.x.
 - **Start from a clean 2.x project.** `node <copy>/tools/check-project.mjs --config ds-check.json` with the 2.x copy
@@ -90,10 +93,11 @@ What it rewrites, by the kind of name:
 | a modifier that became an option class | `.ds-btn--sm`, `.ds-badge--ok` | in a class list the option replaces it, once per list (`ds-btn ds-sm`, `ds-badge ds-tone-success`); in a selector it joins the block (`.app-bar .ds-btn.ds-sm`), so the selector still matches only that component |
 | a renamed token, hook or keyframe | `--ds-dialog-width-wide` | `--ds-dialog-width-lg`, wherever it is named |
 | a renamed attribute | `data-close` | `data-ds-close` in markup, selectors and strings, `dataset.close` to `dataset.dsClose` |
-| a renamed export | `createIndicator()` | member calls (`DS.indicator.create(...)`), named imports (`import { create as createIndicator }`) and destructuring (`const { destroy: detach } = ...`), so the local name keeps working |
+| a renamed export | `createIndicator()` | member calls (`DS.indicator.create(...)`), named imports of its module (`import { create as createIndicator } from '<copy>/js/indicator.js'`) and destructuring of `DS.indicator`, so the local name keeps working; an import or destructuring of anything else stays |
+| a method of a handle | `detach()` | `.destroy()` and `const { destroy: detach } = ...` only on a name the same file binds from `DS.ripple.attach()` (or an imported `attach()`); every other `.detach()` (jQuery's, a DOM library's) stays and is listed |
 | an event or a variant string | `'ds-close'`, `'fill-x'` | `'ds:close'`, `'fill'` |
 | an argument form | `settleLoader(t0, now)` | `settleLoader(t0, { now })` |
-| a moved stylesheet | `<copy>/css/tokens.css` | `<copy>/css/core/tokens.css` (also `base.css` and `motion.css`), in links and imports that name the copy |
+| a moved stylesheet | `<copy>/css/tokens.css` | `<copy>/css/core/tokens.css` (also `base.css` and `motion.css`), in links and imports that name the copy: the config's `vendor` folder or `dashboard-style`, in any case, with or without `dist/` (`node_modules/dashboard-style/dist/css/tokens.css`, the jsDelivr address `.../Dashboard-Style@main/dist/css/tokens.css`); any other path to a `css/tokens.css`, `base.css` or `motion.css` is listed, as the tool cannot tell the copy from a file of the project |
 
 ## Renamed and removed names
 
@@ -108,7 +112,7 @@ checks fail).
 | Kind | 2.x | 3.0 | migrate.mjs |
 |---|---|---|---|
 | class | `.ds-btn--primary` | `.ds-btn--filled` | rewrites |
-| class | `.ds-btn--sm` | `.ds-sm` (32px at the default density, 8px less per density step) | option class |
+| class | `.ds-btn--sm` | `.ds-sm` (32px at the default density, 4px less per density step) | option class |
 | hook | `--ds-btn-sm-height` | `--ds-btn-height` is the base of every size | lists it |
 | hook | `--ds-btn-sm-icon-size` | `--ds-btn-icon-size` is the base of every size | lists it |
 | class | `.ds-dialog--wide` | `.ds-dialog--lg` (the same 560px) | rewrites |
@@ -135,7 +139,7 @@ checks fail).
 | class | `.ds-more` | `.ds-card__more` | rewrites |
 | class | `.ds-avatar--sm`, `.ds-avatar--lg` | `.ds-sm`, `.ds-lg` | option class |
 | export | `createIndicator()` | `DS.indicator.create()`, the same options and handle | rewrites calls and imports |
-| export | `detach()` of the `DS.ripple.attach()` handle | `destroy()` | rewrites, check each |
+| export | `detach()` of the `DS.ripple.attach()` handle | `destroy()` | rewrites calls and imports |
 
 ### Deprecated in 2.x, still working in 3.0
 
@@ -214,11 +218,14 @@ stylesheets) and the rest is for your review. The [CHANGELOG](../CHANGELOG.md) h
 |---|---|
 | a per-size hook (`--ds-btn-sm-height` ...) | Delete it. The size class (`.ds-sm`) takes the base hook less one size step; if the 2.x value differs, set the base so the step lands on it, or use the exact hook on that element. |
 | `.ds-input-group__affix` became `__suffix` | A slot before the input is `.ds-input-group__prefix`: change those by hand. |
-| `detach()` became `destroy()` | The pattern finds any `.detach()` call. Keep the change only where the handle is `DS.ripple.attach()`'s; undo it for anything else (a DOM library's own `detach()`). |
+| `detach()` became `destroy()` | The tool renames it only on a name bound from `DS.ripple.attach()` in the same file. A `.detach()` it lists is called on something else: change it where that is the ripple handle (passed in from another file), leave it for anything else (a DOM library's own `detach()`). |
 | `fill-x`, `fill-y`, `ds-fill-x`, `.ds-enter--fill-x` | The mark sets `--ds-share` (its share, 0 to 1) instead of its own `scaleX()` or `scaleY()`. |
 | a class built at run time (`'ds-badge--' + kind`) | The tool cannot see its values. Map them: a status value becomes `ds-tone-<tone>` (`ok` is `success`), a size `ds-sm` or `ds-lg`. |
+| a hook under an option class (`.app-panel .ds-table.ds-density-tight { --ds-table-row-height: 36px }`, left by the rewrite of `.ds-table--dense`) | The option computes from the base hook, so a hook under it redefines what the option means (`check-project`, rule `options`). Set the base hook on the element or in the theme (`--ds-table-row-height` on `.app-panel .ds-table`) and drop the rule; the tool lists it on every run until it is gone. |
+| an option class that replaced a modifier | An option class applies to everything inside the element, a modifier only to its own component. `.ds-density-tight` on a table makes its rows tight and also the buttons, fields and chips in its cells (a 40px button becomes 28px), where `.ds-table--dense` shortened only the rows. Put `.ds-density-comfortable` (or the size class they need) on the cells or controls that must keep their size. |
 | a module import of `js/overlay.js` | Import the module the report names next to it, or load `ds.js` or a bundle. |
 | `@layer ds.components { … }` in project CSS | Move the rules out of the layer; set hooks on the component instead of restyling it. |
+| a path to `css/tokens.css` the tool lists | If it is the copy (a name the run does not know: run with `--config`, whose `vendor` names it), the file is `css/core/tokens.css` now (`base.css` and `motion.css` too); a file of the project stays. |
 | single stylesheets | Link `css/core/options.css` after `css/core/tokens.css` and `css/core/global.css` before the components, then add what `check-project` names; or switch to `ds.min.css` or a bundle. |
 | a removed name with no replacement | Delete it; the note of the entry says what took its place. |
 | screenshots | The ports to the options model changed some sizes on purpose (the compact theme above; the file field is 40px like every field, 2.x 42px); compare the diffs with [Changes without a new name](#changes-without-a-new-name) before you call one a regression. |

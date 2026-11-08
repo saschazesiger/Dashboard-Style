@@ -279,17 +279,20 @@ describe('tools/check-project.mjs', () => {
       'index.html': `<link rel="stylesheet" href="${VENDOR}/css/index.css">\n<body class="ds-theme"><div class="ds-card"><button class="ds-btn" type="button">Save</button></div></body>\n`,
       // .ds-link-btn is defined in button.css (no longer in table.css): a page without the table has it whole.
       'link.html': `<link rel="stylesheet" href="${VENDOR}/css/core/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/button.css">\n<body class="ds-theme"><p>See <button class="ds-link-btn ds-link-btn--quiet" type="button">the log</button>.</p></body>\n`,
-      'table.html': `<link rel="stylesheet" href="${VENDOR}/css/core/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/table.css">\n<body class="ds-theme"><table class="ds-table"><tr><td><button class="ds-link-btn" type="button">LAPTOP-0042</button></td></tr></table></body>\n`,
+      'table.html': `<link rel="stylesheet" href="${VENDOR}/css/core/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/table.css">\n<body class="ds-theme"><table class="ds-table"><tr><td><button class="ds-link-btn" type="button">LAPTOP-0042</button></td></tr></table></body>\n`,      // An option class is options.css's alone; toast.css sizes its action with it (.ds-toast__action.ds-sm), which defines nothing.
+      'small.html': `<link rel="stylesheet" href="${VENDOR}/css/core/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/button.css">\n<body class="ds-theme"><button class="ds-btn ds-sm" type="button">Save</button></body>\n`,
+      'sized.html': `<link rel="stylesheet" href="${VENDOR}/css/core/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/core/options.css"><link rel="stylesheet" href="${VENDOR}/css/components/button.css">\n<body class="ds-theme"><button class="ds-btn ds-sm" type="button">Save</button></body>\n`,
     };
     const { findings } = run(files, { ...CONFIG, html: ['*.html'], themes: [] });
     assert.deepEqual(findings.map((f) => `${f.file}:${f.line} ${f.rule} ${f.message}`).sort(), [
       'alert.html:2 classes .ds-btn needs css/components/button.css, which this page does not link',
       'bare.html:2 classes .ds-theme needs css/core/tokens.css, which this page does not link',
+      'small.html:2 classes .ds-sm needs css/core/options.css, which this page does not link',
       'table.html:2 classes .ds-link-btn needs css/components/button.css, which this page does not link',
     ]);
   });
 
-  it('compares the config\'s "major" with the copy: another major fails, none warns, a bad value is a config error', () => {
+  it('compares the config\'s "major" with the copy: another major fails, none fails on a 3.0 copy, a bad value is a config error', () => {
     const root = project(CLEAN);
     try {
       const vendor = (config) => checkProject(config, root).findings.filter((f) => f.rule === 'vendor').map((f) => `${f.level} ${f.file} ${f.message}`);
@@ -298,12 +301,17 @@ describe('tools/check-project.mjs', () => {
       assert.equal(major, 3);
       const missing = vendor(without);
       assert.equal(missing.length, 1);
-      assert.match(missing[0], /^warning ds-check\.json the config names no "major": add "major": 3 \(the copy is 3\./);
+      assert.match(missing[0], /^error ds-check\.json the config names no "major", so it predates 3\.0 and the copy is 3\.[^:]*: migrate the project \(node vendor\/dashboard-style\/tools\/migrate\.mjs --config ds-check\.json/, 'a 2.x config on a 3.0 copy');
       const old = vendor({ ...CONFIG, major: 2 });
       assert.equal(old.length, 1);
       assert.match(old[0], /^error ds-check\.json the config is for 2\.x, the copy is 3\.\d+\.\d+[^:]*: migrate the project \(node vendor\/dashboard-style\/tools\/migrate\.mjs --config ds-check\.json/);
       assert.match(vendor({ ...CONFIG, major: 4 })[0], /^error .* the config is for 4\.x/);
       assert.match(checkProject({ ...CONFIG, major: '3' }, root).errors.join('\n'), /"major"/);
+      // A copy before 3.0: a config without "major" only warns.
+      const manifest = join(root, VENDOR, 'manifest.json');
+      writeFileSync(manifest, JSON.stringify({ ...JSON.parse(readFileSync(manifest, 'utf8')), version: '2.9.0' }));
+      resum(join(root, VENDOR));
+      assert.deepEqual(vendor(without).map((line) => line.replace(/\(the copy is [^)]*\)/, '(…)')), ['warning ds-check.json the config names no "major": add "major": 2 (…)']);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

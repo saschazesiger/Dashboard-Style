@@ -93,10 +93,22 @@ export const OPTION_VALUES = {
   '--ds-target-min': { length: true, what: 'a length (0px, or var(--ds-touch-target) as .ds-touch sets it)' },
 };
 
-/** The generator's options from the command in a generated theme's header, or null when the file has none. */
+/**
+ * The generator's options from the command in a generated theme's header, or null when the file has none. Every
+ * comment counts, not only the first: a copy's preset starts with the version banner, and a project may put a
+ * licence or a description above the generated header.
+ */
 export function generatorCommand(css) {
-  const header = /\/\*[\s\S]*?\*\//.exec(css);
-  const match = header && /node\s+\S*theme\.mjs((?:\s+--[\w-]+(?:\s+(?:'[^']*'|"[^"]*"|[^\s*'"-][^\s*]*))?)+)/.exec(header[0]);
+  const COMMAND = /node\s+\S*theme\.mjs((?:\s+--[\w-]+(?:\s+(?:'[^']*'|"[^"]*"|[^\s*'"-][^\s*]*))?)+)/;
+  let header = null;
+  let match = null;
+  for (const comment of css.matchAll(/\/\*[\s\S]*?\*\//g)) {
+    match = COMMAND.exec(comment[0]);
+    if (match) {
+      header = comment;
+      break;
+    }
+  }
   if (!match) return null;
   const options = {};
   const unknown = [];

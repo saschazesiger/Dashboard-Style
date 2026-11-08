@@ -10,7 +10,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { build, packageInfo, tokensJson } from '../scripts/build.mjs';
+import { build, packageInfo, tokensJson, withBanner } from '../scripts/build.mjs';
 import { checkTheme, generatorCommand, optionStyled } from '../scripts/tools/check-theme.mjs';
 import { generateTheme } from '../scripts/tools/theme.mjs';
 import { CHART_PAIRS, CONTROL_PAIRS, ICON_PAIRS, MOTION_FAMILIES, TEXT_PAIRS } from '../scripts/tools/theme-rules.mjs';
@@ -294,6 +294,11 @@ describe('tools/check-theme.mjs', () => {
     assert.match(found[0], new RegExp(`^warning ${line} 2 of \\d+ values differ from what the generator writes for its header's command \\(--ds-primary, --ds-on-primary\\): regenerate the file with node tools/theme\\.mjs --seed '#00658f' --scheme fidelity --name ocean --out <file>`));
     assert.deepEqual(check(edited).filter((f) => f.rule === 'drift'), [], 'without the generator, no drift check (the generator\'s own CLI)');
     assert.deepEqual(drift(`${generated}\n.ds-theme {\n  --ds-radius-card: 4px;\n}\n`), [], 'a role the generator does not write is the theme\'s own');
+    // A preset as a copy ships it (the version banner first) and a theme with a comment of its own above the header.
+    const banner = withBanner('themes/presets/ocean.css', edited, packageInfo());
+    assert.notEqual(banner, edited);
+    assert.deepEqual(drift(banner).map((finding) => finding.replace(/^warning \d+/, 'warning')), found.map((finding) => finding.replace(/^warning \d+/, 'warning')), 'the banner of a copy');
+    assert.equal(drift(`/* Licence: the project's own. */\n${edited}`).length, 1, 'a leading comment of the project');
   });
 
   it('runs as a CLI from a copy: file:line level rule message, exit 1 on an error', () => {

@@ -8,10 +8,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { deprecationsJson, packageInfo, withBanner } from '../scripts/build.mjs';
+import { build, deprecationsJson, packageInfo, withBanner } from '../scripts/build.mjs';
+import { checkProject } from '../scripts/tools/check-project.mjs';
 import { collectFiles, exitCode, formatReport, main, majorOf, migrate, migrateText, prepare, ruleFor, setMajor, unifiedDiff } from '../scripts/tools/migrate.mjs';
 import { read, ROOT } from './helpers.js';
 
@@ -73,6 +74,7 @@ describe('tools/migrate.mjs', () => {
       const config = JSON.parse(readFileSync(join(dir, 'ds-check.json'), 'utf8'));
       const result = migrate({ root: dir, config, configPath: 'ds-check.json', deprecations: DEPRECATIONS });
       assert.deepEqual(result.files.flatMap((file) => file.manual.map((item) => `${file.path}:${item.line} ${item.name}`)), [
+        'css/app.css:25 options',
         'css/app.css:42 layer',
         'css/theme.css:14 --ds-btn-sm-height',
         'css/theme.css:16 --ds-table-dense-row-height',
@@ -84,14 +86,15 @@ describe('tools/migrate.mjs', () => {
         'report.html:8 css/core/',
       ]);
       const review = result.files.flatMap((file) => file.changes.filter((change) => change.review).map((change) => `${file.path}:${change.line} ${change.name}`));
-      assert.deepEqual(review, ['index.html:76 .ds-input-group__affix', 'js/app.js:39 detach()', "js/charts.mjs:7 enter(el, 'fill-y')"]);
+      assert.deepEqual(review, ['index.html:93 .ds-input-group__affix', "js/charts.mjs:7 enter(el, 'fill-y')"]);
       const report = formatReport(result);
       assert.match(report, /^To rewrite \(\d+\):$/m);
-      assert.match(report, /^To rewrite, check each \(3\):$/m);
-      assert.match(report, /^Needs a person \(9\):$/m);
+      assert.match(report, /^To rewrite, check each \(2\):$/m);
+      assert.match(report, /^Needs a person \(10\):$/m);
+      assert.match(report, /css\/app\.css:25 \.app-panel \.ds-table\.ds-density-tight sets --ds-table-row-height under \.ds-density-tight, which redefines what \.ds-density-tight means/);
       assert.match(report, /js\/charts\.mjs:4 toast of js\/overlay\.js runs in js\/toast\.js in 3\.0: add import '\.\.\/vendor\/dashboard-style\/js\/toast\.js';/);
       assert.match(report, /css\/theme\.css:14 --ds-btn-sm-height \(removed in 3\.0\.0\): the size and density options compute it from the base --ds-btn-height/);
-      assert.match(report, /^migrate: 8 files read, 8 to change \(61 rewrites, 3 to check\), 9 for a person \(to 3\.x, deprecations\.json 3\.0\.0[^)]*\); run again with --write to apply$/m);
+      assert.match(report, /^migrate: 8 files read, 8 to change \(62 rewrites, 2 to check\), 10 for a person \(to 3\.x, deprecations\.json 3\.0\.0[^)]*\); run again with --write to apply$/m);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -106,7 +109,7 @@ describe('tools/migrate.mjs', () => {
         case 'token': case 'role': case 'hook': return `.app-a { --x: var(${entry.name}); }\n.ds-theme { ${entry.name}: 1px; }\n`;
         case 'keyframes': return `.app-a { animation: ${entry.name} var(--ds-dur-fast); }\n`;
         case 'attribute': return /^data-[\w-]+$/.test(entry.name) ? `<b ${entry.name}></b>\nel.closest('[${entry.name}]');\n` : '<div class="ds-combo" data-open></div>\n';
-        case 'export': return `const h = DS.x.attach(document);\nh.${entry.name.replace(/^DS\.\w+\./, '').replace('()', '')}();\n`;
+        case 'export': return `const h = DS.ripple.attach(document);\nh.${entry.name.replace(/^DS\.\w+\./, '').replace('()', '')}();\n`;
         default: return null;
       }
     };
@@ -162,7 +165,8 @@ describe('tools/migrate.mjs', () => {
     assert.deepEqual(ruleFor({ kind: 'keyframes', name: 'ds-a', pattern: 'x', replacement: 'ds-b' }), { type: 'rename', from: 'ds-a', to: 'ds-b' });
     assert.equal(ruleFor({ kind: 'keyframes', name: 'ds-a', pattern: 'x', replacement: 'ds-b, ds-c' }).type, 'manual');
     assert.deepEqual(ruleFor({ kind: 'attribute', name: 'data-a', pattern: 'x', replacement: 'data-ds-a' }), { type: 'attribute', from: 'data-a', to: 'data-ds-a' });
-    assert.deepEqual(ruleFor({ kind: 'export', name: 'DS.a.old()', pattern: 'x', replacement: 'DS.a.fresh()' }), { type: 'export', from: 'old', to: 'fresh' });
+    assert.deepEqual(ruleFor({ kind: 'export', name: 'DS.a.old()', pattern: 'x', replacement: 'DS.a.fresh()' }), { type: 'export', from: 'old', to: 'fresh', module: 'a' });
+    assert.deepEqual(ruleFor({ kind: 'export', name: 'old()', pattern: 'x', replacement: 'fresh()' }), { type: 'export', from: 'old', to: 'fresh' });
     assert.equal(ruleFor({ kind: 'export', name: 'DS.a.old', pattern: 'x', replacement: null }).type, 'manual');
     assert.equal(ruleFor({ kind: 'markup', name: 'a recipe', pattern: null, replacement: 'x' }).type, 'manual');
   });
@@ -204,9 +208,40 @@ describe('tools/migrate.mjs', () => {
     const bare = run('createIndicator(el);');
     assert.equal(bare.text, 'createIndicator(el);');
     assert.match(bare.manual[0].message, /createIndicator\(\) \(removed in 3\.0\.0\): use DS\.indicator\.create\(\), or import it as \{ create as createIndicator \}/);
-    const detach = run('handle.detach();');
-    assert.equal(detach.text, 'handle.destroy();');
-    assert.match(detach.changes[0].review, /any detach\(\) call/);
+  });
+
+  it('renames detach() only on the handle of DS.ripple.attach(), and leaves every other detach() alone', () => {
+    const ours = run('const ripple = DS.ripple.attach(document);\nthis.handle = attach(root);\nripple.detach();\nthis.handle?.detach();\n');
+    assert.equal(ours.text, 'const ripple = DS.ripple.attach(document);\nthis.handle = attach(root);\nripple.destroy();\nthis.handle?.destroy();\n');
+    assert.deepEqual(ours.manual, []);
+    assert.deepEqual(ours.changes.filter((change) => change.review), [], 'a bound handle needs no second look');
+    assert.equal(run('const h = DS.ripple.attach(document);\nconst { detach } = h;').text, 'const h = DS.ripple.attach(document);\nconst { destroy: detach } = h;');
+    // jQuery, another library's import and destructuring: unchanged; a call on an unknown receiver is listed.
+    const jquery = run('$(row).detach();\nhandle.detach();\n');
+    assert.equal(jquery.text, '$(row).detach();\nhandle.detach();\n');
+    assert.deepEqual(jquery.manual.map((item) => `${item.line} ${item.name}`), ['1 detach()', '2 detach()']);
+    assert.match(jquery.manual[1].message, /handle\.detach\(\) is not called on a name this file binds from DS\.ripple\.attach\(\): if it is that handle, call destroy\(\)/);
+    const foreign = "import { detach } from 'some-dom-lib';\ndetach(node);\n";
+    assert.deepEqual([run(foreign).text, run(foreign).manual], [foreign, []], 'an import of another module, and its calls');
+    const destructured = 'const { detach } = observer;\ndetach();\n';
+    assert.deepEqual([run(destructured).text, run(destructured).manual], [destructured, []], 'destructuring of another object');
+    // The same for a renamed export of a module: only its own module and DS.<module>.
+    assert.equal(run("import { createIndicator } from 'some-lib';").text, "import { createIndicator } from 'some-lib';");
+    assert.equal(run("import { createIndicator } from '../vendor/dashboard-style/js/indicator.min.js';").text, "import { create as createIndicator } from '../vendor/dashboard-style/js/indicator.min.js';");
+    const tools = run('const { createIndicator } = tools;');
+    assert.equal(tools.text, 'const { createIndicator } = tools;');
+    assert.match(tools.manual[0].message, /destructured from tools: if that is DS\.indicator, rename the key \(\{ create: createIndicator \}\)/);
+  });
+
+  it('lists a hook that a rewritten selector now sets under an option class, on every run until it moved', () => {
+    const before = '.app-panel .ds-table--dense {\n  --ds-table-row-height: 36px;\n}\n.app-bar .ds-btn--sm, .app-x { --ds-btn-gap: 4px; margin: 0 }\n.app-a .ds-table--dense td { margin: 0; }\n';
+    const css = run(before);
+    assert.equal(css.text, '.app-panel .ds-table.ds-density-tight {\n  --ds-table-row-height: 36px;\n}\n.app-bar .ds-btn.ds-sm, .app-x { --ds-btn-gap: 4px; margin: 0 }\n.app-a .ds-table.ds-density-tight td { margin: 0; }\n');
+    assert.deepEqual(css.manual.map((item) => `${item.line} ${item.name}`), ['1 options', '4 options']);
+    assert.match(css.manual[1].message, /^\.app-bar \.ds-btn\.ds-sm sets --ds-btn-gap under \.ds-sm, which redefines what \.ds-sm means \(check-project, rule options; a 2\.x modifier became the option\): set the base hook on the element or in the theme/);
+    assert.deepEqual(run(css.text).manual.map((item) => `${item.line} ${item.name}`), ['1 options', '4 options'], 'the second run');
+    assert.deepEqual(run("for (const row of document.querySelectorAll('.ds-table--dense tr')) { row.style.setProperty('--ds-a', 1); }").manual, [], 'a selector in a script string');
+    assert.deepEqual(run('.ds-theme.ds-touch { --ds-touch-target: 56px; }\n.app-x:not(.ds-sm) { --ds-btn-gap: 0; }\n/* .ds-sm { --ds-a: 1 } */').manual, [], 'the theme root, a condition, a comment');
   });
 
   it('rewrites the event, the variant strings and the settleLoader() clock argument', () => {
@@ -225,7 +260,13 @@ describe('tools/migrate.mjs', () => {
     assert.deepEqual(moved.manual.map((item) => `${item.line} ${item.name}`), ['1 css/core/']);
     assert.match(moved.manual[0].message, /link css\/core\/options\.css \(the option classes\) after css\/core\/tokens\.css and css\/core\/global\.css/);
     assert.equal(run("@import url('../vendor/dashboard-style/css/motion.min.css');").text, "@import url('../vendor/dashboard-style/css/core/motion.min.css');");
-    assert.equal(run('<link href="vendor/x/css/tokens.css">').text, '<link href="vendor/x/css/tokens.css">', 'not a copy the run knows');
+    const unknown = run('<link href="vendor/x/css/tokens.css">');
+    assert.equal(unknown.text, '<link href="vendor/x/css/tokens.css">', 'not a copy the run knows');
+    assert.deepEqual(unknown.manual.map((item) => item.message), ["vendor/x/css/tokens.css: if this is the copy's stylesheet, it moved to vendor/x/css/core/tokens.css in 3.0 (run with --config, whose vendor names the copy, to rewrite it); a project's own file stays"], 'listed, so the run does not pass');
+    // The documented CDN address, an npm install and another case: the copy, with dist/.
+    assert.equal(run('<link href="https://cdn.jsdelivr.net/gh/x/Dashboard-Style@main/dist/css/tokens.css">').text, '<link href="https://cdn.jsdelivr.net/gh/x/Dashboard-Style@main/dist/css/core/tokens.css">');
+    assert.equal(run("@import '../node_modules/dashboard-style/dist/css/base.min.css';").text, "@import '../node_modules/dashboard-style/dist/css/core/base.min.css';");
+    assert.equal(migrateText('<link href="Vendor/DS/css/motion.css">', RULES, { copies: ['vendor/ds'] }).text, '<link href="Vendor/DS/css/core/motion.css">');
     const done = '<link href="vendor/dashboard-style/css/core/tokens.css"><link href="vendor/dashboard-style/css/core/options.css">';
     assert.deepEqual(run(done).manual, [], 'a 3.0 page');
     assert.equal(run(done).text, done);
@@ -286,7 +327,17 @@ describe('tools/migrate.mjs', () => {
       put('public/ds/deprecations.json', '{}');
       put('public/ds/ds.css', '.ds-btn--primary {}');
       put('public/ds.bundle.css', '/*! Dashboard-Style 3.0.0 | bundle */\n.ds-btn--primary {}');
-      assert.deepEqual(collectFiles(dir), ['index.html', 'public/ds.bundle.css', 'src/app.ts']);
+      // A link that loops, and one that leads out of the project: neither is walked (a --write run stays inside).
+      const outside = mkdtempSync(join(tmpdir(), 'ds-migrate-outside-'));
+      writeFileSync(join(outside, 'other.js'), "'ds-btn--primary'");
+      symlinkSync('..', join(dir, 'src/up'));
+      symlinkSync(outside, join(dir, 'elsewhere'));
+      symlinkSync(join(outside, 'other.js'), join(dir, 'linked.js'));
+      try {
+        assert.deepEqual(collectFiles(dir), ['index.html', 'public/ds.bundle.css', 'src/app.ts']);
+      } finally {
+        rmSync(outside, { recursive: true, force: true });
+      }
       assert.deepEqual(collectFiles(dir, { targets: ['src'] }), ['src/app.ts']);
       assert.deepEqual(collectFiles(dir, { targets: ['src/notes.md'] }), ['src/notes.md']);
       assert.deepEqual(collectFiles(dir, { targets: ['**/*.ts'] }), ['src/app.ts']);
@@ -298,6 +349,28 @@ describe('tools/migrate.mjs', () => {
       assert.equal(readFileSync(join(dir, 'src/app.min.js'), 'utf8'), "el.classList.add('ds-btn--primary');");
     } finally {
       rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('leaves nothing for check-project of this copy that it did not list for a person (the expected project)', () => {
+    const root = mkdtempSync(join(tmpdir(), 'ds-migrate-check-'));
+    try {
+      cpSync(join(FIXTURE, 'expected'), root, { recursive: true });
+      const config = JSON.parse(readFileSync(join(root, 'ds-check.json'), 'utf8'));
+      for (const [path, content] of build()) {
+        mkdirSync(dirname(join(root, config.vendor, path)), { recursive: true });
+        writeFileSync(join(root, config.vendor, path), content);
+      }
+      const listed = migrate({ root, config, deprecations: DEPRECATIONS }).files.flatMap((file) => file.manual.map((item) => ({ ...item, path: file.path })));
+      // An error is listed when migrate named its place: the rule's own line (an option class), or the file's
+      // single stylesheets (check-project then names each file a class needs).
+      const unlisted = checkProject(config, root).findings.filter((finding) => finding.level === 'error').filter((finding) => !listed.some((item) => item.path === finding.file && (
+        finding.rule === 'classes' ? item.name === 'css/core/'
+          : finding.rule === 'options' ? item.name === 'options' && item.line <= finding.line && finding.selector?.includes(item.message.split(' sets ')[0])
+            : item.line === finding.line)));
+      assert.deepEqual(unlisted.map((finding) => `${finding.file}:${finding.line} ${finding.rule} ${finding.message}`), []);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
     }
   });
 
