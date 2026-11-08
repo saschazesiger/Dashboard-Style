@@ -19,6 +19,7 @@ them from `js/core.js`.
 | `define(name, spec)` | adds the behaviour `name` (below); returns `true`, or `false` when a copy loaded earlier defined the name (that copy's definition stays) |
 | `init(root?, { observe })` | installs every global behaviour on `root` (default: the document) and initialises every matching element in it; `observe` (default `true`) keeps doing so for markup added, changed or removed later. Returns `{ destroy() }` |
 | `get(el, name?)` | the controller of `el` for the behaviour `name` (without a name: its first), or `null`. A behaviour whose `init` returned a function or nothing has a handle with `destroy()` only |
+| `manage(el, name)` | runs the behaviour `name` on `el` for an owner that renders the element itself (the [React adapter](react.md), inside `data-ds-managed`): the behaviour's own `init` makes the controller, so the element's `data-ds-*` attributes are its options, and `get(el, name)` returns it. Returns `{ controller, update(), destroy() }` (`update()` after the owner changed the element's attributes: the controller's `update(names)`, else a fresh controller; `destroy()` is safe to call twice), or `null` when no behaviour `name` initialises elements |
 | `destroy(root?)` | destroys every controller in `root` (itself included) at once, and takes down the roots of `init()` at or inside it |
 | `emit(el, type, detail?, { cancelable })` | dispatches the bubbling `CustomEvent` `ds:<type>` with `detail` on `el`; returns `false` when a listener called `preventDefault()`. Cancelable only when asked, and only where cancelling cannot trap someone |
 | `config({ locale, strings })` | sets the page's locale (`null`: back to the default, the `lang` of `<html>`, else the browser's) and overrides strings by key (`null` restores one); returns the settings in force, `{ locale, strings }`. A change dispatches `ds:config` on the document |
@@ -96,8 +97,10 @@ already served.
   does so at once. A root inside one already initialised is rescanned only (the outer root's globals and observer
   serve it); a root around ones already initialised takes them over, controllers included.
 - **`data-ds-managed`.** Nothing inside an element with `data-ds-managed` (itself included) is initialised: the
-  React adapter marks its roots so, and owns what is inside. Delegated behaviours (ripple, guard, tooltips) still
-  serve them. Removing the attribute initialises the subtree.
+  [React adapter](react.md) marks its roots so, owns what is inside and runs their behaviours itself through
+  `manage()`. Delegated behaviours (ripple, guard, tooltips) still serve them. Removing the attribute initialises the
+  subtree. `data-ds-managed="off"` on an element inside one hands that element's subtree back (the nearest
+  `data-ds-managed` decides): plain markup there is initialised and observed again.
 - **Observer.** With `observe` (the default) one `MutationObserver` per root watches `childList` and `subtree`, plus
   the attributes of every behaviour (an `attributeFilter`): `DS.dom.morphHtml` patches in place, so a new or changed
   `data-ds-*` attribute arrives without any added node, and initialises its element.

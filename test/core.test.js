@@ -1,7 +1,8 @@
 /**
  * DS.core (src/js/core.js) on a small fake DOM with a fake
  * MutationObserver: the shared runtime, the registry, init() and its
- * observer batches (a keyed move keeps its controller), data-ds-managed,
+ * observer batches (a keyed move keeps its controller), data-ds-managed
+ * (with its "off" hand-back) and manage(),
  * globals, destroy(), emit(), config(), t() and safeHref(). The real engines run the
  * same in test/browser/core.spec.js.
  */
@@ -392,6 +393,94 @@ describe('DS.core.init', () => {
     managed.removeAttribute('data-ds-managed');
     await tick();
     assert.deepEqual(fx.log, ['init inside', 'init late']);
+  });
+
+  it('hands a subtree back inside data-ds-managed with data-ds-managed="off" (the nearest one decides)', async () => {
+    const doc = fakeDocument();
+    const fx = behaviour();
+    start(doc);
+    const owned = h(doc, 'span', { id: 'owned', [fx.attribute]: '' });
+    const plain = h(doc, 'span', { id: 'plain', [fx.attribute]: '' });
+    const again = h(doc, 'span', { id: 'again', [fx.attribute]: '' });
+    const inner = h(doc, 'div', { id: 'inner', 'data-ds-managed': '' }, again);
+    const slot = h(doc, 'div', { id: 'slot', 'data-ds-managed': 'off' }, plain, inner);
+    doc.body.append(h(doc, 'div', { id: 'managed', 'data-ds-managed': '' }, owned, slot));
+    await tick();
+    assert.deepEqual(fx.log, ['init plain'], 'only the handed-back subtree, and not a managed root inside it');
+    const late = h(doc, 'span', { id: 'late', [fx.attribute]: '' });
+    slot.append(late);
+    await tick();
+    assert.deepEqual(fx.log, ['init plain', 'init late'], 'the observer serves it too');
+  });
+
+  it('manage() runs a behaviour inside data-ds-managed for its owner: options from attributes, update(), an idempotent destroy()', async () => {
+    const doc = fakeDocument();
+    const plain = behaviour({ attributes: ['data-ds-fx-opt'] });
+    const updating = behaviour({ update: true, attributes: ['data-ds-fx-opt'] });
+    start(doc);
+    const a = h(doc, 'div', { id: 'a', 'data-ds-managed': '', [plain.attribute]: 'x' });
+    const b = h(doc, 'div', { id: 'b', 'data-ds-managed': '', [updating.attribute]: '' });
+    doc.body.append(a, b);
+    await tick();
+    assert.deepEqual(plain.log, [], 'init() leaves a managed root alone');
+    assert.equal(core.manage(a, 'no-such-behaviour'), null);
+    const first = core.manage(a, plain.name);
+    assert.deepEqual(plain.log, ['init a']);
+    assert.equal(first.controller, plain.made[0]);
+    assert.equal(core.get(a, plain.name), plain.made[0]);
+    assert.equal(plain.made[0].ctx.signal.aborted, false);
+    // StrictMode: cleanup, then the effect once more; the second cleanup does nothing.
+    first.destroy();
+    first.destroy();
+    assert.deepEqual(plain.log, ['init a', 'destroy a']);
+    assert.equal(plain.made[0].ctx.signal.aborted, true, 'its listeners go with it');
+    assert.equal(first.controller, null);
+    assert.equal(core.get(a, plain.name), null);
+    const second = core.manage(a, plain.name);
+    assert.deepEqual(plain.log, ['init a', 'destroy a', 'init a']);
+    // The owner changes an option: without update() a fresh controller, with update() the names.
+    second.update();
+    assert.equal(plain.log.length, 3, 'nothing changed, nothing happens');
+    a.setAttribute('data-ds-fx-opt', '1');
+    second.update();
+    assert.deepEqual(plain.log.slice(3), ['destroy a', 'init a']);
+    assert.equal(second.controller, plain.made[2]);
+    const third = core.manage(b, updating.name);
+    b.setAttribute('data-ds-fx-opt', '2');
+    b.setAttribute(updating.attribute, 'y');
+    third.update();
+    assert.deepEqual(updating.log, ['init b', `update b ${updating.attribute},data-ds-fx-opt`]);
+    // Its attribute gone, the controller goes; back, a fresh one.
+    a.removeAttribute(plain.attribute);
+    second.update();
+    assert.deepEqual(plain.log.slice(5), ['destroy a']);
+    a.setAttribute(plain.attribute, '');
+    second.update();
+    assert.deepEqual(plain.log.slice(6), ['init a']);
+    await tick();
+    assert.equal(plain.log.length, 7, 'the observer never touches it');
+    // Removed from the document: the owner's destroy() takes it down, not init().
+    a.remove();
+    await tick();
+    assert.equal(plain.log.length, 7);
+    second.destroy();
+    third.destroy();
+    assert.deepEqual(plain.log.slice(7), ['destroy a']);
+    assert.deepEqual(updating.log.slice(2), ['destroy b']);
+  });
+
+  it('manage() leaves a controller that a root of init() made to that root', async () => {
+    const doc = fakeDocument();
+    const fx = behaviour();
+    start(doc);
+    const el = h(doc, 'div', { id: 'el', [fx.attribute]: '' });
+    doc.body.append(el);
+    await tick();
+    const handle = core.manage(el, fx.name);
+    assert.deepEqual(fx.log, ['init el'], 'no second controller');
+    assert.equal(handle.controller, fx.made[0]);
+    handle.destroy();
+    assert.deepEqual(fx.log, ['init el'], 'not the owner\'s to destroy');
   });
 
   it('installs every global once per root and takes it down with the root; a later definition reaches existing roots', async () => {
