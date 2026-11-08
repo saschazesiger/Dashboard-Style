@@ -192,7 +192,7 @@ describe('generated files of the repository', () => {
   it('are up to date (npm run build writes them, --check compares them)', () => {
     assert.deepEqual(diffGenerated(), []);
     assert.deepEqual([...generatedFiles().keys()], ['src/index.css', 'docs/components.md', 'styleguide/demos.js', 'styleguide/lab-components.js', 'docs/theming.md',
-      'docs/motion.md', 'docs/install.md', 'src/types/ds.d.ts', 'src/js/ripple.js', 'README.md', 'themes/example.css', 'styleguide/registry.js', 'styleguide/theme-generator.js']);
+      'docs/motion.md', 'docs/install.md', 'docs/react.md', 'src/types/ds.d.ts', 'src/js/ripple.js', 'README.md', 'themes/example.css', 'styleguide/registry.js', 'styleguide/theme-generator.js']);
   });
 
   it('src/index.css: the layer statement, the sublayers and the imports in meta.json "order"', () => {
@@ -337,7 +337,7 @@ describe('src/core/global.css: the rules for every element of .ds-theme', () => 
 describe('dist/manifest.json', () => {
   it('follows the documented shape', () => {
     const info = packageInfo();
-    assert.deepEqual(Object.keys(manifest), ['name', 'version', 'layers', 'sublayers', 'core', 'pseudo', 'order', 'components', 'js']);
+    assert.deepEqual(Object.keys(manifest), ['name', 'version', 'layers', 'sublayers', 'core', 'pseudo', 'order', 'components', 'js', 'react']);
     assert.equal(manifest.name, 'dashboard-style');
     assert.equal(manifest.version, info.version);
     assert.equal(manifest.layers, LAYERS);

@@ -14,7 +14,7 @@
  * the optional files of COMPONENT_FILES: <name>.md, .demo.js, .js, .d.ts,
  * .requires.json, .test.js, .spec.js, .fixture.html, .lab.js, .keyframes.css),
  * the partials of docs/components.md (src/components/_partials/),
- * src/optional/, src/js/, src/types/, src/deprecations.json, fonts/, themes/
+ * src/optional/, src/js/, src/types/, src/react/, src/deprecations.json, fonts/, themes/
  * and scripts/tools/.
  *
  * Generated in the repository (committed; --check compares them too):
@@ -32,7 +32,8 @@
  *   (replaceBlock): the hooks table of docs/theming.md and the hooks of
  *   themes/example.css (meta.json "hooks", src/core/hooks.json), the component
  *   keyframes table of docs/motion.md (<name>.keyframes.css, "keyframeDocs"),
- *   the module table of docs/install.md, the module imports and namespaces
+ *   the module table of docs/install.md, the component table of docs/react.md
+ *   (scripts/react.mjs), the module imports and namespaces
  *   of src/types/ds.d.ts (MODULES) and the list RIPPLE_HOSTS of
  *   src/js/ripple.js (meta.json "rippleHosts").
  *
@@ -82,6 +83,9 @@
  *                   check-project.mjs, the theme generator theme.mjs, the
  *                   project bundle bundle.mjs and vite-plugin.mjs, and the
  *                   modules they share); a new file there ships by itself
+ *   react/          the React adapter (scripts/react.mjs): the hand-written
+ *                   modules of src/react/ and one generated module per
+ *                   behaviour, each with its .d.ts, and index.js
  *   tokens.json     every --ds-* name with its layer, default and type
  *   LICENSE         MIT notice (it must travel with every copy)
  *   SHA256SUMS      checksums of all files above
@@ -99,6 +103,7 @@ import { gzipSync } from 'node:zlib';
 import { scan, selectorList } from './tools/css-scan.mjs';
 import { isRemoved } from './tools/theme-rules.mjs';
 import { classicScript, moduleBody as wrapModule } from './tools/js-wrap.mjs';
+import { reactDist, reactTable } from './react.mjs';
 
 /** lightningcss, the build's one dependency (npm ci); null when it is not installed. */
 const lightning = await import('lightningcss').catch(() => null);
@@ -423,6 +428,17 @@ export function moduleFiles(name) {
 export function moduleSource(name, read = (path) => readText(join(ROOT, path))) {
   const { component, source } = moduleFiles(name);
   return component ? rewriteComponentImports(read(source), name) : read(source);
+}
+
+/** What scripts/react.mjs reads: the components, the repository, the modules and the files of src/react/. */
+export function reactContext(list = components()) {
+  return {
+    list,
+    read: (path) => readText(join(ROOT, path)),
+    has: (path) => existsSync(join(ROOT, path)),
+    moduleNames: MODULES,
+    handFiles: existsSync(join(ROOT, 'src/react')) ? readdirSync(join(ROOT, 'src/react')).filter((name) => /\.(js|d\.ts)$/.test(name)).sort() : [],
+  };
 }
 
 function filesIn(dir) {
@@ -1365,6 +1381,7 @@ export function generatedFiles(list = components()) {
     ['docs/theming.md', replaceBlock(repoText('docs/theming.md'), 'docs/theming.md', 'hooks', hooksTable(list))],
     ['docs/motion.md', replaceBlock(repoText('docs/motion.md'), 'docs/motion.md', 'component keyframes', componentKeyframesTable(list))],
     ['docs/install.md', replaceBlock(repoText('docs/install.md'), 'docs/install.md', 'modules', modulesTable(list))],
+    ['docs/react.md', replaceBlock(repoText('docs/react.md'), 'docs/react.md', 'components', reactTable(reactDist(reactContext(list)).behaviours, list, repoText))],
     ['src/types/ds.d.ts', dsTypes(repoText('src/types/ds.d.ts'))],
     ['src/js/ripple.js', replaceBlock(repoText('src/js/ripple.js'), 'src/js/ripple.js', 'ripple hosts', rippleHostLines(list))],
     ['README.md', readmeCount(repoText('README.md'), list.length)],
@@ -1686,7 +1703,7 @@ function moduleFacts(list) {
  *                     (always) and exportRequires (per export), and the
  *                     attributes that need it, see moduleRequires()
  */
-export function manifestJson(list, sizes, info) {
+export function manifestJson(list, sizes, info, react = reactDist(reactContext(list)).manifest) {
   const { facts, core } = componentFacts(list);
   const claimed = new Set(Object.values(moduleRequires(list)).flatMap((entry) => entry.attributes));
   const pseudo = Object.fromEntries(CORE.map((name) => {
@@ -1727,6 +1744,8 @@ export function manifestJson(list, sizes, info) {
       }];
     })),
     js: moduleFacts(list),
+    // The React adapter: per file its exports, the stylesheets it needs and the modules it loads (scripts/react.mjs).
+    react,
   };
   return `${JSON.stringify(manifest, null, 2)}\n`;
 }
@@ -1864,12 +1883,15 @@ function buildDist() {
       text(path, withBanner(path, readText(file), info));
     }
     else if ((match = /^js\/([\w-]+)\.requires\.json$/.exec(path)) && MODULES.includes(match[1])) continue; // manifest.json "js.<module>" (moduleRequires)
+    else if (/^react\/[\w-]+\.(js|d\.ts)$/.test(path) || path === 'react/names.json') continue; // dist/react/ (reactDist, below)
     else if (path === 'deprecations.json') text(path, deprecationsJson(readText(file), info));
     else if (path === 'types/ds.d.ts') text('ds.d.ts', withBanner(path, dsTypes(readText(file)), info));
     else if (/^types\/js\/[\w-]+\.d\.ts$/.test(path) && CORE_MODULES.includes(path.slice(9, -5))) text(path.slice(6), withBanner(path, readText(file), info));
     else throw new Error(`Unexpected file in src/: ${path}`);
   }
   for (const name of MODULES) if (!out.has(`js/${name}.d.ts`)) throw new Error(`${moduleFiles(name).types} is missing: every module has its types`);
+  const react = reactDist(reactContext(list));
+  for (const [path, value] of react.files) text(path, withBanner(path, value, info));
   if (!out.has('ds.d.ts')) throw new Error('src/types/ds.d.ts is missing');
   for (const file of filesIn(join(ROOT, 'fonts'))) {
     const path = posix(relative(join(ROOT, 'fonts'), file));
@@ -1886,7 +1908,7 @@ function buildDist() {
     text(`tools/${path}`, withBanner(path, readText(file), info));
   }
   text('tokens.json', tokensJson(info));
-  text('manifest.json', manifestJson(list, sizes, info));
+  text('manifest.json', manifestJson(list, sizes, info, react.manifest));
   text('LICENSE', readText(join(ROOT, 'LICENSE')));
 
   const sums = [...out.keys()].sort().map((path) => `${createHash('sha256').update(out.get(path)).digest('hex')}  ${path}`);
