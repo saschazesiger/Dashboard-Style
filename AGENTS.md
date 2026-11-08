@@ -346,6 +346,7 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
   (a square theme makes them square); no red buttons except the filled error button of a destructive confirmation.
 - Run `node <dest>/tools/check-project.mjs --config ds-check.json` in CI (`docs/install.md`, "Check a project"): it
   checks the bullets above (rules `vendor`, `classes`, `deprecated`, `literals`, `keyframes`, `themes`, `layers`,
-  `hidden`, `restyle`, `attributes`, `dom`, `pressable`); a deliberate deviation is an exception in
+  `hidden`, `restyle`, `attributes`, `dom`, `pressable`, `options`, `bundle`); `ds-check.json` names the copy's
+  `"major"` and, with a project bundle, its `"bundle"` config; a deliberate deviation is an exception in
   `ds-check.json` with its reason.
 ```

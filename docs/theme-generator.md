@@ -115,6 +115,9 @@ darken in the dark scheme as in `themes/dark.css`. The shimmer's glint (`--ds-sh
 - **The theme check passes.** The CLI runs `tools/check-theme.mjs` on the light and the dark view of what it writes
   and exits 1 on a finding. `check-theme.mjs` also reads `light-dark()` itself: on the file as written it checks every
   pair in both schemes, so `node tools/check-theme.mjs themes/presets/ocean.css` passes as well.
+- **Reproducible.** The header names the command that wrote the file. `check-theme.mjs` runs it again and warns
+  (`drift`) when the file holds other values: a hand edit, or a file from an older generator after an update of the
+  copy. Regenerate it with that command; keep deliberate changes in a second theme file loaded after it.
 - **The roles of `themes/dark.css`, and nothing else.** It sets every colour role that does not follow another role
   by itself, plus the floating surfaces (`--ds-surface-overlay`, `--ds-surface-popover`), `--ds-color-scheme`, the
   scrims, the shimmer's glint and the shadows. It never sets a scale, a hook or a motion token, and it stays unlayered.

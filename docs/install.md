@@ -1020,6 +1020,7 @@ it; globs know `*`, `**` and `?`):
 
 ```json
 {
+  "major": 3,
   "prefix": "app",
   "css": ["css/**/*.css"],
   "js": ["js/**/*.js"],
@@ -1027,6 +1028,7 @@ it; globs know `*`, `**` and `?`):
   "themes": ["css/theme.css"],
   "themesWith": ["vendor/dashboard-style/themes/dark.css"],
   "vendor": "vendor/dashboard-style",
+  "bundle": "ds.config.json",
   "exceptions": [
     { "rule": "restyle", "file": "css/app.css", "selector": ".app-bar .ds-btn", "reason": "the bar is dark; no hook for it yet" }
   ]
@@ -1040,11 +1042,14 @@ node vendor/dashboard-style/tools/check-project.mjs --config ds-check.json
 It prints `<file>:<line> <rule> <message>` per finding (warnings say so) and exits 1 on an error, 2 on a broken
 configuration. An exception silences one rule for a file (a path or a glob) and, when it names one, a selector; its
 `reason` is required. `themesWith` (optional) names the shipped themes your theme is used with; the `themes` rule passes
-them to `check-theme.mjs --with`.
+them to `check-theme.mjs --with`. `major` is the major version the config and the project are for: the `vendor` rule
+fails when the copy has another one (a 2.x project on a 3.0 copy: [migration.md](migration.md)) and warns when the
+config names none. `bundle` (optional) is the config of the project bundle ([bundle.md](bundle.md)); the `bundle`
+rule runs `tools/bundle.mjs --check` on it with this copy.
 
 | Rule | Level | What |
 |---|---|---|
-| `vendor` | error | the copy verifies against its `SHA256SUMS` ("Verify a copy") |
+| `vendor` | error, warning | the copy verifies against its `SHA256SUMS` ("Verify a copy"), and `major` is the copy's major version (none: a warning) |
 | `classes` | error | every `ds-` class in markup (`class="..."` in pages and template strings), in selectors of scripts and stylesheets and in `classList` calls exists in `ds.css`; a page that links single stylesheets (`css/components/*.css`) links one that defines it: a file whose rules style the class itself, not one that only places it inside another component (`.ds-alert .ds-btn` in `alert.css`); `.ds-theme` needs `css/core/tokens.css`; the `.min.css` of a stylesheet counts as the stylesheet |
 | `deprecated` | error, warning | a name of `deprecations.json`: removed names fail, deprecated ones warn |
 | `literals` | error | a colour, radius, font, shadow, duration or curve literal in a rule of your prefix (`.app-*`): read tokens (`--ds-*`, `--app-*`). `linear` is the curve of the system's loops and has no token: it passes on a `--ds-loop-*` duration (`animation: ds-spin var(--ds-loop-spin) linear infinite`), as do a zero duration (`0s`) and its curve |
@@ -1056,6 +1061,8 @@ them to `check-theme.mjs --with`.
 | `attributes` | error | a script that writes an attribute the system owns (the "Attributes" table of [components.md](components.md#attributes)); `data-toast-reserve` only next to `reserve: false`. A write that `deprecations.json` lists, such as the 1.x hand `data-scrolled` recipe, is reported by `deprecated` instead (a warning in 2.x) |
 | `dom` | warning | `innerHTML` with ds markup: re-render with `DS.dom.morphHtml` |
 | `pressable` | warning | a `::before` state layer of your own (`currentColor` or a `--ds-state-*` opacity): `.ds-pressable` gives a project element the system's hover, press and focus |
+| `options` | error | an option written as a restyle ([options.md](options.md)): a project rule or a script (`style.setProperty()`) that sets what the option classes set (`--ds-size-step`, `--ds-size-font`, `--ds-density`, `--ds-shape`, `--ds-target-min`, the `--ds-tone*` colours; a theme sets the defaults), a rule under an option class that sets a `--ds-*` hook (`.ds-sm .ds-btn { --ds-btn-height: 28px }` redefines what `.ds-sm` means: set the base hook, and the option computes from it), and a `pointer: coarse` media query of your own that reaches ds (touch is `.ds-touch`) |
+| `bundle` | error, warning | with `bundle`, the project bundle is what `tools/bundle.mjs` writes from this copy and holds every class the project uses (`bundle.mjs --check`); without it, a page that links a bundle (`ds.<entry>.css`) warns |
 
 The nightly template runs it as its optional `CHECK` step.
 

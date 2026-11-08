@@ -32,6 +32,22 @@
  * --ds-color-scheme names: "light dark" both, a pinned
  * [data-ds-scheme="dark"] variant dark only), and a finding names its
  * scheme ("(dark)").
+ *
+ * 3.0 (docs/theming.md, "Checking a theme"):
+ *   seed     a --ds-seed-* property (an error: a seed is the input of
+ *            tools/theme.mjs, never a token); a generator header whose command
+ *            the generator refuses (an unreadable seed, an unknown scheme)
+ *   options  an option the theme sets (--ds-density, --ds-shape,
+ *            --ds-size-step, --ds-type-scale, --ds-target-min) in a form the
+ *            components cannot compute with (an error: a unit on a number, a
+ *            number for a length), or outside its documented values (a
+ *            warning); a --ds-* property set under an option class (an
+ *            error: it redefines the class)
+ *   drift    a file with the header of tools/theme.mjs whose values differ
+ *            from what that command writes today (a warning: a hand edit or a
+ *            file from an older generator; regenerate it). The CLI and
+ *            check-project.mjs pass the generator (`generate`); the
+ *            generator's own CLI checks its output without it.
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -43,6 +59,64 @@ const BASE = /^\.ds-theme(\.[\w-]+)*$/;
 const THEME_SCOPE = /\.ds-theme\b/;
 /** Classes a theme may name without restyling a component. */
 const NEUTRAL_CLASSES = new Set(['ds-theme', 'ds-base']);
+/** An option class (docs/options.md): the classes keep their meaning in every theme. */
+const OPTION_CLASS = /\.(ds-(?:xs|sm|md|lg|xl|density-[a-z]+|shape-[a-z]+|tone-[a-z]+|touch))(?![\w-])/;
+
+/**
+ * The option class a selector list styles, or null. A class inside :not()
+ * or :has() is a condition (`.ds-theme:not(.ds-touch)`, as compact.css
+ * writes it), and one on the theme root itself (`.ds-theme.ds-touch`) a
+ * variant of the theme: neither redefines the class.
+ */
+export function optionStyled(selector) {
+  for (const one of selectorList(selector)) {
+    const bare = one.replace(/:(?:not|has)\((?:[^()]|\([^()]*\))*\)/g, '');
+    for (const compound of bare.split(/\s*[\s>+~]\s*/)) {
+      if (/\.ds-theme(?![\w-])/.test(compound)) continue;
+      const match = OPTION_CLASS.exec(compound);
+      if (match) return match[1];
+    }
+  }
+  return null;
+}
+
+/**
+ * The options a theme may set as defaults, with the values the components
+ * are built for (docs/options.md): a plain number, from `min` to `max`, in
+ * whole steps where `whole`; --ds-target-min is a length.
+ */
+export const OPTION_VALUES = {
+  '--ds-density': { min: -3, max: 0, whole: true, what: '0, -1, -2 or -3 (.ds-density-comfortable ... -tight)' },
+  '--ds-shape': { min: 0, max: 1.5, what: '0 (square) to 1.5 (round)' },
+  '--ds-size-step': { min: -2, max: 2, whole: true, what: '-2 to 2 (.ds-xs ... .ds-xl)' },
+  '--ds-type-scale': { min: 0.75, max: 1.5, what: 'a factor near 1 (1.125: body text 15.75px)' },
+  '--ds-target-min': { length: true, what: 'a length (0px, or var(--ds-touch-target) as .ds-touch sets it)' },
+};
+
+/** The generator's options from the command in a generated theme's header, or null when the file has none. */
+export function generatorCommand(css) {
+  const header = /\/\*[\s\S]*?\*\//.exec(css);
+  const match = header && /node\s+\S*theme\.mjs((?:\s+--[\w-]+(?:\s+(?:'[^']*'|"[^"]*"|[^\s*'"-][^\s*]*))?)+)/.exec(header[0]);
+  if (!match) return null;
+  const options = {};
+  const unknown = [];
+  const VALUED = ['seed', 'neutral', 'accent', 'error', 'success', 'warning', 'info', 'scheme', 'contrast', 'name'];
+  for (const part of match[1].matchAll(/--([\w-]+)(?:\s+('[^']*'|"[^"]*"|[^\s*'"-][^\s*]*))?/g)) {
+    if (!VALUED.includes(part[1]) || part[2] === undefined) unknown.push(`--${part[1]}`);
+    else options[part[1]] = part[2].replace(/^(['"])(.*)\1$/, '$2');
+  }
+  return { text: `node tools/theme.mjs${match[1].replace(/\s+/g, ' ')}`, options, unknown, line: css.slice(0, header.index + header[0].indexOf(match[0])).split('\n').length };
+}
+
+/** The custom properties of the plain `.ds-theme` rules of a stylesheet, with their lines (the last one wins). */
+function baseDeclarations(css) {
+  const out = new Map();
+  for (const rule of scan(css).rules) {
+    if (rule.context.length || rule.selector.trim() !== '.ds-theme') continue;
+    for (const declaration of rule.declarations) if (declaration.property.startsWith('--')) out.set(declaration.property, declaration);
+  }
+  return out;
+}
 
 /** The pixel size of a `font` shorthand (the first `<n>px` before a `/` or the family). */
 function fontSize(value, scale = 1) {
@@ -58,9 +132,10 @@ function fontSize(value, scale = 1) {
 /**
  * The findings for `files` ([{ path, css }]), with `withFiles` loaded after
  * them for the contrast pairs. `tokens` is the parsed tokens.json,
- * `deprecations` the parsed deprecations.json (or null).
+ * `deprecations` the parsed deprecations.json (or null), `generate` the
+ * generateTheme() of tools/theme.mjs (or null: no drift check).
  */
-export function checkTheme({ files, withFiles = [], tokens, deprecations = null }) {
+export function checkTheme({ files, withFiles = [], tokens, deprecations = null, generate = null }) {
   const findings = [];
   const add = (level, file, line, rule, message) => findings.push({ level, file, line, rule, message });
   const known = new Map((tokens?.tokens ?? []).map((entry) => [entry.name, entry]));
@@ -107,6 +182,27 @@ export function checkTheme({ files, withFiles = [], tokens, deprecations = null 
           continue;
         }
         if (!property.startsWith('--ds-')) continue;
+        if (/^--ds-seed(-|$)/.test(property)) {
+          add('error', path, line, 'seed', `${property}: a seed is no token; it is the input of tools/theme.mjs (node tools/theme.mjs --seed <colour> --out <file>), which writes every colour role from it`);
+          continue;
+        }
+        const styled = optionStyled(rule.selector);
+        if (styled) {
+          add('error', path, line, 'options', `${rule.selector} { ${property} }: redefines what .${styled} means; set the default on .ds-theme, and the option classes step from it`);
+          continue;
+        }
+        const option = OPTION_VALUES[property];
+        if (option) {
+          const text = value.trim();
+          const number = /^-?(?:\d+\.?\d*|\.\d+)$/.test(text) ? Number(text) : null;
+          if (option.length) {
+            if (number !== null && number !== 0) add('error', path, line, 'options', `${property}: ${text} is a number; it is ${option.what}`);
+          } else if (/^-?(?:\d+\.?\d*|\.\d+)[a-z%]+$/i.test(text)) {
+            add('error', path, line, 'options', `${property}: ${text} has a unit; it is a plain number, ${option.what} (components multiply it: calc(var(${property}) * 4px))`);
+          } else if (number !== null && (number < option.min || number > option.max || (option.whole && !Number.isInteger(number)))) {
+            add('warning', path, line, 'options', `${property}: ${text} is outside what the components are built for: ${option.what}`);
+          }
+        }
         if (isMotion(property)) {
           add('error', path, line, 'motion', `${property}: motion tokens and motion hooks are one scheme for every product; never set them`);
           continue;
@@ -130,6 +226,30 @@ export function checkTheme({ files, withFiles = [], tokens, deprecations = null 
       for (const match of text.matchAll(pattern)) {
         const line = text.slice(0, match.index).split('\n').length;
         if (!findings.some((f) => f.file === path && f.line === line && f.rule === 'removed')) add('error', path, line, 'removed', `${entry.name} was removed in ${entry.removed}${entry.replacement ? `: use ${entry.replacement}` : ''}`);
+      }
+    }
+    // A generated theme: its header names the command; the file holds what that command writes today.
+    const command = generatorCommand(css);
+    if (command) {
+      if (command.unknown.length) add('error', path, command.line, 'seed', `the generator header names ${command.unknown.join(', ')}, which tools/theme.mjs does not take: ${command.text}`);
+      else if (generate) {
+        let generated = null;
+        try {
+          generated = generate(command.options);
+        } catch (problem) {
+          add('error', path, command.line, 'seed', `the generator refuses the command of the header (${command.text}): ${problem.message}`);
+        }
+        if (generated) {
+          const want = baseDeclarations(generated.css);
+          const have = baseDeclarations(css);
+          const norm = (text) => text.replace(/\s+/g, ' ').trim();
+          const differ = [...want].filter(([name, declaration]) => !have.has(name) || norm(have.get(name).value) !== norm(declaration.value)).map(([name]) => name);
+          if (differ.length) {
+            const first = differ.map((name) => have.get(name)?.line).find((value) => value !== undefined) ?? command.line;
+            const names = `${differ.slice(0, 4).join(', ')}${differ.length > 4 ? ` and ${differ.length - 4} more` : ''}`;
+            add('warning', path, first, 'drift', `${differ.length} of ${want.size} values differ from what the generator writes for its header's command (${names}): regenerate the file with ${command.text} --out <file>; a deliberate change goes into a theme file loaded after it`);
+          }
+        }
       }
     }
   }
@@ -188,7 +308,7 @@ function readJson(path) {
   return existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : null;
 }
 
-function main(argv) {
+async function main(argv) {
   const here = dirname(fileURLToPath(import.meta.url));
   const files = [];
   const withFiles = [];
@@ -214,7 +334,9 @@ function main(argv) {
     return 2;
   }
   const read = (path) => ({ path, css: readFileSync(path, 'utf8') });
-  const findings = checkTheme({ files: files.map(read), withFiles: withFiles.map(read), tokens, deprecations: readJson(resolve(deprecationsPath)) });
+  // Imported here, not at the top: the generator's own CLI imports this file to check what it writes.
+  const { generateTheme } = await import('./theme.mjs');
+  const findings = checkTheme({ files: files.map(read), withFiles: withFiles.map(read), tokens, deprecations: readJson(resolve(deprecationsPath)), generate: generateTheme });
   for (const finding of findings) (finding.level === 'error' ? console.error : console.log)(formatFinding(finding));
   const errors = findings.filter((finding) => finding.level === 'error').length;
   const warnings = findings.filter((finding) => finding.level === 'warning').length;
@@ -222,4 +344,8 @@ function main(argv) {
   return errors ? 1 : 0;
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) process.exitCode = main(process.argv.slice(2));
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main(process.argv.slice(2)).then((code) => {
+    process.exitCode = code;
+  });
+}
