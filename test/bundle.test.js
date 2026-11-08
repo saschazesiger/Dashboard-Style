@@ -575,6 +575,22 @@ describe('tools/bundle.mjs on this checkout\'s dist/ (its manifest.json)', () =>
     });
   });
 
+  it('keeps the reference app\'s committed bundle fresh (example/ds/, --check), and fails it once the app names more', () => {
+    const check = (cwd) => spawnSync(process.execPath, [join(ROOT, 'scripts/tools/bundle.mjs'), '--config', 'ds.config.json', '--check'], { cwd, encoding: 'utf8' });
+    const fresh = check(join(ROOT, 'example'));
+    assert.equal(fresh.status, 0, `example/ds/ is stale: run node dist/tools/bundle.mjs --config example/ds.config.json\n${fresh.stdout}${fresh.stderr}`);
+    // The same app with one more component: the committed bundle no longer holds it.
+    withTemp((dir) => {
+      const app = join(dir, 'example');
+      cpSync(join(ROOT, 'example'), app, { recursive: true });
+      cpSync(dist, join(dir, 'dist'), { recursive: true });
+      writeFileSync(join(app, 'index.html'), `${readFileSync(join(app, 'index.html'), 'utf8')}<div class="ds-lightbox"></div>\n`);
+      const stale = check(app);
+      assert.equal(stale.status, 1);
+      assert.match(stale.stderr, /stale: ds\/ds\.bundle\.css/);
+    });
+  });
+
   it('leads to no component by the shared vocabulary: keyed rows, a leaving element, data-ds-value and data-ds-config', () => {
     withTemp((dir) => {
       const config = tempProject(dir, {
