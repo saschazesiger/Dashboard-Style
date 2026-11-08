@@ -151,7 +151,11 @@ import only what you need. Details, updates and integrity checks: [docs/install.
 its `SHA256SUMS`, `check-theme.mjs` a theme file (`light-dark()` themes in both schemes), `check-project.mjs` your code
 against the project rules (deprecated and removed names from `dist/deprecations.json` included), `theme.mjs` writes a
 theme from one seed colour ([docs/theme-generator.md](docs/theme-generator.md)), `bundle.mjs` a project bundle
-([docs/bundle.md](docs/bundle.md)).
+([docs/bundle.md](docs/bundle.md)), `migrate.mjs` moves a 2.x project to 3.0 ([docs/migration.md](docs/migration.md)).
+
+**⬆️ From 2.x to 3.0.** `node <copy>/tools/migrate.mjs --config ds-check.json` shows a diff of every renamed class,
+hook, token, attribute and call it can rewrite and lists what needs a person; `--write` applies it. The guide, with
+every removed name and what to check by hand: [docs/migration.md](docs/migration.md).
 
 **⬆️ From 1.x to 2.0.** 2.0.0 removes the names deprecated in 1.x and changes a few defaults. Work through the
 "Migration" table of [2.0.0 in the changelog](CHANGELOG.md#200), then run `tools/check-project.mjs`
@@ -198,6 +202,7 @@ Which component fits which need: the table at the top of [docs/components.md](do
 | Topic | |
 |---|---|
 | 📦 [Install and update](docs/install.md) | vendoring, CDN, bundlers, fonts, verifying a copy, checking a project, language and locale |
+| ⬆️ [Migration](docs/migration.md) | from 2.x to 3.0: `tools/migrate.mjs`, every renamed and removed name, what to check by hand |
 | ⚙️ [Core](docs/core.md) | `DS.init()`, the behaviour registry, the one runtime per page, `ds:` events, strings and locale |
 | ✂️ [Bundle](docs/bundle.md) | loading only what a page uses: the bundle tool, its scan, the safelist, `--check` in CI, the Vite plugin |
 | 🎚️ [Tokens](docs/tokens.md) | the three layers and every token (the motion scales in [Motion](docs/motion.md#tokens)) |

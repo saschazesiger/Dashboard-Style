@@ -19,7 +19,7 @@ Everything a project needs is in `dist/`:
 | `LICENSE` | the MIT notice; keep it with the copy |
 | `SHA256SUMS` | checksums of every file |
 | `themes/` | the shipped themes `dark.css`, `compact.css` and `contrast.css`, loaded after your theme ([theming.md](theming.md#dark-compact-and-contrast)) |
-| `tools/` | dependency-free checks for a project: `verify.mjs` and `verify.sh` (the copy against `SHA256SUMS`, see "Verify a copy"), `check-theme.mjs` (a theme file, see theming.md, "Checking a theme"), `check-project.mjs` (the project rules, see "Check a project"), `bundle.mjs` and `vite-plugin.mjs` (a project bundle of only what it uses, [bundle.md](bundle.md)), and the modules they share: `theme-rules.mjs` (the contrast pairs and motion prefixes), `css-scan.mjs` (a small CSS reader) and `js-wrap.mjs` (the classic-script wrapper of `ds.js`) |
+| `tools/` | dependency-free checks for a project: `verify.mjs` and `verify.sh` (the copy against `SHA256SUMS`, see "Verify a copy"), `check-theme.mjs` (a theme file, see theming.md, "Checking a theme"), `check-project.mjs` (the project rules, see "Check a project"), `bundle.mjs` and `vite-plugin.mjs` (a project bundle of only what it uses, [bundle.md](bundle.md)), `migrate.mjs` (a 2.x project to 3.0, [migration.md](migration.md)), `theme.mjs` (a theme from one seed, [theme-generator.md](theme-generator.md)), and the modules they share: `theme-rules.mjs` (the contrast pairs and motion prefixes), `css-scan.mjs` (a small CSS reader) and `js-wrap.mjs` (the classic-script wrapper of `ds.js`) |
 | `tokens.json` | every `--ds-*` name as data: `{ version, tokens: [{ name, layer, default, type, themeable, component?, deprecated? }] }` (see "Tokens as data") |
 
 The modules of `js/`, in the order `ds.js` holds them (each after the modules it imports; generated from `src/js/`
@@ -1071,7 +1071,8 @@ The nightly template runs it as its optional `CHECK` step.
 1. Read [CHANGELOG.md](../CHANGELOG.md) since the version in your `VERSION` file. Versions follow semver: a minor
    version adds tokens, classes or hooks or deprecates one; a renamed name keeps working under its old name until a
    later major version removes it. The number does not hold anything back: `main` is what you get. Coming from
-   1.x, work through the "Migration" table of [2.0.0](../CHANGELOG.md#200) first.
+   2.x, follow [migration.md](migration.md): `tools/migrate.mjs` rewrites what it can map and lists the rest. Coming
+   from 1.x, work through the "Migration" table of [2.0.0](../CHANGELOG.md#200) first.
 2. Vendor again over the old copy (`vendor.sh vendor/dashboard-style` fetches the latest `main`); the CDN's `@main`
    URLs update by themselves.
 3. Open your pages and the styleguide with your theme loaded; run your tests (including the checksum check).

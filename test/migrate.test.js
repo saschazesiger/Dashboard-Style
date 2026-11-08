@@ -131,6 +131,27 @@ describe('tools/migrate.mjs', () => {
     assert.deepEqual(manual, ['--ds-btn-sm-height', '--ds-btn-sm-icon-size', '--ds-check-sm-height', '--ds-loader-sm-size', '--ds-table-dense-row-height']);
   });
 
+  it('names every entry of src/deprecations.json in docs/migration.md, and says what the tool does with it', () => {
+    const doc = read('docs/migration.md').replace(/`/g, '');
+    const missing = JSON.parse(read('src/deprecations.json')).names
+      .filter((entry) => !doc.includes(entry.name) && !doc.includes(entry.name.replace(/^\./, '')) && !(entry.pattern && new RegExp(entry.pattern).test(doc)))
+      .map((entry) => entry.name);
+    assert.deepEqual(missing, [], 'a row of "Renamed and removed names" for each');
+    // Every row's last cell is what the tool does, as ruleFor() decides it.
+    const said = { rewrites: ['rename', 'attribute', 'string', 'settleLoader'], 'option class': ['classes'], 'rewrites calls and imports': ['export'], 'lists it': ['manual'] };
+    const offenders = [];
+    const start = doc.indexOf('\n## Renamed and removed names');
+    const section = doc.slice(start, doc.indexOf('\n## ', start + 1));
+    for (const { entry, rule } of RULES) {
+      const name = entry.name.replace(/^\./, '');
+      const row = section.split('\n').find((line) => line.startsWith('| ') && (line.includes(name) || new RegExp(entry.pattern).test(line)));
+      const cell = row?.split('|').at(-2).trim();
+      if (!cell) offenders.push(`${entry.name}: no row`);
+      else if (cell === 'rewrites, check each' ? !rule.review : !said[cell]?.includes(rule.type) || Boolean(rule.review)) offenders.push(`${entry.name}: the guide says "${cell}", the tool does ${rule.type}${rule.review ? ' (check each)' : ''}`);
+    }
+    assert.deepEqual(offenders, []);
+  });
+
   it('reads an entry by its kind and replacement (ruleFor)', () => {
     assert.deepEqual(ruleFor({ kind: 'class', name: '.ds-a--old', pattern: 'x', replacement: '.ds-a--new' }), { type: 'rename', from: 'ds-a--old', to: 'ds-a--new' });
     assert.deepEqual(ruleFor({ kind: 'class', name: '.ds-a--sm', pattern: 'x', replacement: '.ds-sm' }), { type: 'classes', add: ['ds-sm'], block: 'ds-a' });

@@ -331,8 +331,10 @@ describe('repository', () => {
     // still a deprecation: the name works until that release.
     const removed = names.filter((entry) => isRemoved(entry, packageInfo().version) && entry.pattern !== null);
     assert.ok(removed.some((entry) => entry.name === '--ds-ease'), 'the removed names of 2.0 are listed');
-    // History (CHANGELOG.md, plans/) and the tests may name them; so may the data itself and the tools that read it.
-    const EXEMPT = /^(src\/deprecations\.json|dist\/deprecations\.json|dist\/tools\/.*)$/;
+    // History (CHANGELOG.md, plans/) and the tests may name them; so may the data itself and the tools that read it,
+    // and the migration from 2.x: its guide lists every removed name, and the fixture of tools/migrate.mjs is a 2.x
+    // project that uses them (plans/3.0.md, "Removed names").
+    const EXEMPT = /^(src\/deprecations\.json|dist\/deprecations\.json|dist\/tools\/.*|docs\/migration\.md|test\/fixtures\/migrate\/.*)$/;
     // A file that keeps an old form on purpose, for the entries it names (file → { reason, applies }).
     const KEEPS = new Map([
       ['test/browser/fixtures/toast-tooltip.html', {
