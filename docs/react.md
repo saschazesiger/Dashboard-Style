@@ -9,7 +9,9 @@ would make, so the adapter adds no second implementation of anything.
   step: plain ES modules with their `.d.ts` types.
 - One module per component. A page that imports `react/tabs.js` loads the tab behaviour and what it imports, nothing
   else. `react/index.js` re-exports every component for convenience, and loads all of them.
-- StrictMode-safe: each controller starts in a layout effect and goes in its cleanup; a second cleanup does nothing.
+- StrictMode-safe: each controller starts in a layout effect and goes in its cleanup; a second cleanup does nothing,
+  and a behaviour's `destroy()` gives back what its init took, so the second start shows what the first did (tested
+  for every component).
 - Styles stay CSS: link `ds.min.css` (or a [project bundle](bundle.md)), your theme and `fonts/fonts.css` as on any
   page. Theming is the [theme file](theming.md), never props.
 
@@ -43,7 +45,8 @@ found as in any project.
 The root of a tree on the system. It renders the `.ds-theme` element and calls `DS.init()` on it with the observer
 on, so the delegated behaviours serve everything inside: the ripple, the action guard (busy, done and
 `aria-disabled` actions get no input), tooltips for every `[data-tip]`, and `[data-ds-open]` / `[data-ds-close]`.
-Plain `data-ds-*` markup that React renders outside the adapter's components is initialised as on any page.
+Plain `data-ds-*` markup that React renders outside the adapter's components is initialised as on any page, once its
+module is loaded (below, "What the adapter does not do").
 
 | Prop | Default | What |
 |---|---|---|
@@ -295,24 +298,51 @@ No component: give any element `data-tip="Export"` and the provider's tooltips s
 Every behaviour of the system that initialises an element (each `data-ds-*` of a component module, and
 `data-ds-time`) has a component of its own, generated from the component's folder: it renders the root element of the
 documented markup (the tag, the classes and the role of the first element of the docs that carries the attribute),
-adds the attribute and `data-ds-managed`, and runs the behaviour through `DS.core.manage()`. Write the rest of the
-documented markup as its children, and its options as the documented attributes:
+adds the attribute and `data-ds-managed`, and runs the behaviour through `DS.core.manage()`.
+
+**By decision, a generated component is a typed wrapper of the root element**, not a second implementation of the
+component: it renders no inner markup of its own. Write the rest of the documented markup as its children (copied from
+[components.md](components.md)), and give data the docs drive from script through `controllerRef` (`DataGrid`'s
+`set({ columns, rows })`, a `Combobox`'s items, a `Tree`'s nodes). The components with props for their whole markup
+are the hand-written ones above: `Button`, `Field`, `Card`, `Badge`, `Status`, `Alert`, `Table`, `Tabs`, `Dialog`,
+`useToast()` and `Icon`.
 
 ```js
 h(MenuButton, { 'aria-haspopup': 'menu', 'aria-expanded': 'false', 'aria-controls': 'export-menu', 'data-ds-menubutton': '#export-menu' },
   'Export', h(Icon, { glyph: chevronDown, size: 16, className: 'ds-chevron ds-menu-btn__chevron' }))
 h(Menu, { id: 'export-menu', 'aria-label': 'Export', hidden: true },
   h('button', { className: 'ds-menu__item', role: 'menuitem', type: 'button', onClick: exportCsv }, h('span', { className: 'ds-menu__label' }, 'CSV')))
-h(ToggleGroup, { 'aria-label': 'View', 'data-ds-toggle-group': 'single', onDsChange: (event) => setView(event.detail.value) }, buttons)
+h(ToggleGroup, { 'aria-label': 'View', 'data-ds-toggle-group': 'single', dsToggleGroupRequired: true, onDsChange: (event) => setView(event.detail.value) }, buttons)
 h(DatePicker, { 'data-ds-value': '2026-05-01', onDsChange: (event) => setDate(event.detail.value) }, pickerMarkup)
+h(Markdown, { source: answer, anchors: true })
+h(Formatted, { 'data-ds-format': 'currency', currency: 'EUR', value: total })
 ```
 
-- An option attribute that React changes (`data-ds-value`, `data-ds-tabs-overflow` ...) reaches the controller as on
-  any page: its `update()`, else a fresh controller.
+- **Option props.** Each documented option attribute of the behaviour (its `define()`'s `attributes`) is a typed prop:
+  the attribute's name after the behaviour's own (`data-ds-markdown-anchors` is `anchors`,
+  `data-ds-tabs-overflow` is `overflow`), or its whole name after `data-ds-` where that would be a prop of the element
+  (`data-ds-value` is `dsValue`, `data-ds-toggle-group-required` is `dsToggleGroupRequired`). `true` writes the attribute
+  empty, `false` or `null` leaves it out, an object becomes JSON. The table below lists them. The attributes
+  themselves still work (`'data-ds-value': ...`), and the behaviour's own attribute takes its documented value
+  (`'data-ds-toggle-group': 'single'`).
+- An option that React changes reaches the controller as on any page: its `update()`, else a fresh controller.
+- **Content a behaviour writes.** `Markdown`, `Highlight`, `Formatted`, `Truncate`, `SearchHits`, `Time` and `Kbd`
+  render the text of their element themselves, so React renders no children there (it would keep a text node next to
+  what the behaviour rendered, or change one the behaviour replaced). They take their text as a prop or as string
+  children: `Markdown` `source` (a new one goes in through the controller's `set()`, patched in place, and sends
+  `ds:change`), `Highlight` `code` (the same), `Formatted` `value` (its `data-ds-value`), `Truncate` `text` and
+  `SearchHits` `text` (a new text starts the behaviour again on it), while `Time` and `Kbd` take no children: their
+  attribute (`data-ds-time`, `data-ds-kbd`) is everything they show. To mark hits in rows React renders, mark them in
+  React: `DS.hits.ranges(text, query)` gives the `[start, end)` pairs to wrap in `<mark class="ds-hit">`.
+- **Children are read once** where a behaviour builds its markup from what it reads on init (`DataGrid`'s columns and
+  rows, a `CommandPalette`'s commands, a `CodeBlock`'s lines, a `Chart`'s table): later changes to those children do
+  not reach it. Give new data through `controllerRef` (`set()`), or a new `key` for a new element.
 - The overlays among them (`Sheet`, `BottomSheet`, `Tearsheet`, `CommandPalette`, `ShortcutSheet`, `Notifications`)
   take `open`, `onClose(reason)` and `opener` as `Dialog` does.
-- `controllerRef` gives the controller for what the docs drive from script (`DataGrid`'s columns and rows, a
-  `Combobox`'s items, a `Tree`'s nodes).
+- **Types.** Each component's `.d.ts` types its option props, its `variant` (the modifiers of its block, without the
+  state classes the system writes: `done`, `failed`, `closing`, `nested`, `hidden`) and its events as
+  `onDs<Type>(event: CustomEvent)`. The `event.detail` of each is in the component's docs; the controller's type is
+  `ReturnType<typeof create>` of its module where it has one.
 
 <!-- generated: components (scripts/build.mjs; do not edit) -->
 | Component | File | Root element | `variant` | Events | Docs |
@@ -432,10 +462,10 @@ The system writes some attributes and nodes itself. Each is written where React 
 | Written by the system | Where | Why React keeps it |
 |---|---|---|
 | ripple spans (`.ds-press-ripple`) | inside an action | nodes React does not know; a text child is rendered as a text node of its own, so React never resets `textContent` |
-| `.ds-pressed`, `.ds-btn--done`, `.ds-btn--failed` | an action's class | a className React writes during a press or a face keeps them |
+| `.ds-pressed`, `.ds-btn--done`, `.ds-btn--failed`, `.ds-dialog--closing`, `--nested`, `--hidden`, `.ds-sheet--closing`, `--hidden`, and any class a behaviour claims (`own()` of `js/dom.js`) | a component's root | a className React writes during a press, a face or an exit keeps them (`SYSTEM_CLASSES` of `react/shared.js`), on every component |
 | `data-state`, `inert`, `popover`, `hidden`, `aria-expanded` | overlays, menus, their openers | the adapter renders them once, or never; React writes a prop only when it changes |
 | `aria-selected`, `aria-pressed`, `tabindex`, `hidden` of a controller's items | tabs, toggle groups, lists | rendered once from the first state; the controller keeps them, a new `value` goes through its `set()` |
-| text a controller writes (a badge's figure, a relative time) | the component's root | the component renders no children there |
+| text a controller writes (a badge's figure, a relative time, rendered Markdown, highlighted code, a formatted value, a cut text, marked hits, key caps) | the component's root | the component renders no children there; its text is a prop the adapter hands to the behaviour |
 
 An element the system moves would break React's tree, so the adapter never hands one over: the snackbar region is the
 system's own, and a dialog or sheet that opens over another one is rendered inside that one's content.
@@ -447,6 +477,10 @@ system's own, and a dialog or sheet that opens over another one is rendered insi
   Copy the markup of [components.md](components.md).
 - **No state of its own.** The page keeps the data (rows, the selected tab, whether a dialog is open) in React and
   renders it; the controllers keep only what their docs say they own.
+- **Plain behaviour markup needs its module.** The provider loads `motion`, `ripple`, `overlay` and `tooltip`; plain
+  `data-ds-*` markup of another behaviour React renders (`data-ds-collapsible`, `data-ds-time`) starts only once its
+  module is loaded: `import '<dest>/js/<module>.js'`, or use that behaviour's adapter component, which imports it.
+  With a [project bundle](bundle.md) and `"js": false`, nothing else loads it.
 - **Plain markup inside a managed component is not initialised**: the component owns its subtree. Use the adapter
   component of that behaviour inside it, or hand a part back with `data-ds-managed="off"` on its wrapper
   ([core.md](core.md#init-and-the-observer)). Delegated behaviours (ripple, guard, tooltips) serve everything.
@@ -462,6 +496,9 @@ system's own, and a dialog or sheet that opens over another one is rendered insi
 
 `test/browser/react.spec.js` mounts the components under `StrictMode` with a pinned development copy of React 18
 (`test/react/`, not an npm dependency): the markup, one controller per element after StrictMode's double effects, what
-the system writes surviving re-renders, the keyboard flows of tabs, dialog, menu button and toggle group, and no
-listener left on `window` or `document` after mounting and unmounting. `test/react.test.js` keeps `dist/react/`, its
+the system writes surviving re-renders (a sheet's `inert` panel during its exit, a copy button's done face), the
+content components after a new text, the keyboard flows of tabs, dialog, menu button and toggle group, and no
+listener left on `window` or `document` after mounting and unmounting. Every generated component is mounted on its
+docs' markup with and without `StrictMode` and must show the same (its behaviour's `destroy()` gives back what its
+init took), so a new component is covered by being generated. `test/react.test.js` keeps `dist/react/`, its
 types and `manifest.json` `react` in step with `src/react/` and the components.

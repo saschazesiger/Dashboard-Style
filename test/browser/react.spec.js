@@ -9,6 +9,11 @@
  * fixtures/react.html with fixtures/react-app.js.
  */
 import { test, expect } from '@playwright/test';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
 const FIXTURE = '/test/browser/fixtures/react.html';
 
@@ -38,6 +43,9 @@ test('renders the documented markup and marks only the roots it drives data-ds-m
   await expect(page.locator('#card > .ds-card__row > h2.ds-card__title')).toHaveText('Devices');
   await expect(page.locator('.ds-table-wrap > table#table.ds-table > caption.ds-sr')).toHaveText('Devices');
   await expect(page.locator('#table th[aria-sort="ascending"] .ds-table__sort')).toHaveText('Device');
+  // The arrow at the sorted column only, after its label (a .ds-num column leads with it in CSS).
+  await expect(page.locator('#table th[aria-sort="ascending"] .ds-table__sort > svg.ds-table__sort-arrow:last-child')).toHaveCount(1);
+  await expect(page.locator('#table th:not([aria-sort]) .ds-table__sort svg')).toHaveCount(0);
   await expect(page.locator('#table tbody tr').first()).toHaveAttribute('data-ds-key', 'd3');
   await expect(page.locator('#table .ds-status.ds-tone-error > span')).toHaveText('Failed');
   // The field: label above, the hint and the error linked, aria-invalid.
@@ -53,6 +61,13 @@ test('renders the documented markup and marks only the roots it drives data-ds-m
   // Sorting: the page renders the new order.
   await page.locator('#table th:nth-child(2) .ds-table__sort').click();
   await expect(page.locator('#table th:nth-child(2)')).toHaveAttribute('aria-sort', 'ascending');
+  await expect(page.locator('#table th:nth-child(1) .ds-table__sort svg')).toHaveCount(0);
+  const arrow = page.locator('#table th:nth-child(2) .ds-table__sort-arrow');
+  // A number column: the arrow leads (row-reverse), in the button's first half.
+  expect(await arrow.evaluate((svg) => {
+    const button = svg.parentElement.getBoundingClientRect();
+    return svg.getBoundingClientRect().left - button.left < button.width / 2;
+  })).toBe(true);
   await expect(page.locator('#table tbody tr').first()).toHaveAttribute('data-ds-key', 'd2');
   expect(await logOf(page)).toEqual(['sort age ascending']);
   expect(errors).toEqual([]);
@@ -248,6 +263,83 @@ test('menu button and toggle group: keyboard flows, and popover and data-state s
   expect(errors).toEqual([]);
 });
 
+test('components whose behaviour writes their content show the text React gives them, after a change too', async ({ page }) => {
+  const errors = await open(page);
+  await mount(page, 'texts');
+  await expect(page.locator('#md h1')).toHaveText('Title 1');
+  await expect(page.locator('#hl')).toHaveText('const a = 1;');
+  await expect(page.locator('#fmt')).toHaveText('1,234.5');
+  await expect(page.locator('#tr')).toContainText('…');
+  await expect(page.locator('#hits mark.ds-hit')).toHaveText('floor');
+  await expect(page.locator('#time')).toHaveText(/5 min/);
+  await expect(page.locator('#kbd')).toContainText('A');
+  await page.evaluate(() => window.harness.set.n(2));
+  // The new text, and nothing of the old one or of React's own text next to what the behaviour rendered.
+  await expect(page.locator('#md h1')).toHaveText('Title 2');
+  await expect(page.locator('#md h1 .ds-prose__anchor')).toHaveCount(1);
+  await expect(page.locator('#md')).toHaveText(/^Title 2\s*text$/);
+  await expect(page.locator('#hl')).toHaveText('let b = 2;');
+  await expect(page.locator('#fmt')).toHaveText('99,000');
+  await expect(page.locator('#tr')).toHaveText('short.txt');
+  await expect(page.locator('#hits')).toHaveText('Laptop on floor 3');
+  await expect(page.locator('#hits mark.ds-hit')).toHaveText('Laptop');
+  await expect(page.locator('#time')).toHaveText(/2 h/);
+  await expect(page.locator('#kbd')).toContainText('B');
+  await expect(page.locator('#kbd')).not.toContainText('A');
+  // Back: StrictMode's second controller and the new texts left one rendering each.
+  await page.evaluate(() => window.harness.set.n(1));
+  await expect(page.locator('#md')).toHaveText(/^Title 1\s*text$/);
+  await expect(page.locator('#hl')).toHaveText('const a = 1;');
+  await expect(page.locator('#hits mark.ds-hit')).toHaveText('floor');
+  expect(errors).toEqual([]);
+});
+
+test('a className React writes keeps the done face DS.copy shows', async ({ page }) => {
+  const errors = await open(page);
+  await mount(page, 'texts');
+  const copy = page.locator('#copy');
+  await expect(copy).toHaveClass('ds-btn');
+  await page.evaluate(() => window.harness.copy.current.done());
+  await expect(copy).toHaveClass(/\bds-btn--done\b/);
+  await page.evaluate(() => window.harness.set.copyClass('ds-btn--tonal'));
+  await expect(copy).toHaveClass(/\bds-btn--tonal\b/);
+  await expect(copy).toHaveClass(/\bds-btn--done\b/);
+  expect(errors).toEqual([]);
+});
+
+test('a sheet closing through a re-render: the panel stays inert until the exit settles, React writes no inert or hidden', async ({ page }) => {
+  const errors = await open(page);
+  await mount(page, 'generic');
+  const sheet = page.locator('#sheet');
+  const panel = page.locator('#sheet .ds-sheet__panel');
+  await page.locator('#details').click();
+  await expect(sheet).toHaveAttribute('data-state', 'open');
+  await expect(panel).not.toHaveAttribute('inert');
+  const during = await page.evaluate(() => {
+    const root = document.getElementById('sheet');
+    const look = () => ({
+      state: root.getAttribute('data-state'),
+      closing: root.classList.contains('ds-sheet--closing'),
+      inert: root.querySelector('.ds-sheet__panel').hasAttribute('inert'),
+      tick: root.closest('[data-tick]').getAttribute('data-tick'),
+    });
+    root.querySelector('[aria-label="Close"]').click();
+    const before = look();
+    // A re-render committed during the exit (the parent set open to false in onClose, and something else changed).
+    window.harness.flush(() => window.harness.set.tick());
+    return [before, look()];
+  });
+  expect(during).toEqual([{ state: 'closed', closing: true, inert: true, tick: '0' }, { state: 'closed', closing: true, inert: true, tick: '1' }]);
+  await expect(sheet).toBeHidden();
+  await expect(panel).not.toHaveAttribute('inert');
+  await page.evaluate(() => window.harness.set.tick());
+  await expect(page.locator('[data-tick="2"]')).toHaveCount(1);
+  await expect(panel).not.toHaveAttribute('inert');
+  expect(await sheet.evaluate((el) => el.hasAttribute('hidden') || el.open)).toBe(false);
+  expect(await logOf(page)).toEqual(['sheet close']);
+  expect(errors).toEqual([]);
+});
+
 test('the provider pins a scheme and options for its tree; tabs follow forced colours', async ({ page, browserName }) => {
   const errors = await open(page);
   await page.evaluate(() => window.harness.mount('tabs', {}, { scheme: 'dark', density: 'compact', touch: true, strings: { close: 'Schliessen' } }));
@@ -303,4 +395,31 @@ test('mounting and unmounting under StrictMode leaks no listener and no controll
   expect(third).toEqual(first);
   expect(await page.evaluate(() => document.body.classList.contains('ds-no-scroll'))).toBe(false);
   expect(errors).toEqual([]);
+});
+
+/**
+ * Every generated component on the first element of its docs that carries
+ * its attribute, the rest of that markup as React children: StrictMode
+ * (init, destroy, init) shows what one init shows, so destroy() gives back
+ * what init() took. A new component is covered by being generated.
+ */
+function generatedEntries() {
+  const manifest = JSON.parse(readFileSync(join(ROOT, 'dist/manifest.json'), 'utf8')).react;
+  return Object.entries(manifest).filter(([file, entry]) => entry.generated && file !== 'react/index.js').map(([file, entry]) => {
+    const source = readFileSync(join(ROOT, 'dist', file), 'utf8');
+    const attribute = /attribute: '([^']+)'/.exec(source)[1];
+    const module = entry.modules[0];
+    const docs = existsSync(join(ROOT, `src/components/${module}/${module}.md`)) ? readFileSync(join(ROOT, `src/components/${module}/${module}.md`), 'utf8') : readFileSync(join(ROOT, 'docs/core.md'), 'utf8');
+    const html = [...docs.matchAll(/```html\n([\s\S]*?)```/g)].map((match) => match[1]).join('\n');
+    return { file: file.slice('react/'.length), display: entry.exports[0], attribute, html };
+  }).filter((entry) => new RegExp(`\\s${entry.attribute}(?=[\\s=>/])`).test(entry.html));
+}
+
+test('every generated component shows the same under StrictMode as without it', async ({ page }) => {
+  test.setTimeout(120_000);
+  await open(page);
+  const entries = generatedEntries();
+  expect(entries.length).toBeGreaterThan(90);
+  const differs = await page.evaluate((list) => window.harness.probe(list), entries);
+  expect(differs).toEqual([]);
 });

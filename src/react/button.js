@@ -25,9 +25,6 @@ import { busy } from '../js/motion.js';
 import { alertCircle, check } from '../js/icons.js';
 import { cx, iconNode, keepClasses, modifiers, optionClasses, splitOptions, textSafe, useMergedRef } from './shared.js';
 
-/** The state classes busy() writes on the button while its done or failed face shows. */
-const FACE_CLASSES = ['ds-btn--done', 'ds-btn--failed'];
-
 export const Button = forwardRef(function Button(props, ref) {
   const [options, rest] = splitOptions(props);
   const { as = 'button', variant, block, icon, faces, action, onActionError, onClick, type, className, children, ...attributes } = rest;
@@ -36,8 +33,8 @@ export const Button = forwardRef(function Button(props, ref) {
   const hasLabel = children !== undefined && children !== null && children !== false && children !== '';
   const iconOnly = !hasLabel && Boolean(icon);
   const element = elementRef.current;
-  const faceClasses = element ? FACE_CLASSES.filter((name) => element.classList.contains(name)) : [];
-  const classes = cx('ds-btn', modifiers('ds-btn', variant), block && 'ds-btn--block', iconOnly && 'ds-btn--icon', optionClasses(options), faceClasses, className);
+  // The done and failed faces of busy() stay through a re-render: keepClasses() keeps them.
+  const classes = cx('ds-btn', modifiers('ds-btn', variant), block && 'ds-btn--block', iconOnly && 'ds-btn--icon', optionClasses(options), className);
   const glyph = iconNode(icon, iconOnly ? 20 : 16);
   // Children as arguments of their own: no key warnings, and a lone text stays its own node (textSafe).
   const parts = faces

@@ -20,8 +20,12 @@
  *   prop React does not change is never written again), the ripple's
  *   spans are nodes React does not know, and a text child is rendered as
  *   its own text node (React would otherwise set textContent and drop
- *   the ripple). A className React writes keeps .ds-pressed while the
- *   ripple holds it.
+ *   the ripple). A className React writes keeps the system's state
+ *   classes (SYSTEM_CLASSES, and what a behaviour claims with own()).
+ * - A behaviour that writes its element's content itself (Markdown,
+ *   Highlight, Formatted, Time, Truncate, SearchHits, Kbd: `content` of
+ *   names.json) gets no React children: its text is a prop, written
+ *   before the behaviour starts and handed to it on a change.
  * - Events: a prop onDs<Type> listens to ds:<type> on the root, for the
  *   events of this component only (not those of a managed component or a
  *   handed-back part inside it).
@@ -121,21 +125,58 @@ export function textSafe(children) {
   return typeof children === 'string' || typeof children === 'number' ? [children] : children;
 }
 
-/** The state classes the system writes on a root (the ripple's press), kept when React writes className. */
-const SYSTEM_CLASSES = ['ds-pressed'];
+/**
+ * The state classes the system writes on a root, kept when React writes
+ * className: the ripple's press, the end faces of DS.motion.busy() and
+ * DS.copy, the panel states of DS.overlay (stateClasses() of
+ * scripts/react.mjs; test/react.test.js keeps both in step). Any class a
+ * behaviour claims through DS.dom's own() is kept too.
+ */
+export const SYSTEM_CLASSES = Object.freeze(['ds-pressed', 'ds-btn--done', 'ds-btn--failed', 'ds-dialog--closing', 'ds-dialog--hidden',
+  'ds-dialog--nested', 'ds-sheet--closing', 'ds-sheet--hidden']);
+
+/** The claims of DS.dom's own() on an element (js/dom.js). */
+const OWNED = Symbol.for('ds.owned');
 
 /**
  * `className` plus the system's state classes the element carries now, so
- * a re-render during a press keeps the press.
+ * a re-render during a press, a done face or a closing panel keeps them.
  * @param {Element|null} element
  * @param {string} className
  * @returns {string|undefined}
  */
 export function keepClasses(element, className) {
   const list = element?.classList;
-  const kept = list ? SYSTEM_CLASSES.filter((name) => list.contains(name) && !className.split(' ').includes(name)) : [];
+  const given = className.split(' ');
+  const owned = element?.[OWNED]?.classes;
+  const names = owned?.size ? [...SYSTEM_CLASSES, ...owned.keys()] : SYSTEM_CLASSES;
+  const kept = list ? names.filter((name) => list.contains(name) && !given.includes(name)) : [];
   const value = cx(className, kept);
   return value || undefined;
+}
+
+/**
+ * An option prop as its attribute's value: true gives the attribute
+ * empty, false, null and undefined leave it out, an object is JSON.
+ * @param {any} value
+ * @returns {string|undefined}
+ */
+export function optionValue(value) {
+  if (value === true) return '';
+  if (value === false || value === null || value === undefined) return undefined;
+  return typeof value === 'object' ? JSON.stringify(value) : String(value);
+}
+
+/** The text of a content prop or of string children (a list of strings and numbers joins); null for none. */
+export function contentText(value) {
+  if (value === null || value === undefined || value === false || value === true) return null;
+  if (Array.isArray(value)) {
+    const parts = value.map(contentText);
+    return parts.every((part) => part === null) ? null : parts.map((part) => part ?? '').join('');
+  }
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (typeof console !== 'undefined') console.warn('Dashboard-Style React: this component takes its content as text (a string prop or string children)');
+  return null;
 }
 
 /** onDsBeforeClose → 'before-close'; null for any other prop. */
@@ -197,9 +238,13 @@ export function useDsEvents(elementRef, handlers) {
  * header): manage() in a layout effect, update() after every render (React
  * may have changed an option attribute), destroy() on unmount. The
  * controller goes to `controllerRef`; `handlers` are onDs<Type> handlers
- * by event type.
+ * by event type. `content` ({ text, mode }) is the text of a behaviour
+ * that writes its element's content itself (React renders no children
+ * there): written before the behaviour starts, and a new text goes in
+ * through the controller's set() (mode 'set') or by starting it again on
+ * the new text (mode 'reinit').
  * @param {string} name
- * @param {{ controllerRef?: any, handlers?: Record<string, Function|undefined> }} [options]
+ * @param {{ controllerRef?: any, handlers?: Record<string, Function|undefined>, content?: { text: string|null, mode: string }|null }} [options]
  * @returns {{ current: Element|null }}
  */
 export function useBehaviour(name, options = {}) {
@@ -207,6 +252,10 @@ export function useBehaviour(name, options = {}) {
   const handleRef = useRef(null);
   const controllerRef = useRef(options.controllerRef);
   controllerRef.current = options.controllerRef;
+  const content = useRef(null);
+  content.current = options.content ?? null;
+  /** The text the running controller shows (content: 'set' or 'reinit'). */
+  const shown = useRef(null);
   const published = useRef(null);
   const publish = useCallback(() => {
     const controller = handleRef.current?.controller ?? null;
@@ -214,21 +263,43 @@ export function useBehaviour(name, options = {}) {
     published.current = controller;
     setRef(controllerRef.current, controller);
   }, []);
-  useIsomorphicLayoutEffect(() => {
-    const element = elementRef.current;
-    if (!element) return undefined;
+  /** Starts the behaviour on `element`, its content written first (the text it reads on init). */
+  const start = useCallback((element) => {
+    if (content.current) {
+      shown.current = content.current.text ?? '';
+      if (element.textContent !== shown.current) element.textContent = shown.current;
+    }
     const handle = manage(element, name);
     if (!handle && typeof console !== 'undefined') console.warn(`Dashboard-Style React: no behaviour "${name}" (load its module, js/${name}.js)`);
     handleRef.current = handle;
+    return handle;
+  }, [name]);
+  useIsomorphicLayoutEffect(() => {
+    const element = elementRef.current;
+    if (!element) return undefined;
+    start(element);
     publish();
     return () => {
-      handle?.destroy();
-      if (handleRef.current === handle) handleRef.current = null;
+      // The handle that runs now: a new text ('reinit') may have replaced the first.
+      handleRef.current?.destroy();
+      handleRef.current = null;
       publish();
     };
-  }, [name, publish]);
-  // After every commit: an option attribute React changed reaches the controller.
+  }, [start, publish]);
+  // After every commit: an option attribute React changed reaches the controller, and so does new content.
   useIsomorphicLayoutEffect(() => {
+    const element = elementRef.current;
+    const given = content.current;
+    if (element && given && handleRef.current && (given.text ?? '') !== shown.current) {
+      const controller = handleRef.current.controller;
+      if (given.mode === 'set' && typeof controller?.set === 'function') {
+        shown.current = given.text ?? '';
+        controller.set(shown.current);
+      } else {
+        handleRef.current.destroy();
+        start(element);
+      }
+    }
     handleRef.current?.update();
     publish();
   });
@@ -321,18 +392,39 @@ export function iconNode(icon, size, className) {
  * The adapter component of one behaviour (the generated files of
  * dist/react/ call it): renders `spec.tag` (or `as`) with the base classes,
  * the modifiers of `variant`, the option classes, the behaviour's attribute
- * and data-ds-managed, and runs the behaviour (useBehaviour). With
- * `spec.overlay`, `open` opens and closes it (useOverlay) and onClose
- * reports a close the user asked for.
+ * and data-ds-managed, and runs the behaviour (useBehaviour). `spec.options`
+ * maps option props to their attributes; `spec.content` (names.json) takes
+ * the content of a behaviour that writes it itself as a prop or string
+ * children, and renders no children. With `spec.overlay`, `open` opens and
+ * closes it (useOverlay) and onClose reports a close the user asked for.
  * @param {{ name: string, display: string, attribute: string, tag: string, classes?: string[], block?: string|null,
- *           role?: string|null, overlay?: { open?: Function, close?: Function }|null }} spec
+ *           role?: string|null, options?: Record<string, string>|null,
+ *           content?: { mode: string, prop?: string, attribute?: string }|null,
+ *           overlay?: { open?: Function, close?: Function }|null }} spec
  */
 export function behaviour(spec) {
   const Component = forwardRef(function DsBehaviour(props, ref) {
     const [options, withoutOptions] = splitOptions(props);
     const [handlers, rest] = splitHandlers(withoutOptions);
     const { as, variant, className, controllerRef, children, open, onClose, opener, ...attributes } = rest;
-    const elementRef = useBehaviour(spec.name, { controllerRef, handlers });
+    // Option props become their documented attributes (anchors → data-ds-markdown-anchors).
+    const written = {};
+    for (const [prop, attribute] of Object.entries(spec.options ?? {})) {
+      if (!(prop in attributes)) continue;
+      const value = optionValue(attributes[prop]);
+      delete attributes[prop];
+      if (value !== undefined) written[attribute] = value;
+    }
+    // Content the behaviour writes itself: a prop or string children, never React's own nodes.
+    const content = spec.content ?? null;
+    let text = null;
+    if (content && content.mode !== 'none') {
+      text = contentText(content.prop in attributes ? attributes[content.prop] : children);
+      delete attributes[content.prop];
+      if (content.mode === 'attribute' && text !== null) written[content.attribute] = text;
+    }
+    const pushed = content && (content.mode === 'set' || content.mode === 'reinit') ? { text, mode: content.mode } : null;
+    const elementRef = useBehaviour(spec.name, { controllerRef, handlers, content: pushed });
     const merged = useMergedRef(ref, elementRef);
     if (spec.overlay) useOverlay(elementRef, Boolean(open), { onClose, opener, openWith: spec.overlay.open, closeWith: spec.overlay.close });
     const base = options.tone ? (spec.classes ?? []).filter((name) => !name.startsWith('ds-tone-')) : spec.classes;
@@ -340,6 +432,7 @@ export function behaviour(spec) {
     const element = {
       ...(spec.role ? { role: spec.role } : {}),
       ...attributes,
+      ...written,
       ...(spec.overlay ? {} : open === undefined ? {} : { open }),
       ...(spec.overlay || onClose === undefined ? {} : { onClose }),
       [spec.attribute]: attributes[spec.attribute] ?? '',
@@ -347,7 +440,7 @@ export function behaviour(spec) {
       ref: merged,
       className: keepClasses(elementRef.current, classes),
     };
-    return createElement(as ?? spec.tag, element, textSafe(children));
+    return createElement(as ?? spec.tag, element, content ? undefined : textSafe(children));
   });
   Component.displayName = spec.display;
   return Component;

@@ -50,7 +50,9 @@ export const Table = forwardRef(function Table(props, ref) {
           className: 'ds-table__sort',
           type: 'button',
           onClick: () => onSort?.(column.key, sorted === 'ascending' ? 'descending' : 'ascending'),
-        }, column.numeric ? iconNode(arrowUp, 16, 'ds-table__sort-arrow') : null, column.header, column.numeric ? null : iconNode(arrowUp, 16, 'ds-table__sort-arrow'))
+        // The arrow at the sorted column only, after the label: a .ds-num column puts it first in CSS (row-reverse),
+        // and an unsorted one keeps its room as padding, so moving the sort never resizes the columns.
+        }, column.header, sorted ? iconNode(arrowUp, 16, 'ds-table__sort-arrow') : null)
         : column.header;
       return createElement('th', { key: column.key, scope: 'col', className: cellClass(column), ...(sorted ? { 'aria-sort': sorted } : {}) }, content);
     })));

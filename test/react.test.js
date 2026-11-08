@@ -12,7 +12,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { CORE_MODULES, MODULES, build, components, reactContext } from '../scripts/build.mjs';
-import { REACT_HAND, behaviourModule, definesOf, reactDist, rewriteReactImports, rootOf } from '../scripts/react.mjs';
+import { REACT_HAND, behaviourModule, definesOf, optionProp, reactDist, rewriteReactImports, rootOf, stateClasses } from '../scripts/react.mjs';
 import { ROOT, read } from './helpers.js';
 
 const SOURCES = readdirSync(join(ROOT, 'src/react')).sort();
@@ -53,13 +53,22 @@ describe('React adapter: sources', () => {
     const docs = ['docs/components.md', 'docs/options.md', 'docs/theming.md'].map(read).join('\n');
     const missing = [];
     for (const name of HAND) {
-      for (const match of code(read(`src/react/${name}.js`)).matchAll(/['`](ds-[a-z][\w-]*)/g)) {
+      // SYSTEM_CLASSES of shared.js are kept, never written: the system writes them.
+      const source = code(read(`src/react/${name}.js`)).replace(/export const SYSTEM_CLASSES = [^;]*;/, '');
+      for (const match of source.matchAll(/['`](ds-[a-z][\w-]*)/g)) {
         const cls = match[1].replace(/-$/, '');
         if (cls.endsWith('-') || /\$\{/.test(cls)) continue;
         if (!docs.includes(cls) && !['ds-density', 'ds-shape', 'ds-tone'].includes(cls)) missing.push(`${name}: ${cls}`);
       }
     }
     assert.deepEqual(missing, []);
+  });
+
+  it('keeps the state classes the system writes (stateClasses() of scripts/react.mjs) across a className React writes', () => {
+    const kept = /export const SYSTEM_CLASSES = Object\.freeze\(\[([^\]]*)\]\)/.exec(read('src/react/shared.js'))[1];
+    const names = [...kept.matchAll(/'([^']+)'/g)].map((match) => match[1]).sort();
+    assert.deepEqual(names, ['ds-pressed', ...stateClasses(read)].sort());
+    assert.ok(names.includes('ds-btn--done') && names.includes('ds-dialog--nested'));
   });
 
   it('names every export of src/react/ in docs/react.md, and links it from README.md and install.md', () => {
@@ -77,7 +86,7 @@ describe('React adapter: sources', () => {
 
 describe('React adapter: generated components', () => {
   const context = reactContext();
-  const { behaviours, manifest } = reactDist(context);
+  const { behaviours, manifest, files } = reactDist(context);
 
   it('gives every behaviour that initialises an element a component', () => {
     const list = components();
@@ -105,7 +114,34 @@ describe('React adapter: generated components', () => {
     assert.deepEqual([copy.tag, copy.classes, copy.block], ['button', ['ds-btn'], 'ds-btn']);
     assert.ok(copy.variants.includes('quiet') && !copy.variants.includes('primary'), 'variants without the deprecated names');
     assert.ok(behaviours.find((entry) => entry.behaviour === 'sheet').overlay, 'a sheet takes open and onClose');
+    const states = new Set(stateClasses(read));
+    for (const entry of behaviours) {
+      for (const name of entry.variants) assert.ok(!states.has(`${entry.block}--${name}`), `${entry.display}: ${name} is a state the system writes, no variant`);
+    }
+    assert.ok(!copy.variants.includes('done') && !behaviours.find((entry) => entry.behaviour === 'command').variants.includes('closing'));
     assert.ok(!behaviours.find((entry) => entry.behaviour === 'lightbox').overlay, 'a gallery is no overlay');
+  });
+
+  it('turns the documented option attributes into typed props, and takes the content of a behaviour that writes it as text', () => {
+    assert.equal(optionProp('data-ds-markdown-anchors', 'data-ds-markdown'), 'anchors');
+    assert.equal(optionProp('data-ds-value', 'data-ds-datepicker'), 'dsValue');
+    assert.equal(optionProp('data-ds-format-style', 'data-ds-format'), 'dsFormatStyle', 'a prop of the element keeps the full name');
+    assert.equal(optionProp('aria-label', 'data-ds-logview'), null);
+    assert.deepEqual(definesOf("const OPTIONS = ['min', 'max'];\ndefine('x', {\n  attribute: 'data-ds-x',\n  attributes: ['data-ds-value', ...OPTIONS.map((name) => `data-ds-x-${name}`)],\n  init(el) {},\n});")[0].attributes,
+      ['data-ds-value', 'data-ds-x-min', 'data-ds-x-max']);
+    const markdown = behaviours.find((entry) => entry.behaviour === 'markdown');
+    assert.deepEqual(markdown.options, { anchors: 'data-ds-markdown-anchors', breaks: 'data-ds-markdown-breaks', code: 'data-ds-markdown-code', images: 'data-ds-markdown-images' });
+    assert.deepEqual(markdown.content, { mode: 'set', prop: 'source' });
+    const formatted = behaviours.find((entry) => entry.behaviour === 'formatted');
+    assert.equal(formatted.content.attribute, 'data-ds-value');
+    assert.ok(!Object.values(formatted.options).includes('data-ds-value'), 'the content attribute is no option prop');
+    for (const name of ['markdown', 'highlight', 'formatted', 'time', 'truncate', 'hits', 'kbd']) {
+      assert.ok(behaviours.find((entry) => entry.behaviour === name).content, `${name}: its behaviour writes the content, React renders no children`);
+    }
+    for (const entry of behaviours) {
+      const types = files.get(entry.file.replace(/\.js$/, '.d.ts'));
+      for (const prop of Object.keys(entry.options)) assert.match(types, new RegExp(`\\n  ${prop}\\?: `), `${entry.display}: ${prop} typed`);
+    }
   });
 
   it('writes each generated module from its entry: its own module and the shared factory, nothing else', () => {

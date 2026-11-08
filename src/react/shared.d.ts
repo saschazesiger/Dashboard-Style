@@ -75,6 +75,10 @@ export interface BehaviourSpec {
   classes?: string[];
   block?: string | null;
   role?: string | null;
+  /** Option props and the attribute each becomes. */
+  options?: Record<string, string> | null;
+  /** How the content of a behaviour that writes it itself goes in (names.json). */
+  content?: { mode: 'set' | 'reinit' | 'attribute' | 'none'; prop?: string; attribute?: string } | null;
   overlay?: { open?: (element: Element, options?: any) => unknown; close?: (element: Element, options?: any) => unknown } | null;
 }
 
@@ -99,8 +103,14 @@ export declare function setRef<T>(ref: React.Ref<T> | undefined, value: T): void
 export declare function useMergedRef<T>(...refs: Array<React.Ref<T> | undefined>): React.RefCallback<T>;
 /** A lone text child as its own text node (the ripple's spans stay). */
 export declare function textSafe(children: React.ReactNode): React.ReactNode;
-/** `className` plus the system's state classes the element carries now (.ds-pressed). */
+/** The state classes the system writes on a root, kept across a className React writes. */
+export declare const SYSTEM_CLASSES: readonly string[];
+/** `className` plus the system's state classes the element carries now (.ds-pressed, .ds-btn--done ...). */
 export declare function keepClasses(element: Element | null, className: string): string | undefined;
+/** An option prop as its attribute's value: true → '', false/null/undefined → none, an object → JSON. */
+export declare function optionValue(value: unknown): string | undefined;
+/** The text of a content prop or of string children; null for none. */
+export declare function contentText(value: unknown): string | null;
 /** 'onDsBeforeClose' → 'before-close'; null for any other prop. */
 export declare function eventType(prop: string): string | null;
 /** 'before-close' → 'onDsBeforeClose'. */
@@ -110,7 +120,12 @@ export declare function splitHandlers<P extends object>(props: P): [Record<strin
 /** Listens to ds:<type> on the root for each handler (the component's own events). */
 export declare function useDsEvents(elementRef: React.RefObject<Element | null>, handlers: Record<string, DsEventHandler | undefined>): void;
 /** Runs the behaviour `name` on the element of the returned ref (DS.core.manage). */
-export declare function useBehaviour(name: string, options?: { controllerRef?: React.Ref<any>; handlers?: Record<string, DsEventHandler | undefined> }): React.MutableRefObject<any>;
+export declare function useBehaviour(name: string, options?: {
+  controllerRef?: React.Ref<any>;
+  handlers?: Record<string, DsEventHandler | undefined>;
+  /** The text of a behaviour that writes its element's content itself. */
+  content?: { text: string | null; mode: 'set' | 'reinit' } | null;
+}): React.MutableRefObject<any>;
 /** Opens and closes an overlay root with `open` (DS.overlay or the module's open and close). */
 export declare function useOverlay(elementRef: React.RefObject<Element | null>, open: boolean, options?: {
   onClose?: OverlayProps['onClose'];

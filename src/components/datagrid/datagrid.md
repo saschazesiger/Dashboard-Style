@@ -300,7 +300,8 @@ Runtime properties (written by `js/datagrid.js`, never set them): `--ds-datagrid
   `refresh()` (render again, or load again from `source`), `select(keys | 'all' | 'page' | 'none')`,
   `expand(key, open)`, `edit(key, column)`, `focus(key, column)`, `sort(key, dir)`, `page(index)`, `preset(id)`,
   `toggleColumn(key, show)`, `resize(key, width)`, `csv(options)`, `copy(options)`, `download(name, options)`,
-  `menu(key, { x, y, opener })` and `destroy()` (what the grid wrote goes, the page's markup stays).
+  `menu(key, { x, y, opener })` and `destroy()` (what the grid wrote goes, the page's markup stays; a grid read from
+  its markup gets its header and body rows back as the page wrote them, so a new init reads the same table).
 - `query(rows, options)`: the client pipeline without a DOM, `{ items, rows, total, filtered }`.
 - `csv(rows, columns, options)`: CSV text (`separator`, `header`, `safe`, `raw`, `locale`).
 - `summary(rows, column)`: one figure of a summary row.

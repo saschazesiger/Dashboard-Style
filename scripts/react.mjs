@@ -16,8 +16,12 @@
  *   the first element of the component's docs that carries the attribute;
  *   src/react/names.json may give them, and gives every export name) and
  *   runs the behaviour through DS.core.manage(). Its variants are the
- *   modifiers of its block in meta.json, its events the ds:<type> names
- *   the component's docs and module mention. A behaviour of a module that
+ *   modifiers of its block in meta.json (without the state classes the
+ *   system writes: stateClasses()), its option props the documented
+ *   attributes of its define() (optionProp()), its content (names.json
+ *   `content`) the text of a behaviour that writes its element's content
+ *   itself, its events the ds:<type> names the component's docs and
+ *   module mention. A behaviour of a module that
  *   exports open() and close() on a <dialog> or sheet root is an overlay:
  *   its component takes `open` and `onClose`.
  * - react/index.js re-exports every component (one import line for an app
@@ -50,18 +54,85 @@ export const REACT_HAND = {
 /** The option classes and the system's state classes: never part of a component's base classes. */
 const OPTION_CLASS = /^ds-(xs|sm|md|lg|xl|touch|density-[\w-]+|shape-[\w-]+)$/;
 
+/**
+ * The modifier classes the system writes itself (the end faces of
+ * DS.motion.busy() and DS.copy, the panel states of DS.overlay, read from
+ * PANEL_STATE of js/overlay.js): never a variant, and kept by keepClasses()
+ * of react/shared.js (SYSTEM_CLASSES there; test/react.test.js keeps both
+ * in step).
+ */
+export function stateClasses(read) {
+  const panel = /const PANEL_STATE = \{[\s\S]*?classes: \[([^\]]*)\]/.exec(read('src/js/overlay.js'));
+  if (!panel) throw new Error('scripts/react.mjs: PANEL_STATE of src/js/overlay.js has no classes list');
+  return ['ds-btn--done', 'ds-btn--failed', ...[...panel[1].matchAll(/'([^']+)'/g)].map((match) => match[1])].sort();
+}
+
+/** The content modes of names.json: what a component whose behaviour writes its content takes instead of children. */
+const CONTENT_MODES = new Set(['set', 'reinit', 'attribute', 'none']);
+
 const pascal = (name) => name.split(/[-_]/).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join('');
 
 /** 'before-close' → 'onDsBeforeClose' (react/shared.js eventProp). */
 export const eventProp = (type) => `onDs${pascal(type)}`;
 
-/** Every define() of a module source: { name, attribute, init }. */
+/**
+ * The names of a list expression of a module: literal strings, a constant
+ * of the module (`const NAME = [...]`, `Object.freeze([...])`), and either
+ * mapped through a template (`NAME.map((name) => \`data-ds-x-${name}\`)`).
+ * What it cannot read it leaves out.
+ */
+function listOf(expression, source, depth = 0) {
+  if (depth > 3) return [];
+  const constant = (name) => {
+    const found = new RegExp(`^(?:export )?const ${name} = ([^\\n]+);$`, 'm').exec(source);
+    return found ? listOf(found[1], source, depth + 1) : [];
+  };
+  const literal = (text) => {
+    const out = [];
+    for (const part of text.slice(1, -1).split(/,(?![^(]*\))/)) {
+      const item = part.trim();
+      if (/^'[^']*'$/.test(item)) out.push(item.slice(1, -1));
+      else if (item.startsWith('...')) out.push(...listOf(item.slice(3), source, depth + 1));
+    }
+    return out;
+  };
+  const text = expression.trim().replace(/^Object\.freeze\((.*)\)$/s, '$1');
+  const map = /^(\[[^\]]*\]|[A-Z_][A-Z0-9_]*)(?:\.map\(\(?\w+\)? => `([^`]*)`\))?$/.exec(text);
+  if (!map) return [];
+  const names = map[1].startsWith('[') ? literal(map[1]) : constant(map[1]);
+  return map[2] ? names.map((name) => map[2].replace(/\$\{\w+\}/, name)) : names;
+}
+
+/** Every define() of a module source: { name, attribute, attributes, init }. */
 export function definesOf(source) {
   return [...source.matchAll(/^define\('([^']+)', \{([\s\S]*?)\n\}\);/gm)].map(([, name, body]) => ({
     name,
     attribute: /\battribute: '([^']+)'/.exec(body)?.[1] ?? null,
+    attributes: listOf(/\battributes: ([^\n]+?),?\n/.exec(`${body}\n`)?.[1] ?? '[]', source),
     init: /\binit\s*[(:]/.test(body),
   }));
+}
+
+/**
+ * Props the root element already has (React's own and the DOM's common
+ * attributes) and those of the adapter: an option attribute named like one
+ * of these keeps its full name (dsValue, not value).
+ */
+const TAKEN = new Set(['as', 'variant', 'className', 'controllerRef', 'children', 'open', 'onClose', 'opener', 'size', 'density', 'shape',
+  'tone', 'touch', 'key', 'ref', 'id', 'name', 'type', 'title', 'label', 'hidden', 'disabled', 'required', 'checked', 'selected', 'multiple',
+  'placeholder', 'href', 'src', 'alt', 'role', 'form', 'lang', 'dir', 'list', 'pattern', 'accept', 'width', 'height', 'start', 'rows', 'cols',
+  'span', 'wrap', 'content', 'style', 'slot', 'is', 'summary', 'default', 'kind', 'cite', 'data', 'high', 'low', 'min', 'max', 'step', 'for',
+  'target', 'download', 'color', 'inert', 'popover', 'translate', 'draggable', 'spellCheck', 'tabIndex', 'contentEditable', 'autoFocus',
+  'readOnly', 'maxLength', 'minLength', 'dateTime', 'value', 'defaultValue', 'defaultChecked', 'method', 'action', 'loading', 'media',
+  'sizes', 'scope', 'headers']);
+
+/** 'data-ds-markdown-anchors' on data-ds-markdown → anchors; data-ds-value → dsValue; others (aria-*, maxlength) → null. */
+export function optionProp(attribute, own) {
+  if (!attribute.startsWith('data-ds-')) return null;
+  const camel = (text) => text.replace(/-([a-z0-9])/g, (match, char) => char.toUpperCase());
+  const short = attribute.startsWith(`${own}-`) ? camel(attribute.slice(own.length + 1)) : null;
+  if (short && !TAKEN.has(short) && /^[a-z]/.test(short)) return short;
+  return camel(`ds-${attribute.slice('data-ds-'.length)}`);
 }
 
 /** The first element of the docs' html blocks that carries `attribute`: { tag, classes, role }, or null. */
@@ -87,13 +158,16 @@ function eventsOf(markdown, source) {
 /**
  * Every behaviour that gets a generated component, in a stable order:
  * { behaviour, module, component, attribute, file, display, tag, classes,
- *   block, variants, role, events, overlay, create, components }.
+ *   block, variants, role, events, options (prop -> option attribute),
+ *   content (names.json: how its content goes in), overlay, create,
+ *   components }.
  * @param {{ list: any[], read: (path: string) => string, has: (path: string) => boolean, moduleNames: string[] }} context
  */
 export function reactBehaviours({ list, read, has, moduleNames }) {
   const names = JSON.parse(read('src/react/names.json')).names;
   // Deprecated classes are no variants of the adapter: it teaches the current names only.
   const deprecated = new Set(JSON.parse(read('src/deprecations.json')).names.filter((entry) => entry.kind === 'class').map((entry) => entry.name.replace(/^\./, '')));
+  const states = new Set(stateClasses(read));
   const owners = new Map();
   for (const component of list) for (const cls of component.meta.classes) owners.set(cls, component);
   const out = [];
@@ -117,7 +191,17 @@ export function reactBehaviours({ list, read, has, moduleNames }) {
       const classes = documented.filter((name) => !name.includes('--') && !OPTION_CLASS.test(name));
       const blocks = classes.filter((name) => owners.get(name)?.meta.classes.some((other) => other.startsWith(`${name}--`)));
       const block = blocks.find((name) => owners.get(name) === component) ?? blocks[0] ?? null;
-      const variants = block ? owners.get(block).meta.classes.filter((name) => name.startsWith(`${block}--`) && !deprecated.has(name)).map((name) => name.slice(block.length + 2)) : [];
+      const variants = block ? owners.get(block).meta.classes.filter((name) => name.startsWith(`${block}--`) && !deprecated.has(name) && !states.has(name)).map((name) => name.slice(block.length + 2)) : [];
+      const content = override.content ?? null;
+      if (content && (!CONTENT_MODES.has(content.mode) || (content.mode !== 'none' && !/^[a-z]\w*$/.test(content.prop ?? '')) || (content.mode === 'attribute' && !define.attributes.includes(content.attribute)))) {
+        throw new Error(`src/react/names.json: "${define.name}".content needs a mode (${[...CONTENT_MODES].join(', ')}), a prop, and for "attribute" one of its attributes`);
+      }
+      const options = {};
+      for (const attribute of define.attributes) {
+        if (attribute === content?.attribute) continue;
+        const prop = optionProp(attribute, define.attribute);
+        if (prop && prop !== content?.prop) options[prop] = attribute;
+      }
       const exports = [...source.matchAll(/^export function (\w+)/gm)].map((match) => match[1]);
       const overlay = exports.includes('open') && exports.includes('close') && (tag === 'dialog' || classes.some((name) => /^ds-(dialog|sheet)$/.test(name)));
       const needed = new Set(component ? [component.name] : []);
@@ -135,6 +219,8 @@ export function reactBehaviours({ list, read, has, moduleNames }) {
         variants,
         role: override.role ?? found?.role ?? null,
         events: eventsOf(markdown, source),
+        options,
+        content,
         overlay,
         create: define.name === module && exports.includes('create'),
         components: [...needed].sort(),
@@ -169,6 +255,8 @@ export function behaviourModule(entry) {
     `  classes: ${quote(entry.classes)},`,
     `  block: ${entry.block ? quote(entry.block) : 'null'},`,
     `  role: ${entry.role ? quote(entry.role) : 'null'},`,
+    `  options: ${Object.keys(entry.options).length ? `{ ${Object.entries(entry.options).map(([prop, attribute]) => `${prop}: ${quote(attribute)}`).join(', ')} }` : 'null'},`,
+    `  content: ${entry.content ? `{ ${Object.entries(entry.content).map(([key, value]) => `${key}: ${quote(value)}`).join(', ')} }` : 'null'},`,
     `  overlay: ${entry.overlay ? '{ open, close }' : 'null'},`,
     '});',
     '',
@@ -181,6 +269,15 @@ export function behaviourTypes(entry) {
   const variant = entry.variants.length ? entry.variants.map((name) => `'${name}'`).join(' | ') : 'never';
   const events = entry.events.map((type) => `  /** ds:${type} on the root. */\n  ${eventProp(type)}?: (event: CustomEvent) => void;`);
   const controller = entry.create ? `ReturnType<typeof import('../js/${entry.module}.js').create>` : 'Controller';
+  const options = Object.entries(entry.options).map(([prop, attribute]) => `  /** ${attribute} (true: present, false or none: absent). */\n  ${prop}?: string | number | boolean | object | null;`);
+  const content = entry.content;
+  const contentLines = !content ? [] : content.mode === 'none'
+    ? ['  /** None: the behaviour writes the content itself. */', '  children?: never;']
+    : [
+      `  /** The ${content.prop === 'value' ? 'value' : 'text'} the behaviour ${content.mode === 'attribute' ? `formats (${content.attribute})` : 'renders'}; string children give it too. */`,
+      `  ${content.prop}?: ${content.mode === 'attribute' ? 'string | number | null' : 'string'};`,
+      '  children?: string | number;',
+    ];
   return [
     `/** Types of <${entry.display}> (react/${entry.behaviour}.js), generated from ${entry.component ? `src/components/${entry.component}/` : `src/js/${entry.module}.js`}. */`,
     `import type { BehaviourComponent${entry.create ? '' : ', Controller'}${entry.overlay ? ', OverlayProps' : ''} } from './shared.js';`,
@@ -191,7 +288,13 @@ export function behaviourTypes(entry) {
     ...events,
     '}',
     '',
-    `export declare const ${entry.display}: BehaviourComponent<'${entry.tag}', ${entry.display}Variant, ${entry.display}Events${entry.overlay ? ' & OverlayProps' : ''}, ${controller}>;`,
+    `/** The options of its documented attributes${content ? ', and its content' : ''}. */`,
+    `export interface ${entry.display}Options {`,
+    ...options,
+    ...contentLines,
+    '}',
+    '',
+    `export declare const ${entry.display}: BehaviourComponent<'${entry.tag}', ${entry.display}Variant, ${entry.display}Events & ${entry.display}Options${entry.overlay ? ' & OverlayProps' : ''}, ${controller}>;`,
     '',
   ].join('\n');
 }
@@ -270,7 +373,9 @@ export function reactTable(behaviours, list, read) {
     const root = `\`<${entry.tag}${entry.classes.length ? ` class="${entry.classes.join(' ')}"` : ''}${entry.role ? ` role="${entry.role}"` : ''} ${entry.attribute}>\``;
     const variants = entry.variants.length ? entry.variants.map((name) => `\`${name}\``).join(', ') : '-';
     const events = entry.events.length ? entry.events.map((type) => `\`${eventProp(type)}\``).join(', ') : '-';
-    return `| \`${entry.display}\` | \`react/${entry.behaviour}.js\` | ${root}${entry.overlay ? ', `open`, `onClose`' : ''} | ${variants} | ${events} | ${docs} |`;
+    const content = entry.content ? (entry.content.mode === 'none' ? 'no children' : `\`${entry.content.prop}\``) : null;
+    const props = [...(content ? [content] : []), ...Object.keys(entry.options).map((prop) => `\`${prop}\``)].join(', ') || '-';
+    return `| \`${entry.display}\` | \`react/${entry.behaviour}.js\` | ${root}${entry.overlay ? ', `open`, `onClose`' : ''} | ${props} | ${variants} | ${events} | ${docs} |`;
   });
-  return ['| Component | File | Root element | `variant` | Events | Docs |', '|---|---|---|---|---|---|', ...rows].join('\n');
+  return ['| Component | File | Root element | Props | `variant` | Events | Docs |', '|---|---|---|---|---|---|---|', ...rows].join('\n');
 }
