@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Billing · Product</title>
+<meta name="pt-title" content="Billing">
+<meta name="pt-need" content="The plan, what this period used against its quotas, the payment details and the invoices">
+<meta name="pt-group" content="Account">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.billing.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<div class="ds-app ds-app--drawer" data-ds-shell="patterns">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" data-icon="menu"></button>
+    <a class="ds-brand" href="billing.html"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></a>
+    <div class="ds-topbar__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="#help" aria-label="Help" data-tip="Help" data-icon="helpCircle"></a>
+    </div>
+    <div class="ds-account">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+      <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+        <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+        <div class="ds-menu__divider" role="separator"></div>
+        <a class="ds-menu__item" role="menuitem" href="#profile" data-icon="user" data-icon-place="start"><span class="ds-menu__label">Profile</span></a>
+        <a class="ds-menu__item" role="menuitem" href="sign-in.html" data-icon="logout" data-icon-place="start"><span class="ds-menu__label">Sign out</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></div>
+    <div class="ds-drawer__list">
+      <div class="ds-drawer__group">
+        <a class="ds-drawer__item" href="#overview" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="#devices" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="#tickets" data-icon="ticket" data-icon-place="start"><span class="ds-drawer__label">Tickets</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Settings</p>
+        <a class="ds-drawer__item" href="notification-settings.html" data-icon="bell" data-icon-place="start"><span class="ds-drawer__label">Notifications</span></a>
+        <a class="ds-drawer__item" href="webhooks.html" data-icon="webhook" data-icon-place="start"><span class="ds-drawer__label">Webhooks</span></a>
+        <a class="ds-drawer__item" href="billing.html" aria-current="page" data-icon="creditCard" data-icon-place="start"><span class="ds-drawer__label">Billing</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content">
+        <div class="ds-page">
+          <header class="ds-page-head">
+            <div class="ds-page-head__row">
+              <div class="ds-page-head__text">
+                <h1 class="ds-page-head__title" tabindex="-1">Billing</h1>
+                <p class="ds-page-head__lead">Your plan, what this period used and every invoice.</p>
+              </div>
+              <div class="ds-page-head__actions">
+                <a class="ds-btn ds-btn--filled" href="pricing.html">Change plan</a>
+              </div>
+            </div>
+          </header>
+
+          <div class="ds-alert ds-tone-warning" role="status" data-icon="alert" data-icon-place="start">
+            <span class="ds-alert__text">Devices are at 82% of your plan. At 500 new devices wait until you add room.</span>
+            <a class="ds-btn ds-btn--text ds-sm" href="pricing.html">Compare plans</a>
+          </div>
+
+          <div class="ds-grid-2">
+            <section class="ds-card" aria-labelledby="plan-title">
+              <div class="ds-card__row">
+                <h2 class="ds-card__title" id="plan-title">Team plan</h2>
+                <span class="ds-status ds-tone-success" id="plan-active" data-icon="check" data-icon-size="16" data-icon-place="start"><span>Active</span></span>
+                <span class="ds-status ds-tone-warning" id="plan-ending" data-icon="clock" data-icon-size="16" data-icon-place="start" hidden><span>Ends Dec 1</span></span>
+              </div>
+              <p class="pt-price">$216<span class="pt-price__unit">a month</span></p>
+              <ul class="ds-kv-list">
+                <li><span>Seats</span><strong>18 at $12</strong></li>
+                <li><span>Billed</span><strong>Monthly, in US dollars</strong></li>
+                <li><span id="renew-label">Renews</span><strong id="renew-date">Dec 1, 2026</strong></li>
+              </ul>
+              <nav class="ds-card__links" aria-label="Plan">
+                <a class="ds-btn ds-btn--text ds-card__link" href="pricing.html" data-icon="arrowRight" data-icon-size="16" data-icon-place="end">Compare plans</a>
+                <button class="ds-btn ds-btn--text ds-card__link" type="button" id="cancel-plan">Cancel plan</button>
+              </nav>
+            </section>
+
+            <section class="ds-card" aria-labelledby="payment-title">
+              <div class="ds-card__row">
+                <h2 class="ds-card__title" id="payment-title">Payment</h2>
+                <button class="ds-btn ds-sm" type="button" data-ds-open="#details" aria-haspopup="dialog">Edit</button>
+              </div>
+              <ul class="ds-kv-list" id="payment">
+                <li><span>Card</span><strong>Ending in 4242, expires 08/2028</strong></li>
+                <li><span>Invoices go to</span><strong id="billing-email">billing@example.org</strong></li>
+                <li><span>Company</span><strong id="billing-company">Example Ltd</strong></li>
+                <li><span>Tax ID</span><strong class="ds-muted" id="billing-tax">Not set</strong></li>
+              </ul>
+              <p class="ds-meta">The card is charged on the first of each month. Card details are kept by the payment provider, never by us.</p>
+            </section>
+          </div>
+
+          <section class="ds-stack" aria-labelledby="usage-title">
+            <div class="ds-cluster ds-cluster--between ds-cluster--baseline">
+              <h2 id="usage-title">Usage this period</h2>
+              <p class="ds-meta">Nov 1 to Nov 30 · resets Dec 1</p>
+            </div>
+            <div class="ds-tiles" id="usage">
+              <div class="ds-tile">
+                <p class="ds-tile__label" data-icon="users" data-icon-size="16" data-icon-place="start"><span>Seats</span></p>
+                <p class="ds-tile__value"><span class="ds-tile__figure">18</span><span class="ds-tile__unit">of 25</span></p>
+                <div class="ds-tile__target">
+                  <span class="ds-meter" role="meter" aria-label="Seats" aria-valuemin="0" aria-valuemax="25" aria-valuenow="18" aria-valuetext="18 of 25 seats" style="--ds-share: .72"></span>
+                  <p class="ds-tile__target-text">7 seats free</p>
+                </div>
+              </div>
+              <div class="ds-tile">
+                <p class="ds-tile__label" data-icon="laptop" data-icon-size="16" data-icon-place="start"><span>Devices</span></p>
+                <p class="ds-tile__value"><span class="ds-tile__figure">412</span><span class="ds-tile__unit">of 500</span></p>
+                <div class="ds-tile__target">
+                  <span class="ds-meter ds-tone-warning" role="meter" aria-label="Devices" aria-valuemin="0" aria-valuemax="500" aria-valuenow="412" aria-valuetext="412 of 500 devices, high: above 80%" style="--ds-share: .824">
+                    <span class="ds-meter__threshold" style="--ds-share: .8" aria-hidden="true"></span></span>
+                  <p class="ds-tile__target-text">High: above 80%</p>
+                </div>
+              </div>
+              <div class="ds-tile">
+                <p class="ds-tile__label" data-icon="hardDrive" data-icon-size="16" data-icon-place="start"><span>Storage</span></p>
+                <p class="ds-tile__value"><span class="ds-tile__figure">61.2</span><span class="ds-tile__unit">of 100 GB</span></p>
+                <div class="ds-tile__target">
+                  <span class="ds-meter" role="meter" aria-label="Storage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="61.2" aria-valuetext="61.2 of 100 GB" style="--ds-share: .612">
+                    <span class="ds-meter__threshold" style="--ds-share: .8" aria-hidden="true"></span></span>
+                  <p class="ds-tile__target-text">38.8 GB free</p>
+                </div>
+              </div>
+              <div class="ds-tile">
+                <p class="ds-tile__label" data-icon="activity" data-icon-size="16" data-icon-place="start"><span>API requests</span></p>
+                <p class="ds-tile__value"><span class="ds-tile__figure">1.2M</span><span class="ds-tile__unit">of 2M</span></p>
+                <div class="ds-tile__target">
+                  <span class="ds-meter" role="meter" aria-label="API requests" aria-valuemin="0" aria-valuemax="2000000" aria-valuenow="1200000" aria-valuetext="1.2 million of 2 million requests" style="--ds-share: .6">
+                    <span class="ds-meter__threshold" style="--ds-share: .8" aria-hidden="true"></span></span>
+                  <p class="ds-tile__target-text">On pace for 1.8M</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="ds-card" aria-labelledby="invoices-title">
+            <div class="ds-card__row">
+              <h2 class="ds-card__title" id="invoices-title">Invoices</h2>
+              <button class="ds-btn ds-sm" type="button" id="export" data-icon="download" data-icon-size="16" data-icon-place="start">Export CSV</button>
+            </div>
+            <div class="ds-table-wrap">
+              <table class="ds-table">
+                <caption class="ds-sr">Invoices, newest first</caption>
+                <thead><tr>
+                  <th scope="col">Invoice</th>
+                  <th scope="col">Date</th>
+                  <th scope="col" class="ds-col--secondary">Period</th>
+                  <th scope="col" class="ds-num">Amount</th>
+                  <th scope="col">Status</th>
+                </tr></thead>
+                <tbody>
+                  <tr>
+                    <td><a class="ds-nowrap" href="invoice.html">INV-2026-011</a></td>
+                    <td class="ds-nowrap">Nov 1, 2026</td>
+                    <td class="ds-col--secondary">November 2026</td>
+                    <td class="ds-num">$216.00</td>
+                    <td><span class="ds-status ds-tone-warning" data-icon="clock" data-icon-size="16" data-icon-place="start"><span>Due Nov 15</span></span></td>
+                  </tr>
+                  <tr>
+                    <td><a class="ds-nowrap" href="invoice.html">INV-2026-010</a></td>
+                    <td class="ds-nowrap">Oct 1, 2026</td>
+                    <td class="ds-col--secondary">October 2026</td>
+                    <td class="ds-num">$204.00</td>
+                    <td><span class="ds-status ds-tone-success" data-icon="check" data-icon-size="16" data-icon-place="start"><span>Paid</span></span></td>
+                  </tr>
+                  <tr>
+                    <td><a class="ds-nowrap" href="invoice.html">INV-2026-009</a></td>
+                    <td class="ds-nowrap">Sep 1, 2026</td>
+                    <td class="ds-col--secondary">September 2026</td>
+                    <td class="ds-num">$204.00</td>
+                    <td><span class="ds-status ds-tone-success" data-icon="check" data-icon-size="16" data-icon-place="start"><span>Paid</span></span></td>
+                  </tr>
+                  <tr>
+                    <td><a class="ds-nowrap" href="invoice.html">INV-2026-008</a></td>
+                    <td class="ds-nowrap">Aug 1, 2026</td>
+                    <td class="ds-col--secondary">August 2026</td>
+                    <td class="ds-num">$204.00</td>
+                    <td><span class="ds-status ds-tone-error" data-icon="alertCircle" data-icon-size="16" data-icon-place="start"><span>Failed, paid Aug 4</span></span></td>
+                  </tr>
+                  <tr>
+                    <td><a class="ds-nowrap" href="invoice.html">INV-2026-007</a></td>
+                    <td class="ds-nowrap">Jul 1, 2026</td>
+                    <td class="ds-col--secondary">July 2026</td>
+                    <td class="ds-num">$180.00</td>
+                    <td><span class="ds-status ds-tone-success" data-icon="check" data-icon-size="16" data-icon-place="start"><span>Paid</span></span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<dialog class="ds-dialog" id="details" aria-labelledby="details-title">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <form class="ds-dialog__box" data-ds-dialog-form>
+    <h2 class="ds-dialog__title" id="details-title">Billing details</h2>
+    <div class="ds-dialog__body">
+      <div class="ds-field">
+        <label class="ds-field__label" for="details-email">Send invoices to</label>
+        <input class="ds-input" id="details-email" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" required autofocus value="billing@example.org">
+      </div>
+      <div class="ds-field">
+        <label class="ds-field__label" for="details-company">Company</label>
+        <input class="ds-input" id="details-company" name="company" autocomplete="organization" required value="Example Ltd">
+      </div>
+      <div class="ds-field">
+        <label class="ds-field__label" for="details-tax">Tax ID <span class="ds-field__optional">(optional)</span></label>
+        <input class="ds-input ds-mono" id="details-tax" name="tax" autocomplete="off" spellcheck="false" aria-describedby="details-tax-hint">
+        <small class="ds-field__hint" id="details-tax-hint">Printed on every invoice from the next one on.</small>
+      </div>
+    </div>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
+      <button class="ds-btn ds-btn--filled" type="submit">
+        <span class="ds-btn__faces"><span class="ds-btn__face">Save</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Saving</span></span>
+      </button>
+    </div>
+  </form>
+</dialog>
+<div class="ds-toasts" id="toasts"></div>
+
+<script src="ds/ds.billing.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
+  var toasts = document.getElementById('toasts');
+
+  // The quotas fill from zero once, then follow the data.
+  DS.motion.enterAll(document.querySelectorAll('#usage .ds-meter'), 'fill', { stagger: false });
+
+  // Billing details: the dialog is busy while the server saves, then the card shows what was saved.
+  DS.dialog.form(document.getElementById('details'), {
+    onSubmit: function (data) {
+      return wait(700).then(function () {
+        document.getElementById('billing-email').textContent = String(data.get('email'));
+        document.getElementById('billing-company').textContent = String(data.get('company'));
+        var tax = document.getElementById('billing-tax');
+        var value = String(data.get('tax')).trim();
+        tax.textContent = value || 'Not set';
+        tax.classList.toggle('ds-muted', !value);
+        DS.overlay.toast(toasts, 'Billing details saved.', { kind: 'success' });
+      });
+    },
+    errorText: 'The billing details were not saved. Try again.',
+  });
+
+  // Cancelling ends the plan at the end of the period; until then it can be resumed.
+  var cancel = document.getElementById('cancel-plan');
+  var cancelled = false;
+  function showPlan() {
+    document.getElementById('plan-active').hidden = cancelled;
+    document.getElementById('plan-ending').hidden = !cancelled;
+    document.getElementById('renew-label').textContent = cancelled ? 'Ends' : 'Renews';
+    DS.motion.setLabel(cancel, cancelled ? 'Resume plan' : 'Cancel plan');
+  }
+  cancel.addEventListener('click', function () {
+    if (cancelled) {
+      cancelled = false;
+      showPlan();
+      DS.overlay.toast(toasts, 'Your plan renews on Dec 1.', { kind: 'success' });
+      return;
+    }
+    DS.overlay.confirm({
+      title: 'Cancel the Team plan?',
+      text: 'It stays active until the end of this period. After that, devices stop syncing and only administrators can sign in.',
+      facts: [['Ends', 'Dec 1, 2026'], ['Devices', '412'], ['Seats', '18']],
+      confirmLabel: 'Cancel the plan', cancelLabel: 'Keep the plan', destructive: true, opener: cancel,
+      onConfirm: function () { return wait(800); },
+    }).then(function (ok) {
+      if (!ok) return;
+      cancelled = true;
+      showPlan();
+      DS.overlay.toast(toasts, 'The plan ends on Dec 1. You can resume it until then.');
+    });
+  });
+
+  // The export is a file the browser saves: the invoices of the table as CSV.
+  document.getElementById('export').addEventListener('click', function () {
+    var rows = Array.prototype.map.call(document.querySelectorAll('#main tbody tr'), function (row) {
+      return Array.prototype.map.call(row.cells, function (cell) { return '"' + cell.textContent.trim().replace(/"/g, '""') + '"'; }).join(',');
+    });
+    var csv = ['"Invoice","Date","Period","Amount","Status"'].concat(rows).join('\n');
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    link.download = 'invoices.csv';
+    link.click();
+    setTimeout(function () { URL.revokeObjectURL(link.href); }, 0);
+    DS.overlay.toast(toasts, 'invoices.csv downloaded.');
+  });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

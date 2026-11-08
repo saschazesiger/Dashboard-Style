@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pricing · Product</title>
+<meta name="pt-title" content="Pricing table">
+<meta name="pt-need" content="The plans side by side with their price per month or year, what each includes, and the questions people ask">
+<meta name="pt-group" content="Account">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.billing.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<header class="pt-bar">
+  <a class="pt-brand" href="pricing.html"><span class="pt-brand__mark" data-icon="box"></span>Product</a>
+  <a class="ds-btn ds-btn--text ds-push" href="sign-in.html">Sign in</a>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+</header>
+
+<main class="ds-content" id="main">
+  <div class="ds-page">
+    <header class="ds-stack ds-measure ds-center">
+      <h1 class="ds-balance" id="title" tabindex="-1">Plans for every team</h1>
+      <p class="ds-muted ds-balance">Start free with a few devices. Every paid plan starts with 14 days free, and you can change or cancel it at any time.</p>
+      <div class="ds-cluster ds-cluster--center">
+        <div class="ds-segmented" role="radiogroup" aria-label="Billing period" id="period">
+          <button class="ds-segmented__option" type="button" role="radio" aria-checked="true" data-label="Monthly" data-period="month">Monthly</button>
+          <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-label="Yearly" data-period="year">Yearly</button>
+        </div>
+        <span class="ds-tag ds-tone-success">Yearly: 2 months free</span>
+      </div>
+    </header>
+
+    <div class="ds-grid ds-grid--max-3" style="--ds-grid-min: 16rem">
+      <section class="ds-card" aria-labelledby="plan-starter">
+        <h2 class="ds-card__title" id="plan-starter">Starter</h2>
+        <p class="ds-muted">For trying it out, or a small office.</p>
+        <p class="pt-price" data-month="$0" data-year="$0">$0<span class="pt-price__unit">free for good</span></p>
+        <a class="ds-btn ds-btn--block" href="sign-up.html">Start free</a>
+        <ul class="ds-plain-list">
+          <li>Up to 25 devices</li>
+          <li>3 seats</li>
+          <li>10 GB of storage</li>
+          <li>Help by email</li>
+        </ul>
+      </section>
+
+      <section class="ds-card ds-card--elevated" aria-labelledby="plan-team">
+        <div class="ds-card__row">
+          <h2 class="ds-card__title" id="plan-team">Team</h2>
+          <span class="ds-tag">Most chosen</span>
+        </div>
+        <p class="ds-muted">For a growing team with devices in several places.</p>
+        <p class="pt-price" data-month="$12" data-year="$10">$12<span class="pt-price__unit" data-month="per seat a month" data-year="per seat a month, billed yearly">per seat a month</span></p>
+        <a class="ds-btn ds-btn--filled ds-btn--block" href="sign-up.html">Start a 14-day trial</a>
+        <ul class="ds-plain-list">
+          <li>Up to 500 devices</li>
+          <li>Unlimited seats</li>
+          <li>100 GB of storage</li>
+          <li>Webhooks and the API</li>
+          <li>Help by email and chat</li>
+        </ul>
+      </section>
+
+      <section class="ds-card" aria-labelledby="plan-business">
+        <h2 class="ds-card__title" id="plan-business">Business</h2>
+        <p class="ds-muted">For many sites, single sign-on and audits.</p>
+        <p class="pt-price" data-month="$24" data-year="$20">$24<span class="pt-price__unit" data-month="per seat a month" data-year="per seat a month, billed yearly">per seat a month</span></p>
+        <a class="ds-btn ds-btn--block" href="#contact">Talk to us</a>
+        <ul class="ds-plain-list">
+          <li>Unlimited devices</li>
+          <li>1 TB of storage</li>
+          <li>Single sign-on and the audit log</li>
+          <li>A person who knows your setup</li>
+        </ul>
+      </section>
+    </div>
+
+    <section class="ds-card" aria-labelledby="compare-title">
+      <h2 class="ds-card__title" id="compare-title">Compare the plans</h2>
+      <div class="ds-table-wrap">
+        <table class="ds-table ds-table--pin-first">
+          <caption class="ds-sr">What each plan includes</caption>
+          <thead><tr>
+            <th scope="col">Feature</th>
+            <th scope="col">Starter</th>
+            <th scope="col">Team</th>
+            <th scope="col">Business</th>
+          </tr></thead>
+          <tbody>
+            <tr><th scope="row">Devices</th><td>25</td><td>500</td><td>Unlimited</td></tr>
+            <tr><th scope="row">Seats</th><td>3</td><td>Unlimited</td><td>Unlimited</td></tr>
+            <tr><th scope="row">Storage</th><td>10 GB</td><td>100 GB</td><td>1 TB</td></tr>
+            <tr><th scope="row">Reports</th><td><span role="img" aria-label="Included" data-icon="check"></span></td><td><span role="img" aria-label="Included" data-icon="check"></span></td><td><span role="img" aria-label="Included" data-icon="check"></span></td></tr>
+            <tr><th scope="row">Webhooks and the API</th><td><span role="img" aria-label="Not included" data-icon="minimize"></span></td><td><span role="img" aria-label="Included" data-icon="check"></span></td><td><span role="img" aria-label="Included" data-icon="check"></span></td></tr>
+            <tr><th scope="row">Single sign-on</th><td><span role="img" aria-label="Not included" data-icon="minimize"></span></td><td><span role="img" aria-label="Not included" data-icon="minimize"></span></td><td><span role="img" aria-label="Included" data-icon="check"></span></td></tr>
+            <tr><th scope="row">Audit log</th><td><span role="img" aria-label="Not included" data-icon="minimize"></span></td><td>30 days</td><td>2 years</td></tr>
+            <tr><th scope="row">Help</th><td>Email</td><td>Email and chat</td><td>A named person</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="ds-card" aria-labelledby="faq-title">
+      <h2 class="ds-card__title" id="faq-title">Questions</h2>
+      <div class="ds-disclosure-list">
+        <details class="ds-collapsible ds-disclosure ds-disclosure--row" name="faq">
+          <summary><span class="ds-disclosure__title">What counts as a seat?</span><span class="ds-chevron" data-icon="chevronDown"></span></summary>
+          <div class="ds-disclosure__body"><p>A person who can sign in. People who only own a device, or only get its reports, are free.</p></div>
+        </details>
+        <details class="ds-collapsible ds-disclosure ds-disclosure--row" name="faq">
+          <summary><span class="ds-disclosure__title">What happens after the trial?</span><span class="ds-chevron" data-icon="chevronDown"></span></summary>
+          <div class="ds-disclosure__body"><p>We ask for a card on the last day. Without one, the workspace moves to Starter: nothing is deleted, devices past 25 stop syncing.</p></div>
+        </details>
+        <details class="ds-collapsible ds-disclosure ds-disclosure--row" name="faq">
+          <summary><span class="ds-disclosure__title">Can I change plans later?</span><span class="ds-chevron" data-icon="chevronDown"></span></summary>
+          <div class="ds-disclosure__body"><p>Yes, at any time. Moving up is charged for the rest of the period; moving down applies from the next one.</p></div>
+        </details>
+        <details class="ds-collapsible ds-disclosure ds-disclosure--row" name="faq">
+          <summary><span class="ds-disclosure__title">Do you send invoices?</span><span class="ds-chevron" data-icon="chevronDown"></span></summary>
+          <div class="ds-disclosure__body"><p>Every month or year, by email and on the billing page, with your tax ID once you add it.</p></div>
+        </details>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="ds/ds.billing.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  // Monthly or yearly: a segmented switch whose pill glides; the prices follow at once.
+  var period = document.getElementById('period');
+  DS.indicator.create(period, { active: '[aria-checked="true"]', className: 'ds-segmented__indicator' });
+  DS.dom.roving(period, { items: '.ds-segmented__option' });
+  period.addEventListener('click', function (event) {
+    var option = event.target.closest('.ds-segmented__option');
+    if (!option) return;
+    period.querySelectorAll('.ds-segmented__option').forEach(function (other) { other.setAttribute('aria-checked', String(other === option)); });
+    var key = option.getAttribute('data-period');
+    document.querySelectorAll('.pt-price').forEach(function (price) {
+      price.firstChild.textContent = price.getAttribute('data-' + key);
+      var unit = price.querySelector('[data-' + key + ']');
+      if (unit) unit.textContent = unit.getAttribute('data-' + key);
+    });
+  });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

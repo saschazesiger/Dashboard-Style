@@ -6,7 +6,8 @@
     "status": ["error-*.html", "maintenance.html", "offline.html"],
     "form": ["form.html", "form-sent.html"],
     "onboarding": ["onboarding.html"],
-    "wizard": ["wizard.html"]
+    "wizard": ["wizard.html"],
+    "billing": ["billing.html", "invoice.html", "pricing.html"]
   },
   "out": "ds"
 }

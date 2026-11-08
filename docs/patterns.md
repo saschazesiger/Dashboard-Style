@@ -3,8 +3,9 @@
 How the components combine into the pages and flows of an admin dashboard. Each entry names the components, the
 motion, where focus goes and what is announced; the [reference app](../example/README.md) builds most of them (its
 README maps each pattern to its code). Markup: [components.md](components.md); motion: [motion.md](motion.md).
-Whole pages to copy are the [page patterns](#page-patterns) at the end: sign-in, errors, public forms, onboarding and
-a full-screen wizard.
+Whole pages to copy are the [page patterns](#page-patterns) at the end: sign-in, errors, public forms, onboarding,
+a full-screen wizard, billing and invoices, webhooks, a status page, a changelog, notification settings, a file
+manager, an inbox, a chat app, pricing, a calendar and a kanban board.
 
 Two rules hold everywhere:
 
@@ -59,8 +60,8 @@ How they are made, so a page stays copy-ready:
   or a stylesheet of the system of its own. The few layout rules they share sit in `src/patterns/pt.css` with the
   prefix `pt-`, read tokens and hooks only and never restyle a `.ds-*` element (a project writes the same with its
   own prefix): `.pt-auth` (the column of a sign-in page), `.pt-brand` (a stand-in logo and the product's name),
-  `.pt-codes` (a list of codes without markers), `.pt-foot` (the links under a card) and `.pt-bar` (the head of a
-  full-screen task). `tools/check-project.mjs` passes them like a project (`test/patterns.test.js`).
+  `.pt-codes` (a list of codes without markers), `.pt-foot` (the links under a card), `.pt-bar` (the head of a
+  full-screen task or a public page) and `.pt-price` (a price in the headline type). `tools/check-project.mjs` passes them like a project (`test/patterns.test.js`).
 - **How they load the system.** A page links the fonts, the bundle of its family, the theme and `pt.css`, and runs the
   bundle's script and its own wiring at the end of the body:
 
@@ -273,3 +274,46 @@ the terms.
   the request, the result with the focus on its title, and the way out: Close leads back, after a
   [confirmation](components.md#a-question-with-yes-or-no) (`DS.overlay.confirm()`) when something was typed.
 - **Demo rule:** the name `LAPTOP-0042` is taken.
+
+### Billing
+
+[billing.html](../src/patterns/billing.html): the plan, what this period used against its quotas, the payment details
+and the invoices, in the app frame.
+
+- **Components:** the [app frame](components.md#app-frame), a [page head](components.md#page) with "Change plan" as the
+  one filled action, a warning [alert](components.md#alert) when a quota nears its limit, two cards in a `.ds-grid-2`
+  (the plan with its [status chip](components.md#status-chip) and a `.ds-kv-list`, the payment details), the quotas as
+  [tiles](components.md#tiles) with a target [meter](components.md#meter-variants) each (`role="meter"`, a
+  `.ds-meter__threshold` at 80%, the state in words under it and in `aria-valuetext`), the invoices as a
+  [table](components.md#table) in a card with status chips, a [form dialog](components.md#a-form-dialog) for the
+  billing details. `.pt-price` sets the price in the headline type.
+- **The project wires:** the quotas' first fill (`DS.motion.enterAll(meters, 'fill')`), the billing details through
+  `DS.dialog.form()` (busy while it saves, then the card shows the values and a snackbar), "Cancel plan" through
+  `DS.overlay.confirm({ destructive: true })` with the facts it concerns, after which the chip says when the plan
+  ends and the button offers to resume it (`DS.motion.setLabel()`), and the CSV export (a `Blob`).
+
+### Printable invoice
+
+[invoice.html](../src/patterns/invoice.html): one invoice as a sheet on screen and on paper.
+
+- **Components:** [Print](components.md#print): the sheet is a `.ds-print-page` (A4 wide, centred on screen, the
+  paper's width and the light scheme in print), the bar above it `.ds-print-hide`, the "printed on" line
+  `.ds-print-only`, the totals and the payment note `.ds-print-avoid`; `.ds-facts--grid` for who and when, a
+  [table](components.md#table) with a `<tfoot>` for the totals (its header row repeats on every sheet), a status chip,
+  `.ds-prose` for the payment note.
+- **The project wires:** `window.print()` behind the Print button (a PDF is the print dialog's "Save as PDF") and the
+  date of the printout on `beforeprint`.
+
+### Pricing table
+
+[pricing.html](../src/patterns/pricing.html): the plans side by side, a feature comparison and the questions people
+ask, on a public page.
+
+- **Components:** a [segmented switch](components.md#segmented-options-as-buttons) of radio buttons for the billing
+  period (the gliding pill of `DS.indicator`, the arrow keys of `DS.dom.roving()`), the plans as cards in a
+  `.ds-grid--max-3` (one per row on a phone; the one to choose `ds-card--elevated` with a [tag](components.md#tags) and
+  the one filled button), the comparison as a [table](components.md#table) with `.ds-table--pin-first` (the feature
+  stays while the plans scroll on a phone; a check or a dash is a `role="img"` named "Included" or "Not included"),
+  the questions as an exclusive [disclosure list](components.md#disclosure) (`name="faq"`).
+- **The project wires:** the period switch: the prices and their unit change at once (no figure counts: a price is
+  not data that moved).

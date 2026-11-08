@@ -13,8 +13,12 @@
  *   .pt-codes         a list of recovery codes in a .ds-grid: no markers
  *   .pt-foot          the links under a card or a result, and the dark-theme
  *                     button; it wraps and centres on a phone
- *   .pt-bar           the head of a full-screen task (the wizard): close, the
- *                     title, the dark-theme button, on .ds-sticky--head
+ *   .pt-bar           the head of a full-screen task (the wizard, the
+ *                     invoice): close, the title, the dark-theme button, on
+ *                     .ds-sticky--head; or of a public page (the brand, a
+ *                     link, the dark-theme button)
+ *   .pt-price         a price in the headline type; .pt-price__unit the
+ *                     period after it ("a month") in the body type
  */
 
 .pt-auth {
@@ -70,4 +74,17 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.pt-price {
+  margin: 0;
+  font: var(--ds-font-headline);
+  font-variant-numeric: tabular-nums;
+  color: var(--ds-text);
+}
+
+.pt-price__unit {
+  margin-inline-start: var(--ds-space-1);
+  font: var(--ds-font-body);
+  color: var(--ds-text-2);
 }
