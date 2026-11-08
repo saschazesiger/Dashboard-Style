@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Report a problem · Product</title>
+<meta name="pt-title" content="Public form">
+<meta name="pt-need" content="One public form on one card, for people without an account: report a problem, ask for something">
+<meta name="pt-group" content="Public forms">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.form.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body class="ds-auth" style="--ds-auth-width: 640px">
+<main class="pt-auth ds-stack" id="main">
+  <section class="ds-card ds-card--elevated ds-auth__card" aria-labelledby="title">
+    <header class="ds-stack">
+      <a class="pt-brand" href="form.html"><span class="pt-brand__mark" data-icon="box"></span>Product</a>
+      <h1 class="ds-card__title" id="title" tabindex="-1">Report a problem with a device</h1>
+      <p class="ds-muted">The service desk answers within one working day. You need no account.</p>
+    </header>
+
+    <form class="ds-form" id="form" action="form-sent.html" novalidate>
+      <div class="ds-alert ds-tone-error ds-errorsummary" data-ds-errorsummary tabindex="-1" data-icon="alertCircle" data-icon-place="start" hidden>
+        <div class="ds-alert__text">
+          <h2 class="ds-alert__title ds-errorsummary__title"></h2>
+          <ul class="ds-errorsummary__list"></ul>
+        </div>
+      </div>
+
+      <div class="ds-form-grid ds-form-grid--2">
+        <div class="ds-field">
+          <label class="ds-field__label" for="name">Your name</label>
+          <input class="ds-input" id="name" name="name" autocomplete="name" required>
+          <small class="ds-field__hint ds-field__hint--error" hidden></small>
+        </div>
+        <div class="ds-field">
+          <label class="ds-field__label" for="email">Email</label>
+          <input class="ds-input" id="email" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" required aria-describedby="email-hint">
+          <small class="ds-field__hint" id="email-hint">We answer here.</small>
+          <small class="ds-field__hint ds-field__hint--error" hidden></small>
+        </div>
+      </div>
+
+      <div class="ds-field">
+        <label class="ds-field__label" for="serial">Serial number <span class="ds-field__optional">(optional)</span></label>
+        <input class="ds-input ds-mono" id="serial" name="serial" autocomplete="off" autocapitalize="characters" spellcheck="false" pattern="[A-Za-z0-9-]{4,20}" aria-describedby="serial-hint">
+        <small class="ds-field__hint" id="serial-hint" data-icon="info" data-icon-size="16" data-icon-place="start">On the label under the device, such as SN-0042.</small>
+        <small class="ds-field__hint ds-field__hint--error" hidden></small>
+      </div>
+
+      <fieldset class="ds-field">
+        <legend class="ds-field__label" id="topic-label">What is it about?</legend>
+        <div class="ds-radios ds-radios--tiles" role="radiogroup" aria-labelledby="topic-label">
+          <label class="ds-radio"><input type="radio" name="topic" value="hardware" required><span class="ds-radio__icon" aria-hidden="true" data-icon="laptop"></span>
+            <span><strong>Hardware</strong><small>It is broken, slow or missing a part.</small></span><span class="ds-radio__mark" aria-hidden="true" data-icon="check" data-icon-size="14"></span></label>
+          <label class="ds-radio"><input type="radio" name="topic" value="software"><span class="ds-radio__icon" aria-hidden="true" data-icon="apps"></span>
+            <span><strong>Software</strong><small>An app crashes or will not install.</small></span><span class="ds-radio__mark" aria-hidden="true" data-icon="check" data-icon-size="14"></span></label>
+          <label class="ds-radio"><input type="radio" name="topic" value="access"><span class="ds-radio__icon" aria-hidden="true" data-icon="key"></span>
+            <span><strong>Access</strong><small>A sign-in, a password or a permission.</small></span><span class="ds-radio__mark" aria-hidden="true" data-icon="check" data-icon-size="14"></span></label>
+          <label class="ds-radio"><input type="radio" name="topic" value="other"><span class="ds-radio__icon" aria-hidden="true" data-icon="helpCircle"></span>
+            <span><strong>Something else</strong><small>Tell us below.</small></span><span class="ds-radio__mark" aria-hidden="true" data-icon="check" data-icon-size="14"></span></label>
+        </div>
+        <small class="ds-field__hint ds-field__hint--error" hidden></small>
+      </fieldset>
+
+      <div class="ds-field">
+        <label class="ds-field__label" for="details">What happened?</label>
+        <textarea class="ds-input" id="details" name="details" rows="5" maxlength="1000" required data-ds-counter aria-describedby="details-hint"></textarea>
+        <div class="ds-field__foot">
+          <small class="ds-field__hint" id="details-hint">What you did, what you saw, and since when.</small>
+          <span class="ds-field__counter" aria-hidden="true"></span>
+        </div>
+        <small class="ds-field__hint ds-field__hint--error" hidden></small>
+      </div>
+
+      <div class="ds-form-grid ds-form-grid--2">
+        <div class="ds-field">
+          <label class="ds-field__label" for="urgency">How urgent is it?</label>
+          <select class="ds-input" id="urgency" name="urgency">
+            <option value="low">I can work around it</option>
+            <option value="normal" selected>It slows me down</option>
+            <option value="high">I cannot work</option>
+          </select>
+        </div>
+        <div class="ds-field">
+          <label class="ds-field__label" for="files">Pictures or files <span class="ds-field__optional">(optional)</span></label>
+          <input class="ds-input" id="files" name="files" type="file" accept="image/*,.pdf,.txt,.log" multiple aria-describedby="files-hint">
+          <small class="ds-field__hint" id="files-hint">Up to 3 files, 10 MB each.</small>
+        </div>
+      </div>
+
+      <label class="ds-check"><input type="checkbox" name="copy" checked><span>Send me a copy of this report</span></label>
+
+      <div class="ds-form-actions">
+        <button class="ds-btn ds-btn--filled" type="submit">
+          <span class="ds-btn__faces">
+            <span class="ds-btn__face">Send the report</span>
+            <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Sending</span>
+          </span>
+        </button>
+      </div>
+      <p class="ds-meta">We use what you send only to answer this report. <a href="#privacy">Privacy notice</a></p>
+    </form>
+  </section>
+</main>
+
+<footer class="pt-foot ds-cluster">
+  <a class="ds-link--quiet" href="#help">Help</a>
+  <a class="ds-link--quiet" href="#privacy">Privacy</a>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+</footer>
+
+<script src="ds/ds.form.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
+  var form = document.getElementById('form');
+  var files = form.elements.files;
+
+  // A limit the markup cannot say: three files at most. The error summary reads the custom validity on submit.
+  files.addEventListener('change', function () {
+    files.setCustomValidity(files.files.length > 3 ? 'Choose three files at most.' : '');
+  });
+
+  // The tint glides from tile to tile (an option of the radio tiles).
+  var tiles = form.querySelector('.ds-radios--tiles');
+  var pill = DS.indicator.create(tiles, { active: '.ds-radio:has(input:checked)', className: 'ds-radios__indicator' });
+  tiles.addEventListener('change', function () { pill.update(); });
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    DS.motion.busy(form.querySelector('[type="submit"]'), wait(900)).then(function () {
+      location.href = form.getAttribute('action') + '?email=' + encodeURIComponent(form.elements.email.value.trim());
+    });
+  });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

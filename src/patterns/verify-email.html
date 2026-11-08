@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Confirm your email · Product</title>
+<meta name="pt-title" content="Verify email">
+<meta name="pt-need" content="Confirm an email address with the code or the link we sent, send it again, or change the address">
+<meta name="pt-group" content="Sign-in and accounts">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.auth.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body class="ds-auth">
+<main class="pt-auth ds-stack" id="main">
+  <section class="ds-card ds-card--elevated ds-auth__card" aria-labelledby="title">
+    <header class="ds-stack">
+      <a class="pt-brand" href="sign-in.html"><span class="pt-brand__mark" data-icon="box"></span>Product</a>
+      <h1 class="ds-card__title" id="title" tabindex="-1">Confirm your email</h1>
+    </header>
+
+    <form class="ds-form" id="form" action="onboarding.html" novalidate>
+      <p class="ds-muted">We sent a code to <strong id="address">ada@example.org</strong>. Enter it here, or open the link in the same email.</p>
+      <div class="ds-field" id="code-field">
+        <span class="ds-field__label" id="code-label">Code from the email</span>
+        <div class="ds-otp" role="group" aria-labelledby="code-label" aria-describedby="code-hint" data-ds-otp data-ds-otp-submit>
+          <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="one-time-code">
+          <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="off">
+          <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="off">
+          <span class="ds-otp__sep" aria-hidden="true"></span>
+          <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="off">
+          <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="off">
+          <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="off">
+          <input type="hidden" name="code">
+        </div>
+        <small class="ds-field__hint" id="code-hint">It works for 30 minutes.</small>
+      </div>
+      <div class="ds-form-actions">
+        <button class="ds-btn ds-btn--filled" type="submit">
+          <span class="ds-btn__faces">
+            <span class="ds-btn__face">Confirm</span>
+            <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Checking</span>
+          </span>
+        </button>
+      </div>
+      <div class="ds-stack ds-gap-2">
+        <p class="ds-muted">No email yet? Look in the spam folder, or:</p>
+        <div class="ds-cluster">
+          <button class="ds-btn ds-btn--text" type="button" id="resend" aria-describedby="resend-wait">Send a new code</button>
+          <a class="ds-btn ds-btn--text" href="sign-up.html">Change the address</a>
+        </div>
+        <p class="ds-meta" id="resend-wait" hidden>You can ask for another one in a minute.</p>
+      </div>
+    </form>
+
+    <div class="ds-empty ds-empty--done" id="done" role="status" hidden>
+      <span class="ds-empty__disc" aria-hidden="true" data-icon="check" data-icon-size="24"></span>
+      <p class="ds-empty__title">Email confirmed</p>
+      <p class="ds-empty__text">Your account is ready. Next, set up your first devices.</p>
+      <a class="ds-btn ds-btn--filled" href="onboarding.html">Get started</a>
+    </div>
+  </section>
+</main>
+
+<footer class="pt-foot ds-cluster">
+  <a class="ds-link--quiet" href="#help">Help</a>
+  <a class="ds-link--quiet" href="#privacy">Privacy</a>
+  <a class="ds-link--quiet" href="#terms">Terms</a>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+</footer>
+
+<template id="wrong-code">
+  <small class="ds-field__hint ds-field__hint--error" id="code-error" data-icon="alertCircle" data-icon-size="16" data-icon-place="start">That code did not work. Check the newest email from Product.</small>
+</template>
+
+<script src="ds/ds.auth.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  // The address the sign-up page passed on.
+  var address = new URLSearchParams(location.search).get('email');
+  if (address) document.getElementById('address').textContent = address;
+
+  // The demo's backend: any code but 000000 is right.
+  var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
+  var form = document.getElementById('form');
+  var group = form.querySelector('[data-ds-otp]');
+  var code = DS.get(group, 'otp');
+
+  function markWrong(wrong) {
+    var old = document.getElementById('code-error');
+    if (old) old.remove();
+    group.setAttribute('aria-describedby', wrong ? 'code-error code-hint' : 'code-hint');
+    if (!wrong) {
+      group.removeAttribute('aria-invalid');
+      return;
+    }
+    group.setAttribute('aria-invalid', 'true');
+    document.getElementById('code-field').append(document.getElementById('wrong-code').content.cloneNode(true));
+    DS.icons.fill(document.getElementById('code-field'));
+  }
+  group.addEventListener('ds:change', function () { if (group.hasAttribute('aria-invalid')) markWrong(false); });
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    var value = code.get();
+    if (value.length < 6) {
+      code.focus();
+      return;
+    }
+    DS.motion.busy(form.querySelector('[type="submit"]'), wait(700).then(function () {
+      if (value === '000000') throw new Error('wrong');
+    })).then(function () {
+      form.hidden = true;
+      DS.motion.enter(document.getElementById('done'), 'swap');
+      document.getElementById('title').focus();
+    }, function () {
+      markWrong(true);
+      DS.overlay.announce('That code did not work.');
+    });
+  });
+
+  // A new code, then a minute's pause: the button stays focusable and says why it is blocked.
+  var resend = document.getElementById('resend');
+  var pause = document.getElementById('resend-wait');
+  resend.addEventListener('click', function () {
+    DS.motion.busy(resend, wait(700)).then(function () {
+      DS.overlay.announce('We sent a new code to ' + document.getElementById('address').textContent + '.');
+      resend.setAttribute('aria-disabled', 'true');
+      pause.hidden = false;
+      setTimeout(function () {
+        resend.removeAttribute('aria-disabled');
+        pause.hidden = true;
+      }, 60000);
+    });
+  });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

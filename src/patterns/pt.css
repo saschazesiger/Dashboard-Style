@@ -1,0 +1,73 @@
+/*
+ * The layout rules the page patterns share (src/patterns/pt.css): what a
+ * project writes around the components, as a project writes it. Prefixed
+ * pt-, unlayered (so it would win, but it never restyles a .ds-* element:
+ * it places them), tokens and hooks only, no literals of colour, radius,
+ * type, shadow or motion. The components and the layout primitives
+ * (stack, cluster, cover, measure, grid) do the rest.
+ *
+ *   .pt-auth          the column of a sign-in page inside <body class="ds-auth">:
+ *                     the alert slot and the card, as wide as the card
+ *   .pt-brand         the product's mark and name (a link home); .pt-brand__mark
+ *                     is a stand-in logo, a glyph on the primary colour
+ *   .pt-codes         a list of recovery codes in a .ds-grid: no markers
+ *   .pt-foot          the links under a card or a result, and the dark-theme
+ *                     button; it wraps and centres on a phone
+ *   .pt-bar           the head of a full-screen task (the wizard): close, the
+ *                     title, the dark-theme button, on .ds-sticky--head
+ */
+
+.pt-auth {
+  inline-size: min(100%, var(--ds-auth-width, 400px));
+}
+
+.pt-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  font: var(--ds-font-title);
+  color: var(--ds-text);
+  min-block-size: var(--ds-target-min, 0px);
+  text-decoration: none;
+  border-radius: var(--ds-radius-sm);
+}
+
+.pt-brand__mark {
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--ds-space-8);
+  block-size: var(--ds-space-8);
+  border-radius: calc(var(--ds-radius-sm) * var(--ds-shape, 1));
+  background: var(--ds-primary);
+  color: var(--ds-on-primary);
+}
+
+/* A list of codes laid out by .ds-grid: no markers, no indent. */
+.pt-codes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pt-foot {
+  justify-content: center;
+  color: var(--ds-text-2);
+}
+
+.pt-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding-block: var(--ds-space-2);
+  padding-inline: max(var(--ds-space-2), env(safe-area-inset-left)) max(var(--ds-space-2), env(safe-area-inset-right));
+}
+
+.pt-bar__title {
+  flex: 1;
+  min-inline-size: 0;
+  margin: 0;
+  font: var(--ds-font-title);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -7,9 +7,9 @@
  * top of dist/ds.js, so the page runs from disk, the theme generator
  * included (theme-generator.js, generated from scripts/tools/).
  *
- * Routes (the hash): #/ overview · #/needs · #/components/<n> · #/colour ·
- * #/type · #/shape · #/elevation · #/motion · #/icons · #/tokens[?q=] ·
- * #/theme · #/search?q=<text>. An address of the retired 2.x styleguide
+ * Routes (the hash): #/ overview · #/needs · #/components/<n> · #/patterns ·
+ * #/patterns/<name> · #/colour · #/type · #/shape · #/elevation · #/motion ·
+ * #/icons · #/tokens[?q=] · #/theme · #/search?q=<text>. An address of the retired 2.x styleguide
  * (index.html#buttons) opens the page that took its section over
  * (OLD_SECTIONS).
  *
@@ -301,7 +301,7 @@
     var groups = groupsOf(COMPONENTS);
     return '<section class="sg-hero" aria-labelledby="sg-hero-title"><h1 id="sg-hero-title" tabindex="-1">Dashboard-Style ' + esc(DS.version) + '</h1>' +
       '<p>A calm, themeable design system for admin dashboards. Every component on its own page with every option: size, density, shape, tone, variant, colour scheme, contrast, theme preset and touch, at any width.</p>' +
-      '<div class="sg-row"><a class="ds-btn ds-btn--filled" href="#/needs">Which component for which need</a><a class="ds-btn" href="#/theme">' + icon('wand', 18) + 'Theme generator</a><a class="ds-btn ds-btn--text" href="motion.html">Motion Lab ' + icon('arrowRight', 16) + '</a></div></section>' +
+      '<div class="sg-row"><a class="ds-btn ds-btn--filled" href="#/needs">Which component for which need</a><a class="ds-btn" href="#/patterns">' + icon('layoutGrid', 18) + 'Page patterns</a><a class="ds-btn" href="#/theme">' + icon('wand', 18) + 'Theme generator</a><a class="ds-btn ds-btn--text" href="motion.html">Motion Lab ' + icon('arrowRight', 16) + '</a></div></section>' +
       '<div class="ds-tiles">' + tile('Components', String(COMPONENTS.length), 'apps', 'one folder each, with a demo') + tile('Tokens', String(REG.tokens.length), 'braces', 'roles, scales and seeds') +
       tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') + '</div>' +
       '<div class="sg-group-grid">' + groups.map(function (group) {
@@ -950,9 +950,104 @@
     });
   }
 
+  /* ── Page patterns (#/patterns, #/patterns/<name>) ─────────────────── */
+
+  /** The page patterns of src/patterns/ (registry.js: the pt-* metas of each page), in the order of docs/patterns.md. */
+  var PATTERNS = REG.patterns || [];
+  function pattern(name) { return PATTERNS.filter(function (p) { return p.name === name; })[0] || null; }
+  function patternHref(p) { return '#/patterns/' + p.name; }
+  function patternSlug(title) { return title.toLowerCase().replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-'); }
+  /** The preview's widths: [value, label, width, height] of the frame. */
+  var PATTERN_WIDTHS = [['phone', 'Phone', 390, 844], ['tablet', 'Tablet', 768, 1024], ['desktop', 'Desktop', 1280, 860]];
+  var patternWidth = 'desktop';
+  /** The frame follows the width of its stage (a ResizeObserver) until the page changes. */
+  var patternObserver = null;
+
+  /* The page alone, in the styleguide's theme: the preset, the contrast and the scheme go along in the query (pt.js reads them). */
+  function patternSrc(p) {
+    var query = ['scheme=' + theme.scheme];
+    if (theme.preset !== 'default') query.push('preset=' + theme.preset);
+    if (theme.contrast) query.push('contrast=1');
+    return '../src/patterns/' + p.name + '.html?' + query.join('&');
+  }
+
+  function patternGroups() {
+    var groups = [];
+    PATTERNS.forEach(function (p) {
+      var group = groups.filter(function (g) { return g.title === p.group; })[0];
+      if (!group) groups.push(group = { title: p.group, items: [] });
+      group.items.push(p);
+    });
+    return groups;
+  }
+
+  /* The list: no preview loads here; each loads when its own page opens. */
+  function patternsPage() {
+    if (!PATTERNS.length) {
+      return head('Page patterns', '') + '<div class="ds-empty"><span class="ds-empty__disc" aria-hidden="true">' + icon('layoutGrid', 24) + '</span><p class="ds-empty__title">No patterns listed</p>' +
+        '<p class="ds-empty__text"><code>npm run build</code> lists the pages of <code>src/patterns/</code> in <code>registry.js</code>.</p></div>';
+    }
+    return head('Page patterns', 'Whole pages built only from components, ready to copy. Each opens in a preview at a phone, tablet or desktop width, or alone; <a href="../docs/patterns.md">docs/patterns.md</a> says what each one uses and what a project wires.') +
+      patternGroups().map(function (group) {
+        return card(esc(group.title), '<ul class="ds-list ds-list--interactive" aria-label="' + esc(group.title) + '">' + group.items.map(function (p) {
+          return '<li class="ds-list__item" data-sg-pattern="' + p.name + '"><span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="' + patternHref(p) + '">' + esc(p.title) + '</a></span>' +
+            '<span class="ds-list__meta">' + esc(p.need) + '</span></span>' + icon('chevronRight', 20, 'ds-list__chevron') + '</li>';
+        }).join('') + '</ul>');
+      }).join('');
+  }
+
+  function patternPage(p) {
+    return head(esc(p.title), esc(p.need)) +
+      '<div class="ds-cluster sg-pattern-bar">' +
+      segmented('pattern-width', 'Preview width', PATTERN_WIDTHS.map(function (w) { return [w[0], w[1]]; }), patternWidth) +
+      segmented('pattern-scheme', 'Colour scheme', [['light', 'Light'], ['dark', 'Dark'], ['auto', 'Auto']], theme.scheme) +
+      '<a class="ds-btn ds-btn--text ds-push" id="sg-pattern-alone" href="' + patternSrc(p) + '" target="_blank" rel="noopener">' + icon('external', 16) + 'Open alone<span class="ds-sr"> (opens in a new tab)</span></a>' +
+      '<a class="ds-btn ds-btn--text" href="../docs/patterns.md#' + patternSlug(p.title) + '">' + icon('fileText', 16) + 'Docs</a></div>' +
+      '<div class="sg-pattern-stage" id="sg-pattern-stage"><iframe class="sg-pattern-frame" id="sg-pattern-frame" title="Preview: ' + esc(p.title) + '" src="' + patternSrc(p) + '"></iframe></div>';
+  }
+
+  /* The frame keeps the device's width and height, and scales down to the stage where the stage is narrower. */
+  function wirePattern(page, p) {
+    var stage = $('#sg-pattern-stage', page);
+    var frame = $('#sg-pattern-frame', page);
+    var fit = function () {
+      var size = PATTERN_WIDTHS.filter(function (w) { return w[0] === patternWidth; })[0];
+      var scale = Math.min(1, stage.clientWidth / size[2]);
+      frame.style.width = size[2] + 'px';
+      frame.style.height = size[3] + 'px';
+      frame.style.transform = scale < 1 ? 'scale(' + scale + ')' : '';
+      stage.style.height = Math.ceil(size[3] * scale) + 'px';
+      stage.setAttribute('data-sg-width', patternWidth);
+    };
+    fit();
+    patternObserver = new ResizeObserver(fit);
+    patternObserver.observe(stage);
+    $$('.sg-segmented', page).forEach(function (group) {
+      addIndicator(group, { active: '[aria-checked="true"]', className: 'ds-segmented__indicator' });
+      DS.dom.roving(group, { items: '.ds-segmented__option' });
+      group.addEventListener('click', function (event) {
+        var option = event.target.closest('.ds-segmented__option');
+        if (!option || option.getAttribute('aria-checked') === 'true') return;
+        $$('.ds-segmented__option', group).forEach(function (other) { other.setAttribute('aria-checked', String(other === option)); });
+        var value = option.getAttribute('data-sg-value');
+        if (group.getAttribute('data-sg-option') === 'pattern-width') {
+          patternWidth = value;
+          fit();
+          return;
+        }
+        // The scheme is the styleguide's, as in a component's options: the page follows, the frame loads again with it.
+        theme.scheme = value;
+        applyTheme();
+        frame.src = patternSrc(p);
+        $('#sg-pattern-alone', page).href = patternSrc(p);
+      });
+    });
+  }
+
+
   /* ── Search ────────────────────────────────────────────────────────── */
 
-  var PAGES_INDEX = [['', 'Overview'], ['needs', 'Which component for which need']].concat(FOUNDATIONS.map(function (f) { return [f[0], f[1]]; }));
+  var PAGES_INDEX = [['', 'Overview'], ['needs', 'Which component for which need'], ['patterns', 'Page patterns']].concat(FOUNDATIONS.map(function (f) { return [f[0], f[1]]; }));
 
   /** Results for `q`: { pages, components, classes, tokens }, each a list of { href, title, meta }. */
   function search(q) {
@@ -961,6 +1056,7 @@
     var out = { pages: [], components: [], classes: [], tokens: [] };
     if (!words.length) return out;
     PAGES_INDEX.forEach(function (p) { if (hit(p[1])) out.pages.push({ href: '#/' + p[0], title: p[1], meta: 'Page' }); });
+    PATTERNS.forEach(function (p) { if (hit(p.name + ' ' + p.title + ' ' + p.need + ' ' + p.group)) out.pages.push({ href: patternHref(p), title: p.title, meta: 'Pattern: ' + p.need }); });
     COMPONENTS.forEach(function (c) {
       if (hit(c.name + ' ' + c.title + ' ' + c.need + ' ' + groupTitle(c.group))) out.components.push({ href: componentHref(c), title: c.title, meta: c.need || groupTitle(c.group) });
       c.classes.forEach(function (cls) { if (hit(cls)) out.classes.push({ href: componentHref(c), title: '.' + cls, meta: c.title }); });
@@ -1176,6 +1272,7 @@
     }
     if (!parts.length) return { name: 'overview', key: '' };
     if (parts[0] === 'components' && parts[1]) return { name: 'component', key: 'components/' + parts[1], component: parts[1] };
+    if (parts[0] === 'patterns' && parts[1]) return { name: 'pattern', key: 'patterns/' + parts[1], pattern: parts[1] };
     if (parts[0] === 'search') return { name: 'search', key: 'search', q: query.get('q') || '' };
     if (parts[0] === 'tokens') return { name: 'tokens', key: 'tokens', q: query.get('q') || '' };
     return { name: parts[0], key: parts[0] };
@@ -1201,6 +1298,8 @@
     if (r.name === 'motion') return motionPage();
     if (r.name === 'icons') return iconsPage();
     if (r.name === 'theme') return themePage();
+    if (r.name === 'patterns') return patternsPage();
+    if (r.name === 'pattern' && pattern(r.pattern)) return patternPage(pattern(r.pattern));
     if (r.name === 'component') {
       var c = component(r.component);
       if (c && c.spec) return componentPage(c);
@@ -1216,6 +1315,7 @@
     if (r.name === 'needs') wireNeeds(page);
     if (r.name === 'tokens') wireTokens(page);
     if (r.name === 'theme') wireTheme(page);
+    if (r.name === 'pattern' && pattern(r.pattern)) wirePattern(page, pattern(r.pattern));
     if (r.name === 'search') {
       var field = $('#sg-search-page', page);
       field.addEventListener('input', function () { searchFor(field.value, field); });
@@ -1237,6 +1337,7 @@
     route = r;
     var page = $('#sg-page');
     if (stageHandle) { stageHandle.destroy(); stageHandle = null; }
+    if (patternObserver) { patternObserver.disconnect(); patternObserver = null; }
     indicators = indicators.filter(function (made) {
       if (!page.contains(made.track)) return true;
       made.handle.destroy();
@@ -1255,6 +1356,7 @@
 
   function pageTitle(r) {
     if (r.name === 'component') { var c = component(r.component); return c ? c.title : 'Not found'; }
+    if (r.name === 'pattern') { var p = pattern(r.pattern); return p ? p.title + ' · Page patterns' : 'Not found'; }
     var found = PAGES_INDEX.filter(function (p) { return p[0] === r.key; })[0];
     return found ? found[1] : r.name === 'search' ? 'Search' : 'Styleguide';
   }
@@ -1262,7 +1364,7 @@
   function navHtml() {
     var item = function (href, label, glyph) { return '<a class="ds-drawer__item" href="' + href + '">' + icon(glyph, 20) + '<span class="ds-drawer__label">' + label + '</span></a>'; };
     var group = function (title, items) { return '<div class="ds-drawer__group"><p class="ds-drawer__heading">' + title + '</p>' + items.join('') + '</div>'; };
-    return group('Start', [item('#/', 'Overview', 'overview'), item('#/needs', 'Which component', 'helpCircle')]) +
+    return group('Start', [item('#/', 'Overview', 'overview'), item('#/needs', 'Which component', 'helpCircle'), item('#/patterns', 'Page patterns', 'layoutGrid')]) +
       group('Foundations', FOUNDATIONS.map(function (f) { return item('#/' + f[0], f[1], f[2]); })) +
       groupsOf(DEMOED).map(function (g) { return group(esc(groupTitle(g.id)), g.items.map(function (c) { return item('#/components/' + c.name, esc(c.title), groupIcon(c.group)); })); }).join('') +
       group('More', [item('motion.html', 'Motion Lab', 'activity')]);
@@ -1270,7 +1372,7 @@
 
   /* The current drawer item: the route's own, the tokens page for its filter, nothing for search. */
   function setActive() {
-    var current = '#/' + route.key;
+    var current = '#/' + (route.name === 'pattern' ? 'patterns' : route.key);
     $$('#sg-nav .ds-drawer__item').forEach(function (a) {
       if (a.getAttribute('href') === current) {
         if (a.getAttribute('aria-current') !== 'page') a.setAttribute('aria-current', 'page');

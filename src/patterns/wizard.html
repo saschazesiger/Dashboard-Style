@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Add a device · Product</title>
+<meta name="pt-title" content="Full-screen wizard">
+<meta name="pt-need" content="A task in a few checked steps on a page of its own, with a review before it is sent and a way out">
+<meta name="pt-group" content="Wizards">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.wizard.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<header class="pt-bar ds-sticky ds-sticky--head">
+  <a class="ds-btn ds-btn--quiet ds-btn--icon" href="onboarding.html" id="close" aria-label="Close, back to Get started" data-tip="Close" data-icon="close"></a>
+  <h1 class="pt-bar__title" id="title">Add a device</h1>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+</header>
+
+<main class="ds-content" id="main">
+  <div class="ds-measure"><div class="ds-card">
+    <form class="ds-wizard" id="wizard" data-ds-wizard aria-labelledby="title">
+      <ol class="ds-steps ds-wizard__steps" aria-label="Add a device"></ol>
+
+      <section class="ds-wizard__panel" aria-labelledby="step-device">
+        <h2 class="ds-wizard__title" id="step-device">Device</h2>
+        <fieldset class="ds-field">
+          <legend class="ds-field__label" id="kind-label">Kind</legend>
+          <div class="ds-radios ds-radios--tiles" role="radiogroup" aria-labelledby="kind-label">
+            <label class="ds-radio"><input type="radio" name="kind" value="laptop" required checked><span class="ds-radio__icon" aria-hidden="true" data-icon="laptop"></span>
+              <span><strong>Laptop</strong><small>With a dock or without.</small></span><span class="ds-radio__mark" aria-hidden="true" data-icon="check" data-icon-size="14"></span></label>
+            <label class="ds-radio"><input type="radio" name="kind" value="desktop"><span class="ds-radio__icon" aria-hidden="true" data-icon="monitor"></span>
+              <span><strong>Desktop</strong><small>At one desk.</small></span><span class="ds-radio__mark" aria-hidden="true" data-icon="check" data-icon-size="14"></span></label>
+            <label class="ds-radio"><input type="radio" name="kind" value="phone"><span class="ds-radio__icon" aria-hidden="true" data-icon="smartphone"></span>
+              <span><strong>Phone</strong><small>Managed or the owner's own.</small></span><span class="ds-radio__mark" aria-hidden="true" data-icon="check" data-icon-size="14"></span></label>
+            <label class="ds-radio"><input type="radio" name="kind" value="tablet"><span class="ds-radio__icon" aria-hidden="true" data-icon="tablet"></span>
+              <span><strong>Tablet</strong><small>Shared or personal.</small></span><span class="ds-radio__mark" aria-hidden="true" data-icon="check" data-icon-size="14"></span></label>
+          </div>
+        </fieldset>
+        <div class="ds-field">
+          <label class="ds-field__label" for="name">Name</label>
+          <input class="ds-input" id="name" name="name" required autocomplete="off" spellcheck="false" aria-describedby="name-hint">
+          <small class="ds-field__hint" id="name-hint">How it shows in every list, such as LAPTOP-0043.</small>
+        </div>
+        <div class="ds-field">
+          <label class="ds-field__label" for="serial">Serial number</label>
+          <input class="ds-input ds-mono" id="serial" name="serial" required autocomplete="off" autocapitalize="characters" spellcheck="false" pattern="[A-Za-z0-9-]{4,20}" aria-describedby="serial-hint">
+          <small class="ds-field__hint" id="serial-hint">On the label under the device: 4 to 20 letters, digits or dashes.</small>
+        </div>
+      </section>
+
+      <section class="ds-wizard__panel" aria-labelledby="step-owner" hidden>
+        <h2 class="ds-wizard__title" id="step-owner">Owner</h2>
+        <div class="ds-field">
+          <label class="ds-field__label" for="owner">Who uses it?</label>
+          <select class="ds-input" id="owner" name="owner" required>
+            <option value="">Choose a person</option>
+            <option value="ada">Ada Lovelace</option>
+            <option value="grace">Grace Hopper</option>
+            <option value="alan">Alan Turing</option>
+            <option value="pool">Nobody yet (in the pool)</option>
+          </select>
+        </div>
+        <div class="ds-field">
+          <label class="ds-field__label" for="place">Where is it? <span class="ds-field__optional">(optional)</span></label>
+          <input class="ds-input" id="place" name="place" autocomplete="off" aria-describedby="place-hint">
+          <small class="ds-field__hint" id="place-hint">A building and a room, such as A 2.14.</small>
+        </div>
+      </section>
+
+      <section class="ds-wizard__panel" data-ds-wizard-optional aria-labelledby="step-policy" hidden>
+        <h2 class="ds-wizard__title" id="step-policy">Policies</h2>
+        <p class="ds-muted">The defaults suit most devices. You can change them later on the device's page.</p>
+        <fieldset class="ds-field">
+          <legend class="ds-field__label">On this device</legend>
+          <label class="ds-check"><input type="checkbox" name="encrypt" checked><span>Encrypt the disk</span></label>
+          <label class="ds-check"><input type="checkbox" name="updates" checked><span>Install updates every night</span></label>
+          <label class="ds-check"><input type="checkbox" name="lock"><span>Lock it after 5 minutes away</span></label>
+        </fieldset>
+      </section>
+
+      <section class="ds-wizard__panel" data-ds-wizard-summary aria-labelledby="step-review" hidden>
+        <h2 class="ds-wizard__title" id="step-review">Review</h2>
+        <div class="ds-wizard__summary"></div>
+      </section>
+
+      <div class="ds-wizard__actions">
+        <button class="ds-btn ds-wizard__back" type="button">Back</button>
+        <button class="ds-btn ds-btn--filled ds-wizard__next" type="button">Next</button>
+        <button class="ds-btn ds-btn--filled ds-wizard__submit" type="submit" hidden>
+          <span class="ds-btn__faces">
+            <span class="ds-btn__face">Add device</span>
+            <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Adding</span>
+          </span>
+        </button>
+      </div>
+    </form>
+
+    <section class="ds-result ds-result--success" id="added" aria-labelledby="added-title" hidden>
+      <span class="ds-result__disc" aria-hidden="true" data-icon="checkCircle" data-icon-size="32"></span>
+      <h2 class="ds-result__title" id="added-title" tabindex="-1">Device added</h2>
+      <p class="ds-result__text"><span id="added-name">The device</span> syncs within a few minutes of its next start.</p>
+      <div class="ds-result__actions">
+        <a class="ds-btn ds-btn--filled" href="onboarding.html">Back to Get started</a>
+        <a class="ds-btn ds-btn--text" href="wizard.html">Add another device</a>
+      </div>
+    </section>
+  </div></div>
+</main>
+
+<script src="ds/ds.wizard.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
+  var form = document.getElementById('wizard');
+  var touched = false;
+  form.addEventListener('input', function () { touched = true; });
+
+  // The tint glides from tile to tile.
+  var tiles = form.querySelector('.ds-radios--tiles');
+  var pill = DS.indicator.create(tiles, { active: '.ds-radio:has(input:checked)', className: 'ds-radios__indicator' });
+  tiles.addEventListener('change', function () { pill.update(); });
+
+  // The page's own rule beside the markup's, as a custom validity the wizard reads with the rest: a name that is
+  // taken (here: LAPTOP-0042; a real page asks its server as the person types).
+  var deviceName = form.elements.name;
+  deviceName.addEventListener('input', function () {
+    deviceName.setCustomValidity(/^laptop-0042$/i.test(deviceName.value.trim()) ? 'LAPTOP-0042 is taken. Choose another name.' : '');
+  });
+
+  // Only a form whose every step is valid gets here.
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    DS.motion.busy(form.querySelector('.ds-wizard__submit'), wait(900)).then(function () {
+      touched = false;
+      document.getElementById('added-name').textContent = form.elements.name.value.trim();
+      form.hidden = true;
+      DS.motion.enter(document.getElementById('added'), 'swap');
+      document.getElementById('added-title').focus();
+    });
+  });
+
+  // Leaving with typed values asks first; nothing typed, the close link just leads back.
+  var close = document.getElementById('close');
+  close.addEventListener('click', function (event) {
+    if (!touched) return;
+    event.preventDefault();
+    DS.overlay.confirm({
+      title: 'Discard this device?',
+      text: 'What you entered is not saved.',
+      confirmLabel: 'Discard the device',
+      cancelLabel: 'Keep editing',
+      destructive: true,
+      opener: close,
+    }).then(function (yes) { if (yes) location.href = close.href; });
+  });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

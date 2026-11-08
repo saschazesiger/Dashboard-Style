@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Report sent · Product</title>
+<meta name="pt-title" content="Form sent">
+<meta name="pt-need" content="The page after a public form: it arrived, what happens next, the reference">
+<meta name="pt-group" content="Public forms">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.form.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body class="ds-cover ds-cover--screen">
+<header>
+  <a class="pt-brand" href="form.html"><span class="pt-brand__mark" data-icon="box"></span>Product</a>
+</header>
+<main class="ds-result ds-result--success ds-cover__main" id="main" aria-labelledby="title">
+  <span class="ds-result__disc" aria-hidden="true" data-icon="checkCircle" data-icon-size="32"></span>
+  <h1 class="ds-result__title" id="title" tabindex="-1">Report sent</h1>
+  <p class="ds-result__text">The service desk answers within one working day at <strong id="address">your email</strong>. Reply to that email to add something.</p>
+  <div class="ds-result__actions">
+    <a class="ds-btn ds-btn--filled" href="form.html">Report another problem</a>
+    <a class="ds-btn ds-btn--text" href="#help">Help articles</a>
+  </div>
+  <p class="ds-result__meta">
+    <span class="ds-copy">Reference <code class="ds-copy__value" id="reference">T-4127</code>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-xs" type="button" aria-label="Copy the reference" data-tip="Copy the reference" data-ds-copy="#reference">
+        <span class="ds-icon-swap"><span class="ds-icon-swap__a" data-icon="copy" data-icon-size="16"></span><span class="ds-icon-swap__b" data-icon="check" data-icon-size="16"></span></span>
+      </button>
+    </span>
+  </p>
+</main>
+<footer class="pt-foot ds-cluster">
+  <a class="ds-link--quiet" href="#help">Help</a>
+  <a class="ds-link--quiet" href="#privacy">Privacy</a>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+</footer>
+
+<script src="ds/ds.form.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  // The address the form passed on (a server renders it into the page).
+  var address = new URLSearchParams(location.search).get('email');
+  if (address) document.getElementById('address').textContent = address;
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

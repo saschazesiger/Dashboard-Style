@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>You are offline · Product</title>
+<meta name="pt-title" content="Offline">
+<meta name="pt-need" content="The page a service worker shows without a connection: what is unreachable, and back by itself once online">
+<meta name="pt-group" content="Errors and status">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.status.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body class="ds-cover ds-cover--screen">
+<header>
+  <a class="pt-brand" href="onboarding.html"><span class="pt-brand__mark" data-icon="box"></span>Product</a>
+</header>
+<main class="ds-result ds-result--offline ds-cover__main" id="main" aria-labelledby="title">
+  <span class="ds-result__disc" aria-hidden="true" data-icon="wifiOff" data-icon-size="32"></span>
+  <h1 class="ds-result__title" id="title" tabindex="-1">You are offline</h1>
+  <p class="ds-result__text">Product cannot reach the network. Check the connection; this page reloads by itself once it is back.</p>
+  <div class="ds-result__actions">
+    <button class="ds-btn ds-btn--filled" type="button" id="retry" data-icon="refresh" data-icon-size="16" data-icon-place="start">Try again</button>
+  </div>
+  <p class="ds-result__meta" id="state" role="status"></p>
+</main>
+<footer class="pt-foot ds-cluster">
+  <a class="ds-link--quiet" href="#help">Help</a>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+</footer>
+
+<script src="ds/ds.status.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  // A service worker serves this page for a navigation that failed: once the browser is online, reload what was asked for.
+  var state = document.getElementById('state');
+  window.addEventListener('online', function () { location.reload(); });
+  document.getElementById('retry').addEventListener('click', function () {
+    if (navigator.onLine) location.reload();
+    else state.textContent = 'Still offline. Checked at ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '.';
+  });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

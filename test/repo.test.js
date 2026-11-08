@@ -112,7 +112,7 @@ describe('repository', () => {
     assert.deepEqual(missing, []);
   });
 
-  it('uses only classes of the system in the markup of the docs, the styleguide, the tour and the reference app', () => {
+  it('uses only classes of the system in the markup of the docs, the styleguide, the tour, the reference app and the page patterns', () => {
     // A project copies this markup; a class that no stylesheet knows renders as nothing (and check-project fails it).
     const classes = new Set();
     for (const file of filesIn('src', (path) => path.endsWith('.css'))) {
@@ -120,8 +120,8 @@ describe('repository', () => {
     }
     // Hook classes without a rule of their own, read by a module.
     const HOOKS = new Map([['ds-toast__action', 'the action button of a snackbar: DS.overlay finds it next to .ds-toast__close']]);
-    const scope = ALL_FILES.filter((path) => /^(docs\/.*\.md|README\.md|(styleguide|example|demo)\/.*\.(html|js))$/.test(path));
-    assert.ok(scope.includes('docs/components.md') && scope.includes('styleguide/shell.js') && scope.includes('styleguide/demos.js') && scope.includes('example/index.html'), 'the walk finds the files');
+    const scope = ALL_FILES.filter((path) => /^(docs\/.*\.md|README\.md|(styleguide|example|demo)\/.*\.(html|js)|src\/patterns\/[^/]+\.(html|js))$/.test(path));
+    assert.ok(scope.includes('docs/components.md') && scope.includes('styleguide/shell.js') && scope.includes('styleguide/demos.js') && scope.includes('example/index.html') && scope.includes('src/patterns/sign-in.html'), 'the walk finds the files');
     const offenders = [];
     for (const path of scope) {
       const source = read(path);
