@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>React adapter</title>
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <link rel="stylesheet" href="/dist/ds.min.css">
+  <!--
+    The React adapter (dist/react/) under StrictMode, with the pinned dev
+    copy of React 18 (test/react/). listeners.js counts the listeners on
+    window, document, <html> and <body> before anything else runs, so the
+    spec can prove that mounting and unmounting leaks none.
+  -->
+  <script src="/test/browser/fixtures/react-listeners.js"></script>
+  <script src="/test/react/react.development.js"></script>
+  <script src="/test/react/react-dom.development.js"></script>
+  <script type="importmap">
+    { "imports": { "react": "/test/react/react.js", "react-dom/client": "/test/react/react-dom-client.js" } }
+  </script>
+  <script type="module" src="/test/browser/fixtures/react-app.js"></script>
+</head>
+<body class="ds-base">
+  <div id="root"></div>
+</body>
+</html>
