@@ -315,12 +315,21 @@
       return Math.max(0, Math.round(day === 0 || day === 6 ? value * weekend : value));
     });
   }
+  // Columns per day up to 30 days; 90 days are 13 weeks (a column per day would be thinner than a line on a phone).
   function ticketsSpec(range) {
     var labels = days(range);
-    return {
-      type: 'column', labels: labels,
-      series: [{ name: 'Opened', values: wave(labels, 14, 5, 0, 0.3) }, { name: 'Closed', values: wave(labels, 13, 5, 2, 0.25) }],
-    };
+    var opened = wave(labels, 14, 5, 0, 0.3);
+    var closed = wave(labels, 13, 5, 2, 0.25);
+    if (range > 30) {
+      var weeks = [];
+      var sum = function (list, from) { return list.slice(from, from + 7).reduce(function (a, b) { return a + b; }, 0); };
+      for (var i = range % 7; i < range; i += 7) weeks.push(i);
+      return {
+        type: 'column', labels: weeks.map(function (i) { return labels[i]; }),
+        series: [{ name: 'Opened', values: weeks.map(function (i) { return sum(opened, i); }) }, { name: 'Closed', values: weeks.map(function (i) { return sum(closed, i); }) }],
+      };
+    }
+    return { type: 'column', labels: labels, series: [{ name: 'Opened', values: opened }, { name: 'Closed', values: closed }] };
   }
   function onlineSpec(range) {
     var labels = days(range);
@@ -330,24 +339,35 @@
     };
   }
 
-  // The charts draw in tasks of their own once the page shows, so the first paint never waits for them.
+  // The charts draw only when they come near the screen, each in a task of its own after the page shows, so the
+  // first paint never waits for them and a phone draws only what it scrolls to.
   var charts = {};
   var range = 7;
-  var draw = [
-    function () { charts.tickets = DS.chart.create(document.getElementById('chart-tickets'), ticketsSpec(range)); },
-    function () { charts.online = DS.chart.create(document.getElementById('chart-online'), onlineSpec(range)); },
-    function () {
-      charts.kinds = DS.chart.create(document.getElementById('chart-kinds'), {
-        type: 'donut', labels: ['Laptops', 'Desktops', 'Phones', 'Tablets', 'Printers'],
-        series: [{ name: 'Devices', values: [612, 384, 211, 79, 26] }], label: 'devices',
-      });
+  var specs = {
+    tickets: function () { return ticketsSpec(range); },
+    online: function () { return onlineSpec(range); },
+    kinds: function () {
+      return { type: 'donut', labels: ['Laptops', 'Desktops', 'Phones', 'Tablets', 'Printers'], series: [{ name: 'Devices', values: [612, 384, 211, 79, 26] }], label: 'devices' };
     },
-  ];
-  (function next() {
-    var step = draw.shift();
-    if (!step) return;
-    setTimeout(function () { step(); next(); }, 0);
-  }());
+  };
+  var queue = [];
+  var drawing = false;
+  function drawNext() {
+    var figure = queue.shift();
+    if (!figure) { drawing = false; return; }
+    var name = figure.id.replace('chart-', '');
+    charts[name] = DS.chart.create(figure, specs[name]());
+    setTimeout(drawNext, 0);
+  }
+  var near = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      near.unobserve(entry.target);
+      queue.push(entry.target);
+    });
+    if (queue.length && !drawing) { drawing = true; setTimeout(drawNext, 0); }
+  }, { rootMargin: '200px 0px' });
+  document.querySelectorAll('.ds-chart[id^="chart-"]').forEach(function (figure) { near.observe(figure); });
 
   // The range: one choice of three (one tab stop, the arrow keys move it), the pill glides; the charts morph to it.
   var group = document.getElementById('range');

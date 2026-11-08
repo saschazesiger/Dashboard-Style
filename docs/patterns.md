@@ -294,8 +294,9 @@ tables keep their first columns and scroll sideways in their card, forms fall to
   (a sparkline of `.ds-columns--mini`, two tiles that open a list, a target meter), [dashboard panels](components.md#dashboard-panel)
   with [charts](components.md#charts) (columns, a stacked area, a donut) and their menus, a flush panel with an
   interactive [table](components.md#table) of what needs attention, an activity [timeline](components.md#timeline).
-- **The project wires:** the charts through `DS.chart.create()`, one per task after the page shows (so the first paint
-  never waits for them); the range (`DS.dom.roving()`, `DS.indicator`), which morphs both charts with `set()`;
+- **The project wires:** the charts through `DS.chart.create()` once an `IntersectionObserver` sees them near the
+  screen, one per task (so the first paint never waits for them and a phone draws only what it scrolls to); the range
+  (`DS.dom.roving()`, `DS.indicator`), which morphs both charts with `set()` (90 days as 13 weekly columns);
   "Refresh" in a panel's menu, `DS.motion.refresh()` on its body (the old chart dims, then morphs) and a snackbar.
 - **Demo rule:** the figures are a repeatable wave over the days up to 6 November 2026.
 
