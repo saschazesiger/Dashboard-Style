@@ -1,7 +1,8 @@
 #!/bin/sh
 # Assembles the GitHub Pages site (.github/workflows/pages.yml) from this checkout: the live tour (demo/), the
-# reference app (example/), the styleguide, the Motion Lab and the views page on top of dist/, laid out as in the
-# repository, so every relative link works as it does from disk. The root page forwards to the live tour.
+# reference app (example/), the styleguide, the Motion Lab, the views page and the page patterns (src/patterns/,
+# with their bundles in src/patterns/ds/) on top of dist/, laid out as in the repository, so every relative link
+# works as it does from disk. The root page forwards to the live tour.
 #
 #   sh scripts/site.sh [dest]      dest defaults to _site (gitignored); it must not exist or be empty
 #
@@ -21,6 +22,9 @@ mkdir -p "$dest"
 for path in dist demo example styleguide themes docs README.md LICENSE; do
   cp -R "$root/$path" "$dest/"
 done
+# The page patterns keep their place under src/ (../../dist/ from there); the rest of src/ is not published.
+mkdir -p "$dest/src"
+cp -R "$root/src/patterns" "$dest/src/"
 
 cat > "$dest/index.html" <<'HTML'
 <!doctype html>
@@ -34,7 +38,8 @@ cat > "$dest/index.html" <<'HTML'
 </head>
 <body>
 <p><a href="demo/">The live tour</a> · <a href="example/">The reference app</a> · <a href="styleguide/index.html">Styleguide</a> ·
-<a href="styleguide/motion.html">Motion Lab</a> · <a href="https://github.com/saschazesiger/Dashboard-Style">Source</a></p>
+<a href="styleguide/motion.html">Motion Lab</a> · <a href="styleguide/index.html#/patterns">Page patterns</a> ·
+<a href="https://github.com/saschazesiger/Dashboard-Style">Source</a></p>
 </body>
 </html>
 HTML

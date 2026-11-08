@@ -18,14 +18,21 @@ const posix = (path) => path.split(sep).join('/');
 export const read = (path) => readFileSync(join(ROOT, path), 'utf8').replace(/\r\n/g, '\n');
 
 /**
+ * The folders of src/ that hold no library source: the page patterns are pages on top of dist/, as demo/ and example/
+ * are (test/patterns.test.js covers them), so a walk of src/ for the system's stylesheets and modules leaves them out.
+ */
+const NOT_SOURCE = new Set(['src/patterns']);
+
+/**
  * Repository-relative paths of all files below `dir` (sorted). `skip` names
  * directories the walk does not enter at all (node_modules, test output), so
- * an installed Playwright never slows the tests down.
+ * an installed Playwright never slows the tests down. A walk of src/ leaves
+ * out NOT_SOURCE (a walk of the whole repository, `filesIn('.')`, keeps it).
  */
 export function filesIn(dir, filter = () => true, skip = undefined) {
   return readdirSync(join(ROOT, dir)).sort().flatMap((name) => {
     const path = `${dir}/${name}`;
-    if (statSync(join(ROOT, path)).isDirectory()) return skip && skip.test(name) ? [] : filesIn(path, filter, skip);
+    if (statSync(join(ROOT, path)).isDirectory()) return (skip && skip.test(name)) || NOT_SOURCE.has(path) ? [] : filesIn(path, filter, skip);
     return filter(path) ? [path] : [];
   });
 }
