@@ -345,113 +345,113 @@ h(Formatted, { 'data-ds-format': 'currency', currency: 'EUR', value: total })
   `ReturnType<typeof create>` of its module where it has one.
 
 <!-- generated: components (scripts/build.mjs; do not edit) -->
-| Component | File | Root element | `variant` | Events | Docs |
-|---|---|---|---|---|---|
-| `AiLabel` | `react/ailabel.js` | `<button class="ds-ailabel" data-ds-ailabel>` | `icon`, `outlined`, `plain` | `onDsToggle` | [AI label](components.md#ai-label) |
-| `AuditLog` | `react/auditlog.js` | `<section class="ds-auditlog" data-ds-auditlog>` | - | `onDsFilter`, `onDsRender` | [Audit log](components.md#audit-log) |
-| `Avatar` | `react/avatar.js` | `<span class="ds-avatar" data-ds-avatar>` | `hue-1`, `hue-2`, `hue-3`, `hue-4`, `hue-5`, `hue-6`, `ring`, `square` | `onDsChange`, `onDsSelect` | [Avatar](components.md#avatar) |
-| `AvatarGroup` | `react/avatar-group.js` | `<div class="ds-avatar-group" role="group" data-ds-avatar-group>` | `spread` | `onDsChange`, `onDsSelect` | [Avatar](components.md#avatar) |
-| `BackToTop` | `react/backtop.js` | `<button class="ds-btn ds-backtop" data-ds-backtop>` | `fixed` | `onDsChange` | [Back to top](components.md#back-to-top) |
-| `Banner` | `react/banner.js` | `<div class="ds-banner" data-ds-banner>` | - | `onDsChange`, `onDsDismiss` | [Banner](components.md#banner) |
-| `BottomSheet` | `react/bottomsheet.js` | `<dialog class="ds-sheet ds-bottomsheet" data-ds-bottomsheet>`, `open`, `onClose` | `closing` | `onDsDetent` | [Bottom sheet](components.md#bottom-sheet) |
-| `Breadcrumbs` | `react/breadcrumbs.js` | `<nav class="ds-breadcrumbs" data-ds-breadcrumbs>` | - | `onDsChange`, `onDsFilter` | [App frame](components.md#app-frame) |
-| `Calendar` | `react/calendar.js` | `<div class="ds-calendar" data-ds-calendar>` | - | `onDsChange`, `onDsInput` | [Calendar](components.md#calendar) |
-| `Chart` | `react/chart.js` | `<figure class="ds-chart" data-ds-chart>` | `bar`, `bargauge`, `donut`, `empty`, `gauge`, `patterns`, `pie`, `ring`, `sparkline`, `stacked` | `onDsChange`, `onDsPoint`, `onDsSelect`, `onDsToggle`, `onDsView` | [Charts](components.md#charts) |
-| `ChoiceList` | `react/choices.js` | `<div class="ds-choices" data-ds-choices>` | `columns`, `scroll` | `onDsChange` | [Choice list](components.md#choice-list) |
-| `Cite` | `react/cite.js` | `<button class="ds-cite" data-ds-cite>` | - | `onDsChange` | [Sources and citations](components.md#sources-and-citations) |
-| `CodeBlock` | `react/code.js` | `<figure class="ds-code" data-ds-code>` | `lines` | - | [Code block](components.md#code-block) |
-| `Combobox` | `react/combobox.js` | `<div class="ds-combo" data-ds-combobox>` | `multi`, `select` | `onDsChange`, `onDsCreate`, `onDsSearch` | [Combobox](components.md#combobox) |
-| `CommandPalette` | `react/command.js` | `<dialog class="ds-dialog ds-command" data-ds-command>`, `open`, `onClose` | `bottom`, `closing`, `contained`, `full`, `full-narrow`, `hidden`, `lg`, `nested`, `scroll-outside`, `sm`, `xl` | `onDsClose`, `onDsOpen`, `onDsQuery`, `onDsSelect` | [Command palette](components.md#command-palette) |
-| `Composer` | `react/composer.js` | `<form class="ds-composer" data-ds-composer>` | - | `onDsAttach`, `onDsCommand`, `onDsMention`, `onDsQuery`, `onDsRemove`, `onDsSend`, `onDsStop` | [Composer](components.md#composer) |
-| `CopyButton` | `react/copy.js` | `<button class="ds-btn" data-ds-copy>` | `adaptive`, `block`, `disc`, `disclosure`, `done`, `elevated`, `failed`, `filled`, `ghost`, `icon`, `outlined`, `quiet`, `text`, `tonal` | `onDsCopy` | [Copy button](components.md#copy-button) |
-| `Counter` | `react/counter.js` | `<textarea class="ds-input" data-ds-counter>` | `filled`, `grow`, `outlined` | `onDsChange` | [Form](components.md#form) |
-| `DataGrid` | `react/datagrid.js` | `<table class="ds-table ds-datagrid" data-ds-datagrid>` | `bordered`, `interactive`, `pin-first`, `pin-last`, `plain`, `stack`, `stack-wide`, `sticky-foot`, `sticky-head`, `wide`, `zebra` | `onDsAction`, `onDsColumns`, `onDsEdit`, `onDsError`, `onDsExpand`, `onDsFilter`, `onDsLoad`, `onDsMenu`, `onDsPage`, `onDsSelect`, `onDsSort` | [Data grid](components.md#data-grid) |
-| `DateField` | `react/datefield.js` | `<div class="ds-datefield" role="group" data-ds-datefield>` | `block`, `filled`, `outlined` | `onDsChange` | [Date field](components.md#date-field) |
-| `DatePicker` | `react/datepicker.js` | `<div class="ds-picker" data-ds-datepicker>` | `block` | `onDsChange` | [Date picker](components.md#date-picker) |
-| `DateRangePicker` | `react/daterange.js` | `<div class="ds-picker" data-ds-daterange>` | `block` | `onDsChange` | [Date range picker](components.md#date-range-picker) |
-| `Diff` | `react/diff.js` | `<div class="ds-diff" data-ds-diff>` | `wrap` | `onDsChange`, `onDsExpand` | [Diff view](components.md#diff-view) |
-| `Drawer` | `react/drawer.js` | `<nav class="ds-drawer" data-ds-drawer>` | `instant` | `onDsChange`, `onDsFilter` | [App frame](components.md#app-frame) |
-| `DurationInput` | `react/duration.js` | `<input class="ds-input ds-duration" data-ds-duration>` | `filled`, `grow`, `outlined` | `onDsChange` | [Duration input](components.md#duration-input) |
-| `ErrorSummary` | `react/errorsummary.js` | `<div class="ds-alert ds-tone-error ds-errorsummary" data-ds-errorsummary>` | `inline`, `plain`, `section` | `onDsChange`, `onDsInvalid` | [Error summary](components.md#error-summary) |
-| `Expandable` | `react/expandable.js` | `<div class="ds-expandable" data-ds-expandable>` | - | `onDsChange` | [Expandable text](components.md#expandable-text) |
-| `Facets` | `react/facets.js` | `<section class="ds-facets" role="complementary" data-ds-facets>` | - | `onDsFilter` | [Facet filter panel](components.md#facet-filter-panel) |
-| `Facts` | `react/facts.js` | `<dl class="ds-facts" data-ds-facts-copy>` | `bordered`, `grid`, `rows`, `stacked` | `onDsChange`, `onDsCopy`, `onDsDrop` | [Lists](components.md#lists) |
-| `Feedback` | `react/feedback.js` | `<div class="ds-feedback" role="group" data-ds-feedback>` | - | `onDsChange`, `onDsFeedback` | [Feedback](components.md#feedback) |
-| `FilterBar` | `react/filterbar.js` | `<div class="ds-filterbar" role="search" data-ds-filterbar>` | - | `onDsChange`, `onDsFilter` | [Filter bar](components.md#filter-bar) |
-| `Formatted` | `react/formatted.js` | `<span data-ds-format>` | - | `onDsChange` | [Formatted values and relative time](components.md#formatted-values-and-relative-time) |
-| `Highlight` | `react/highlight.js` | `<code data-ds-highlight>` | - | `onDsChange` | [Syntax highlighting](components.md#syntax-highlighting) |
-| `SearchHits` | `react/hits.js` | `<ul class="ds-list" data-ds-hits>` | `interactive`, `scroll`, `stacked` | `onDsChange` | [Search hits](components.md#search-hits) |
-| `Image` | `react/image.js` | `<span class="ds-image__frame" data-ds-image>` | - | `onDsChange` | [Image](components.md#image) |
-| `InlineEdit` | `react/inlineedit.js` | `<div class="ds-inlineedit" data-ds-inlineedit>` | - | `onDsCancel`, `onDsEdit`, `onDsSave` | [Inline edit](components.md#inline-edit) |
-| `JsonView` | `react/jsonview.js` | `<div class="ds-jsonview" role="region" data-ds-jsonview>` | - | `onDsCopy`, `onDsError`, `onDsSearch`, `onDsSelect`, `onDsToggle` | [JSON viewer](components.md#json-viewer) |
-| `Kbd` | `react/kbd.js` | `<kbd class="ds-kbd-combo" data-ds-kbd>` | - | `onDsChange` | [Key combos](components.md#key-combos) |
-| `KeyValueEditor` | `react/kveditor.js` | `<fieldset class="ds-kveditor" data-ds-kveditor>` | `code` | `onDsChange` | [Key-value editor](components.md#key-value-editor) |
-| `LabelGroup` | `react/labelgroup.js` | `<div class="ds-label-group" data-ds-label-group>` | - | `onDsChange` | [Label group](components.md#label-group) |
-| `Launcher` | `react/launcher.js` | `<div class="ds-menu ds-launcher" role="menu" data-ds-launcher>` | - | `onDsChange`, `onDsFilter` | [App frame](components.md#app-frame) |
-| `LevelMeter` | `react/levelmeter.js` | `<div class="ds-levelmeter" data-ds-levelmeter>` | `segmented`, `vertical` | `onDsChange` | [Level meter](components.md#level-meter) |
-| `Lightbox` | `react/lightbox.js` | `<ul class="ds-lightbox__gallery" data-ds-lightbox>` | - | `onDsChange`, `onDsClose`, `onDsOpen`, `onDsZoom` | [Lightbox](components.md#lightbox) |
-| `List` | `react/list.js` | `<ul class="ds-list" data-ds-list>` | `interactive`, `scroll`, `stacked` | `onDsChange`, `onDsCopy`, `onDsDrop` | [Lists](components.md#lists) |
-| `Listbox` | `react/listbox.js` | `<div class="ds-listbox" role="listbox" data-ds-listbox>` | `plain` | `onDsChange` | [Listbox](components.md#listbox) |
-| `ListDetail` | `react/listdetail.js` | `<div class="ds-listdetail" role="group" data-ds-listdetail>` | `outlined` | `onDsChange` | [List-detail layout](components.md#list-detail-layout) |
-| `LoadingOverlay` | `react/loadingoverlay.js` | `<div class="ds-loadingoverlay" data-ds-loadingoverlay>` | `opaque` | `onDsCancel`, `onDsHide`, `onDsShow` | [Loading overlay](components.md#loading-overlay) |
-| `LoadMore` | `react/loadmore.js` | `<div class="ds-loadmore" data-ds-loadmore>` | `inline` | `onDsChange`, `onDsLoaded`, `onDsLoadmore` | [Load more and infinite scroll](components.md#load-more-and-infinite-scroll) |
-| `LogView` | `react/logview.js` | `<div class="ds-logview" data-ds-logview>` | - | `onDsChange`, `onDsCopy`, `onDsSelect` | [Log viewer](components.md#log-viewer) |
-| `Markdown` | `react/markdown.js` | `<div class="ds-prose" data-ds-markdown>` | `compact`, `dense` | `onDsChange` | [Markdown](components.md#markdown) |
-| `Media` | `react/media.js` | `<ul class="ds-media-grid" data-ds-media>` | - | `onDsChange` | [Media](components.md#media) |
-| `Menu` | `react/menu.js` | `<div class="ds-menu" role="menu" data-ds-menu>` | - | `onDsChange`, `onDsContextmenu` | [Menu](components.md#menu) |
-| `MenuButton` | `react/menubutton.js` | `<button class="ds-btn ds-menu-btn" data-ds-menubutton>` | `adaptive`, `block`, `disc`, `disclosure`, `done`, `elevated`, `failed`, `filled`, `ghost`, `icon`, `outlined`, `quiet`, `text`, `tonal` | `onDsChange` | [Menu button](components.md#menu-button) |
-| `Message` | `react/message.js` | `<article class="ds-message" data-ds-message>` | `assistant`, `system`, `tool`, `user` | `onDsAction`, `onDsChange`, `onDsCopy`, `onDsEdit`, `onDsRetry` | [Message](components.md#message) |
-| `Notifications` | `react/notifications.js` | `<dialog class="ds-sheet ds-notifications" data-ds-notifications>`, `open`, `onClose` | `closing` | `onDsAction`, `onDsChange`, `onDsClose`, `onDsOpen`, `onDsRead`, `onDsSelect` | [Notification centre](components.md#notification-centre) |
-| `NumberInput` | `react/number.js` | `<div class="ds-input-group ds-number" data-ds-number>` | `split` | `onDsChange` | [Number input](components.md#number-input) |
-| `ObjectPage` | `react/object.js` | `<div class="ds-object" data-ds-object>` | - | `onDsCancel`, `onDsChange`, `onDsEdit`, `onDsSave` | [Object page](components.md#object-page) |
-| `OrderedChoice` | `react/orderedchoice.js` | `<ol class="ds-orderedchoice" data-ds-orderedchoice>` | - | `onDsChange` | [Ordered choice](components.md#ordered-choice) |
-| `CodeField` | `react/otp.js` | `<div class="ds-otp" role="group" data-ds-otp>` | - | `onDsChange`, `onDsComplete` | [Code field (one-time code, PIN)](components.md#code-field-one-time-code-pin) |
-| `PageHead` | `react/page.js` | `<header class="ds-page-head" data-ds-page-head>` | `sticky` | `onDsChange` | [Page](components.md#page) |
-| `Password` | `react/password.js` | `<div class="ds-field" data-ds-password>` | `changed`, `filled`, `full`, `grow`, `inset`, `outlined`, `success`, `warning` | `onDsChange`, `onDsReveal` | [Password](components.md#password) |
-| `Picker` | `react/picker.js` | `<div class="ds-picker" data-ds-picker>` | `block` | `onDsClose`, `onDsOpen` | [Picker popover](components.md#picker-popover) |
-| `PlanCard` | `react/plan.js` | `<section class="ds-plan" data-ds-plan>` | - | `onDsChange`, `onDsDecide` | [Plan card](components.md#plan-card) |
-| `Popover` | `react/popover.js` | `<button class="ds-btn" data-ds-popover>` | `adaptive`, `block`, `disc`, `disclosure`, `done`, `elevated`, `failed`, `filled`, `ghost`, `icon`, `outlined`, `quiet`, `text`, `tonal` | `onDsClose`, `onDsOpen` | [Popover](components.md#popover) |
-| `PriorityBar` | `react/prioritybar.js` | `<div class="ds-priority-bar" role="toolbar" data-ds-prioritybar>` | `end` | `onDsChange` | [Priority action bar](components.md#priority-action-bar) |
-| `QueryInput` | `react/query.js` | `<div class="ds-query" data-ds-query>` | - | `onDsChange`, `onDsSaved`, `onDsSubmit` | [Query input](components.md#query-input) |
-| `QuestionCard` | `react/question.js` | `<form class="ds-question" data-ds-question>` | - | `onDsAnswer`, `onDsChange` | [Question card](components.md#question-card) |
-| `Reasoning` | `react/reasoning.js` | `<details class="ds-collapsible ds-disclosure ds-reasoning" data-ds-reasoning>` | `row` | `onDsChange` | [Reasoning disclosure](components.md#reasoning-disclosure) |
-| `SchemeSwitch` | `react/scheme-switch.js` | `<div role="group" data-ds-scheme-switch>` | - | `onDsChange`, `onDsFilter` | [App frame](components.md#app-frame) |
-| `Search` | `react/search.js` | `<div class="ds-search" data-ds-search>` | - | `onDsSearch` | [Search field](components.md#search-field) |
-| `SearchSheet` | `react/search-sheet.js` | `<div class="ds-topbar__search" data-ds-search-sheet>` | - | `onDsChange`, `onDsFilter` | [App frame](components.md#app-frame) |
-| `Secret` | `react/secret.js` | `<div class="ds-field ds-secret" data-ds-secret>` | `changed`, `filled`, `full`, `grow`, `inset`, `outlined`, `success`, `warning` | `onDsChange` | [Secret field](components.md#secret-field) |
-| `SelectPanel` | `react/selectpanel.js` | `<div class="ds-selectpanel" data-ds-selectpanel>` | - | `onDsChange` | [Select panel](components.md#select-panel) |
-| `Sheet` | `react/sheet.js` | `<dialog class="ds-sheet" data-ds-sheet>`, `open`, `onClose` | `closing` | `onDsClose`, `onDsResize` | [Side sheet](components.md#side-sheet) |
-| `Shell` | `react/shell.js` | `<div class="ds-app" data-ds-shell>` | `drawer`, `keyboard-hides-bar` | `onDsChange`, `onDsFilter` | [App frame](components.md#app-frame) |
-| `ShortcutSheet` | `react/shortcuts.js` | `<dialog class="ds-dialog ds-shortcuts" data-ds-shortcuts>`, `open`, `onClose` | `bottom`, `closing`, `contained`, `full`, `full-narrow`, `hidden`, `lg`, `nested`, `scroll-outside`, `sm`, `xl` | `onDsClose`, `onDsFilter`, `onDsOpen` | [Shortcut sheet](components.md#shortcut-sheet) |
-| `Sort` | `react/sort.js` | `<div class="ds-sort" role="group" data-ds-sort>` | `menu` | `onDsSort` | [Sort control](components.md#sort-control) |
-| `SplitButton` | `react/splitbutton.js` | `<div class="ds-btn-group ds-split-btn" role="group" data-ds-splitbutton>` | `block` | `onDsChange` | [Split button](components.md#split-button) |
-| `SplitPane` | `react/splitpane.js` | `<div class="ds-splitpane" data-ds-splitpane>` | `outlined`, `stacked` | `onDsChange` | [Split pane](components.md#split-pane) |
-| `Steps` | `react/steps.js` | `<ol class="ds-steps" data-ds-steps>` | `bar`, `path`, `vertical` | `onDsChange` | [Steps](components.md#steps) |
-| `Suggestions` | `react/suggestions.js` | `<div class="ds-suggestions ds-scroll-x" role="group" data-ds-suggestions>` | `wrap` | `onDsSelect` | [Suggestions](components.md#suggestions) |
-| `TagInput` | `react/taginput.js` | `<div class="ds-taginput" data-ds-taginput>` | `full` | `onDsAdd`, `onDsChange` | [Tag input](components.md#tag-input) |
-| `Tearsheet` | `react/tearsheet.js` | `<dialog class="ds-dialog ds-tearsheet" data-ds-tearsheet>`, `open`, `onClose` | `narrow` | `onDsChange`, `onDsDirty`, `onDsStep`, `onDsSubmit` | [Tearsheet](components.md#tearsheet) |
-| `Terminal` | `react/terminal.js` | `<div class="ds-terminal" data-ds-terminal>` | `fill` | `onDsChange`, `onDsKey` | [Terminal frame](components.md#terminal-frame) |
-| `Thinking` | `react/thinking.js` | `<div class="ds-thinking" data-ds-thinking>` | - | `onDsChange` | [Thinking indicator](components.md#thinking-indicator) |
-| `Time` | `react/time.js` | `<time data-ds-time>` | - | - | [core.md](core.md) |
-| `TimePicker` | `react/timepicker.js` | `<div class="ds-picker" data-ds-timepicker>` | `block` | `onDsChange` | [Time picker](components.md#time-picker) |
-| `TimeRange` | `react/timerange.js` | `<div class="ds-timerange" data-ds-timerange>` | - | `onDsChange`, `onDsRefresh` | [Time range](components.md#time-range) |
-| `Toc` | `react/toc.js` | `<nav class="ds-toc" data-ds-toc>` | `bar`, `sticky` | `onDsChange` | [Jump links](components.md#jump-links) |
-| `Toggle` | `react/toggle.js` | `<button class="ds-btn" data-ds-toggle>` | `adaptive`, `block`, `disc`, `disclosure`, `done`, `elevated`, `failed`, `filled`, `ghost`, `icon`, `outlined`, `quiet`, `text`, `tonal` | `onDsChange` | [Toggle button and toggle group](components.md#toggle-button-and-toggle-group) |
-| `ToggleGroup` | `react/toggle-group.js` | `<div class="ds-toggle-group" role="toolbar" data-ds-toggle-group>` | - | `onDsChange` | [Toggle button and toggle group](components.md#toggle-button-and-toggle-group) |
-| `Toggletip` | `react/toggletip.js` | `<button class="ds-toggletip" data-ds-toggletip>` | - | `onDsChange` | [Toggletip](components.md#toggletip) |
-| `ToolCall` | `react/toolcall.js` | `<details class="ds-collapsible ds-disclosure ds-toolcall" data-ds-toolcall>` | `row` | `onDsChange` | [Tool call](components.md#tool-call) |
-| `Tracker` | `react/tracker.js` | `<div class="ds-tracker__cells" role="group" data-ds-tracker>` | - | `onDsChange` | [Tracker](components.md#tracker) |
-| `Transcript` | `react/transcript.js` | `<div class="ds-transcript" role="region" data-ds-transcript>` | - | `onDsChange`, `onDsEarlier` | [Transcript](components.md#transcript) |
-| `TransferList` | `react/transfer.js` | `<div class="ds-transfer" data-ds-transfer>` | - | `onDsChange` | [Transfer list](components.md#transfer-list) |
-| `Tree` | `react/tree.js` | `<ul class="ds-tree" role="tree" data-ds-tree>` | - | `onDsActivate`, `onDsChange`, `onDsDragCancel`, `onDsDragMove`, `onDsDragStart`, `onDsDrop`, `onDsError`, `onDsLoad`, `onDsSelect`, `onDsToggle` | [Tree view](components.md#tree-view) |
-| `Truncate` | `react/truncate.js` | `<span class="ds-truncate" data-ds-truncate>` | `lines` | `onDsChange` | [Truncate](components.md#truncate) |
-| `TypeConfirm` | `react/typeconfirm.js` | `<form class="ds-dialog__box ds-typeconfirm" data-ds-typeconfirm>` | `modeless` | `onDsChange`, `onDsConfirm` | [Type-to-confirm](components.md#type-to-confirm) |
-| `UnsavedGuard` | `react/unsaved.js` | `<form class="ds-form" data-ds-unsaved>` | `rows` | `onDsChange`, `onDsDiscard`, `onDsError`, `onDsSave`, `onDsSaved` | [Unsaved-changes guard](components.md#unsaved-changes-guard) |
-| `Upload` | `react/upload.js` | `<div class="ds-upload" data-ds-upload>` | - | `onDsChange`, `onDsFiles`, `onDsReject`, `onDsRemove`, `onDsRetry` | [File upload](components.md#file-upload) |
-| `UsageMeter` | `react/usage.js` | `<section class="ds-usage" data-ds-usage>` | `inline` | `onDsChange` | [Usage meter](components.md#usage-meter) |
-| `SavedViews` | `react/views.js` | `<div class="ds-views" data-ds-views>` | - | `onDsView`, `onDsViews` | [Saved views](components.md#saved-views) |
-| `Wheel` | `react/wheel.js` | `<span class="ds-wheel" data-ds-wheel>` | - | `onDsChange` | [Wheel](components.md#wheel) |
-| `Wizard` | `react/wizard.js` | `<form class="ds-wizard" data-ds-wizard>` | - | `onDsStep`, `onDsValidate` | [Form wizard](components.md#form-wizard) |
+| Component | File | Root element | Props | `variant` | Events | Docs |
+|---|---|---|---|---|---|---|
+| `AiLabel` | `react/ailabel.js` | `<button class="ds-ailabel" data-ds-ailabel>` | - | `icon`, `outlined`, `plain` | `onDsToggle` | [AI label](components.md#ai-label) |
+| `AuditLog` | `react/auditlog.js` | `<section class="ds-auditlog" data-ds-auditlog>` | - | - | `onDsFilter`, `onDsRender` | [Audit log](components.md#audit-log) |
+| `Avatar` | `react/avatar.js` | `<span class="ds-avatar" data-ds-avatar>` | `status`, `initials` | `hue-1`, `hue-2`, `hue-3`, `hue-4`, `hue-5`, `hue-6`, `ring`, `square` | `onDsChange`, `onDsSelect` | [Avatar](components.md#avatar) |
+| `AvatarGroup` | `react/avatar-group.js` | `<div class="ds-avatar-group" role="group" data-ds-avatar-group>` | `dsAvatarGroupMax` | `spread` | `onDsChange`, `onDsSelect` | [Avatar](components.md#avatar) |
+| `BackToTop` | `react/backtop.js` | `<button class="ds-btn ds-backtop" data-ds-backtop>` | `after`, `dsBacktopTarget`, `focus` | `fixed` | `onDsChange` | [Back to top](components.md#back-to-top) |
+| `Banner` | `react/banner.js` | `<div class="ds-banner" data-ds-banner>` | `dsBannerMax`, `remember` | - | `onDsChange`, `onDsDismiss` | [Banner](components.md#banner) |
+| `BottomSheet` | `react/bottomsheet.js` | `<dialog class="ds-sheet ds-bottomsheet" data-ds-bottomsheet>`, `open`, `onClose` | `detents` | - | `onDsDetent` | [Bottom sheet](components.md#bottom-sheet) |
+| `Breadcrumbs` | `react/breadcrumbs.js` | `<nav class="ds-breadcrumbs" data-ds-breadcrumbs>` | - | - | `onDsChange`, `onDsFilter` | [App frame](components.md#app-frame) |
+| `Calendar` | `react/calendar.js` | `<div class="ds-calendar" data-ds-calendar>` | `dsValue`, `dsCalendarMin`, `dsCalendarMax`, `dsCalendarDisabled`, `months`, `mode`, `weeks`, `firstDay` | - | `onDsChange`, `onDsInput` | [Calendar](components.md#calendar) |
+| `Chart` | `react/chart.js` | `<figure class="ds-chart" data-ds-chart>` | `dsConfig` | `bar`, `bargauge`, `donut`, `empty`, `gauge`, `patterns`, `pie`, `ring`, `sparkline`, `stacked` | `onDsChange`, `onDsPoint`, `onDsSelect`, `onDsToggle`, `onDsView` | [Charts](components.md#charts) |
+| `ChoiceList` | `react/choices.js` | `<div class="ds-choices" data-ds-choices>` | - | `columns`, `scroll` | `onDsChange` | [Choice list](components.md#choice-list) |
+| `Cite` | `react/cite.js` | `<button class="ds-cite" data-ds-cite>` | - | - | `onDsChange` | [Sources and citations](components.md#sources-and-citations) |
+| `CodeBlock` | `react/code.js` | `<figure class="ds-code" data-ds-code>` | `dsCodeMax`, `dsCodeStart`, `mark` | `lines` | - | [Code block](components.md#code-block) |
+| `Combobox` | `react/combobox.js` | `<div class="ds-combo" data-ds-combobox>` | - | `multi`, `select` | `onDsChange`, `onDsCreate`, `onDsSearch` | [Combobox](components.md#combobox) |
+| `CommandPalette` | `react/command.js` | `<dialog class="ds-dialog ds-command" data-ds-command>`, `open`, `onClose` | - | `bottom`, `contained`, `full`, `full-narrow`, `lg`, `scroll-outside`, `sm`, `xl` | `onDsClose`, `onDsOpen`, `onDsQuery`, `onDsSelect` | [Command palette](components.md#command-palette) |
+| `Composer` | `react/composer.js` | `<form class="ds-composer" data-ds-composer>` | `busy`, `draft`, `enter` | - | `onDsAttach`, `onDsCommand`, `onDsMention`, `onDsQuery`, `onDsRemove`, `onDsSend`, `onDsStop` | [Composer](components.md#composer) |
+| `CopyButton` | `react/copy.js` | `<button class="ds-btn" data-ds-copy>` | - | `adaptive`, `block`, `disc`, `disclosure`, `elevated`, `filled`, `ghost`, `icon`, `outlined`, `quiet`, `text`, `tonal` | `onDsCopy` | [Copy button](components.md#copy-button) |
+| `Counter` | `react/counter.js` | `<textarea class="ds-input" data-ds-counter>` | `dsCounterMax`, `warn` | `filled`, `grow`, `outlined` | `onDsChange` | [Form](components.md#form) |
+| `DataGrid` | `react/datagrid.js` | `<table class="ds-table ds-datagrid" data-ds-datagrid>` | - | `bordered`, `interactive`, `pin-first`, `pin-last`, `plain`, `stack`, `stack-wide`, `sticky-foot`, `sticky-head`, `wide`, `zebra` | `onDsAction`, `onDsColumns`, `onDsEdit`, `onDsError`, `onDsExpand`, `onDsFilter`, `onDsLoad`, `onDsMenu`, `onDsPage`, `onDsSelect`, `onDsSort` | [Data grid](components.md#data-grid) |
+| `DateField` | `react/datefield.js` | `<div class="ds-datefield" role="group" data-ds-datefield>` | `dsValue`, `dsDatefieldType`, `dsDatefieldMin`, `dsDatefieldMax`, `seconds`, `hourCycle`, `zone`, `dsDatefieldName` | `block`, `filled`, `outlined` | `onDsChange` | [Date field](components.md#date-field) |
+| `DatePicker` | `react/datepicker.js` | `<div class="ds-picker" data-ds-datepicker>` | - | `block` | `onDsChange` | [Date picker](components.md#date-picker) |
+| `DateRangePicker` | `react/daterange.js` | `<div class="ds-picker" data-ds-daterange>` | - | `block` | `onDsChange` | [Date range picker](components.md#date-range-picker) |
+| `Diff` | `react/diff.js` | `<div class="ds-diff" data-ds-diff>` | `view`, `context`, `dsDiffLang`, `heading` | `wrap` | `onDsChange`, `onDsExpand` | [Diff view](components.md#diff-view) |
+| `Drawer` | `react/drawer.js` | `<nav class="ds-drawer" data-ds-drawer>` | - | `instant` | `onDsChange`, `onDsFilter` | [App frame](components.md#app-frame) |
+| `DurationInput` | `react/duration.js` | `<input class="ds-input ds-duration" data-ds-duration>` | `dsValue`, `dsDurationStep`, `dsDurationMin`, `dsDurationMax`, `unit`, `smallest`, `dsDurationName` | `filled`, `grow`, `outlined` | `onDsChange` | [Duration input](components.md#duration-input) |
+| `ErrorSummary` | `react/errorsummary.js` | `<div class="ds-alert ds-tone-error ds-errorsummary" data-ds-errorsummary>` | - | `inline`, `plain`, `section` | `onDsChange`, `onDsInvalid` | [Error summary](components.md#error-summary) |
+| `Expandable` | `react/expandable.js` | `<div class="ds-expandable" data-ds-expandable>` | - | - | `onDsChange` | [Expandable text](components.md#expandable-text) |
+| `Facets` | `react/facets.js` | `<section class="ds-facets" role="complementary" data-ds-facets>` | `sheet`, `zero` | - | `onDsFilter` | [Facet filter panel](components.md#facet-filter-panel) |
+| `Facts` | `react/facts.js` | `<dl class="ds-facts" data-ds-facts-copy>` | - | `bordered`, `grid`, `rows`, `stacked` | `onDsChange`, `onDsCopy`, `onDsDrop` | [Lists](components.md#lists) |
+| `Feedback` | `react/feedback.js` | `<div class="ds-feedback" role="group" data-ds-feedback>` | - | - | `onDsChange`, `onDsFeedback` | [Feedback](components.md#feedback) |
+| `FilterBar` | `react/filterbar.js` | `<div class="ds-filterbar" role="search" data-ds-filterbar>` | `sheet` | - | `onDsChange`, `onDsFilter` | [Filter bar](components.md#filter-bar) |
+| `Formatted` | `react/formatted.js` | `<span data-ds-format>` | `value`, `currency`, `digits`, `base`, `dsFormatStyle`, `signed`, `tip` | - | `onDsChange` | [Formatted values and relative time](components.md#formatted-values-and-relative-time) |
+| `Highlight` | `react/highlight.js` | `<code data-ds-highlight>` | `code` | - | `onDsChange` | [Syntax highlighting](components.md#syntax-highlighting) |
+| `SearchHits` | `react/hits.js` | `<span data-ds-hits>` | `text`, `mode` | - | `onDsChange` | [Search hits](components.md#search-hits) |
+| `Image` | `react/image.js` | `<span class="ds-image__frame" data-ds-image>` | - | - | `onDsChange` | [Image](components.md#image) |
+| `InlineEdit` | `react/inlineedit.js` | `<div class="ds-inlineedit" data-ds-inlineedit>` | - | - | `onDsCancel`, `onDsEdit`, `onDsSave` | [Inline edit](components.md#inline-edit) |
+| `JsonView` | `react/jsonview.js` | `<div class="ds-jsonview" role="region" data-ds-jsonview>` | `dsJsonviewOpen`, `search` | - | `onDsCopy`, `onDsError`, `onDsSearch`, `onDsSelect`, `onDsToggle` | [JSON viewer](components.md#json-viewer) |
+| `Kbd` | `react/kbd.js` | `<kbd class="ds-kbd-combo" data-ds-kbd>` | no children, `platform` | - | `onDsChange` | [Key combos](components.md#key-combos) |
+| `KeyValueEditor` | `react/kveditor.js` | `<fieldset class="ds-kveditor" data-ds-kveditor>` | - | `code` | `onDsChange` | [Key-value editor](components.md#key-value-editor) |
+| `LabelGroup` | `react/labelgroup.js` | `<div class="ds-label-group" data-ds-label-group>` | `dsLabelGroupMax` | - | `onDsChange` | [Label group](components.md#label-group) |
+| `Launcher` | `react/launcher.js` | `<div class="ds-menu ds-launcher" role="menu" data-ds-launcher>` | - | - | `onDsChange`, `onDsFilter` | [App frame](components.md#app-frame) |
+| `LevelMeter` | `react/levelmeter.js` | `<div class="ds-levelmeter" data-ds-levelmeter>` | - | `segmented`, `vertical` | `onDsChange` | [Level meter](components.md#level-meter) |
+| `Lightbox` | `react/lightbox.js` | `<ul class="ds-lightbox__gallery" data-ds-lightbox>` | - | - | `onDsChange`, `onDsClose`, `onDsOpen`, `onDsZoom` | [Lightbox](components.md#lightbox) |
+| `List` | `react/list.js` | `<ul class="ds-list" data-ds-list>` | `select`, `reorder` | `interactive`, `scroll`, `stacked` | `onDsChange`, `onDsCopy`, `onDsDrop` | [Lists](components.md#lists) |
+| `Listbox` | `react/listbox.js` | `<div class="ds-listbox" role="listbox" data-ds-listbox>` | - | `plain` | `onDsChange` | [Listbox](components.md#listbox) |
+| `ListDetail` | `react/listdetail.js` | `<div class="ds-listdetail" role="group" data-ds-listdetail>` | - | `outlined` | `onDsChange` | [List-detail layout](components.md#list-detail-layout) |
+| `LoadingOverlay` | `react/loadingoverlay.js` | `<div class="ds-loadingoverlay" data-ds-loadingoverlay>` | - | `opaque` | `onDsCancel`, `onDsHide`, `onDsShow` | [Loading overlay](components.md#loading-overlay) |
+| `LoadMore` | `react/loadmore.js` | `<div class="ds-loadmore" data-ds-loadmore>` | `loaded`, `total`, `auto`, `dsLoadmoreFor`, `focus`, `root`, `margin` | `inline` | `onDsChange`, `onDsLoaded`, `onDsLoadmore` | [Load more and infinite scroll](components.md#load-more-and-infinite-scroll) |
+| `LogView` | `react/logview.js` | `<div class="ds-logview" data-ds-logview>` | `dsLogviewWrap`, `time`, `limit`, `follow`, `tools` | - | `onDsChange`, `onDsCopy`, `onDsSelect` | [Log viewer](components.md#log-viewer) |
+| `Markdown` | `react/markdown.js` | `<div class="ds-prose" data-ds-markdown>` | `source`, `anchors`, `breaks`, `code`, `images` | `compact`, `dense` | `onDsChange` | [Markdown](components.md#markdown) |
+| `Media` | `react/media.js` | `<ul class="ds-media-grid" data-ds-media>` | - | - | `onDsChange` | [Media](components.md#media) |
+| `Menu` | `react/menu.js` | `<div class="ds-menu" role="menu" data-ds-menu>` | - | - | `onDsChange`, `onDsContextmenu` | [Menu](components.md#menu) |
+| `MenuButton` | `react/menubutton.js` | `<button class="ds-btn ds-menu-btn" data-ds-menubutton>` | `dsValue` | `adaptive`, `block`, `disc`, `disclosure`, `elevated`, `filled`, `ghost`, `icon`, `outlined`, `quiet`, `text`, `tonal` | `onDsChange` | [Menu button](components.md#menu-button) |
+| `Message` | `react/message.js` | `<article class="ds-message" data-ds-message>` | - | `assistant`, `system`, `tool`, `user` | `onDsAction`, `onDsChange`, `onDsCopy`, `onDsEdit`, `onDsRetry` | [Message](components.md#message) |
+| `Notifications` | `react/notifications.js` | `<dialog class="ds-sheet ds-notifications" data-ds-notifications>`, `open`, `onClose` | - | - | `onDsAction`, `onDsChange`, `onDsClose`, `onDsOpen`, `onDsRead`, `onDsSelect` | [Notification centre](components.md#notification-centre) |
+| `NumberInput` | `react/number.js` | `<div class="ds-input-group ds-number" data-ds-number>` | `dsNumberMin`, `dsNumberMax`, `dsNumberStep`, `page`, `decimals`, `currency`, `unit`, `grouping` | `split` | `onDsChange` | [Number input](components.md#number-input) |
+| `ObjectPage` | `react/object.js` | `<div class="ds-object" data-ds-object>` | - | - | `onDsCancel`, `onDsChange`, `onDsEdit`, `onDsSave` | [Object page](components.md#object-page) |
+| `OrderedChoice` | `react/orderedchoice.js` | `<ol class="ds-orderedchoice" data-ds-orderedchoice>` | - | - | `onDsChange` | [Ordered choice](components.md#ordered-choice) |
+| `CodeField` | `react/otp.js` | `<div class="ds-otp" role="group" data-ds-otp>` | `dsOtpType`, `mask` | - | `onDsChange`, `onDsComplete` | [Code field (one-time code, PIN)](components.md#code-field-one-time-code-pin) |
+| `PageHead` | `react/page.js` | `<header class="ds-page-head" data-ds-page-head>` | `condense` | `sticky` | `onDsChange` | [Page](components.md#page) |
+| `Password` | `react/password.js` | `<div class="ds-field" data-ds-password>` | `dsPasswordMin` | `changed`, `filled`, `full`, `grow`, `inset`, `outlined`, `success`, `warning` | `onDsChange`, `onDsReveal` | [Password](components.md#password) |
+| `Picker` | `react/picker.js` | `<div class="ds-picker" data-ds-picker>` | - | `block` | `onDsClose`, `onDsOpen` | [Picker popover](components.md#picker-popover) |
+| `PlanCard` | `react/plan.js` | `<section class="ds-plan" data-ds-plan>` | `state` | - | `onDsChange`, `onDsDecide` | [Plan card](components.md#plan-card) |
+| `Popover` | `react/popover.js` | `<button class="ds-btn" data-ds-popover>` | `placement`, `align`, `trigger` | `adaptive`, `block`, `disc`, `disclosure`, `elevated`, `filled`, `ghost`, `icon`, `outlined`, `quiet`, `text`, `tonal` | `onDsClose`, `onDsOpen` | [Popover](components.md#popover) |
+| `PriorityBar` | `react/prioritybar.js` | `<div class="ds-priority-bar" role="toolbar" data-ds-prioritybar>` | - | `end` | `onDsChange` | [Priority action bar](components.md#priority-action-bar) |
+| `QueryInput` | `react/query.js` | `<div class="ds-query" data-ds-query>` | - | - | `onDsChange`, `onDsSaved`, `onDsSubmit` | [Query input](components.md#query-input) |
+| `QuestionCard` | `react/question.js` | `<form class="ds-question" data-ds-question>` | - | - | `onDsAnswer`, `onDsChange` | [Question card](components.md#question-card) |
+| `Reasoning` | `react/reasoning.js` | `<details class="ds-collapsible ds-disclosure ds-reasoning" data-ds-reasoning>` | `since`, `done`, `auto` | `row` | `onDsChange` | [Reasoning disclosure](components.md#reasoning-disclosure) |
+| `SchemeSwitch` | `react/scheme-switch.js` | `<div role="group" data-ds-scheme-switch>` | - | - | `onDsChange`, `onDsFilter` | [App frame](components.md#app-frame) |
+| `Search` | `react/search.js` | `<div class="ds-search" data-ds-search>` | - | - | `onDsSearch` | [Search field](components.md#search-field) |
+| `SearchSheet` | `react/search-sheet.js` | `<div class="ds-topbar__search" data-ds-search-sheet>` | - | - | `onDsChange`, `onDsFilter` | [App frame](components.md#app-frame) |
+| `Secret` | `react/secret.js` | `<div class="ds-field ds-secret" data-ds-secret>` | - | `changed`, `filled`, `full`, `grow`, `inset`, `outlined`, `success`, `warning` | `onDsChange` | [Secret field](components.md#secret-field) |
+| `SelectPanel` | `react/selectpanel.js` | `<div class="ds-selectpanel" data-ds-selectpanel>` | - | - | `onDsChange` | [Select panel](components.md#select-panel) |
+| `Sheet` | `react/sheet.js` | `<dialog class="ds-sheet" data-ds-sheet>`, `open`, `onClose` | - | - | `onDsClose`, `onDsResize` | [Side sheet](components.md#side-sheet) |
+| `Shell` | `react/shell.js` | `<div class="ds-app" data-ds-shell>` | - | `drawer`, `keyboard-hides-bar` | `onDsChange`, `onDsFilter` | [App frame](components.md#app-frame) |
+| `ShortcutSheet` | `react/shortcuts.js` | `<dialog class="ds-dialog ds-shortcuts" data-ds-shortcuts>`, `open`, `onClose` | - | `bottom`, `contained`, `full`, `full-narrow`, `lg`, `scroll-outside`, `sm`, `xl` | `onDsClose`, `onDsFilter`, `onDsOpen` | [Shortcut sheet](components.md#shortcut-sheet) |
+| `Sort` | `react/sort.js` | `<div class="ds-sort" role="group" data-ds-sort>` | - | `menu` | `onDsSort` | [Sort control](components.md#sort-control) |
+| `SplitButton` | `react/splitbutton.js` | `<div class="ds-btn-group ds-split-btn" role="group" data-ds-splitbutton>` | `dsValue` | `block` | `onDsChange` | [Split button](components.md#split-button) |
+| `SplitPane` | `react/splitpane.js` | `<div class="ds-splitpane" data-ds-splitpane>` | `store`, `dsSplitpaneStep`, `stack` | `outlined`, `stacked` | `onDsChange` | [Split pane](components.md#split-pane) |
+| `Steps` | `react/steps.js` | `<ol class="ds-steps" data-ds-steps>` | - | `bar`, `path`, `vertical` | `onDsChange` | [Steps](components.md#steps) |
+| `Suggestions` | `react/suggestions.js` | `<div class="ds-suggestions ds-scroll-x" role="group" data-ds-suggestions>` | - | `wrap` | `onDsSelect` | [Suggestions](components.md#suggestions) |
+| `TagInput` | `react/taginput.js` | `<div class="ds-taginput" data-ds-taginput>` | - | `full` | `onDsAdd`, `onDsChange` | [Tag input](components.md#tag-input) |
+| `Tearsheet` | `react/tearsheet.js` | `<dialog class="ds-dialog ds-tearsheet" data-ds-tearsheet>`, `open`, `onClose` | - | `narrow` | `onDsChange`, `onDsDirty`, `onDsStep`, `onDsSubmit` | [Tearsheet](components.md#tearsheet) |
+| `Terminal` | `react/terminal.js` | `<div class="ds-terminal" data-ds-terminal>` | `keys`, `bar`, `status` | `fill` | `onDsChange`, `onDsKey` | [Terminal frame](components.md#terminal-frame) |
+| `Thinking` | `react/thinking.js` | `<div class="ds-thinking" data-ds-thinking>` | `since`, `tokens`, `done` | - | `onDsChange` | [Thinking indicator](components.md#thinking-indicator) |
+| `Time` | `react/time.js` | `<time data-ds-time>` | no children, `dsTimeStyle`, `numeric`, `smallest`, `largest`, `tip` | - | - | [core.md](core.md) |
+| `TimePicker` | `react/timepicker.js` | `<div class="ds-picker" data-ds-timepicker>` | - | `block` | `onDsChange` | [Time picker](components.md#time-picker) |
+| `TimeRange` | `react/timerange.js` | `<div class="ds-timerange" data-ds-timerange>` | - | - | `onDsChange`, `onDsRefresh` | [Time range](components.md#time-range) |
+| `Toc` | `react/toc.js` | `<nav class="ds-toc" data-ds-toc>` | `offset`, `hash` | `bar`, `sticky` | `onDsChange` | [Jump links](components.md#jump-links) |
+| `Toggle` | `react/toggle.js` | `<button class="ds-btn" data-ds-toggle>` | - | `adaptive`, `block`, `disc`, `disclosure`, `elevated`, `filled`, `ghost`, `icon`, `outlined`, `quiet`, `text`, `tonal` | `onDsChange` | [Toggle button and toggle group](components.md#toggle-button-and-toggle-group) |
+| `ToggleGroup` | `react/toggle-group.js` | `<div class="ds-toggle-group" role="toolbar" data-ds-toggle-group>` | `dsToggleGroupRequired`, `dsValue`, `roving` | - | `onDsChange` | [Toggle button and toggle group](components.md#toggle-button-and-toggle-group) |
+| `Toggletip` | `react/toggletip.js` | `<button class="ds-toggletip" data-ds-toggletip>` | `placement` | - | `onDsChange` | [Toggletip](components.md#toggletip) |
+| `ToolCall` | `react/toolcall.js` | `<details class="ds-collapsible ds-disclosure ds-toolcall" data-ds-toolcall>` | `since`, `duration` | `row` | `onDsChange` | [Tool call](components.md#tool-call) |
+| `Tracker` | `react/tracker.js` | `<div class="ds-tracker__cells" role="group" data-ds-tracker>` | - | - | `onDsChange` | [Tracker](components.md#tracker) |
+| `Transcript` | `react/transcript.js` | `<div class="ds-transcript" role="region" data-ds-transcript>` | - | - | `onDsChange`, `onDsEarlier` | [Transcript](components.md#transcript) |
+| `TransferList` | `react/transfer.js` | `<div class="ds-transfer" data-ds-transfer>` | - | - | `onDsChange` | [Transfer list](components.md#transfer-list) |
+| `Tree` | `react/tree.js` | `<ul class="ds-tree" role="tree" data-ds-tree>` | `select`, `drag` | - | `onDsActivate`, `onDsChange`, `onDsDragCancel`, `onDsDragMove`, `onDsDragStart`, `onDsDrop`, `onDsError`, `onDsLoad`, `onDsSelect`, `onDsToggle` | [Tree view](components.md#tree-view) |
+| `Truncate` | `react/truncate.js` | `<span class="ds-truncate" data-ds-truncate>` | `text` | `lines` | `onDsChange` | [Truncate](components.md#truncate) |
+| `TypeConfirm` | `react/typeconfirm.js` | `<form class="ds-dialog__box ds-typeconfirm" data-ds-typeconfirm>` | `case` | `modeless` | `onDsChange`, `onDsConfirm` | [Type-to-confirm](components.md#type-to-confirm) |
+| `UnsavedGuard` | `react/unsaved.js` | `<form class="ds-form" data-ds-unsaved>` | - | `rows` | `onDsChange`, `onDsDiscard`, `onDsError`, `onDsSave`, `onDsSaved` | [Unsaved-changes guard](components.md#unsaved-changes-guard) |
+| `Upload` | `react/upload.js` | `<div class="ds-upload" data-ds-upload>` | `dsUploadAccept`, `maxSize`, `maxFiles`, `resize`, `quality`, `resizeType`, `paste` | - | `onDsChange`, `onDsFiles`, `onDsReject`, `onDsRemove`, `onDsRetry` | [File upload](components.md#file-upload) |
+| `UsageMeter` | `react/usage.js` | `<section class="ds-usage" data-ds-usage>` | `used`, `budget`, `cost`, `costBudget`, `currency`, `warn` | `inline` | `onDsChange` | [Usage meter](components.md#usage-meter) |
+| `SavedViews` | `react/views.js` | `<div class="ds-views" data-ds-views>` | `dsViewsKey`, `url`, `prefix` | - | `onDsView`, `onDsViews` | [Saved views](components.md#saved-views) |
+| `Wheel` | `react/wheel.js` | `<span class="ds-wheel" data-ds-wheel>` | `shimmer` | - | `onDsChange` | [Wheel](components.md#wheel) |
+| `Wizard` | `react/wizard.js` | `<form class="ds-wizard" data-ds-wizard>` | - | - | `onDsStep`, `onDsValidate` | [Form wizard](components.md#form-wizard) |
 <!-- /generated: components -->
 
 ## Who writes what

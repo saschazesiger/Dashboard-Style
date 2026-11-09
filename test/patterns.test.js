@@ -67,7 +67,7 @@ describe('page patterns', () => {
   });
 
   it('keeps the project rules: tools/check-project.mjs finds nothing (prefix pt)', () => {
-    const config = { prefix: 'pt', css: [`${PATTERNS}/*.css`], js: [`${PATTERNS}/pt.js`], html: [`${PATTERNS}/*.html`], vendor: 'dist' };
+    const config = { major: 3, prefix: 'pt', css: [`${PATTERNS}/*.css`], js: [`${PATTERNS}/pt.js`], html: [`${PATTERNS}/*.html`], vendor: 'dist', bundle: `${PATTERNS}/ds.config.json` };
     const { findings, errors } = checkProject(config, ROOT);
     assert.deepEqual(errors, []);
     assert.deepEqual(findings.map((f) => `${f.file}:${f.line} ${f.rule} ${f.message}`), []);

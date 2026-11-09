@@ -1104,8 +1104,6 @@
         "data-ds-chart-axis",
         "data-ds-chart-mark",
         "data-ds-chart-tone",
-        "data-ds-config",
-        "data-ds-keep",
         "data-ds-ripple",
         "data-state"
       ],
@@ -1250,7 +1248,6 @@
         "data-ds-facts-nocopy",
         "data-ds-facts-value",
         "data-ds-glide",
-        "data-ds-key",
         "data-ds-list",
         "data-ds-list-own",
         "data-ds-list-reorder",
@@ -1475,7 +1472,6 @@
       "attributes": [
         "data-anchored",
         "data-ds-contextmenu",
-        "data-ds-keep",
         "data-ds-menu",
         "data-ds-menu-checks",
         "data-ds-overflow-end",
@@ -2114,7 +2110,6 @@
         "data-ds-overflow-end",
         "data-ds-overflow-start",
         "data-ds-ripple",
-        "data-ds-value",
         "data-placement",
         "data-state"
       ],
@@ -2162,7 +2157,6 @@
       ],
       "attributes": [
         "data-anchored",
-        "data-ds-keep",
         "data-placement",
         "data-side",
         "data-state",
@@ -2226,8 +2220,6 @@
         "ds-stack--page"
       ],
       "attributes": [
-        "data-ds-keep",
-        "data-ds-moving",
         "data-ds-page-head",
         "data-ds-page-head-condense",
         "data-scrolled"
@@ -2257,8 +2249,8 @@
         "scroll-driven",
         "text-wrap"
       ],
-      "bytes": 11506,
-      "gzip": 3001
+      "bytes": 11518,
+      "gzip": 3004
     },
     "shell": {
       "css": "css/components/shell.css",
@@ -2355,12 +2347,10 @@
         "data-ds-drawer-remember",
         "data-ds-edges",
         "data-ds-filtered",
-        "data-ds-key",
         "data-ds-keyboard",
         "data-ds-launcher",
         "data-ds-overflow-end",
         "data-ds-overflow-start",
-        "data-ds-scheme",
         "data-ds-scheme-switch",
         "data-ds-scheme-switch-link",
         "data-ds-scheme-switch-remember",
@@ -2554,7 +2544,6 @@
         "data-drawer-collapsed",
         "data-drawer-hidden",
         "data-drawer-open",
-        "data-ds-keep",
         "data-ds-leaving",
         "data-ds-toast-limit",
         "data-ds-toast-room",
@@ -2660,7 +2649,6 @@
         "data-ds-calendar-months",
         "data-ds-calendar-weeks",
         "data-ds-ripple",
-        "data-ds-value",
         "data-preview",
         "data-range",
         "data-turn"
@@ -2877,7 +2865,6 @@
         "ds-upload__tile"
       ],
       "attributes": [
-        "data-ds-key",
         "data-ds-upload",
         "data-status"
       ],
@@ -2930,7 +2917,6 @@
         "data-ds-datefield-seconds",
         "data-ds-datefield-type",
         "data-ds-datefield-zone",
-        "data-ds-value",
         "data-placeholder"
       ],
       "keyframes": [],
@@ -2979,13 +2965,10 @@
         "ds-kveditor__value"
       ],
       "attributes": [
-        "data-ds-key",
         "data-ds-kveditor",
         "data-ds-kveditor-format",
         "data-ds-kveditor-name",
         "data-ds-kveditor-secret",
-        "data-ds-leaving",
-        "data-ds-value",
         "data-status"
       ],
       "keyframes": [
@@ -3083,7 +3066,6 @@
         "data-ds-sort-direction",
         "data-ds-sort-field",
         "data-ds-sort-type",
-        "data-ds-value",
         "data-state"
       ],
       "keyframes": [],
@@ -3658,8 +3640,7 @@
         "data-ds-query",
         "data-ds-query-keys",
         "data-ds-query-name",
-        "data-ds-query-store",
-        "data-ds-value"
+        "data-ds-query-store"
       ],
       "keyframes": [],
       "js": [
@@ -3761,7 +3742,6 @@
       ],
       "attributes": [
         "data-ds-action",
-        "data-ds-config",
         "data-ds-datagrid",
         "data-ds-datagrid-col",
         "data-ds-datagrid-command",
@@ -3780,9 +3760,7 @@
         "data-ds-datagrid-summary",
         "data-ds-datagrid-toggle",
         "data-ds-datagrid-type",
-        "data-ds-dragging",
-        "data-ds-keep",
-        "data-ds-key"
+        "data-ds-dragging"
       ],
       "keyframes": [],
       "js": [
@@ -3900,8 +3878,7 @@
         "data-ds-duration-name",
         "data-ds-duration-smallest",
         "data-ds-duration-step",
-        "data-ds-duration-unit",
-        "data-ds-value"
+        "data-ds-duration-unit"
       ],
       "keyframes": [],
       "js": [
@@ -3954,8 +3931,7 @@
         "data-ds-toggle",
         "data-ds-toggle-group",
         "data-ds-toggle-group-required",
-        "data-ds-toggle-group-roving",
-        "data-ds-value"
+        "data-ds-toggle-group-roving"
       ],
       "keyframes": [],
       "js": [
@@ -4018,8 +3994,7 @@
       ],
       "attributes": [
         "data-ds-menu-checks",
-        "data-ds-menubutton",
-        "data-ds-value"
+        "data-ds-menubutton"
       ],
       "keyframes": [],
       "js": [
@@ -4054,8 +4029,7 @@
       ],
       "attributes": [
         "data-ds-menubutton",
-        "data-ds-splitbutton",
-        "data-ds-value"
+        "data-ds-splitbutton"
       ],
       "keyframes": [],
       "js": [
@@ -4087,7 +4061,6 @@
         "ds-copy__value"
       ],
       "attributes": [
-        "data-ds-copy",
         "data-ds-copy-value"
       ],
       "keyframes": [],
@@ -4122,8 +4095,6 @@
       ],
       "attributes": [
         "data-ds-folded",
-        "data-ds-keep",
-        "data-ds-key",
         "data-ds-priority",
         "data-ds-prioritybar"
       ],
@@ -4166,13 +4137,11 @@
       "attributes": [
         "data-active",
         "data-ds-edges",
-        "data-ds-keep",
         "data-ds-listbox",
         "data-ds-listbox-name",
         "data-ds-listbox-virtual",
         "data-ds-overflow-end",
-        "data-ds-overflow-start",
-        "data-ds-value"
+        "data-ds-overflow-start"
       ],
       "keyframes": [],
       "js": [
@@ -4211,8 +4180,7 @@
         "ds-number__up"
       ],
       "attributes": [
-        "data-ds-number",
-        "data-ds-value"
+        "data-ds-number"
       ],
       "keyframes": [],
       "js": [
@@ -4252,7 +4220,6 @@
       ],
       "attributes": [
         "data-ds-dragging",
-        "data-ds-key",
         "data-ds-ripple",
         "data-ds-tree",
         "data-ds-tree-drag",
@@ -4366,7 +4333,6 @@
         "data-ds-jsonview-action",
         "data-ds-jsonview-open",
         "data-ds-jsonview-search",
-        "data-ds-key",
         "data-ds-tree-lazy"
       ],
       "keyframes": [],
@@ -4534,8 +4500,7 @@
         "data-ds-taginput",
         "data-ds-taginput-pattern",
         "data-ds-taginput-tag",
-        "data-ds-taginput-values",
-        "data-ds-value"
+        "data-ds-taginput-values"
       ],
       "keyframes": [
         "ds-fade-in"
@@ -4621,7 +4586,6 @@
         "data-ds-selectpanel-name",
         "data-ds-selectpanel-values",
         "data-ds-selectpanel-virtual",
-        "data-ds-value",
         "data-placement",
         "data-state"
       ],
@@ -4673,7 +4637,6 @@
         "data-ds-inlineedit",
         "data-ds-inlineedit-blur",
         "data-ds-inlineedit-trim",
-        "data-ds-value",
         "data-state"
       ],
       "keyframes": [],
@@ -4806,8 +4769,7 @@
         "ds-errorsummary__title"
       ],
       "attributes": [
-        "data-ds-errorsummary",
-        "data-ds-key"
+        "data-ds-errorsummary"
       ],
       "keyframes": [],
       "js": [
@@ -4839,7 +4801,6 @@
         "ds-search__popup"
       ],
       "attributes": [
-        "data-ds-key",
         "data-ds-search",
         "data-ds-search-count",
         "data-ds-search-recent",
@@ -5039,7 +5000,6 @@
       "attributes": [
         "data-ds-format",
         "data-ds-time",
-        "data-ds-value",
         "data-tip"
       ],
       "keyframes": [],
@@ -5318,9 +5278,6 @@
         "data-ds-composer-remove",
         "data-ds-composer-trigger",
         "data-ds-dragover",
-        "data-ds-keep",
-        "data-ds-key",
-        "data-ds-leaving",
         "data-ds-query",
         "data-state"
       ],
@@ -5827,7 +5784,6 @@
         "data-ds-code-max",
         "data-ds-code-remember",
         "data-ds-code-start",
-        "data-ds-copy",
         "data-state"
       ],
       "keyframes": [],
@@ -6036,7 +5992,6 @@
       ],
       "attributes": [
         "data-bg",
-        "data-ds-keep",
         "data-ds-logview",
         "data-ds-logview-act",
         "data-ds-logview-follow",
@@ -6150,7 +6105,6 @@
       ],
       "attributes": [
         "data-bar",
-        "data-ds-keep",
         "data-ds-terminal",
         "data-ds-terminal-bar",
         "data-ds-terminal-key",
@@ -6224,8 +6178,6 @@
         "ds-wheel__line"
       ],
       "attributes": [
-        "data-ds-keep",
-        "data-ds-leaving",
         "data-ds-wheel",
         "data-ds-wheel-shimmer"
       ],
@@ -6607,9 +6559,7 @@
         "data-ds-avatar-group",
         "data-ds-avatar-group-max",
         "data-ds-avatar-initials",
-        "data-ds-avatar-status",
-        "data-ds-keep",
-        "data-ds-key"
+        "data-ds-avatar-status"
       ],
       "keyframes": [],
       "js": [
@@ -6690,7 +6640,6 @@
         "ds-media__title"
       ],
       "attributes": [
-        "data-ds-key",
         "data-ds-media"
       ],
       "keyframes": [],
@@ -6789,8 +6738,7 @@
         "data-ds-command-href",
         "data-ds-command-id",
         "data-ds-command-keywords",
-        "data-ds-command-shortcut",
-        "data-ds-key"
+        "data-ds-command-shortcut"
       ],
       "keyframes": [],
       "js": [
@@ -6936,7 +6884,6 @@
         "ds-notifications__toggle"
       ],
       "attributes": [
-        "data-ds-key",
         "data-ds-notifications",
         "data-ds-notifications-day",
         "data-unread"
@@ -7025,6 +6972,7 @@
         "runtime",
         "define",
         "get",
+        "manage",
         "init",
         "destroy",
         "emit",
@@ -7983,7 +7931,9 @@
         "utilities"
       ],
       "exportRequires": {},
-      "attributes": []
+      "attributes": [
+        "data-ds-copy"
+      ]
     },
     "datefield": {
       "file": "js/datefield.js",
@@ -9987,6 +9937,1601 @@
       ],
       "exportRequires": {},
       "attributes": []
+    }
+  },
+  "react": {
+    "react/alert.js": {
+      "exports": [
+        "Alert"
+      ],
+      "components": [
+        "alert"
+      ],
+      "modules": [
+        "icons"
+      ],
+      "generated": false
+    },
+    "react/badge.js": {
+      "exports": [
+        "Badge"
+      ],
+      "components": [
+        "badge"
+      ],
+      "modules": [
+        "badge"
+      ],
+      "generated": false
+    },
+    "react/button.js": {
+      "exports": [
+        "Button"
+      ],
+      "components": [
+        "button",
+        "spinner"
+      ],
+      "modules": [
+        "icons",
+        "motion"
+      ],
+      "generated": false
+    },
+    "react/card.js": {
+      "exports": [
+        "Card"
+      ],
+      "components": [
+        "card"
+      ],
+      "modules": [],
+      "generated": false
+    },
+    "react/dialog.js": {
+      "exports": [
+        "Dialog"
+      ],
+      "components": [
+        "dialog"
+      ],
+      "modules": [
+        "dialog"
+      ],
+      "generated": false
+    },
+    "react/field.js": {
+      "exports": [
+        "Field"
+      ],
+      "components": [
+        "form"
+      ],
+      "modules": [
+        "icons"
+      ],
+      "generated": false
+    },
+    "react/provider.js": {
+      "exports": [
+        "DSProvider"
+      ],
+      "components": [
+        "utilities",
+        "ripple",
+        "tooltip"
+      ],
+      "modules": [
+        "core",
+        "motion",
+        "overlay",
+        "ripple",
+        "tooltip"
+      ],
+      "generated": false
+    },
+    "react/shared.js": {
+      "exports": [
+        "useIsomorphicLayoutEffect",
+        "SIZES",
+        "DENSITIES",
+        "SHAPES",
+        "TONES",
+        "MANAGED",
+        "cx",
+        "optionClasses",
+        "modifiers",
+        "splitOptions",
+        "setRef",
+        "useMergedRef",
+        "textSafe",
+        "SYSTEM_CLASSES",
+        "keepClasses",
+        "optionValue",
+        "contentText",
+        "eventType",
+        "eventProp",
+        "splitHandlers",
+        "useDsEvents",
+        "useBehaviour",
+        "useOverlay",
+        "Icon",
+        "iconNode",
+        "behaviour"
+      ],
+      "components": [],
+      "modules": [
+        "core",
+        "overlay"
+      ],
+      "generated": false
+    },
+    "react/status.js": {
+      "exports": [
+        "Status"
+      ],
+      "components": [
+        "status",
+        "spinner"
+      ],
+      "modules": [
+        "icons"
+      ],
+      "generated": false
+    },
+    "react/table.js": {
+      "exports": [
+        "Table"
+      ],
+      "components": [
+        "table"
+      ],
+      "modules": [
+        "icons"
+      ],
+      "generated": false
+    },
+    "react/tabs.js": {
+      "exports": [
+        "Tabs"
+      ],
+      "components": [
+        "tabs",
+        "button",
+        "menu",
+        "indicator"
+      ],
+      "modules": [
+        "a11y",
+        "core",
+        "icons",
+        "tabs"
+      ],
+      "generated": false
+    },
+    "react/toast.js": {
+      "exports": [
+        "useToast"
+      ],
+      "components": [
+        "toast"
+      ],
+      "modules": [
+        "toast"
+      ],
+      "generated": false
+    },
+    "react/ailabel.js": {
+      "exports": [
+        "AiLabel"
+      ],
+      "components": [
+        "ailabel"
+      ],
+      "modules": [
+        "ailabel"
+      ],
+      "generated": true
+    },
+    "react/auditlog.js": {
+      "exports": [
+        "AuditLog"
+      ],
+      "components": [
+        "auditlog"
+      ],
+      "modules": [
+        "auditlog"
+      ],
+      "generated": true
+    },
+    "react/avatar.js": {
+      "exports": [
+        "Avatar"
+      ],
+      "components": [
+        "avatar"
+      ],
+      "modules": [
+        "avatar"
+      ],
+      "generated": true
+    },
+    "react/avatar-group.js": {
+      "exports": [
+        "AvatarGroup"
+      ],
+      "components": [
+        "avatar"
+      ],
+      "modules": [
+        "avatar"
+      ],
+      "generated": true
+    },
+    "react/backtop.js": {
+      "exports": [
+        "BackToTop"
+      ],
+      "components": [
+        "backtop",
+        "button"
+      ],
+      "modules": [
+        "backtop"
+      ],
+      "generated": true
+    },
+    "react/banner.js": {
+      "exports": [
+        "Banner"
+      ],
+      "components": [
+        "banner",
+        "shell"
+      ],
+      "modules": [
+        "banner"
+      ],
+      "generated": true
+    },
+    "react/bottomsheet.js": {
+      "exports": [
+        "BottomSheet"
+      ],
+      "components": [
+        "bottomsheet",
+        "sheet"
+      ],
+      "modules": [
+        "bottomsheet"
+      ],
+      "generated": true
+    },
+    "react/breadcrumbs.js": {
+      "exports": [
+        "Breadcrumbs"
+      ],
+      "components": [
+        "page",
+        "shell"
+      ],
+      "modules": [
+        "shell"
+      ],
+      "generated": true
+    },
+    "react/calendar.js": {
+      "exports": [
+        "Calendar"
+      ],
+      "components": [
+        "calendar"
+      ],
+      "modules": [
+        "calendar"
+      ],
+      "generated": true
+    },
+    "react/chart.js": {
+      "exports": [
+        "Chart"
+      ],
+      "components": [
+        "chart"
+      ],
+      "modules": [
+        "chart"
+      ],
+      "generated": true
+    },
+    "react/choices.js": {
+      "exports": [
+        "ChoiceList"
+      ],
+      "components": [
+        "choices"
+      ],
+      "modules": [
+        "choices"
+      ],
+      "generated": true
+    },
+    "react/cite.js": {
+      "exports": [
+        "Cite"
+      ],
+      "components": [
+        "cite"
+      ],
+      "modules": [
+        "cite"
+      ],
+      "generated": true
+    },
+    "react/code.js": {
+      "exports": [
+        "CodeBlock"
+      ],
+      "components": [
+        "code"
+      ],
+      "modules": [
+        "code"
+      ],
+      "generated": true
+    },
+    "react/combobox.js": {
+      "exports": [
+        "Combobox"
+      ],
+      "components": [
+        "combobox"
+      ],
+      "modules": [
+        "combobox"
+      ],
+      "generated": true
+    },
+    "react/command.js": {
+      "exports": [
+        "CommandPalette"
+      ],
+      "components": [
+        "command",
+        "dialog"
+      ],
+      "modules": [
+        "command"
+      ],
+      "generated": true
+    },
+    "react/composer.js": {
+      "exports": [
+        "Composer"
+      ],
+      "components": [
+        "composer"
+      ],
+      "modules": [
+        "composer"
+      ],
+      "generated": true
+    },
+    "react/copy.js": {
+      "exports": [
+        "CopyButton"
+      ],
+      "components": [
+        "button",
+        "copy"
+      ],
+      "modules": [
+        "copy"
+      ],
+      "generated": true
+    },
+    "react/counter.js": {
+      "exports": [
+        "Counter"
+      ],
+      "components": [
+        "form"
+      ],
+      "modules": [
+        "form"
+      ],
+      "generated": true
+    },
+    "react/datagrid.js": {
+      "exports": [
+        "DataGrid"
+      ],
+      "components": [
+        "datagrid",
+        "table"
+      ],
+      "modules": [
+        "datagrid"
+      ],
+      "generated": true
+    },
+    "react/datefield.js": {
+      "exports": [
+        "DateField"
+      ],
+      "components": [
+        "datefield"
+      ],
+      "modules": [
+        "datefield"
+      ],
+      "generated": true
+    },
+    "react/datepicker.js": {
+      "exports": [
+        "DatePicker"
+      ],
+      "components": [
+        "datepicker",
+        "picker"
+      ],
+      "modules": [
+        "datepicker"
+      ],
+      "generated": true
+    },
+    "react/daterange.js": {
+      "exports": [
+        "DateRangePicker"
+      ],
+      "components": [
+        "daterange",
+        "picker"
+      ],
+      "modules": [
+        "daterange"
+      ],
+      "generated": true
+    },
+    "react/diff.js": {
+      "exports": [
+        "Diff"
+      ],
+      "components": [
+        "diff"
+      ],
+      "modules": [
+        "diff"
+      ],
+      "generated": true
+    },
+    "react/drawer.js": {
+      "exports": [
+        "Drawer"
+      ],
+      "components": [
+        "shell"
+      ],
+      "modules": [
+        "shell"
+      ],
+      "generated": true
+    },
+    "react/duration.js": {
+      "exports": [
+        "DurationInput"
+      ],
+      "components": [
+        "duration",
+        "form"
+      ],
+      "modules": [
+        "duration"
+      ],
+      "generated": true
+    },
+    "react/errorsummary.js": {
+      "exports": [
+        "ErrorSummary"
+      ],
+      "components": [
+        "alert",
+        "errorsummary"
+      ],
+      "modules": [
+        "errorsummary"
+      ],
+      "generated": true
+    },
+    "react/expandable.js": {
+      "exports": [
+        "Expandable"
+      ],
+      "components": [
+        "expandable"
+      ],
+      "modules": [
+        "expandable"
+      ],
+      "generated": true
+    },
+    "react/facets.js": {
+      "exports": [
+        "Facets"
+      ],
+      "components": [
+        "facets"
+      ],
+      "modules": [
+        "facets"
+      ],
+      "generated": true
+    },
+    "react/facts.js": {
+      "exports": [
+        "Facts"
+      ],
+      "components": [
+        "list"
+      ],
+      "modules": [
+        "list"
+      ],
+      "generated": true
+    },
+    "react/feedback.js": {
+      "exports": [
+        "Feedback"
+      ],
+      "components": [
+        "feedback"
+      ],
+      "modules": [
+        "feedback"
+      ],
+      "generated": true
+    },
+    "react/filterbar.js": {
+      "exports": [
+        "FilterBar"
+      ],
+      "components": [
+        "filterbar"
+      ],
+      "modules": [
+        "filterbar"
+      ],
+      "generated": true
+    },
+    "react/formatted.js": {
+      "exports": [
+        "Formatted"
+      ],
+      "components": [
+        "formatted"
+      ],
+      "modules": [
+        "formatted"
+      ],
+      "generated": true
+    },
+    "react/highlight.js": {
+      "exports": [
+        "Highlight"
+      ],
+      "components": [
+        "highlight"
+      ],
+      "modules": [
+        "highlight"
+      ],
+      "generated": true
+    },
+    "react/hits.js": {
+      "exports": [
+        "SearchHits"
+      ],
+      "components": [
+        "hits"
+      ],
+      "modules": [
+        "hits"
+      ],
+      "generated": true
+    },
+    "react/image.js": {
+      "exports": [
+        "Image"
+      ],
+      "components": [
+        "image"
+      ],
+      "modules": [
+        "image"
+      ],
+      "generated": true
+    },
+    "react/inlineedit.js": {
+      "exports": [
+        "InlineEdit"
+      ],
+      "components": [
+        "inlineedit"
+      ],
+      "modules": [
+        "inlineedit"
+      ],
+      "generated": true
+    },
+    "react/jsonview.js": {
+      "exports": [
+        "JsonView"
+      ],
+      "components": [
+        "jsonview"
+      ],
+      "modules": [
+        "jsonview"
+      ],
+      "generated": true
+    },
+    "react/kbd.js": {
+      "exports": [
+        "Kbd"
+      ],
+      "components": [
+        "kbd"
+      ],
+      "modules": [
+        "kbd"
+      ],
+      "generated": true
+    },
+    "react/kveditor.js": {
+      "exports": [
+        "KeyValueEditor"
+      ],
+      "components": [
+        "kveditor"
+      ],
+      "modules": [
+        "kveditor"
+      ],
+      "generated": true
+    },
+    "react/labelgroup.js": {
+      "exports": [
+        "LabelGroup"
+      ],
+      "components": [
+        "labelgroup"
+      ],
+      "modules": [
+        "labelgroup"
+      ],
+      "generated": true
+    },
+    "react/launcher.js": {
+      "exports": [
+        "Launcher"
+      ],
+      "components": [
+        "menu",
+        "shell"
+      ],
+      "modules": [
+        "shell"
+      ],
+      "generated": true
+    },
+    "react/levelmeter.js": {
+      "exports": [
+        "LevelMeter"
+      ],
+      "components": [
+        "levelmeter"
+      ],
+      "modules": [
+        "levelmeter"
+      ],
+      "generated": true
+    },
+    "react/lightbox.js": {
+      "exports": [
+        "Lightbox"
+      ],
+      "components": [
+        "lightbox"
+      ],
+      "modules": [
+        "lightbox"
+      ],
+      "generated": true
+    },
+    "react/list.js": {
+      "exports": [
+        "List"
+      ],
+      "components": [
+        "list"
+      ],
+      "modules": [
+        "list"
+      ],
+      "generated": true
+    },
+    "react/listbox.js": {
+      "exports": [
+        "Listbox"
+      ],
+      "components": [
+        "listbox"
+      ],
+      "modules": [
+        "listbox"
+      ],
+      "generated": true
+    },
+    "react/listdetail.js": {
+      "exports": [
+        "ListDetail"
+      ],
+      "components": [
+        "listdetail"
+      ],
+      "modules": [
+        "listdetail"
+      ],
+      "generated": true
+    },
+    "react/loadingoverlay.js": {
+      "exports": [
+        "LoadingOverlay"
+      ],
+      "components": [
+        "loadingoverlay"
+      ],
+      "modules": [
+        "loadingoverlay"
+      ],
+      "generated": true
+    },
+    "react/loadmore.js": {
+      "exports": [
+        "LoadMore"
+      ],
+      "components": [
+        "loadmore"
+      ],
+      "modules": [
+        "loadmore"
+      ],
+      "generated": true
+    },
+    "react/logview.js": {
+      "exports": [
+        "LogView"
+      ],
+      "components": [
+        "logview"
+      ],
+      "modules": [
+        "logview"
+      ],
+      "generated": true
+    },
+    "react/markdown.js": {
+      "exports": [
+        "Markdown"
+      ],
+      "components": [
+        "markdown",
+        "prose"
+      ],
+      "modules": [
+        "markdown"
+      ],
+      "generated": true
+    },
+    "react/media.js": {
+      "exports": [
+        "Media"
+      ],
+      "components": [
+        "media"
+      ],
+      "modules": [
+        "media"
+      ],
+      "generated": true
+    },
+    "react/menu.js": {
+      "exports": [
+        "Menu"
+      ],
+      "components": [
+        "menu"
+      ],
+      "modules": [
+        "menu"
+      ],
+      "generated": true
+    },
+    "react/menubutton.js": {
+      "exports": [
+        "MenuButton"
+      ],
+      "components": [
+        "button",
+        "menubutton"
+      ],
+      "modules": [
+        "menubutton"
+      ],
+      "generated": true
+    },
+    "react/message.js": {
+      "exports": [
+        "Message"
+      ],
+      "components": [
+        "message"
+      ],
+      "modules": [
+        "message"
+      ],
+      "generated": true
+    },
+    "react/notifications.js": {
+      "exports": [
+        "Notifications"
+      ],
+      "components": [
+        "notifications",
+        "sheet"
+      ],
+      "modules": [
+        "notifications"
+      ],
+      "generated": true
+    },
+    "react/number.js": {
+      "exports": [
+        "NumberInput"
+      ],
+      "components": [
+        "form",
+        "number"
+      ],
+      "modules": [
+        "number"
+      ],
+      "generated": true
+    },
+    "react/object.js": {
+      "exports": [
+        "ObjectPage"
+      ],
+      "components": [
+        "object"
+      ],
+      "modules": [
+        "object"
+      ],
+      "generated": true
+    },
+    "react/orderedchoice.js": {
+      "exports": [
+        "OrderedChoice"
+      ],
+      "components": [
+        "orderedchoice"
+      ],
+      "modules": [
+        "orderedchoice"
+      ],
+      "generated": true
+    },
+    "react/otp.js": {
+      "exports": [
+        "CodeField"
+      ],
+      "components": [
+        "otp"
+      ],
+      "modules": [
+        "otp"
+      ],
+      "generated": true
+    },
+    "react/page.js": {
+      "exports": [
+        "PageHead"
+      ],
+      "components": [
+        "page"
+      ],
+      "modules": [
+        "page"
+      ],
+      "generated": true
+    },
+    "react/password.js": {
+      "exports": [
+        "Password"
+      ],
+      "components": [
+        "form",
+        "password"
+      ],
+      "modules": [
+        "password"
+      ],
+      "generated": true
+    },
+    "react/picker.js": {
+      "exports": [
+        "Picker"
+      ],
+      "components": [
+        "picker"
+      ],
+      "modules": [
+        "picker"
+      ],
+      "generated": true
+    },
+    "react/plan.js": {
+      "exports": [
+        "PlanCard"
+      ],
+      "components": [
+        "plan"
+      ],
+      "modules": [
+        "plan"
+      ],
+      "generated": true
+    },
+    "react/popover.js": {
+      "exports": [
+        "Popover"
+      ],
+      "components": [
+        "button",
+        "popover"
+      ],
+      "modules": [
+        "popover"
+      ],
+      "generated": true
+    },
+    "react/prioritybar.js": {
+      "exports": [
+        "PriorityBar"
+      ],
+      "components": [
+        "prioritybar"
+      ],
+      "modules": [
+        "prioritybar"
+      ],
+      "generated": true
+    },
+    "react/query.js": {
+      "exports": [
+        "QueryInput"
+      ],
+      "components": [
+        "query"
+      ],
+      "modules": [
+        "query"
+      ],
+      "generated": true
+    },
+    "react/question.js": {
+      "exports": [
+        "QuestionCard"
+      ],
+      "components": [
+        "question"
+      ],
+      "modules": [
+        "question"
+      ],
+      "generated": true
+    },
+    "react/reasoning.js": {
+      "exports": [
+        "Reasoning"
+      ],
+      "components": [
+        "disclosure",
+        "reasoning"
+      ],
+      "modules": [
+        "reasoning"
+      ],
+      "generated": true
+    },
+    "react/scheme-switch.js": {
+      "exports": [
+        "SchemeSwitch"
+      ],
+      "components": [
+        "shell"
+      ],
+      "modules": [
+        "shell"
+      ],
+      "generated": true
+    },
+    "react/search.js": {
+      "exports": [
+        "Search"
+      ],
+      "components": [
+        "form",
+        "search"
+      ],
+      "modules": [
+        "search"
+      ],
+      "generated": true
+    },
+    "react/search-sheet.js": {
+      "exports": [
+        "SearchSheet"
+      ],
+      "components": [
+        "shell"
+      ],
+      "modules": [
+        "shell"
+      ],
+      "generated": true
+    },
+    "react/secret.js": {
+      "exports": [
+        "Secret"
+      ],
+      "components": [
+        "form",
+        "secret"
+      ],
+      "modules": [
+        "secret"
+      ],
+      "generated": true
+    },
+    "react/selectpanel.js": {
+      "exports": [
+        "SelectPanel"
+      ],
+      "components": [
+        "selectpanel"
+      ],
+      "modules": [
+        "selectpanel"
+      ],
+      "generated": true
+    },
+    "react/sheet.js": {
+      "exports": [
+        "Sheet"
+      ],
+      "components": [
+        "sheet"
+      ],
+      "modules": [
+        "sheet"
+      ],
+      "generated": true
+    },
+    "react/shell.js": {
+      "exports": [
+        "Shell"
+      ],
+      "components": [
+        "shell"
+      ],
+      "modules": [
+        "shell"
+      ],
+      "generated": true
+    },
+    "react/shortcuts.js": {
+      "exports": [
+        "ShortcutSheet"
+      ],
+      "components": [
+        "dialog",
+        "shortcuts"
+      ],
+      "modules": [
+        "shortcuts"
+      ],
+      "generated": true
+    },
+    "react/sort.js": {
+      "exports": [
+        "Sort"
+      ],
+      "components": [
+        "sort"
+      ],
+      "modules": [
+        "sort"
+      ],
+      "generated": true
+    },
+    "react/splitbutton.js": {
+      "exports": [
+        "SplitButton"
+      ],
+      "components": [
+        "button-group",
+        "splitbutton"
+      ],
+      "modules": [
+        "splitbutton"
+      ],
+      "generated": true
+    },
+    "react/splitpane.js": {
+      "exports": [
+        "SplitPane"
+      ],
+      "components": [
+        "splitpane"
+      ],
+      "modules": [
+        "splitpane"
+      ],
+      "generated": true
+    },
+    "react/steps.js": {
+      "exports": [
+        "Steps"
+      ],
+      "components": [
+        "steps"
+      ],
+      "modules": [
+        "steps"
+      ],
+      "generated": true
+    },
+    "react/suggestions.js": {
+      "exports": [
+        "Suggestions"
+      ],
+      "components": [
+        "scroller",
+        "suggestions"
+      ],
+      "modules": [
+        "suggestions"
+      ],
+      "generated": true
+    },
+    "react/taginput.js": {
+      "exports": [
+        "TagInput"
+      ],
+      "components": [
+        "taginput"
+      ],
+      "modules": [
+        "taginput"
+      ],
+      "generated": true
+    },
+    "react/tearsheet.js": {
+      "exports": [
+        "Tearsheet"
+      ],
+      "components": [
+        "dialog",
+        "tearsheet"
+      ],
+      "modules": [
+        "tearsheet"
+      ],
+      "generated": true
+    },
+    "react/terminal.js": {
+      "exports": [
+        "Terminal"
+      ],
+      "components": [
+        "terminal"
+      ],
+      "modules": [
+        "terminal"
+      ],
+      "generated": true
+    },
+    "react/thinking.js": {
+      "exports": [
+        "Thinking"
+      ],
+      "components": [
+        "thinking"
+      ],
+      "modules": [
+        "thinking"
+      ],
+      "generated": true
+    },
+    "react/time.js": {
+      "exports": [
+        "Time"
+      ],
+      "components": [],
+      "modules": [
+        "format"
+      ],
+      "generated": true
+    },
+    "react/timepicker.js": {
+      "exports": [
+        "TimePicker"
+      ],
+      "components": [
+        "picker",
+        "timepicker"
+      ],
+      "modules": [
+        "timepicker"
+      ],
+      "generated": true
+    },
+    "react/timerange.js": {
+      "exports": [
+        "TimeRange"
+      ],
+      "components": [
+        "timerange"
+      ],
+      "modules": [
+        "timerange"
+      ],
+      "generated": true
+    },
+    "react/toc.js": {
+      "exports": [
+        "Toc"
+      ],
+      "components": [
+        "toc"
+      ],
+      "modules": [
+        "toc"
+      ],
+      "generated": true
+    },
+    "react/toggle.js": {
+      "exports": [
+        "Toggle"
+      ],
+      "components": [
+        "button",
+        "toggle"
+      ],
+      "modules": [
+        "toggle"
+      ],
+      "generated": true
+    },
+    "react/toggle-group.js": {
+      "exports": [
+        "ToggleGroup"
+      ],
+      "components": [
+        "toggle"
+      ],
+      "modules": [
+        "toggle"
+      ],
+      "generated": true
+    },
+    "react/toggletip.js": {
+      "exports": [
+        "Toggletip"
+      ],
+      "components": [
+        "toggletip"
+      ],
+      "modules": [
+        "toggletip"
+      ],
+      "generated": true
+    },
+    "react/toolcall.js": {
+      "exports": [
+        "ToolCall"
+      ],
+      "components": [
+        "disclosure",
+        "toolcall"
+      ],
+      "modules": [
+        "toolcall"
+      ],
+      "generated": true
+    },
+    "react/tracker.js": {
+      "exports": [
+        "Tracker"
+      ],
+      "components": [
+        "tracker"
+      ],
+      "modules": [
+        "tracker"
+      ],
+      "generated": true
+    },
+    "react/transcript.js": {
+      "exports": [
+        "Transcript"
+      ],
+      "components": [
+        "transcript"
+      ],
+      "modules": [
+        "transcript"
+      ],
+      "generated": true
+    },
+    "react/transfer.js": {
+      "exports": [
+        "TransferList"
+      ],
+      "components": [
+        "transfer"
+      ],
+      "modules": [
+        "transfer"
+      ],
+      "generated": true
+    },
+    "react/tree.js": {
+      "exports": [
+        "Tree"
+      ],
+      "components": [
+        "tree"
+      ],
+      "modules": [
+        "tree"
+      ],
+      "generated": true
+    },
+    "react/truncate.js": {
+      "exports": [
+        "Truncate"
+      ],
+      "components": [
+        "truncate"
+      ],
+      "modules": [
+        "truncate"
+      ],
+      "generated": true
+    },
+    "react/typeconfirm.js": {
+      "exports": [
+        "TypeConfirm"
+      ],
+      "components": [
+        "dialog",
+        "typeconfirm"
+      ],
+      "modules": [
+        "typeconfirm"
+      ],
+      "generated": true
+    },
+    "react/unsaved.js": {
+      "exports": [
+        "UnsavedGuard"
+      ],
+      "components": [
+        "form",
+        "unsaved"
+      ],
+      "modules": [
+        "unsaved"
+      ],
+      "generated": true
+    },
+    "react/upload.js": {
+      "exports": [
+        "Upload"
+      ],
+      "components": [
+        "upload"
+      ],
+      "modules": [
+        "upload"
+      ],
+      "generated": true
+    },
+    "react/usage.js": {
+      "exports": [
+        "UsageMeter"
+      ],
+      "components": [
+        "usage"
+      ],
+      "modules": [
+        "usage"
+      ],
+      "generated": true
+    },
+    "react/views.js": {
+      "exports": [
+        "SavedViews"
+      ],
+      "components": [
+        "views"
+      ],
+      "modules": [
+        "views"
+      ],
+      "generated": true
+    },
+    "react/wheel.js": {
+      "exports": [
+        "Wheel"
+      ],
+      "components": [
+        "wheel"
+      ],
+      "modules": [
+        "wheel"
+      ],
+      "generated": true
+    },
+    "react/wizard.js": {
+      "exports": [
+        "Wizard"
+      ],
+      "components": [
+        "wizard"
+      ],
+      "modules": [
+        "wizard"
+      ],
+      "generated": true
+    },
+    "react/index.js": {
+      "exports": [
+        "Alert",
+        "Badge",
+        "Button",
+        "Card",
+        "Dialog",
+        "Field",
+        "DSProvider",
+        "Icon",
+        "Status",
+        "Table",
+        "Tabs",
+        "useToast",
+        "AiLabel",
+        "AuditLog",
+        "Avatar",
+        "AvatarGroup",
+        "BackToTop",
+        "Banner",
+        "BottomSheet",
+        "Breadcrumbs",
+        "Calendar",
+        "Chart",
+        "ChoiceList",
+        "Cite",
+        "CodeBlock",
+        "Combobox",
+        "CommandPalette",
+        "Composer",
+        "CopyButton",
+        "Counter",
+        "DataGrid",
+        "DateField",
+        "DatePicker",
+        "DateRangePicker",
+        "Diff",
+        "Drawer",
+        "DurationInput",
+        "ErrorSummary",
+        "Expandable",
+        "Facets",
+        "Facts",
+        "Feedback",
+        "FilterBar",
+        "Formatted",
+        "Highlight",
+        "SearchHits",
+        "Image",
+        "InlineEdit",
+        "JsonView",
+        "Kbd",
+        "KeyValueEditor",
+        "LabelGroup",
+        "Launcher",
+        "LevelMeter",
+        "Lightbox",
+        "List",
+        "Listbox",
+        "ListDetail",
+        "LoadingOverlay",
+        "LoadMore",
+        "LogView",
+        "Markdown",
+        "Media",
+        "Menu",
+        "MenuButton",
+        "Message",
+        "Notifications",
+        "NumberInput",
+        "ObjectPage",
+        "OrderedChoice",
+        "CodeField",
+        "PageHead",
+        "Password",
+        "Picker",
+        "PlanCard",
+        "Popover",
+        "PriorityBar",
+        "QueryInput",
+        "QuestionCard",
+        "Reasoning",
+        "SchemeSwitch",
+        "Search",
+        "SearchSheet",
+        "Secret",
+        "SelectPanel",
+        "Sheet",
+        "Shell",
+        "ShortcutSheet",
+        "Sort",
+        "SplitButton",
+        "SplitPane",
+        "Steps",
+        "Suggestions",
+        "TagInput",
+        "Tearsheet",
+        "Terminal",
+        "Thinking",
+        "Time",
+        "TimePicker",
+        "TimeRange",
+        "Toc",
+        "Toggle",
+        "ToggleGroup",
+        "Toggletip",
+        "ToolCall",
+        "Tracker",
+        "Transcript",
+        "TransferList",
+        "Tree",
+        "Truncate",
+        "TypeConfirm",
+        "UnsavedGuard",
+        "Upload",
+        "UsageMeter",
+        "SavedViews",
+        "Wheel",
+        "Wizard"
+      ],
+      "components": [],
+      "modules": [],
+      "generated": true
     }
   }
 }

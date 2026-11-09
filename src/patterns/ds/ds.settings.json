@@ -1,0 +1,413 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "settings",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.settings.css",
+      "bytes": 251310,
+      "gzip": 39393
+    },
+    "js": {
+      "file": "ds.settings.js",
+      "bytes": 516718,
+      "gzip": 123010
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 30
+    }
+  },
+  "components": [
+    {
+      "name": "layout",
+      "reason": "settings.html:68 ds-split",
+      "bytes": 3326,
+      "gzip": 1048
+    },
+    {
+      "name": "utilities",
+      "reason": "pt.js:57 ds-icon--fillable",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "spinner",
+      "reason": "settings.html:209 ds-spinner",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by module indicator",
+      "bytes": 2868,
+      "gzip": 619
+    },
+    {
+      "name": "button",
+      "reason": "settings.html:22 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "status",
+      "reason": "settings.html:133 ds-tag",
+      "bytes": 3164,
+      "gzip": 921
+    },
+    {
+      "name": "switch",
+      "reason": "settings.html:120 ds-switch-list",
+      "bytes": 13984,
+      "gzip": 2262
+    },
+    {
+      "name": "card",
+      "reason": "settings.html:84 ds-card",
+      "bytes": 16606,
+      "gzip": 2659
+    },
+    {
+      "name": "menu",
+      "reason": "settings.html:30 ds-menu",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "form",
+      "reason": "settings.html:81 ds-form",
+      "bytes": 49307,
+      "gzip": 7088
+    },
+    {
+      "name": "tooltip",
+      "reason": "settings.html:25 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "settings.html:61 ds-content",
+      "bytes": 8012,
+      "gzip": 2191
+    },
+    {
+      "name": "shell",
+      "reason": "settings.html:18 ds-app",
+      "bytes": 39266,
+      "gzip": 6590
+    },
+    {
+      "name": "toast",
+      "reason": "settings.html:217 ds-toasts",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "savebar",
+      "reason": "settings.html:202 ds-savebar",
+      "bytes": 3147,
+      "gzip": 958
+    },
+    {
+      "name": "unsaved",
+      "reason": "settings.html:204 ds-unsaved__count",
+      "bytes": 127,
+      "gzip": 130
+    },
+    {
+      "name": "formatted",
+      "reason": "settings.html:25 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "toc",
+      "reason": "settings.html:70 ds-toc",
+      "bytes": 5389,
+      "gzip": 1475
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "dom",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "ripple",
+      "reason": "settings.html:226 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "pt.js:16 DS.icons"
+    },
+    {
+      "name": "position",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "overlay",
+      "reason": "settings.html:29 data-ds-open"
+    },
+    {
+      "name": "a11y",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "hotkeys",
+      "reason": "imported by unsaved"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "store",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by menu"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "shell",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "toc",
+      "reason": "needed by toc"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    },
+    {
+      "name": "unsaved",
+      "reason": "needed by unsaved"
+    }
+  ],
+  "icons": [
+    {
+      "name": "arrowRight",
+      "reason": "settings.html:195"
+    },
+    {
+      "name": "close",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "menu",
+      "reason": "settings.html:22"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "used by module page"
+    },
+    {
+      "name": "moreHorizontal",
+      "reason": "used by module shell"
+    },
+    {
+      "name": "history",
+      "reason": "settings.html:46"
+    },
+    {
+      "name": "logout",
+      "reason": "settings.html:34"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "settings.html:247"
+    },
+    {
+      "name": "info",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "helpCircle",
+      "reason": "settings.html:26"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "overview",
+      "reason": "settings.html:44"
+    },
+    {
+      "name": "settings",
+      "reason": "settings.html:50"
+    },
+    {
+      "name": "key",
+      "reason": "settings.html:53"
+    },
+    {
+      "name": "shield",
+      "reason": "settings.html:52"
+    },
+    {
+      "name": "user",
+      "reason": "settings.html:33"
+    },
+    {
+      "name": "users",
+      "reason": "settings.html:51"
+    },
+    {
+      "name": "box",
+      "reason": "settings.html:23"
+    },
+    {
+      "name": "laptop",
+      "reason": "settings.html:45"
+    },
+    {
+      "name": "puzzle",
+      "reason": "settings.html:54"
+    }
+  ],
+  "classes": {
+    "ds-account": "settings.html:28",
+    "ds-account__avatar": "settings.html:29",
+    "ds-account__email": "settings.html:31",
+    "ds-account__head": "settings.html:31",
+    "ds-account__menu": "settings.html:30",
+    "ds-account__name": "settings.html:31",
+    "ds-account__trigger": "settings.html:29",
+    "ds-app": "settings.html:18",
+    "ds-app--drawer": "settings.html:18",
+    "ds-base": "settings.html:2",
+    "ds-brand": "settings.html:23",
+    "ds-brand__name": "settings.html:23",
+    "ds-btn": "settings.html:22",
+    "ds-btn--filled": "settings.html:207",
+    "ds-btn--icon": "settings.html:22",
+    "ds-btn--quiet": "settings.html:22",
+    "ds-btn--text": "settings.html:195",
+    "ds-btn__face": "settings.html:208",
+    "ds-btn__face--busy": "settings.html:209",
+    "ds-btn__faces": "settings.html:208",
+    "ds-card": "settings.html:84",
+    "ds-card__link": "settings.html:195",
+    "ds-card__links": "settings.html:194",
+    "ds-card__title": "settings.html:85",
+    "ds-content": "settings.html:61",
+    "ds-drawer": "settings.html:40",
+    "ds-drawer__group": "settings.html:43",
+    "ds-drawer__head": "settings.html:41",
+    "ds-drawer__heading": "settings.html:49",
+    "ds-drawer__item": "settings.html:44",
+    "ds-drawer__label": "settings.html:44",
+    "ds-drawer__list": "settings.html:42",
+    "ds-field": "settings.html:87",
+    "ds-field--full": "settings.html:184",
+    "ds-field__changed": "settings.html:88",
+    "ds-field__hint": "settings.html:90",
+    "ds-field__hint--error": "settings.html:234",
+    "ds-field__label": "settings.html:88",
+    "ds-form": "settings.html:81",
+    "ds-form-grid": "settings.html:86",
+    "ds-form-grid--2": "settings.html:86",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-input": "settings.html:89",
+    "ds-input-group": "settings.html:94",
+    "ds-input-group__prefix": "settings.html:95",
+    "ds-lg": "settings.html:31",
+    "ds-menu": "settings.html:30",
+    "ds-menu__divider": "settings.html:32",
+    "ds-menu__item": "settings.html:33",
+    "ds-menu__label": "settings.html:33",
+    "ds-muted": "settings.html:119",
+    "ds-page": "settings.html:62",
+    "ds-page-head": "settings.html:63",
+    "ds-page-head__lead": "settings.html:65",
+    "ds-page-head__title": "settings.html:64",
+    "ds-panel": "settings.html:59",
+    "ds-presence": "settings.html:203",
+    "ds-radio": "settings.html:187",
+    "ds-radios": "settings.html:186",
+    "ds-savebar": "settings.html:202",
+    "ds-savebar__actions": "settings.html:205",
+    "ds-savebar__bar": "settings.html:203",
+    "ds-savebar__text": "settings.html:204",
+    "ds-scrim": "settings.html:39",
+    "ds-skip": "settings.html:19",
+    "ds-sm": "settings.html:209",
+    "ds-spinner": "settings.html:209",
+    "ds-spinner--ink": "settings.html:209",
+    "ds-split": "settings.html:68",
+    "ds-split--stretch": "settings.html:68",
+    "ds-split__main": "settings.html:81",
+    "ds-split__side": "settings.html:69",
+    "ds-sr": "settings.html:82",
+    "ds-stack": "settings.html:81",
+    "ds-switch": "settings.html:121",
+    "ds-switch--locked": "settings.html:156",
+    "ds-switch-list": "settings.html:120",
+    "ds-switch__hint": "settings.html:125",
+    "ds-switch__icon": "settings.html:158",
+    "ds-switch__label": "settings.html:124",
+    "ds-switch__meta": "settings.html:133",
+    "ds-switch__off": "settings.html:126",
+    "ds-switch__on": "settings.html:126",
+    "ds-switch__state": "settings.html:126",
+    "ds-switch__track": "settings.html:123",
+    "ds-tag": "settings.html:133",
+    "ds-theme": "settings.html:2",
+    "ds-toasts": "settings.html:217",
+    "ds-toc": "settings.html:70",
+    "ds-toc--sticky": "settings.html:70",
+    "ds-toc__link": "settings.html:73",
+    "ds-toc__list": "settings.html:72",
+    "ds-toc__title": "settings.html:71",
+    "ds-tone-neutral": "settings.html:133",
+    "ds-topbar": "settings.html:21",
+    "ds-topbar__actions": "settings.html:24",
+    "ds-topbar__menu": "settings.html:22",
+    "ds-unsaved__count": "settings.html:204",
+    "ds-view": "settings.html:60"
+  },
+  "unknown": []
+}

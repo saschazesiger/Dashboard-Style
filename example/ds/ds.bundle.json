@@ -1,19 +1,19 @@
 {
   "name": "dashboard-style",
-  "version": "3.0.0-alpha.5",
+  "version": "3.0.0-alpha.6",
   "entry": "bundle",
   "minify": true,
   "js": "classic",
   "files": {
     "css": {
       "file": "ds.bundle.css",
-      "bytes": 482765,
-      "gzip": 69968
+      "bytes": 482719,
+      "gzip": 69987
     },
     "js": {
       "file": "ds.bundle.js",
-      "bytes": 1059163,
-      "gzip": 250855
+      "bytes": 1061608,
+      "gzip": 251353
     },
     "properties": {
       "file": "properties.css",
@@ -24,8 +24,8 @@
     {
       "name": "utilities",
       "reason": "app.js:143 ds-sr",
-      "bytes": 5304,
-      "gzip": 1436
+      "bytes": 5326,
+      "gzip": 1448
     },
     {
       "name": "spinner",
@@ -156,8 +156,8 @@
     {
       "name": "table",
       "reason": "app.js:382 ds-selection-bar",
-      "bytes": 32925,
-      "gzip": 4735
+      "bytes": 32874,
+      "gzip": 4760
     },
     {
       "name": "pagination",
@@ -168,8 +168,8 @@
     {
       "name": "form",
       "reason": "app.js:344 ds-search",
-      "bytes": 49285,
-      "gzip": 7087
+      "bytes": 49307,
+      "gzip": 7088
     },
     {
       "name": "drag",
@@ -192,8 +192,8 @@
     {
       "name": "page",
       "reason": "app.js:142 ds-page-head",
-      "bytes": 8000,
-      "gzip": 2189
+      "bytes": 8012,
+      "gzip": 2191
     },
     {
       "name": "shell",

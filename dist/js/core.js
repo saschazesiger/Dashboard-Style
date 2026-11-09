@@ -46,8 +46,9 @@
  * action guard of motion.js and the ripple delegation of ripple.js, and
  * the tooltips of the tooltip module) and initialises every matching element in
  * it, except inside [data-ds-managed] (a React adapter's root: the adapter
- * owns those elements; ripple, guard and tooltips still serve them, being
- * delegated). With observe (the default) one MutationObserver per root
+ * owns those elements and runs their behaviours through manage(); ripple,
+ * guard and tooltips still serve them, being delegated;
+ * data-ds-managed="off" inside one hands its subtree back). With observe (the default) one MutationObserver per root
  * watches childList and subtree, plus the attributes of every behaviour
  * (DS.dom.morphHtml patches in place: a new data-ds-* attribute arrives
  * without a childList record). Records are batched to a microtask; at the
@@ -628,7 +629,7 @@ const DEFAULT_STRINGS = Object.freeze({
  * This module's shared state (runtime.state('core')): the behaviours by
  * name, the controllers of each element (name to entry), the roots of
  * init() and the page's settings (locale, overridden strings).
- * @type {{ specs: Map<string, any>, elements: WeakMap<Element, Map<string, any>>, roots: Map<Node, any>, settings: { locale: string|null, strings: Record<string, any> } }}
+ * @type {{ specs: Map<string, any>, elements: WeakMap<Element, Map<string, any>>, roots: Map<Node, any>, settings: { locale: string|null, strings: Record<string, any>, version?: number } }}
  */
 const core = runtime.state('core', () => ({
   specs: new Map(),
@@ -652,7 +653,16 @@ function report(error) {
 
 const isNode = (value) => Boolean(value) && typeof value === 'object' && typeof value.nodeType === 'number';
 const viewOf = (node) => (node.nodeType === 9 ? node : node.ownerDocument)?.defaultView ?? globalThis;
-const isManaged = (element) => Boolean(element.closest?.(`[${MANAGED}]`));
+/**
+ * Whether an owner runs the behaviours of `element`: the nearest
+ * [data-ds-managed] at or above it, unless that one says "off" (a part of
+ * a managed subtree handed back to init(), such as the content slot of an
+ * adapter component).
+ */
+const isManaged = (element) => {
+  const owner = element.closest?.(`[${MANAGED}]`);
+  return Boolean(owner) && owner.getAttribute(MANAGED) !== 'off';
+};
 
 /** The behaviours that initialise elements, as [name, spec]. */
 const elementSpecs = () => [...core.specs].filter(([, spec]) => spec.init);
@@ -772,7 +782,14 @@ function detachAll(element, state) {
 /** Initialises every element in `node` (itself included) that a behaviour matches. */
 function scan(node, state, specs = elementSpecs()) {
   if (!specs.length || typeof node?.querySelectorAll !== 'function') return;
-  if (node.nodeType === 1 && isManaged(node)) return;
+  if (node.nodeType === 1 && isManaged(node)) {
+    // The parts of it handed back (data-ds-managed="off") are scanned on their own.
+    for (const slot of node.querySelectorAll(`[${MANAGED}="off"]`)) {
+      const outer = slot.parentNode;
+      if (outer?.nodeType === 1 && isManaged(outer)) scan(slot, state, specs);
+    }
+    return;
+  }
   const selector = specs.map(([, spec]) => spec.match).join(', ');
   const found = node.nodeType === 1 && node.matches(selector) ? [node] : [];
   for (const element of node.querySelectorAll(selector)) found.push(element);
@@ -819,6 +836,78 @@ export function get(el, name) {
   if (!entries) return null;
   const entry = name === undefined ? entries.values().next().value : entries.get(name);
   return entry?.handle ?? null;
+}
+
+/**
+ * Runs the behaviour `name` on `el` for an owner that renders the element
+ * itself (the React adapter, on a root marked [data-ds-managed], which
+ * init() and its observer leave alone). The behaviour's own init() makes
+ * the controller, as for markup that init() finds, so the element's
+ * data-ds-* attributes are its options; get(el, name) returns it. An
+ * element that does not match the behaviour yet (its attribute not
+ * written) gets its controller once update() sees it match. Returns a
+ * handle, or null when no behaviour `name` initialises elements (its module
+ * is not loaded):
+ * - controller: the controller (null when init() returned a function or
+ *   nothing, or once destroyed);
+ * - update(): after the owner changed attributes of the element, does what
+ *   the observer does for a change of the behaviour's attributes (the
+ *   controller's update(names), else a fresh controller);
+ * - destroy(): destroys the controller; safe to call twice (a React
+ *   StrictMode effect runs its cleanup and then the effect once more).
+ * A controller that a root of init() made already (the element was not
+ * managed then) stays that root's: the handle reads it and leaves it.
+ * @param {Element} el
+ * @param {string} name
+ * @returns {{ readonly controller: any, update(): void, destroy(): void } | null}
+ */
+export function manage(el, name) {
+  const spec = core.specs.get(name);
+  if (!spec?.init || !isNode(el) || el.nodeType !== 1) return null;
+  const state = { root: el.getRootNode?.() ?? el.ownerDocument, live: new Set() };
+  const watched = [spec.attribute, ...spec.attributes].filter(Boolean);
+  const read = () => watched.map((attribute) => el.getAttribute(attribute));
+  // Without its attribute (yet), nothing runs; update() starts it once the owner writes it.
+  if (el.matches(spec.match)) attachOne(el, name, spec, state);
+  let seen = read();
+  let held = true;
+  const own = () => {
+    const entry = core.elements.get(el)?.get(name);
+    return entry?.state === state ? entry : null;
+  };
+  return {
+    get controller() {
+      return held ? core.elements.get(el)?.get(name)?.controller ?? null : null;
+    },
+    update() {
+      if (!held) return;
+      const now = read();
+      const names = watched.filter((attribute, index) => now[index] !== seen[index]);
+      seen = now;
+      if (!names.length) return;
+      const entry = own();
+      const matches = el.matches(spec.match);
+      if (!entry) {
+        // Its attribute came back: a fresh controller, unless a root of init() holds one.
+        if (matches && !core.elements.get(el)?.has(name)) attachOne(el, name, spec, state);
+      } else if (!matches) detachOne(el, name);
+      else if (typeof entry.controller?.update === 'function') {
+        try {
+          entry.controller.update(names);
+        } catch (error) {
+          report(error);
+        }
+      } else {
+        detachOne(el, name);
+        attachOne(el, name, spec, state);
+      }
+    },
+    destroy() {
+      if (!held) return;
+      held = false;
+      if (own()) detachOne(el, name);
+    },
+  };
 }
 
 /* ── Roots ──────────────────────────────────────────── */
@@ -1008,6 +1097,9 @@ export function emit(el, type, detail, options = {}) {
 
 /* ── Config and strings ─────────────────────────────── */
 
+/** The strings config() returns, kept until they change: `{ of: the settings, version, strings }`. */
+let frozenStrings = null;
+
 /**
  * Sets the page's locale and overrides strings (a `null` string restores
  * the default; `locale: null` the default locale), and returns the
@@ -1032,12 +1124,17 @@ export function config(options) {
       if (value === null || value === undefined) delete settings.strings[key];
       else settings.strings[key] = typeof value === 'function' ? value : String(value);
     }
-    if (texts.length) changed.push('strings');
+    if (texts.length) {
+      changed.push('strings');
+      settings.version = (settings.version ?? 0) + 1;
+    }
   }
-  const current = Object.freeze({
-    locale: localeNow(),
-    strings: Object.freeze({ ...DEFAULT_STRINGS, ...settings.strings }),
-  });
+  // Read on every format and label: the merged strings are copied once per change, not on every read. The version
+  // sits in the shared settings, so a change through another copy of this module counts too.
+  if (!frozenStrings || frozenStrings.of !== settings || frozenStrings.version !== (settings.version ?? 0)) {
+    frozenStrings = { of: settings, version: settings.version ?? 0, strings: Object.freeze({ ...DEFAULT_STRINGS, ...settings.strings }) };
+  }
+  const current = Object.freeze({ locale: localeNow(), strings: frozenStrings.strings });
   if (changed.length && typeof doc?.dispatchEvent === 'function') emit(doc, 'config', { ...current, changed });
   return current;
 }

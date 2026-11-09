@@ -1,0 +1,336 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "form",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.form.css",
+      "bytes": 198876,
+      "gzip": 32504
+    },
+    "js": {
+      "file": "ds.form.js",
+      "bytes": 472015,
+      "gzip": 112233
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 30
+    }
+  },
+  "components": [
+    {
+      "name": "layout",
+      "reason": "form-sent.html:17 ds-cover",
+      "bytes": 3326,
+      "gzip": 1048
+    },
+    {
+      "name": "utilities",
+      "reason": "form.html:23 ds-muted",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "spinner",
+      "reason": "form.html:102 ds-spinner",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by module indicator",
+      "bytes": 2868,
+      "gzip": 619
+    },
+    {
+      "name": "button",
+      "reason": "form-sent.html:26 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "alert",
+      "reason": "form.html:27 ds-alert",
+      "bytes": 6191,
+      "gzip": 1561
+    },
+    {
+      "name": "card",
+      "reason": "form.html:19 ds-card",
+      "bytes": 16606,
+      "gzip": 2659
+    },
+    {
+      "name": "menu",
+      "reason": "needed by module menu",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "form",
+      "reason": "form.html:26 ds-form",
+      "bytes": 49307,
+      "gzip": 7088
+    },
+    {
+      "name": "tooltip",
+      "reason": "form-sent.html:31 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "form.html:17 ds-auth",
+      "bytes": 8012,
+      "gzip": 2191
+    },
+    {
+      "name": "toast",
+      "reason": "needed by module copy",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "text",
+      "reason": "form.html:50 ds-mono",
+      "bytes": 795,
+      "gzip": 351
+    },
+    {
+      "name": "copy",
+      "reason": "form-sent.html:30 ds-copy",
+      "bytes": 1927,
+      "gzip": 659
+    },
+    {
+      "name": "errorsummary",
+      "reason": "form.html:27 ds-errorsummary",
+      "bytes": 1120,
+      "gzip": 419
+    },
+    {
+      "name": "result",
+      "reason": "form-sent.html:21 ds-result",
+      "bytes": 2618,
+      "gzip": 852
+    },
+    {
+      "name": "formatted",
+      "reason": "form-sent.html:31 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "form.html:142 DS.motion.busy"
+    },
+    {
+      "name": "indicator",
+      "reason": "form.html:137 DS.indicator.create"
+    },
+    {
+      "name": "dom",
+      "reason": "imported by a11y"
+    },
+    {
+      "name": "ripple",
+      "reason": "form-sent.html:50 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "form-sent.html:48 DS.icons.fill"
+    },
+    {
+      "name": "position",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "overlay",
+      "reason": "needed by tooltip"
+    },
+    {
+      "name": "a11y",
+      "reason": "imported by copy"
+    },
+    {
+      "name": "hotkeys",
+      "reason": "imported by copy"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "copy",
+      "reason": "form-sent.html:31 data-ds-copy"
+    },
+    {
+      "name": "errorsummary",
+      "reason": "needed by errorsummary"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by page"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    }
+  ],
+  "icons": [
+    {
+      "name": "close",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "used by module page"
+    },
+    {
+      "name": "copy",
+      "reason": "form-sent.html:32"
+    },
+    {
+      "name": "check",
+      "reason": "form-sent.html:32"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "form-sent.html:22"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "form.html:27"
+    },
+    {
+      "name": "info",
+      "reason": "form.html:51"
+    },
+    {
+      "name": "helpCircle",
+      "reason": "form.html:64"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "apps",
+      "reason": "form.html:60"
+    },
+    {
+      "name": "key",
+      "reason": "form.html:62"
+    },
+    {
+      "name": "box",
+      "reason": "form-sent.html:19"
+    },
+    {
+      "name": "laptop",
+      "reason": "form.html:58"
+    }
+  ],
+  "classes": {
+    "ds-alert": "form.html:27",
+    "ds-alert__text": "form.html:28",
+    "ds-alert__title": "form.html:29",
+    "ds-auth": "form.html:17",
+    "ds-auth__card": "form.html:19",
+    "ds-base": "form-sent.html:2",
+    "ds-btn": "form-sent.html:26",
+    "ds-btn--filled": "form-sent.html:26",
+    "ds-btn--icon": "form-sent.html:31",
+    "ds-btn--quiet": "form-sent.html:31",
+    "ds-btn--text": "form-sent.html:27",
+    "ds-btn__face": "form.html:101",
+    "ds-btn__face--busy": "form.html:102",
+    "ds-btn__faces": "form.html:100",
+    "ds-card": "form.html:19",
+    "ds-card--elevated": "form.html:19",
+    "ds-card__title": "form.html:22",
+    "ds-check": "form.html:96",
+    "ds-cluster": "form-sent.html:37",
+    "ds-cluster--center": "form-sent.html:37",
+    "ds-copy": "form-sent.html:30",
+    "ds-copy__value": "form-sent.html:30",
+    "ds-cover": "form-sent.html:17",
+    "ds-cover--screen": "form-sent.html:17",
+    "ds-cover__main": "form-sent.html:21",
+    "ds-errorsummary": "form.html:27",
+    "ds-errorsummary__list": "form.html:30",
+    "ds-errorsummary__title": "form.html:29",
+    "ds-field": "form.html:35",
+    "ds-field__counter": "form.html:75",
+    "ds-field__foot": "form.html:73",
+    "ds-field__hint": "form.html:38",
+    "ds-field__hint--error": "form.html:38",
+    "ds-field__label": "form.html:36",
+    "ds-field__optional": "form.html:49",
+    "ds-form": "form.html:26",
+    "ds-form-actions": "form.html:98",
+    "ds-form-grid": "form.html:34",
+    "ds-form-grid--2": "form.html:34",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-icon-swap": "form-sent.html:32",
+    "ds-icon-swap__a": "form-sent.html:32",
+    "ds-icon-swap__b": "form-sent.html:32",
+    "ds-input": "form.html:37",
+    "ds-link--quiet": "form-sent.html:38",
+    "ds-meta": "form.html:106",
+    "ds-mono": "form.html:50",
+    "ds-muted": "form.html:23",
+    "ds-radio": "form.html:58",
+    "ds-radio__icon": "form.html:58",
+    "ds-radio__mark": "form.html:59",
+    "ds-radios": "form.html:57",
+    "ds-radios--tiles": "form.html:57",
+    "ds-radios__indicator": "form.html:137",
+    "ds-result": "form-sent.html:21",
+    "ds-result--success": "form-sent.html:21",
+    "ds-result__actions": "form-sent.html:25",
+    "ds-result__disc": "form-sent.html:22",
+    "ds-result__meta": "form-sent.html:29",
+    "ds-result__text": "form-sent.html:24",
+    "ds-result__title": "form-sent.html:23",
+    "ds-sm": "form.html:102",
+    "ds-spinner": "form.html:102",
+    "ds-spinner--ink": "form.html:102",
+    "ds-stack": "form.html:18",
+    "ds-theme": "form-sent.html:2",
+    "ds-tone-error": "form.html:27",
+    "ds-xs": "form-sent.html:31"
+  },
+  "unknown": []
+}

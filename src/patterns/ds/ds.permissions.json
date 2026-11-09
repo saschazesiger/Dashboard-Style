@@ -1,0 +1,420 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "permissions",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.permissions.css",
+      "bytes": 311887,
+      "gzip": 47275
+    },
+    "js": {
+      "file": "ds.permissions.js",
+      "bytes": 672571,
+      "gzip": 160946
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 35
+    }
+  },
+  "components": [
+    {
+      "name": "utilities",
+      "reason": "permissions.html:75 ds-sr",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "spinner",
+      "reason": "permissions.html:101 ds-spinner",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by module indicator",
+      "bytes": 2868,
+      "gzip": 619
+    },
+    {
+      "name": "button",
+      "reason": "permissions.html:22 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "status",
+      "reason": "permissions.html:82 ds-tag",
+      "bytes": 3164,
+      "gzip": 921
+    },
+    {
+      "name": "chart",
+      "reason": "required by list",
+      "bytes": 23341,
+      "gzip": 4433
+    },
+    {
+      "name": "list",
+      "reason": "permissions.html:88 ds-lock",
+      "bytes": 18637,
+      "gzip": 3412
+    },
+    {
+      "name": "card",
+      "reason": "permissions.html:68 ds-card",
+      "bytes": 16606,
+      "gzip": 2659
+    },
+    {
+      "name": "menu",
+      "reason": "permissions.html:30 ds-menu",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "table",
+      "reason": "permissions.html:73 ds-table-wrap",
+      "bytes": 32874,
+      "gzip": 4760
+    },
+    {
+      "name": "form",
+      "reason": "permissions.html:157 ds-check",
+      "bytes": 49307,
+      "gzip": 7088
+    },
+    {
+      "name": "drag",
+      "reason": "required by list",
+      "bytes": 8418,
+      "gzip": 1901
+    },
+    {
+      "name": "tooltip",
+      "reason": "permissions.html:25 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "permissions.html:61 ds-content",
+      "bytes": 8012,
+      "gzip": 2191
+    },
+    {
+      "name": "shell",
+      "reason": "permissions.html:18 ds-app",
+      "bytes": 39266,
+      "gzip": 6590
+    },
+    {
+      "name": "toast",
+      "reason": "permissions.html:109 ds-toasts",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "savebar",
+      "reason": "permissions.html:94 ds-savebar",
+      "bytes": 3147,
+      "gzip": 958
+    },
+    {
+      "name": "unsaved",
+      "reason": "permissions.html:96 ds-unsaved__count",
+      "bytes": 127,
+      "gzip": 130
+    },
+    {
+      "name": "formatted",
+      "reason": "permissions.html:25 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "dom",
+      "reason": "permissions.html:167 DS.dom.morphHtml"
+    },
+    {
+      "name": "ripple",
+      "reason": "permissions.html:118 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "permissions.html:116 DS.icons.fill"
+    },
+    {
+      "name": "position",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "overlay",
+      "reason": "permissions.html:29 data-ds-open"
+    },
+    {
+      "name": "a11y",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "hotkeys",
+      "reason": "imported by unsaved"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "store",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "virtual",
+      "reason": "needed by list"
+    },
+    {
+      "name": "dnd",
+      "reason": "needed by list"
+    },
+    {
+      "name": "chart",
+      "reason": "needed by chart"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "list",
+      "reason": "needed by list"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by menu"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "shell",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    },
+    {
+      "name": "unsaved",
+      "reason": "needed by unsaved"
+    }
+  ],
+  "icons": [
+    {
+      "name": "close",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "menu",
+      "reason": "permissions.html:22"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "used by module page"
+    },
+    {
+      "name": "moreHorizontal",
+      "reason": "used by module shell"
+    },
+    {
+      "name": "grip",
+      "reason": "used by module list"
+    },
+    {
+      "name": "history",
+      "reason": "permissions.html:46"
+    },
+    {
+      "name": "copy",
+      "reason": "used by module list"
+    },
+    {
+      "name": "logout",
+      "reason": "permissions.html:34"
+    },
+    {
+      "name": "check",
+      "reason": "permissions.html:151"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "info",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "helpCircle",
+      "reason": "permissions.html:26"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "overview",
+      "reason": "permissions.html:44"
+    },
+    {
+      "name": "settings",
+      "reason": "permissions.html:50"
+    },
+    {
+      "name": "lock",
+      "reason": "permissions.html:152"
+    },
+    {
+      "name": "key",
+      "reason": "permissions.html:53"
+    },
+    {
+      "name": "shield",
+      "reason": "permissions.html:52"
+    },
+    {
+      "name": "user",
+      "reason": "permissions.html:33"
+    },
+    {
+      "name": "users",
+      "reason": "permissions.html:51"
+    },
+    {
+      "name": "box",
+      "reason": "permissions.html:23"
+    },
+    {
+      "name": "laptop",
+      "reason": "permissions.html:45"
+    },
+    {
+      "name": "table",
+      "reason": "used by module chart"
+    },
+    {
+      "name": "puzzle",
+      "reason": "permissions.html:54"
+    }
+  ],
+  "classes": {
+    "ds-account": "permissions.html:28",
+    "ds-account__avatar": "permissions.html:29",
+    "ds-account__email": "permissions.html:31",
+    "ds-account__head": "permissions.html:31",
+    "ds-account__menu": "permissions.html:30",
+    "ds-account__name": "permissions.html:31",
+    "ds-account__trigger": "permissions.html:29",
+    "ds-app": "permissions.html:18",
+    "ds-app--drawer": "permissions.html:18",
+    "ds-base": "permissions.html:2",
+    "ds-brand": "permissions.html:23",
+    "ds-brand__name": "permissions.html:23",
+    "ds-btn": "permissions.html:22",
+    "ds-btn--filled": "permissions.html:99",
+    "ds-btn--icon": "permissions.html:22",
+    "ds-btn--quiet": "permissions.html:22",
+    "ds-btn--text": "permissions.html:71",
+    "ds-btn__face": "permissions.html:100",
+    "ds-btn__face--busy": "permissions.html:101",
+    "ds-btn__faces": "permissions.html:100",
+    "ds-card": "permissions.html:68",
+    "ds-card__row": "permissions.html:69",
+    "ds-card__title": "permissions.html:70",
+    "ds-center": "permissions.html:78",
+    "ds-check": "permissions.html:157",
+    "ds-content": "permissions.html:61",
+    "ds-density-compact": "permissions.html:74",
+    "ds-drawer": "permissions.html:40",
+    "ds-drawer__group": "permissions.html:43",
+    "ds-drawer__head": "permissions.html:41",
+    "ds-drawer__heading": "permissions.html:49",
+    "ds-drawer__item": "permissions.html:44",
+    "ds-drawer__label": "permissions.html:44",
+    "ds-drawer__list": "permissions.html:42",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-lg": "permissions.html:31",
+    "ds-lock": "permissions.html:88",
+    "ds-menu": "permissions.html:30",
+    "ds-menu__divider": "permissions.html:32",
+    "ds-menu__item": "permissions.html:33",
+    "ds-menu__label": "permissions.html:33",
+    "ds-meta": "permissions.html:87",
+    "ds-nowrap": "permissions.html:163",
+    "ds-page": "permissions.html:62",
+    "ds-page-head": "permissions.html:63",
+    "ds-page-head__lead": "permissions.html:65",
+    "ds-page-head__title": "permissions.html:64",
+    "ds-panel": "permissions.html:59",
+    "ds-presence": "permissions.html:95",
+    "ds-savebar": "permissions.html:94",
+    "ds-savebar__actions": "permissions.html:97",
+    "ds-savebar__bar": "permissions.html:95",
+    "ds-savebar__text": "permissions.html:96",
+    "ds-scrim": "permissions.html:39",
+    "ds-skip": "permissions.html:19",
+    "ds-sm": "permissions.html:71",
+    "ds-spinner": "permissions.html:101",
+    "ds-spinner--ink": "permissions.html:101",
+    "ds-sr": "permissions.html:75",
+    "ds-table": "permissions.html:74",
+    "ds-table--bordered": "permissions.html:74",
+    "ds-table--pin-first": "permissions.html:74",
+    "ds-table-wrap": "permissions.html:73",
+    "ds-tag": "permissions.html:82",
+    "ds-theme": "permissions.html:2",
+    "ds-toasts": "permissions.html:109",
+    "ds-tone-neutral": "permissions.html:82",
+    "ds-topbar": "permissions.html:21",
+    "ds-topbar__actions": "permissions.html:24",
+    "ds-topbar__menu": "permissions.html:22",
+    "ds-unsaved__count": "permissions.html:96",
+    "ds-view": "permissions.html:60"
+  },
+  "unknown": []
+}

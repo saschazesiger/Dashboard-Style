@@ -1080,7 +1080,7 @@ function attributeOptions(el) {
   return options;
 }
 
-function controller(el, start, signal) {
+function controller(el, start, signal, before = null) {
   let source = start.source;
   let options = start.options;
   const listeners = new Set();
@@ -1115,7 +1115,15 @@ function controller(el, start, signal) {
       options = { ...start.options, ...attributeOptions(el), idPrefix: options.idPrefix };
       write();
     },
-    destroy() { listeners.clear(); },
+    destroy() {
+      listeners.clear();
+      // The attribute path gives the source back, so destroy() and a new init render the same (a re-created
+      // controller, React's StrictMode); a controller of create() leaves the rendered markup.
+      if (!before) return;
+      el.replaceChildren(...before.nodes);
+      if (before.state === null) el.removeAttribute('data-state');
+      else el.setAttribute('data-state', before.state);
+    },
   };
 }
 
@@ -1123,7 +1131,8 @@ define('markdown', {
   attribute: 'data-ds-markdown',
   attributes: ['data-ds-markdown-anchors', 'data-ds-markdown-breaks', 'data-ds-markdown-code', 'data-ds-markdown-images'],
   init(el, ctx) {
-    return controller(el, { source: sourceOf(el), options: attributeOptions(el) }, ctx.signal);
+    const before = { nodes: Array.from(el.childNodes, (node) => node.cloneNode(true)), state: el.getAttribute('data-state') };
+    return controller(el, { source: sourceOf(el), options: attributeOptions(el) }, ctx.signal, before);
   },
 });
 

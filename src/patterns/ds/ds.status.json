@@ -1,0 +1,244 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "status",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.status.css",
+      "bytes": 105694,
+      "gzip": 20008
+    },
+    "js": {
+      "file": "ds.status.js",
+      "bytes": 398735,
+      "gzip": 95557
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 25
+    }
+  },
+  "components": [
+    {
+      "name": "layout",
+      "reason": "error-403.html:17 ds-cover",
+      "bytes": 3326,
+      "gzip": 1048
+    },
+    {
+      "name": "utilities",
+      "reason": "pt.js:57 ds-icon--fillable",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "spinner",
+      "reason": "error-403.html:30 ds-spinner",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "button",
+      "reason": "error-403.html:27 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "tooltip",
+      "reason": "error-403.html:40 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "toast",
+      "reason": "error-403.html:42 ds-toasts",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "copy",
+      "reason": "error-500.html:31 ds-copy",
+      "bytes": 1927,
+      "gzip": 659
+    },
+    {
+      "name": "result",
+      "reason": "error-403.html:21 ds-result",
+      "bytes": 2618,
+      "gzip": 852
+    },
+    {
+      "name": "formatted",
+      "reason": "error-403.html:40 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "error-403.html:57 DS.motion.busy"
+    },
+    {
+      "name": "dom",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "ripple",
+      "reason": "error-403.html:51 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "error-403.html:49 DS.icons.fill"
+    },
+    {
+      "name": "position",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "overlay",
+      "reason": "error-403.html:60 DS.overlay.toast"
+    },
+    {
+      "name": "a11y",
+      "reason": "imported by copy"
+    },
+    {
+      "name": "hotkeys",
+      "reason": "imported by copy"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "copy",
+      "reason": "error-500.html:32 data-ds-copy"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    }
+  ],
+  "icons": [
+    {
+      "name": "close",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "copy",
+      "reason": "error-500.html:33"
+    },
+    {
+      "name": "check",
+      "reason": "error-403.html:31"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "alert",
+      "reason": "error-500.html:22"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "info",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "wifiOff",
+      "reason": "offline.html:22"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "lock",
+      "reason": "error-403.html:22"
+    },
+    {
+      "name": "box",
+      "reason": "error-403.html:19"
+    },
+    {
+      "name": "mapPin",
+      "reason": "error-404.html:22"
+    },
+    {
+      "name": "wrench",
+      "reason": "maintenance.html:22"
+    },
+    {
+      "name": "refresh",
+      "reason": "error-500.html:27"
+    }
+  ],
+  "classes": {
+    "ds-base": "error-403.html:2",
+    "ds-btn": "error-403.html:27",
+    "ds-btn--filled": "error-403.html:27",
+    "ds-btn--icon": "error-403.html:40",
+    "ds-btn--quiet": "error-403.html:40",
+    "ds-btn--text": "error-403.html:34",
+    "ds-btn__face": "error-403.html:29",
+    "ds-btn__face--busy": "error-403.html:30",
+    "ds-btn__face--done": "error-403.html:31",
+    "ds-btn__faces": "error-403.html:28",
+    "ds-cluster": "error-403.html:37",
+    "ds-cluster--center": "error-403.html:37",
+    "ds-copy": "error-500.html:31",
+    "ds-copy__value": "error-500.html:31",
+    "ds-cover": "error-403.html:17",
+    "ds-cover--screen": "error-403.html:17",
+    "ds-cover__main": "error-403.html:21",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-icon-swap": "error-500.html:33",
+    "ds-icon-swap__a": "error-500.html:33",
+    "ds-icon-swap__b": "error-500.html:33",
+    "ds-link--quiet": "error-403.html:38",
+    "ds-result": "error-403.html:21",
+    "ds-result--error": "error-500.html:21",
+    "ds-result--forbidden": "error-403.html:21",
+    "ds-result--maintenance": "maintenance.html:21",
+    "ds-result--not-found": "error-404.html:21",
+    "ds-result--offline": "offline.html:21",
+    "ds-result__actions": "error-403.html:26",
+    "ds-result__code": "error-403.html:23",
+    "ds-result__disc": "error-403.html:22",
+    "ds-result__meta": "error-500.html:30",
+    "ds-result__text": "error-403.html:25",
+    "ds-result__title": "error-403.html:24",
+    "ds-sm": "error-403.html:30",
+    "ds-spinner": "error-403.html:30",
+    "ds-spinner--ink": "error-403.html:30",
+    "ds-theme": "error-403.html:2",
+    "ds-toasts": "error-403.html:42",
+    "ds-xs": "error-500.html:32"
+  },
+  "unknown": []
+}

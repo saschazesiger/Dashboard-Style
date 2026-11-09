@@ -1,0 +1,516 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "profile",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.profile.css",
+      "bytes": 338033,
+      "gzip": 51152
+    },
+    "js": {
+      "file": "ds.profile.js",
+      "bytes": 688791,
+      "gzip": 164828
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 35
+    }
+  },
+  "components": [
+    {
+      "name": "layout",
+      "reason": "profile.html:70 ds-cluster",
+      "bytes": 3326,
+      "gzip": 1048
+    },
+    {
+      "name": "utilities",
+      "reason": "profile.html:77 ds-meta",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "spinner",
+      "reason": "profile.html:106 ds-spinner",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by module indicator",
+      "bytes": 2868,
+      "gzip": 619
+    },
+    {
+      "name": "button",
+      "reason": "profile.html:22 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "status",
+      "reason": "profile.html:94 ds-tag",
+      "bytes": 3164,
+      "gzip": 921
+    },
+    {
+      "name": "chart",
+      "reason": "required by list",
+      "bytes": 23341,
+      "gzip": 4433
+    },
+    {
+      "name": "list",
+      "reason": "profile.html:160 ds-kv-list",
+      "bytes": 18637,
+      "gzip": 3412
+    },
+    {
+      "name": "card",
+      "reason": "profile.html:68 ds-card",
+      "bytes": 16606,
+      "gzip": 2659
+    },
+    {
+      "name": "menu",
+      "reason": "profile.html:30 ds-menu",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "dialog",
+      "reason": "profile.html:206 ds-dialog",
+      "bytes": 15994,
+      "gzip": 2482
+    },
+    {
+      "name": "table",
+      "reason": "needed by module chart",
+      "bytes": 32874,
+      "gzip": 4760
+    },
+    {
+      "name": "form",
+      "reason": "profile.html:68 ds-form",
+      "bytes": 49307,
+      "gzip": 7088
+    },
+    {
+      "name": "drag",
+      "reason": "required by list",
+      "bytes": 8418,
+      "gzip": 1901
+    },
+    {
+      "name": "tooltip",
+      "reason": "profile.html:25 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "profile.html:61 ds-content",
+      "bytes": 8012,
+      "gzip": 2191
+    },
+    {
+      "name": "shell",
+      "reason": "profile.html:18 ds-app",
+      "bytes": 39266,
+      "gzip": 6590
+    },
+    {
+      "name": "toast",
+      "reason": "profile.html:225 ds-toasts",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "spacing",
+      "reason": "profile.html:72 ds-gap-1",
+      "bytes": 866,
+      "gzip": 250
+    },
+    {
+      "name": "password",
+      "reason": "profile.html:127 ds-password__caps",
+      "bytes": 1527,
+      "gzip": 554
+    },
+    {
+      "name": "typeconfirm",
+      "reason": "profile.html:208 ds-typeconfirm",
+      "bytes": 406,
+      "gzip": 226
+    },
+    {
+      "name": "formatted",
+      "reason": "profile.html:25 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "presence",
+      "reason": "needed by module avatar",
+      "bytes": 1438,
+      "gzip": 558
+    },
+    {
+      "name": "avatar",
+      "reason": "profile.html:71 ds-avatar",
+      "bytes": 5871,
+      "gzip": 1523
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "profile.html:273 DS.motion.busy"
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "dom",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "ripple",
+      "reason": "profile.html:234 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "profile.html:232 DS.icons.fill"
+    },
+    {
+      "name": "position",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "overlay",
+      "reason": "profile.html:29 data-ds-open"
+    },
+    {
+      "name": "a11y",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "store",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "virtual",
+      "reason": "needed by list"
+    },
+    {
+      "name": "dnd",
+      "reason": "needed by list"
+    },
+    {
+      "name": "avatar",
+      "reason": "needed by avatar"
+    },
+    {
+      "name": "chart",
+      "reason": "needed by chart"
+    },
+    {
+      "name": "dialog",
+      "reason": "needed by dialog"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "list",
+      "reason": "needed by list"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by menu"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "password",
+      "reason": "needed by password"
+    },
+    {
+      "name": "shell",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    },
+    {
+      "name": "typeconfirm",
+      "reason": "needed by typeconfirm"
+    }
+  ],
+  "icons": [
+    {
+      "name": "close",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "menu",
+      "reason": "profile.html:22"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "used by module page"
+    },
+    {
+      "name": "moreHorizontal",
+      "reason": "used by module shell"
+    },
+    {
+      "name": "grip",
+      "reason": "used by module list"
+    },
+    {
+      "name": "history",
+      "reason": "profile.html:46"
+    },
+    {
+      "name": "copy",
+      "reason": "used by module list"
+    },
+    {
+      "name": "upload",
+      "reason": "profile.html:74"
+    },
+    {
+      "name": "logout",
+      "reason": "profile.html:34"
+    },
+    {
+      "name": "check",
+      "reason": "profile.html:107"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "alert",
+      "reason": "profile.html:127"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "profile.html:257"
+    },
+    {
+      "name": "info",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "helpCircle",
+      "reason": "profile.html:26"
+    },
+    {
+      "name": "eye",
+      "reason": "profile.html:123"
+    },
+    {
+      "name": "eyeOff",
+      "reason": "profile.html:123"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "overview",
+      "reason": "profile.html:44"
+    },
+    {
+      "name": "settings",
+      "reason": "profile.html:50"
+    },
+    {
+      "name": "key",
+      "reason": "profile.html:53"
+    },
+    {
+      "name": "shield",
+      "reason": "profile.html:52"
+    },
+    {
+      "name": "user",
+      "reason": "profile.html:33"
+    },
+    {
+      "name": "users",
+      "reason": "profile.html:51"
+    },
+    {
+      "name": "box",
+      "reason": "profile.html:23"
+    },
+    {
+      "name": "laptop",
+      "reason": "profile.html:45"
+    },
+    {
+      "name": "monitor",
+      "reason": "profile.html:188"
+    },
+    {
+      "name": "table",
+      "reason": "used by module chart"
+    },
+    {
+      "name": "smartphone",
+      "reason": "profile.html:183"
+    },
+    {
+      "name": "puzzle",
+      "reason": "profile.html:54"
+    }
+  ],
+  "classes": {
+    "ds-account": "profile.html:28",
+    "ds-account__avatar": "profile.html:29",
+    "ds-account__email": "profile.html:31",
+    "ds-account__head": "profile.html:31",
+    "ds-account__menu": "profile.html:30",
+    "ds-account__name": "profile.html:31",
+    "ds-account__trigger": "profile.html:29",
+    "ds-app": "profile.html:18",
+    "ds-app--drawer": "profile.html:18",
+    "ds-avatar": "profile.html:71",
+    "ds-avatar--hue-3": "profile.html:71",
+    "ds-base": "profile.html:2",
+    "ds-brand": "profile.html:23",
+    "ds-brand__name": "profile.html:23",
+    "ds-btn": "profile.html:22",
+    "ds-btn--filled": "profile.html:104",
+    "ds-btn--icon": "profile.html:22",
+    "ds-btn--quiet": "profile.html:22",
+    "ds-btn--text": "profile.html:75",
+    "ds-btn__face": "profile.html:105",
+    "ds-btn__face--busy": "profile.html:106",
+    "ds-btn__face--done": "profile.html:107",
+    "ds-btn__faces": "profile.html:105",
+    "ds-card": "profile.html:68",
+    "ds-card__link": "profile.html:165",
+    "ds-card__links": "profile.html:164",
+    "ds-card__row": "profile.html:155",
+    "ds-card__title": "profile.html:69",
+    "ds-cluster": "profile.html:70",
+    "ds-content": "profile.html:61",
+    "ds-dialog": "profile.html:206",
+    "ds-dialog__actions": "profile.html:216",
+    "ds-dialog__backdrop": "profile.html:207",
+    "ds-dialog__box": "profile.html:208",
+    "ds-dialog__text": "profile.html:210",
+    "ds-dialog__title": "profile.html:209",
+    "ds-drawer": "profile.html:40",
+    "ds-drawer__group": "profile.html:43",
+    "ds-drawer__head": "profile.html:41",
+    "ds-drawer__heading": "profile.html:49",
+    "ds-drawer__item": "profile.html:44",
+    "ds-drawer__label": "profile.html:44",
+    "ds-drawer__list": "profile.html:42",
+    "ds-field": "profile.html:82",
+    "ds-field__hint": "profile.html:96",
+    "ds-field__hint--error": "profile.html:214",
+    "ds-field__hint--warning": "profile.html:127",
+    "ds-field__label": "profile.html:83",
+    "ds-field__optional": "profile.html:87",
+    "ds-form": "profile.html:68",
+    "ds-form-actions": "profile.html:103",
+    "ds-form-grid": "profile.html:81",
+    "ds-form-grid--2": "profile.html:81",
+    "ds-gap-1": "profile.html:72",
+    "ds-gap-2": "profile.html:73",
+    "ds-grid-2": "profile.html:112",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-icon-swap": "profile.html:123",
+    "ds-icon-swap__a": "profile.html:123",
+    "ds-icon-swap__b": "profile.html:123",
+    "ds-input": "profile.html:84",
+    "ds-input-group": "profile.html:92",
+    "ds-input-group__trailing": "profile.html:94",
+    "ds-kv-list": "profile.html:160",
+    "ds-lg": "profile.html:31",
+    "ds-list": "profile.html:176",
+    "ds-list__actions": "profile.html:185",
+    "ds-list__item": "profile.html:177",
+    "ds-list__media": "profile.html:178",
+    "ds-list__meta": "profile.html:179",
+    "ds-list__text": "profile.html:179",
+    "ds-list__title": "profile.html:179",
+    "ds-menu": "profile.html:30",
+    "ds-menu__divider": "profile.html:32",
+    "ds-menu__item": "profile.html:33",
+    "ds-menu__label": "profile.html:33",
+    "ds-meta": "profile.html:77",
+    "ds-muted": "profile.html:115",
+    "ds-page": "profile.html:62",
+    "ds-page-head": "profile.html:63",
+    "ds-page-head__lead": "profile.html:65",
+    "ds-page-head__title": "profile.html:64",
+    "ds-panel": "profile.html:59",
+    "ds-password__bars": "profile.html:141",
+    "ds-password__caps": "profile.html:127",
+    "ds-password__meter": "profile.html:140",
+    "ds-password__strength": "profile.html:142",
+    "ds-scrim": "profile.html:39",
+    "ds-skip": "profile.html:19",
+    "ds-sm": "profile.html:74",
+    "ds-spinner": "profile.html:106",
+    "ds-spinner--ink": "profile.html:106",
+    "ds-sr": "profile.html:174",
+    "ds-stack": "profile.html:72",
+    "ds-status": "profile.html:157",
+    "ds-tag": "profile.html:94",
+    "ds-theme": "profile.html:2",
+    "ds-toasts": "profile.html:225",
+    "ds-tone-error": "profile.html:218",
+    "ds-tone-success": "profile.html:94",
+    "ds-topbar": "profile.html:21",
+    "ds-topbar__actions": "profile.html:24",
+    "ds-topbar__menu": "profile.html:22",
+    "ds-typeconfirm": "profile.html:208",
+    "ds-typeconfirm__confirm": "profile.html:218",
+    "ds-typeconfirm__error": "profile.html:214",
+    "ds-typeconfirm__input": "profile.html:213",
+    "ds-typeconfirm__label": "profile.html:212",
+    "ds-view": "profile.html:60",
+    "ds-xl": "profile.html:71"
+  },
+  "unknown": []
+}

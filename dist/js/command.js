@@ -275,6 +275,8 @@ function controller(el, given = {}, signal = null) {
   const search = input.closest('.ds-command__search') ?? input.parentElement;
   let list = el.querySelector('.ds-command__list');
   const written = fromMarkup(list);
+  // The page's options, given back on destroy: a new init reads the same commands (their shortcuts too).
+  const listBefore = list ? Array.from(list.childNodes, (node) => node.cloneNode(true)) : null;
   if (!list) {
     list = doc.createElement('div');
     list.className = 'ds-command__list';
@@ -875,6 +877,7 @@ function controller(el, given = {}, signal = null) {
       view.clearTimeout(spinnerTimer);
       lifetime.abort();
       back.remove();
+      if (listBefore) list.replaceChildren(...listBefore);
       listeners.clear();
       store?.destroy();
     },

@@ -1,0 +1,446 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "integrations",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.integrations.css",
+      "bytes": 258419,
+      "gzip": 40814
+    },
+    "js": {
+      "file": "ds.integrations.js",
+      "bytes": 509784,
+      "gzip": 120991
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 30
+    }
+  },
+  "components": [
+    {
+      "name": "layout",
+      "reason": "integrations.html:78 ds-grid",
+      "bytes": 3326,
+      "gzip": 1048
+    },
+    {
+      "name": "utilities",
+      "reason": "integrations.html:72 ds-sr",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "spinner",
+      "reason": "integrations.html:104 ds-spinner",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by module indicator",
+      "bytes": 2868,
+      "gzip": 619
+    },
+    {
+      "name": "button",
+      "reason": "integrations.html:22 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "status",
+      "reason": "integrations.html:138 ds-status",
+      "bytes": 3164,
+      "gzip": 921
+    },
+    {
+      "name": "card",
+      "reason": "integrations.html:153 ds-card",
+      "bytes": 16606,
+      "gzip": 2659
+    },
+    {
+      "name": "empty",
+      "reason": "integrations.html:79 ds-empty",
+      "bytes": 3869,
+      "gzip": 1174
+    },
+    {
+      "name": "menu",
+      "reason": "integrations.html:30 ds-menu",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "dialog",
+      "reason": "integrations.html:91 ds-dialog",
+      "bytes": 15994,
+      "gzip": 2482
+    },
+    {
+      "name": "form",
+      "reason": "integrations.html:68 ds-action-bar",
+      "bytes": 49307,
+      "gzip": 7088
+    },
+    {
+      "name": "tooltip",
+      "reason": "integrations.html:25 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "integrations.html:61 ds-content",
+      "bytes": 8012,
+      "gzip": 2191
+    },
+    {
+      "name": "shell",
+      "reason": "integrations.html:18 ds-app",
+      "bytes": 39266,
+      "gzip": 6590
+    },
+    {
+      "name": "toast",
+      "reason": "integrations.html:109 ds-toasts",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "spacing",
+      "reason": "integrations.html:160 ds-gap-2",
+      "bytes": 866,
+      "gzip": 250
+    },
+    {
+      "name": "formatted",
+      "reason": "integrations.html:25 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "presence",
+      "reason": "needed by module avatar",
+      "bytes": 1438,
+      "gzip": 558
+    },
+    {
+      "name": "avatar",
+      "reason": "integrations.html:155 ds-avatar",
+      "bytes": 5871,
+      "gzip": 1523
+    },
+    {
+      "name": "persona",
+      "reason": "integrations.html:154 ds-persona",
+      "bytes": 1710,
+      "gzip": 604
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "integrations.html:178 DS.motion.flip"
+    },
+    {
+      "name": "indicator",
+      "reason": "integrations.html:188 DS.indicator.create"
+    },
+    {
+      "name": "dom",
+      "reason": "integrations.html:178 DS.dom.morphHtml"
+    },
+    {
+      "name": "ripple",
+      "reason": "integrations.html:118 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "integrations.html:116 DS.icons.fill"
+    },
+    {
+      "name": "position",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "overlay",
+      "reason": "integrations.html:29 data-ds-open"
+    },
+    {
+      "name": "a11y",
+      "reason": "imported by dialog"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "store",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "avatar",
+      "reason": "needed by avatar"
+    },
+    {
+      "name": "dialog",
+      "reason": "integrations.html:229 DS.dialog.form"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by menu"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "shell",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    }
+  ],
+  "icons": [
+    {
+      "name": "close",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "menu",
+      "reason": "integrations.html:22"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "used by module page"
+    },
+    {
+      "name": "moreHorizontal",
+      "reason": "used by module shell"
+    },
+    {
+      "name": "search",
+      "reason": "integrations.html:69"
+    },
+    {
+      "name": "history",
+      "reason": "integrations.html:46"
+    },
+    {
+      "name": "logout",
+      "reason": "integrations.html:34"
+    },
+    {
+      "name": "chat",
+      "reason": "integrations.html:125"
+    },
+    {
+      "name": "mail",
+      "reason": "integrations.html:127"
+    },
+    {
+      "name": "check",
+      "reason": "integrations.html:138"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "integrations.html:139"
+    },
+    {
+      "name": "info",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "helpCircle",
+      "reason": "integrations.html:26"
+    },
+    {
+      "name": "activity",
+      "reason": "integrations.html:130"
+    },
+    {
+      "name": "terminal",
+      "reason": "integrations.html:133"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "overview",
+      "reason": "integrations.html:44"
+    },
+    {
+      "name": "settings",
+      "reason": "integrations.html:50"
+    },
+    {
+      "name": "key",
+      "reason": "integrations.html:53"
+    },
+    {
+      "name": "shield",
+      "reason": "integrations.html:52"
+    },
+    {
+      "name": "user",
+      "reason": "integrations.html:33"
+    },
+    {
+      "name": "users",
+      "reason": "integrations.html:126"
+    },
+    {
+      "name": "ticket",
+      "reason": "integrations.html:131"
+    },
+    {
+      "name": "box",
+      "reason": "integrations.html:23"
+    },
+    {
+      "name": "laptop",
+      "reason": "integrations.html:45"
+    },
+    {
+      "name": "cloud",
+      "reason": "integrations.html:129"
+    },
+    {
+      "name": "webhook",
+      "reason": "integrations.html:132"
+    },
+    {
+      "name": "calendarDays",
+      "reason": "integrations.html:128"
+    },
+    {
+      "name": "puzzle",
+      "reason": "integrations.html:54"
+    }
+  ],
+  "classes": {
+    "ds-account": "integrations.html:28",
+    "ds-account__avatar": "integrations.html:29",
+    "ds-account__email": "integrations.html:31",
+    "ds-account__head": "integrations.html:31",
+    "ds-account__menu": "integrations.html:30",
+    "ds-account__name": "integrations.html:31",
+    "ds-account__trigger": "integrations.html:29",
+    "ds-action-bar": "integrations.html:68",
+    "ds-app": "integrations.html:18",
+    "ds-app--drawer": "integrations.html:18",
+    "ds-avatar": "integrations.html:155",
+    "ds-avatar--square": "integrations.html:155",
+    "ds-base": "integrations.html:2",
+    "ds-brand": "integrations.html:23",
+    "ds-brand__name": "integrations.html:23",
+    "ds-btn": "integrations.html:22",
+    "ds-btn--filled": "integrations.html:102",
+    "ds-btn--icon": "integrations.html:22",
+    "ds-btn--quiet": "integrations.html:22",
+    "ds-btn--text": "integrations.html:101",
+    "ds-btn--tonal": "integrations.html:83",
+    "ds-btn__face": "integrations.html:103",
+    "ds-btn__face--busy": "integrations.html:104",
+    "ds-btn__faces": "integrations.html:103",
+    "ds-card": "integrations.html:153",
+    "ds-cluster": "integrations.html:160",
+    "ds-content": "integrations.html:61",
+    "ds-dialog": "integrations.html:91",
+    "ds-dialog__actions": "integrations.html:100",
+    "ds-dialog__backdrop": "integrations.html:92",
+    "ds-dialog__body": "integrations.html:95",
+    "ds-dialog__box": "integrations.html:93",
+    "ds-dialog__lines": "integrations.html:97",
+    "ds-dialog__text": "integrations.html:96",
+    "ds-dialog__title": "integrations.html:94",
+    "ds-drawer": "integrations.html:40",
+    "ds-drawer__group": "integrations.html:43",
+    "ds-drawer__head": "integrations.html:41",
+    "ds-drawer__heading": "integrations.html:49",
+    "ds-drawer__item": "integrations.html:44",
+    "ds-drawer__label": "integrations.html:44",
+    "ds-drawer__list": "integrations.html:42",
+    "ds-empty": "integrations.html:79",
+    "ds-empty--no-results": "integrations.html:79",
+    "ds-empty__disc": "integrations.html:80",
+    "ds-empty__text": "integrations.html:82",
+    "ds-empty__title": "integrations.html:81",
+    "ds-gap-2": "integrations.html:160",
+    "ds-grid": "integrations.html:78",
+    "ds-grid--max-3": "integrations.html:78",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-input": "integrations.html:69",
+    "ds-lg": "integrations.html:31",
+    "ds-menu": "integrations.html:30",
+    "ds-menu__divider": "integrations.html:32",
+    "ds-menu__item": "integrations.html:33",
+    "ds-menu__label": "integrations.html:33",
+    "ds-meta": "integrations.html:75",
+    "ds-muted": "integrations.html:159",
+    "ds-page": "integrations.html:62",
+    "ds-page-head": "integrations.html:63",
+    "ds-page-head__lead": "integrations.html:65",
+    "ds-page-head__title": "integrations.html:64",
+    "ds-panel": "integrations.html:59",
+    "ds-persona": "integrations.html:154",
+    "ds-persona__name": "integrations.html:156",
+    "ds-persona__role": "integrations.html:157",
+    "ds-persona__text": "integrations.html:156",
+    "ds-scrim": "integrations.html:39",
+    "ds-search": "integrations.html:69",
+    "ds-segmented": "integrations.html:70",
+    "ds-segmented__count": "integrations.html:72",
+    "ds-segmented__indicator": "integrations.html:188",
+    "ds-segmented__option": "integrations.html:71",
+    "ds-skip": "integrations.html:19",
+    "ds-sm": "integrations.html:104",
+    "ds-spinner": "integrations.html:104",
+    "ds-spinner--ink": "integrations.html:104",
+    "ds-sr": "integrations.html:72",
+    "ds-status": "integrations.html:138",
+    "ds-theme": "integrations.html:2",
+    "ds-toasts": "integrations.html:109",
+    "ds-tone-error": "integrations.html:139",
+    "ds-tone-success": "integrations.html:138",
+    "ds-topbar": "integrations.html:21",
+    "ds-topbar__actions": "integrations.html:24",
+    "ds-topbar__menu": "integrations.html:22",
+    "ds-view": "integrations.html:60"
+  },
+  "unknown": []
+}

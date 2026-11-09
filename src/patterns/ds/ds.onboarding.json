@@ -1,0 +1,446 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "onboarding",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.onboarding.css",
+      "bytes": 333939,
+      "gzip": 50261
+    },
+    "js": {
+      "file": "ds.onboarding.js",
+      "bytes": 657431,
+      "gzip": 156753
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 35
+    }
+  },
+  "components": [
+    {
+      "name": "layout",
+      "reason": "onboarding.html:122 ds-grid",
+      "bytes": 3326,
+      "gzip": 1048
+    },
+    {
+      "name": "utilities",
+      "reason": "onboarding.html:125 ds-muted",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "spinner",
+      "reason": "onboarding.html:169 ds-spinner",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by module indicator",
+      "bytes": 2868,
+      "gzip": 619
+    },
+    {
+      "name": "button",
+      "reason": "onboarding.html:22 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "status",
+      "reason": "onboarding.html:83 ds-status",
+      "bytes": 3164,
+      "gzip": 921
+    },
+    {
+      "name": "progress",
+      "reason": "onboarding.html:70 ds-progress",
+      "bytes": 6008,
+      "gzip": 1430
+    },
+    {
+      "name": "chart",
+      "reason": "required by list",
+      "bytes": 23341,
+      "gzip": 4433
+    },
+    {
+      "name": "list",
+      "reason": "onboarding.html:76 ds-list",
+      "bytes": 18637,
+      "gzip": 3412
+    },
+    {
+      "name": "card",
+      "reason": "onboarding.html:65 ds-card",
+      "bytes": 16606,
+      "gzip": 2659
+    },
+    {
+      "name": "menu",
+      "reason": "onboarding.html:30 ds-menu",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "dialog",
+      "reason": "onboarding.html:147 ds-dialog",
+      "bytes": 15994,
+      "gzip": 2482
+    },
+    {
+      "name": "table",
+      "reason": "needed by module chart",
+      "bytes": 32874,
+      "gzip": 4760
+    },
+    {
+      "name": "form",
+      "reason": "onboarding.html:152 ds-field",
+      "bytes": 49307,
+      "gzip": 7088
+    },
+    {
+      "name": "drag",
+      "reason": "required by list",
+      "bytes": 8418,
+      "gzip": 1901
+    },
+    {
+      "name": "tooltip",
+      "reason": "onboarding.html:25 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "onboarding.html:58 ds-content",
+      "bytes": 8012,
+      "gzip": 2191
+    },
+    {
+      "name": "shell",
+      "reason": "onboarding.html:18 ds-app",
+      "bytes": 39266,
+      "gzip": 6590
+    },
+    {
+      "name": "toast",
+      "reason": "onboarding.html:174 ds-toasts",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "formatted",
+      "reason": "onboarding.html:25 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "onboarding.html:235 DS.motion.leave"
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "dom",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "ripple",
+      "reason": "onboarding.html:187 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "onboarding.html:185 DS.icons.fill"
+    },
+    {
+      "name": "position",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "overlay",
+      "reason": "onboarding.html:29 data-ds-open"
+    },
+    {
+      "name": "a11y",
+      "reason": "imported by dialog"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "store",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "virtual",
+      "reason": "needed by list"
+    },
+    {
+      "name": "dnd",
+      "reason": "needed by list"
+    },
+    {
+      "name": "chart",
+      "reason": "needed by chart"
+    },
+    {
+      "name": "dialog",
+      "reason": "onboarding.html:213 DS.dialog.form"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "list",
+      "reason": "needed by list"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by menu"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "shell",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    }
+  ],
+  "icons": [
+    {
+      "name": "close",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "menu",
+      "reason": "onboarding.html:22"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "used by module page"
+    },
+    {
+      "name": "moreHorizontal",
+      "reason": "used by module shell"
+    },
+    {
+      "name": "grip",
+      "reason": "used by module list"
+    },
+    {
+      "name": "copy",
+      "reason": "used by module list"
+    },
+    {
+      "name": "upload",
+      "reason": "onboarding.html:132"
+    },
+    {
+      "name": "logout",
+      "reason": "onboarding.html:34"
+    },
+    {
+      "name": "chat",
+      "reason": "onboarding.html:136"
+    },
+    {
+      "name": "check",
+      "reason": "onboarding.html:83"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "onboarding.html:78"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "used by module dialog"
+    },
+    {
+      "name": "info",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "helpCircle",
+      "reason": "onboarding.html:26"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "overview",
+      "reason": "onboarding.html:45"
+    },
+    {
+      "name": "settings",
+      "reason": "onboarding.html:51"
+    },
+    {
+      "name": "user",
+      "reason": "onboarding.html:33"
+    },
+    {
+      "name": "users",
+      "reason": "onboarding.html:48"
+    },
+    {
+      "name": "userPlus",
+      "reason": "onboarding.html:102"
+    },
+    {
+      "name": "ticket",
+      "reason": "onboarding.html:47"
+    },
+    {
+      "name": "box",
+      "reason": "onboarding.html:23"
+    },
+    {
+      "name": "laptop",
+      "reason": "onboarding.html:46"
+    },
+    {
+      "name": "video",
+      "reason": "onboarding.html:128"
+    },
+    {
+      "name": "table",
+      "reason": "used by module chart"
+    },
+    {
+      "name": "shieldCheck",
+      "reason": "onboarding.html:110"
+    },
+    {
+      "name": "rocket",
+      "reason": "onboarding.html:44"
+    },
+    {
+      "name": "book",
+      "reason": "onboarding.html:124"
+    }
+  ],
+  "classes": {
+    "ds-account": "onboarding.html:28",
+    "ds-account__avatar": "onboarding.html:29",
+    "ds-account__email": "onboarding.html:31",
+    "ds-account__head": "onboarding.html:31",
+    "ds-account__menu": "onboarding.html:30",
+    "ds-account__name": "onboarding.html:31",
+    "ds-account__trigger": "onboarding.html:29",
+    "ds-app": "onboarding.html:18",
+    "ds-app--drawer": "onboarding.html:18",
+    "ds-base": "onboarding.html:2",
+    "ds-brand": "onboarding.html:23",
+    "ds-brand__name": "onboarding.html:23",
+    "ds-btn": "onboarding.html:22",
+    "ds-btn--filled": "onboarding.html:167",
+    "ds-btn--icon": "onboarding.html:22",
+    "ds-btn--quiet": "onboarding.html:22",
+    "ds-btn--text": "onboarding.html:68",
+    "ds-btn--tonal": "onboarding.html:99",
+    "ds-btn__face": "onboarding.html:168",
+    "ds-btn__face--busy": "onboarding.html:169",
+    "ds-btn__faces": "onboarding.html:168",
+    "ds-card": "onboarding.html:65",
+    "ds-card--interactive": "onboarding.html:123",
+    "ds-card__row": "onboarding.html:66",
+    "ds-card__title": "onboarding.html:67",
+    "ds-content": "onboarding.html:58",
+    "ds-dialog": "onboarding.html:147",
+    "ds-dialog__actions": "onboarding.html:165",
+    "ds-dialog__backdrop": "onboarding.html:148",
+    "ds-dialog__body": "onboarding.html:151",
+    "ds-dialog__box": "onboarding.html:149",
+    "ds-dialog__title": "onboarding.html:150",
+    "ds-drawer": "onboarding.html:40",
+    "ds-drawer__group": "onboarding.html:43",
+    "ds-drawer__head": "onboarding.html:41",
+    "ds-drawer__item": "onboarding.html:44",
+    "ds-drawer__label": "onboarding.html:44",
+    "ds-drawer__list": "onboarding.html:42",
+    "ds-field": "onboarding.html:152",
+    "ds-field__hint": "onboarding.html:155",
+    "ds-field__label": "onboarding.html:153",
+    "ds-grid": "onboarding.html:122",
+    "ds-grid--max-4": "onboarding.html:122",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-input": "onboarding.html:154",
+    "ds-lg": "onboarding.html:31",
+    "ds-list": "onboarding.html:76",
+    "ds-list__actions": "onboarding.html:99",
+    "ds-list__description": "onboarding.html:97",
+    "ds-list__item": "onboarding.html:77",
+    "ds-list__media": "onboarding.html:78",
+    "ds-list__media--round": "onboarding.html:78",
+    "ds-list__meta": "onboarding.html:81",
+    "ds-list__text": "onboarding.html:79",
+    "ds-list__title": "onboarding.html:80",
+    "ds-menu": "onboarding.html:30",
+    "ds-menu__divider": "onboarding.html:32",
+    "ds-menu__item": "onboarding.html:33",
+    "ds-menu__label": "onboarding.html:33",
+    "ds-muted": "onboarding.html:125",
+    "ds-page": "onboarding.html:59",
+    "ds-page-head": "onboarding.html:60",
+    "ds-page-head__lead": "onboarding.html:62",
+    "ds-page-head__title": "onboarding.html:61",
+    "ds-panel": "onboarding.html:56",
+    "ds-progress": "onboarding.html:70",
+    "ds-progress--label-end": "onboarding.html:70",
+    "ds-progress__bar": "onboarding.html:72",
+    "ds-progress__label": "onboarding.html:74",
+    "ds-progress__track": "onboarding.html:71",
+    "ds-scrim": "onboarding.html:39",
+    "ds-skip": "onboarding.html:19",
+    "ds-sm": "onboarding.html:68",
+    "ds-spinner": "onboarding.html:169",
+    "ds-spinner--ink": "onboarding.html:169",
+    "ds-stack": "onboarding.html:120",
+    "ds-status": "onboarding.html:83",
+    "ds-theme": "onboarding.html:2",
+    "ds-toasts": "onboarding.html:174",
+    "ds-tone-success": "onboarding.html:83",
+    "ds-topbar": "onboarding.html:21",
+    "ds-topbar__actions": "onboarding.html:24",
+    "ds-topbar__menu": "onboarding.html:22",
+    "ds-view": "onboarding.html:57"
+  },
+  "unknown": []
+}

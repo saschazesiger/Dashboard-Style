@@ -1,0 +1,544 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "record",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.record.css",
+      "bytes": 347024,
+      "gzip": 52070
+    },
+    "js": {
+      "file": "ds.record.js",
+      "bytes": 700638,
+      "gzip": 166683
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 35
+    }
+  },
+  "components": [
+    {
+      "name": "utilities",
+      "reason": "pt.js:57 ds-icon--fillable",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "spinner",
+      "reason": "record.html:132 ds-spinner",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by module indicator",
+      "bytes": 2868,
+      "gzip": 619
+    },
+    {
+      "name": "button",
+      "reason": "record.html:22 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "timeline",
+      "reason": "record.html:195 ds-timeline",
+      "bytes": 5511,
+      "gzip": 1367
+    },
+    {
+      "name": "status",
+      "reason": "record.html:70 ds-status",
+      "bytes": 3164,
+      "gzip": 921
+    },
+    {
+      "name": "chart",
+      "reason": "record.html:149 ds-meter",
+      "bytes": 23341,
+      "gzip": 4433
+    },
+    {
+      "name": "list",
+      "reason": "record.html:102 ds-facts",
+      "bytes": 18637,
+      "gzip": 3412
+    },
+    {
+      "name": "card",
+      "reason": "record.html:96 ds-card",
+      "bytes": 16606,
+      "gzip": 2659
+    },
+    {
+      "name": "menu",
+      "reason": "record.html:30 ds-menu",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "dialog",
+      "reason": "record.html:236 ds-dialog",
+      "bytes": 15994,
+      "gzip": 2482
+    },
+    {
+      "name": "table",
+      "reason": "needed by module chart",
+      "bytes": 32874,
+      "gzip": 4760
+    },
+    {
+      "name": "form",
+      "reason": "record.html:109 ds-form",
+      "bytes": 49307,
+      "gzip": 7088
+    },
+    {
+      "name": "drag",
+      "reason": "required by list",
+      "bytes": 8418,
+      "gzip": 1901
+    },
+    {
+      "name": "tooltip",
+      "reason": "record.html:25 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "record.html:61 ds-content",
+      "bytes": 8012,
+      "gzip": 2191
+    },
+    {
+      "name": "shell",
+      "reason": "record.html:18 ds-app",
+      "bytes": 39266,
+      "gzip": 6590
+    },
+    {
+      "name": "toast",
+      "reason": "record.html:255 ds-toasts",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "text",
+      "reason": "record.html:143 ds-mono",
+      "bytes": 795,
+      "gzip": 351
+    },
+    {
+      "name": "typeconfirm",
+      "reason": "record.html:238 ds-typeconfirm",
+      "bytes": 406,
+      "gzip": 226
+    },
+    {
+      "name": "formatted",
+      "reason": "record.html:25 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "toc",
+      "reason": "record.html:87 ds-toc",
+      "bytes": 5389,
+      "gzip": 1475
+    },
+    {
+      "name": "object",
+      "reason": "record.html:63 ds-object",
+      "bytes": 1307,
+      "gzip": 509
+    },
+    {
+      "name": "presence",
+      "reason": "needed by module avatar",
+      "bytes": 1438,
+      "gzip": 558
+    },
+    {
+      "name": "avatar",
+      "reason": "record.html:163 ds-avatar",
+      "bytes": 5871,
+      "gzip": 1523
+    },
+    {
+      "name": "persona",
+      "reason": "record.html:162 ds-persona",
+      "bytes": 1710,
+      "gzip": 604
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "record.html:305 DS.motion.busy"
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "dom",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "ripple",
+      "reason": "record.html:264 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "pt.js:16 DS.icons"
+    },
+    {
+      "name": "position",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "overlay",
+      "reason": "record.html:29 data-ds-open"
+    },
+    {
+      "name": "a11y",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "store",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "virtual",
+      "reason": "needed by list"
+    },
+    {
+      "name": "dnd",
+      "reason": "needed by list"
+    },
+    {
+      "name": "avatar",
+      "reason": "needed by avatar"
+    },
+    {
+      "name": "chart",
+      "reason": "needed by chart"
+    },
+    {
+      "name": "dialog",
+      "reason": "needed by dialog"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "list",
+      "reason": "needed by list"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by menu"
+    },
+    {
+      "name": "object",
+      "reason": "needed by object"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "shell",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "toc",
+      "reason": "needed by object"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    },
+    {
+      "name": "typeconfirm",
+      "reason": "needed by typeconfirm"
+    }
+  ],
+  "icons": [
+    {
+      "name": "arrowLeft",
+      "reason": "record.html:65"
+    },
+    {
+      "name": "close",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "menu",
+      "reason": "record.html:22"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "used by module page"
+    },
+    {
+      "name": "moreHorizontal",
+      "reason": "used by module shell"
+    },
+    {
+      "name": "grip",
+      "reason": "used by module list"
+    },
+    {
+      "name": "pencil",
+      "reason": "record.html:76"
+    },
+    {
+      "name": "sync",
+      "reason": "record.html:199"
+    },
+    {
+      "name": "history",
+      "reason": "record.html:46"
+    },
+    {
+      "name": "copy",
+      "reason": "used by module list"
+    },
+    {
+      "name": "trash",
+      "reason": "record.html:73"
+    },
+    {
+      "name": "logout",
+      "reason": "record.html:34"
+    },
+    {
+      "name": "check",
+      "reason": "used by module list"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "record.html:285"
+    },
+    {
+      "name": "info",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "helpCircle",
+      "reason": "record.html:26"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "overview",
+      "reason": "record.html:44"
+    },
+    {
+      "name": "settings",
+      "reason": "record.html:50"
+    },
+    {
+      "name": "lock",
+      "reason": "record.html:143"
+    },
+    {
+      "name": "key",
+      "reason": "record.html:53"
+    },
+    {
+      "name": "shield",
+      "reason": "record.html:52"
+    },
+    {
+      "name": "user",
+      "reason": "record.html:33"
+    },
+    {
+      "name": "users",
+      "reason": "record.html:51"
+    },
+    {
+      "name": "box",
+      "reason": "record.html:23"
+    },
+    {
+      "name": "laptop",
+      "reason": "record.html:45"
+    },
+    {
+      "name": "table",
+      "reason": "used by module chart"
+    },
+    {
+      "name": "puzzle",
+      "reason": "record.html:54"
+    }
+  ],
+  "classes": {
+    "ds-account": "record.html:28",
+    "ds-account__avatar": "record.html:29",
+    "ds-account__email": "record.html:31",
+    "ds-account__head": "record.html:31",
+    "ds-account__menu": "record.html:30",
+    "ds-account__name": "record.html:31",
+    "ds-account__trigger": "record.html:29",
+    "ds-app": "record.html:18",
+    "ds-app--drawer": "record.html:18",
+    "ds-avatar": "record.html:163",
+    "ds-avatar--hue-3": "record.html:163",
+    "ds-base": "record.html:2",
+    "ds-brand": "record.html:23",
+    "ds-brand__name": "record.html:23",
+    "ds-btn": "record.html:22",
+    "ds-btn--filled": "record.html:75",
+    "ds-btn--icon": "record.html:22",
+    "ds-btn--quiet": "record.html:22",
+    "ds-btn--text": "record.html:65",
+    "ds-btn__face": "record.html:131",
+    "ds-btn__face--busy": "record.html:132",
+    "ds-btn__faces": "record.html:131",
+    "ds-card": "record.html:96",
+    "ds-content": "record.html:61",
+    "ds-dialog": "record.html:236",
+    "ds-dialog__actions": "record.html:246",
+    "ds-dialog__backdrop": "record.html:237",
+    "ds-dialog__box": "record.html:238",
+    "ds-dialog__text": "record.html:240",
+    "ds-dialog__title": "record.html:239",
+    "ds-drawer": "record.html:40",
+    "ds-drawer__group": "record.html:43",
+    "ds-drawer__head": "record.html:41",
+    "ds-drawer__heading": "record.html:49",
+    "ds-drawer__item": "record.html:44",
+    "ds-drawer__label": "record.html:44",
+    "ds-drawer__list": "record.html:42",
+    "ds-facts": "record.html:102",
+    "ds-facts--rows": "record.html:102",
+    "ds-field": "record.html:111",
+    "ds-field--full": "record.html:120",
+    "ds-field__hint": "record.html:114",
+    "ds-field__hint--error": "record.html:244",
+    "ds-field__label": "record.html:112",
+    "ds-field__optional": "record.html:125",
+    "ds-form": "record.html:109",
+    "ds-form-actions": "record.html:129",
+    "ds-form-grid": "record.html:110",
+    "ds-form-grid--2": "record.html:110",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-input": "record.html:113",
+    "ds-kv-list": "record.html:148",
+    "ds-kv-list--bars": "record.html:148",
+    "ds-lg": "record.html:31",
+    "ds-lock": "record.html:143",
+    "ds-menu": "record.html:30",
+    "ds-menu__divider": "record.html:32",
+    "ds-menu__item": "record.html:33",
+    "ds-menu__label": "record.html:33",
+    "ds-meta": "record.html:152",
+    "ds-meter": "record.html:149",
+    "ds-mono": "record.html:143",
+    "ds-object": "record.html:63",
+    "ds-object__edit": "record.html:99",
+    "ds-object__form": "record.html:109",
+    "ds-object__head": "record.html:97",
+    "ds-object__section": "record.html:96",
+    "ds-object__title": "record.html:98",
+    "ds-object__view": "record.html:101",
+    "ds-page": "record.html:62",
+    "ds-page-head": "record.html:64",
+    "ds-page-head--sticky": "record.html:64",
+    "ds-page-head__actions": "record.html:72",
+    "ds-page-head__back": "record.html:65",
+    "ds-page-head__detail": "record.html:80",
+    "ds-page-head__details": "record.html:79",
+    "ds-page-head__lead": "record.html:69",
+    "ds-page-head__more": "record.html:330",
+    "ds-page-head__row": "record.html:66",
+    "ds-page-head__status": "record.html:70",
+    "ds-page-head__text": "record.html:67",
+    "ds-page-head__title": "record.html:68",
+    "ds-panel": "record.html:59",
+    "ds-persona": "record.html:162",
+    "ds-persona__name": "record.html:164",
+    "ds-persona__role": "record.html:164",
+    "ds-persona__text": "record.html:164",
+    "ds-scrim": "record.html:39",
+    "ds-skip": "record.html:19",
+    "ds-sm": "record.html:65",
+    "ds-spinner": "record.html:132",
+    "ds-spinner--ink": "record.html:132",
+    "ds-sr": "record.html:65",
+    "ds-stack": "record.html:141",
+    "ds-status": "record.html:70",
+    "ds-theme": "record.html:2",
+    "ds-timeline": "record.html:195",
+    "ds-timeline__day": "record.html:196",
+    "ds-timeline__group": "record.html:196",
+    "ds-timeline__head": "record.html:198",
+    "ds-timeline__item": "record.html:197",
+    "ds-timeline__item--comment": "record.html:207",
+    "ds-timeline__item--icon": "record.html:207",
+    "ds-timeline__item--muted": "record.html:218",
+    "ds-timeline__marker": "record.html:208",
+    "ds-timeline__meta": "record.html:199",
+    "ds-timeline__text": "record.html:205",
+    "ds-timeline__time": "record.html:209",
+    "ds-timeline__title": "record.html:198",
+    "ds-toasts": "record.html:255",
+    "ds-toc": "record.html:87",
+    "ds-toc--bar": "record.html:87",
+    "ds-toc--sticky": "record.html:87",
+    "ds-toc__count": "record.html:92",
+    "ds-toc__link": "record.html:89",
+    "ds-toc__list": "record.html:88",
+    "ds-tone-error": "record.html:70",
+    "ds-topbar": "record.html:21",
+    "ds-topbar__actions": "record.html:24",
+    "ds-topbar__menu": "record.html:22",
+    "ds-typeconfirm": "record.html:238",
+    "ds-typeconfirm__confirm": "record.html:248",
+    "ds-typeconfirm__error": "record.html:244",
+    "ds-typeconfirm__input": "record.html:243",
+    "ds-typeconfirm__label": "record.html:242",
+    "ds-view": "record.html:60"
+  },
+  "unknown": []
+}

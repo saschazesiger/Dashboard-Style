@@ -1,0 +1,446 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "api-keys",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.api-keys.css",
+      "bytes": 287393,
+      "gzip": 43884
+    },
+    "js": {
+      "file": "ds.api-keys.js",
+      "bytes": 522262,
+      "gzip": 124288
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 34
+    }
+  },
+  "components": [
+    {
+      "name": "utilities",
+      "reason": "api-keys.html:82 ds-meta",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "spinner",
+      "reason": "api-keys.html:140 ds-spinner",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by module indicator",
+      "bytes": 2868,
+      "gzip": 619
+    },
+    {
+      "name": "button",
+      "reason": "api-keys.html:22 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "status",
+      "reason": "api-keys.html:216 ds-tag",
+      "bytes": 3164,
+      "gzip": 921
+    },
+    {
+      "name": "alert",
+      "reason": "api-keys.html:75 ds-alert",
+      "bytes": 6191,
+      "gzip": 1561
+    },
+    {
+      "name": "card",
+      "reason": "api-keys.html:79 ds-card",
+      "bytes": 16606,
+      "gzip": 2659
+    },
+    {
+      "name": "empty",
+      "reason": "api-keys.html:98 ds-empty",
+      "bytes": 3869,
+      "gzip": 1174
+    },
+    {
+      "name": "menu",
+      "reason": "api-keys.html:30 ds-menu",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "dialog",
+      "reason": "api-keys.html:110 ds-dialog",
+      "bytes": 15994,
+      "gzip": 2482
+    },
+    {
+      "name": "table",
+      "reason": "api-keys.html:84 ds-table-wrap",
+      "bytes": 32874,
+      "gzip": 4760
+    },
+    {
+      "name": "form",
+      "reason": "api-keys.html:115 ds-field",
+      "bytes": 49307,
+      "gzip": 7088
+    },
+    {
+      "name": "tooltip",
+      "reason": "api-keys.html:25 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "api-keys.html:61 ds-content",
+      "bytes": 8012,
+      "gzip": 2191
+    },
+    {
+      "name": "shell",
+      "reason": "api-keys.html:18 ds-app",
+      "bytes": 39266,
+      "gzip": 6590
+    },
+    {
+      "name": "toast",
+      "reason": "api-keys.html:188 ds-toasts",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "text",
+      "reason": "api-keys.html:215 ds-mono",
+      "bytes": 795,
+      "gzip": 351
+    },
+    {
+      "name": "copy",
+      "reason": "api-keys.html:154 ds-copy",
+      "bytes": 1927,
+      "gzip": 659
+    },
+    {
+      "name": "typeconfirm",
+      "reason": "api-keys.html:171 ds-typeconfirm",
+      "bytes": 406,
+      "gzip": 226
+    },
+    {
+      "name": "formatted",
+      "reason": "api-keys.html:25 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "api-keys.html:222 DS.motion.flip"
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "dom",
+      "reason": "api-keys.html:222 DS.dom.morphHtml"
+    },
+    {
+      "name": "ripple",
+      "reason": "api-keys.html:197 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "api-keys.html:195 DS.icons.fill"
+    },
+    {
+      "name": "position",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "overlay",
+      "reason": "api-keys.html:29 data-ds-open"
+    },
+    {
+      "name": "a11y",
+      "reason": "imported by copy"
+    },
+    {
+      "name": "hotkeys",
+      "reason": "imported by copy"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "store",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "copy",
+      "reason": "api-keys.html:156 data-ds-copy"
+    },
+    {
+      "name": "dialog",
+      "reason": "api-keys.html:255 DS.dialog.form"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by menu"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "shell",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    },
+    {
+      "name": "typeconfirm",
+      "reason": "needed by typeconfirm"
+    }
+  ],
+  "icons": [
+    {
+      "name": "plus",
+      "reason": "api-keys.html:70"
+    },
+    {
+      "name": "close",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "menu",
+      "reason": "api-keys.html:22"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "used by module page"
+    },
+    {
+      "name": "moreHorizontal",
+      "reason": "used by module shell"
+    },
+    {
+      "name": "history",
+      "reason": "api-keys.html:46"
+    },
+    {
+      "name": "copy",
+      "reason": "api-keys.html:157"
+    },
+    {
+      "name": "logout",
+      "reason": "api-keys.html:34"
+    },
+    {
+      "name": "check",
+      "reason": "api-keys.html:157"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "alert",
+      "reason": "api-keys.html:151"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "api-keys.html:241"
+    },
+    {
+      "name": "info",
+      "reason": "api-keys.html:75"
+    },
+    {
+      "name": "helpCircle",
+      "reason": "api-keys.html:26"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "overview",
+      "reason": "api-keys.html:44"
+    },
+    {
+      "name": "settings",
+      "reason": "api-keys.html:50"
+    },
+    {
+      "name": "key",
+      "reason": "api-keys.html:53"
+    },
+    {
+      "name": "shield",
+      "reason": "api-keys.html:52"
+    },
+    {
+      "name": "user",
+      "reason": "api-keys.html:33"
+    },
+    {
+      "name": "users",
+      "reason": "api-keys.html:51"
+    },
+    {
+      "name": "box",
+      "reason": "api-keys.html:23"
+    },
+    {
+      "name": "laptop",
+      "reason": "api-keys.html:45"
+    },
+    {
+      "name": "puzzle",
+      "reason": "api-keys.html:54"
+    }
+  ],
+  "classes": {
+    "ds-account": "api-keys.html:28",
+    "ds-account__avatar": "api-keys.html:29",
+    "ds-account__email": "api-keys.html:31",
+    "ds-account__head": "api-keys.html:31",
+    "ds-account__menu": "api-keys.html:30",
+    "ds-account__name": "api-keys.html:31",
+    "ds-account__trigger": "api-keys.html:29",
+    "ds-alert": "api-keys.html:75",
+    "ds-alert__text": "api-keys.html:76",
+    "ds-app": "api-keys.html:18",
+    "ds-app--drawer": "api-keys.html:18",
+    "ds-base": "api-keys.html:2",
+    "ds-brand": "api-keys.html:23",
+    "ds-brand__name": "api-keys.html:23",
+    "ds-btn": "api-keys.html:22",
+    "ds-btn--filled": "api-keys.html:70",
+    "ds-btn--icon": "api-keys.html:22",
+    "ds-btn--quiet": "api-keys.html:22",
+    "ds-btn--text": "api-keys.html:137",
+    "ds-btn__face": "api-keys.html:139",
+    "ds-btn__face--busy": "api-keys.html:140",
+    "ds-btn__faces": "api-keys.html:139",
+    "ds-card": "api-keys.html:79",
+    "ds-card__row": "api-keys.html:80",
+    "ds-card__title": "api-keys.html:81",
+    "ds-check": "api-keys.html:123",
+    "ds-check-list": "api-keys.html:122",
+    "ds-col--secondary": "api-keys.html:90",
+    "ds-col--text": "api-keys.html:214",
+    "ds-content": "api-keys.html:61",
+    "ds-copy": "api-keys.html:154",
+    "ds-copy--field": "api-keys.html:154",
+    "ds-copy__value": "api-keys.html:155",
+    "ds-dialog": "api-keys.html:110",
+    "ds-dialog--lg": "api-keys.html:110",
+    "ds-dialog__actions": "api-keys.html:136",
+    "ds-dialog__backdrop": "api-keys.html:111",
+    "ds-dialog__body": "api-keys.html:114",
+    "ds-dialog__box": "api-keys.html:112",
+    "ds-dialog__text": "api-keys.html:173",
+    "ds-dialog__title": "api-keys.html:113",
+    "ds-drawer": "api-keys.html:40",
+    "ds-drawer__group": "api-keys.html:43",
+    "ds-drawer__head": "api-keys.html:41",
+    "ds-drawer__heading": "api-keys.html:49",
+    "ds-drawer__item": "api-keys.html:44",
+    "ds-drawer__label": "api-keys.html:44",
+    "ds-drawer__list": "api-keys.html:42",
+    "ds-empty": "api-keys.html:98",
+    "ds-empty--no-data": "api-keys.html:98",
+    "ds-empty__disc": "api-keys.html:99",
+    "ds-empty__text": "api-keys.html:101",
+    "ds-empty__title": "api-keys.html:100",
+    "ds-field": "api-keys.html:115",
+    "ds-field__hint": "api-keys.html:118",
+    "ds-field__hint--error": "api-keys.html:129",
+    "ds-field__label": "api-keys.html:116",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-icon-swap": "api-keys.html:157",
+    "ds-icon-swap__a": "api-keys.html:157",
+    "ds-icon-swap__b": "api-keys.html:157",
+    "ds-input": "api-keys.html:117",
+    "ds-lg": "api-keys.html:31",
+    "ds-menu": "api-keys.html:30",
+    "ds-menu__divider": "api-keys.html:32",
+    "ds-menu__item": "api-keys.html:33",
+    "ds-menu__label": "api-keys.html:33",
+    "ds-meta": "api-keys.html:82",
+    "ds-mono": "api-keys.html:215",
+    "ds-muted": "api-keys.html:218",
+    "ds-nowrap": "api-keys.html:215",
+    "ds-num": "api-keys.html:92",
+    "ds-page": "api-keys.html:62",
+    "ds-page-head": "api-keys.html:63",
+    "ds-page-head__actions": "api-keys.html:69",
+    "ds-page-head__lead": "api-keys.html:67",
+    "ds-page-head__row": "api-keys.html:64",
+    "ds-page-head__text": "api-keys.html:65",
+    "ds-page-head__title": "api-keys.html:66",
+    "ds-panel": "api-keys.html:59",
+    "ds-scrim": "api-keys.html:39",
+    "ds-skip": "api-keys.html:19",
+    "ds-sm": "api-keys.html:140",
+    "ds-spinner": "api-keys.html:140",
+    "ds-spinner--ink": "api-keys.html:140",
+    "ds-sr": "api-keys.html:86",
+    "ds-table": "api-keys.html:85",
+    "ds-table-wrap": "api-keys.html:84",
+    "ds-table__actions": "api-keys.html:219",
+    "ds-tag": "api-keys.html:216",
+    "ds-theme": "api-keys.html:2",
+    "ds-toasts": "api-keys.html:188",
+    "ds-tone-error": "api-keys.html:181",
+    "ds-tone-neutral": "api-keys.html:216",
+    "ds-tone-warning": "api-keys.html:151",
+    "ds-topbar": "api-keys.html:21",
+    "ds-topbar__actions": "api-keys.html:24",
+    "ds-topbar__menu": "api-keys.html:22",
+    "ds-typeconfirm": "api-keys.html:171",
+    "ds-typeconfirm__confirm": "api-keys.html:181",
+    "ds-typeconfirm__error": "api-keys.html:177",
+    "ds-typeconfirm__input": "api-keys.html:176",
+    "ds-typeconfirm__label": "api-keys.html:175",
+    "ds-view": "api-keys.html:60"
+  },
+  "unknown": []
+}

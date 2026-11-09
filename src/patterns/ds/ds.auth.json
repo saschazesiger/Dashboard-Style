@@ -1,0 +1,395 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "auth",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.auth.css",
+      "bytes": 203460,
+      "gzip": 33393
+    },
+    "js": {
+      "file": "ds.auth.js",
+      "bytes": 466890,
+      "gzip": 111613
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 25
+    }
+  },
+  "components": [
+    {
+      "name": "layout",
+      "reason": "new-password.html:84 ds-cluster",
+      "bytes": 3326,
+      "gzip": 1048
+    },
+    {
+      "name": "utilities",
+      "reason": "new-password.html:32 ds-muted",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "spinner",
+      "reason": "new-password.html:69 ds-spinner",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "button",
+      "reason": "new-password.html:39 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "alert",
+      "reason": "new-password.html:26 ds-alert",
+      "bytes": 6191,
+      "gzip": 1561
+    },
+    {
+      "name": "card",
+      "reason": "new-password.html:19 ds-card",
+      "bytes": 16606,
+      "gzip": 2659
+    },
+    {
+      "name": "empty",
+      "reason": "new-password.html:75 ds-empty",
+      "bytes": 3869,
+      "gzip": 1174
+    },
+    {
+      "name": "menu",
+      "reason": "needed by module menu",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "form",
+      "reason": "new-password.html:25 ds-form",
+      "bytes": 49307,
+      "gzip": 7088
+    },
+    {
+      "name": "tooltip",
+      "reason": "new-password.html:88 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "new-password.html:17 ds-auth",
+      "bytes": 8012,
+      "gzip": 2191
+    },
+    {
+      "name": "toast",
+      "reason": "needed by DS.overlay.announce (recovery-codes.html:97)",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "text",
+      "reason": "recovery-codes.html:29 ds-mono",
+      "bytes": 795,
+      "gzip": 351
+    },
+    {
+      "name": "spacing",
+      "reason": "recovery-codes.html:28 ds-gap-2",
+      "bytes": 866,
+      "gzip": 250
+    },
+    {
+      "name": "print",
+      "reason": "recovery-codes.html:21 ds-print-hide",
+      "bytes": 1217,
+      "gzip": 573
+    },
+    {
+      "name": "link",
+      "reason": "reset-password.html:46 ds-link",
+      "bytes": 1699,
+      "gzip": 567
+    },
+    {
+      "name": "copy",
+      "reason": "recovery-codes.html:45 ds-copy__done",
+      "bytes": 1927,
+      "gzip": 659
+    },
+    {
+      "name": "password",
+      "reason": "new-password.html:45 ds-password__meter",
+      "bytes": 1527,
+      "gzip": 554
+    },
+    {
+      "name": "otp",
+      "reason": "sign-in-code.html:30 ds-otp",
+      "bytes": 892,
+      "gzip": 474
+    },
+    {
+      "name": "errorsummary",
+      "reason": "new-password.html:26 ds-errorsummary",
+      "bytes": 1120,
+      "gzip": 419
+    },
+    {
+      "name": "formatted",
+      "reason": "new-password.html:88 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "new-password.html:112 DS.motion.busy"
+    },
+    {
+      "name": "dom",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "ripple",
+      "reason": "new-password.html:98 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "new-password.html:96 DS.icons.fill"
+    },
+    {
+      "name": "position",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "overlay",
+      "reason": "recovery-codes.html:97 DS.overlay.announce"
+    },
+    {
+      "name": "a11y",
+      "reason": "imported by copy"
+    },
+    {
+      "name": "hotkeys",
+      "reason": "imported by copy"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "copy",
+      "reason": "recovery-codes.html:42 data-ds-copy"
+    },
+    {
+      "name": "errorsummary",
+      "reason": "needed by errorsummary"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by page"
+    },
+    {
+      "name": "otp",
+      "reason": "needed by otp"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "password",
+      "reason": "needed by password"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    }
+  ],
+  "icons": [
+    {
+      "name": "arrowLeft",
+      "reason": "reset-password.html:46"
+    },
+    {
+      "name": "close",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "used by module page"
+    },
+    {
+      "name": "copy",
+      "reason": "recovery-codes.html:44"
+    },
+    {
+      "name": "download",
+      "reason": "recovery-codes.html:48"
+    },
+    {
+      "name": "printer",
+      "reason": "recovery-codes.html:49"
+    },
+    {
+      "name": "mail",
+      "reason": "reset-password.html:50"
+    },
+    {
+      "name": "check",
+      "reason": "new-password.html:76"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "alert",
+      "reason": "new-password.html:49"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "new-password.html:26"
+    },
+    {
+      "name": "info",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "eye",
+      "reason": "new-password.html:40"
+    },
+    {
+      "name": "eyeOff",
+      "reason": "new-password.html:40"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "box",
+      "reason": "new-password.html:21"
+    },
+    {
+      "name": "building",
+      "reason": "sign-in.html:72"
+    },
+    {
+      "name": "fingerprint",
+      "reason": "sign-in.html:71"
+    }
+  ],
+  "classes": {
+    "ds-alert": "new-password.html:26",
+    "ds-alert__text": "new-password.html:27",
+    "ds-alert__title": "new-password.html:28",
+    "ds-auth": "new-password.html:17",
+    "ds-auth__alert": "sign-in-code.html:19",
+    "ds-auth__card": "new-password.html:19",
+    "ds-base": "new-password.html:2",
+    "ds-btn": "new-password.html:39",
+    "ds-btn--block": "sign-in.html:71",
+    "ds-btn--filled": "new-password.html:66",
+    "ds-btn--icon": "new-password.html:39",
+    "ds-btn--quiet": "new-password.html:39",
+    "ds-btn--text": "reset-password.html:55",
+    "ds-btn__face": "new-password.html:68",
+    "ds-btn__face--busy": "new-password.html:69",
+    "ds-btn__face--done": "recovery-codes.html:45",
+    "ds-btn__faces": "new-password.html:67",
+    "ds-card": "new-password.html:19",
+    "ds-card--elevated": "new-password.html:19",
+    "ds-card--filled": "recovery-codes.html:27",
+    "ds-card__title": "new-password.html:22",
+    "ds-center": "reset-password.html:60",
+    "ds-check": "recovery-codes.html:60",
+    "ds-cluster": "new-password.html:84",
+    "ds-cluster--between": "sign-in.html:54",
+    "ds-cluster--center": "new-password.html:84",
+    "ds-copy__done": "recovery-codes.html:45",
+    "ds-divider": "sign-in.html:68",
+    "ds-divider--label": "sign-in.html:68",
+    "ds-empty": "new-password.html:75",
+    "ds-empty--done": "new-password.html:75",
+    "ds-empty__actions": "reset-password.html:53",
+    "ds-empty__disc": "new-password.html:76",
+    "ds-empty__text": "new-password.html:78",
+    "ds-empty__title": "new-password.html:77",
+    "ds-errorsummary": "new-password.html:26",
+    "ds-errorsummary__list": "new-password.html:29",
+    "ds-errorsummary__title": "new-password.html:28",
+    "ds-field": "new-password.html:34",
+    "ds-field__hint": "new-password.html:44",
+    "ds-field__hint--error": "new-password.html:50",
+    "ds-field__hint--warning": "new-password.html:49",
+    "ds-field__label": "new-password.html:35",
+    "ds-field__optional": "sign-up.html:63",
+    "ds-form": "new-password.html:25",
+    "ds-form-actions": "new-password.html:65",
+    "ds-gap-2": "recovery-codes.html:28",
+    "ds-grid": "recovery-codes.html:28",
+    "ds-grid--max-2": "recovery-codes.html:28",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-icon-swap": "new-password.html:40",
+    "ds-icon-swap__a": "new-password.html:40",
+    "ds-icon-swap__b": "new-password.html:40",
+    "ds-input": "new-password.html:37",
+    "ds-input-group": "new-password.html:36",
+    "ds-input-group__trailing": "new-password.html:38",
+    "ds-link": "reset-password.html:46",
+    "ds-link--quiet": "new-password.html:85",
+    "ds-link--standalone": "reset-password.html:46",
+    "ds-link-btn": "sign-in-code.html:51",
+    "ds-meta": "recovery-codes.html:38",
+    "ds-mono": "recovery-codes.html:29",
+    "ds-muted": "new-password.html:32",
+    "ds-otp": "sign-in-code.html:30",
+    "ds-otp__cell": "sign-in-code.html:31",
+    "ds-otp__sep": "sign-in-code.html:34",
+    "ds-password__bars": "new-password.html:46",
+    "ds-password__caps": "new-password.html:49",
+    "ds-password__meter": "new-password.html:45",
+    "ds-password__strength": "new-password.html:47",
+    "ds-print-hide": "recovery-codes.html:21",
+    "ds-print-only": "recovery-codes.html:38",
+    "ds-sm": "new-password.html:39",
+    "ds-spinner": "new-password.html:69",
+    "ds-spinner--ink": "new-password.html:69",
+    "ds-stack": "new-password.html:18",
+    "ds-theme": "new-password.html:2",
+    "ds-tone-error": "new-password.html:26",
+    "ds-tone-warning": "recovery-codes.html:25"
+  },
+  "unknown": []
+}

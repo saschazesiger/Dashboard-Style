@@ -1,0 +1,474 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "dashboard",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.dashboard.css",
+      "bytes": 300711,
+      "gzip": 47186
+    },
+    "js": {
+      "file": "ds.dashboard.js",
+      "bytes": 577690,
+      "gzip": 138278
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 35
+    }
+  },
+  "components": [
+    {
+      "name": "utilities",
+      "reason": "dashboard.html:85 ds-sr",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "spinner",
+      "reason": "required by button",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "loader",
+      "reason": "required by loading",
+      "bytes": 923,
+      "gzip": 465
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by module indicator",
+      "bytes": 2868,
+      "gzip": 619
+    },
+    {
+      "name": "button",
+      "reason": "dashboard.html:22 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "loading",
+      "reason": "dashboard.html:148 ds-loadbar",
+      "bytes": 6865,
+      "gzip": 1666
+    },
+    {
+      "name": "timeline",
+      "reason": "dashboard.html:255 ds-timeline",
+      "bytes": 5511,
+      "gzip": 1367
+    },
+    {
+      "name": "status",
+      "reason": "dashboard.html:197 ds-status",
+      "bytes": 3164,
+      "gzip": 921
+    },
+    {
+      "name": "alert",
+      "reason": "dashboard.html:79 ds-alert",
+      "bytes": 6191,
+      "gzip": 1561
+    },
+    {
+      "name": "chart",
+      "reason": "dashboard.html:92 ds-columns",
+      "bytes": 23341,
+      "gzip": 4433
+    },
+    {
+      "name": "tile",
+      "reason": "dashboard.html:86 ds-tiles",
+      "bytes": 6931,
+      "gzip": 1673
+    },
+    {
+      "name": "menu",
+      "reason": "dashboard.html:30 ds-menu",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "table",
+      "reason": "dashboard.html:185 ds-table-wrap",
+      "bytes": 32874,
+      "gzip": 4760
+    },
+    {
+      "name": "form",
+      "reason": "required by shell",
+      "bytes": 49307,
+      "gzip": 7088
+    },
+    {
+      "name": "tooltip",
+      "reason": "dashboard.html:25 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "dashboard.html:61 ds-content",
+      "bytes": 8012,
+      "gzip": 2191
+    },
+    {
+      "name": "shell",
+      "reason": "dashboard.html:18 ds-app",
+      "bytes": 39266,
+      "gzip": 6590
+    },
+    {
+      "name": "toast",
+      "reason": "dashboard.html:286 ds-toasts",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "dashpanel",
+      "reason": "dashboard.html:136 ds-dashpanel",
+      "bytes": 2819,
+      "gzip": 881
+    },
+    {
+      "name": "meter",
+      "reason": "dashboard.html:128 ds-meter__threshold",
+      "bytes": 6523,
+      "gzip": 1652
+    },
+    {
+      "name": "formatted",
+      "reason": "dashboard.html:25 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "dashboard.html:407 DS.motion.refresh"
+    },
+    {
+      "name": "indicator",
+      "reason": "dashboard.html:378 DS.indicator.create"
+    },
+    {
+      "name": "dom",
+      "reason": "dashboard.html:377 DS.dom.roving"
+    },
+    {
+      "name": "ripple",
+      "reason": "dashboard.html:295 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "dashboard.html:293 DS.icons.fill"
+    },
+    {
+      "name": "position",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "overlay",
+      "reason": "dashboard.html:29 data-ds-open"
+    },
+    {
+      "name": "a11y",
+      "reason": "imported by chart"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "store",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "chart",
+      "reason": "dashboard.html:362 DS.chart.create"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by menu"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "shell",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    }
+  ],
+  "icons": [
+    {
+      "name": "arrowUp",
+      "reason": "dashboard.html:90"
+    },
+    {
+      "name": "arrowDown",
+      "reason": "dashboard.html:115"
+    },
+    {
+      "name": "close",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "menu",
+      "reason": "dashboard.html:22"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "dashboard.html:143"
+    },
+    {
+      "name": "moreHorizontal",
+      "reason": "used by module shell"
+    },
+    {
+      "name": "sync",
+      "reason": "dashboard.html:145"
+    },
+    {
+      "name": "history",
+      "reason": "dashboard.html:46"
+    },
+    {
+      "name": "logout",
+      "reason": "dashboard.html:34"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "alert",
+      "reason": "dashboard.html:79"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "dashboard.html:197"
+    },
+    {
+      "name": "info",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "helpCircle",
+      "reason": "dashboard.html:26"
+    },
+    {
+      "name": "clock",
+      "reason": "dashboard.html:118"
+    },
+    {
+      "name": "wifiOff",
+      "reason": "dashboard.html:203"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "overview",
+      "reason": "dashboard.html:44"
+    },
+    {
+      "name": "settings",
+      "reason": "dashboard.html:50"
+    },
+    {
+      "name": "key",
+      "reason": "dashboard.html:53"
+    },
+    {
+      "name": "shield",
+      "reason": "dashboard.html:52"
+    },
+    {
+      "name": "user",
+      "reason": "dashboard.html:33"
+    },
+    {
+      "name": "users",
+      "reason": "dashboard.html:51"
+    },
+    {
+      "name": "userPlus",
+      "reason": "dashboard.html:269"
+    },
+    {
+      "name": "ticket",
+      "reason": "dashboard.html:113"
+    },
+    {
+      "name": "box",
+      "reason": "dashboard.html:23"
+    },
+    {
+      "name": "laptop",
+      "reason": "dashboard.html:45"
+    },
+    {
+      "name": "hardDrive",
+      "reason": "dashboard.html:124"
+    },
+    {
+      "name": "table",
+      "reason": "used by module chart"
+    },
+    {
+      "name": "shieldAlert",
+      "reason": "dashboard.html:215"
+    },
+    {
+      "name": "puzzle",
+      "reason": "dashboard.html:54"
+    }
+  ],
+  "classes": {
+    "ds-account": "dashboard.html:28",
+    "ds-account__avatar": "dashboard.html:29",
+    "ds-account__email": "dashboard.html:31",
+    "ds-account__head": "dashboard.html:31",
+    "ds-account__menu": "dashboard.html:30",
+    "ds-account__name": "dashboard.html:31",
+    "ds-account__trigger": "dashboard.html:29",
+    "ds-alert": "dashboard.html:79",
+    "ds-alert__actions": "dashboard.html:81",
+    "ds-alert__text": "dashboard.html:80",
+    "ds-alert__title": "dashboard.html:80",
+    "ds-app": "dashboard.html:18",
+    "ds-app--drawer": "dashboard.html:18",
+    "ds-base": "dashboard.html:2",
+    "ds-brand": "dashboard.html:23",
+    "ds-brand__name": "dashboard.html:23",
+    "ds-btn": "dashboard.html:22",
+    "ds-btn--icon": "dashboard.html:22",
+    "ds-btn--quiet": "dashboard.html:22",
+    "ds-btn--text": "dashboard.html:81",
+    "ds-chart": "dashboard.html:151",
+    "ds-col--secondary": "dashboard.html:191",
+    "ds-col--text": "dashboard.html:196",
+    "ds-columns": "dashboard.html:92",
+    "ds-columns--mini": "dashboard.html:92",
+    "ds-columns__col": "dashboard.html:94",
+    "ds-columns__col--highlight": "dashboard.html:107",
+    "ds-columns__fill": "dashboard.html:94",
+    "ds-columns__plot": "dashboard.html:93",
+    "ds-content": "dashboard.html:61",
+    "ds-dashpanel": "dashboard.html:136",
+    "ds-dashpanel__actions": "dashboard.html:142",
+    "ds-dashpanel__body": "dashboard.html:150",
+    "ds-dashpanel__body--flush": "dashboard.html:184",
+    "ds-dashpanel__foot": "dashboard.html:229",
+    "ds-dashpanel__head": "dashboard.html:137",
+    "ds-dashpanel__heading": "dashboard.html:138",
+    "ds-dashpanel__subtitle": "dashboard.html:140",
+    "ds-dashpanel__title": "dashboard.html:139",
+    "ds-drawer": "dashboard.html:40",
+    "ds-drawer__group": "dashboard.html:43",
+    "ds-drawer__head": "dashboard.html:41",
+    "ds-drawer__heading": "dashboard.html:49",
+    "ds-drawer__item": "dashboard.html:44",
+    "ds-drawer__label": "dashboard.html:44",
+    "ds-drawer__list": "dashboard.html:42",
+    "ds-grid-2": "dashboard.html:135",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-lg": "dashboard.html:31",
+    "ds-link--quiet": "dashboard.html:229",
+    "ds-link-btn": "dashboard.html:196",
+    "ds-loadbar": "dashboard.html:148",
+    "ds-loadbar__bar": "dashboard.html:148",
+    "ds-menu": "dashboard.html:30",
+    "ds-menu__divider": "dashboard.html:32",
+    "ds-menu__item": "dashboard.html:33",
+    "ds-menu__label": "dashboard.html:33",
+    "ds-meter": "dashboard.html:128",
+    "ds-meter__threshold": "dashboard.html:128",
+    "ds-nowrap": "dashboard.html:196",
+    "ds-num": "dashboard.html:192",
+    "ds-page": "dashboard.html:62",
+    "ds-page-head": "dashboard.html:63",
+    "ds-page-head__actions": "dashboard.html:69",
+    "ds-page-head__lead": "dashboard.html:67",
+    "ds-page-head__row": "dashboard.html:64",
+    "ds-page-head__text": "dashboard.html:65",
+    "ds-page-head__title": "dashboard.html:66",
+    "ds-panel": "dashboard.html:59",
+    "ds-scrim": "dashboard.html:39",
+    "ds-segmented": "dashboard.html:70",
+    "ds-segmented__indicator": "dashboard.html:378",
+    "ds-segmented__option": "dashboard.html:71",
+    "ds-skip": "dashboard.html:19",
+    "ds-sm": "dashboard.html:81",
+    "ds-sr": "dashboard.html:85",
+    "ds-status": "dashboard.html:197",
+    "ds-table": "dashboard.html:186",
+    "ds-table--interactive": "dashboard.html:186",
+    "ds-table-wrap": "dashboard.html:185",
+    "ds-table__row-link": "dashboard.html:196",
+    "ds-theme": "dashboard.html:2",
+    "ds-tile": "dashboard.html:87",
+    "ds-tile__delta": "dashboard.html:90",
+    "ds-tile__figure": "dashboard.html:89",
+    "ds-tile__label": "dashboard.html:88",
+    "ds-tile__note": "dashboard.html:121",
+    "ds-tile__target": "dashboard.html:127",
+    "ds-tile__target-text": "dashboard.html:129",
+    "ds-tile__trend": "dashboard.html:91",
+    "ds-tile__unit": "dashboard.html:89",
+    "ds-tile__value": "dashboard.html:89",
+    "ds-tiles": "dashboard.html:86",
+    "ds-timeline": "dashboard.html:255",
+    "ds-timeline--activity": "dashboard.html:255",
+    "ds-timeline__head": "dashboard.html:258",
+    "ds-timeline__item": "dashboard.html:256",
+    "ds-timeline__item--icon": "dashboard.html:256",
+    "ds-timeline__item--muted": "dashboard.html:272",
+    "ds-timeline__marker": "dashboard.html:257",
+    "ds-timeline__time": "dashboard.html:258",
+    "ds-timeline__title": "dashboard.html:258",
+    "ds-toasts": "dashboard.html:286",
+    "ds-tone-error": "dashboard.html:120",
+    "ds-tone-success": "dashboard.html:90",
+    "ds-tone-warning": "dashboard.html:79",
+    "ds-topbar": "dashboard.html:21",
+    "ds-topbar__actions": "dashboard.html:24",
+    "ds-topbar__menu": "dashboard.html:22",
+    "ds-view": "dashboard.html:60"
+  },
+  "unknown": []
+}

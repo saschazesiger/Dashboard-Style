@@ -56,7 +56,7 @@
     DS[name] = Object.freeze(merged);
   };
 
-  add('core', ['runtime', 'define', 'get', 'init', 'destroy', 'emit', 'config', 't', 'safeHref'], function () {
+  add('core', ['runtime', 'define', 'get', 'manage', 'init', 'destroy', 'emit', 'config', 't', 'safeHref'], function () {
     /**
      * Core runtime (3.0): one shared runtime per page, the behaviour registry,
      * declarative initialisation, events and the system's own strings.
@@ -104,8 +104,9 @@
      * action guard of motion.js and the ripple delegation of ripple.js, and
      * the tooltips of the tooltip module) and initialises every matching element in
      * it, except inside [data-ds-managed] (a React adapter's root: the adapter
-     * owns those elements; ripple, guard and tooltips still serve them, being
-     * delegated). With observe (the default) one MutationObserver per root
+     * owns those elements and runs their behaviours through manage(); ripple,
+     * guard and tooltips still serve them, being delegated;
+     * data-ds-managed="off" inside one hands its subtree back). With observe (the default) one MutationObserver per root
      * watches childList and subtree, plus the attributes of every behaviour
      * (DS.dom.morphHtml patches in place: a new data-ds-* attribute arrives
      * without a childList record). Records are batched to a microtask; at the
@@ -686,7 +687,7 @@
      * This module's shared state (runtime.state('core')): the behaviours by
      * name, the controllers of each element (name to entry), the roots of
      * init() and the page's settings (locale, overridden strings).
-     * @type {{ specs: Map<string, any>, elements: WeakMap<Element, Map<string, any>>, roots: Map<Node, any>, settings: { locale: string|null, strings: Record<string, any> } }}
+     * @type {{ specs: Map<string, any>, elements: WeakMap<Element, Map<string, any>>, roots: Map<Node, any>, settings: { locale: string|null, strings: Record<string, any>, version?: number } }}
      */
     const core = runtime.state('core', () => ({
       specs: new Map(),
@@ -710,7 +711,16 @@
 
     const isNode = (value) => Boolean(value) && typeof value === 'object' && typeof value.nodeType === 'number';
     const viewOf = (node) => (node.nodeType === 9 ? node : node.ownerDocument)?.defaultView ?? globalThis;
-    const isManaged = (element) => Boolean(element.closest?.(`[${MANAGED}]`));
+    /**
+     * Whether an owner runs the behaviours of `element`: the nearest
+     * [data-ds-managed] at or above it, unless that one says "off" (a part of
+     * a managed subtree handed back to init(), such as the content slot of an
+     * adapter component).
+     */
+    const isManaged = (element) => {
+      const owner = element.closest?.(`[${MANAGED}]`);
+      return Boolean(owner) && owner.getAttribute(MANAGED) !== 'off';
+    };
 
     /** The behaviours that initialise elements, as [name, spec]. */
     const elementSpecs = () => [...core.specs].filter(([, spec]) => spec.init);
@@ -830,7 +840,14 @@
     /** Initialises every element in `node` (itself included) that a behaviour matches. */
     function scan(node, state, specs = elementSpecs()) {
       if (!specs.length || typeof node?.querySelectorAll !== 'function') return;
-      if (node.nodeType === 1 && isManaged(node)) return;
+      if (node.nodeType === 1 && isManaged(node)) {
+        // The parts of it handed back (data-ds-managed="off") are scanned on their own.
+        for (const slot of node.querySelectorAll(`[${MANAGED}="off"]`)) {
+          const outer = slot.parentNode;
+          if (outer?.nodeType === 1 && isManaged(outer)) scan(slot, state, specs);
+        }
+        return;
+      }
       const selector = specs.map(([, spec]) => spec.match).join(', ');
       const found = node.nodeType === 1 && node.matches(selector) ? [node] : [];
       for (const element of node.querySelectorAll(selector)) found.push(element);
@@ -877,6 +894,78 @@
       if (!entries) return null;
       const entry = name === undefined ? entries.values().next().value : entries.get(name);
       return entry?.handle ?? null;
+    }
+
+    /**
+     * Runs the behaviour `name` on `el` for an owner that renders the element
+     * itself (the React adapter, on a root marked [data-ds-managed], which
+     * init() and its observer leave alone). The behaviour's own init() makes
+     * the controller, as for markup that init() finds, so the element's
+     * data-ds-* attributes are its options; get(el, name) returns it. An
+     * element that does not match the behaviour yet (its attribute not
+     * written) gets its controller once update() sees it match. Returns a
+     * handle, or null when no behaviour `name` initialises elements (its module
+     * is not loaded):
+     * - controller: the controller (null when init() returned a function or
+     *   nothing, or once destroyed);
+     * - update(): after the owner changed attributes of the element, does what
+     *   the observer does for a change of the behaviour's attributes (the
+     *   controller's update(names), else a fresh controller);
+     * - destroy(): destroys the controller; safe to call twice (a React
+     *   StrictMode effect runs its cleanup and then the effect once more).
+     * A controller that a root of init() made already (the element was not
+     * managed then) stays that root's: the handle reads it and leaves it.
+     * @param {Element} el
+     * @param {string} name
+     * @returns {{ readonly controller: any, update(): void, destroy(): void } | null}
+     */
+    function manage(el, name) {
+      const spec = core.specs.get(name);
+      if (!spec?.init || !isNode(el) || el.nodeType !== 1) return null;
+      const state = { root: el.getRootNode?.() ?? el.ownerDocument, live: new Set() };
+      const watched = [spec.attribute, ...spec.attributes].filter(Boolean);
+      const read = () => watched.map((attribute) => el.getAttribute(attribute));
+      // Without its attribute (yet), nothing runs; update() starts it once the owner writes it.
+      if (el.matches(spec.match)) attachOne(el, name, spec, state);
+      let seen = read();
+      let held = true;
+      const own = () => {
+        const entry = core.elements.get(el)?.get(name);
+        return entry?.state === state ? entry : null;
+      };
+      return {
+        get controller() {
+          return held ? core.elements.get(el)?.get(name)?.controller ?? null : null;
+        },
+        update() {
+          if (!held) return;
+          const now = read();
+          const names = watched.filter((attribute, index) => now[index] !== seen[index]);
+          seen = now;
+          if (!names.length) return;
+          const entry = own();
+          const matches = el.matches(spec.match);
+          if (!entry) {
+            // Its attribute came back: a fresh controller, unless a root of init() holds one.
+            if (matches && !core.elements.get(el)?.has(name)) attachOne(el, name, spec, state);
+          } else if (!matches) detachOne(el, name);
+          else if (typeof entry.controller?.update === 'function') {
+            try {
+              entry.controller.update(names);
+            } catch (error) {
+              report(error);
+            }
+          } else {
+            detachOne(el, name);
+            attachOne(el, name, spec, state);
+          }
+        },
+        destroy() {
+          if (!held) return;
+          held = false;
+          if (own()) detachOne(el, name);
+        },
+      };
     }
 
     /* ── Roots ──────────────────────────────────────────── */
@@ -1066,6 +1155,9 @@
 
     /* ── Config and strings ─────────────────────────────── */
 
+    /** The strings config() returns, kept until they change: `{ of: the settings, version, strings }`. */
+    let frozenStrings = null;
+
     /**
      * Sets the page's locale and overrides strings (a `null` string restores
      * the default; `locale: null` the default locale), and returns the
@@ -1090,12 +1182,17 @@
           if (value === null || value === undefined) delete settings.strings[key];
           else settings.strings[key] = typeof value === 'function' ? value : String(value);
         }
-        if (texts.length) changed.push('strings');
+        if (texts.length) {
+          changed.push('strings');
+          settings.version = (settings.version ?? 0) + 1;
+        }
       }
-      const current = Object.freeze({
-        locale: localeNow(),
-        strings: Object.freeze({ ...DEFAULT_STRINGS, ...settings.strings }),
-      });
+      // Read on every format and label: the merged strings are copied once per change, not on every read. The version
+      // sits in the shared settings, so a change through another copy of this module counts too.
+      if (!frozenStrings || frozenStrings.of !== settings || frozenStrings.version !== (settings.version ?? 0)) {
+        frozenStrings = { of: settings, version: settings.version ?? 0, strings: Object.freeze({ ...DEFAULT_STRINGS, ...settings.strings }) };
+      }
+      const current = Object.freeze({ locale: localeNow(), strings: frozenStrings.strings });
       if (changed.length && typeof doc?.dispatchEvent === 'function') emit(doc, 'config', { ...current, changed });
       return current;
     }
@@ -1148,6 +1245,7 @@
       runtime: runtime,
       define: define,
       get: get,
+      manage: manage,
       init: init,
       destroy: destroy,
       emit: emit,
@@ -21645,6 +21743,8 @@
       const search = input.closest('.ds-command__search') ?? input.parentElement;
       let list = el.querySelector('.ds-command__list');
       const written = fromMarkup(list);
+      // The page's options, given back on destroy: a new init reads the same commands (their shortcuts too).
+      const listBefore = list ? Array.from(list.childNodes, (node) => node.cloneNode(true)) : null;
       if (!list) {
         list = doc.createElement('div');
         list.className = 'ds-command__list';
@@ -22245,6 +22345,7 @@
           view.clearTimeout(spinnerTimer);
           lifetime.abort();
           back.remove();
+          if (listBefore) list.replaceChildren(...listBefore);
           listeners.clear();
           store?.destroy();
         },
@@ -38232,7 +38333,7 @@
       return options;
     }
 
-    function controller(el, start, signal) {
+    function controller(el, start, signal, before = null) {
       let source = start.source;
       let options = start.options;
       const listeners = new Set();
@@ -38267,7 +38368,15 @@
           options = { ...start.options, ...attributeOptions(el), idPrefix: options.idPrefix };
           write();
         },
-        destroy() { listeners.clear(); },
+        destroy() {
+          listeners.clear();
+          // The attribute path gives the source back, so destroy() and a new init render the same (a re-created
+          // controller, React's StrictMode); a controller of create() leaves the rendered markup.
+          if (!before) return;
+          el.replaceChildren(...before.nodes);
+          if (before.state === null) el.removeAttribute('data-state');
+          else el.setAttribute('data-state', before.state);
+        },
       };
     }
 
@@ -38275,7 +38384,8 @@
       attribute: 'data-ds-markdown',
       attributes: ['data-ds-markdown-anchors', 'data-ds-markdown-breaks', 'data-ds-markdown-code', 'data-ds-markdown-images'],
       init(el, ctx) {
-        return controller(el, { source: sourceOf(el), options: attributeOptions(el) }, ctx.signal);
+        const before = { nodes: Array.from(el.childNodes, (node) => node.cloneNode(true)), state: el.getAttribute('data-state') };
+        return controller(el, { source: sourceOf(el), options: attributeOptions(el) }, ctx.signal, before);
       },
     });
 
@@ -40009,6 +40119,12 @@
       let footMine = false;
       /** The page's own summary row, given back on destroy. */
       let footBefore = null;
+      /**
+       * The page's header and body rows the grid read its columns and rows
+       * from: given back on destroy, so destroy() and a new init read the same
+       * markup again (a re-created controller, React's StrictMode).
+       */
+      const markupBefore = markup ? { head: Array.from(head.childNodes, (node) => node.cloneNode(true)), body: Array.from(body.childNodes, (node) => node.cloneNode(true)) } : null;
       const wrap = table.parentElement?.closest('.ds-table-wrap') ?? table.parentElement;
 
       // What the grid writes on the table: owned, so a morph of the page keeps it; given back on destroy.
@@ -41805,6 +41921,10 @@
           table.style.removeProperty('--ds-datagrid-width');
           if (foot && footMine) foot.remove();
           else if (foot && footBefore) foot.replaceChildren(...footBefore);
+          if (markupBefore) {
+            head.replaceChildren(...markupBefore.head);
+            body.replaceChildren(...markupBefore.body);
+          }
           if (body.classList.contains('ds-stale')) {
             body.classList.remove('ds-stale');
             disown(body, 'classes', 'ds-stale');
@@ -54791,10 +54911,23 @@
       return match ? Number(match[1]) * UNIT_MS[match[2]] : 0;
     }
 
+    /** Intl formatters by type, locale and options, made once: a time range names some 25 spans when it paints. */
+    const formats = new Map();
+    function format(Type, locale, options) {
+      const key = `${Type.name}|${locale}|${JSON.stringify(options)}`;
+      let made = formats.get(key);
+      if (!made) {
+        made = new Type(locale, options);
+        if (formats.size >= 64) formats.clear();
+        formats.set(key, made);
+      }
+      return made;
+    }
+
     /** A span in words of the locale ("15 minutes", "5s" narrow). */
     function spanWords(amount, unit, locale, display = 'long') {
       try {
-        return new Intl.NumberFormat(locale, { style: 'unit', unit: UNIT_NAMES[unit], unitDisplay: display }).format(amount);
+        return format(Intl.NumberFormat, locale, { style: 'unit', unit: UNIT_NAMES[unit], unitDisplay: display }).format(amount);
       } catch {
         return `${amount}${unit}`;
       }
@@ -54819,15 +54952,15 @@
       if (rounded && (to === from || to === 'now') && (!rounded[2] || rounded[2] === rounded[3])) {
         try {
           const amount = rounded[1] ? -Number(rounded[1]) : 0;
-          return capital(new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(amount, UNIT_NAMES[rounded[3]]), locale);
+          return capital(format(Intl.RelativeTimeFormat, locale, { numeric: 'auto' }).format(amount, UNIT_NAMES[rounded[3]]), locale);
         } catch {
           // The instants below.
         }
       }
       const instants = resolve({ from, to }, options);
       if (!instants) return `${from} – ${to}`;
-      const format = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short', ...(options.timeZone && options.timeZone !== 'local' ? { timeZone: options.timeZone } : {}) });
-      return format.formatRange(instants.start, instants.end);
+      return format(Intl.DateTimeFormat, locale, { dateStyle: 'medium', timeStyle: 'short', ...(options.timeZone && options.timeZone !== 'local' ? { timeZone: options.timeZone } : {}) })
+        .formatRange(instants.start, instants.end);
     }
 
     /**
@@ -54941,8 +55074,24 @@
       selectWrap.append(select, iconNode(chevronDown, 16, 'ds-timerange__chevron'));
       root.replaceChildren(wrap, refreshButton, selectWrap);
 
-      const fromField = createField(fromEl, { type: 'datetime', zone: settings.zone, locale: settings.locale, silent: true });
-      const toField = createField(toEl, { type: 'datetime', zone: settings.zone, locale: settings.locale, silent: true });
+      // The absolute fields are made on the first open: nothing shows them before, and their Intl formats would make
+      // the start of a view a long task on a slow phone.
+      let fromField = null;
+      let toField = null;
+      let listed = false;
+      function fields() {
+        if (fromField) return;
+        fromField = createField(fromEl, { type: 'datetime', zone: settings.zone, locale: settings.locale, silent: true });
+        toField = createField(toEl, { type: 'datetime', zone: settings.zone, locale: settings.locale, silent: true });
+        // A field typed again is judged again.
+        for (const field of [fromField, toField]) {
+          field.on('change', () => {
+            fromField.update({ invalid: false });
+            toField.update({ invalid: false });
+            error.textContent = '';
+          });
+        }
+      }
 
       function iconNode(glyph, size, extra) {
         return iconElement(glyph, size, extra, doc);
@@ -54998,12 +55147,15 @@
         refreshButton.setAttribute('aria-label', t('refresh'));
         refreshButton.setAttribute('data-tip', t('refresh'));
         select.setAttribute('aria-label', t('autoRefresh'));
-        const same = (range) => range.from === state.from && range.to === state.to;
-        quick.replaceChildren(quickHead, ...settings.quick.map((from) => rangeButton({ from, to: quickTo(from) }, same({ from, to: quickTo(from) }))));
-        const recents = recentList();
-        recent.replaceChildren(...recents.map((range) => rangeButton(range, same(range))));
-        recentHead.hidden = !recents.length;
-        recent.hidden = !recents.length;
+        // The quick and recent ranges only once the popover has opened: until then nothing shows them.
+        if (listed) {
+          const same = (range) => range.from === state.from && range.to === state.to;
+          quick.replaceChildren(quickHead, ...settings.quick.map((from) => rangeButton({ from, to: quickTo(from) }, same({ from, to: quickTo(from) }))));
+          const recents = recentList();
+          recent.replaceChildren(...recents.map((range) => rangeButton(range, same(range))));
+          recentHead.hidden = !recents.length;
+          recent.hidden = !recents.length;
+        }
         const intervals = settings.intervals.filter((span) => spanMs(span));
         select.replaceChildren(make('option', '', { value: '' }), ...intervals.map((span) => make('option', '', { value: span })));
         select.options[0].textContent = t('off');
@@ -55017,6 +55169,7 @@
 
       /** The absolute fields show the range in force, as wall times in the zone. */
       function fillFields() {
+        fields();
         const instants = resolve(state, timeOptions());
         fromField.set(instants ? wallTime(instants.start, zone()) : '');
         toField.set(instants ? wallTime(instants.end, zone()) : '');
@@ -55068,6 +55221,7 @@
         toggle: trigger,
         panel,
         onOpen() {
+          listed = true;
           paint();
           fillFields();
         },
@@ -55083,6 +55237,7 @@
       }, { signal });
 
       apply.addEventListener('click', () => {
+        fields();
         const from = fromField.get();
         const to = toField.get();
         const start = from ? toInstant(from, zone()) : null;
@@ -55104,15 +55259,6 @@
         picker.close('select');
         change({ from: start.toISOString().replace(/\.000Z$/, 'Z'), to: end.toISOString().replace(/\.000Z$/, 'Z') });
       }, { signal });
-
-      // A field typed again is judged again.
-      for (const field of [fromField, toField]) {
-        field.on('change', () => {
-          fromField.update({ invalid: false });
-          toField.update({ invalid: false });
-          error.textContent = '';
-        });
-      }
 
       refreshButton.addEventListener('click', () => refresh('manual'), { signal });
       select.addEventListener('change', () => {
@@ -55159,8 +55305,8 @@
           abort.abort();
           stopClock?.();
           picker.destroy();
-          fromField.destroy();
-          toField.destroy();
+          fromField?.destroy();
+          toField?.destroy();
           prefs.destroy();
           listeners.clear();
           controllers.delete(root);

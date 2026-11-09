@@ -398,8 +398,11 @@ describe('tools/check-project.mjs', () => {
     const own = JSON.parse(read('example/ds-check.json'));
     const under = (globs) => globs.map((glob) => `example/${glob}`);
     const config = { ...own, css: under(own.css), js: under(own.js), html: under(own.html), themes: under(own.themes),
-      themesWith: own.themesWith.map((path) => path.replace(/^\.\.\/dist/, VENDOR)), vendor: VENDOR };
-    const { findings, errors } = run(published('example'), config);
+      themesWith: own.themesWith.map((path) => path.replace(/^\.\.\/dist/, VENDOR)), vendor: VENDOR, bundle: own.bundle && `example/${own.bundle}` };
+    // With its bundle config and the committed bundle, so the bundle rule proves the bundle holds what the app uses.
+    const bundleConfig = { ...JSON.parse(read('example/ds.config.json')), dist: join(ROOT, 'dist') };
+    const bundle = Object.fromEntries([['example/ds.config.json', JSON.stringify(bundleConfig)], ...readdirSync(join(ROOT, 'example/ds')).map((name) => [`example/ds/${name}`, read(`example/ds/${name}`)])]);
+    const { findings, errors } = run({ ...published('example'), ...bundle }, config);
     assert.deepEqual(errors, []);
     assert.deepEqual(findings.map((f) => `${f.file}:${f.line} ${f.rule} ${f.message}`), []);
   });

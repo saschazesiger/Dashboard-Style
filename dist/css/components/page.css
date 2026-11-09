@@ -555,8 +555,12 @@
 
   /* ── Sign-in page ─────────────────────────────── */
 
+  /* height: auto undoes the base's body { height: 100% }: a card taller
+     than the window grows the page instead of overflowing it, which the
+     centring would push above the top, out of reach of the scroll. */
   .ds-auth {
     box-sizing: border-box;
+    height: auto;
     min-height: 100dvh;
     margin: 0;
     display: flex;

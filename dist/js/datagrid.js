@@ -650,6 +650,12 @@ function makeGrid(table, input) {
   let footMine = false;
   /** The page's own summary row, given back on destroy. */
   let footBefore = null;
+  /**
+   * The page's header and body rows the grid read its columns and rows
+   * from: given back on destroy, so destroy() and a new init read the same
+   * markup again (a re-created controller, React's StrictMode).
+   */
+  const markupBefore = markup ? { head: Array.from(head.childNodes, (node) => node.cloneNode(true)), body: Array.from(body.childNodes, (node) => node.cloneNode(true)) } : null;
   const wrap = table.parentElement?.closest('.ds-table-wrap') ?? table.parentElement;
 
   // What the grid writes on the table: owned, so a morph of the page keeps it; given back on destroy.
@@ -2446,6 +2452,10 @@ function makeGrid(table, input) {
       table.style.removeProperty('--ds-datagrid-width');
       if (foot && footMine) foot.remove();
       else if (foot && footBefore) foot.replaceChildren(...footBefore);
+      if (markupBefore) {
+        head.replaceChildren(...markupBefore.head);
+        body.replaceChildren(...markupBefore.body);
+      }
       if (body.classList.contains('ds-stale')) {
         body.classList.remove('ds-stale');
         disown(body, 'classes', 'ds-stale');

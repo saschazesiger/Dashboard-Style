@@ -1,0 +1,386 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "wizard",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.wizard.css",
+      "bytes": 308418,
+      "gzip": 46779
+    },
+    "js": {
+      "file": "ds.wizard.js",
+      "bytes": 647200,
+      "gzip": 154596
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 35
+    }
+  },
+  "components": [
+    {
+      "name": "layout",
+      "reason": "wizard.html:18 ds-cluster",
+      "bytes": 3326,
+      "gzip": 1048
+    },
+    {
+      "name": "utilities",
+      "reason": "pt.js:57 ds-icon--fillable",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "spinner",
+      "reason": "wizard.html:97 ds-spinner",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by module indicator",
+      "bytes": 2868,
+      "gzip": 619
+    },
+    {
+      "name": "button",
+      "reason": "wizard.html:19 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "status",
+      "reason": "required by list",
+      "bytes": 3164,
+      "gzip": 921
+    },
+    {
+      "name": "chart",
+      "reason": "required by list",
+      "bytes": 23341,
+      "gzip": 4433
+    },
+    {
+      "name": "list",
+      "reason": "required by wizard",
+      "bytes": 18637,
+      "gzip": 3412
+    },
+    {
+      "name": "card",
+      "reason": "wizard.html:25 ds-card",
+      "bytes": 16606,
+      "gzip": 2659
+    },
+    {
+      "name": "menu",
+      "reason": "needed by module menu",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "dialog",
+      "reason": "needed by DS.overlay.confirm (wizard.html:158)",
+      "bytes": 15994,
+      "gzip": 2482
+    },
+    {
+      "name": "table",
+      "reason": "needed by module chart",
+      "bytes": 32874,
+      "gzip": 4760
+    },
+    {
+      "name": "form",
+      "reason": "wizard.html:31 ds-field",
+      "bytes": 49307,
+      "gzip": 7088
+    },
+    {
+      "name": "drag",
+      "reason": "required by list",
+      "bytes": 8418,
+      "gzip": 1901
+    },
+    {
+      "name": "tooltip",
+      "reason": "wizard.html:19 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "wizard.html:24 ds-content",
+      "bytes": 8012,
+      "gzip": 2191
+    },
+    {
+      "name": "steps",
+      "reason": "wizard.html:27 ds-steps",
+      "bytes": 12125,
+      "gzip": 2356
+    },
+    {
+      "name": "toast",
+      "reason": "needed by DS.overlay.confirm (wizard.html:158)",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "text",
+      "reason": "wizard.html:51 ds-mono",
+      "bytes": 795,
+      "gzip": 351
+    },
+    {
+      "name": "wizard",
+      "reason": "wizard.html:26 ds-wizard",
+      "bytes": 1658,
+      "gzip": 602
+    },
+    {
+      "name": "sticky",
+      "reason": "wizard.html:18 ds-sticky",
+      "bytes": 2055,
+      "gzip": 623
+    },
+    {
+      "name": "result",
+      "reason": "wizard.html:103 ds-result",
+      "bytes": 2618,
+      "gzip": 852
+    },
+    {
+      "name": "formatted",
+      "reason": "wizard.html:19 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "truncate",
+      "reason": "wizard.html:20 ds-truncate",
+      "bytes": 510,
+      "gzip": 283
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "wizard.html:144 DS.motion.busy"
+    },
+    {
+      "name": "indicator",
+      "reason": "wizard.html:131 DS.indicator.create"
+    },
+    {
+      "name": "dom",
+      "reason": "needed by sticky"
+    },
+    {
+      "name": "ripple",
+      "reason": "wizard.html:122 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "pt.js:16 DS.icons"
+    },
+    {
+      "name": "position",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "overlay",
+      "reason": "wizard.html:158 DS.overlay.confirm"
+    },
+    {
+      "name": "a11y",
+      "reason": "imported by menu"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "virtual",
+      "reason": "needed by list"
+    },
+    {
+      "name": "dnd",
+      "reason": "needed by list"
+    },
+    {
+      "name": "chart",
+      "reason": "needed by chart"
+    },
+    {
+      "name": "dialog",
+      "reason": "needed by dialog"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "list",
+      "reason": "needed by list"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by page"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "steps",
+      "reason": "needed by steps"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    },
+    {
+      "name": "truncate",
+      "reason": "needed by truncate"
+    },
+    {
+      "name": "wizard",
+      "reason": "needed by wizard"
+    }
+  ],
+  "icons": [
+    {
+      "name": "close",
+      "reason": "wizard.html:19"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "used by module page"
+    },
+    {
+      "name": "grip",
+      "reason": "used by module list"
+    },
+    {
+      "name": "copy",
+      "reason": "used by module list"
+    },
+    {
+      "name": "check",
+      "reason": "wizard.html:35"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "wizard.html:104"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "used by module wizard"
+    },
+    {
+      "name": "info",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "laptop",
+      "reason": "wizard.html:34"
+    },
+    {
+      "name": "monitor",
+      "reason": "wizard.html:36"
+    },
+    {
+      "name": "table",
+      "reason": "used by module chart"
+    },
+    {
+      "name": "smartphone",
+      "reason": "wizard.html:38"
+    },
+    {
+      "name": "tablet",
+      "reason": "wizard.html:40"
+    }
+  ],
+  "classes": {
+    "ds-base": "wizard.html:2",
+    "ds-btn": "wizard.html:19",
+    "ds-btn--filled": "wizard.html:93",
+    "ds-btn--icon": "wizard.html:19",
+    "ds-btn--quiet": "wizard.html:19",
+    "ds-btn--text": "wizard.html:109",
+    "ds-btn__face": "wizard.html:96",
+    "ds-btn__face--busy": "wizard.html:97",
+    "ds-btn__faces": "wizard.html:95",
+    "ds-card": "wizard.html:25",
+    "ds-check": "wizard.html:80",
+    "ds-cluster": "wizard.html:18",
+    "ds-cluster--nowrap": "wizard.html:18",
+    "ds-content": "wizard.html:24",
+    "ds-field": "wizard.html:31",
+    "ds-field__hint": "wizard.html:47",
+    "ds-field__label": "wizard.html:32",
+    "ds-field__optional": "wizard.html:69",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-input": "wizard.html:46",
+    "ds-measure": "wizard.html:25",
+    "ds-mono": "wizard.html:51",
+    "ds-muted": "wizard.html:77",
+    "ds-radio": "wizard.html:34",
+    "ds-radio__icon": "wizard.html:34",
+    "ds-radio__mark": "wizard.html:35",
+    "ds-radios": "wizard.html:33",
+    "ds-radios--tiles": "wizard.html:33",
+    "ds-radios__indicator": "wizard.html:131",
+    "ds-result": "wizard.html:103",
+    "ds-result--success": "wizard.html:103",
+    "ds-result__actions": "wizard.html:107",
+    "ds-result__disc": "wizard.html:104",
+    "ds-result__text": "wizard.html:106",
+    "ds-result__title": "wizard.html:105",
+    "ds-sm": "wizard.html:97",
+    "ds-spinner": "wizard.html:97",
+    "ds-spinner--ink": "wizard.html:97",
+    "ds-steps": "wizard.html:27",
+    "ds-sticky": "wizard.html:18",
+    "ds-sticky--head": "wizard.html:18",
+    "ds-theme": "wizard.html:2",
+    "ds-truncate": "wizard.html:20",
+    "ds-wizard": "wizard.html:26",
+    "ds-wizard__actions": "wizard.html:91",
+    "ds-wizard__back": "wizard.html:92",
+    "ds-wizard__next": "wizard.html:93",
+    "ds-wizard__panel": "wizard.html:29",
+    "ds-wizard__steps": "wizard.html:27",
+    "ds-wizard__submit": "wizard.html:94",
+    "ds-wizard__summary": "wizard.html:88",
+    "ds-wizard__title": "wizard.html:30"
+  },
+  "unknown": []
+}

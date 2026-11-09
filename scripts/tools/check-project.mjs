@@ -59,7 +59,7 @@
  * and so is none on a copy of 3.0 or later (no 2.x config names it); none
  * on an older copy is a warning.
  */
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ConfigError, bundle as runBundle } from './bundle.mjs';
@@ -143,14 +143,20 @@ export function globRegExp(glob) {
   return new RegExp(`^${pattern}$`);
 }
 
+/**
+ * Every file under `dir`, relative to it. Hidden folders (.git, an editor's or
+ * an agent's worktrees) and node_modules are no project files, and a symbolic
+ * link is never followed: a link back up the tree would recurse for ever.
+ */
 function walk(dir, prefix = '') {
   const out = [];
-  for (const name of readdirSync(join(dir, prefix))) {
-    if (name === 'node_modules' || name === '.git') continue;
+  for (const entry of readdirSync(join(dir, prefix), { withFileTypes: true })) {
+    const name = entry.name;
+    if (name === 'node_modules' || (name.startsWith('.') && entry.isDirectory())) continue;
+    if (entry.isSymbolicLink()) continue;
     const path = prefix ? `${prefix}/${name}` : name;
-    const stat = statSync(join(dir, path));
-    if (stat.isDirectory()) out.push(...walk(dir, path));
-    else out.push(path);
+    if (entry.isDirectory()) out.push(...walk(dir, path));
+    else if (entry.isFile()) out.push(path);
   }
   return out;
 }

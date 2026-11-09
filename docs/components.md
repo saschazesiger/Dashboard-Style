@@ -961,7 +961,8 @@ leave a stale body visible under the state.
 </body>
 ```
 
-`.ds-auth` is a page that is one centred card on the backdrop, at least the window's height, within the safe areas.
+`.ds-auth` is a page that is one centred card on the backdrop, at least the window's height, within the safe areas;
+a card taller than the window grows the page (its top stays in reach of the scroll, also under `.ds-base`).
 `.ds-auth__card` is `--ds-auth-width` (400px) wide at most; `.ds-auth__alert`, the slot above it, takes no room while
 empty; the primary action takes the card's width.
 
@@ -4156,7 +4157,8 @@ The look is the prose's: size, density, shape and tone are its options ([Prose](
 ### JS API
 
 `DS.markdown.render(source, options)` returns the markup; `DS.markdown.create(el, { source, ...options })` returns
-the controller (`get`, `set`, `on('change')`, `destroy`) that the attribute path makes, rendering through
+the controller (`get`, `set`, `on('change')`, `destroy`) that the attribute path makes (whose `destroy()` puts the
+source back, so a new init renders it again), rendering through
 `DS.dom.morphHtml`, so `set()` patches only what changed (a streamed answer keeps its nodes, a selection and a focused
 link); `ds:change` `{ source }` goes out on the element. `DS.markdown.use(defaults)` sets the page's defaults;
 `DS.markdown.slug(text)` is the id a heading gets.
@@ -6605,7 +6607,8 @@ Runtime properties (written by `js/datagrid.js`, never set them): `--ds-datagrid
   `refresh()` (render again, or load again from `source`), `select(keys | 'all' | 'page' | 'none')`,
   `expand(key, open)`, `edit(key, column)`, `focus(key, column)`, `sort(key, dir)`, `page(index)`, `preset(id)`,
   `toggleColumn(key, show)`, `resize(key, width)`, `csv(options)`, `copy(options)`, `download(name, options)`,
-  `menu(key, { x, y, opener })` and `destroy()` (what the grid wrote goes, the page's markup stays).
+  `menu(key, { x, y, opener })` and `destroy()` (what the grid wrote goes, the page's markup stays; a grid read from
+  its markup gets its header and body rows back as the page wrote them, so a new init reads the same table).
 - `query(rows, options)`: the client pipeline without a DOM, `{ items, rows, total, filtered }`.
 - `csv(rows, columns, options)`: CSV text (`separator`, `header`, `safe`, `raw`, `locale`).
 - `summary(rows, column)`: one figure of a summary row.
@@ -10577,7 +10580,9 @@ interval that sends `ds:refresh`. The values are short and readable, so the rang
 `js/timerange.js` (`DS.timerange`). `create(root, options)` returns the controller that `data-ds-timerange` makes,
 once per root: `get()` (`{ from, to, refresh }`), `set(value)` (`{ from, to, refresh }` or a "from" alone; no event),
 `resolve()` (the instants now), `query()`, `refresh()` (sends `ds:refresh`, reason `manual`), `open()`, `close()`,
-`on(type, fn)` (`change`, `refresh`) and `destroy()`.
+`on(type, fn)` (`change`, `refresh`) and `destroy()`. The two date-time fields (`DS.datefield`) and the buttons of the
+quick and recent ranges are made on the first open: until then the popover's `.ds-datefield` boxes and lists stay
+empty, so a view that starts with a time range pays for them only when they show.
 
 | Export | What |
 |---|---|
@@ -11645,7 +11650,8 @@ Phones (600px and below): the box fills the window, the key hints of the foot an
 
 - `create(el, options)` returns the controller (the one `data-ds-command` makes; a second call sets `commands` and
   `providers`): `get()` (`{ open, query, page, active }`), `set({ commands, providers, query })`, `on('select' |
-  'query', fn)`, `open({ opener, query, page })`, `close()`, `back()`, `run(id)`, `refresh()` and `destroy()`.
+  'query', fn)`, `open({ opener, query, page })`, `close()`, `back()`, `run(id)`, `refresh()` and `destroy()` (the list gets the
+  page's options back as written, so a new init reads the same commands).
   Options: `commands`, `providers`, `recent`, `hotkey`, `shortcuts`.
 - `open(el, options)` and `close(el)`.
 - `fuzzy(query, text)` returns `{ score, ranges }` or `null`; `rank(commands, query)` the matching commands, best first.

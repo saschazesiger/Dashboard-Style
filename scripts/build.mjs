@@ -1496,6 +1496,56 @@ export function diffPatternBundles() {
   return problems;
 }
 
+// ── The published pages' bundles (example/, demo/) ─────────────────────
+
+/**
+ * The reference app and the live tour load project bundles of their own
+ * (tools/bundle.mjs on their ds.config.json), committed beside them as a
+ * project commits its bundle. The build writes them from the dist/ it just
+ * built, so a new version or a changed component never leaves them stale;
+ * --check compares them, --generated lists them once git tracks them.
+ */
+export const SITE_BUNDLE_CONFIGS = ['example/ds.config.json', 'demo/ds.config.json'];
+
+const siteConfigs = () => SITE_BUNDLE_CONFIGS.filter((path) => existsSync(join(ROOT, path)));
+
+/** Map of absolute path -> content of every site bundle, made from dist/ on disk. */
+function siteBundles() {
+  const all = new Map();
+  for (const config of siteConfigs()) {
+    const result = bundleProject({ config: join(ROOT, config), dist: DIST, write: false });
+    if (!result.ok) throw new Error(`${config}: the bundle failed:\n  ${result.errors.join('\n  ')}`);
+    for (const [path, content] of result.outputs) all.set(path, content);
+  }
+  return all;
+}
+
+/** The site bundles' files, as repository paths. */
+export function siteBundleFiles() {
+  return [...siteBundles().keys()].map((path) => posix(relative(ROOT, path))).sort();
+}
+
+/** Writes the site bundles from dist/ (after the build wrote it). */
+export function writeSiteBundles() {
+  const outputs = siteBundles();
+  for (const [path, content] of outputs) {
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, content);
+  }
+  return outputs.size;
+}
+
+/** The site bundle files that differ from what dist/ on disk makes. */
+export function diffSiteBundles() {
+  const problems = [];
+  for (const [path, content] of siteBundles()) {
+    const shown = posix(relative(ROOT, path));
+    if (!existsSync(path)) problems.push(`missing: ${shown}`);
+    else if (!readFileSync(path).equals(content)) problems.push(`outdated: ${shown}`);
+  }
+  return problems;
+}
+
 /** The generated files of the repository: Map of repository path -> text. */
 export function generatedFiles(list = components()) {
   return new Map([
@@ -2107,14 +2157,14 @@ function main() {
   // The generated paths alone: `git checkout -- dist $(node scripts/build.mjs --generated)` on a group branch.
   // The patterns' bundles only as far as git tracks them: one path git does not know fails that checkout as a whole.
   if (process.argv.includes('--generated')) {
-    console.log([...files.keys(), ...trackedOnly(patternBundleFiles())].join('\n'));
+    console.log([...files.keys(), ...trackedOnly(patternBundleFiles()), ...trackedOnly(siteBundleFiles())].join('\n'));
     return;
   }
   if (process.argv.includes('--check')) {
     const out = build();
     const distProblems = diffDist(out);
     // The patterns' bundles are made from dist/ on disk: compared only once that is current.
-    const problems = [...diffGenerated(files), ...distProblems, ...(distProblems.length ? [] : diffPatternBundles())];
+    const problems = [...diffGenerated(files), ...distProblems, ...(distProblems.length ? [] : [...diffPatternBundles(), ...diffSiteBundles()])];
     if (problems.length) {
       console.error(`dist/ or a generated file is not up to date (run npm run build):\n  ${problems.join('\n  ')}`);
       process.exit(1);
@@ -2130,6 +2180,8 @@ function main() {
     writeFileSync(join(DIST, path), content);
   }
   const bundles = writePatternBundles();
+  const site = writeSiteBundles();
+  if (site) console.log(`Wrote the site bundles (${siteConfigs().join(', ')}: ${site} files).`);
   console.log(`Built dist/ (${out.size} files, version ${packageInfo().version}) and ${[...files.keys(), ...(bundles ? [`${PATTERNS}/${PATTERN_OUT}/ (${bundles} files)`] : [])].join(', ')}.`);
 }
 
