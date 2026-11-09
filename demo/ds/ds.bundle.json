@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.bundle.css",
-      "bytes": 646671,
-      "gzip": 93444
+      "bytes": 621920,
+      "gzip": 89775
     },
     "js": {
       "file": "ds.bundle.js",
-      "bytes": 1641742,
-      "gzip": 392073
+      "bytes": 1494123,
+      "gzip": 357588
     },
     "properties": {
       "file": "properties.css",
@@ -23,25 +23,25 @@
   "components": [
     {
       "name": "layout",
-      "reason": "demo.js:246 ds-grid",
+      "reason": "demo.js:248 ds-grid",
       "bytes": 3326,
       "gzip": 1048
     },
     {
       "name": "utilities",
-      "reason": "demo.js:507 ds-nowrap",
+      "reason": "demo.js:514 ds-nowrap",
       "bytes": 5326,
       "gzip": 1448
     },
     {
       "name": "scroller",
-      "reason": "index.html:1067 ds-scroll-x",
+      "reason": "index.html:795 ds-scroll-x",
       "bytes": 3876,
       "gzip": 991
     },
     {
       "name": "spinner",
-      "reason": "demo.js:589 ds-spinner",
+      "reason": "demo.js:596 ds-spinner",
       "bytes": 3235,
       "gzip": 901
     },
@@ -59,7 +59,7 @@
     },
     {
       "name": "button",
-      "reason": "demo.js:443 ds-btn",
+      "reason": "demo.js:448 ds-btn",
       "bytes": 15255,
       "gzip": 2524
     },
@@ -71,7 +71,7 @@
     },
     {
       "name": "disclosure",
-      "reason": "index.html:1039 ds-disclosure",
+      "reason": "index.html:1042 ds-disclosure",
       "bytes": 3367,
       "gzip": 1022
     },
@@ -83,19 +83,19 @@
     },
     {
       "name": "tasks",
-      "reason": "demo.js:971 ds-tasks__item",
+      "reason": "demo.js:978 ds-tasks__item",
       "bytes": 1864,
       "gzip": 686
     },
     {
       "name": "status",
-      "reason": "demo.js:514 ds-status",
+      "reason": "demo.js:521 ds-status",
       "bytes": 3164,
       "gzip": 921
     },
     {
       "name": "alert",
-      "reason": "demo.js:798 ds-alert",
+      "reason": "demo.js:805 ds-alert",
       "bytes": 6191,
       "gzip": 1561
     },
@@ -113,145 +113,145 @@
     },
     {
       "name": "progress",
-      "reason": "demo.js:442 ds-progress",
+      "reason": "demo.js:447 ds-progress",
       "bytes": 6008,
       "gzip": 1430
     },
     {
       "name": "chart",
-      "reason": "demo.js:247 data-ds-chart",
+      "reason": "demo.js:249 data-ds-chart",
       "bytes": 23341,
       "gzip": 4433
     },
     {
       "name": "tile",
-      "reason": "demo.js:237 ds-tile__value",
+      "reason": "demo.js:238 ds-tile__value",
       "bytes": 6931,
       "gzip": 1673
     },
     {
       "name": "list",
-      "reason": "demo.js:434 ds-list",
+      "reason": "demo.js:439 ds-list",
       "bytes": 18637,
       "gzip": 3412
     },
     {
       "name": "card",
-      "reason": "demo.js:246 ds-card",
+      "reason": "demo.js:248 ds-card",
       "bytes": 16606,
       "gzip": 2659
     },
     {
       "name": "prose",
-      "reason": "demo.js:1150 ds-prose",
+      "reason": "demo.js:1158 ds-prose",
       "bytes": 10564,
       "gzip": 1980
     },
     {
       "name": "empty",
-      "reason": "demo.js:674 ds-empty",
+      "reason": "demo.js:681 ds-empty",
       "bytes": 3869,
       "gzip": 1174
     },
     {
       "name": "menu",
-      "reason": "demo.js:848 ds-menu__item",
+      "reason": "demo.js:855 ds-menu__item",
       "bytes": 8287,
       "gzip": 2087
     },
     {
       "name": "chip",
-      "reason": "demo.js:652 ds-chip",
+      "reason": "demo.js:659 ds-chip",
       "bytes": 8706,
       "gzip": 1866
     },
     {
       "name": "badge",
-      "reason": "index.html:897 ds-badge",
+      "reason": "index.html:900 ds-badge",
       "bytes": 3754,
       "gzip": 964
     },
     {
       "name": "sheet",
-      "reason": "index.html:1246 ds-sheet",
+      "reason": "index.html:1249 ds-sheet",
       "bytes": 12282,
       "gzip": 2502
     },
     {
       "name": "dialog",
-      "reason": "index.html:1217 ds-dialog",
+      "reason": "index.html:1220 ds-dialog",
       "bytes": 15994,
       "gzip": 2482
     },
     {
       "name": "table",
-      "reason": "demo.js:614 ds-col--text",
+      "reason": "demo.js:621 ds-col--text",
       "bytes": 32874,
       "gzip": 4760
     },
     {
       "name": "pagination",
-      "reason": "demo.js:1045 ds-pagination__range",
+      "reason": "demo.js:1053 ds-pagination__range",
       "bytes": 2697,
       "gzip": 807
     },
     {
       "name": "form",
-      "reason": "demo.js:366 ds-field",
+      "reason": "demo.js:371 ds-field",
       "bytes": 49307,
       "gzip": 7088
     },
     {
       "name": "drag",
-      "reason": "demo.js:445 ds-dropzone__input",
+      "reason": "demo.js:450 ds-dropzone__input",
       "bytes": 8418,
       "gzip": 1901
     },
     {
       "name": "combobox",
-      "reason": "demo.js:247 ds-combo",
+      "reason": "demo.js:249 ds-combo",
       "bytes": 13500,
       "gzip": 3016
     },
     {
       "name": "tooltip",
-      "reason": "demo.js:443 data-tip",
+      "reason": "demo.js:448 data-tip",
       "bytes": 2413,
       "gzip": 811
     },
     {
       "name": "page",
-      "reason": "demo.js:246 ds-grid-2",
-      "bytes": 8000,
-      "gzip": 2189
+      "reason": "demo.js:248 ds-grid-2",
+      "bytes": 8012,
+      "gzip": 2191
     },
     {
       "name": "shell",
-      "reason": "demo.js:90 ds-topbar",
+      "reason": "demo.js:91 ds-topbar",
       "bytes": 39266,
       "gzip": 6590
     },
     {
       "name": "tabs",
-      "reason": "demo.js:248 data-ds-tabs",
+      "reason": "demo.js:250 data-ds-tabs",
       "bytes": 7866,
       "gzip": 1960
     },
     {
       "name": "steps",
-      "reason": "demo.js:998 ds-steps__step",
+      "reason": "demo.js:1005 ds-steps__step",
       "bytes": 12125,
       "gzip": 2356
     },
     {
       "name": "toast",
-      "reason": "index.html:1215 ds-toasts",
+      "reason": "index.html:1218 ds-toasts",
       "bytes": 5272,
       "gzip": 1486
     },
     {
       "name": "calendar",
-      "reason": "index.html:163 data-ds-value",
+      "reason": "required by datepicker",
       "bytes": 5935,
       "gzip": 1528
     },
@@ -263,33 +263,15 @@
     },
     {
       "name": "splitpane",
-      "reason": "demo.js:246 ds-splitpane",
+      "reason": "demo.js:248 ds-splitpane",
       "bytes": 4530,
       "gzip": 1171
-    },
-    {
-      "name": "upload",
-      "reason": "demo.js:440 data-ds-key",
-      "bytes": 3706,
-      "gzip": 1134
     },
     {
       "name": "datefield",
       "reason": "index.html:297 ds-datefield",
       "bytes": 4124,
       "gzip": 1154
-    },
-    {
-      "name": "kveditor",
-      "reason": "demo.js:440 data-ds-key",
-      "bytes": 2253,
-      "gzip": 807
-    },
-    {
-      "name": "sort",
-      "reason": "index.html:163 data-ds-value",
-      "bytes": 1120,
-      "gzip": 534
     },
     {
       "name": "toggletip",
@@ -299,13 +281,13 @@
     },
     {
       "name": "dashpanel",
-      "reason": "demo.js:1058 ds-dashpanel",
+      "reason": "demo.js:1066 ds-dashpanel",
       "bytes": 2819,
       "gzip": 881
     },
     {
       "name": "picker",
-      "reason": "demo.js:247 ds-picker",
+      "reason": "demo.js:249 ds-picker",
       "bytes": 6042,
       "gzip": 1674
     },
@@ -322,14 +304,8 @@
       "gzip": 320
     },
     {
-      "name": "query",
-      "reason": "index.html:163 data-ds-value",
-      "bytes": 943,
-      "gzip": 434
-    },
-    {
       "name": "datagrid",
-      "reason": "demo.js:440 data-ds-key",
+      "reason": "index.html:496 ds-datagrid",
       "bytes": 8213,
       "gzip": 1914
     },
@@ -341,25 +317,19 @@
     },
     {
       "name": "timerange",
-      "reason": "demo.js:247 ds-timerange",
+      "reason": "demo.js:249 ds-timerange",
       "bytes": 3124,
       "gzip": 1051
     },
     {
-      "name": "duration",
-      "reason": "index.html:163 data-ds-value",
-      "bytes": 123,
-      "gzip": 125
-    },
-    {
       "name": "link",
-      "reason": "index.html:1164 ds-link",
+      "reason": "index.html:1167 ds-link",
       "bytes": 1699,
       "gzip": 567
     },
     {
       "name": "toggle",
-      "reason": "demo.js:249 data-ds-toggle-group",
+      "reason": "demo.js:251 data-ds-toggle-group",
       "bytes": 279,
       "gzip": 220
     },
@@ -371,13 +341,13 @@
     },
     {
       "name": "menubutton",
-      "reason": "demo.js:249 data-ds-menubutton",
+      "reason": "demo.js:251 data-ds-menubutton",
       "bytes": 463,
       "gzip": 283
     },
     {
       "name": "splitbutton",
-      "reason": "demo.js:249 data-ds-splitbutton",
+      "reason": "demo.js:251 data-ds-splitbutton",
       "bytes": 396,
       "gzip": 254
     },
@@ -389,79 +359,55 @@
     },
     {
       "name": "prioritybar",
-      "reason": "demo.js:249 data-ds-prioritybar",
+      "reason": "demo.js:251 data-ds-prioritybar",
       "bytes": 637,
       "gzip": 349
     },
     {
       "name": "listbox",
-      "reason": "index.html:163 data-ds-value",
+      "reason": "needed by module listbox",
       "bytes": 7975,
       "gzip": 1832
     },
     {
       "name": "number",
-      "reason": "demo.js:248 data-ds-number",
+      "reason": "demo.js:250 data-ds-number",
       "bytes": 478,
       "gzip": 284
     },
     {
       "name": "tree",
-      "reason": "demo.js:247 data-ds-tree",
+      "reason": "demo.js:249 data-ds-tree",
       "bytes": 7086,
       "gzip": 1718
     },
     {
       "name": "jsonview",
-      "reason": "demo.js:247 data-ds-jsonview",
+      "reason": "demo.js:249 data-ds-jsonview",
       "bytes": 3218,
       "gzip": 967
     },
     {
       "name": "password",
-      "reason": "demo.js:248 data-ds-password",
+      "reason": "demo.js:250 data-ds-password",
       "bytes": 1527,
       "gzip": 554
     },
     {
       "name": "taginput",
-      "reason": "demo.js:248 data-ds-taginput",
+      "reason": "demo.js:250 data-ds-taginput",
       "bytes": 3035,
       "gzip": 944
     },
     {
       "name": "otp",
-      "reason": "demo.js:248 data-ds-otp",
+      "reason": "demo.js:250 data-ds-otp",
       "bytes": 892,
       "gzip": 474
     },
     {
-      "name": "selectpanel",
-      "reason": "index.html:163 data-ds-value",
-      "bytes": 3335,
-      "gzip": 1112
-    },
-    {
-      "name": "inlineedit",
-      "reason": "index.html:163 data-ds-value",
-      "bytes": 1068,
-      "gzip": 456
-    },
-    {
-      "name": "errorsummary",
-      "reason": "demo.js:440 data-ds-key",
-      "bytes": 1120,
-      "gzip": 419
-    },
-    {
-      "name": "search",
-      "reason": "demo.js:440 data-ds-key",
-      "bytes": 1402,
-      "gzip": 580
-    },
-    {
       "name": "meter",
-      "reason": "index.html:846 ds-bar-gauge",
+      "reason": "index.html:849 ds-bar-gauge",
       "bytes": 6523,
       "gzip": 1652
     },
@@ -473,49 +419,49 @@
     },
     {
       "name": "formatted",
-      "reason": "demo.js:443 data-tip",
+      "reason": "demo.js:448 data-tip",
       "bytes": 596,
       "gzip": 300
     },
     {
       "name": "tracker",
-      "reason": "demo.js:540 ds-tracker__cell--success",
+      "reason": "demo.js:547 ds-tracker__cell--success",
       "bytes": 2658,
       "gzip": 922
     },
     {
       "name": "composer",
-      "reason": "demo.js:440 data-ds-key",
+      "reason": "index.html:1076 ds-composer",
       "bytes": 7077,
       "gzip": 1739
     },
     {
       "name": "message",
-      "reason": "demo.js:247 ds-message",
+      "reason": "demo.js:249 ds-message",
       "bytes": 4637,
       "gzip": 1153
     },
     {
       "name": "transcript",
-      "reason": "demo.js:1147 data-ds-message",
+      "reason": "demo.js:1155 data-ds-message",
       "bytes": 1957,
       "gzip": 777
     },
     {
       "name": "suggestions",
-      "reason": "index.html:1067 ds-suggestions",
+      "reason": "index.html:1070 ds-suggestions",
       "bytes": 711,
       "gzip": 385
     },
     {
       "name": "feedback",
-      "reason": "index.html:1057 ds-feedback",
+      "reason": "index.html:1060 ds-feedback",
       "bytes": 451,
       "gzip": 268
     },
     {
       "name": "ailabel",
-      "reason": "index.html:1033 ds-ailabel",
+      "reason": "index.html:1036 ds-ailabel",
       "bytes": 3562,
       "gzip": 1210
     },
@@ -533,19 +479,19 @@
     },
     {
       "name": "code",
-      "reason": "demo.js:249 data-ds-code",
+      "reason": "demo.js:251 data-ds-code",
       "bytes": 5372,
       "gzip": 1386
     },
     {
       "name": "diff",
-      "reason": "demo.js:247 data-ds-diff",
+      "reason": "demo.js:249 data-ds-diff",
       "bytes": 6272,
       "gzip": 1548
     },
     {
       "name": "logview",
-      "reason": "demo.js:247 data-ds-logview",
+      "reason": "demo.js:249 data-ds-logview",
       "bytes": 9768,
       "gzip": 2103
     },
@@ -557,69 +503,57 @@
     },
     {
       "name": "wheel",
-      "reason": "index.html:1066 ds-wheel",
+      "reason": "index.html:1069 ds-wheel",
       "bytes": 595,
       "gzip": 355
     },
     {
       "name": "thinking",
-      "reason": "index.html:1066 ds-thinking",
+      "reason": "index.html:1069 ds-thinking",
       "bytes": 1617,
       "gzip": 658
     },
     {
       "name": "toolcall",
-      "reason": "index.html:1043 ds-toolcall-list",
+      "reason": "index.html:1046 ds-toolcall-list",
       "bytes": 3569,
       "gzip": 1059
     },
     {
       "name": "reasoning",
-      "reason": "index.html:1039 ds-reasoning",
+      "reason": "index.html:1042 ds-reasoning",
       "bytes": 1263,
       "gzip": 530
     },
     {
       "name": "cite",
-      "reason": "demo.js:1213 ds-cite__title",
+      "reason": "demo.js:1221 ds-cite__title",
       "bytes": 5169,
       "gzip": 1446
     },
     {
       "name": "presence",
-      "reason": "demo.js:1077 ds-presence-dot--online",
+      "reason": "demo.js:1085 ds-presence-dot--online",
       "bytes": 1438,
       "gzip": 558
     },
     {
       "name": "avatar",
-      "reason": "demo.js:1076 ds-avatar--hue-1",
+      "reason": "demo.js:1084 ds-avatar--hue-1",
       "bytes": 5871,
       "gzip": 1523
     },
     {
       "name": "persona",
-      "reason": "demo.js:1083 ds-persona",
+      "reason": "demo.js:1091 ds-persona",
       "bytes": 1710,
       "gzip": 604
     },
     {
-      "name": "media",
-      "reason": "demo.js:440 data-ds-key",
-      "bytes": 5664,
-      "gzip": 1483
-    },
-    {
       "name": "command",
-      "reason": "demo.js:440 data-ds-key",
+      "reason": "index.html:1220 ds-command",
       "bytes": 5567,
       "gzip": 1485
-    },
-    {
-      "name": "notifications",
-      "reason": "demo.js:440 data-ds-key",
-      "bytes": 4028,
-      "gzip": 1228
     },
     {
       "name": "ripple",
@@ -635,23 +569,23 @@
     },
     {
       "name": "motion",
-      "reason": "demo.js:46 DS.motion"
+      "reason": "demo.js:47 DS.motion"
     },
     {
       "name": "indicator",
-      "reason": "demo.js:210 DS.indicator.create"
+      "reason": "demo.js:1032 DS.indicator.create"
     },
     {
       "name": "dom",
-      "reason": "demo.js:21 DS.dom.dropzone"
+      "reason": "demo.js:22 DS.dom.dropzone"
     },
     {
       "name": "ripple",
-      "reason": "demo.js:95 DS.ripple.attach"
+      "reason": "demo.js:97 DS.ripple.attach"
     },
     {
       "name": "icons",
-      "reason": "demo.js:49 DS.icons.icon"
+      "reason": "demo.js:50 DS.icons.icon"
     },
     {
       "name": "position",
@@ -659,15 +593,15 @@
     },
     {
       "name": "overlay",
-      "reason": "demo.js:827 data-ds-busy"
+      "reason": "demo.js:834 data-ds-busy"
     },
     {
       "name": "a11y",
-      "reason": "demo.js:1032 DS.a11y.roving"
+      "reason": "demo.js:1040 DS.a11y.roving"
     },
     {
       "name": "hotkeys",
-      "reason": "needed by command"
+      "reason": "imported by command"
     },
     {
       "name": "format",
@@ -691,11 +625,11 @@
     },
     {
       "name": "avatar",
-      "reason": "demo.js:1083 DS.avatar.hue"
+      "reason": "demo.js:1091 DS.avatar.hue"
     },
     {
       "name": "badge",
-      "reason": "needed by notifications"
+      "reason": "needed by badge"
     },
     {
       "name": "calendar",
@@ -711,7 +645,7 @@
     },
     {
       "name": "command",
-      "reason": "demo.js:1368 DS.command.create"
+      "reason": "demo.js:1376 DS.command.create"
     },
     {
       "name": "composer",
@@ -719,7 +653,7 @@
     },
     {
       "name": "copy",
-      "reason": "needed by copy"
+      "reason": "index.html:208 data-ds-copy"
     },
     {
       "name": "datefield",
@@ -727,19 +661,11 @@
     },
     {
       "name": "dialog",
-      "reason": "needed by command"
+      "reason": "needed by dialog"
     },
     {
       "name": "diff",
       "reason": "needed by diff"
-    },
-    {
-      "name": "duration",
-      "reason": "needed by duration"
-    },
-    {
-      "name": "errorsummary",
-      "reason": "needed by errorsummary"
     },
     {
       "name": "feedback",
@@ -762,14 +688,6 @@
       "reason": "needed by code"
     },
     {
-      "name": "inlineedit",
-      "reason": "needed by inlineedit"
-    },
-    {
-      "name": "kveditor",
-      "reason": "needed by kveditor"
-    },
-    {
       "name": "list",
       "reason": "needed by list"
     },
@@ -787,11 +705,7 @@
     },
     {
       "name": "markdown",
-      "reason": "demo.js:1110 DS.markdown.create"
-    },
-    {
-      "name": "media",
-      "reason": "needed by media"
+      "reason": "demo.js:1118 DS.markdown.create"
     },
     {
       "name": "menu",
@@ -799,7 +713,7 @@
     },
     {
       "name": "datagrid",
-      "reason": "demo.js:505 DS.datagrid.create"
+      "reason": "demo.js:512 DS.datagrid.create"
     },
     {
       "name": "menubutton",
@@ -807,7 +721,7 @@
     },
     {
       "name": "message",
-      "reason": "demo.js:1185 DS.message"
+      "reason": "demo.js:1193 DS.message"
     },
     {
       "name": "number",
@@ -842,28 +756,12 @@
       "reason": "needed by prioritybar"
     },
     {
-      "name": "query",
-      "reason": "needed by query"
-    },
-    {
-      "name": "search",
-      "reason": "needed by search"
-    },
-    {
-      "name": "selectpanel",
-      "reason": "needed by selectpanel"
-    },
-    {
       "name": "sheet",
       "reason": "needed by sheet"
     },
     {
       "name": "shell",
-      "reason": "demo.js:1307 DS.shell.setScheme"
-    },
-    {
-      "name": "sort",
-      "reason": "needed by sort"
+      "reason": "demo.js:1315 DS.shell.setScheme"
     },
     {
       "name": "splitbutton",
@@ -903,11 +801,7 @@
     },
     {
       "name": "toast",
-      "reason": "needed by notifications"
-    },
-    {
-      "name": "notifications",
-      "reason": "needed by notifications"
+      "reason": "needed by toast"
     },
     {
       "name": "toggle",
@@ -923,7 +817,7 @@
     },
     {
       "name": "tracker",
-      "reason": "demo.js:548 DS.tracker.counts"
+      "reason": "demo.js:555 DS.tracker.counts"
     },
     {
       "name": "transcript",
@@ -936,10 +830,6 @@
     {
       "name": "jsonview",
       "reason": "needed by jsonview"
-    },
-    {
-      "name": "upload",
-      "reason": "needed by upload"
     },
     {
       "name": "wheel",
@@ -969,7 +859,7 @@
     },
     {
       "name": "arrowUp",
-      "reason": "demo.js:625"
+      "reason": "demo.js:632"
     },
     {
       "name": "arrowDown",
@@ -1013,7 +903,7 @@
     },
     {
       "name": "close",
-      "reason": "demo.js:443"
+      "reason": "demo.js:448"
     },
     {
       "name": "minimize",
@@ -1025,7 +915,7 @@
     },
     {
       "name": "moreVertical",
-      "reason": "demo.js:523"
+      "reason": "demo.js:530"
     },
     {
       "name": "moreHorizontal",
@@ -1037,7 +927,7 @@
     },
     {
       "name": "search",
-      "reason": "demo.js:676"
+      "reason": "demo.js:683"
     },
     {
       "name": "filter",
@@ -1061,7 +951,7 @@
     },
     {
       "name": "reset",
-      "reason": "index.html:1130"
+      "reason": "index.html:1133"
     },
     {
       "name": "sync",
@@ -1073,7 +963,7 @@
     },
     {
       "name": "history",
-      "reason": "used by module search"
+      "reason": "config \"icons\": \"all\""
     },
     {
       "name": "copy",
@@ -1101,7 +991,7 @@
     },
     {
       "name": "play",
-      "reason": "demo.js:1377"
+      "reason": "demo.js:1385"
     },
     {
       "name": "pause",
@@ -1129,11 +1019,11 @@
     },
     {
       "name": "send",
-      "reason": "index.html:1075"
+      "reason": "index.html:1078"
     },
     {
       "name": "bell",
-      "reason": "index.html:897"
+      "reason": "index.html:900"
     },
     {
       "name": "mic",
@@ -1149,7 +1039,7 @@
     },
     {
       "name": "mail",
-      "reason": "used by module notifications"
+      "reason": "config \"icons\": \"all\""
     },
     {
       "name": "phone",
@@ -1177,11 +1067,11 @@
     },
     {
       "name": "check",
-      "reason": "demo.js:933"
+      "reason": "demo.js:940"
     },
     {
       "name": "checkCircle",
-      "reason": "demo.js:894"
+      "reason": "demo.js:901"
     },
     {
       "name": "alert",
@@ -1189,11 +1079,11 @@
     },
     {
       "name": "alertCircle",
-      "reason": "demo.js:366"
+      "reason": "demo.js:371"
     },
     {
       "name": "info",
-      "reason": "demo.js:1379"
+      "reason": "demo.js:1387"
     },
     {
       "name": "helpCircle",
@@ -1209,7 +1099,7 @@
     },
     {
       "name": "clock",
-      "reason": "demo.js:1376"
+      "reason": "demo.js:1384"
     },
     {
       "name": "ban",
@@ -1245,7 +1135,7 @@
     },
     {
       "name": "terminal",
-      "reason": "index.html:1045"
+      "reason": "index.html:1048"
     },
     {
       "name": "tag",
@@ -1253,15 +1143,15 @@
     },
     {
       "name": "sun",
-      "reason": "demo.js:1371"
+      "reason": "demo.js:1379"
     },
     {
       "name": "moon",
-      "reason": "demo.js:1372"
+      "reason": "demo.js:1380"
     },
     {
       "name": "overview",
-      "reason": "demo.js:1382"
+      "reason": "demo.js:1390"
     },
     {
       "name": "apps",
@@ -1281,7 +1171,7 @@
     },
     {
       "name": "barChart",
-      "reason": "demo.js:1378"
+      "reason": "demo.js:1386"
     },
     {
       "name": "settings",
@@ -1321,15 +1211,15 @@
     },
     {
       "name": "file",
-      "reason": "used by module upload"
+      "reason": "used by module composer"
     },
     {
       "name": "fileText",
-      "reason": "demo.js:440"
+      "reason": "demo.js:445"
     },
     {
       "name": "fileCode",
-      "reason": "demo.js:1381"
+      "reason": "demo.js:1389"
     },
     {
       "name": "folder",
@@ -1349,11 +1239,11 @@
     },
     {
       "name": "laptop",
-      "reason": "demo.js:1383"
+      "reason": "demo.js:1391"
     },
     {
       "name": "monitor",
-      "reason": "demo.js:1373"
+      "reason": "demo.js:1381"
     },
     {
       "name": "hardDrive",
@@ -1361,7 +1251,7 @@
     },
     {
       "name": "server",
-      "reason": "index.html:879"
+      "reason": "index.html:882"
     },
     {
       "name": "graduationCap",
@@ -1381,7 +1271,7 @@
     },
     {
       "name": "image",
-      "reason": "demo.js:1343"
+      "reason": "demo.js:1351"
     },
     {
       "name": "leaf",
@@ -1397,7 +1287,7 @@
     },
     {
       "name": "fileImage",
-      "reason": "used by module upload"
+      "reason": "used by module composer"
     },
     {
       "name": "fileArchive",
@@ -1601,7 +1491,7 @@
     },
     {
       "name": "wrapText",
-      "reason": "index.html:922"
+      "reason": "index.html:925"
     },
     {
       "name": "shieldCheck",
@@ -1677,7 +1567,7 @@
     },
     {
       "name": "square",
-      "reason": "index.html:1075"
+      "reason": "index.html:1078"
     },
     {
       "name": "squareCheck",
@@ -1825,7 +1715,7 @@
     },
     {
       "name": "refresh",
-      "reason": "index.html:838"
+      "reason": "index.html:841"
     },
     {
       "name": "repeat",
@@ -1873,15 +1763,15 @@
     },
     {
       "name": "sparkle",
-      "reason": "index.html:1040"
+      "reason": "index.html:1043"
     },
     {
       "name": "wand",
-      "reason": "index.html:1097"
+      "reason": "index.html:1100"
     },
     {
       "name": "bot",
-      "reason": "demo.js:1148"
+      "reason": "demo.js:1156"
     },
     {
       "name": "chatText",
@@ -1965,7 +1855,7 @@
     },
     {
       "name": "palette",
-      "reason": "demo.js:1374"
+      "reason": "demo.js:1382"
     },
     {
       "name": "brush",
@@ -1977,7 +1867,7 @@
     },
     {
       "name": "mailOpen",
-      "reason": "used by module notifications"
+      "reason": "config \"icons\": \"all\""
     },
     {
       "name": "inbox",
@@ -2025,7 +1915,7 @@
     },
     {
       "name": "book",
-      "reason": "index.html:1054"
+      "reason": "index.html:1057"
     },
     {
       "name": "newspaper",
@@ -2053,7 +1943,7 @@
     },
     {
       "name": "zap",
-      "reason": "demo.js:1375"
+      "reason": "demo.js:1383"
     },
     {
       "name": "scrollText",
@@ -2062,31 +1952,31 @@
   ],
   "classes": {
     "ds-action-bar": "index.html:481",
-    "ds-ailabel": "index.html:1033",
-    "ds-ailabel--plain": "index.html:1033",
-    "ds-ailabel__tip": "index.html:1034",
-    "ds-ailabel__title": "index.html:1035",
-    "ds-alert": "demo.js:798",
-    "ds-alert__text": "demo.js:798",
+    "ds-ailabel": "index.html:1036",
+    "ds-ailabel--plain": "index.html:1036",
+    "ds-ailabel__tip": "index.html:1037",
+    "ds-ailabel__title": "index.html:1038",
+    "ds-alert": "demo.js:805",
+    "ds-alert__text": "demo.js:805",
     "ds-app": "index.html:22",
     "ds-app--drawer": "index.html:22",
-    "ds-avatar": "demo.js:1083",
-    "ds-avatar--hue-1": "demo.js:1076",
-    "ds-avatar--hue-2": "demo.js:1076",
-    "ds-avatar--hue-3": "demo.js:1076",
-    "ds-avatar--hue-4": "demo.js:1076",
-    "ds-avatar--hue-5": "demo.js:1076",
-    "ds-avatar--hue-6": "demo.js:1076",
-    "ds-avatar--square": "index.html:879",
-    "ds-avatar-group": "index.html:883",
-    "ds-avatar-group__more": "demo.js:1093",
-    "ds-badge": "index.html:897",
-    "ds-badge--dot": "index.html:897",
-    "ds-bar-gauge": "index.html:846",
-    "ds-bar-gauge__label": "index.html:846",
-    "ds-bar-gauge__note": "index.html:847",
-    "ds-bar-gauge__track": "index.html:846",
-    "ds-bar-gauge__value": "index.html:846",
+    "ds-avatar": "demo.js:1091",
+    "ds-avatar--hue-1": "demo.js:1084",
+    "ds-avatar--hue-2": "demo.js:1084",
+    "ds-avatar--hue-3": "demo.js:1084",
+    "ds-avatar--hue-4": "demo.js:1084",
+    "ds-avatar--hue-5": "demo.js:1084",
+    "ds-avatar--hue-6": "demo.js:1084",
+    "ds-avatar--square": "index.html:882",
+    "ds-avatar-group": "index.html:886",
+    "ds-avatar-group__more": "demo.js:1101",
+    "ds-badge": "index.html:900",
+    "ds-badge--dot": "index.html:900",
+    "ds-bar-gauge": "index.html:849",
+    "ds-bar-gauge__label": "index.html:849",
+    "ds-bar-gauge__note": "index.html:850",
+    "ds-bar-gauge__track": "index.html:849",
+    "ds-bar-gauge__value": "index.html:849",
     "ds-bar-list": "index.html:540",
     "ds-bar-list__item": "index.html:541",
     "ds-bar-list__label": "index.html:541",
@@ -2095,21 +1985,21 @@
     "ds-brand": "index.html:27",
     "ds-brand__name": "index.html:27",
     "ds-breadcrumbs": "index.html:755",
-    "ds-btn": "demo.js:443",
+    "ds-btn": "demo.js:448",
     "ds-btn--elevated": "index.html:121",
     "ds-btn--filled": "index.html:91",
-    "ds-btn--icon": "demo.js:443",
-    "ds-btn--quiet": "demo.js:443",
-    "ds-btn--text": "demo.js:657",
-    "ds-btn--tonal": "demo.js:678",
+    "ds-btn--icon": "demo.js:448",
+    "ds-btn--quiet": "demo.js:448",
+    "ds-btn--text": "demo.js:664",
+    "ds-btn--tonal": "demo.js:685",
     "ds-btn-group": "index.html:163",
     "ds-btn__face": "index.html:134",
     "ds-btn__face--busy": "index.html:135",
     "ds-btn__face--done": "index.html:136",
     "ds-btn__faces": "index.html:133",
-    "ds-card": "demo.js:246",
-    "ds-card--filled": "index.html:1200",
-    "ds-card--interactive": "index.html:1200",
+    "ds-card": "demo.js:248",
+    "ds-card--filled": "index.html:1203",
+    "ds-card--interactive": "index.html:1203",
     "ds-card__row": "index.html:479",
     "ds-card__subtitle": "index.html:130",
     "ds-card__title": "index.html:116",
@@ -2118,34 +2008,34 @@
     "ds-check-group": "index.html:252",
     "ds-check-group__children": "index.html:254",
     "ds-chevron": "index.html:177",
-    "ds-chip": "demo.js:652",
-    "ds-chip--input": "demo.js:652",
-    "ds-chip__body": "demo.js:653",
+    "ds-chip": "demo.js:659",
+    "ds-chip--input": "demo.js:659",
+    "ds-chip__body": "demo.js:660",
     "ds-chip__check": "index.html:268",
-    "ds-chip__icon": "index.html:1068",
+    "ds-chip__icon": "index.html:1071",
     "ds-chip__input": "index.html:268",
-    "ds-chip__label": "demo.js:653",
-    "ds-chip__trailing": "demo.js:653",
+    "ds-chip__label": "demo.js:660",
+    "ds-chip__trailing": "demo.js:660",
     "ds-chips": "index.html:266",
-    "ds-cite": "index.html:1052",
-    "ds-cite__card": "index.html:1053",
-    "ds-cite__icon": "index.html:1053",
-    "ds-cite__snippet": "index.html:1053",
-    "ds-cite__source": "index.html:1053",
-    "ds-cite__title": "demo.js:1213",
+    "ds-cite": "index.html:1055",
+    "ds-cite__card": "index.html:1056",
+    "ds-cite__icon": "index.html:1056",
+    "ds-cite__snippet": "index.html:1056",
+    "ds-cite__source": "index.html:1056",
+    "ds-cite__title": "demo.js:1221",
     "ds-cluster": "index.html:90",
-    "ds-code": "index.html:913",
-    "ds-code--lines": "index.html:913",
-    "ds-code-block": "index.html:926",
-    "ds-code-block--wrap": "index.html:1140",
-    "ds-code__actions": "index.html:921",
-    "ds-code__head": "index.html:914",
-    "ds-code__lang": "index.html:920",
-    "ds-code__title": "index.html:1135",
-    "ds-col--secondary": "demo.js:615",
-    "ds-col--text": "demo.js:614",
+    "ds-code": "index.html:916",
+    "ds-code--lines": "index.html:916",
+    "ds-code-block": "index.html:929",
+    "ds-code-block--wrap": "index.html:1143",
+    "ds-code__actions": "index.html:924",
+    "ds-code__head": "index.html:917",
+    "ds-code__lang": "index.html:923",
+    "ds-code__title": "index.html:1138",
+    "ds-col--secondary": "demo.js:622",
+    "ds-col--text": "demo.js:621",
     "ds-collapsible": "index.html:723",
-    "ds-combo": "demo.js:247",
+    "ds-combo": "demo.js:249",
     "ds-combo__clear": "index.html:403",
     "ds-combo__group": "index.html:407",
     "ds-combo__heading": "index.html:408",
@@ -2157,46 +2047,46 @@
     "ds-combo__popup": "index.html:405",
     "ds-combo__status": "index.html:426",
     "ds-combo__toggle": "index.html:404",
-    "ds-command": "index.html:1217",
-    "ds-command__close": "index.html:1222",
-    "ds-command__foot": "index.html:1225",
-    "ds-command__input": "index.html:1221",
-    "ds-command__list": "index.html:1224",
-    "ds-command__search": "index.html:1220",
-    "ds-composer": "index.html:1073",
-    "ds-composer__input": "index.html:1074",
+    "ds-command": "index.html:1220",
+    "ds-command__close": "index.html:1225",
+    "ds-command__foot": "index.html:1228",
+    "ds-command__input": "index.html:1224",
+    "ds-command__list": "index.html:1227",
+    "ds-command__search": "index.html:1223",
+    "ds-composer": "index.html:1076",
+    "ds-composer__input": "index.html:1077",
     "ds-content": "index.html:79",
     "ds-copy": "index.html:207",
     "ds-copy--field": "index.html:207",
     "ds-copy__value": "index.html:207",
-    "ds-dashpanel": "demo.js:1058",
-    "ds-dashpanel__actions": "index.html:838",
-    "ds-dashpanel__body": "index.html:840",
-    "ds-dashpanel__foot": "index.html:841",
-    "ds-dashpanel__head": "index.html:837",
-    "ds-dashpanel__heading": "index.html:837",
-    "ds-dashpanel__subtitle": "index.html:837",
-    "ds-dashpanel__title": "index.html:837",
+    "ds-dashpanel": "demo.js:1066",
+    "ds-dashpanel__actions": "index.html:841",
+    "ds-dashpanel__body": "index.html:843",
+    "ds-dashpanel__foot": "index.html:844",
+    "ds-dashpanel__head": "index.html:840",
+    "ds-dashpanel__heading": "index.html:840",
+    "ds-dashpanel__subtitle": "index.html:840",
+    "ds-dashpanel__title": "index.html:840",
     "ds-datagrid": "index.html:496",
     "ds-datefield": "index.html:297",
     "ds-datefield__toggle": "index.html:298",
-    "ds-dialog": "index.html:1217",
-    "ds-dialog__actions": "index.html:1234",
-    "ds-dialog__backdrop": "index.html:1218",
-    "ds-dialog__box": "index.html:1219",
-    "ds-dialog__text": "index.html:1233",
-    "ds-dialog__title": "index.html:1232",
-    "ds-diff": "index.html:976",
-    "ds-diff__source": "index.html:977",
-    "ds-disclosure": "index.html:1039",
-    "ds-disclosure--row": "index.html:1044",
-    "ds-disclosure__body": "index.html:1041",
-    "ds-disclosure__title": "index.html:1045",
+    "ds-dialog": "index.html:1220",
+    "ds-dialog__actions": "index.html:1237",
+    "ds-dialog__backdrop": "index.html:1221",
+    "ds-dialog__box": "index.html:1222",
+    "ds-dialog__text": "index.html:1236",
+    "ds-dialog__title": "index.html:1235",
+    "ds-diff": "index.html:979",
+    "ds-diff__source": "index.html:980",
+    "ds-disclosure": "index.html:1042",
+    "ds-disclosure--row": "index.html:1047",
+    "ds-disclosure__body": "index.html:1044",
+    "ds-disclosure__title": "index.html:1048",
     "ds-drawer": "index.html:46",
     "ds-drawer__group": "index.html:49",
     "ds-drawer__head": "index.html:47",
     "ds-drawer__heading": "index.html:50",
-    "ds-drawer__item": "demo.js:105",
+    "ds-drawer__item": "demo.js:106",
     "ds-drawer__label": "index.html:51",
     "ds-drawer__list": "index.html:48",
     "ds-dropzone": "index.html:457",
@@ -2204,25 +2094,25 @@
     "ds-dropzone__disc": "index.html:459",
     "ds-dropzone__hint": "index.html:464",
     "ds-dropzone__idle": "index.html:461",
-    "ds-dropzone__input": "demo.js:445",
+    "ds-dropzone__input": "demo.js:450",
     "ds-dropzone__over": "index.html:462",
     "ds-dropzone__title": "index.html:460",
-    "ds-empty": "demo.js:674",
-    "ds-empty--done": "index.html:853",
-    "ds-empty__disc": "demo.js:676",
-    "ds-empty__text": "demo.js:677",
-    "ds-empty__title": "demo.js:677",
+    "ds-empty": "demo.js:681",
+    "ds-empty--done": "index.html:856",
+    "ds-empty__disc": "demo.js:683",
+    "ds-empty__text": "demo.js:684",
+    "ds-empty__title": "demo.js:684",
     "ds-errors": "index.html:723",
     "ds-errors__chevron": "index.html:724",
-    "ds-facts": "demo.js:792",
-    "ds-feedback": "index.html:1057",
-    "ds-field": "demo.js:366",
+    "ds-facts": "demo.js:799",
+    "ds-feedback": "index.html:1060",
+    "ds-field": "demo.js:371",
     "ds-field--full": "index.html:430",
     "ds-field--grow": "index.html:595",
     "ds-field__counter": "index.html:435",
     "ds-field__foot": "index.html:433",
-    "ds-field__hint": "demo.js:366",
-    "ds-field__hint--error": "demo.js:366",
+    "ds-field__hint": "demo.js:371",
+    "ds-field__hint--error": "demo.js:371",
     "ds-field__hint--warning": "index.html:370",
     "ds-field__label": "index.html:206",
     "ds-field__row": "index.html:284",
@@ -2231,13 +2121,13 @@
     "ds-form-actions": "index.html:440",
     "ds-form-grid": "index.html:293",
     "ds-form-grid--2": "index.html:293",
-    "ds-grid": "demo.js:246",
-    "ds-grid-2": "demo.js:246",
+    "ds-grid": "demo.js:248",
+    "ds-grid-2": "demo.js:248",
     "ds-icon--fillable": "index.html:150",
-    "ds-icon-swap": "demo.js:334",
+    "ds-icon-swap": "demo.js:339",
     "ds-icon-swap__a": "index.html:152",
     "ds-icon-swap__b": "index.html:152",
-    "ds-input": "demo.js:430",
+    "ds-input": "demo.js:435",
     "ds-input--filled": "index.html:499",
     "ds-input--grow": "index.html:432",
     "ds-input-group": "index.html:336",
@@ -2247,48 +2137,48 @@
     "ds-jsonview": "index.html:569",
     "ds-kbd": "index.html:29",
     "ds-kv-list": "index.html:770",
-    "ds-leave": "demo.js:680",
+    "ds-leave": "demo.js:687",
     "ds-lg": "index.html:126",
-    "ds-link": "index.html:1164",
-    "ds-link-btn": "demo.js:646",
-    "ds-list": "demo.js:434",
-    "ds-list--interactive": "index.html:819",
-    "ds-list__action": "index.html:820",
-    "ds-list__actions": "demo.js:443",
-    "ds-list__icon": "demo.js:440",
-    "ds-list__item": "demo.js:440",
-    "ds-list__meta": "demo.js:441",
-    "ds-list__text": "demo.js:441",
-    "ds-list__title": "demo.js:441",
-    "ds-loadbar": "index.html:839",
-    "ds-loadbar__bar": "index.html:839",
+    "ds-link": "index.html:1167",
+    "ds-link-btn": "demo.js:653",
+    "ds-list": "demo.js:439",
+    "ds-list--interactive": "index.html:822",
+    "ds-list__action": "index.html:823",
+    "ds-list__actions": "demo.js:448",
+    "ds-list__icon": "demo.js:445",
+    "ds-list__item": "demo.js:445",
+    "ds-list__meta": "demo.js:446",
+    "ds-list__text": "demo.js:446",
+    "ds-list__title": "demo.js:446",
+    "ds-loadbar": "index.html:842",
+    "ds-loadbar__bar": "index.html:842",
     "ds-loader": "index.html:712",
     "ds-loader--contained": "index.html:713",
     "ds-loading": "index.html:712",
-    "ds-logview": "index.html:1000",
-    "ds-logview__source": "index.html:1000",
+    "ds-logview": "index.html:1003",
+    "ds-logview__source": "index.html:1003",
     "ds-menu": "index.html:179",
     "ds-menu-btn": "index.html:184",
     "ds-menu-btn__chevron": "index.html:184",
     "ds-menu-btn__value": "index.html:184",
     "ds-menu__check": "index.html:186",
     "ds-menu__divider": "index.html:507",
-    "ds-menu__item": "demo.js:848",
+    "ds-menu__item": "demo.js:855",
     "ds-menu__item--danger": "index.html:508",
-    "ds-menu__label": "demo.js:854",
-    "ds-message": "demo.js:247",
-    "ds-message--assistant": "demo.js:1147",
-    "ds-message--user": "demo.js:1147",
-    "ds-message__author": "demo.js:1149",
-    "ds-message__avatar": "demo.js:1148",
-    "ds-message__content": "demo.js:1150",
-    "ds-message__footer": "index.html:1055",
-    "ds-message__head": "demo.js:1149",
-    "ds-message__main": "demo.js:1149",
-    "ds-meta": "demo.js:790",
-    "ds-muted": "demo.js:799",
-    "ds-nowrap": "demo.js:507",
-    "ds-num": "demo.js:616",
+    "ds-menu__label": "demo.js:861",
+    "ds-message": "demo.js:249",
+    "ds-message--assistant": "demo.js:1155",
+    "ds-message--user": "demo.js:1155",
+    "ds-message__author": "demo.js:1157",
+    "ds-message__avatar": "demo.js:1156",
+    "ds-message__content": "demo.js:1158",
+    "ds-message__footer": "index.html:1058",
+    "ds-message__head": "demo.js:1157",
+    "ds-message__main": "demo.js:1157",
+    "ds-meta": "demo.js:797",
+    "ds-muted": "demo.js:806",
+    "ds-nowrap": "demo.js:514",
+    "ds-num": "demo.js:623",
     "ds-number": "index.html:336",
     "ds-number__down": "index.html:340",
     "ds-number__step": "index.html:340",
@@ -2299,21 +2189,21 @@
     "ds-otp__sep": "index.html:375",
     "ds-page": "index.html:80",
     "ds-pagination": "index.html:497",
-    "ds-pagination--simple": "index.html:800",
+    "ds-pagination--simple": "index.html:803",
     "ds-pagination__label": "index.html:498",
-    "ds-pagination__range": "demo.js:1045",
+    "ds-pagination__range": "demo.js:1053",
     "ds-pagination__size": "index.html:498",
     "ds-panel": "index.html:77",
     "ds-password__bars": "index.html:368",
     "ds-password__caps": "index.html:370",
     "ds-password__meter": "index.html:368",
     "ds-password__strength": "index.html:368",
-    "ds-persona": "demo.js:1083",
-    "ds-persona__name": "demo.js:1084",
-    "ds-persona__role": "demo.js:1084",
-    "ds-persona__status": "demo.js:1085",
-    "ds-persona__text": "demo.js:1084",
-    "ds-picker": "demo.js:247",
+    "ds-persona": "demo.js:1091",
+    "ds-persona__name": "demo.js:1092",
+    "ds-persona__role": "demo.js:1092",
+    "ds-persona__status": "demo.js:1093",
+    "ds-persona__text": "demo.js:1092",
+    "ds-picker": "demo.js:249",
     "ds-popover": "index.html:651",
     "ds-popover--arrow": "index.html:651",
     "ds-popover--tip": "index.html:660",
@@ -2322,77 +2212,77 @@
     "ds-popover__foot": "index.html:656",
     "ds-popover__head": "index.html:652",
     "ds-popover__title": "index.html:652",
-    "ds-presence-dot": "demo.js:1083",
-    "ds-presence-dot--away": "demo.js:1077",
-    "ds-presence-dot--busy": "demo.js:1077",
-    "ds-presence-dot--offline": "demo.js:1077",
-    "ds-presence-dot--online": "demo.js:1077",
-    "ds-presence-label": "demo.js:1085",
-    "ds-pressable": "demo.js:1325",
-    "ds-pressable--inset": "demo.js:1325",
+    "ds-presence-dot": "demo.js:1091",
+    "ds-presence-dot--away": "demo.js:1085",
+    "ds-presence-dot--busy": "demo.js:1085",
+    "ds-presence-dot--offline": "demo.js:1085",
+    "ds-presence-dot--online": "demo.js:1085",
+    "ds-presence-label": "demo.js:1093",
+    "ds-pressable": "demo.js:1333",
+    "ds-pressable--inset": "demo.js:1333",
     "ds-priority-bar": "index.html:193",
-    "ds-progress": "demo.js:442",
-    "ds-progress--flat": "demo.js:442",
-    "ds-progress__bar": "demo.js:442",
+    "ds-progress": "demo.js:447",
+    "ds-progress--flat": "demo.js:447",
+    "ds-progress__bar": "demo.js:447",
     "ds-progress__detail": "index.html:701",
     "ds-progress__label": "index.html:700",
-    "ds-progress__track": "demo.js:442",
-    "ds-prose": "demo.js:1150",
-    "ds-prose--compact": "demo.js:1150",
-    "ds-radio": "demo.js:1280",
+    "ds-progress__track": "demo.js:447",
+    "ds-prose": "demo.js:1158",
+    "ds-prose--compact": "demo.js:1158",
+    "ds-radio": "demo.js:1288",
     "ds-radio--disabled": "index.html:279",
     "ds-radio__note": "index.html:280",
     "ds-radios": "index.html:274",
-    "ds-reasoning": "index.html:1039",
-    "ds-reasoning__body": "index.html:1041",
-    "ds-reasoning__icon": "index.html:1040",
-    "ds-reasoning__summary": "index.html:1040",
-    "ds-reasoning__text": "index.html:1041",
-    "ds-reasoning__time": "index.html:1040",
+    "ds-reasoning": "index.html:1042",
+    "ds-reasoning__body": "index.html:1044",
+    "ds-reasoning__icon": "index.html:1043",
+    "ds-reasoning__summary": "index.html:1043",
+    "ds-reasoning__text": "index.html:1044",
+    "ds-reasoning__time": "index.html:1043",
     "ds-scrim": "index.html:45",
-    "ds-scroll-x": "index.html:1067",
+    "ds-scroll-x": "index.html:795",
     "ds-search": "index.html:482",
     "ds-segmented": "index.html:31",
-    "ds-segmented__count": "index.html:795",
-    "ds-segmented__indicator": "demo.js:210",
+    "ds-segmented__count": "index.html:797",
+    "ds-segmented__indicator": "demo.js:1032",
     "ds-segmented__option": "demo.js:213",
     "ds-selection-bar": "index.html:486",
     "ds-selection-bar__actions": "index.html:489",
     "ds-selection-bar__count": "index.html:488",
-    "ds-sheet": "index.html:1246",
-    "ds-sheet__backdrop": "index.html:1247",
-    "ds-sheet__body": "index.html:1257",
-    "ds-sheet__head": "index.html:1249",
-    "ds-sheet__panel": "index.html:1248",
-    "ds-sheet__title": "index.html:1250",
+    "ds-sheet": "index.html:1249",
+    "ds-sheet__backdrop": "index.html:1250",
+    "ds-sheet__body": "index.html:1260",
+    "ds-sheet__head": "index.html:1252",
+    "ds-sheet__panel": "index.html:1251",
+    "ds-sheet__title": "index.html:1253",
     "ds-skip": "index.html:23",
     "ds-slider": "index.html:285",
     "ds-slider__value": "index.html:286",
-    "ds-sm": "demo.js:657",
-    "ds-spinner": "demo.js:589",
+    "ds-sm": "demo.js:664",
+    "ds-spinner": "demo.js:596",
     "ds-spinner--determinate": "index.html:703",
-    "ds-spinner--ink": "demo.js:894",
+    "ds-spinner--ink": "demo.js:901",
     "ds-split-btn": "index.html:175",
     "ds-split-btn__action": "index.html:176",
     "ds-split-btn__label": "index.html:176",
     "ds-split-btn__toggle": "index.html:177",
-    "ds-splitpane": "demo.js:246",
-    "ds-splitpane--outlined": "index.html:817",
-    "ds-splitpane__body": "index.html:828",
-    "ds-splitpane__divider": "index.html:826",
-    "ds-splitpane__pane": "index.html:818",
-    "ds-splitpane__pane--fill": "index.html:827",
-    "ds-sr": "demo.js:653",
-    "ds-stack": "index.html:828",
-    "ds-status": "demo.js:514",
-    "ds-status--running": "demo.js:565",
-    "ds-status__spinner": "demo.js:589",
+    "ds-splitpane": "demo.js:248",
+    "ds-splitpane--outlined": "index.html:820",
+    "ds-splitpane__body": "index.html:831",
+    "ds-splitpane__divider": "index.html:829",
+    "ds-splitpane__pane": "index.html:821",
+    "ds-splitpane__pane--fill": "index.html:830",
+    "ds-sr": "demo.js:660",
+    "ds-stack": "index.html:831",
+    "ds-status": "demo.js:521",
+    "ds-status--running": "demo.js:572",
+    "ds-status__spinner": "demo.js:596",
     "ds-steps": "index.html:783",
-    "ds-steps__label": "demo.js:1008",
+    "ds-steps__label": "demo.js:1015",
     "ds-steps__link": "index.html:784",
-    "ds-steps__mark": "demo.js:1006",
-    "ds-steps__step": "demo.js:998",
-    "ds-suggestions": "index.html:1067",
+    "ds-steps__mark": "demo.js:1013",
+    "ds-steps__step": "demo.js:1005",
+    "ds-suggestions": "index.html:1070",
     "ds-swap": "index.html:480",
     "ds-switch": "index.html:232",
     "ds-switch__label": "index.html:235",
@@ -2402,11 +2292,11 @@
     "ds-switch__track": "index.html:234",
     "ds-table": "index.html:496",
     "ds-table--interactive": "index.html:496",
-    "ds-table-wrap": "demo.js:730",
-    "ds-table__sort": "demo.js:625",
-    "ds-table__sort-arrow": "demo.js:625",
+    "ds-table-wrap": "demo.js:737",
+    "ds-table__sort": "demo.js:632",
+    "ds-table__sort-arrow": "demo.js:632",
     "ds-tabs": "index.html:764",
-    "ds-tabs--flush": "index.html:915",
+    "ds-tabs--flush": "index.html:918",
     "ds-tabs__count": "index.html:766",
     "ds-tabs__panel": "index.html:769",
     "ds-tabs__tab": "index.html:765",
@@ -2414,20 +2304,20 @@
     "ds-taginput__input": "index.html:361",
     "ds-tasks": "index.html:730",
     "ds-tasks__head": "index.html:729",
-    "ds-tasks__item": "demo.js:971",
-    "ds-tasks__mark": "demo.js:971",
-    "ds-tasks__text": "demo.js:971",
+    "ds-tasks__item": "demo.js:978",
+    "ds-tasks__mark": "demo.js:978",
+    "ds-tasks__text": "demo.js:978",
     "ds-theme": "index.html:2",
-    "ds-thinking": "index.html:1066",
-    "ds-thinking__icon": "index.html:1066",
-    "ds-thinking__meta": "index.html:1066",
-    "ds-thinking__step": "index.html:1066",
-    "ds-thinking__time": "index.html:1066",
-    "ds-thinking__tokens": "index.html:1066",
-    "ds-tile": "demo.js:604",
-    "ds-tile__label": "demo.js:604",
-    "ds-tile__note": "demo.js:605",
-    "ds-tile__value": "demo.js:237",
+    "ds-thinking": "index.html:1069",
+    "ds-thinking__icon": "index.html:1069",
+    "ds-thinking__meta": "index.html:1069",
+    "ds-thinking__step": "index.html:1069",
+    "ds-thinking__time": "index.html:1069",
+    "ds-thinking__tokens": "index.html:1069",
+    "ds-tile": "demo.js:611",
+    "ds-tile__label": "demo.js:611",
+    "ds-tile__note": "demo.js:612",
+    "ds-tile__value": "demo.js:238",
     "ds-tiles": "index.html:96",
     "ds-timeline": "index.html:773",
     "ds-timeline__head": "index.html:774",
@@ -2435,45 +2325,45 @@
     "ds-timeline__item--muted": "index.html:776",
     "ds-timeline__meta": "index.html:774",
     "ds-timeline__title": "index.html:774",
-    "ds-timerange": "demo.js:247",
-    "ds-toasts": "index.html:1215",
+    "ds-timerange": "demo.js:249",
+    "ds-toasts": "index.html:1218",
     "ds-toggle-group": "index.html:158",
     "ds-toggletip": "index.html:659",
-    "ds-tone-error": "demo.js:479",
-    "ds-tone-neutral": "demo.js:479",
-    "ds-tone-success": "demo.js:479",
-    "ds-tone-warning": "demo.js:479",
+    "ds-tone-error": "demo.js:484",
+    "ds-tone-neutral": "demo.js:484",
+    "ds-tone-success": "demo.js:484",
+    "ds-tone-warning": "demo.js:484",
     "ds-toolbar": "index.html:480",
-    "ds-toolcall": "index.html:1044",
-    "ds-toolcall-list": "index.html:1043",
-    "ds-toolcall__args": "index.html:1045",
-    "ds-toolcall__body": "index.html:1046",
-    "ds-toolcall__code": "index.html:1046",
-    "ds-toolcall__icon": "index.html:1045",
-    "ds-toolcall__label": "index.html:1046",
-    "ds-toolcall__mark": "index.html:1045",
-    "ds-toolcall__name": "index.html:1045",
-    "ds-toolcall__part": "index.html:1046",
-    "ds-toolcall__status": "index.html:1045",
-    "ds-toolcall__time": "index.html:1045",
-    "ds-toolcall__title": "index.html:1045",
-    "ds-toolcall__word": "index.html:1045",
-    "ds-topbar": "demo.js:90",
+    "ds-toolcall": "index.html:1047",
+    "ds-toolcall-list": "index.html:1046",
+    "ds-toolcall__args": "index.html:1048",
+    "ds-toolcall__body": "index.html:1049",
+    "ds-toolcall__code": "index.html:1049",
+    "ds-toolcall__icon": "index.html:1048",
+    "ds-toolcall__label": "index.html:1049",
+    "ds-toolcall__mark": "index.html:1048",
+    "ds-toolcall__name": "index.html:1048",
+    "ds-toolcall__part": "index.html:1049",
+    "ds-toolcall__status": "index.html:1048",
+    "ds-toolcall__time": "index.html:1048",
+    "ds-toolcall__title": "index.html:1048",
+    "ds-toolcall__word": "index.html:1048",
+    "ds-topbar": "demo.js:91",
     "ds-topbar__actions": "index.html:28",
     "ds-topbar__menu": "index.html:26",
     "ds-tracker": "index.html:530",
     "ds-tracker__axis": "index.html:533",
-    "ds-tracker__cell": "demo.js:547",
-    "ds-tracker__cell--error": "demo.js:540",
-    "ds-tracker__cell--success": "demo.js:540",
-    "ds-tracker__cell--warning": "demo.js:540",
+    "ds-tracker__cell": "demo.js:554",
+    "ds-tracker__cell--error": "demo.js:547",
+    "ds-tracker__cell--success": "demo.js:547",
+    "ds-tracker__cell--warning": "demo.js:547",
     "ds-tracker__cells": "index.html:532",
     "ds-tracker__head": "index.html:531",
     "ds-tracker__label": "index.html:531",
     "ds-tracker__legend": "index.html:534",
     "ds-tracker__summary": "index.html:531",
-    "ds-transcript": "index.html:1023",
-    "ds-transcript__list": "index.html:1024",
+    "ds-transcript": "index.html:1026",
+    "ds-transcript__list": "index.html:1027",
     "ds-tree": "index.html:549",
     "ds-tree__group": "index.html:552",
     "ds-tree__icon": "index.html:551",
@@ -2483,11 +2373,9 @@
     "ds-tree__row": "index.html:551",
     "ds-tree__toggle": "index.html:551",
     "ds-view": "index.html:78",
-    "ds-wheel": "index.html:1066",
-    "ds-xl": "index.html:878",
+    "ds-wheel": "index.html:1069",
+    "ds-xl": "index.html:881",
     "ds-xs": "index.html:212"
   },
-  "unknown": [
-    "index.html:1189 module DS.init"
-  ]
+  "unknown": []
 }

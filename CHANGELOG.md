@@ -38,6 +38,31 @@ latency), then fixed where the system or its pages did more than they need to.
   references resolve, ids are unique, images have text and roles are valid. It found a blank line of `DS.logview`
   without a name (now "Blank line", the string `logBlank`) and broken references in the result and wizard demos.
 
+### Phase 3: page patterns and the live tour
+
+Additive. The patterns and the tour are pages, not part of `dist/`.
+
+- **Page patterns** in `src/patterns/` ([docs/patterns.md](docs/patterns.md)), copy-ready pages built only from
+  components, each loading a `tools/bundle.mjs` bundle of its family (written by the build into `src/patterns/ds/`):
+  - sign in (password, passkey, single sign-on, a link by email), two-step verification with a one-time or recovery
+    code, recovery codes, sign up, reset password, new password, verify email, 403, 404, 500, maintenance, offline, a
+    public single-card form and its success page, an onboarding checklist, a full-screen wizard;
+  - the app itself: dashboard home, a list with filters and saved views, a record (object page), settings, profile and
+    account, team members, a permissions matrix, API keys, integrations and an audit log;
+  - billing (plan, quota meters, invoices), a printable invoice, pricing, webhooks with a delivery log, a status page,
+    a changelog, notification settings, a file manager, an inbox, a chat app, a calendar and a kanban board.
+
+  The styleguide lists them in its Page patterns area (a framed preview at phone, tablet and desktop width, light and
+  dark). `test/browser/patterns.spec.js` loads each in every engine (no console error, one h1, landmarks, named
+  controls, no sideways scroll at 360px, keyboard walks of the interactive ones).
+- **The live tour runs on 3.0**: it loads a project bundle (`demo/ds/`, written by the build) instead of the whole
+  `ds.css` and `ds.js`, shows the new groups (layout, the data grid and charts, dates and times, people, code and
+  Markdown, chat and AI), and sets each stop up only as it comes near the view, so a slow phone keeps scrolling smoothly.
+- **Fixed:** `dist/manifest.json` lists no page-written attribute (`data-ds-scheme`, `data-ds-key`, `data-ds-keep`,
+  `data-ds-replace`) as a component's, so a bundle no longer pulls in every module that quotes them; `tools/bundle.mjs`
+  reads `DS.init`, `DS.get`, `DS.define` and `DS.config` as the core's exports, and `data-ds-copy` leads to the copy
+  module only.
+
 ### Phase 3: the React adapter
 
 Additive: nothing of 2.x or of the earlier pre-releases changes meaning.
