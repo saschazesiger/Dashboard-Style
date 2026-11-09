@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style | bundle "bundle" (ds.bundle.json) */
+/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style | bundle "bundle" (ds.bundle.json) */
 /*
  * Dashboard-Style bundle "bundle" (tools/bundle.mjs; do not edit): window.DS with
  * DS.core, DS.motion, DS.indicator, DS.dom, DS.ripple, DS.icons, DS.position, DS.overlay, DS.a11y, DS.hotkeys, DS.format, DS.store, DS.virtual, DS.dnd, DS.ailabel, DS.avatar, DS.badge, DS.calendar, DS.chart, DS.cite, DS.command, DS.composer, DS.copy, DS.datefield, DS.dialog, DS.diff, DS.duration, DS.errorsummary, DS.feedback, DS.form, DS.formatted, DS.highlight, DS.code, DS.inlineedit, DS.kveditor, DS.list, DS.listbox, DS.combobox, DS.logview, DS.markdown, DS.media, DS.menu, DS.datagrid, DS.menubutton, DS.message, DS.number, DS.otp, DS.page, DS.password, DS.picker, DS.daterange, DS.popover, DS.prioritybar, DS.query, DS.search, DS.selectpanel, DS.sheet, DS.shell, DS.sort, DS.splitbutton, DS.splitpane, DS.steps, DS.suggestions, DS.tabs, DS.taginput, DS.timepicker, DS.datepicker, DS.timerange, DS.toast, DS.notifications, DS.toggle, DS.toggletip, DS.tooltip, DS.tracker, DS.transcript, DS.tree, DS.jsonview, DS.upload, DS.wheel, DS.thinking, DS.reasoning, DS.toolcall and 275 icons.
@@ -8,7 +8,7 @@
  */
 (function (root) {
   'use strict';
-  var version = '3.0.0-alpha.5';
+  var version = '3.0.0-alpha.6';
   var registry = root.DashboardStyle || (root.DashboardStyle = {});
   var versions = registry.versions || (registry.versions = {});
   var first = versions[version];
@@ -28,7 +28,7 @@
   };
 
   add('core', ['runtime', 'define', 'get', 'init', 'destroy', 'emit', 'config', 't', 'safeHref'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const registry = globalThis.DashboardStyle ?? (globalThis.DashboardStyle = {});
     function createRuntime() {
     const states = new Map();
@@ -904,7 +904,7 @@
   });
 
   add('motion', ['MOTION_FALLBACKS', 'LOADER_DELAY_MS', 'LOADER_MIN_VISIBLE_MS', 'STAGGER_MAX', 'motionDuration', 'motionEasing', 'travelDuration', 'resyncScroll', 'stagger', 'replay', 'settled', 'enter', 'leave', 'cancel', 'enterAll', 'staggerOnce', 'loaderHoldMs', 'settleLoader', 'refresh', 'guard', 'setLabel', 'busy', 'COUNT_UP_MS', 'countUp', 'originFrom', 'roll', 'crossfade', 'flip', 'sortable', 'transition'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, runtime = DS.core.runtime;
     const MOTION_FALLBACKS = Object.freeze({
     '--ds-dur-micro': 50,
@@ -954,6 +954,9 @@
     }
     function themed(element) {
     return Boolean(element?.closest?.('.ds-theme'));
+    }
+    function tokenSource(element) {
+    return element?.closest?.('.ds-theme') ?? element;
     }
     const OWNED = Symbol.for('ds.owned');
     function own(element, kind, name) {
@@ -1010,14 +1013,14 @@
     function motionDuration(element, token) {
     const fallback = typeof MOTION_FALLBACKS[token] === 'number' ? (MOTION_FALLBACKS[token]) : 0;
     if (!themed(element)) return fallback;
-    const text = computed(element)?.getPropertyValue(token).trim();
+    const text = computed(tokenSource(element))?.getPropertyValue(token).trim();
     if (!text) return fallback;
     return parseDuration(text) ?? probeDuration( (element), text) ?? fallback;
     }
     function motionEasing(element, token) {
     const fallback = typeof MOTION_FALLBACKS[token] === 'string' ? (MOTION_FALLBACKS[token]) : 'ease';
     if (!themed(element)) return fallback;
-    return computed(element)?.getPropertyValue(token).trim() || fallback;
+    return computed(tokenSource(element))?.getPropertyValue(token).trim() || fallback;
     }
     function travelDuration(element, px) {
     return travelBetween(motionDuration(element, '--ds-dur-medium'), motionDuration(element, '--ds-dur-slow'), px);
@@ -3123,7 +3126,7 @@
   });
 
   add('indicator', ['OVERSHOOT', 'create', 'createIndicator'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit;
     const motionDuration = DS.motion.motionDuration, travelDuration = DS.motion.travelDuration;
     const OVERSHOOT = 0.05;
@@ -3675,7 +3678,7 @@
   });
 
   add('dom', ['morphChildren', 'morphHtml', 'own', 'disown', 'watchScrolled', 'scrollEdges', 'progress', 'roving', 'typesText', 'followViewport', 'followEnd', 'autosize', 'dropzone'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const resyncScroll = DS.motion.resyncScroll;
     const LOOKAHEAD = 8;
     const RUNTIME_CLASS = /^ds-(?:enter|leave)(?:--[\w-]+)?$|^ds-(?:has-indicator|pressed|ripples)$/;
@@ -4860,7 +4863,7 @@
   });
 
   add('ripple', ['RIPPLE_HOSTS', 'attach'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, runtime = DS.core.runtime;
     const flip = DS.motion.flip, guard = DS.motion.guard, motionDuration = DS.motion.motionDuration, motionEasing = DS.motion.motionEasing, settled = DS.motion.settled, travelDuration = DS.motion.travelDuration;
     const RIPPLE_HOSTS = [
@@ -5418,7 +5421,7 @@
   });
 
   add('icons', ['arrowRight', 'arrowLeft', 'arrowUp', 'arrowDown', 'chevronDown', 'chevronUp', 'chevronRight', 'chevronLeft', 'chevronFirst', 'chevronLast', 'cornerDownLeft', 'external', 'plus', 'close', 'minimize', 'menu', 'moreVertical', 'moreHorizontal', 'grip', 'search', 'filter', 'sort', 'compose', 'pencil', 'save', 'reset', 'sync', 'undo', 'history', 'copy', 'download', 'upload', 'clipboard', 'paperclip', 'printer', 'play', 'pause', 'stopCircle', 'trash', 'archive', 'logout', 'chat', 'send', 'bell', 'mic', 'micOff', 'volume', 'mail', 'phone', 'globe', 'link', 'flag', 'thumbUp', 'thumbDown', 'check', 'checkCircle', 'alert', 'alertCircle', 'info', 'helpCircle', 'eye', 'eyeOff', 'clock', 'ban', 'calendar', 'activity', 'wifi', 'wifiOff', 'home', 'panelLeft', 'keyboard', 'terminal', 'tag', 'sun', 'moon', 'overview', 'apps', 'list', 'columns', 'rows', 'barChart', 'settings', 'cpu', 'lock', 'key', 'shield', 'user', 'users', 'userPlus', 'ticket', 'file', 'fileText', 'fileCode', 'folder', 'box', 'building', 'mapPin', 'laptop', 'monitor', 'hardDrive', 'server', 'graduationCap', 'presentation', 'camera', 'video', 'image', 'leaf', 'wrench', 'sparkles', 'fileImage', 'fileArchive', 'fileSpreadsheet', 'fileJson', 'filePlus', 'fileCheck', 'fileDown', 'fileUp', 'files', 'folderOpen', 'folderPlus', 'cloudUpload', 'cloudDownload', 'lineChart', 'areaChart', 'barChartHorizontal', 'pieChart', 'donutChart', 'scatterChart', 'gauge', 'trendingUp', 'trendingDown', 'table', 'tableProperties', 'filterX', 'sortAscending', 'sortDescending', 'group', 'layoutGrid', 'listTree', 'kanban', 'bold', 'italic', 'code', 'quote', 'heading', 'listOrdered', 'unlink', 'redo', 'cut', 'paste', 'duplicate', 'gripHorizontal', 'move', 'resize', 'expandAll', 'collapseAll', 'fullscreen', 'fullscreenExit', 'splitView', 'panelRight', 'wrapText', 'shieldCheck', 'shieldAlert', 'unlock', 'fingerprint', 'verified', 'bug', 'bookmark', 'pin', 'star', 'starHalf', 'heart', 'smilePlus', 'bellOff', 'volumeOff', 'circleX', 'octagonAlert', 'circle', 'circleDot', 'square', 'squareCheck', 'squareMinus', 'toggleOn', 'toggleOff', 'userMinus', 'userCheck', 'userX', 'userCircle', 'idCard', 'network', 'database', 'cloud', 'cloudOff', 'memory', 'router', 'smartphone', 'tablet', 'terminalSquare', 'braces', 'gitBranch', 'gitCommit', 'gitMerge', 'gitPullRequest', 'gitCompare', 'webhook', 'plug', 'power', 'qrCode', 'barcode', 'scan', 'calendarDays', 'calendarCheck', 'calendarPlus', 'calendarRange', 'timer', 'hourglass', 'refresh', 'repeat', 'arrowUpRight', 'arrowUpLeft', 'arrowDownRight', 'arrowDownLeft', 'arrowLeftRight', 'cornerUpLeft', 'chevronsLeft', 'chevronsRight', 'login', 'launch', 'sparkle', 'wand', 'bot', 'chatText', 'chatDots', 'reply', 'audioLines', 'videoOff', 'skipForward', 'skipBack', 'atSign', 'creditCard', 'receipt', 'wallet', 'coupon', 'tags', 'cart', 'truck', 'map', 'route', 'compass', 'anchor', 'languages', 'palette', 'brush', 'contrast', 'mailOpen', 'inbox', 'archiveRestore', 'clipboardCheck', 'share', 'sliders', 'layers', 'stack', 'puzzle', 'rocket', 'lightbulb', 'beaker', 'book', 'newspaper', 'megaphone', 'gift', 'trophy', 'medal', 'target', 'zap', 'scrollText', 'ICON_SIZE', 'icon', 'iconElement', 'fill'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const arrowRight = '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>';
     const arrowLeft = '<path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>';
     const arrowUp = '<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>';
@@ -6056,7 +6059,7 @@
   });
 
   add('position', ['round', 'pxOf', 'computePlacement', 'viewportBounds', 'clippedBounds', 'fixedOrigin', 'dropProbe', 'place', 'supportsAnchoring', 'claimAnchor', 'releaseAnchor', 'anchorPopup'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const viewOf = (element) => element.ownerDocument?.defaultView ?? globalThis;
     const OWNED = Symbol.for('ds.owned');
     function own(element, kind, name) {
@@ -6251,7 +6254,7 @@
   });
 
   add('overlay', ['TOAST_MS', 'TOAST_MAX_MS', 'TOAST_LIMIT', 'TOOLTIP_DELAY_MS', 'TOOLTIP_SKIP_MS', 'TOOLTIP_HIDE_MS', 'DISMISS_DELAY_MS', 'DRAWER_QUERY', 'FOCUSABLE', 'canFocus', 'holdInert', 'lockScroll', 'unlockScroll', 'typeAhead', 'open', 'close', 'topmost', 'layerAt', 'savebar', 'confirm', 'alert', 'prompt', 'toastRegion', 'announce', 'toast', 'closeToasts', 'tooltips', 'internals'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, runtime = DS.core.runtime;
     const motionDuration = DS.motion.motionDuration, originFrom = DS.motion.originFrom, settled = DS.motion.settled, transition = DS.motion.transition;
     const scrollEdges = DS.dom.scrollEdges, watchScrolled = DS.dom.watchScrolled;
@@ -7655,7 +7658,7 @@
   });
 
   add('a11y', ['canTakeFocus', 'tabbables', 'readsKeys', 'trap', 'roving', 'typeaheadMatch', 'typeahead', 'announce', 'inert'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const runtime = DS.core.runtime;
     const motionDuration = DS.motion.motionDuration;
     const rovingOf = DS.dom.roving, typesText = DS.dom.typesText;
@@ -7855,7 +7858,7 @@
   });
 
   add('hotkeys', ['parse', 'isApple', 'matches', 'format', 'register', 'scope', 'scopes', 'list', 'onChange'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, runtime = DS.core.runtime, t = DS.core.t;
     const disown = DS.dom.disown, own = DS.dom.own;
     const layerAt = DS.overlay.layerAt;
@@ -8164,7 +8167,7 @@
   });
 
   add('format', ['number', 'percent', 'currency', 'bytes', 'duration', 'list', 'plural', 'relative', 'absolute', 'clock', 'time'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const config = DS.core.config, define = DS.core.define, runtime = DS.core.runtime;
     const SECOND = 1000;
     const MINUTE = 60 * SECOND;
@@ -8556,7 +8559,7 @@
   });
 
   add('store', ['available', 'open'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const emit = DS.core.emit, runtime = DS.core.runtime;
     const PREFIX = 'ds';
     const shared = runtime.state('store', () => ({
@@ -8747,7 +8750,7 @@
   });
 
   add('virtual', ['sizes', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const emit = DS.core.emit;
     const morphHtml = DS.dom.morphHtml;
     const ESTIMATE = 44;
@@ -9280,7 +9283,7 @@
   });
 
   add('dnd', ['create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const emit = DS.core.emit, runtime = DS.core.runtime, t = DS.core.t;
     const flip = DS.motion.flip, motionDuration = DS.motion.motionDuration, motionEasing = DS.motion.motionEasing, travelDuration = DS.motion.travelDuration;
     const DRAG_THRESHOLD = 4;
@@ -9947,7 +9950,7 @@
   });
 
   add('ailabel', ['create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit;
     const openOverlay = DS.overlay.open, closeOverlay = DS.overlay.close;
     const place = DS.position.place, pxOf = DS.position.pxOf;
@@ -10100,7 +10103,7 @@
   });
 
   add('avatar', ['initials', 'hue', 'create', 'group'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const own = DS.dom.own, disown = DS.dom.disown, morphChildren = DS.dom.morphChildren;
     const canFocus = DS.overlay.canFocus, close = DS.overlay.close;
@@ -10521,7 +10524,7 @@
   });
 
   add('badge', ['format', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit;
     const enter = DS.motion.enter, leave = DS.motion.leave;
     const DEFAULT_MAX = 99;
@@ -10605,7 +10608,7 @@
   });
 
   add('calendar', ['daysIn', 'parse', 'iso', 'today', 'add', 'compare', 'weekInfo', 'weekNumber', 'grid', 'available', 'label', 'rangeLabel', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const config = DS.core.config, define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const enter = DS.motion.enter;
     const morphHtml = DS.dom.morphHtml;
@@ -11161,7 +11164,7 @@
   });
 
   add('chart', ['ticks', 'timeTicks', 'scale', 'path', 'stack', 'nearest', 'parse', 'layout', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const countUp = DS.motion.countUp, enterAll = DS.motion.enterAll, motionDuration = DS.motion.motionDuration, motionEasing = DS.motion.motionEasing;
     const own = DS.dom.own;
@@ -13195,7 +13198,7 @@
   });
 
   add('cite', ['cardOf', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, runtime = DS.core.runtime;
     const motionDuration = DS.motion.motionDuration;
     const close = DS.overlay.close, open = DS.overlay.open;
@@ -13417,7 +13420,7 @@
   });
 
   add('command', ['fuzzy', 'rank', 'create', 'open', 'close'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, safeHref = DS.core.safeHref, t = DS.core.t;
     const motionDuration = DS.motion.motionDuration;
     const chevronLeft = DS.icons.chevronLeft, chevronRight = DS.icons.chevronRight, iconElement = DS.icons.iconElement;
@@ -14157,7 +14160,7 @@
   });
 
   add('composer', ['query', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const leave = DS.motion.leave, enter = DS.motion.enter;
     const autosize = DS.dom.autosize, dropzone = DS.dom.dropzone;
@@ -14766,7 +14769,7 @@
   });
 
   add('copy', ['textOf', 'copy', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const motionDuration = DS.motion.motionDuration;
     const announce = DS.a11y.announce;
@@ -14982,7 +14985,7 @@
   });
 
   add('datefield', ['hourCycle', 'layout', 'zoneName', 'toInstant', 'typeDigit', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const config = DS.core.config, define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const parseDate = DS.calendar.parse, iso = DS.calendar.iso, daysIn = DS.calendar.daysIn, compare = DS.calendar.compare, today = DS.calendar.today, available = DS.calendar.available;
     const DATE_PARTS = ['year', 'month', 'day'];
@@ -15677,7 +15680,7 @@
   });
 
   add('dialog', ['open', 'close', 'confirm', 'alert', 'prompt', 'form', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const busy = DS.motion.busy;
     const alertCircle = DS.icons.alertCircle, iconElement = DS.icons.iconElement;
@@ -16011,7 +16014,7 @@
   });
 
   add('diff', ['parse', 'words', 'rows', 'create', 'highlighter'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, runtime = DS.core.runtime, t = DS.core.t;
     const morphHtml = DS.dom.morphHtml;
     const announce = DS.a11y.announce;
@@ -16703,7 +16706,7 @@
   });
 
   add('duration', ['parse', 'iso', 'format', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const config = DS.core.config, define = DS.core.define, emit = DS.core.emit;
     const formatDuration = DS.format.duration;
     const UNITS = [['week', 604800000], ['day', 86400000], ['hour', 3600000], ['minute', 60000], ['second', 1000], ['millisecond', 1]];
@@ -16990,7 +16993,7 @@
   });
 
   add('errorsummary', ['title', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const own = DS.dom.own;
     const plural = DS.format.plural;
@@ -17265,7 +17268,7 @@
   });
 
   add('feedback', ['toggle', 'asks', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const openOverlay = DS.overlay.open, closeOverlay = DS.overlay.close;
     const announce = DS.a11y.announce;
@@ -17403,7 +17406,7 @@
   });
 
   add('form', ['count', 'counter'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const autosize = DS.dom.autosize, own = DS.dom.own, disown = DS.dom.disown;
     const announce = DS.a11y.announce;
@@ -17510,7 +17513,7 @@
   });
 
   add('formatted', ['text', 'exact', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit;
     const own = DS.dom.own, disown = DS.dom.disown;
     const number = DS.format.number, percent = DS.format.percent, currency = DS.format.currency, bytes = DS.format.bytes, duration = DS.format.duration;
@@ -17701,7 +17704,7 @@
   });
 
   add('highlight', ['KINDS', 'register', 'language', 'languages', 'tokenize', 'use', 'highlight', 'lines', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, runtime = DS.core.runtime;
     const morphHtml = DS.dom.morphHtml;
     const shared = runtime.state('highlight', () => ({ languages: new Map(), aliases: new Map(), external: null }));
@@ -18268,7 +18271,7 @@
   });
 
   add('code', ['parseLines', 'linesHtml', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, runtime = DS.core.runtime, t = DS.core.t;
     const disown = DS.dom.disown, morphHtml = DS.dom.morphHtml, own = DS.dom.own, roving = DS.dom.roving;
     const enter = DS.motion.enter, motionDuration = DS.motion.motionDuration;
@@ -18594,7 +18597,7 @@
   });
 
   add('inlineedit', ['decide', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const own = DS.dom.own;
     const busy = DS.motion.busy;
@@ -18815,7 +18818,7 @@
   });
 
   add('kveditor', ['parse', 'stringify', 'duplicates', 'toObject', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const flip = DS.motion.flip;
     const announce = DS.a11y.announce;
@@ -19204,7 +19207,7 @@
   });
 
   add('list', ['rangeKeys', 'allState', 'create', 'facts'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const motionDuration = DS.motion.motionDuration;
     const announce = DS.a11y.announce;
@@ -19609,7 +19612,7 @@
   });
 
   add('listbox', ['VIRTUAL_FROM', 'fuzzy', 'filter', 'highlight', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit;
     const motionDuration = DS.motion.motionDuration;
     const morphHtml = DS.dom.morphHtml, own = DS.dom.own, disown = DS.dom.disown, scrollEdges = DS.dom.scrollEdges;
@@ -20288,7 +20291,7 @@
   });
 
   add('combobox', ['create', 'open', 'close'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const motionDuration = DS.motion.motionDuration;
     const openOverlay = DS.overlay.open, closeOverlay = DS.overlay.close;
@@ -20859,7 +20862,7 @@
   });
 
   add('logview', ['ansi', 'parse', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, runtime = DS.core.runtime, t = DS.core.t;
     const followEnd = DS.dom.followEnd, morphHtml = DS.dom.morphHtml, own = DS.dom.own, disown = DS.dom.disown;
     const announce = DS.a11y.announce;
@@ -21762,7 +21765,7 @@
   });
 
   add('markdown', ['slug', 'render', 'use', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, get = DS.core.get, runtime = DS.core.runtime, t = DS.core.t;
     const morphHtml = DS.dom.morphHtml;
     const alert = DS.icons.alert, alertCircle = DS.icons.alertCircle, check = DS.icons.check, copy = DS.icons.copy, cornerUpLeft = DS.icons.cornerUpLeft, flag = DS.icons.flag, icon = DS.icons.icon, info = DS.icons.info, lightbulb = DS.icons.lightbulb, link = DS.icons.link;
@@ -22655,7 +22658,7 @@
   });
 
   add('media', ['between', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const announce = DS.a11y.announce, roving = DS.a11y.roving;
     const own = DS.dom.own, disown = DS.dom.disown;
@@ -22836,7 +22839,7 @@
   });
 
   add('menu', ['open', 'openAt', 'close', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const motionDuration = DS.motion.motionDuration, originFrom = DS.motion.originFrom, settled = DS.motion.settled;
     const computePlacement = DS.position.computePlacement, place = DS.position.place, pxOf = DS.position.pxOf, releaseAnchor = DS.position.releaseAnchor, round = DS.position.round, viewportBounds = DS.position.viewportBounds;
@@ -23410,7 +23413,7 @@
   });
 
   add('datagrid', ['summary', 'query', 'csv', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t, config = DS.core.config;
     const flip = DS.motion.flip, crossfade = DS.motion.crossfade, motionDuration = DS.motion.motionDuration;
     const morphHtml = DS.dom.morphHtml, own = DS.dom.own, disown = DS.dom.disown, typesText = DS.dom.typesText;
@@ -25526,7 +25529,7 @@
   });
 
   add('menubutton', ['menuOf', 'itemValue', 'create', 'open', 'close'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit;
     const openOverlay = DS.menu.open, closeOverlay = DS.menu.close;
     const RADIOS = '[role="menuitemradio"]';
@@ -25700,7 +25703,7 @@
   });
 
   add('message', ['state', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const motionDuration = DS.motion.motionDuration;
     const alertCircle = DS.icons.alertCircle, iconElement = DS.icons.iconElement, stopCircle = DS.icons.stopCircle;
@@ -25889,7 +25892,7 @@
   });
 
   add('number', ['symbols', 'parse', 'format', 'clamp', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const config = DS.core.config, define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const motionDuration = DS.motion.motionDuration;
     const own = DS.dom.own;
@@ -26318,7 +26321,7 @@
   });
 
   add('otp', ['clean', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const own = DS.dom.own;
     const ALLOWED = {
@@ -26542,7 +26545,7 @@
   });
 
   add('page', ['fold', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const own = DS.dom.own, disown = DS.dom.disown;
     const iconElement = DS.icons.iconElement, moreVertical = DS.icons.moreVertical;
@@ -26868,7 +26871,7 @@
   });
 
   add('password', ['strength', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const motionDuration = DS.motion.motionDuration;
     const own = DS.dom.own;
@@ -27077,7 +27080,7 @@
   });
 
   add('picker', ['create', 'open', 'close'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define;
     const openOverlay = DS.overlay.open, closeOverlay = DS.overlay.close;
     const place = DS.position.place, pxOf = DS.position.pxOf;
@@ -27267,7 +27270,7 @@
   });
 
   add('daterange', ['resolve', 'presetLabel', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const config = DS.core.config, define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const createCalendar = DS.calendar.create, parse = DS.calendar.parse, iso = DS.calendar.iso, today = DS.calendar.today, add = DS.calendar.add, weekInfo = DS.calendar.weekInfo, rangeLabel = DS.calendar.rangeLabel;
     const createField = DS.datefield.create;
@@ -27542,7 +27545,7 @@
   });
 
   add('popover', ['open', 'close', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define;
     const motionDuration = DS.motion.motionDuration, originFrom = DS.motion.originFrom, settled = DS.motion.settled;
     const computePlacement = DS.position.computePlacement, dropProbe = DS.position.dropProbe, fixedOrigin = DS.position.fixedOrigin, place = DS.position.place, pxOf = DS.position.pxOf, round = DS.position.round, viewportBounds = DS.position.viewportBounds;
@@ -27932,7 +27935,7 @@
   });
 
   add('prioritybar', ['plan', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const roving = DS.a11y.roving;
     const check = DS.icons.check, iconElement = DS.icons.iconElement, moreHorizontal = DS.icons.moreHorizontal;
@@ -28168,7 +28171,7 @@
   });
 
   add('query', ['parse', 'stringify', 'toQuery', 'suggest', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const morphHtml = DS.dom.morphHtml;
     const openOverlay = DS.overlay.open, closeOverlay = DS.overlay.close, prompt = DS.overlay.prompt;
@@ -28820,7 +28823,7 @@
   });
 
   add('search', ['remember', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const motionDuration = DS.motion.motionDuration;
     const own = DS.dom.own;
@@ -29162,7 +29165,7 @@
   });
 
   add('selectpanel', ['summarize', 'create', 'open', 'close'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const openOverlay = DS.overlay.open, closeOverlay = DS.overlay.close;
     const place = DS.position.place, clippedBounds = DS.position.clippedBounds, supportsAnchoring = DS.position.supportsAnchoring, anchorPopup = DS.position.anchorPopup, releaseAnchor = DS.position.releaseAnchor, pxOf = DS.position.pxOf;
@@ -29445,7 +29448,7 @@
   });
 
   add('sheet', ['MIN_WIDTH', 'open', 'close', 'clampWidth', 'dragWidth', 'resizable', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const own = DS.dom.own, watchScrolled = DS.dom.watchScrolled;
     const internals = DS.overlay.internals, openOverlay = DS.overlay.open, closeOverlay = DS.overlay.close;
@@ -29673,7 +29676,7 @@
   });
 
   add('shell', ['SEARCH_QUERY', 'matchText', 'create', 'drawer', 'searchSheet', 'launcher', 'setScheme', 'schemeSwitch', 'fitCrumbs', 'breadcrumbs'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, get = DS.core.get, runtime = DS.core.runtime, t = DS.core.t;
     const motionDuration = DS.motion.motionDuration;
     const disown = DS.dom.disown, own = DS.dom.own, scrollEdges = DS.dom.scrollEdges, watchScrolled = DS.dom.watchScrolled;
@@ -30468,7 +30471,7 @@
   });
 
   add('sort', ['parse', 'stringify', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, controllerOf = DS.core.get, t = DS.core.t;
     const announce = DS.a11y.announce;
     const DIRECTIONS = ['ascending', 'descending'];
@@ -30650,7 +30653,7 @@
   });
 
   add('splitbutton', ['partsOf', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const menuButton = DS.menubutton.create, menuOf = DS.menubutton.menuOf;
     function partsOf(group) {
@@ -30754,7 +30757,7 @@
   });
 
   add('splitpane', ['toPixels', 'nextSize', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, get = DS.core.get, t = DS.core.t;
     const settled = DS.motion.settled;
     const openStore = DS.store.open;
@@ -31240,7 +31243,7 @@
   });
 
   add('steps', ['position', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const own = DS.dom.own, disown = DS.dom.disown;
     const announce = DS.a11y.announce;
@@ -31348,7 +31351,7 @@
   });
 
   add('suggestions', ['items', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, get = DS.core.get;
     const scrollEdges = DS.dom.scrollEdges;
     const iconElement = DS.icons.iconElement;
@@ -31505,7 +31508,7 @@
   });
 
   add('tabs', ['fit', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const enter = DS.motion.enter;
     const morphHtml = DS.dom.morphHtml, roving = DS.dom.roving, own = DS.dom.own, disown = DS.dom.disown;
@@ -31948,7 +31951,7 @@
   });
 
   add('taginput', ['split', 'check', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const flip = DS.motion.flip;
     const announce = DS.a11y.announce;
@@ -32258,7 +32261,7 @@
   });
 
   add('timepicker', ['times', 'list', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const config = DS.core.config, define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const typeahead = DS.a11y.typeahead;
     const createField = DS.datefield.create, hourCycle = DS.datefield.hourCycle;
@@ -32548,7 +32551,7 @@
   });
 
   add('datepicker', ['create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const config = DS.core.config, define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const createCalendar = DS.calendar.create, parse = DS.calendar.parse, iso = DS.calendar.iso, today = DS.calendar.today, available = DS.calendar.available;
     const createField = DS.datefield.create;
@@ -32763,7 +32766,7 @@
   });
 
   add('timerange', ['parse', 'resolve', 'spanMs', 'label', 'query', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const config = DS.core.config, define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const clock = DS.format.clock;
     const openStore = DS.store.open;
@@ -33171,7 +33174,7 @@
   });
 
   add('toast', ['toastRegion', 'announce', 'toast', 'closeToasts', 'promise', 'progress'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const t = DS.core.t;
     const flip = DS.motion.flip, settled = DS.motion.settled;
     const alertCircle = DS.icons.alertCircle, checkCircle = DS.icons.checkCircle, closeGlyph = DS.icons.close, iconElement = DS.icons.iconElement, info = DS.icons.info;
@@ -34120,7 +34123,7 @@
   });
 
   add('notifications', ['dayOf', 'groupByDay', 'create', 'open', 'close'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, safeHref = DS.core.safeHref, t = DS.core.t;
     const enter = DS.motion.enter, flip = DS.motion.flip;
     const alertGlyph = DS.icons.alert, alertCircle = DS.icons.alertCircle, bellGlyph = DS.icons.bell, checkCircle = DS.icons.checkCircle, iconElement = DS.icons.iconElement, info = DS.icons.info, mail = DS.icons.mail, mailOpen = DS.icons.mailOpen;
@@ -34626,7 +34629,7 @@
   });
 
   add('toggle', ['parseValue', 'nextPressed', 'create', 'group'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit;
     const roving = DS.a11y.roving;
     const PRESSED = 'aria-pressed';
@@ -34844,7 +34847,7 @@
   });
 
   add('toggletip', ['create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const announce = DS.a11y.announce;
     const internals = DS.overlay.internals;
@@ -34924,7 +34927,7 @@
   });
 
   add('tooltip', ['tooltips'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define;
     const motionDuration = DS.motion.motionDuration, originFrom = DS.motion.originFrom, settled = DS.motion.settled;
     const claimAnchor = DS.position.claimAnchor, dropProbe = DS.position.dropProbe, positionPlace = DS.position.place, pxOf = DS.position.pxOf, releaseAnchor = DS.position.releaseAnchor, supportsAnchoring = DS.position.supportsAnchoring;
@@ -35452,7 +35455,7 @@
   });
 
   add('tracker', ['counts', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit;
     const roving = DS.a11y.roving;
     const STATES = Object.freeze(['success', 'info', 'warning', 'error', 'empty']);
@@ -35568,7 +35571,7 @@
   });
 
   add('transcript', ['day', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const config = DS.core.config, define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const busy = DS.motion.busy;
     const followEnd = DS.dom.followEnd;
@@ -35888,7 +35891,7 @@
   });
 
   add('tree', ['checkState', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const enter = DS.motion.enter, motionDuration = DS.motion.motionDuration;
     const morphHtml = DS.dom.morphHtml, own = DS.dom.own, disown = DS.dom.disown;
@@ -36682,7 +36685,7 @@
   });
 
   add('jsonview', ['parse', 'fromValue', 'toValue', 'stringify', 'pathOf', 'ranges', 'search', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const announce = DS.a11y.announce;
     const motionDuration = DS.motion.motionDuration;
@@ -37404,7 +37407,7 @@
   });
 
   add('upload', ['accepts', 'parseSize', 'validate', 'fitSize', 'resizeImage', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const flip = DS.motion.flip;
     const dropzone = DS.dom.dropzone, share = DS.dom.progress;
@@ -37869,7 +37872,7 @@
   });
 
   add('wheel', ['turnAt', 'hooks', 'roll', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit;
     const motionDuration = DS.motion.motionDuration, motionEasing = DS.motion.motionEasing;
     const wheels = new WeakMap();
@@ -38031,7 +38034,7 @@
   });
 
   add('thinking', ['sinceOf', 'elapsedText', 'isoDuration', 'tokensText', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const clock = DS.format.clock, duration = DS.format.duration, number = DS.format.number, plural = DS.format.plural;
     const roll = DS.wheel.roll;
@@ -38204,7 +38207,7 @@
   });
 
   add('reasoning', ['summaryText', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const followEnd = DS.dom.followEnd;
     const clock = DS.format.clock;
@@ -38360,7 +38363,7 @@
   });
 
   add('toolcall', ['STATUSES', 'durationText', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const clock = DS.format.clock, duration = DS.format.duration;
     const announce = DS.a11y.announce;

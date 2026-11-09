@@ -1,19 +1,19 @@
 {
   "name": "dashboard-style",
-  "version": "3.0.0-alpha.5",
+  "version": "3.0.0-alpha.6",
   "entry": "bundle",
   "minify": true,
   "js": "classic",
   "files": {
     "css": {
       "file": "ds.bundle.css",
-      "bytes": 646729,
-      "gzip": 93419
+      "bytes": 646671,
+      "gzip": 93444
     },
     "js": {
       "file": "ds.bundle.js",
-      "bytes": 1641619,
-      "gzip": 392053
+      "bytes": 1641742,
+      "gzip": 392073
     },
     "properties": {
       "file": "properties.css",
@@ -30,8 +30,8 @@
     {
       "name": "utilities",
       "reason": "demo.js:507 ds-nowrap",
-      "bytes": 5304,
-      "gzip": 1436
+      "bytes": 5326,
+      "gzip": 1448
     },
     {
       "name": "scroller",
@@ -186,8 +186,8 @@
     {
       "name": "table",
       "reason": "demo.js:614 ds-col--text",
-      "bytes": 32925,
-      "gzip": 4735
+      "bytes": 32874,
+      "gzip": 4760
     },
     {
       "name": "pagination",
@@ -198,8 +198,8 @@
     {
       "name": "form",
       "reason": "demo.js:366 ds-field",
-      "bytes": 49285,
-      "gzip": 7087
+      "bytes": 49307,
+      "gzip": 7088
     },
     {
       "name": "drag",
