@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Something went wrong · Product</title>
+<meta name="pt-title" content="Server error (500)">
+<meta name="pt-need" content="Say that a request failed on our side, offer a retry and a reference for support">
+<meta name="pt-group" content="Errors and status">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.status.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body class="ds-cover ds-cover--screen">
+<header>
+  <a class="pt-brand" href="onboarding.html"><span class="pt-brand__mark" data-icon="box"></span>Product</a>
+</header>
+<main class="ds-result ds-result--error ds-cover__main" id="main" aria-labelledby="title">
+  <span class="ds-result__disc" aria-hidden="true" data-icon="alert" data-icon-size="32"></span>
+  <p class="ds-result__code">500</p>
+  <h1 class="ds-result__title" id="title" tabindex="-1">Something went wrong</h1>
+  <p class="ds-result__text">The page could not load because of a problem on our side. Try again in a moment; if it keeps happening, send support the reference below.</p>
+  <div class="ds-result__actions">
+    <button class="ds-btn ds-btn--filled" type="button" id="retry" data-icon="refresh" data-icon-size="16" data-icon-place="start">Try again</button>
+    <a class="ds-btn ds-btn--text" href="#status">Service status</a>
+  </div>
+  <p class="ds-result__meta">
+    <span class="ds-copy">Reference <code class="ds-copy__value" id="reference">9F2C-118A</code>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-xs" type="button" aria-label="Copy the reference" data-tip="Copy the reference" data-ds-copy="#reference">
+        <span class="ds-icon-swap"><span class="ds-icon-swap__a" data-icon="copy" data-icon-size="16"></span><span class="ds-icon-swap__b" data-icon="check" data-icon-size="16"></span></span>
+      </button>
+    </span>
+    · 2026-11-08 09:12 UTC
+  </p>
+</main>
+<footer class="pt-foot ds-cluster ds-cluster--center">
+  <a class="ds-link--quiet" href="#help">Help</a>
+  <a class="ds-link--quiet" href="#status">Service status</a>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+</footer>
+
+<script src="ds/ds.status.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  // The same request again: here the page itself, as a server-rendered error page would.
+  document.getElementById('retry').addEventListener('click', function () { location.reload(); });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

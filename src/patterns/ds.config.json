@@ -1,0 +1,12 @@
+{
+  "dist": "../../dist",
+  "content": ["pt.js"],
+  "entries": {
+    "auth": ["sign-in.html", "sign-in-code.html", "recovery-codes.html", "sign-up.html", "reset-password.html", "new-password.html", "verify-email.html"],
+    "status": ["error-*.html", "maintenance.html", "offline.html"],
+    "form": ["form.html", "form-sent.html"],
+    "onboarding": ["onboarding.html"],
+    "wizard": ["wizard.html"]
+  },
+  "out": "ds"
+}

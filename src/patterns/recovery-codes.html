@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Save your recovery codes · Product</title>
+<meta name="pt-title" content="Recovery codes">
+<meta name="pt-need" content="Show the recovery codes once, to copy, download or print, before two-step verification goes on">
+<meta name="pt-group" content="Sign-in and accounts">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.auth.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body class="ds-auth">
+<main class="pt-auth ds-stack" id="main">
+  <section class="ds-card ds-card--elevated ds-auth__card" aria-labelledby="title">
+    <header class="ds-stack">
+      <a class="pt-brand ds-print-hide" href="sign-in.html"><span class="pt-brand__mark" data-icon="box"></span>Product</a>
+      <h1 class="ds-card__title" id="title" tabindex="-1">Save your recovery codes</h1>
+    </header>
+    <p class="ds-muted">Without your phone, each code signs you in once. Keep them in a password manager or on paper, away from this device.</p>
+    <div class="ds-alert ds-tone-warning ds-print-hide" data-icon="alert" data-icon-place="start"><span class="ds-alert__text">This is the only time Product shows these codes.</span></div>
+
+    <div class="ds-card ds-card--filled">
+      <ol class="pt-codes ds-grid ds-grid--max-2 ds-gap-2" style="--ds-grid-min: 7rem" aria-label="Recovery codes for ada@example.org">
+        <li><code class="ds-mono">7KQ2-M4PX</code></li>
+        <li><code class="ds-mono">H9TD-2WLC</code></li>
+        <li><code class="ds-mono">R3NV-8ZEY</code></li>
+        <li><code class="ds-mono">C6FA-Q1JU</code></li>
+        <li><code class="ds-mono">P8XG-5MDS</code></li>
+        <li><code class="ds-mono">W2BK-7RTH</code></li>
+        <li><code class="ds-mono">E4YJ-9NQF</code></li>
+        <li><code class="ds-mono">L5ZC-3VWA</code></li>
+      </ol>
+      <p class="ds-meta ds-print-only">Product recovery codes for ada@example.org</p>
+    </div>
+
+    <div class="ds-cluster ds-print-hide">
+      <button class="ds-btn" type="button" data-ds-copy data-ds-copy-value="7KQ2-M4PX&#10;H9TD-2WLC&#10;R3NV-8ZEY&#10;C6FA-Q1JU&#10;P8XG-5MDS&#10;W2BK-7RTH&#10;E4YJ-9NQF&#10;L5ZC-3VWA">
+        <span class="ds-btn__faces">
+          <span class="ds-btn__face" data-icon="copy" data-icon-size="16" data-icon-place="start">Copy</span>
+          <span class="ds-btn__face ds-btn__face--done" aria-hidden="true" data-icon="check" data-icon-size="16" data-icon-place="start"><span class="ds-copy__done"></span></span>
+        </span>
+      </button>
+      <button class="ds-btn" type="button" id="download" data-icon="download" data-icon-size="16" data-icon-place="start">Download</button>
+      <button class="ds-btn" type="button" id="print" data-icon="printer" data-icon-size="16" data-icon-place="start">Print</button>
+    </div>
+
+    <form class="ds-form ds-print-hide" id="form" action="onboarding.html" novalidate>
+      <div class="ds-alert ds-tone-error ds-errorsummary" data-ds-errorsummary tabindex="-1" data-icon="alertCircle" data-icon-place="start" hidden>
+        <div class="ds-alert__text">
+          <h2 class="ds-alert__title ds-errorsummary__title"></h2>
+          <ul class="ds-errorsummary__list"></ul>
+        </div>
+      </div>
+      <div class="ds-field">
+        <label class="ds-check"><input type="checkbox" id="saved" name="saved" required><span>I saved my recovery codes</span></label>
+        <small class="ds-field__hint ds-field__hint--error" hidden></small>
+      </div>
+      <div class="ds-form-actions">
+        <button class="ds-btn ds-btn--filled" type="submit">Turn on two-step verification</button>
+      </div>
+    </form>
+  </section>
+</main>
+
+<footer class="pt-foot ds-cluster ds-cluster--center ds-print-hide">
+  <a class="ds-link--quiet" href="#help">Help</a>
+  <a class="ds-link--quiet" href="#privacy">Privacy</a>
+  <a class="ds-link--quiet" href="#terms">Terms</a>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+</footer>
+
+<script src="ds/ds.auth.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  var codes = Array.prototype.map.call(document.querySelectorAll('.pt-codes code'), function (code) { return code.textContent; });
+
+  // A text file the person keeps: the codes, one per line, named after the product and the account.
+  document.getElementById('download').addEventListener('click', function () {
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob(['Product recovery codes for ada@example.org\n\n' + codes.join('\n') + '\n'], { type: 'text/plain' }));
+    link.download = 'product-recovery-codes.txt';
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(function () { URL.revokeObjectURL(link.href); });
+    DS.overlay.announce('Downloaded product-recovery-codes.txt.');
+  });
+  document.getElementById('print').addEventListener('click', function () { window.print(); });
+
+  var form = document.getElementById('form');
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    location.href = form.getAttribute('action');
+  });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

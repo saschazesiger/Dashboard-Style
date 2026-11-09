@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Two-step verification · Product</title>
+<meta name="pt-title" content="Two-step verification">
+<meta name="pt-need" content="Confirm a sign-in with a one-time code, or a recovery code without the phone">
+<meta name="pt-group" content="Sign-in and accounts">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.auth.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body class="ds-auth">
+<main class="pt-auth ds-stack" id="main">
+  <div class="ds-auth__alert"></div>
+  <section class="ds-card ds-card--elevated ds-auth__card" aria-labelledby="title">
+    <header class="ds-stack">
+      <a class="pt-brand" href="sign-in.html"><span class="pt-brand__mark" data-icon="box"></span>Product</a>
+      <h1 class="ds-card__title" id="title" tabindex="-1">Two-step verification</h1>
+    </header>
+
+    <form class="ds-form" id="code-form" action="onboarding.html" novalidate>
+      <p class="ds-muted">Open your authenticator app and enter the code it shows for Product.</p>
+      <div class="ds-field" id="code-field">
+        <span class="ds-field__label" id="code-label">Verification code</span>
+        <div class="ds-otp" role="group" aria-labelledby="code-label" aria-describedby="code-hint" data-ds-otp data-ds-otp-submit>
+          <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="one-time-code">
+          <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="off">
+          <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="off">
+          <span class="ds-otp__sep" aria-hidden="true"></span>
+          <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="off">
+          <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="off">
+          <input class="ds-input ds-otp__cell" inputmode="numeric" autocomplete="off">
+          <input type="hidden" name="code">
+        </div>
+        <small class="ds-field__hint" id="code-hint">A new code shows every 30 seconds.</small>
+      </div>
+      <label class="ds-check"><input type="checkbox" name="trust"><span>Trust this browser for 30 days</span></label>
+      <div class="ds-form-actions">
+        <button class="ds-btn ds-btn--filled" type="submit">
+          <span class="ds-btn__faces">
+            <span class="ds-btn__face">Verify</span>
+            <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Checking</span>
+          </span>
+        </button>
+      </div>
+      <p class="ds-muted">No access to the app? <button class="ds-link-btn" type="button" id="use-recovery">Use a recovery code</button></p>
+    </form>
+
+    <form class="ds-form" id="recovery-form" action="onboarding.html" novalidate hidden>
+      <div class="ds-alert ds-tone-error ds-errorsummary" data-ds-errorsummary tabindex="-1" data-icon="alertCircle" data-icon-place="start" hidden>
+        <div class="ds-alert__text">
+          <h2 class="ds-alert__title ds-errorsummary__title"></h2>
+          <ul class="ds-errorsummary__list"></ul>
+        </div>
+      </div>
+      <p class="ds-muted">Each recovery code works once. You saved them when you turned on two-step verification.</p>
+      <div class="ds-field">
+        <label class="ds-field__label" for="recovery">Recovery code</label>
+        <input class="ds-input ds-mono" id="recovery" name="recovery" autocomplete="off" autocapitalize="none" spellcheck="false" required
+               pattern="[A-Za-z0-9]{4}-?[A-Za-z0-9]{4}" placeholder="xxxx-xxxx" aria-describedby="recovery-hint">
+        <small class="ds-field__hint" id="recovery-hint">Eight letters and digits; the dash is optional.</small>
+        <small class="ds-field__hint ds-field__hint--error" hidden></small>
+      </div>
+      <div class="ds-form-actions">
+        <button class="ds-btn ds-btn--filled" type="submit">
+          <span class="ds-btn__faces">
+            <span class="ds-btn__face">Verify</span>
+            <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Checking</span>
+          </span>
+        </button>
+      </div>
+      <p class="ds-muted"><button class="ds-link-btn" type="button" id="use-app">Use the authenticator app</button></p>
+    </form>
+
+    <p class="ds-muted">Lost the app and the codes? <a href="#help">Ask an administrator</a> to reset two-step verification.</p>
+  </section>
+</main>
+
+<footer class="pt-foot ds-cluster ds-cluster--center">
+  <a class="ds-link--quiet" href="#help">Help</a>
+  <a class="ds-link--quiet" href="#privacy">Privacy</a>
+  <a class="ds-link--quiet" href="#terms">Terms</a>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+</footer>
+
+<template id="wrong-code">
+  <small class="ds-field__hint ds-field__hint--error" id="code-error" data-icon="alertCircle" data-icon-size="16" data-icon-place="start">That code did not work. Check the app and try the code it shows now.</small>
+</template>
+<template id="short-code">
+  <small class="ds-field__hint ds-field__hint--error" id="code-error" data-icon="alertCircle" data-icon-size="16" data-icon-place="start">Enter all six digits of the code.</small>
+</template>
+
+<script src="ds/ds.auth.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  // The demo's backend: any code but 000000 is right.
+  var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
+  var codeForm = document.getElementById('code-form');
+  var recoveryForm = document.getElementById('recovery-form');
+  var group = codeForm.querySelector('[data-ds-otp]');
+  var code = DS.get(group, 'otp');
+
+  // A wrong code is said at the field, in words; the cells keep their digits until the person changes them.
+  function markWrong(why) {
+    var old = document.getElementById('code-error');
+    if (old) old.remove();
+    group.setAttribute('aria-describedby', why ? 'code-error code-hint' : 'code-hint');
+    if (!why) {
+      group.removeAttribute('aria-invalid');
+      return;
+    }
+    group.setAttribute('aria-invalid', 'true');
+    document.getElementById('code-field').append(document.getElementById(why).content.cloneNode(true));
+    DS.icons.fill(document.getElementById('code-field'));
+  }
+  group.addEventListener('ds:change', function () { if (group.hasAttribute('aria-invalid')) markWrong(null); });
+
+  codeForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+    var value = code.get();
+    // A short code is said at the field too, and aloud: the focus alone, on the next empty cell, tells nobody why.
+    if (value.length < 6) {
+      markWrong('short-code');
+      code.focus();
+      DS.overlay.announce('Enter all six digits of the code.');
+      return;
+    }
+    var button = codeForm.querySelector('[type="submit"]');
+    DS.motion.busy(button, wait(700).then(function () {
+      if (value === '000000') throw new Error('wrong');
+    })).then(function () {
+      location.href = codeForm.getAttribute('action');
+    }, function () {
+      markWrong('wrong-code');
+      DS.overlay.announce('That code did not work.');
+    });
+  });
+
+  recoveryForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+    DS.motion.busy(recoveryForm.querySelector('[type="submit"]'), wait(700)).then(function () {
+      location.href = recoveryForm.getAttribute('action');
+    });
+  });
+
+  // One method at a time; the heading stays, the focus goes to the first field of the other.
+  function swap(from, to, field) {
+    from.hidden = true;
+    DS.motion.enter(to, 'swap');
+    field.focus();
+  }
+  document.getElementById('use-recovery').addEventListener('click', function () { swap(codeForm, recoveryForm, document.getElementById('recovery')); });
+  document.getElementById('use-app').addEventListener('click', function () { swap(recoveryForm, codeForm, group.querySelector('input')); });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

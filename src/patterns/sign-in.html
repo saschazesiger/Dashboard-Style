@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sign in · Product</title>
+<meta name="pt-title" content="Sign in">
+<meta name="pt-need" content="Sign in with a password, a passkey, single sign-on or a link by email">
+<meta name="pt-group" content="Sign-in and accounts">
+<!-- What a project loads: the fonts, its bundle (tools/bundle.mjs: only what its pages use), its theme, its own
+     layout rules. Here the theme is a preset of this repository and pt.js is the patterns' demo frame. -->
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.auth.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body class="ds-auth">
+<main class="pt-auth ds-stack" id="main">
+  <div class="ds-auth__alert" id="alert"></div>
+  <section class="ds-card ds-card--elevated ds-auth__card" aria-labelledby="title">
+    <header class="ds-stack">
+      <a class="pt-brand" href="sign-in.html"><span class="pt-brand__mark" data-icon="box"></span>Product</a>
+      <h1 class="ds-card__title" id="title" tabindex="-1">Sign in</h1>
+    </header>
+
+    <div class="ds-stack" id="sign-in">
+      <form class="ds-form" id="form" action="sign-in-code.html" novalidate>
+        <div class="ds-alert ds-tone-error ds-errorsummary" data-ds-errorsummary tabindex="-1" data-icon="alertCircle" data-icon-place="start" hidden>
+          <div class="ds-alert__text">
+            <h2 class="ds-alert__title ds-errorsummary__title"></h2>
+            <ul class="ds-errorsummary__list"></ul>
+          </div>
+        </div>
+        <div class="ds-field">
+          <label class="ds-field__label" for="email">Email</label>
+          <input class="ds-input" id="email" name="email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+          <small class="ds-field__hint ds-field__hint--error" hidden></small>
+        </div>
+        <div class="ds-field" data-ds-password>
+          <label class="ds-field__label" for="password">Password</label>
+          <div class="ds-input-group">
+            <input class="ds-input" id="password" name="password" type="password" autocomplete="current-password" required aria-describedby="password-caps">
+            <span class="ds-input-group__trailing">
+              <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Show password" aria-pressed="false">
+                <span class="ds-icon-swap"><span class="ds-icon-swap__a" data-icon="eye" data-icon-size="18"></span><span class="ds-icon-swap__b" data-icon="eyeOff" data-icon-size="18"></span></span>
+              </button>
+            </span>
+          </div>
+          <small class="ds-field__hint ds-field__hint--warning ds-password__caps" id="password-caps" data-icon="alert" data-icon-size="16" data-icon-place="start" hidden>Caps Lock is on.</small>
+          <small class="ds-field__hint ds-field__hint--error" hidden></small>
+        </div>
+        <div class="ds-cluster ds-cluster--between">
+          <label class="ds-check"><input type="checkbox" name="remember"><span>Keep me signed in</span></label>
+          <a class="ds-link--quiet" href="reset-password.html">Forgot your password?</a>
+        </div>
+        <div class="ds-form-actions">
+          <button class="ds-btn ds-btn--filled" type="submit">
+            <span class="ds-btn__faces">
+              <span class="ds-btn__face">Sign in</span>
+              <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Signing in</span>
+            </span>
+          </button>
+        </div>
+      </form>
+
+      <div class="ds-divider ds-divider--label" role="separator"><span>or</span></div>
+
+      <div class="ds-stack ds-gap-2">
+        <button class="ds-btn ds-btn--block" type="button" id="passkey" data-icon="fingerprint" data-icon-size="18" data-icon-place="start">Sign in with a passkey</button>
+        <button class="ds-btn ds-btn--block" type="button" id="sso" data-icon="building" data-icon-size="18" data-icon-place="start">Continue with single sign-on</button>
+        <button class="ds-btn ds-btn--block" type="button" id="send-link" data-icon="mail" data-icon-size="18" data-icon-place="start">Email me a sign-in link</button>
+      </div>
+
+      <p class="ds-muted">New to Product? <a href="sign-up.html">Create an account</a></p>
+    </div>
+
+    <div class="ds-empty ds-empty--done" id="link-sent" role="status" hidden>
+      <span class="ds-empty__disc" aria-hidden="true" data-icon="mail" data-icon-size="24"></span>
+      <p class="ds-empty__title">Check your email</p>
+      <p class="ds-empty__text">We sent a sign-in link to <strong id="link-address">your email</strong>. It works once, for 15 minutes.</p>
+      <div class="ds-empty__actions">
+        <button class="ds-btn" type="button" id="resend">Send it again</button>
+        <a class="ds-btn ds-btn--text" href="sign-in.html">Use a password</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="pt-foot ds-cluster ds-cluster--center">
+  <a class="ds-link--quiet" href="#help">Help</a>
+  <a class="ds-link--quiet" href="#privacy">Privacy</a>
+  <a class="ds-link--quiet" href="#terms">Terms</a>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+</footer>
+
+<template id="failed">
+  <div class="ds-alert ds-tone-error" role="alert" tabindex="-1" data-icon="alertCircle" data-icon-place="start"><span class="ds-alert__text">The email or the password is wrong. Try again, or reset your password.</span></div>
+</template>
+
+<script src="ds/ds.auth.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // The page's own start-up: glyphs, the behaviours of the markup, the ripple and the action guard.
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  // The demo's backend: a password of eight characters or more signs in; anything shorter is "wrong".
+  var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
+  var form = document.getElementById('form');
+  var slot = document.getElementById('alert');
+
+  form.addEventListener('submit', function (event) {
+    // Only a valid form gets here: the error summary stops a submit with problems first.
+    event.preventDefault();
+    slot.replaceChildren();
+    var button = form.querySelector('[type="submit"]');
+    DS.motion.busy(button, wait(700).then(function () {
+      if (form.elements.password.value.length < 8) throw new Error('wrong');
+    })).then(function () {
+      location.href = form.getAttribute('action');
+    }, function () {
+      slot.append(document.getElementById('failed').content.cloneNode(true));
+      DS.icons.fill(slot);
+      form.elements.password.value = '';
+      slot.firstElementChild.focus();
+    });
+  });
+
+  // A passkey and single sign-on hand over to the browser and the identity provider; here they sign in.
+  ['passkey', 'sso'].forEach(function (id) {
+    var button = document.getElementById(id);
+    button.addEventListener('click', function () {
+      DS.motion.busy(button, wait(700)).then(function () { location.href = 'onboarding.html'; });
+    });
+  });
+
+  // A link by email needs the address only.
+  var email = form.elements.email;
+  var summary = DS.get(form.querySelector('[data-ds-errorsummary]'), 'errorsummary');
+  var sendLink = document.getElementById('send-link');
+  sendLink.addEventListener('click', function () {
+    if (!email.checkValidity()) {
+      summary.set([{ field: 'email', text: 'Enter your email address to get a sign-in link.' }]);
+      return;
+    }
+    DS.motion.busy(sendLink, wait(700)).then(function () {
+      document.getElementById('link-address').textContent = email.value;
+      document.getElementById('sign-in').hidden = true;
+      DS.motion.enter(document.getElementById('link-sent'), 'swap');
+      document.getElementById('title').focus();
+    });
+  });
+  document.getElementById('resend').addEventListener('click', function () {
+    var button = this;
+    DS.motion.busy(button, wait(700)).then(function () { DS.overlay.announce('We sent the link again.'); });
+  });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

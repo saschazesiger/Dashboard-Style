@@ -334,3 +334,24 @@
   max-height: 480px;
   overflow: auto;
 }
+
+/* ── Page patterns ──────────────────────────────── */
+
+.sg-pattern-bar {
+  margin-block-end: var(--ds-space-4);
+}
+
+/* The frame keeps the device's size; shell.js scales it down to the stage and sets the stage's height. */
+.sg-pattern-stage {
+  overflow: hidden;
+  border: 1px solid var(--ds-line);
+  border-radius: calc(var(--ds-radius-card) * var(--ds-shape, 1));
+  background: var(--ds-surface-low);
+}
+
+.sg-pattern-frame {
+  display: block;
+  margin-inline: auto;
+  border: 0;
+  transform-origin: top left;
+}

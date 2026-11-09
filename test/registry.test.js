@@ -13,7 +13,7 @@ import { transform } from 'lightningcss';
 import {
   COMPONENT_FILES, CORE, CSS_TARGETS, LAYERS, META_KEYS, META_REQUIRED, META_SCHEMA, MODULES, build, componentNames, components, componentsMd, cssFacts,
   componentKeyframes, diffGenerated, generatedFiles, hooksTable, indexCss, labComponentsJs, motionCss, moduleRequires, ownedHooks, packageInfo, replaceBlock, stripJs, sublayerStatement, validateSchema,
-  moduleFiles, verifyComponents, verifyModuleRequires, withBanner, cascadeFacts, withoutConditions,
+  moduleFiles, verifyComponents, verifyModuleRequires, withBanner, cascadeFacts, withoutConditions, PAGE_ATTRIBUTES,
 } from '../scripts/build.mjs';
 import { scan, selectorList } from '../scripts/tools/css-scan.mjs';
 import { filesIn, read, rules, stripComments } from './helpers.js';
@@ -357,8 +357,9 @@ describe('dist/manifest.json', () => {
       assert.equal(entry.min, `css/components/${name}.min.css`);
       for (const field of ['group', 'requires', 'context', 'classes', 'keyframes', 'js', 'ripple', 'progressive']) assert.deepEqual(entry[field], meta[field], `${name}.${field}`);
       assert.equal(entry.layer, `ds.components.${name}`, `${name}: its own sublayer`);
-      // The attributes the stylesheet selects, plus the data-ds-* attributes its module reads (a bundle finds a behaviour by them), but for those a core module claims.
-      const claimed = Object.values(manifest.js).flatMap((module) => module.attributes);
+      // The attributes the stylesheet selects, plus the data-ds-* attributes its module reads (a bundle finds a behaviour by them), but for those a core
+      // module claims and those a page writes for no module (PAGE_ATTRIBUTES: the scheme, morphHtml's keys).
+      const claimed = [...Object.values(manifest.js).flatMap((module) => module.attributes), ...PAGE_ATTRIBUTES];
       const behaviour = meta.module ? [...read(moduleFiles(name).source).matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]).filter((attribute) => !claimed.includes(attribute)) : [];
       assert.deepEqual(entry.attributes, [...new Set([...meta.attributes, ...behaviour])].sort(), `${name}.attributes`);
       assert.deepEqual(entry.hooks, Object.keys(meta.hooks).sort(), `${name}.hooks: the names, sorted`);

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Down for maintenance · Product</title>
+<meta name="pt-title" content="Maintenance">
+<meta name="pt-need" content="Say that the product is down on purpose, until when, and where to follow it">
+<meta name="pt-group" content="Errors and status">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.status.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body class="ds-cover ds-cover--screen">
+<header>
+  <a class="pt-brand" href="onboarding.html"><span class="pt-brand__mark" data-icon="box"></span>Product</a>
+</header>
+<main class="ds-result ds-result--maintenance ds-cover__main" id="main" aria-labelledby="title">
+  <span class="ds-result__disc" aria-hidden="true" data-icon="wrench" data-icon-size="32"></span>
+  <p class="ds-result__code">503</p>
+  <h1 class="ds-result__title" id="title" tabindex="-1">Back at 14:00 UTC</h1>
+  <p class="ds-result__text">Product is down for planned maintenance, for about 40 minutes more. Your data is safe, and devices keep syncing once we are back.</p>
+  <div class="ds-result__actions">
+    <a class="ds-btn ds-btn--filled" href="#status">Follow the status page</a>
+    <button class="ds-btn ds-btn--text" type="button" id="retry">Check again</button>
+  </div>
+  <p class="ds-result__meta">Started 13:20 UTC · announced on 2026-11-01</p>
+</main>
+<footer class="pt-foot ds-cluster ds-cluster--center">
+  <a class="ds-link--quiet" href="#help">Help</a>
+  <a class="ds-link--quiet" href="#status">Service status</a>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+</footer>
+
+<script src="ds/ds.status.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  document.getElementById('retry').addEventListener('click', function () { location.reload(); });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

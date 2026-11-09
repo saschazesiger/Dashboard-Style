@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Get started · Product</title>
+<meta name="pt-title" content="Onboarding checklist">
+<meta name="pt-need" content="The first page after sign-up: the setup steps with their progress, and where to learn more">
+<meta name="pt-group" content="Onboarding">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.onboarding.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<div class="ds-app ds-app--drawer" data-ds-shell="patterns">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" data-icon="menu"></button>
+    <a class="ds-brand" href="onboarding.html"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></a>
+    <div class="ds-topbar__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="#help" aria-label="Help" data-tip="Help" data-icon="helpCircle"></a>
+    </div>
+    <div class="ds-account">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+      <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+        <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+        <div class="ds-menu__divider" role="separator"></div>
+        <a class="ds-menu__item" role="menuitem" href="#profile" data-icon="user" data-icon-place="start"><span class="ds-menu__label">Profile</span></a>
+        <a class="ds-menu__item" role="menuitem" href="sign-in.html" data-icon="logout" data-icon-place="start"><span class="ds-menu__label">Sign out</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></div>
+    <div class="ds-drawer__list">
+      <div class="ds-drawer__group">
+        <a class="ds-drawer__item" href="onboarding.html" aria-current="page" data-icon="rocket" data-icon-place="start"><span class="ds-drawer__label">Get started</span></a>
+        <a class="ds-drawer__item" href="#overview" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="#devices" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="#tickets" data-icon="ticket" data-icon-place="start"><span class="ds-drawer__label">Tickets</span></a>
+        <a class="ds-drawer__item" href="#people" data-icon="users" data-icon-place="start"><span class="ds-drawer__label">People</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <a class="ds-drawer__item" href="#settings" data-icon="settings" data-icon-place="start"><span class="ds-drawer__label">Settings</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content">
+        <div class="ds-page">
+          <header class="ds-page-head">
+            <h1 class="ds-page-head__title" tabindex="-1">Welcome, Ada</h1>
+            <p class="ds-page-head__lead">Set up Product for your team. Each step takes a few minutes; do them in any order.</p>
+          </header>
+
+          <section class="ds-card" id="checklist" aria-labelledby="checklist-title">
+            <div class="ds-card__row">
+              <h2 class="ds-card__title" id="checklist-title">Set up your workspace</h2>
+              <button class="ds-btn ds-btn--text ds-sm" type="button" id="hide-checklist">Hide</button>
+            </div>
+            <div class="ds-progress ds-progress--label-end" id="progress" style="--ds-progress: .4">
+              <div class="ds-progress__track" role="progressbar" aria-label="Setup" aria-valuemin="0" aria-valuemax="5" aria-valuenow="2" aria-valuetext="2 of 5 steps done">
+                <div class="ds-progress__bar"></div>
+              </div>
+              <p class="ds-progress__label">2 of 5 done</p>
+            </div>
+            <ul class="ds-list" aria-label="Setup steps" id="steps">
+              <li class="ds-list__item" data-ds-key="account">
+                <span class="ds-list__media ds-list__media--round" aria-hidden="true" data-icon="checkCircle"></span>
+                <span class="ds-list__text">
+                  <span class="ds-list__title">Create your account</span>
+                  <span class="ds-list__meta">Done today</span>
+                </span>
+                <span class="ds-status ds-tone-success" data-icon="check" data-icon-size="16" data-icon-place="start"><span>Done</span></span>
+              </li>
+              <li class="ds-list__item" data-ds-key="email">
+                <span class="ds-list__media ds-list__media--round" aria-hidden="true" data-icon="checkCircle"></span>
+                <span class="ds-list__text">
+                  <span class="ds-list__title">Confirm your email</span>
+                  <span class="ds-list__meta">Done today</span>
+                </span>
+                <span class="ds-status ds-tone-success" data-icon="check" data-icon-size="16" data-icon-place="start"><span>Done</span></span>
+              </li>
+              <li class="ds-list__item" data-ds-key="device">
+                <span class="ds-list__media ds-list__media--round" aria-hidden="true" data-icon="laptop"></span>
+                <span class="ds-list__text">
+                  <span class="ds-list__title">Add your first device</span>
+                  <span class="ds-list__description">Enter one by hand; import the rest from a file later.</span>
+                </span>
+                <span class="ds-list__actions"><a class="ds-btn ds-btn--tonal ds-sm" href="wizard.html">Add a device</a></span>
+              </li>
+              <li class="ds-list__item" data-ds-key="team">
+                <span class="ds-list__media ds-list__media--round" aria-hidden="true" data-icon="userPlus"></span>
+                <span class="ds-list__text">
+                  <span class="ds-list__title">Invite your team</span>
+                  <span class="ds-list__description">They get an email with a link to join.</span>
+                </span>
+                <span class="ds-list__actions"><button class="ds-btn ds-sm" type="button" data-ds-open="#invite" aria-haspopup="dialog">Invite people</button></span>
+              </li>
+              <li class="ds-list__item" data-ds-key="mfa">
+                <span class="ds-list__media ds-list__media--round" aria-hidden="true" data-icon="shieldCheck"></span>
+                <span class="ds-list__text">
+                  <span class="ds-list__title">Turn on two-step verification</span>
+                  <span class="ds-list__description">A code from your phone at every sign-in.</span>
+                </span>
+                <span class="ds-list__actions"><a class="ds-btn ds-sm" href="recovery-codes.html">Turn it on</a></span>
+              </li>
+            </ul>
+          </section>
+
+          <section class="ds-stack" aria-labelledby="learn-title">
+            <h2 id="learn-title">Learn the basics</h2>
+            <div class="ds-grid ds-grid--max-4" style="--ds-grid-min: 14rem">
+              <a class="ds-card ds-card--interactive" href="#quick-start">
+                <span class="ds-card__title" data-icon="book" data-icon-place="start">Quick start</span>
+                <span class="ds-muted">Ten minutes from the first device to the first report.</span>
+              </a>
+              <a class="ds-card ds-card--interactive" href="#tour">
+                <span class="ds-card__title" data-icon="video" data-icon-place="start">A 3-minute tour</span>
+                <span class="ds-muted">A short video of the views you use every day.</span>
+              </a>
+              <a class="ds-card ds-card--interactive" href="#import">
+                <span class="ds-card__title" data-icon="upload" data-icon-place="start">Import devices</span>
+                <span class="ds-muted">From a spreadsheet: the columns we read and how.</span>
+              </a>
+              <a class="ds-card ds-card--interactive" href="#contact">
+                <span class="ds-card__title" data-icon="chat" data-icon-place="start">Talk to us</span>
+                <span class="ds-muted">A person answers within a working day.</span>
+              </a>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<dialog class="ds-dialog" id="invite" aria-labelledby="invite-title">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <form class="ds-dialog__box" data-ds-dialog-form>
+    <h2 class="ds-dialog__title" id="invite-title">Invite your team</h2>
+    <div class="ds-dialog__body">
+      <div class="ds-field">
+        <label class="ds-field__label" for="invite-emails">Email addresses</label>
+        <textarea class="ds-input" id="invite-emails" name="emails" rows="3" required autofocus aria-describedby="invite-hint" placeholder="grace@example.org, alan@example.org"></textarea>
+        <small class="ds-field__hint" id="invite-hint">Separate them with commas or new lines.</small>
+      </div>
+      <div class="ds-field">
+        <label class="ds-field__label" for="invite-role">Role</label>
+        <select class="ds-input" id="invite-role" name="role">
+          <option value="member" selected>Member: sees and edits devices</option>
+          <option value="admin">Administrator: also manages people and billing</option>
+        </select>
+      </div>
+    </div>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
+      <button class="ds-btn ds-btn--filled" type="submit">
+        <span class="ds-btn__faces"><span class="ds-btn__face">Send invitations</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Sending</span></span>
+      </button>
+    </div>
+  </form>
+</dialog>
+<div class="ds-toasts" id="toasts"></div>
+
+<template id="done-step">
+  <span class="ds-status ds-tone-success" data-icon="check" data-icon-size="16" data-icon-place="start"><span>Done</span></span>
+</template>
+
+<script src="ds/ds.onboarding.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
+  var toasts = document.getElementById('toasts');
+  var steps = document.getElementById('steps');
+  var progress = document.getElementById('progress');
+
+  // A step that is done shows a check and the word, its action goes, and the bar and its count follow.
+  function markDone(key) {
+    var row = steps.querySelector('[data-ds-key="' + key + '"]');
+    var media = row.querySelector('.ds-list__media');
+    media.setAttribute('data-icon', 'checkCircle');
+    DS.icons.fill(media);
+    row.querySelector('.ds-list__actions').replaceWith(document.getElementById('done-step').content.cloneNode(true));
+    DS.icons.fill(row);
+    var done = steps.querySelectorAll('.ds-status').length;
+    var total = steps.children.length;
+    progress.style.setProperty('--ds-progress', String(done / total));
+    var track = progress.querySelector('[role="progressbar"]');
+    track.setAttribute('aria-valuenow', String(done));
+    track.setAttribute('aria-valuetext', done + ' of ' + total + ' steps done');
+    progress.querySelector('.ds-progress__label').textContent = done + ' of ' + total + ' done';
+  }
+
+  // The invitations: the dialog shows it is busy while they go out, then closes; the result is a snackbar.
+  var invite = document.getElementById('invite');
+  DS.dialog.form(invite, {
+    onSubmit: function (data) {
+      var count = String(data.get('emails')).split(/[\s,;]+/).filter(Boolean).length;
+      return wait(900).then(function () {
+        DS.overlay.toast(toasts, count === 1 ? 'Invitation sent.' : count + ' invitations sent.', { kind: 'success' });
+      });
+    },
+    errorText: 'The invitations were not sent. Try again.',
+  });
+  // The step is done once the dialog has closed and given the focus back to "Invite people": marking it done removes
+  // that button, so the focus moves on to the next step that is still open (or the page's title).
+  invite.addEventListener('ds:close', function (event) {
+    if (event.detail.reason !== 'submit') return;
+    markDone('team');
+    var next = steps.querySelector('.ds-list__actions .ds-btn');
+    if (next) next.focus();
+    else document.querySelector('.ds-page-head__title').focus();
+  });
+
+  // Hiding the list moves the focus to the page's title; it stays reachable from Help.
+  document.getElementById('hide-checklist').addEventListener('click', function () {
+    var title = document.querySelector('.ds-page-head__title');
+    DS.motion.leave(document.getElementById('checklist'), undefined, { then: 'hide', focus: title });
+    DS.overlay.toast(toasts, 'The setup steps are hidden. Find them again under Help.', {
+      action: { label: 'Undo', onClick: function () { DS.motion.enter(document.getElementById('checklist')); } },
+    });
+  });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

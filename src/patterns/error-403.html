@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>You need access · Product</title>
+<meta name="pt-title" content="No access (403)">
+<meta name="pt-need" content="Say that the account may not open a page, who can change that, and ask for access">
+<meta name="pt-group" content="Errors and status">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.status.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body class="ds-cover ds-cover--screen">
+<header>
+  <a class="pt-brand" href="onboarding.html"><span class="pt-brand__mark" data-icon="box"></span>Product</a>
+</header>
+<main class="ds-result ds-result--forbidden ds-cover__main" id="main" aria-labelledby="title">
+  <span class="ds-result__disc" aria-hidden="true" data-icon="lock" data-icon-size="32"></span>
+  <p class="ds-result__code">403</p>
+  <h1 class="ds-result__title" id="title" tabindex="-1">You need access</h1>
+  <p class="ds-result__text">Your account, ada@example.org, cannot open the billing settings. An administrator of your team can give you access.</p>
+  <div class="ds-result__actions">
+    <button class="ds-btn ds-btn--filled" type="button" id="ask">
+      <span class="ds-btn__faces">
+        <span class="ds-btn__face">Ask for access</span>
+        <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Asking</span>
+        <span class="ds-btn__face ds-btn__face--done" aria-hidden="true" data-icon="check" data-icon-size="16" data-icon-place="start">Asked</span>
+      </span>
+    </button>
+    <a class="ds-btn ds-btn--text" href="sign-in.html">Use another account</a>
+  </div>
+</main>
+<footer class="pt-foot ds-cluster ds-cluster--center">
+  <a class="ds-link--quiet" href="#help">Help</a>
+  <a class="ds-link--quiet" href="#status">Service status</a>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+</footer>
+<div class="ds-toasts" id="toasts"></div>
+
+<script src="ds/ds.status.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  // A request goes to the team's administrators once; the button then says it was sent and stays blocked.
+  var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
+  var ask = document.getElementById('ask');
+  ask.addEventListener('click', function () {
+    DS.motion.busy(ask, wait(800)).then(function () {
+      ask.setAttribute('aria-disabled', 'true');
+      DS.motion.setLabel(ask, 'Access requested');
+      DS.overlay.toast(document.getElementById('toasts'), 'We asked the administrators of your team. You get an email when they answer.', { kind: 'success' });
+    });
+  });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>
