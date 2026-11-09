@@ -45,6 +45,9 @@ latency), then fixed where the system or its pages did more than they need to.
 - **Page head** (`DS.page`, sticky): when the head unfolded during a smooth scroll (a reader turning round, a jump
   link), measuring its fold let scroll anchoring move the scroll, and putting it back stopped the smooth scroll short.
   Anchoring is off while the fold is measured (`overflow-anchor`, progressive; elsewhere the scroll is still put back).
+- **Tooltips** (Firefox): a tooltip shown during the warm-up (the next trigger along a toolbar) could grow from
+  `--ds-scale-tooltip` instead of only fading in; its closed state is now styled without transitions on the warm path
+  too, as on the cold one.
 - **Accessibility sweep** (`test/browser/a11y-sweep.spec.js`): every demo's interactive elements are named, ARIA
   references resolve, ids are unique, images have text and roles are valid. It found a blank line of `DS.logview`
   without a name (now "Blank line", the string `logBlank`) and broken references in the result and wizard demos.

@@ -1027,7 +1027,10 @@ test.describe('with the keyboard, part 3', () => {
 
 test.describe('the styleguide area', () => {
   test('lists every pattern with its need line and loads a preview only on its page, at the chosen width', async ({ page }) => {
-    const errors = collectErrors(page);
+    // Firefox's hint "Layout was forced before the page was fully loaded" comes from the frame while the styleguide
+    // sizes it as it loads; the page alone loads without it (above).
+    const all = collectErrors(page);
+    const errors = { get list() { return all.filter((text) => !/Layout was forced before the page was fully loaded/.test(text)); } };
     await page.goto('/styleguide/index.html#/patterns');
     await ready(page);
     await expect(page.locator('[data-sg-pattern]')).toHaveCount(PAGES.length);
@@ -1047,6 +1050,6 @@ test.describe('the styleguide area', () => {
     await page.getByRole('radio', { name: 'Desktop' }).click();
     const stage = await page.locator('#sg-pattern-stage').evaluate((el) => el.clientWidth);
     expect(await frame.evaluate((el) => el.getBoundingClientRect().width)).toBeCloseTo(Math.min(1280, stage), 0);
-    expect(errors).toEqual([]);
+    expect(errors.list).toEqual([]);
   });
 });

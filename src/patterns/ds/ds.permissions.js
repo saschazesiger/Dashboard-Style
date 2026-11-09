@@ -13106,12 +13106,10 @@
     }
     place(next);
     originFrom(next, tip);
-    if (!warm) {
     tip.style.transition = 'none';
-    tip.removeAttribute('data-warm');
+    if (!warm) tip.removeAttribute('data-warm');
     flushStyle(tip);
     tip.style.removeProperty('transition');
-    } else flushStyle(tip);
     tip.setAttribute('data-state', 'open');
     }
     phase = 'open';

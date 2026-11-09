@@ -101,6 +101,9 @@ test.describe('fixed in P2', () => {
     await open(page, { path: LAB });
     const opacity = await page.evaluate(async () => {
       const card = document.getElementById('sg-motion-card');
+      // In view, as for a reader: a card far down skips rendering, and Firefox holds its animations until it renders.
+      card.scrollIntoView({ block: 'center' });
+      for (let i = 0; i < 3; i += 1) await new Promise((resolve) => requestAnimationFrame(() => resolve()));
       const values = [];
       let entered = false;
       document.querySelector('[data-leave="sink"]').click();

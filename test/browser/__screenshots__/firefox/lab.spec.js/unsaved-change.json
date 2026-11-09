@@ -1,0 +1,5 @@
+[
+  "transition opacity - 150 0 1 --ds-ease-in-out",
+  "transition opacity ::after 150 0 1 --ds-ease-in-out",
+  "transition scale - 250 0 1 --ds-ease-spatial"
+]

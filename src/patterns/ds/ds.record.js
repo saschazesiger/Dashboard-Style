@@ -15747,13 +15747,16 @@
     const box = scroller ?? doc.scrollingElement ?? doc.documentElement;
     if (typeof view.requestAnimationFrame !== 'function') return;
     if (jump) view.cancelAnimationFrame(jump);
-    let last = Number.NaN;
+    const start = box.scrollTop;
+    let last = start;
     let still = 0;
+    let moved = false;
     const step = () => {
     const now = box.scrollTop;
+    if (now !== start) moved = true;
     still = now === last ? still + 1 : 0;
     last = now;
-    if (still >= 3) {
+    if (still >= (moved ? 3 : 30)) {
     jump = 0;
     later();
     return;
@@ -16119,12 +16122,10 @@
     }
     place(next);
     originFrom(next, tip);
-    if (!warm) {
     tip.style.transition = 'none';
-    tip.removeAttribute('data-warm');
+    if (!warm) tip.removeAttribute('data-warm');
     flushStyle(tip);
     tip.style.removeProperty('transition');
-    } else flushStyle(tip);
     tip.setAttribute('data-state', 'open');
     }
     phase = 'open';

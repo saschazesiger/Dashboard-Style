@@ -23,9 +23,9 @@ function collectErrors(page) {
 }
 
 /** Goes to a route of the shell and waits until it is rendered. */
-async function go(page, route) {
+async function go(page, route, { timeout } = {}) {
   await page.evaluate((hash) => { location.hash = hash; }, `#/${route}`);
-  await expect(page.locator('html')).toHaveAttribute('data-sg-route', route);
+  await expect(page.locator('html')).toHaveAttribute('data-sg-route', route, timeout ? { timeout } : undefined);
 }
 
 async function open(page, route = '') {
@@ -103,7 +103,7 @@ test.describe('navigation', () => {
 
 test('every registered demo renders into its stage and wires without a console error', async ({ page }) => {
   // Every component has a demo now: 22s alone in WebKit, past the default 30s with other workers.
-  test.setTimeout(120000);
+  test.setTimeout(300000);
   const errors = collectErrors(page);
   await open(page);
   const names = await page.evaluate(() => window.SG.list().map((spec) => spec.name));
@@ -111,9 +111,10 @@ test('every registered demo renders into its stage and wires without a console e
     // A fresh page every 15 demos: headless WebKit keeps the snapshots of
     // every View Transition of a page (100-300 MB each, a bare test page
     // too) until it goes; it slows down long before its kill
-    // threshold (16 GB) ends the page, about 60 route changes in.
-    if (index && index % 15 === 0) await open(page, `components/${name}`);
-    else await go(page, `components/${name}`);
+    // threshold (16 GB) ends the page, about 60 route changes in (and a route
+    // change can take seconds well before that).
+    if (index && index % 10 === 0) await open(page, `components/${name}`);
+    else await go(page, `components/${name}`, { timeout: 20000 });
     const root = page.locator(`#sg-stage > .sg-demo-root[data-sg-demo="${name}"]`);
     await expect(root, name).toHaveCount(1);
     expect(await root.evaluate((el) => el.children.length), `${name} renders markup`).toBeGreaterThan(0);

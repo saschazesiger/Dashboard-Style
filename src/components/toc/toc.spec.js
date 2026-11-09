@@ -98,7 +98,8 @@ test('a jump past other sections keeps its own mark the whole way: the sections 
     window.__sampling = requestAnimationFrame(sample);
   });
   const name = (await last.textContent()).trim();
-  await last.click();
+  // Clicked in the page: Playwright's own click would first scroll the short box to reach the link, which moves the mark.
+  await last.evaluate((el) => el.click());
   await expect(last).toHaveAttribute('aria-current', 'location');
   await settle(page);
   await page.waitForTimeout(200);

@@ -58174,7 +58174,9 @@
 
       /**
        * Watches a jump's scroll frame by frame until it has held still for three
-       * frames (every engine, with or without the scrollend event), then reads
+       * frames once it moved (thirty while it has not: a jump that needs no
+       * scroll, or one that starts late; every engine, with or without the
+       * scrollend event), then reads
        * where the sections lie: a glide that passes other sections keeps the
        * jump's mark, and a section that cannot reach the line gives it up then.
        */
@@ -58182,13 +58184,17 @@
         const box = scroller ?? doc.scrollingElement ?? doc.documentElement;
         if (typeof view.requestAnimationFrame !== 'function') return;
         if (jump) view.cancelAnimationFrame(jump);
-        let last = Number.NaN;
+        const start = box.scrollTop;
+        let last = start;
         let still = 0;
+        let moved = false;
         const step = () => {
           const now = box.scrollTop;
+          if (now !== start) moved = true;
           still = now === last ? still + 1 : 0;
           last = now;
-          if (still >= 3) {
+          // A smooth scroll may take a few frames to start on a busy page: before it has moved, it waits longer.
+          if (still >= (moved ? 3 : 30)) {
             jump = 0;
             later();
             return;
@@ -59200,13 +59206,12 @@
           }
           place(next);
           originFrom(next, tip);
-          if (!warm) {
-            // Cold: from --ds-scale-tooltip at the anchor, without a transition to it.
-            tip.style.transition = 'none';
-            tip.removeAttribute('data-warm');
-            flushStyle(tip);
-            tip.style.removeProperty('transition');
-          } else flushStyle(tip);
+          // The closed state is styled without transitions: cold, from --ds-scale-tooltip at the anchor; warm, at rest
+          // size, so only the opacity moves (Firefox otherwise starts the scale from where the last exit left it).
+          tip.style.transition = 'none';
+          if (!warm) tip.removeAttribute('data-warm');
+          flushStyle(tip);
+          tip.style.removeProperty('transition');
           tip.setAttribute('data-state', 'open');
         }
         phase = 'open';

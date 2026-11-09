@@ -257,6 +257,11 @@ export async function settle(page, { timeout = 3000 } = {}) {
     const deadline = performance.now() + limit;
     const running = () => document.getAnimations().filter((animation) => {
       if (typeof ScrollTimeline === 'function' && animation.timeline instanceof ScrollTimeline) return false;
+      // Content that skips rendering (content-visibility: auto, far from the view): Firefox holds the clock of its
+      // animations until it renders, where they play; nothing there is on screen to settle.
+      const target = animation.effect?.target;
+      // Rendered but for content-visibility: visible by default, not once skipped content counts.
+      if (target?.checkVisibility && target.checkVisibility() && !target.checkVisibility({ contentVisibilityAuto: true })) return false;
       const iterations = animation.effect && animation.effect.getComputedTiming().iterations;
       return Number.isFinite(iterations) && animation.playState !== 'finished' && animation.playState !== 'idle';
     });

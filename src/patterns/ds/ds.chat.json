@@ -12,8 +12,8 @@
     },
     "js": {
       "file": "ds.chat.js",
-      "bytes": 616034,
-      "gzip": 145224
+      "bytes": 616000,
+      "gzip": 145217
     },
     "properties": {
       "file": "properties.css",

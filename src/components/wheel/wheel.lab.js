@@ -23,7 +23,18 @@
     toggle: function (stage, on) {
       stage.at = on ? 1 : 0;
       stage.wheel.set(STEPS[stage.at]);
-      return DS.motion.settled(stage.querySelector('[data-lab-wheel]'), { subtree: true });
+      // Done once the slot holds its one line again: a turn waits out its hold, and the lines it pushed out go once
+      // their exit has played (settled() alone can answer between the two).
+      var slot = stage.querySelector('[data-lab-wheel]');
+      var left = 600;
+      return new Promise(function (resolve) {
+        (function check() {
+          left -= 1;
+          if (left <= 0 || (!slot.querySelector('[data-ds-leaving]') && slot.querySelectorAll('.ds-wheel__line').length === 1)) {
+            resolve(DS.motion.settled(slot, { subtree: true }));
+          } else requestAnimationFrame(check);
+        }());
+      });
     },
     state: function (stage) { return stage.at === 1; },
     reset: function (stage) {

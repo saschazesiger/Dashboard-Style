@@ -12,8 +12,8 @@
     },
     "js": {
       "file": "ds.webhooks.js",
-      "bytes": 632107,
-      "gzip": 151529
+      "bytes": 632073,
+      "gzip": 151524
     },
     "properties": {
       "file": "properties.css",

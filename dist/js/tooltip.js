@@ -401,13 +401,12 @@ export function tooltips(root = globalThis.document) {
       }
       place(next);
       originFrom(next, tip);
-      if (!warm) {
-        // Cold: from --ds-scale-tooltip at the anchor, without a transition to it.
-        tip.style.transition = 'none';
-        tip.removeAttribute('data-warm');
-        flushStyle(tip);
-        tip.style.removeProperty('transition');
-      } else flushStyle(tip);
+      // The closed state is styled without transitions: cold, from --ds-scale-tooltip at the anchor; warm, at rest
+      // size, so only the opacity moves (Firefox otherwise starts the scale from where the last exit left it).
+      tip.style.transition = 'none';
+      if (!warm) tip.removeAttribute('data-warm');
+      flushStyle(tip);
+      tip.style.removeProperty('transition');
       tip.setAttribute('data-state', 'open');
     }
     phase = 'open';

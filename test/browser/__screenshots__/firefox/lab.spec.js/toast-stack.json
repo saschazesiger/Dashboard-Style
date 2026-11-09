@@ -1,0 +1,7 @@
+[
+  "animation ds-fade-in - 250 0 1 --ds-ease-in-out",
+  "animation ds-lift-in - 250 0 1 --ds-ease-spatial",
+  "script ds-flip - 253 0 1 --ds-ease-spatial",
+  "script ds-flip - 256 0 1 --ds-ease-spatial",
+  "transition opacity - 150 0 1 --ds-ease-in-out"
+]

@@ -280,6 +280,19 @@ test('a sticky heading never covers the keyboard focus: going up with Shift+Tab,
     await page.locator('#r11').focus();
     for (let index = 10; index >= 0; index -= 1) {
       await page.keyboard.press('Shift+Tab');
+      // The box scrolls the focus into view; read once it has held still for two frames (a busy engine takes longer).
+      await page.evaluate(() => new Promise((resolve) => {
+        const box = document.getElementById('box');
+        let last = -1;
+        let still = 0;
+        const frame = () => {
+          still = box.scrollTop === last ? still + 1 : 0;
+          last = box.scrollTop;
+          if (still >= 2) resolve();
+          else requestAnimationFrame(frame);
+        };
+        requestAnimationFrame(frame);
+      }));
       const read = await page.evaluate(() => {
         const action = document.activeElement;
         const group = document.querySelector('#box .ds-list__group');
