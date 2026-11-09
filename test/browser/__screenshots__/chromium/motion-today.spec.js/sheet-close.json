@@ -10,7 +10,7 @@
     "iterations": 1,
     "direction": "normal",
     "fill": "backwards",
-    "target": "dialog#sg-sheet-1.ds-sheet.ds-sheet--closing"
+    "target": "dialog#sg-sheet.ds-sheet.ds-sheet--closing"
   },
   {
     "type": "transition",

@@ -282,3 +282,29 @@ test.describe('fixed in 1.6.1', () => {
     expect(after.note).toBeGreaterThan(before.note);
   });
 });
+
+test.describe('fixed in 3.0.0-alpha.6', () => {
+  // Cards far from the view skip rendering at an estimated height; those a jump
+  // passed rendered on the way, and the jump ended thousands of pixels short.
+  test('a jump in the Motion Lab, from the navigation or the address, lands on its section', async ({ page }) => {
+    test.setTimeout(120000);
+    const top = (id) => page.evaluate((name) => {
+      const section = document.getElementById(name);
+      const view = document.getElementById('main');
+      return Math.abs(section.getBoundingClientRect().top - view.getBoundingClientRect().top - (parseFloat(getComputedStyle(section).scrollMarginTop) || 0));
+    }, id);
+    await page.goto(LAB);
+    await ready(page, { timeout: 60000 });
+    for (const id of ['overlays', 'feedback', 'utilities']) {
+      await page.locator(`#sg-nav a[href="#${id}"]`).click();
+      await expect.poll(() => top(id), { timeout: 10000, message: `#${id} at the top of the view` }).toBeLessThan(2);
+    }
+    // The address, on the same page (a hash change) and on a fresh load.
+    await page.evaluate(() => { location.hash = '#controls'; });
+    await expect.poll(() => top('controls'), { timeout: 10000 }).toBeLessThan(2);
+    await page.goto('about:blank');
+    await page.goto(`${LAB}#feedback`);
+    await ready(page, { timeout: 60000 });
+    await expect.poll(() => top('feedback'), { timeout: 10000 }).toBeLessThan(2);
+  });
+});

@@ -339,7 +339,7 @@
         refreshTimes();
         M.enterAll(sections, 'swap');
         var target = location.hash && document.getElementById(location.hash.slice(1));
-        if (target) target.scrollIntoView();
+        if (target) { target.scrollIntoView(); land(target); }
         setupLab(done);
       }, 0);
     };
@@ -552,6 +552,30 @@
   function stopNavigating() {
     navigating = false;
     clearTimeout(quietTimer);
+    if (landing) land(landing);
+  }
+
+  /** The section a jump is heading for, until it stays at the top of the view. */
+  var landing = null;
+  var landFrame = 0;
+  /* Cards far from the view skip rendering and stand in at an estimated
+     height (content-visibility); those a jump passes render on the way and
+     move the section it aims at. Once the scroll ends, the view follows the
+     section, frame by frame, until it has held still for three frames
+     (at most a second): a jump lands where it points in every engine. */
+  function land(section) {
+    landing = section;
+    cancelAnimationFrame(landFrame);
+    var still = 0;
+    var frames = 0;
+    var step = function () {
+      if (landing !== section) return;
+      if (scrollsTo(section)) { section.scrollIntoView({ block: 'start' }); still = 0; } else still += 1;
+      frames += 1;
+      if (still >= 3 || frames >= 60) { landing = null; return; }
+      landFrame = requestAnimationFrame(step);
+    };
+    landFrame = requestAnimationFrame(step);
   }
 
   function waitForQuiet() {
@@ -589,6 +613,18 @@
       if (navigating && !('onscrollend' in view)) waitForQuiet();
     }, { passive: true });
     if ('onscrollend' in view) view.addEventListener('scrollend', function () { if (navigating) stopNavigating(); });
+    // A link or an address to a section on this page (the engine's own fragment scroll misses as the cards render).
+    window.addEventListener('hashchange', function () {
+      var section = location.hash && document.getElementById(location.hash.slice(1));
+      if (!section || !section.classList.contains('sg-section')) return;
+      setActive(section.id);
+      section.scrollIntoView({ block: 'start' });
+      land(section);
+    });
+    // A person who scrolls takes over: a jump never pulls the view back.
+    ['wheel', 'touchstart', 'keydown'].forEach(function (type) {
+      view.addEventListener(type, function () { landing = null; }, { passive: true });
+    });
 
     $('#sg-nav').addEventListener('click', function (event) {
       var link = event.target.closest('a');
@@ -598,9 +634,13 @@
       var id = link.getAttribute('href').slice(1);
       var section = $('#' + id);
       setActive(id);
+      landing = null;
       stopNavigating();
       navigating = scrollsTo(section);
       section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // stopNavigating() lands it once the scroll ends; a jump that does not move the view lands now.
+      if (navigating) landing = section;
+      else land(section);
       history.replaceState(null, '', '#' + id);
       if (modal.matches) openDrawer(false);
     });

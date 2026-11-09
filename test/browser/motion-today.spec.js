@@ -41,7 +41,8 @@ function contract(entries) {
       direction: entry.direction,
       fill: entry.fill,
     };
-    if (entry.target) out.target = entry.target;
+    // A demo's generated id carries a page-wide counter that changes with the demos before it.
+    if (entry.target) out.target = entry.target.replace(/#([\w-]+?)-\d+(?=[.\s]|$)/, '#$1');
     return out;
   });
 }

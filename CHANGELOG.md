@@ -34,6 +34,12 @@ latency), then fixed where the system or its pages did more than they need to.
 - **Bundles carry only the behaviours a page uses.** `tools/bundle.mjs` brings a component's module only when the page
   uses that component; one that another component's CSS requires (a list styles a `.ds-meter` it may hold) brings its
   stylesheet alone, so a page with a list no longer carries the chart engine.
+- **Real devices** (BrowserStack: Galaxy S25 with Samsung Internet, Moto G71, iPhone 15, iPad, Windows Firefox,
+  macOS Safari). A jump in the Motion Lab, from its navigation or the address, landed thousands of pixels short in
+  every engine: the cards it passed rendered on the way and moved the section. The view now follows the section
+  until it holds still (a person who scrolls takes over), tested in `styleguide-regressions.spec.js`. A page
+  pattern's preview opens at the width nearest the screen (a phone previews a phone, not a desktop scaled to a
+  third).
 - **Accessibility sweep** (`test/browser/a11y-sweep.spec.js`): every demo's interactive elements are named, ARIA
   references resolve, ids are unique, images have text and roles are valid. It found a blank line of `DS.logview`
   without a name (now "Blank line", the string `logBlank`) and broken references in the result and wizard demos.

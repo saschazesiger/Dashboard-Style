@@ -959,7 +959,12 @@
   function patternSlug(title) { return title.toLowerCase().replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-'); }
   /** The preview's widths: [value, label, width, height] of the frame. */
   var PATTERN_WIDTHS = [['phone', 'Phone', 390, 844], ['tablet', 'Tablet', 768, 1024], ['desktop', 'Desktop', 1280, 860]];
-  var patternWidth = 'desktop';
+  /* Null until the first preview: then the width nearest the screen (a phone previews a phone, not a desktop scaled to a third). */
+  var patternWidth = null;
+  function defaultPatternWidth() {
+    var width = window.innerWidth;
+    return width < 700 ? 'phone' : width < 1100 ? 'tablet' : 'desktop';
+  }
   /** The frame follows the width of its stage (a ResizeObserver) until the page changes. */
   var patternObserver = null;
 
@@ -997,6 +1002,7 @@
   }
 
   function patternPage(p) {
+    if (!patternWidth) patternWidth = defaultPatternWidth();
     return head(esc(p.title), esc(p.need)) +
       '<div class="ds-cluster sg-pattern-bar">' +
       segmented('pattern-width', 'Preview width', PATTERN_WIDTHS.map(function (w) { return [w[0], w[1]]; }), patternWidth) +

@@ -10,7 +10,7 @@
     "iterations": 1,
     "direction": "normal",
     "fill": "backwards",
-    "target": "dialog#sg-size-sm-8.ds-dialog.ds-dialog--sm.ds-dialog--closing"
+    "target": "dialog#sg-size-sm.ds-dialog.ds-dialog--sm.ds-dialog--closing"
   },
   {
     "type": "transition",
