@@ -5,8 +5,8 @@
  * tour names a component the bundle lacks, or dist/ changed under it) and a
  * page that links the whole of ds.css or ds.js again.
  *
- * After a change to dist/ (every build that changes a component the tour
- * uses, and every new version), rewrite the bundle and commit it:
+ * npm run build rewrites the bundle from the dist/ it just built (and
+ * --check compares it); commit it with the change. By hand:
  *
  *   node dist/tools/bundle.mjs --config demo/ds.config.json
  */
@@ -23,7 +23,7 @@ const read = (path) => readFileSync(join(ROOT, path), 'utf8');
 describe('the live tour', () => {
   it('holds a bundle that matches the tour and this dist/ (tools/bundle.mjs --check)', () => {
     const run = spawnSync(process.execPath, [join(ROOT, 'dist/tools/bundle.mjs'), '--config', join(ROOT, 'demo/ds.config.json'), '--check'], { cwd: ROOT, encoding: 'utf8' });
-    assert.equal(run.status, 0, `the tour's bundle is stale: run node dist/tools/bundle.mjs --config demo/ds.config.json and commit demo/ds/\n${run.stdout}${run.stderr}`);
+    assert.equal(run.status, 0, `the tour's bundle is stale: run npm run build and commit demo/ds/\n${run.stdout}${run.stderr}`);
   });
 
   it('links its bundle and its theme, never the whole ds.css or ds.js', () => {

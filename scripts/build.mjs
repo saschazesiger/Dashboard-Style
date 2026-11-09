@@ -8,7 +8,7 @@
  *   node scripts/build.mjs           write dist/ and the generated files
  *   node scripts/build.mjs --check   exit 1 if any of them is not what src/ builds
  *   node scripts/build.mjs --generated   print the generated files of the repository, one per line
- *                                        (the patterns' bundles only once git tracks them)
+ *                                        (the patterns' and the tour's bundles only once git tracks them)
  *
  * Sources: src/core/{tokens,options,base,motion,global}.css and src/core/hooks.json,
  * one folder per component (src/components/<name>/: <name>.css, meta.json and
@@ -33,6 +33,8 @@
  *   src/patterns/ds/     the bundles of the page patterns (tools/bundle.mjs
  *                        on src/patterns/ds.config.json, from the dist/ just
  *                        written; patternPages() checks the folder)
+ *   demo/ds/             the live tour's bundle (tools/bundle.mjs on
+ *                        demo/ds.config.json, from the dist/ just written)
  *   Blocks between "generated:" markers inside hand-written files
  *   (replaceBlock): the hooks table of docs/theming.md and the hooks of
  *   themes/example.css (meta.json "hooks", src/core/hooks.json), the component
@@ -1496,6 +1498,66 @@ export function diffPatternBundles() {
   return problems;
 }
 
+// ── The live tour's bundle (demo/ds/) ──────────────────────────────────
+
+/**
+ * The live tour (demo/) loads a project bundle as a project would, written
+ * by tools/bundle.mjs into demo/ds/ from demo/ds.config.json and the dist/
+ * just built, so every build keeps it fresh and --check compares it
+ * (test/demo.test.js guards the config and the links).
+ */
+export const TOUR = 'demo';
+const TOUR_OUT = 'ds';
+const hasTour = () => existsSync(join(ROOT, TOUR, 'ds.config.json'));
+
+/** The generated bundle files of the tour, as repository paths. */
+export function tourBundleFiles() {
+  if (!hasTour()) return [];
+  const config = JSON.parse(repoText(`${TOUR}/ds.config.json`));
+  if (config.out !== TOUR_OUT || config.entries) throw new Error(`${TOUR}/ds.config.json: one bundle, "out" is "${TOUR_OUT}"`);
+  const kinds = config.js === false ? ['css', 'json'] : ['css', 'js', 'json'];
+  return [...kinds.map((kind) => `${TOUR}/${TOUR_OUT}/ds.bundle.${kind}`), `${TOUR}/${TOUR_OUT}/properties.css`];
+}
+
+/** The tour's bundle made from the dist/ on disk: Map of absolute path -> content; an unknown name stops the build. */
+function tourBundle() {
+  const result = bundleProject({ config: join(ROOT, TOUR, 'ds.config.json'), dist: DIST, write: false });
+  const unknown = result.entries.flatMap((entry) => entry.report.unknown.map((item) => typeof item === 'string' ? item : JSON.stringify(item)));
+  if (!result.ok || unknown.length) throw new Error(`${TOUR}: the bundle failed:\n  ${[...result.errors, ...unknown.map((item) => `unknown name ${item}`)].join('\n  ')}`);
+  return result.outputs;
+}
+
+/** Writes demo/ds/ anew from dist/ (after the build wrote it). */
+export function writeTourBundle() {
+  if (!hasTour()) return 0;
+  tourBundleFiles();
+  const outputs = tourBundle();
+  rmSync(join(ROOT, TOUR, TOUR_OUT), { recursive: true, force: true });
+  for (const [path, content] of outputs) {
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, content);
+  }
+  return outputs.size;
+}
+
+/** The bundle files of demo/ds/ that differ from what dist/ on disk makes (missing, changed, extra). */
+export function diffTourBundle() {
+  if (!hasTour()) return [];
+  tourBundleFiles();
+  const outputs = tourBundle();
+  const folder = join(ROOT, TOUR, TOUR_OUT);
+  const present = new Set(existsSync(folder) ? filesIn(folder) : []);
+  const problems = [];
+  for (const [path, content] of outputs) {
+    const shown = posix(relative(ROOT, path));
+    if (!present.has(path)) problems.push(`missing: ${shown}`);
+    else if (!readFileSync(path).equals(content)) problems.push(`outdated: ${shown}`);
+    present.delete(path);
+  }
+  for (const path of present) problems.push(`extra: ${posix(relative(ROOT, path))}`);
+  return problems;
+}
+
 /** The generated files of the repository: Map of repository path -> text. */
 export function generatedFiles(list = components()) {
   return new Map([
@@ -2107,19 +2169,19 @@ function main() {
   // The generated paths alone: `git checkout -- dist $(node scripts/build.mjs --generated)` on a group branch.
   // The patterns' bundles only as far as git tracks them: one path git does not know fails that checkout as a whole.
   if (process.argv.includes('--generated')) {
-    console.log([...files.keys(), ...trackedOnly(patternBundleFiles())].join('\n'));
+    console.log([...files.keys(), ...trackedOnly([...patternBundleFiles(), ...tourBundleFiles()])].join('\n'));
     return;
   }
   if (process.argv.includes('--check')) {
     const out = build();
     const distProblems = diffDist(out);
-    // The patterns' bundles are made from dist/ on disk: compared only once that is current.
-    const problems = [...diffGenerated(files), ...distProblems, ...(distProblems.length ? [] : diffPatternBundles())];
+    // The patterns' and the tour's bundles are made from dist/ on disk: compared only once that is current.
+    const problems = [...diffGenerated(files), ...distProblems, ...(distProblems.length ? [] : [...diffPatternBundles(), ...diffTourBundle()])];
     if (problems.length) {
       console.error(`dist/ or a generated file is not up to date (run npm run build):\n  ${problems.join('\n  ')}`);
       process.exit(1);
     }
-    console.log(`dist/ (${out.size} files) and the generated files (${[...files.keys(), ...(hasPatterns() ? [`${PATTERNS}/${PATTERN_OUT}/`] : [])].join(', ')}) are up to date.`);
+    console.log(`dist/ (${out.size} files) and the generated files (${[...files.keys(), ...(hasPatterns() ? [`${PATTERNS}/${PATTERN_OUT}/`] : []), ...(hasTour() ? [`${TOUR}/${TOUR_OUT}/`] : [])].join(', ')}) are up to date.`);
     return;
   }
   for (const [path, content] of files) writeFileSync(join(ROOT, path), content);
@@ -2130,7 +2192,8 @@ function main() {
     writeFileSync(join(DIST, path), content);
   }
   const bundles = writePatternBundles();
-  console.log(`Built dist/ (${out.size} files, version ${packageInfo().version}) and ${[...files.keys(), ...(bundles ? [`${PATTERNS}/${PATTERN_OUT}/ (${bundles} files)`] : [])].join(', ')}.`);
+  const tour = writeTourBundle();
+  console.log(`Built dist/ (${out.size} files, version ${packageInfo().version}) and ${[...files.keys(), ...(bundles ? [`${PATTERNS}/${PATTERN_OUT}/ (${bundles} files)`] : []), ...(tour ? [`${TOUR}/${TOUR_OUT}/ (${tour} files)`] : [])].join(', ')}.`);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

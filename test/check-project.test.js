@@ -405,8 +405,12 @@ describe('tools/check-project.mjs', () => {
   });
 
   it('passes the live tour without a finding (demo/ is wired as a project wires it)', () => {
-    const config = { major: 3, prefix: 'demo', css: ['demo/*.css'], js: ['demo/*.js'], html: ['demo/*.html'], vendor: VENDOR };
-    const { findings, errors } = run(published('demo'), config);
+    // Its bundle too: demo/ds.config.json with its "dist" at the test project's copy, and the committed demo/ds/.
+    const own = JSON.parse(read('demo/ds.config.json'));
+    const bundled = Object.fromEntries(readdirSync(join(ROOT, 'demo/ds')).map((name) => [`demo/ds/${name}`, read(`demo/ds/${name}`)]));
+    const files = { ...published('demo'), ...bundled, 'demo/ds.config.json': JSON.stringify({ ...own, dist: `../${VENDOR}` }) };
+    const config = { major: 3, prefix: 'demo', css: ['demo/*.css'], js: ['demo/*.js'], html: ['demo/*.html'], vendor: VENDOR, bundle: 'demo/ds.config.json' };
+    const { findings, errors } = run(files, config);
     assert.deepEqual(errors, []);
     assert.deepEqual(findings.map((f) => `${f.file}:${f.line} ${f.rule} ${f.message}`), []);
   });
