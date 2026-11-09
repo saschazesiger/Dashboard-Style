@@ -30,6 +30,9 @@ SG_LAB.add({
   toggle: function (stage, on) {
     var handle = stage.sgLabelGroup;
     handle.set(on);
-    return DS.motion.settled(stage.querySelector('.ds-label-group__popup'));
+    var popup = stage.querySelector('.ds-label-group__popup');
+    // Closing: the overlay's promise, which resolves once the exit has played and the popup is hidden again
+    // (settled() alone could resolve before the exit has started).
+    return on ? DS.motion.settled(popup) : DS.overlay.close(popup);
   }
 });

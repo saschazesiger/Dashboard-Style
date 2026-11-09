@@ -75,7 +75,8 @@ SG_LAB.add({
   toggle: function (stage, on) {
     var menu = stage.querySelector('#sg-lab-menu-parent');
     var sub = stage.querySelector('#sg-lab-menu-sub');
-    if (!on) return DS.menu.close(sub);
+    // Off: the parent closes and takes the submenu along, so the stage is back where it started.
+    if (!on) return DS.menu.close(menu).then(function () { return DS.motion.settled(sub); });
     // The parent opens (if it is not open) and the submenu at once, so the
     // submenu's own entrance is what a reversal turns back.
     if (menu.getAttribute('data-state') !== 'open') DS.menu.open(menu, { opener: stage.querySelector('[data-lab-open]') });

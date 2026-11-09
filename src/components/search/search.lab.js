@@ -32,7 +32,8 @@ SG_LAB.add({
       input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
       popup = stage.querySelector('.ds-search__popup');
     } else if (popup) {
-      DS.overlay.close(popup);
+      // The overlay's own promise: it resolves once the exit has played and the list is hidden again.
+      return DS.overlay.close(popup);
     }
     return popup ? DS.motion.settled(popup) : Promise.resolve();
   },

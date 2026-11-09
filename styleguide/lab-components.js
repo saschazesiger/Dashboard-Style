@@ -255,8 +255,17 @@
       state: function (stage) { return stage.dsPage.get(); },
       toggle: function (stage, on, sg) {
         var box = stage.querySelector('[data-lab="page-head"]');
-        box.scrollTo({ top: on ? 260 : 0, behavior: 'smooth' });
-        return sg.frames(30);
+        var target = Math.min(on ? 260 : 0, box.scrollHeight - box.clientHeight);
+        box.scrollTo({ top: target, behavior: 'smooth' });
+        // A smooth scroll takes as long as the engine likes: wait until it has arrived (at most two seconds), then two frames for data-scrolled.
+        var left = 120;
+        return new Promise(function (resolve) {
+          (function check() {
+            left -= 1;
+            if (Math.abs(box.scrollTop - target) < 1 || !left) resolve(sg.frames(2));
+            else requestAnimationFrame(check);
+          }());
+        });
       },
     });
   }());
@@ -1091,7 +1100,10 @@
       toggle: function (stage, on) {
         var handle = stage.sgLabelGroup;
         handle.set(on);
-        return DS.motion.settled(stage.querySelector('.ds-label-group__popup'));
+        var popup = stage.querySelector('.ds-label-group__popup');
+        // Closing: the overlay's promise, which resolves once the exit has played and the popup is hidden again
+        // (settled() alone could resolve before the exit has started).
+        return on ? DS.motion.settled(popup) : DS.overlay.close(popup);
       }
     });
   }());
@@ -1950,7 +1962,8 @@
           input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
           popup = stage.querySelector('.ds-search__popup');
         } else if (popup) {
-          DS.overlay.close(popup);
+          // The overlay's own promise: it resolves once the exit has played and the list is hidden again.
+          return DS.overlay.close(popup);
         }
         return popup ? DS.motion.settled(popup) : Promise.resolve();
       },
@@ -2519,7 +2532,8 @@
       toggle: function (stage, on) {
         var menu = stage.querySelector('#sg-lab-menu-parent');
         var sub = stage.querySelector('#sg-lab-menu-sub');
-        if (!on) return DS.menu.close(sub);
+        // Off: the parent closes and takes the submenu along, so the stage is back where it started.
+        if (!on) return DS.menu.close(menu).then(function () { return DS.motion.settled(sub); });
         // The parent opens (if it is not open) and the submenu at once, so the
         // submenu's own entrance is what a reversal turns back.
         if (menu.getAttribute('data-state') !== 'open') DS.menu.open(menu, { opener: stage.querySelector('[data-lab-open]') });

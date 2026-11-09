@@ -74,6 +74,39 @@ test('a jump scrolls its section to the top, marks its link at once, moves the f
   expect(await page.evaluate(() => document.activeElement.tagName)).toBe('H3');
 });
 
+test('a jump past other sections keeps its own mark the whole way: the sections it glides past never take it', async ({ page }) => {
+  await open(page);
+  // A short view, so the last section lies more than a view away and the glide passes the others.
+  await page.locator('[data-demo="column-box"]').evaluate((el) => { el.style.blockSize = '200px'; });
+  await settle(page);
+  const nav = column(page);
+  const links = nav.locator('.ds-toc__link');
+  const last = links.last();
+  await page.evaluate(() => {
+    window.__changes = [];
+    document.addEventListener('ds:change', (event) => { if (event.target.matches('.ds-toc')) window.__changes.push(event.detail.id); });
+  });
+  // The mark on every frame of the glide, from the click until the scroll has rested.
+  await page.evaluate(() => {
+    window.__marks = [];
+    const nav = document.querySelector('.ds-toc');
+    const sample = () => {
+      const now = nav.querySelector('.ds-toc__link[aria-current="location"]')?.textContent.trim() ?? '';
+      if (window.__marks[window.__marks.length - 1] !== now) window.__marks.push(now);
+      window.__sampling = requestAnimationFrame(sample);
+    };
+    window.__sampling = requestAnimationFrame(sample);
+  });
+  const name = (await last.textContent()).trim();
+  await last.click();
+  await expect(last).toHaveAttribute('aria-current', 'location');
+  await settle(page);
+  await page.waitForTimeout(200);
+  const marks = await page.evaluate(() => { cancelAnimationFrame(window.__sampling); return window.__marks.slice(1); });
+  expect(marks, 'the marks after the click').toEqual([name]);
+  expect(await page.evaluate(() => window.__changes.length), 'one ds:change').toBe(1);
+});
+
 test('the indicator lies on the current link: a bar on the column\'s line, under the link in a bar; it glides with the mark', async ({ page }) => {
   await open(page);
   const nav = column(page);

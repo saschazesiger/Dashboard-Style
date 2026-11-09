@@ -1,0 +1,5 @@
+[
+  "transition height - 250 0 1 --ds-ease-out",
+  "transition opacity - 250 0 1 --ds-ease-in-out",
+  "transition rotate - 250 0 1 --ds-ease-spatial"
+]

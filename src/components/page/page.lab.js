@@ -48,7 +48,16 @@ SG_LAB.add({
   state: function (stage) { return stage.dsPage.get(); },
   toggle: function (stage, on, sg) {
     var box = stage.querySelector('[data-lab="page-head"]');
-    box.scrollTo({ top: on ? 260 : 0, behavior: 'smooth' });
-    return sg.frames(30);
+    var target = Math.min(on ? 260 : 0, box.scrollHeight - box.clientHeight);
+    box.scrollTo({ top: target, behavior: 'smooth' });
+    // A smooth scroll takes as long as the engine likes: wait until it has arrived (at most two seconds), then two frames for data-scrolled.
+    var left = 120;
+    return new Promise(function (resolve) {
+      (function check() {
+        left -= 1;
+        if (Math.abs(box.scrollTop - target) < 1 || !left) resolve(sg.frames(2));
+        else requestAnimationFrame(check);
+      }());
+    });
   },
 });

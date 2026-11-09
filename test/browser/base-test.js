@@ -4,7 +4,8 @@
  * engine on the browser floor, Safari 17.5, Chrome/Edge 123, Firefox 130,
  * so the fallback path of every progressive feature runs):
  *
- * - `dist/ds.css` is served without its progressive refinements: every
+ * - `dist/ds.css`, `dist/ds.min.css` and the project bundles (`ds/ds.<entry>.css`) are
+ *   served without their progressive refinements: every
  *   `@supports (...)` block whose condition names a progressive feature
  *   (`PROGRESSIVE` below: anchor positioning, View Transitions,
  *   scroll-driven animations, `interpolate-size`, `sibling-index()`,
@@ -148,7 +149,9 @@ export const test = base.extend({
 
   page: async ({ page, dsFallback }, use) => {
     if (dsFallback) {
-      await page.route('**/dist/ds.css', async (route) => {
+      // ds.css, ds.min.css (the styleguide and the Motion Lab) and the project bundles
+      // (ds/ds.bundle.css of the tour and the reference app, ds/ds.<entry>.css of the page patterns).
+      await page.route(/(\/dist\/ds(\.min)?|\/ds\/ds\.[\w-]+)\.css(\?.*)?$/, async (route) => {
         const response = await route.fetch();
         const css = stripProgressive(await response.text());
         const left = css.replace(/\/\*[\s\S]*?\*\//g, '');

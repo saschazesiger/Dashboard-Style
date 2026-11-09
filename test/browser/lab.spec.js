@@ -77,6 +77,15 @@ async function open(page, path = LAB, { all = true } = {}) {
   // come near and lets far cards skip rendering; work.spec.js covers that path). The speed tests read only the
   // tokens and a few labels: they keep the lazy path.
   if (all) await page.evaluate(() => window.SG_LAB_SETUP_ALL?.());
+  // Room below the last card, so every card scrolls to the top of the view: a card near the end would otherwise sit
+  // where the page's height puts it, which changes with the other demos' states (a stage shot then gains or loses a
+  // pixel row).
+  await page.evaluate(() => {
+    const spacer = document.createElement('div');
+    spacer.setAttribute('aria-hidden', 'true');
+    spacer.style.height = '100vh';
+    document.getElementById('main').append(spacer);
+  });
   await page.mouse.move(1, 1);
   // A stored slow speed stretches the first-render stagger too.
   await settle(page, { timeout: 20000 });
@@ -538,12 +547,13 @@ function replayTimeline(page, id) {
     const lines = new Set();
     for (const root of roots) {
       for (const animation of root.getAnimations({ subtree: true })) {
-        if (typeof ScrollTimeline === 'function' && animation.timeline instanceof ScrollTimeline) continue;
+        // By constructor name: a frame's animations come from another realm, where instanceof fails.
+        if (/^(Scroll|View)Timeline$/.test(animation.timeline?.constructor?.name ?? '')) continue;
         const effect = animation.effect;
         const timing = effect.getTiming();
         const computed = effect.getComputedTiming();
-        const type = typeof CSSAnimation !== 'undefined' && animation instanceof CSSAnimation ? 'animation'
-          : typeof CSSTransition !== 'undefined' && animation instanceof CSSTransition ? 'transition' : 'script';
+        const kind = animation.constructor?.name;
+        const type = kind === 'CSSAnimation' ? 'animation' : kind === 'CSSTransition' ? 'transition' : 'script';
         const label = type === 'animation' ? animation.animationName : type === 'transition' ? animation.transitionProperty : animation.id || '(script)';
         const easing = type === 'animation' ? effect.getKeyframes()[0]?.easing || 'linear' : timing.easing;
         lines.add([type, label, effect.pseudoElement || '-', Math.round(Number(computed.duration)), Math.round(timing.delay || 0),
@@ -630,17 +640,22 @@ function strays(page, id) {
  * a demo hides in one state. An interrupted entrance must never leave one
  * behind.
  */
-function hiddenIn(page, id) {
-  return page.evaluate((demoId) => {
+function hiddenIn(page, id, { remember = false } = {}) {
+  return page.evaluate(({ demoId, keep }) => {
     const card = document.querySelector(`[data-lab-demo="${demoId}"]`);
     const stage = card.querySelector('.sg-lab-stage');
     window.SG_LAB_SETUP?.(demoId);
     const entry = window.SG_LAB.find((each) => each.id === demoId);
     const subject = entry.subject ? entry.subject(stage) : null;
     const nodes = [stage, ...stage.querySelectorAll('*'), ...(subject && !stage.contains(subject) ? [subject, ...subject.querySelectorAll('*')] : [])];
-    return nodes.filter((el) => el.hidden && !el.closest('[data-lab-keep]'))
+    // remember: the nodes there now; a later call judges only those (a popup a demo makes on demand is hidden once
+    // closed, as it should be).
+    window.__labKnown ??= {};
+    if (keep) window.__labKnown[demoId] = new WeakSet(nodes);
+    const known = keep ? null : window.__labKnown[demoId];
+    return nodes.filter((el) => el.hidden && !el.closest('[data-lab-keep]') && (!known || known.has(el)))
       .map((el) => `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ''}${[...el.classList].map((name) => `.${name}`).join('')}`).sort();
-  }, id);
+  }, { demoId: id, keep: remember });
 }
 
 /** Where a reversible demo is (its registry's state()), or null without one. */
@@ -689,7 +704,7 @@ test.describe('demos', () => {
           }
           await bringUp(page, demo.id);
           const before = await stateOf(page, demo.id);
-          const hidden = await hiddenIn(page, demo.id);
+          const hidden = await hiddenIn(page, demo.id, { remember: true });
           for (const [round, end] of [['far', before === null ? null : !before], ['back', before]]) {
             await card.locator('[data-lab="rapid"]').evaluate((button) => button.click());
             await expect(card, `${demo.id} rapid (${round})`).toHaveAttribute('data-lab-state', 'settled', { timeout: 20000 });

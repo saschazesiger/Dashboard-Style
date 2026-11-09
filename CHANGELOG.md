@@ -40,6 +40,8 @@ latency), then fixed where the system or its pages did more than they need to.
   until it holds still (a person who scrolls takes over), tested in `styleguide-regressions.spec.js`. A page
   pattern's preview opens at the width nearest the screen (a phone previews a phone, not a desktop scaled to a
   third).
+- **Jump links** (`DS.toc`): a jump to a section more than a view away no longer hands the mark to every section the
+  glide passes (the bar slid back and forth on the way); the jump's link keeps it until the scroll has rested.
 - **Accessibility sweep** (`test/browser/a11y-sweep.spec.js`): every demo's interactive elements are named, ARIA
   references resolve, ids are unique, images have text and roles are valid. It found a blank line of `DS.logview`
   without a name (now "Blank line", the string `logBlank`) and broken references in the result and wizard demos.

@@ -58081,6 +58081,8 @@
       let lineObserver = null;
       let endObserver = null;
       let frame = 0;
+      /** The frame watch of a jump's scroll: while it runs, the jump's section stays marked. */
+      let jump = 0;
 
       const read = () => {
         entries = [...nav.querySelectorAll('.ds-toc__link')]
@@ -58131,6 +58133,8 @@
       const update = () => {
         frame = 0;
         if (!entries.length) return;
+        // A jump on its way: the sections it passes never take the mark from its own.
+        if (jump && pinned >= 0) return;
         const box = viewBox();
         const tops = entries.map(({ target }) => target.getBoundingClientRect().top - box.top);
         if (pinned >= 0 && !(tops[pinned] < box.height && tops[pinned] > -box.height)) pinned = -1;
@@ -58159,6 +58163,32 @@
 
       const resize = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(() => { observe(); later(); }) : null;
 
+      /**
+       * Watches a jump's scroll frame by frame until it has held still for three
+       * frames (every engine, with or without the scrollend event), then reads
+       * where the sections lie: a glide that passes other sections keeps the
+       * jump's mark, and a section that cannot reach the line gives it up then.
+       */
+      const watchJump = () => {
+        const box = scroller ?? doc.scrollingElement ?? doc.documentElement;
+        if (typeof view.requestAnimationFrame !== 'function') return;
+        if (jump) view.cancelAnimationFrame(jump);
+        let last = Number.NaN;
+        let still = 0;
+        const step = () => {
+          const now = box.scrollTop;
+          still = now === last ? still + 1 : 0;
+          last = now;
+          if (still >= 3) {
+            jump = 0;
+            later();
+            return;
+          }
+          jump = view.requestAnimationFrame(step);
+        };
+        jump = view.requestAnimationFrame(step);
+      };
+
       /** Scrolls a section to the top of the view and moves the focus there. */
       const go = (index, how = {}) => {
         const entry = entries[index];
@@ -58170,6 +58200,7 @@
         pinned = index;
         mark(index, 'link');
         target.scrollIntoView({ behavior, block: 'start' });
+        watchJump();
         if (how.focus !== false) {
           if (target.tabIndex < 0 && !target.hasAttribute('tabindex')) {
             take(target, 'tabindex');
@@ -58250,6 +58281,7 @@
           resize?.disconnect();
           changes?.disconnect();
           if (frame) view.cancelAnimationFrame?.(frame);
+          if (jump) view.cancelAnimationFrame?.(jump);
           for (const [element, name] of owned) disown(element, 'attrs', name);
           indicator?.destroy();
         },

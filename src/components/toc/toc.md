@@ -62,7 +62,8 @@ controller):
 - **Jumps.** A click or Enter on a link scrolls its section to the top (smoothly within three heights of the scroller,
   at once beyond that), marks its link at once, and moves the focus to the section
   (with `tabindex="-1"` when it takes no focus of its own; the focus never scrolls), so Tab goes on inside it. The link
-  stays marked while its section shows, even a short one near the end. The hash is written with
+  keeps the mark while the scroll glides past other sections (until it has rested for three frames), then while its
+  section shows, even a short one near the end. The hash is written with
   `history.pushState` (no `hashchange`), so the address can be shared; `data-ds-toc-hash="off"` leaves the address
   alone (a router that owns the hash). A click with a modifier opens the link as the browser does.
 - `ds:change` on the nav: `{ id, link, target, reason }` (`reason`: `'scroll'` or `'link'`).

@@ -23800,6 +23800,7 @@
     let lineObserver = null;
     let endObserver = null;
     let frame = 0;
+    let jump = 0;
     const read = () => {
     entries = [...nav.querySelectorAll('.ds-toc__link')]
     .map((link) => ({ link, target: targetOf(link) }))
@@ -23841,6 +23842,7 @@
     const update = () => {
     frame = 0;
     if (!entries.length) return;
+    if (jump && pinned >= 0) return;
     const box = viewBox();
     const tops = entries.map(({ target }) => target.getBoundingClientRect().top - box.top);
     if (pinned >= 0 && !(tops[pinned] < box.height && tops[pinned] > -box.height)) pinned = -1;
@@ -23864,6 +23866,25 @@
     endObserver.observe(entries[entries.length - 1].target);
     };
     const resize = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(() => { observe(); later(); }) : null;
+    const watchJump = () => {
+    const box = scroller ?? doc.scrollingElement ?? doc.documentElement;
+    if (typeof view.requestAnimationFrame !== 'function') return;
+    if (jump) view.cancelAnimationFrame(jump);
+    let last = Number.NaN;
+    let still = 0;
+    const step = () => {
+    const now = box.scrollTop;
+    still = now === last ? still + 1 : 0;
+    last = now;
+    if (still >= 3) {
+    jump = 0;
+    later();
+    return;
+    }
+    jump = view.requestAnimationFrame(step);
+    };
+    jump = view.requestAnimationFrame(step);
+    };
     const go = (index, how = {}) => {
     const entry = entries[index];
     if (!entry) return false;
@@ -23874,6 +23895,7 @@
     pinned = index;
     mark(index, 'link');
     target.scrollIntoView({ behavior, block: 'start' });
+    watchJump();
     if (how.focus !== false) {
     if (target.tabIndex < 0 && !target.hasAttribute('tabindex')) {
     take(target, 'tabindex');
@@ -23943,6 +23965,7 @@
     resize?.disconnect();
     changes?.disconnect();
     if (frame) view.cancelAnimationFrame?.(frame);
+    if (jump) view.cancelAnimationFrame?.(jump);
     for (const [element, name] of owned) disown(element, 'attrs', name);
     indicator?.destroy();
     },
