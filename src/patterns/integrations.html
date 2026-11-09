@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en-GB" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Integrations · Product</title>
+<meta name="pt-title" content="Integrations">
+<meta name="pt-need" content="The services the workspace connects to, in a grid: what each does, whether it is connected, connect and disconnect">
+<meta name="pt-group" content="App pages">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.integrations.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<div class="ds-app ds-app--drawer" data-ds-shell="patterns">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" data-icon="menu"></button>
+    <a class="ds-brand" href="dashboard.html"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></a>
+    <div class="ds-topbar__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="#help" aria-label="Help" data-tip="Help" data-icon="helpCircle"></a>
+    </div>
+    <div class="ds-account">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+      <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+        <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+        <div class="ds-menu__divider" role="separator"></div>
+        <a class="ds-menu__item" role="menuitem" href="profile.html" data-icon="user" data-icon-place="start"><span class="ds-menu__label">Profile</span></a>
+        <a class="ds-menu__item" role="menuitem" href="sign-in.html" data-icon="logout" data-icon-place="start"><span class="ds-menu__label">Sign out</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></div>
+    <div class="ds-drawer__list">
+      <div class="ds-drawer__group">
+        <a class="ds-drawer__item" href="dashboard.html" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="list.html" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="audit-log.html" data-icon="history" data-icon-place="start"><span class="ds-drawer__label">Audit log</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Administration</p>
+        <a class="ds-drawer__item" href="settings.html" data-icon="settings" data-icon-place="start"><span class="ds-drawer__label">Settings</span></a>
+        <a class="ds-drawer__item" href="team.html" data-icon="users" data-icon-place="start"><span class="ds-drawer__label">Team</span></a>
+        <a class="ds-drawer__item" href="permissions.html" data-icon="shield" data-icon-place="start"><span class="ds-drawer__label">Permissions</span></a>
+        <a class="ds-drawer__item" href="api-keys.html" data-icon="key" data-icon-place="start"><span class="ds-drawer__label">API keys</span></a>
+        <a class="ds-drawer__item" href="integrations.html" aria-current="page" data-icon="puzzle" data-icon-place="start"><span class="ds-drawer__label">Integrations</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content">
+        <div class="ds-page">
+          <header class="ds-page-head">
+            <h1 class="ds-page-head__title" tabindex="-1">Integrations</h1>
+            <p class="ds-page-head__lead">Connect the services your team already uses. Each one sees only what it needs.</p>
+          </header>
+
+          <div class="ds-action-bar">
+            <div class="ds-search" data-icon="search" data-icon-place="start"><input class="ds-input" type="search" id="search" aria-label="Search integrations" placeholder="Search integrations"></div>
+            <div class="ds-segmented" role="radiogroup" aria-label="Show" id="show">
+              <button class="ds-segmented__option" type="button" role="radio" aria-checked="true" data-show="all" data-label="All">All</button>
+              <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-show="connected" data-label="Connected">Connected<span class="ds-segmented__count"><span class="ds-sr">, </span><span id="connected-count">4</span></span></button>
+              <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-show="available" data-label="Available">Available</button>
+            </div>
+            <p class="ds-meta" id="count" role="status"></p>
+          </div>
+
+          <div class="ds-grid ds-grid--max-3" id="grid" role="list" aria-label="Integrations"></div>
+          <div class="ds-empty ds-empty--no-results" id="no-match" hidden>
+            <span class="ds-empty__disc" aria-hidden="true" data-icon="search" data-icon-size="24"></span>
+            <p class="ds-empty__title">No integration matches</p>
+            <p class="ds-empty__text">Missing one? The API and webhooks connect almost anything.</p>
+            <button class="ds-btn ds-btn--tonal" type="button" id="clear">Show all</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<dialog class="ds-dialog" id="connect" aria-labelledby="connect-title" aria-describedby="connect-text">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <form class="ds-dialog__box" data-ds-dialog-form>
+    <h2 class="ds-dialog__title" id="connect-title">Connect</h2>
+    <div class="ds-dialog__body">
+      <p class="ds-dialog__text" id="connect-text">You sign in to the service in a new window and allow access. It will be able to:</p>
+      <ul class="ds-dialog__lines" id="connect-scopes"></ul>
+      <p class="ds-meta">Disconnect at any time; nothing it wrote is deleted.</p>
+    </div>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
+      <button class="ds-btn ds-btn--filled" type="submit" autofocus>
+        <span class="ds-btn__faces"><span class="ds-btn__face">Connect</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Connecting</span></span>
+      </button>
+    </div>
+  </form>
+</dialog>
+<div class="ds-toasts" id="toasts"></div>
+
+<script src="ds/ds.integrations.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
+  var toasts = document.getElementById('toasts');
+  // Generic services; a project names its own. state: connected, error (it needs a person) or available. "Connected"
+  // counts both of the first two (4 in the markup): one that needs attention is still connected.
+  var services = [
+    { id: 'chat', name: 'Team chat', glyph: DS.icons.chat, text: 'Post device alerts and new tickets into a channel.', state: 'connected', detail: 'Posts to #it-alerts', scopes: ['Post messages to the channels you choose'] },
+    { id: 'directory', name: 'Directory', glyph: DS.icons.users, text: 'Bring in people, teams and who owns which device.', state: 'connected', detail: 'Synced today, 02:00', scopes: ['Read people and groups', 'Read device assignments'] },
+    { id: 'mail', name: 'Email', glyph: DS.icons.mail, text: 'Turn emails to the help address into tickets.', state: 'error', detail: 'The sign-in expired on 4 Nov', scopes: ['Read the help mailbox', 'Send replies from it'] },
+    { id: 'calendar', name: 'Calendar', glyph: DS.icons.calendarDays, text: 'Book hand-overs and repairs in people\'s calendars.', state: 'available', scopes: ['Create and change events you book'] },
+    { id: 'storage', name: 'Cloud storage', glyph: DS.icons.cloud, text: 'Keep exports and backups in a folder of yours.', state: 'available', scopes: ['Write files into one folder'] },
+    { id: 'monitoring', name: 'Monitoring', glyph: DS.icons.activity, text: 'Open a ticket when a device stops reporting.', state: 'connected', detail: '12 checks', scopes: ['Read check results', 'Receive alerts'] },
+    { id: 'tracker', name: 'Issue tracker', glyph: DS.icons.ticket, text: 'Link tickets to the issues developers work on.', state: 'available', scopes: ['Read and create issues', 'Comment on issues'] },
+    { id: 'webhooks', name: 'Webhooks', glyph: DS.icons.webhook, text: 'Send every change to an address of yours.', state: 'available', scopes: ['Nothing: you choose the events and the address'] },
+    { id: 'shell', name: 'Command line', glyph: DS.icons.terminal, text: 'Script the workspace from a terminal with an API key.', state: 'available', scopes: ['Whatever the API key you give it allows'] },
+  ];
+
+  var esc = function (text) { return String(text).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var STATUS = {
+    connected: function () { return '<span class="ds-status ds-tone-success">' + DS.icons.icon(DS.icons.check, 16) + '<span>Connected</span></span>'; },
+    error: function () { return '<span class="ds-status ds-tone-error">' + DS.icons.icon(DS.icons.alertCircle, 16) + '<span>Needs attention</span></span>'; },
+    available: function () { return ''; },
+  };
+  // A connected service offers only Disconnect here: its own options belong to a page of its own, which a project adds.
+  function actions(s) {
+    var name = esc(s.name);
+    if (s.state === 'available') return '<button class="ds-btn ds-btn--tonal ds-sm" type="button" data-connect="' + s.id + '" aria-haspopup="dialog" aria-label="Connect ' + name + '">Connect</button>';
+    var first = s.state === 'error'
+      ? '<button class="ds-btn ds-btn--tonal ds-sm" type="button" data-connect="' + s.id + '" aria-haspopup="dialog" aria-label="Sign in to ' + name + ' again">Sign in again</button>'
+      : '';
+    return first + '<button class="ds-btn ds-btn--text ds-sm" type="button" data-disconnect="' + s.id + '" aria-label="Disconnect ' + name + '">Disconnect</button>';
+  }
+  function cardHtml(s) {
+    var title = 'int-' + s.id;
+    return '<section class="ds-card" role="listitem" aria-labelledby="' + title + '" data-ds-key="' + s.id + '">' +
+      '<div class="ds-persona">' +
+        '<span class="ds-avatar ds-avatar--square" aria-hidden="true">' + DS.icons.icon(s.glyph, 20) + '</span>' +
+        '<span class="ds-persona__text"><span class="ds-persona__name" id="' + title + '">' + esc(s.name) + '</span>' +
+        '<span class="ds-persona__role">' + (s.state === 'available' ? 'Not connected' : esc(s.detail)) + '</span></span></div>' +
+      (s.state === 'available' ? '' : '<p>' + STATUS[s.state]() + '</p>') +
+      '<p class="ds-muted">' + esc(s.text) + '</p>' +
+      '<div class="ds-cluster ds-gap-2">' + actions(s) + '</div></section>';
+  }
+
+  var grid = document.getElementById('grid');
+  var search = document.getElementById('search');
+  var show = document.getElementById('show');
+  var empty = document.getElementById('no-match');
+  var count = document.getElementById('count');
+  var filter = 'all';
+
+  function render() {
+    var words = search.value.toLowerCase().split(/\s+/).filter(Boolean);
+    var list = services.filter(function (s) {
+      if (filter === 'connected' && s.state === 'available') return false;
+      if (filter === 'available' && s.state !== 'available') return false;
+      var text = (s.name + ' ' + s.text).toLowerCase();
+      return words.every(function (word) { return text.indexOf(word) >= 0; });
+    });
+    DS.motion.flip(grid, function (o) { DS.dom.morphHtml(grid, list.map(cardHtml).join(''), o); }, { items: '.ds-card' });
+    var none = !list.length;
+    if (none && empty.hidden) DS.motion.enter(empty, 'fade');
+    empty.hidden = !none;
+    count.textContent = list.length === services.length ? services.length + ' integrations' : list.length + ' of ' + services.length + ' integrations';
+    document.getElementById('connected-count').textContent = String(services.filter(function (s) { return s.state !== 'available'; }).length);
+  }
+
+  // Show: one choice of three (one tab stop, the arrow keys move it), the pill glides.
+  DS.dom.roving(show);
+  DS.indicator.create(show, { active: '[aria-checked="true"]', className: 'ds-segmented__indicator' });
+  show.addEventListener('click', function (event) {
+    var option = event.target.closest('[data-show]');
+    if (!option) return;
+    show.querySelectorAll('[data-show]').forEach(function (item) { item.setAttribute('aria-checked', String(item === option)); });
+    filter = option.getAttribute('data-show');
+    render();
+  });
+  search.addEventListener('input', render);
+  document.getElementById('clear').addEventListener('click', function () {
+    search.value = '';
+    show.querySelector('[data-show="all"]').click();
+    search.focus();
+  });
+
+  // Connect: what the service may do, then the hand-over to its sign-in (a fake one here); the card shows the result.
+  var dialog = document.getElementById('connect');
+  var current = null;
+  grid.addEventListener('click', function (event) {
+    var connect = event.target.closest('[data-connect]');
+    var disconnect = event.target.closest('[data-disconnect]');
+    if (connect) {
+      current = services.find(function (s) { return s.id === connect.getAttribute('data-connect'); });
+      document.getElementById('connect-title').textContent = (current.state === 'error' ? 'Reconnect ' : 'Connect ') + current.name;
+      DS.dom.morphHtml(document.getElementById('connect-scopes'), current.scopes.map(function (scope) { return '<li>' + esc(scope) + '</li>'; }).join(''));
+      DS.overlay.open(dialog, { opener: connect });
+    } else if (disconnect) {
+      var service = services.find(function (s) { return s.id === disconnect.getAttribute('data-disconnect'); });
+      DS.overlay.confirm({
+        title: 'Disconnect ' + service.name + '?', text: 'It stops at once. What it brought in stays; connect it again at any time.',
+        confirmLabel: 'Disconnect', opener: disconnect, onConfirm: function () { return wait(600); },
+      }).then(function (ok) {
+        if (!ok) return;
+        service.state = 'available';
+        render();
+        var again = grid.querySelector('[data-connect="' + service.id + '"]');
+        if (again) again.focus();
+        DS.overlay.toast(toasts, service.name + ' disconnected.');
+      });
+    }
+  });
+  DS.dialog.form(dialog, {
+    onSubmit: function () {
+      var service = current;
+      return wait(1000).then(function () {
+        service.state = 'connected';
+        service.detail = 'Connected just now';
+        render();
+        DS.overlay.toast(toasts, service.name + ' connected.', { kind: 'success' });
+      });
+    },
+    errorText: 'The service did not answer. Try again.',
+  });
+
+  render();
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

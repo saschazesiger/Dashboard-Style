@@ -3,8 +3,9 @@
 How the components combine into the pages and flows of an admin dashboard. Each entry names the components, the
 motion, where focus goes and what is announced; the [reference app](../example/README.md) builds most of them (its
 README maps each pattern to its code). Markup: [components.md](components.md); motion: [motion.md](motion.md).
-Whole pages to copy are the [page patterns](#page-patterns) at the end: sign-in, errors, public forms, onboarding and
-a full-screen wizard.
+Whole pages to copy are the [page patterns](#page-patterns) at the end: sign-in, errors, public forms, onboarding, a
+full-screen wizard, and the pages of the app itself (the overview, a list, a record, settings, the profile, the team,
+permissions, API keys, integrations and the audit log).
 
 Two rules hold everywhere:
 
@@ -60,8 +61,10 @@ How they are made, so a page stays copy-ready:
   prefix `pt-`, read tokens and hooks only and never restyle a `.ds-*` element (a project writes the same with its
   own prefix): `.pt-auth` (the column of a sign-in page), `.pt-brand` (a stand-in logo and the product's name),
   `.pt-codes` (a list of codes without markers), `.pt-foot` (the colour of the links under a card, on a
-  `.ds-cluster--center`) and `.pt-bar` (the padding and the title of a full-screen task's head, on a
-  `.ds-cluster--nowrap`); the layout itself comes from the layout components. `tools/check-project.mjs` passes them like a project (`test/patterns.test.js`).
+  `.ds-cluster--center`), `.pt-bar` (the padding and the title of a full-screen task's head, on a
+  `.ds-cluster--nowrap`) and `.pt-col-min` (the header cell of a table column that must not get narrower, so a table
+  on a phone scrolls instead of squeezing a select or a row's name); the layout itself comes from the layout
+  components. `tools/check-project.mjs` passes them like a project (`test/patterns.test.js`).
 - **How they load the system.** A page links the fonts, the bundle of its family, the theme and `pt.css`, and runs the
   bundle's script and its own wiring at the end of the body:
 
@@ -91,8 +94,8 @@ How they are made, so a page stays copy-ready:
   leaves it out, or keeps it only where a page without its icons for a frame matters more than an earlier paint.
 
   The bundles are written by [`tools/bundle.mjs`](bundle.md) from `src/patterns/ds.config.json` into
-  `src/patterns/ds/`: one entry per family of pages (`auth`, `status`, `form`, `onboarding`, `wizard`), so a page
-  loads what its family uses (a sign-in page about 33 KB of CSS and 110 KB of script, gzip) instead of the whole
+  `src/patterns/ds/`: one entry per family of pages (`auth`, `status`, `form`, `onboarding`, `wizard`; each page of the
+  app its own, named like the page: `dashboard`, `list`, `record` ...), so a page loads what its family uses (a sign-in page about 33 KB of CSS and 110 KB of script, gzip) instead of the whole
   `ds.min.css` and `ds.min.js`. `npm run build` writes them from the `dist/` it just built; they are generated files
   (`node scripts/build.mjs --generated` lists them) and `--check` compares them, so a change to a component or the
   version reaches them by itself. Each `ds.<entry>.json` says which components and modules a family needs and why.
@@ -282,3 +285,157 @@ the terms.
   the request, the result with the focus on its title, and the way out: Close leads back, after a
   [confirmation](components.md#a-question-with-yes-or-no) (`DS.overlay.confirm()`) when something was typed.
 - **Demo rule:** the name `LAPTOP-0042` is taken.
+
+### The pages of the app
+
+The ten pages below share one [app frame](components.md#app-frame) (`data-ds-shell`): the top bar with the dark-theme
+button, Help and the account menu, the drawer with Overview, Devices and the audit log, and an Administration group
+(on a phone the modal drawer). Each page is complete on its own, frame included, so one can be copied without the
+others; their links lead to each other. They are dense pages on purpose and work from a 360px phone to a wide screen:
+tables keep their first columns and scroll sideways in their card, forms fall to one column, actions under the title.
+
+### Dashboard home
+
+[dashboard.html](../src/patterns/dashboard.html): the start page, key figures over everything else.
+
+- **Components:** a [page head](components.md#page) with a range switch (a [segmented](components.md#segmented-options-as-buttons)
+  radio group: 7, 30 or 90 days), a warning [alert](components.md#alert) whose action opens the list's saved view
+  through its address (`list.html?d.view=offline`), [tiles](components.md#tiles) (a sparkline of `.ds-columns--mini`,
+  a delta, a target meter), [dashboard panels](components.md#dashboard-panel)
+  with [charts](components.md#charts) (columns, a stacked area, a donut) and their menus, a flush panel with an
+  interactive [table](components.md#table) of what needs attention, an activity [timeline](components.md#timeline).
+- **The project wires:** the charts through `DS.chart.create()` once an `IntersectionObserver` sees them near the
+  screen, one per task (so the first paint never waits for them and a phone draws only what it scrolls to); the range
+  (`DS.dom.roving()`, `DS.indicator`), which morphs both charts with `set()` after the switch has painted, each in a
+  task of its own (90 days as 13 weeks: summed columns, averaged points, so a slow phone never morphs 270 points);
+  "Refresh" in a panel's menu, `DS.motion.refresh()` on its body (the old chart dims, then morphs) and a snackbar.
+- **Demo rule:** the figures are a repeatable wave over the days up to 6 November 2026.
+
+### List with filters and saved views
+
+[list.html](../src/patterns/list.html): 132 devices to search, filter, sort, page and act on.
+
+- **Components:** [saved views](components.md#saved-views) (`data-ds-views`, kept in the address with the prefix
+  `d.`), a [filter bar](components.md#filter-bar) that folds into a side sheet when narrow, a
+  [table](components.md#table) with sort buttons, a checkbox per row and the row link, the
+  [bulk selection bar](components.md#bulk-selection-bar) in the toolbar's slot (`DS.motion.crossfade`),
+  [pagination](components.md#pagination), the [empty state](components.md#empty-state) for no results, a
+  [menu button](components.md#menu-button) to export.
+- **The project wires:** one `render()` for every change: the rows of the page through `DS.dom.morphHtml` in
+  `DS.motion.flip()` (keyed, so a sort glides), the range, the blocked page buttons, the arrow at the sorted column
+  (one node that moves, so a reversed sort turns it), the header box (mixed for some), `bar.count()`, and
+  `views.set({ state })` so the view says "Edited"; a picked view applies its filters and sort, also from an address
+  another page links to (`list.html?d.view=offline`, `?d.status=offline`). The selection outlives searches, filters
+  and pages, and the bar names what is out of sight ("3 selected, 2 not shown"). "Retire" removes the selected rows at
+  once with Undo, the focus on the header box.
+- **Demo rule:** the devices are a seeded random set; Refresh waits a moment and renders the same rows.
+
+### Record detail
+
+[record.html](../src/patterns/record.html): one device, its facts, its sections and its history.
+
+- **Components:** the [object page](components.md#object-page) (`data-ds-object`): a sticky head that condenses
+  (`data-ds-page-head`, on the surface it lies on: `--ds-page-head-bg`) with the back link, a status, the actions and the
+  key facts, the section anchors (`.ds-toc--bar`), sections that turn into their forms one by one or all at once,
+  values another system sets with their [lock](components.md#key-value-rows-that-open-bars-facts-in-rows-and-the-lock),
+  copy buttons on the facts (`data-ds-facts-copy`), meters in rows, a [persona](components.md#persona), the
+  history as a [timeline](components.md#timeline), and Delete behind [type-to-confirm](components.md#type-to-confirm).
+- **The project wires:** `ds:save` cancelled to check what the markup cannot say (required fields and a free name, as
+  errors at their fields), the request with the busy face, the new values written into the view and the head (every
+  `data-field` output, the h1 and the lead among them), a new name also into the tab's title, the history's label and
+  the delete dialog (its title and `data-ds-typeconfirm`, so the name to type follows), then `done(section)`; the delete request inside `ds:confirm`'s `wait()`, then back to the list. An action folded into the
+  head's More menu opens its dialog against the More button.
+- **Demo rule:** the name `LAPTOP-0043` is taken.
+
+### Settings
+
+[settings.html](../src/patterns/settings.html): the settings of the workspace, saved together.
+
+- **Components:** a [split](components.md#layout) with the [jump links](components.md#jump-links) as a sticky column
+  beside the sections (above them on a phone), a card per topic with a form grid, an input group with a prefix,
+  a [switch list](components.md#switch) with a locked switch (`.ds-switch--locked`, set by another system, its reason in
+  words), radio cards, and the [unsaved-changes guard](components.md#unsaved-changes-guard) (`data-ds-unsaved`) with
+  its [save bar](components.md#save-bar): changed fields carry their dot, the bar counts them, Ctrl+S saves, leaving
+  asks first.
+- **The project wires:** the checks of the save (`ds:save`: the errors at their fields, the focus on the first) and the
+  request through `waitUntil()`; a refused save keeps the changes and says why at the field.
+- **Demo rule:** the address `admin` is reserved.
+
+### Profile and account
+
+[profile.html](../src/patterns/profile.html): a person's own page.
+
+- **Components:** a form card with the [avatar](components.md#avatar) and its picture, fields with a "Verified"
+  [tag](components.md#tags) in the input group and a Save button with its busy and done faces; a
+  [password](components.md#password) form (reveal, Caps Lock, the strength meter, a hidden `username` for password
+  managers); two-step verification as a status and [key-value rows](components.md#lists); the sessions as a
+  [row list](components.md#row-list); deleting the account behind [type-to-confirm](components.md#type-to-confirm)
+  with the address.
+- **The project wires:** the checks at the fields, the requests (`DS.motion.busy()`), the picture from a file
+  (`URL.createObjectURL`, at most 2 MB), a session that leaves through `DS.motion.flip()` (its neighbour takes the
+  focus), "Sign out everywhere else" that turns `aria-disabled` once only this device is left, however the others
+  went, with its reason as a tip and as its description (`aria-describedby` on a `.ds-sr` text); the last Sign out
+  gives it the focus (`refocus`).
+- **Demo rule:** the current password "wrong password" is wrong.
+
+### Team members
+
+[team.html](../src/patterns/team.html): the people of the workspace and the invitations.
+
+- **Components:** a [table](components.md#table) of [personas](components.md#persona) (avatars coloured by name with
+  `DS.avatar.hue()`), a role select per row (the owner's role is text with a lock), an invitation said in words under
+  its address ("Invited 5 Nov", in the column a phone keeps), row actions on demand (`.ds-hover-actions`), a search with the [empty state](components.md#empty-state); a
+  [form dialog](components.md#a-form-dialog) with a [tag input](components.md#tag-input) of addresses and a counted note;
+  the roles explained in a filled card.
+- **The project wires:** the search (re-render in `flip()`, the count announced once typing pauses), a new role that
+  applies at once with Undo, removing a person after a destructive [confirm](components.md#a-question-with-yes-or-no)
+  (an invitation goes at once, with Undo), and the invite: at least one address (`ds:submit` cancelled with the error at
+  the field), then `DS.dialog.form()` sends it.
+
+### Permissions matrix
+
+[permissions.html](../src/patterns/permissions.html): rights by roles, changed together.
+
+- **Components:** a bordered [table](components.md#table) whose first column is pinned (`.ds-table--pin-first`), rights in
+  groups (`th scope="colgroup"`), a check per role (in a `.ds-check` label with the role and the right in `.ds-sr`, so a
+  row never takes the selected look), locked cells as a check or a dash with a [lock](components.md#key-value-rows-that-open-bars-facts-in-rows-and-the-lock)
+  that names the reason, the [unsaved-changes guard](components.md#unsaved-changes-guard) without field marks
+  (`data-ds-unsaved-marks="off"`) and its save bar.
+- **The project wires:** the matrix from the server's data (rendered before the guard takes its baseline) and the save.
+
+### API keys
+
+[api-keys.html](../src/patterns/api-keys.html): keys for scripts and other systems.
+
+- **Components:** an [alert](components.md#alert) on how to keep a key, a [table](components.md#table) of keys (the
+  prefix only, the scopes as tags), a [form dialog](components.md#a-form-dialog) to create one (a
+  [check list](components.md#form) of scopes, an expiry), a second dialog that shows the key once with its
+  [copy button](components.md#copy-button) and a warning, closed only by Done once "I have stored the key" is checked,
+  and revoking: [type-to-confirm](components.md#type-to-confirm) for a key used in the last 30 days, a plain
+  destructive confirm for one that is not (its text says when the key was last used, or that it never was).
+- **The project wires:** a create without any scope refused in the Access group itself (an error hint linked by
+  `aria-describedby` on the fieldset, the focus on its first box, gone at the next change), the request (the server
+  answers with the whole key, once; the page keeps only its prefix), `data-ds-busy` on the show-once dialog so Escape
+  and the backdrop leave it open, the empty state when the last key goes.
+
+### Integrations
+
+[integrations.html](../src/patterns/integrations.html): the services the workspace connects to.
+
+- **Components:** a search and a segmented filter with a count (Connected counts the services that need attention
+  too: they are still connected), a `.ds-grid` of [cards](components.md#card) (a square
+  [avatar](components.md#avatar) with the glyph, the state as a [status](components.md#status-chip) in words: connected,
+  needs attention), Connect as a tonal button, a [form dialog](components.md#a-form-dialog) that lists what the
+  service may do (`.ds-dialog__lines`), Disconnect after a [confirm](components.md#a-question-with-yes-or-no).
+- **The project wires:** the hand-over to the service's sign-in (here a wait), the card that re-renders in its new state
+  through `flip()`, the focus back on Connect after a disconnect.
+
+### Audit log
+
+[audit-log.html](../src/patterns/audit-log.html): who did what in the workspace, and when.
+
+- **Components:** the [audit log](components.md#audit-log) in a card: its filter bar (search, who, a first day, kinds
+  as filter [chips](components.md#chips), Clear as the form's reset), the count, the timeline by day with the old and
+  new values of each change, outcomes in words, its empty state; Export with its busy face.
+- **The project wires:** the records from the API through `DS.auditlog.create()` (a fixed `now` and locale here), and
+  the export, which the server sends by email.

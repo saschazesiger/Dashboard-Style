@@ -6,7 +6,17 @@
     "status": ["error-*.html", "maintenance.html", "offline.html"],
     "form": ["form.html", "form-sent.html"],
     "onboarding": ["onboarding.html"],
-    "wizard": ["wizard.html"]
+    "wizard": ["wizard.html"],
+    "dashboard": ["dashboard.html"],
+    "list": ["list.html"],
+    "record": ["record.html"],
+    "settings": ["settings.html"],
+    "profile": ["profile.html"],
+    "team": ["team.html"],
+    "api-keys": ["api-keys.html"],
+    "integrations": ["integrations.html"],
+    "permissions": ["permissions.html"],
+    "audit-log": ["audit-log.html"]
   },
   "out": "ds"
 }

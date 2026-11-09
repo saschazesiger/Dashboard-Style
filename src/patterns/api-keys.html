@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en-GB" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>API keys · Product</title>
+<meta name="pt-title" content="API keys">
+<meta name="pt-need" content="Keys for scripts and other systems: create one with its scopes, show it once to copy, revoke it">
+<meta name="pt-group" content="App pages">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.api-keys.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<div class="ds-app ds-app--drawer" data-ds-shell="patterns">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" data-icon="menu"></button>
+    <a class="ds-brand" href="dashboard.html"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></a>
+    <div class="ds-topbar__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="#help" aria-label="Help" data-tip="Help" data-icon="helpCircle"></a>
+    </div>
+    <div class="ds-account">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+      <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+        <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+        <div class="ds-menu__divider" role="separator"></div>
+        <a class="ds-menu__item" role="menuitem" href="profile.html" data-icon="user" data-icon-place="start"><span class="ds-menu__label">Profile</span></a>
+        <a class="ds-menu__item" role="menuitem" href="sign-in.html" data-icon="logout" data-icon-place="start"><span class="ds-menu__label">Sign out</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></div>
+    <div class="ds-drawer__list">
+      <div class="ds-drawer__group">
+        <a class="ds-drawer__item" href="dashboard.html" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="list.html" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="audit-log.html" data-icon="history" data-icon-place="start"><span class="ds-drawer__label">Audit log</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Administration</p>
+        <a class="ds-drawer__item" href="settings.html" data-icon="settings" data-icon-place="start"><span class="ds-drawer__label">Settings</span></a>
+        <a class="ds-drawer__item" href="team.html" data-icon="users" data-icon-place="start"><span class="ds-drawer__label">Team</span></a>
+        <a class="ds-drawer__item" href="permissions.html" data-icon="shield" data-icon-place="start"><span class="ds-drawer__label">Permissions</span></a>
+        <a class="ds-drawer__item" href="api-keys.html" aria-current="page" data-icon="key" data-icon-place="start"><span class="ds-drawer__label">API keys</span></a>
+        <a class="ds-drawer__item" href="integrations.html" data-icon="puzzle" data-icon-place="start"><span class="ds-drawer__label">Integrations</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content">
+        <div class="ds-page">
+          <header class="ds-page-head">
+            <div class="ds-page-head__row">
+              <div class="ds-page-head__text">
+                <h1 class="ds-page-head__title" tabindex="-1">API keys</h1>
+                <p class="ds-page-head__lead">Keys let scripts and other systems use the API in the name of this workspace.</p>
+              </div>
+              <div class="ds-page-head__actions">
+                <button class="ds-btn ds-btn--filled" type="button" id="create-button" aria-haspopup="dialog" data-ds-open="#create" data-icon="plus" data-icon-size="18" data-icon-place="start">Create key</button>
+              </div>
+            </div>
+          </header>
+
+          <div class="ds-alert" role="status" data-icon="info" data-icon-place="start">
+            <span class="ds-alert__text">A key works like a password: keep it in a secret store, never in code you share. Unused keys are revoked after a year.</span>
+          </div>
+
+          <section class="ds-card" aria-labelledby="keys-title">
+            <div class="ds-card__row">
+              <h2 class="ds-card__title" id="keys-title">Keys</h2>
+              <span class="ds-meta" id="keys-count"></span>
+            </div>
+            <div class="ds-table-wrap">
+              <table class="ds-table">
+                <caption class="ds-sr">API keys</caption>
+                <thead><tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Key</th>
+                  <th scope="col" class="ds-col--secondary">Access</th>
+                  <th scope="col" class="ds-col--secondary">Created</th>
+                  <th scope="col" class="ds-num">Last used</th>
+                  <th scope="col"><span class="ds-sr">Actions</span></th>
+                </tr></thead>
+                <tbody id="keys"></tbody>
+              </table>
+            </div>
+            <div class="ds-empty ds-empty--no-data" id="no-keys" hidden>
+              <span class="ds-empty__disc" aria-hidden="true" data-icon="key" data-icon-size="24"></span>
+              <p class="ds-empty__title">No keys</p>
+              <p class="ds-empty__text">Create one for each script or system, so you can revoke one without the others.</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<dialog class="ds-dialog ds-dialog--lg" id="create" aria-labelledby="create-title">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <form class="ds-dialog__box" data-ds-dialog-form>
+    <h2 class="ds-dialog__title" id="create-title">Create a key</h2>
+    <div class="ds-dialog__body">
+      <div class="ds-field">
+        <label class="ds-field__label" for="key-name">Name</label>
+        <input class="ds-input" id="key-name" name="name" required maxlength="60" autocomplete="off" autofocus aria-describedby="key-name-hint">
+        <small class="ds-field__hint" id="key-name-hint">What uses it, such as "Nightly inventory export".</small>
+      </div>
+      <fieldset class="ds-field">
+        <legend class="ds-field__label">Access</legend>
+        <div class="ds-check-list">
+          <label class="ds-check"><input type="checkbox" name="scope" value="devices:read" checked><span>Read devices</span></label>
+          <label class="ds-check"><input type="checkbox" name="scope" value="devices:write"><span>Change devices</span></label>
+          <label class="ds-check"><input type="checkbox" name="scope" value="tickets:read"><span>Read tickets</span></label>
+          <label class="ds-check"><input type="checkbox" name="scope" value="tickets:write"><span>Change tickets</span></label>
+          <label class="ds-check"><input type="checkbox" name="scope" value="audit:read"><span>Read the audit log</span></label>
+        </div>
+        <small class="ds-field__hint ds-field__hint--error" id="scope-error" hidden></small>
+      </fieldset>
+      <div class="ds-field">
+        <label class="ds-field__label" for="key-expiry">Expires</label>
+        <select class="ds-input" id="key-expiry" name="expiry"><option value="30">In 30 days</option><option value="90" selected>In 90 days</option><option value="365">In a year</option></select>
+      </div>
+    </div>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
+      <button class="ds-btn ds-btn--filled" type="submit">
+        <span class="ds-btn__faces"><span class="ds-btn__face">Create key</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Creating</span></span>
+      </button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="ds-dialog ds-dialog--lg" id="created" role="alertdialog" aria-labelledby="created-title" aria-describedby="created-text">
+  <div class="ds-dialog__backdrop"></div>
+  <div class="ds-dialog__box">
+    <h2 class="ds-dialog__title" id="created-title">Copy your new key</h2>
+    <div class="ds-dialog__body">
+      <div class="ds-alert ds-tone-warning" data-icon="alert" data-icon-place="start"><span class="ds-alert__text" id="created-text">This is the only time the key shows. Copy it into your secret store now; if it gets lost, create a new one.</span></div>
+      <div class="ds-field">
+        <span class="ds-field__label" id="new-key-label">Key for <span id="new-key-name"></span></span>
+        <span class="ds-copy ds-copy--field">
+          <code class="ds-copy__value" id="new-key" aria-labelledby="new-key-label"></code>
+          <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Copy the key" data-tip="Copy the key" data-ds-copy="#new-key">
+            <span class="ds-icon-swap"><span class="ds-icon-swap__a" data-icon="copy"></span><span class="ds-icon-swap__b" data-icon="check"></span></span>
+          </button>
+        </span>
+      </div>
+      <label class="ds-check"><input type="checkbox" id="stored"><span>I have stored the key</span></label>
+    </div>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--filled" type="button" id="done" aria-disabled="true" data-tip="Store the key first">Done</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="ds-dialog" id="revoke" role="alertdialog" aria-labelledby="revoke-title" aria-describedby="revoke-text">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <form class="ds-dialog__box ds-typeconfirm" id="revoke-box" data-ds-typeconfirm="key">
+    <h2 class="ds-dialog__title" id="revoke-title">Revoke the key?</h2>
+    <p class="ds-dialog__text" id="revoke-text">It was used recently. Whatever uses it stops working at once; this cannot be undone.</p>
+    <div class="ds-field">
+      <label class="ds-field__label ds-typeconfirm__label" for="revoke-name"></label>
+      <input class="ds-input ds-typeconfirm__input" id="revoke-name" autocomplete="off" spellcheck="false" autocapitalize="off">
+      <small class="ds-field__hint ds-field__hint--error ds-typeconfirm__error" hidden></small>
+    </div>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-ds-close autofocus>Cancel</button>
+      <button class="ds-btn ds-btn--filled ds-tone-error ds-typeconfirm__confirm" type="submit">
+        <span class="ds-btn__faces"><span class="ds-btn__face">Revoke key</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Revoking</span></span>
+      </button>
+    </div>
+  </form>
+</dialog>
+<div class="ds-toasts" id="toasts"></div>
+
+<script src="ds/ds.api-keys.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
+  var toasts = document.getElementById('toasts');
+  var SCOPES = { 'devices:read': 'Read devices', 'devices:write': 'Change devices', 'tickets:read': 'Read tickets', 'tickets:write': 'Change tickets', 'audit:read': 'Read the audit log' };
+  // The server keeps only a key's first characters (its prefix) to show; recent: used in the last 30 days.
+  var keys = [
+    { id: 'k3', name: 'Nightly inventory export', prefix: 'pk_7f3a', scopes: ['devices:read'], created: '12 Oct 2026', used: 'Today, 02:00', recent: true },
+    { id: 'k2', name: 'Ticket sync', prefix: 'pk_c21e', scopes: ['tickets:read', 'tickets:write'], created: '3 Jun 2026', used: 'Yesterday', recent: true },
+    { id: 'k1', name: 'Old reporting script', prefix: 'pk_09bd', scopes: ['devices:read', 'audit:read'], created: '14 Jan 2026', used: '2 Mar 2026', recent: false },
+  ];
+
+  var esc = function (text) { return String(text).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var tbody = document.getElementById('keys');
+  var empty = document.getElementById('no-keys');
+  function rowHtml(k) {
+    return '<tr data-ds-key="' + k.id + '">' +
+      '<td class="ds-col--text">' + esc(k.name) + '</td>' +
+      '<td><code class="ds-mono ds-nowrap">' + esc(k.prefix) + '…</code></td>' +
+      '<td class="ds-col--secondary">' + k.scopes.map(function (scope) { return '<span class="ds-tag ds-tone-neutral">' + SCOPES[scope] + '</span>'; }).join(' ') + '</td>' +
+      '<td class="ds-col--secondary ds-nowrap">' + esc(k.created) + '</td>' +
+      '<td class="ds-num ds-nowrap">' + (k.used ? esc(k.used) : '<span class="ds-muted">Never</span>') + '</td>' +
+      '<td class="ds-table__actions"><button class="ds-btn ds-btn--text ds-sm" type="button" data-revoke="' + k.id + '" aria-label="Revoke ' + esc(k.name) + '">Revoke</button></td></tr>';
+  }
+  function render() {
+    DS.motion.flip(tbody, function (o) { DS.dom.morphHtml(tbody, keys.map(rowHtml).join(''), o); }, { items: 'tr' });
+    var none = !keys.length;
+    if (none && empty.hidden) DS.motion.enter(empty, 'fade');
+    empty.hidden = !none;
+    tbody.closest('.ds-table-wrap').hidden = none;
+    document.getElementById('keys-count').textContent = keys.length === 1 ? '1 key' : keys.length + ' keys';
+  }
+
+  // Create: a name and at least one scope; the server answers with the whole key, once. No scope is said in the
+  // Access group itself (icon and words, its description), the focus on its first box; the next change takes it away.
+  var create = document.getElementById('create');
+  var created = document.getElementById('created');
+  var createButton = document.getElementById('create-button');
+  var scopes = create.querySelector('fieldset');
+  var scopeError = document.getElementById('scope-error');
+  function scopeProblem(text) {
+    scopeError.hidden = !text;
+    scopeError.replaceChildren();
+    if (text) {
+      scopeError.append(DS.icons.iconElement(DS.icons.alertCircle, 16), document.createTextNode(text));
+      scopes.setAttribute('aria-describedby', scopeError.id);
+    } else {
+      scopes.removeAttribute('aria-describedby');
+    }
+  }
+  scopes.addEventListener('change', function () { if (!scopeError.hidden) scopeProblem(''); });
+  create.addEventListener('ds:submit', function (event) {
+    var form = event.detail.form;
+    if (form.querySelector('[name="scope"]:checked')) { scopeProblem(''); return; }
+    event.preventDefault();
+    scopeProblem('Choose at least one kind of access.');
+    form.querySelector('[name="scope"]').focus();
+  });
+  DS.dialog.form(create, {
+    onSubmit: function (data) {
+      return wait(800).then(function () {
+        var bytes = new Uint8Array(24);
+        crypto.getRandomValues(bytes);
+        var secret = 'pk_' + Array.prototype.map.call(bytes, function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+        var key = { id: 'k' + Date.now(), name: String(data.get('name')).trim(), prefix: secret.slice(0, 7), scopes: data.getAll('scope'), created: 'Today', used: '', recent: false };
+        keys.unshift(key);
+        render();
+        showOnce(key.name, secret);
+      });
+    },
+    errorText: 'The key was not created. Try again.',
+  });
+
+  // Show once: the key with its copy button; Done waits until the person says it is stored, and nothing else closes it.
+  var stored = document.getElementById('stored');
+  var done = document.getElementById('done');
+  function showOnce(name, secret) {
+    document.getElementById('new-key-name').textContent = name;
+    document.getElementById('new-key').textContent = secret;
+    stored.checked = false;
+    done.setAttribute('aria-disabled', 'true');
+    done.setAttribute('data-tip', 'Store the key first');
+    created.setAttribute('data-ds-busy', '');
+    // The create dialog has closed and given the focus back; the key's dialog opens from the same button.
+    setTimeout(function () { DS.overlay.open(created, { opener: createButton }); }, 0);
+  }
+  stored.addEventListener('change', function () {
+    done.setAttribute('aria-disabled', String(!stored.checked));
+    if (stored.checked) done.removeAttribute('data-tip'); else done.setAttribute('data-tip', 'Store the key first');
+  });
+  done.addEventListener('click', function () {
+    if (done.getAttribute('aria-disabled') === 'true') return;
+    created.removeAttribute('data-ds-busy');
+    document.getElementById('new-key').textContent = '';
+    DS.overlay.close(created);
+    DS.overlay.toast(toasts, 'Key created.', { kind: 'success' });
+  });
+
+  // Revoke: a key used in the last 30 days asks for its name to be typed (D10); an unused one asks yes or no.
+  var revoke = document.getElementById('revoke');
+  var revokeBox = document.getElementById('revoke-box');
+  var revoking = null;
+  function drop(key) {
+    keys = keys.filter(function (k) { return k !== key; });
+    render();
+    DS.overlay.toast(toasts, key.name + ' revoked.');
+  }
+  tbody.addEventListener('click', function (event) {
+    var button = event.target.closest('[data-revoke]');
+    if (!button) return;
+    var key = keys.find(function (k) { return k.id === button.getAttribute('data-revoke'); });
+    if (!key.recent) {
+      DS.overlay.confirm({
+        title: 'Revoke ' + key.name + '?', text: (key.used ? 'It has not been used since ' + key.used + '.' : 'It has never been used.') + ' This cannot be undone.',
+        confirmLabel: 'Revoke key', destructive: true, opener: button, onConfirm: function () { return wait(600); },
+      }).then(function (ok) { if (ok) drop(key); });
+      return;
+    }
+    revoking = key;
+    revokeBox.setAttribute('data-ds-typeconfirm', key.name);
+    document.getElementById('revoke-title').textContent = 'Revoke ' + key.name + '?';
+    DS.overlay.open(revoke, { opener: button });
+  });
+  revoke.addEventListener('ds:confirm', function (event) {
+    var key = revoking;
+    event.detail.wait(wait(800).then(function () { drop(key); }));
+  });
+
+  render();
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

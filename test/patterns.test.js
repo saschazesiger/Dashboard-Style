@@ -28,7 +28,7 @@ function registry() {
 
 describe('page patterns', () => {
   it('finds the pages, one entry and one bundle each', () => {
-    assert.ok(pages.length >= 16, `${pages.length} pages`);
+    assert.ok(pages.length >= 26, `${pages.length} pages`);
     assert.deepEqual(pages.map((page) => `${page.name}.html`).sort(), files);
     const entries = Object.keys(patternConfig().entries);
     for (const page of pages) assert.ok(entries.includes(page.entry), `${page.name}: entry ${page.entry}`);
@@ -77,7 +77,7 @@ describe('page patterns', () => {
     for (const page of pages) {
       const html = read(page.file);
       const where = page.file;
-      assert.match(html, /^<!doctype html>\n<html lang="en" class="ds-theme ds-base">/, `${where}: the theme on <html>`);
+      assert.match(html, /^<!doctype html>\n<html lang="en-GB" class="ds-theme ds-base">/, `${where}: the theme on <html>, in the British English its text and dates are written in`);
       assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">/, `${where}: the viewport`);
       assert.equal((html.match(/<h1\b/g) ?? []).length, 1, `${where}: one h1`);
       assert.equal((html.match(/<main\b[^>]*\bid="main"/g) ?? []).length, 1, `${where}: one main#main`);
@@ -89,7 +89,7 @@ describe('page patterns', () => {
       }
       assert.doesNotMatch(html, /\sstyle="(?![^"]*--ds-[\w-]+:)[^"]*"/, `${where}: inline styles set hooks only`);
       assert.doesNotMatch(html, /\.innerHTML\s*=/, `${where}: no innerHTML`);
-      assert.doesNotMatch(html, /\bclass="[^"]*\bpt-(?!auth\b|brand\b|brand__mark\b|codes\b|foot\b|bar\b|bar__title\b)/, `${where}: pt- classes of pt.css only`);
+      assert.doesNotMatch(html, /\bclass="[^"]*\bpt-(?!auth\b|brand\b|brand__mark\b|codes\b|foot\b|bar\b|bar__title\b|col-min\b)/, `${where}: pt- classes of pt.css only`);
     }
   });
 

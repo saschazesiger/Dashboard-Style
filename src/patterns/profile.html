@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en-GB" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Profile · Product</title>
+<meta name="pt-title" content="Profile and account">
+<meta name="pt-need" content="A person's own page: name and picture, password, two-step verification, where they are signed in, leaving for good">
+<meta name="pt-group" content="App pages">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.profile.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<div class="ds-app ds-app--drawer" data-ds-shell="patterns">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" data-icon="menu"></button>
+    <a class="ds-brand" href="dashboard.html"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></a>
+    <div class="ds-topbar__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="#help" aria-label="Help" data-tip="Help" data-icon="helpCircle"></a>
+    </div>
+    <div class="ds-account">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+      <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+        <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+        <div class="ds-menu__divider" role="separator"></div>
+        <a class="ds-menu__item" role="menuitem" href="profile.html" data-icon="user" data-icon-place="start"><span class="ds-menu__label">Profile</span></a>
+        <a class="ds-menu__item" role="menuitem" href="sign-in.html" data-icon="logout" data-icon-place="start"><span class="ds-menu__label">Sign out</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></div>
+    <div class="ds-drawer__list">
+      <div class="ds-drawer__group">
+        <a class="ds-drawer__item" href="dashboard.html" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="list.html" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="audit-log.html" data-icon="history" data-icon-place="start"><span class="ds-drawer__label">Audit log</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Administration</p>
+        <a class="ds-drawer__item" href="settings.html" data-icon="settings" data-icon-place="start"><span class="ds-drawer__label">Settings</span></a>
+        <a class="ds-drawer__item" href="team.html" data-icon="users" data-icon-place="start"><span class="ds-drawer__label">Team</span></a>
+        <a class="ds-drawer__item" href="permissions.html" data-icon="shield" data-icon-place="start"><span class="ds-drawer__label">Permissions</span></a>
+        <a class="ds-drawer__item" href="api-keys.html" data-icon="key" data-icon-place="start"><span class="ds-drawer__label">API keys</span></a>
+        <a class="ds-drawer__item" href="integrations.html" data-icon="puzzle" data-icon-place="start"><span class="ds-drawer__label">Integrations</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content">
+        <div class="ds-page">
+          <header class="ds-page-head">
+            <h1 class="ds-page-head__title" tabindex="-1">Your profile</h1>
+            <p class="ds-page-head__lead">How others see you, and how you sign in.</p>
+          </header>
+
+          <form class="ds-card ds-form" id="profile" aria-labelledby="profile-title" novalidate>
+            <h2 class="ds-card__title" id="profile-title">Profile</h2>
+            <div class="ds-cluster">
+              <span class="ds-avatar ds-xl ds-avatar--hue-3" id="avatar" role="img" aria-label="Your picture: the initials AL">AL</span>
+              <div class="ds-stack ds-gap-1">
+                <div class="ds-cluster ds-gap-2">
+                  <button class="ds-btn ds-sm" type="button" id="pick-picture" data-icon="upload" data-icon-size="16" data-icon-place="start">Change picture</button>
+                  <button class="ds-btn ds-btn--text ds-sm" type="button" id="remove-picture" hidden>Remove</button>
+                </div>
+                <p class="ds-meta" id="picture-hint">A square JPG or PNG, at most 2 MB.</p>
+              </div>
+              <input type="file" id="picture" accept="image/png, image/jpeg" aria-label="Picture" hidden>
+            </div>
+            <div class="ds-form-grid ds-form-grid--2">
+              <div class="ds-field">
+                <label class="ds-field__label" for="full-name">Full name</label>
+                <input class="ds-input" id="full-name" name="name" value="Ada Lovelace" autocomplete="name" required>
+              </div>
+              <div class="ds-field">
+                <label class="ds-field__label" for="job">Job title <span class="ds-field__optional">(optional)</span></label>
+                <input class="ds-input" id="job" name="job" value="Research lead" autocomplete="organization-title">
+              </div>
+              <div class="ds-field">
+                <label class="ds-field__label" for="email">Email</label>
+                <div class="ds-input-group">
+                  <input class="ds-input" id="email" name="email" type="email" value="ada@example.org" autocomplete="email" required aria-describedby="email-hint">
+                  <span class="ds-input-group__trailing"><span class="ds-tag ds-tone-success">Verified</span></span>
+                </div>
+                <small class="ds-field__hint" id="email-hint">A new address is confirmed by a link before it counts.</small>
+              </div>
+              <div class="ds-field">
+                <label class="ds-field__label" for="language">Language</label>
+                <select class="ds-input" id="language" name="language"><option selected>English (United Kingdom)</option><option>English (United States)</option><option>Deutsch</option><option>Français</option></select>
+              </div>
+            </div>
+            <div class="ds-form-actions">
+              <button class="ds-btn ds-btn--filled" type="submit">
+                <span class="ds-btn__faces"><span class="ds-btn__face">Save profile</span>
+                  <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Saving</span>
+                  <span class="ds-btn__face ds-btn__face--done" aria-hidden="true" data-icon="check" data-icon-size="16" data-icon-place="start">Saved</span></span>
+              </button>
+            </div>
+          </form>
+
+          <div class="ds-grid-2">
+            <form class="ds-card ds-form" id="password-form" aria-labelledby="password-title" novalidate>
+              <h2 class="ds-card__title" id="password-title">Password</h2>
+              <p class="ds-muted">Last changed on <time datetime="2026-06-02">2 June 2026</time>.</p>
+              <input type="text" name="username" value="ada@example.org" autocomplete="username" hidden>
+              <div class="ds-field" data-ds-password>
+                <label class="ds-field__label" for="current">Current password</label>
+                <div class="ds-input-group">
+                  <input class="ds-input" id="current" name="current" type="password" autocomplete="current-password" required aria-describedby="current-caps">
+                  <span class="ds-input-group__trailing">
+                    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Show password" aria-pressed="false">
+                      <span class="ds-icon-swap"><span class="ds-icon-swap__a" data-icon="eye" data-icon-size="18"></span><span class="ds-icon-swap__b" data-icon="eyeOff" data-icon-size="18"></span></span>
+                    </button>
+                  </span>
+                </div>
+                <small class="ds-field__hint ds-field__hint--warning ds-password__caps" id="current-caps" data-icon="alert" data-icon-size="16" data-icon-place="start" hidden>Caps Lock is on.</small>
+              </div>
+              <div class="ds-field" data-ds-password>
+                <label class="ds-field__label" for="new-password">New password</label>
+                <div class="ds-input-group">
+                  <input class="ds-input" id="new-password" name="password" type="password" autocomplete="new-password" minlength="12" required aria-describedby="new-hint new-strength new-caps">
+                  <span class="ds-input-group__trailing">
+                    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Show password" aria-pressed="false">
+                      <span class="ds-icon-swap"><span class="ds-icon-swap__a" data-icon="eye" data-icon-size="18"></span><span class="ds-icon-swap__b" data-icon="eyeOff" data-icon-size="18"></span></span>
+                    </button>
+                  </span>
+                </div>
+                <small class="ds-field__hint" id="new-hint">At least 12 characters.</small>
+                <div class="ds-password__meter" id="new-strength">
+                  <span class="ds-password__bars" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+                  <span class="ds-password__strength"></span>
+                </div>
+                <small class="ds-field__hint ds-field__hint--warning ds-password__caps" id="new-caps" data-icon="alert" data-icon-size="16" data-icon-place="start" hidden>Caps Lock is on.</small>
+              </div>
+              <div class="ds-form-actions">
+                <button class="ds-btn ds-btn--filled" type="submit">
+                  <span class="ds-btn__faces"><span class="ds-btn__face">Change password</span>
+                    <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Changing</span></span>
+                </button>
+              </div>
+            </form>
+
+            <section class="ds-card" aria-labelledby="two-step-title">
+              <div class="ds-card__row">
+                <h2 class="ds-card__title" id="two-step-title">Two-step verification</h2>
+                <span class="ds-status ds-tone-success" data-icon="check" data-icon-size="16" data-icon-place="start"><span>On</span></span>
+              </div>
+              <p class="ds-muted">Every sign-in asks for a code from your authenticator app. Your workspace requires it.</p>
+              <ul class="ds-kv-list">
+                <li><span>Authenticator app</span><strong>Added 2 June 2026</strong></li>
+                <li><span>Recovery codes</span><strong>8 of 10 left</strong></li>
+              </ul>
+              <nav class="ds-card__links" aria-label="Two-step verification">
+                <a class="ds-btn ds-btn--text ds-card__link" href="recovery-codes.html">New recovery codes</a>
+              </nav>
+            </section>
+          </div>
+
+          <section class="ds-card" aria-labelledby="sessions-title">
+            <div class="ds-card__row">
+              <h2 class="ds-card__title" id="sessions-title">Where you are signed in</h2>
+              <button class="ds-btn ds-sm" type="button" id="sign-out-others">Sign out everywhere else</button>
+              <span class="ds-sr" id="sign-out-others-why"></span>
+            </div>
+            <ul class="ds-list" id="sessions" aria-label="Sessions">
+              <li class="ds-list__item" data-ds-key="s1">
+                <span class="ds-list__media" aria-hidden="true" data-icon="laptop"></span>
+                <span class="ds-list__text"><span class="ds-list__title">Firefox on a laptop</span><span class="ds-list__meta">Signed in 2 Nov · this device</span></span>
+                <span class="ds-status ds-tone-success" data-icon="check" data-icon-size="16" data-icon-place="start"><span>Active now</span></span>
+              </li>
+              <li class="ds-list__item" data-ds-key="s2">
+                <span class="ds-list__media" aria-hidden="true" data-icon="smartphone"></span>
+                <span class="ds-list__text"><span class="ds-list__title">Safari on a phone</span><span class="ds-list__meta">Signed in 28 Oct · last active today, 07:40</span></span>
+                <span class="ds-list__actions"><button class="ds-btn ds-btn--text ds-sm" type="button" data-session="s2" aria-label="Sign out of Safari on a phone">Sign out</button></span>
+              </li>
+              <li class="ds-list__item" data-ds-key="s3">
+                <span class="ds-list__media" aria-hidden="true" data-icon="monitor"></span>
+                <span class="ds-list__text"><span class="ds-list__title">Chrome on a desktop</span><span class="ds-list__meta">Signed in 14 Oct · last active 3 Nov</span></span>
+                <span class="ds-list__actions"><button class="ds-btn ds-btn--text ds-sm" type="button" data-session="s3" aria-label="Sign out of Chrome on a desktop">Sign out</button></span>
+              </li>
+            </ul>
+          </section>
+
+          <section class="ds-card" aria-labelledby="leave-title">
+            <h2 class="ds-card__title" id="leave-title">Delete your account</h2>
+            <p class="ds-muted">Your devices and tickets stay with the workspace; your name leaves them. An administrator can invite you again later.</p>
+            <div class="ds-cluster"><button class="ds-btn" type="button" id="delete-account" aria-haspopup="dialog" data-ds-open="#delete-dialog">Delete account</button></div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<dialog class="ds-dialog" id="delete-dialog" role="alertdialog" aria-labelledby="delete-title" aria-describedby="delete-text">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <form class="ds-dialog__box ds-typeconfirm" data-ds-typeconfirm="ada@example.org" data-ds-typeconfirm-case="insensitive">
+    <h2 class="ds-dialog__title" id="delete-title">Delete your account?</h2>
+    <p class="ds-dialog__text" id="delete-text">You are signed out everywhere and cannot sign in again. This cannot be undone.</p>
+    <div class="ds-field">
+      <label class="ds-field__label ds-typeconfirm__label" for="delete-name"></label>
+      <input class="ds-input ds-typeconfirm__input" id="delete-name" type="email" autocomplete="off" spellcheck="false" autocapitalize="off">
+      <small class="ds-field__hint ds-field__hint--error ds-typeconfirm__error" hidden></small>
+    </div>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-ds-close autofocus>Cancel</button>
+      <button class="ds-btn ds-btn--filled ds-tone-error ds-typeconfirm__confirm" type="submit">
+        <span class="ds-btn__faces"><span class="ds-btn__face">Delete my account</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Deleting</span></span>
+      </button>
+    </div>
+  </form>
+</dialog>
+<div class="ds-toasts" id="toasts"></div>
+
+<script src="ds/ds.profile.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
+  var toasts = document.getElementById('toasts');
+
+  // An error at its field: the hint with an icon and words (Form); none for an empty text.
+  function setError(input, text) {
+    var field = input.closest('.ds-field');
+    var hint = field.querySelector('[data-error-for="' + input.id + '"]');
+    var described = (input.getAttribute('aria-describedby') || '').split(' ').filter(function (id) { return id && id !== input.id + '-error'; });
+    if (hint && !text) hint.remove();
+    if (!text) {
+      input.removeAttribute('aria-invalid');
+      if (described.length) input.setAttribute('aria-describedby', described.join(' ')); else input.removeAttribute('aria-describedby');
+      return false;
+    }
+    if (!hint) {
+      hint = document.createElement('small');
+      hint.className = 'ds-field__hint ds-field__hint--error';
+      hint.id = input.id + '-error';
+      hint.setAttribute('data-error-for', input.id);
+      field.append(hint);
+    }
+    hint.replaceChildren(DS.icons.iconElement(DS.icons.alertCircle, 16), document.createTextNode(text));
+    input.setAttribute('aria-invalid', 'true');
+    input.setAttribute('aria-describedby', [hint.id].concat(described).join(' '));
+    return true;
+  }
+
+  // The profile: checked here, then saved; the button says Saved for a moment, the snackbar says it in words.
+  var profile = document.getElementById('profile');
+  profile.addEventListener('submit', function (event) {
+    event.preventDefault();
+    var bad = [
+      setError(profile.elements.name, profile.elements.name.value.trim() ? '' : 'Enter your name.'),
+      setError(profile.elements.email, profile.elements.email.validity.valid ? '' : 'Enter an email address such as ada@example.org.'),
+    ];
+    if (bad.some(Boolean)) { profile.querySelector('[aria-invalid="true"]').focus(); return; }
+    var changedEmail = profile.elements.email.value.trim() !== 'ada@example.org';
+    DS.motion.busy(event.submitter || profile.querySelector('[type="submit"]'), wait(700)).then(function () {
+      DS.overlay.toast(toasts, changedEmail ? 'Profile saved. Confirm the new address with the link we sent.' : 'Profile saved.');
+    });
+  });
+
+  // The picture: chosen from a file, shown at once, removable.
+  var avatar = document.getElementById('avatar');
+  var file = document.getElementById('picture');
+  var remove = document.getElementById('remove-picture');
+  document.getElementById('pick-picture').addEventListener('click', function () { file.click(); });
+  file.addEventListener('change', function () {
+    var picked = file.files[0];
+    if (!picked) return;
+    if (picked.size > 2 * 1024 * 1024) { DS.overlay.toast(toasts, 'That picture is larger than 2 MB.', { kind: 'error' }); return; }
+    var img = document.createElement('img');
+    img.alt = '';
+    img.src = URL.createObjectURL(picked);
+    avatar.replaceChildren(img);
+    avatar.setAttribute('aria-label', 'Your picture');
+    remove.hidden = false;
+    DS.overlay.toast(toasts, 'Picture updated.');
+  });
+  remove.addEventListener('click', function () {
+    avatar.replaceChildren('AL');
+    avatar.setAttribute('aria-label', 'Your picture: the initials AL');
+    remove.hidden = true;
+    file.value = '';
+    document.getElementById('pick-picture').focus();
+    DS.overlay.toast(toasts, 'Picture removed.');
+  });
+
+  // The password: the current one must be right (demo rule: "wrong password" is wrong), the new one long enough.
+  var passwordForm = document.getElementById('password-form');
+  passwordForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+    var current = passwordForm.elements.current;
+    var next = passwordForm.elements.password;
+    var bad = [
+      setError(current, current.value ? '' : 'Enter your current password.'),
+      setError(next, next.value.length >= 12 ? '' : 'Use at least 12 characters.'),
+    ];
+    if (bad.some(Boolean)) { passwordForm.querySelector('[aria-invalid="true"]').focus(); return; }
+    var button = event.submitter || passwordForm.querySelector('[type="submit"]');
+    DS.motion.busy(button, wait(800).then(function () {
+      if (current.value === 'wrong password') throw new Error('wrong');
+    }), { done: false }).then(function () {
+      passwordForm.reset();
+      DS.overlay.toast(toasts, 'Password changed. Other sessions were signed out.');
+    }, function () {
+      setError(current, 'That is not your current password.');
+      current.focus();
+    });
+  });
+
+  // Sessions: one leaves the list (its neighbour takes the focus), or every one but this device. Once only this device
+  // is left, "Sign out everywhere else" turns aria-disabled and says why (a tip for the eye, a description for a
+  // screen reader); the focus of the last Sign out goes to it.
+  var sessions = document.getElementById('sessions');
+  var others = document.getElementById('sign-out-others');
+  var why = document.getElementById('sign-out-others-why');
+  var signedIn = ['s2', 's3'];
+  function signOut(keys) {
+    var rows = keys.map(function (key) { return sessions.querySelector('[data-ds-key="' + key + '"]'); }).filter(Boolean);
+    if (!rows.length) return;
+    signedIn = signedIn.filter(function (key) { return keys.indexOf(key) < 0; });
+    if (!signedIn.length) {
+      why.textContent = 'No other sessions are signed in.';
+      others.setAttribute('aria-disabled', 'true');
+      others.setAttribute('aria-describedby', why.id);
+      others.setAttribute('data-tip', 'No other sessions');
+    }
+    DS.motion.flip(sessions, function () { rows.forEach(function (row) { row.remove(); }); }, { items: '.ds-list__item', refocus: others });
+    DS.overlay.toast(toasts, rows.length === 1 ? 'Signed out of 1 session.' : 'Signed out of ' + rows.length + ' sessions.');
+  }
+  sessions.addEventListener('click', function (event) {
+    var button = event.target.closest('[data-session]');
+    if (button) signOut([button.getAttribute('data-session')]);
+  });
+  others.addEventListener('click', function () {
+    signOut(signedIn.slice());
+  });
+
+  // Leaving: typing the address unlocks the red button (D10); then the sign-in page.
+  document.getElementById('delete-dialog').addEventListener('ds:confirm', function (event) {
+    event.detail.wait(wait(900).then(function () { location.href = 'sign-in.html'; }));
+  });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>
