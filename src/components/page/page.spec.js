@@ -278,6 +278,32 @@ test('the condensing keeps the content where it was: no jump at the moment the h
   expect(folded).toBe(true);
 });
 
+test('a smooth scroll across the fold goes on to its end: unfolding never stops it', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await open(page);
+  const box = page.locator('[data-demo="sticky-box"]');
+  // Back and forth over the fold, as a reader turning round: each smooth scroll ends where it was sent.
+  const ends = await box.evaluate(async (el) => {
+    const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve()));
+    const rest = async () => { let last = -1; let still = 0; while (still < 5) { await frame(); still = el.scrollTop === last ? still + 1 : 0; last = el.scrollTop; } };
+    const far = Math.min(260, el.scrollHeight - el.clientHeight);
+    const out = [];
+    for (let round = 0; round < 3; round += 1) {
+      el.scrollTo({ top: far, behavior: 'smooth' });
+      await new Promise((resolve) => setTimeout(resolve, 80));
+      el.scrollTo({ top: 0, behavior: 'smooth' });
+      await new Promise((resolve) => setTimeout(resolve, 80));
+      el.scrollTo({ top: far, behavior: 'smooth' });
+      await rest();
+      out.push([Math.round(el.scrollTop), far]);
+      el.scrollTo({ top: 0, behavior: 'instant' });
+      await rest();
+    }
+    return out;
+  });
+  for (const [at, far] of ends) expect(at, 'where the last smooth scroll ended').toBe(far);
+});
+
 test('actions fold into More by the row\'s width: the first ones first, the filled one last; the menu presses them', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await open(page);

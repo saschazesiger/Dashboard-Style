@@ -42,6 +42,9 @@ latency), then fixed where the system or its pages did more than they need to.
   third).
 - **Jump links** (`DS.toc`): a jump to a section more than a view away no longer hands the mark to every section the
   glide passes (the bar slid back and forth on the way); the jump's link keeps it until the scroll has rested.
+- **Page head** (`DS.page`, sticky): when the head unfolded during a smooth scroll (a reader turning round, a jump
+  link), measuring its fold let scroll anchoring move the scroll, and putting it back stopped the smooth scroll short.
+  Anchoring is off while the fold is measured (`overflow-anchor`, progressive; elsewhere the scroll is still put back).
 - **Accessibility sweep** (`test/browser/a11y-sweep.spec.js`): every demo's interactive elements are named, ARIA
   references resolve, ids are unique, images have text and roles are valid. It found a blank line of `DS.logview`
   without a name (now "Blank line", the string `logBlank`) and broken references in the result and wizard demos.

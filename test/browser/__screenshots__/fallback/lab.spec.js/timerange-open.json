@@ -1,0 +1,13 @@
+[
+  "transition background-color - 150 0 1 --ds-ease-in-out",
+  "transition border-bottom-color - 150 0 1 --ds-ease-in-out",
+  "transition border-left-color - 150 0 1 --ds-ease-in-out",
+  "transition border-right-color - 150 0 1 --ds-ease-in-out",
+  "transition border-top-color - 150 0 1 --ds-ease-in-out",
+  "transition clip-path - 250 0 1 --ds-ease-spatial",
+  "transition color - 150 0 1 --ds-ease-in-out",
+  "transition opacity - 150 0 1 --ds-ease-in-out",
+  "transition outline-offset - 150 0 1 --ds-ease-out",
+  "transition rotate - 250 0 1 --ds-ease-spatial",
+  "transition scale - 250 0 1 --ds-ease-spatial"
+]

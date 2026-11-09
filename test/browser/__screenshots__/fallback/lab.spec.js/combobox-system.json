@@ -1,0 +1,6 @@
+[
+  "transition --ds-scroll-edge-end - 150 0 1 --ds-ease-in-out",
+  "transition clip-path - 250 0 1 --ds-ease-spatial",
+  "transition opacity - 150 0 1 --ds-ease-in-out",
+  "transition scale - 250 0 1 --ds-ease-spatial"
+]

@@ -9545,6 +9545,9 @@
     const start = box().scrollTop;
     const settling = !head.hasAttribute('data-ds-moving');
     if (settling) head.setAttribute('data-ds-moving', '');
+    const scrolling = box();
+    const anchor = scrolling.style.overflowAnchor;
+    scrolling.style.overflowAnchor = 'none';
     quiet(() => {
     const before = head.style.position;
     head.style.position = 'static';
@@ -9562,6 +9565,7 @@
     void view.getComputedStyle(head).opacity;
     head.removeAttribute('data-ds-moving');
     }
+    scrolling.style.overflowAnchor = anchor;
     if (box().scrollTop !== start) box().scrollTop = start;
     };
     const condense = (on, force = false) => {

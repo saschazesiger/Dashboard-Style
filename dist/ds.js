@@ -44106,8 +44106,10 @@
      * fold) on the head, hidden on the folded actions. The More button and its menu are the system's own
      * (data-ds-keep). Events: ds:change ({ condensed }) on the head.
      *
-     * ES2022. Progressive: none (ResizeObserver and MutationObserver are at the
-     * floor; without them, in a test fake, the actions lay out once).
+     * ES2022. Progressive: overflow-anchor (none while the fold is measured, so
+     * no anchoring moves the scroll; without it the scroll is put back, which
+     * stops a smooth scroll on its way). ResizeObserver and MutationObserver are
+     * at the floor; without them, in a test fake, the actions lay out once.
      */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const own = DS.dom.own, disown = DS.dom.disown;
@@ -44246,6 +44248,11 @@
         // would start toward the condensed look and back on every measure.
         const settling = !head.hasAttribute('data-ds-moving');
         if (settling) head.setAttribute('data-ds-moving', '');
+        // No scroll anchoring through the trial: it would move the scroll, and the
+        // write that puts it back cancels a smooth scroll on its way.
+        const scrolling = box();
+        const anchor = scrolling.style.overflowAnchor;
+        scrolling.style.overflowAnchor = 'none';
         quiet(() => {
           // The head's place in the flow: unstuck for a moment (static ignores its top).
           const before = head.style.position;
@@ -44264,6 +44271,8 @@
           void view.getComputedStyle(head).opacity;
           head.removeAttribute('data-ds-moving');
         }
+        scrolling.style.overflowAnchor = anchor;
+        // Engines without overflow-anchor (or a scroll that moved anyway) go back to where the reader had it.
         if (box().scrollTop !== start) box().scrollTop = start;
       };
 
