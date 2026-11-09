@@ -118,7 +118,8 @@ Phones (600px and below): the box fills the window, the key hints of the foot an
 
 - `create(el, options)` returns the controller (the one `data-ds-command` makes; a second call sets `commands` and
   `providers`): `get()` (`{ open, query, page, active }`), `set({ commands, providers, query })`, `on('select' |
-  'query', fn)`, `open({ opener, query, page })`, `close()`, `back()`, `run(id)`, `refresh()` and `destroy()`.
+  'query', fn)`, `open({ opener, query, page })`, `close()`, `back()`, `run(id)`, `refresh()` and `destroy()` (the list gets the
+  page's options back as written, so a new init reads the same commands).
   Options: `commands`, `providers`, `recent`, `hotkey`, `shortcuts`.
 - `open(el, options)` and `close(el)`.
 - `fuzzy(query, text)` returns `{ score, ranges }` or `null`; `rank(commands, query)` the matching commands, best first.

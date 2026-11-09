@@ -147,6 +147,9 @@ workflow that keeps the copy on `main` is in [`templates/`](templates/update-das
 **🧰 Bundlers.** `dist/css/` and `dist/js/` hold the single stylesheets and ES modules (with their `.d.ts` types);
 import only what you need. Details, updates and integrity checks: [docs/install.md](docs/install.md).
 
+**⚛️ React.** `dist/react/` is an optional adapter (React 18 or later, your own): typed components that render the
+documented markup and run the system's behaviours, StrictMode-safe, one module per component: [docs/react.md](docs/react.md).
+
 **🔍 Checks.** `dist/tools/` runs without network or dependencies: `verify.mjs` (or `verify.sh`) checks a copy against
 its `SHA256SUMS`, `check-theme.mjs` a theme file (`light-dark()` themes in both schemes), `check-project.mjs` your code
 against the project rules (deprecated and removed names from `dist/deprecations.json` included), `theme.mjs` writes a
@@ -204,6 +207,7 @@ Which component fits which need: the table at the top of [docs/components.md](do
 | 📦 [Install and update](docs/install.md) | vendoring, CDN, bundlers, fonts, verifying a copy, checking a project, language and locale |
 | ⬆️ [Migration](docs/migration.md) | from 2.x to 3.0: `tools/migrate.mjs`, every renamed and removed name, what to check by hand |
 | ⚙️ [Core](docs/core.md) | `DS.init()`, the behaviour registry, the one runtime per page, `ds:` events, strings and locale |
+| ⚛️ [React](docs/react.md) | the React adapter: `<DSProvider>`, typed components for every behaviour, what survives a re-render, what it does not do |
 | ✂️ [Bundle](docs/bundle.md) | loading only what a page uses: the bundle tool, its scan, the safelist, `--check` in CI, the Vite plugin |
 | 🎚️ [Tokens](docs/tokens.md) | the three layers and every token (the motion scales in [Motion](docs/motion.md#tokens)) |
 | 📏 [Options](docs/options.md) | size, density, shape, tone and touch as classes on any element, and how a component computes them |

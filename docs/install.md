@@ -13,6 +13,7 @@ Everything a project needs is in `dist/`:
 | `css/properties.css` | every `@property` registration of `ds.css` alone (generated; registers `--ds-*` custom properties and styles nothing). A widget that loads `ds.css` inside a shadow root links it in the host document too: `@property` applies only in document-level stylesheets (as does `@font-face` in Chromium and Firefox, so such a widget also links `fonts/fonts.css` in the host document; see theming.md, "Embedded in someone else's page") |
 | `css/optional/` | opt-in stylesheets that `ds.css` never includes: `view-transitions.css` (View Transitions across page loads, needs `<html class="ds-theme">`; see "Multi-page apps") |
 | `js/` | the ES modules, one folder (the table below): the core (`core.js`, `motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`, `overlay.js`) and one behaviour module per component that has one, each with its types next to it (`motion.d.ts` ...), which an `import` of the module finds by itself; `core.js` is the shared runtime, the behaviour registry and `init()` ([core.md](core.md)), and every other module imports from it |
+| `react/` | the optional React adapter (3.0; React 18 or later is the project's own): `provider.js` (`<DSProvider>`), `shared.js`, one module per component with its `.d.ts`, and `index.js` with every component; each module imports only its own behaviour from `js/` ([react.md](react.md)) |
 | `ds.d.ts` | types of `ds.js`: the global `DS` (every module's exports, their options and handles) and `DashboardStyle.versions` (see "Types") |
 | `fonts/` | Google Sans woff2 (latin, latin-ext), `fonts.css`, `OFL.txt` |
 | `deprecations.json` | every deprecated and removed name as data, for a project's own checks (see "Deprecated and removed names") |
@@ -337,6 +338,18 @@ widens the pressed control. With Node subpath imports, `"imports": { "#ds/*": ".
 To load only what a project uses without picking files by hand, let `tools/bundle.mjs` scan the project and write
 its bundle, or use the Vite plugin: [bundle.md](bundle.md) (the three ways to load, the config, the scanning rules,
 `--check` in CI and the nightly update).
+
+### React
+
+The adapter in `react/` imports `react` (a peer: install React 18 or later in the project) and the modules of `js/`
+next to it, so keep `react/` and `js/` side by side in the copy. Import each component from its own file, so a page
+loads only the modules it uses; `manifest.json` `react` lists per file its exports, the stylesheets it needs and the
+modules it loads. Everything else, the provider, the props and what the adapter leaves to the page: [react.md](react.md).
+
+```js
+import { DSProvider } from './vendor/dashboard-style/react/provider.js';
+import { Tabs } from './vendor/dashboard-style/react/tabs.js';
+```
 
 ### Types
 

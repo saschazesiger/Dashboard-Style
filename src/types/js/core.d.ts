@@ -79,12 +79,24 @@ export interface ConfigDetail extends Settings {
   readonly changed: ReadonlyArray<'locale' | 'strings'>;
 }
 
+/** What manage() returns: the controller of one element whose owner renders it. */
+export interface ManagedHandle {
+  /** The controller (null when init() returned a function or nothing, or once destroyed). */
+  readonly controller: Controller | null;
+  /** After the owner changed the element's attributes: the controller's update(names), else a fresh controller. */
+  update(): void;
+  /** Destroys the controller; safe to call twice. */
+  destroy(): void;
+}
+
 /** The runtime of the page. */
 export declare const runtime: Runtime;
 /** Adds a behaviour by name; false when a copy loaded earlier defined it. */
 export declare function define(name: string, spec: BehaviourSpec): boolean;
 /** The controller of `el` for the behaviour `name` (without one: its first), or null. */
 export declare function get(el: Element, name?: string): Controller | null;
+/** Runs the behaviour `name` on `el` for an owner that renders it (the React adapter, inside [data-ds-managed]); null when no such behaviour initialises elements. */
+export declare function manage(el: Element, name: string): ManagedHandle | null;
 /** Installs every global behaviour on `root` and initialises its elements (observing them by default). */
 export declare function init(root?: Document | Element | ShadowRoot, options?: InitOptions): InitHandle;
 /** Destroys every controller in `root` at once, and the roots of init() at or inside it. */

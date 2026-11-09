@@ -77,6 +77,12 @@ Vue, Svelte, Markdown and server templates alike. It looks for:
 - **Attributes**: `data-ds-*` names that a component styles (`data-ds-ripple`), also written as `dataset.dsRipple`.
 - **Modules**: `DS.<module>.<export>` (also through `window.DS` and `const { open } = DS.overlay`), and ES imports
   of `js/<module>.js` (`import { open } from 'vendor/dashboard-style/js/overlay.js'`), with the names they import.
+- **React adapter**: ES imports of `react/<file>.js` ([react.md](react.md)) bring the stylesheets that file renders
+  and those its modules always need (`manifest.json` `react`), since its classes sit in the adapter, not in the
+  project; from `react/index.js` the files of the names imported. The adapter's modules load themselves, so a React
+  project sets `"js": false`. Plain behaviour markup React renders outside the adapter's components
+  (`data-ds-collapsible`, `data-ds-time`) then starts only when its module is imported too
+  (`import '<dest>/js/<module>.js'`): the provider loads `motion`, `ripple`, `overlay` and `tooltip`, nothing else.
 - **Icons**: `DS.icons.<name>`, `icon('<name>')`, `data-icon="<name>"` and `data-ds-icon="<name>"` (also in JSX,
   `data-icon={'bell'}`), `setAttribute('data-icon', '<name>')`, and named imports of `js/icons.js`.
 

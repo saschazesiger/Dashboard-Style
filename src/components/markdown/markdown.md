@@ -90,7 +90,8 @@ The look is the prose's: size, density, shape and tone are its options ([Prose](
 ### JS API
 
 `DS.markdown.render(source, options)` returns the markup; `DS.markdown.create(el, { source, ...options })` returns
-the controller (`get`, `set`, `on('change')`, `destroy`) that the attribute path makes, rendering through
+the controller (`get`, `set`, `on('change')`, `destroy`) that the attribute path makes (whose `destroy()` puts the
+source back, so a new init renders it again), rendering through
 `DS.dom.morphHtml`, so `set()` patches only what changed (a streamed answer keeps its nodes, a selection and a focused
 link); `ds:change` `{ source }` goes out on the element. `DS.markdown.use(defaults)` sets the page's defaults;
 `DS.markdown.slug(text)` is the id a heading gets.
