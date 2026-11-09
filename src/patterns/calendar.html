@@ -111,7 +111,7 @@
     </main>
   </div>
 </div>
-<dialog class="ds-dialog" id="event" aria-labelledby="event-title">
+<dialog class="ds-dialog" id="event" aria-labelledby="event-title" data-ds-managed>
   <div class="ds-dialog__backdrop" data-ds-close></div>
   <form class="ds-dialog__box" data-ds-dialog-form>
     <h2 class="ds-dialog__title" id="event-title">New event</h2>
@@ -265,11 +265,19 @@
     });
   });
 
-  // ── A new event: the dialog starts on the chosen day at the next full hour ──
+  // ── A new event: the dialog starts on the chosen day at 10:00 ──
+  // Its date and time picker builds a calendar and the day's times: the
+  // dialog waits under data-ds-managed until it is first wanted, so the
+  // page's first paint does not pay for it.
   var dialog = document.getElementById('event');
-  var picker = DS.get(document.getElementById('event-start'), 'datepicker');
+  var picker = null;
   var opener = document.getElementById('new-event');
   opener.addEventListener('click', function () {
+    if (!picker) {
+      dialog.removeAttribute('data-ds-managed');
+      DS.init(dialog);
+      picker = DS.get(document.getElementById('event-start'), 'datepicker');
+    }
     dialog.querySelector('form').reset();
     picker.set(cal.iso(chosen) + 'T10:00');
     DS.overlay.open(dialog, { opener: opener });

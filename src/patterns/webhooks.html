@@ -337,6 +337,7 @@
   });
 
   // A resend is a new delivery: busy until the endpoint answered, then it leads the log and the sheet shows it.
+  // A good one would hide under the Failed filter, so the log goes back to All to show it.
   var resend = document.getElementById('resend');
   resend.addEventListener('click', function () {
     var source = open;
@@ -344,6 +345,10 @@
       var d = { id: 'dl_' + (9121 + deliveries.length), event: source.event, endpoint: source.endpoint, code: 200, ms: 142, at: Date.now(), attempt: source.attempt + 1 };
       deliveries.unshift(d);
       d.endpoint.ok += 1;
+      if (show !== 'all') {
+        show = 'all';
+        document.querySelector('#log-filter input[value="all"]').checked = true;
+      }
       DS.motion.flip(log, function (options) { renderLog(options); }, { items: 'tr' });
       renderEndpoints();
       showDelivery(d);

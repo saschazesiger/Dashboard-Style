@@ -207,19 +207,26 @@
     showThread(threads.find(function (t) { return '#' + t.id === action.getAttribute('href'); }));
   });
 
+  // A message of today goes under a "Today" separator: a conversation that last spoke on another day gets one first.
+  function postToday(t, message) {
+    var days = t.messages.filter(function (m) { return m.day; });
+    if (!days.length || days[days.length - 1].day !== 'Today') t.messages.push({ day: 'Today' });
+    t.messages.push(message);
+  }
+
   // Sending: the message joins the transcript at once and the view sticks to the end; a reply arrives a moment later.
   composer.on('send', function (detail) {
     var t = open;
     var now = new Date();
     var time = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-    t.messages.push({ from: ME, time: time, text: detail.text });
+    postToday(t, { from: ME, time: time, text: detail.text });
     renderLog();
     transcript.stick();
     renderThreads();
     if (t.name === 'Purchasing') return;
     setTimeout(function () {
       var reply = { from: t.id === 't2' ? 'Grace Hopper' : 'Alan Turing', time: time, text: 'Got it, thanks.' };
-      t.messages.push(reply);
+      postToday(t, reply);
       if (open === t) renderLog();
       else t.unread += 1;
       renderThreads();

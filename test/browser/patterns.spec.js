@@ -293,6 +293,18 @@ test.describe('with the keyboard, part 3', () => {
     await expect(page.locator('body > header')).toBeHidden();
     await expect(page.locator('#printed')).toBeVisible();
     await expect(page.locator('tfoot')).toContainText('$216.00');
+    // Paper drops backgrounds: the stand-in logo prints its glyph alone, never white on white.
+    const mark = await page.locator('.pt-brand__mark').evaluate((el) => {
+      const style = getComputedStyle(el);
+      const probe = document.createElement('span');
+      probe.style.color = 'var(--ds-primary)';
+      el.after(probe);
+      const primary = getComputedStyle(probe).color;
+      probe.remove();
+      return { color: style.color, background: style.backgroundColor, primary };
+    });
+    expect(mark.background).toBe('rgba(0, 0, 0, 0)');
+    expect(mark.color).toBe(mark.primary);
   });
 
   test('pricing: the period switch moves with the arrow keys and changes the prices', async ({ page }) => {
@@ -324,6 +336,10 @@ test.describe('with the keyboard, part 3', () => {
     await page.locator('#resend').focus();
     await page.keyboard.press('Enter');
     await expect(page.locator('#fact-result')).toContainText('200 OK');
+    // The resend came from the Failed view: the log goes back to All, the new delivery first.
+    await expect(page.getByRole('radio', { name: 'All' })).toBeChecked();
+    await expect(rows).toHaveCount(all + 1);
+    await expect(rows.first()).toContainText('200 OK');
     await page.keyboard.press('Escape');
     await expect(sheet).toBeHidden();
   });
@@ -440,6 +456,8 @@ test.describe('with the keyboard, part 3', () => {
 
   test('calendar: the next week, and a new event that lands in the agenda', async ({ page }) => {
     await open(page, 'calendar');
+    // The New event dialog's picker waits for the first open: the first paint does not build it.
+    await expect(page.locator('#event .ds-picker__popover')).toHaveCount(0);
     const title = page.locator('#week-title');
     const week = await title.textContent();
     await page.getByRole('button', { name: 'Next week' }).focus();
@@ -459,6 +477,9 @@ test.describe('with the keyboard, part 3', () => {
 
   test('kanban: a card moves with the keyboard, and a full column is skipped', async ({ page }) => {
     await open(page, 'kanban');
+    // A long title gives way: every handle keeps the width of its button.
+    const grips = await page.locator('.ds-grip').evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
+    expect(new Set(grips).size, `grip widths ${grips}`).toBe(1);
     const doing = page.locator('[data-zone="doing"] [data-ds-key]');
     await expect(doing).toHaveCount(2);
     await page.getByRole('button', { name: 'Move Order a second dock for the lab' }).focus();

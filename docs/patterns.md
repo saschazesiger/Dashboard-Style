@@ -336,7 +336,7 @@ in the app frame.
 - **The project wires:** the lists from its data with `DS.dom.morphHtml` (keyed rows; a status chip comes from a
   `<template>`, so its glyph stays in the markup) inside `DS.motion.flip()`, the filter's count through
   `DS.overlay.announce()`, the sheet through `DS.overlay.open(sheet, { opener })` with the code set by
-  `DS.get(figure, 'code').set()`, Resend inside `DS.motion.busy()` (the new delivery leads the log), "at least one
+  `DS.get(figure, 'code').set()`, Resend inside `DS.motion.busy()` (the new delivery leads the log, which goes back to All from the Failed filter), "at least one
   event" as a custom validity in the dialog, and rolling the secret after `DS.overlay.confirm({ destructive: true })`.
 - **Demo rule:** the ticket endpoint fails now and then (a 500 or a timeout); a resend always gets through.
 
@@ -392,8 +392,9 @@ the list.
   an [empty state](components.md#empty-state) when nothing matches, and the preview as an inspector panel
   ([side sheet](components.md#push-and-inspector), `.ds-sheet__panel--inspector`: focus stays in the list) with
   `.ds-facts--rows` and a [copy button](components.md#copy-button) for the link.
-- **The project wires:** both views from one list with `DS.dom.morphHtml` inside `DS.motion.flip()` (the hidden one is
-  patched too, so a switch is instant), one selection for both (`DS.get(grid, 'media')` and the table's boxes), the
+- **The project wires:** both views from one list with `DS.dom.morphHtml`: the view on screen is patched, inside
+  `DS.motion.flip()` for an upload, a new folder or a delete, and the hidden one when the switch shows it; the search
+  patches at most once a frame and without the glide, so typing stays quick. One selection for both (`DS.get(grid, 'media')` and the table's boxes), the
   swap of the two bars with `DS.motion.crossfade()`, delete at once with Undo in a snackbar, the upload through a
   hidden file input, a new folder through `DS.overlay.prompt()`. A card's open link is the file's address; the page
   opens the preview instead (`preventDefault()`).
@@ -405,7 +406,8 @@ the list.
 - **Components:** the [list-detail layout](components.md#list-detail-layout) (`data-ds-listdetail`, outlined) in a
   `.ds-view--fixed` view, so each column scrolls by itself; the list's title is the page's `h1`; radio
   [chips](components.md#chips) for All and Unread; the messages as an interactive [row list](components.md#row-list)
-  (initials, the sender in bold and "Unread" for a reader while unread, the subject, a line of the text, the time;
+  (initials, the sender, the subject, a line of the text, the time; while unread a dot
+  [badge](components.md#badge) after the sender, the subject in bold and "Unread" for a reader;
   the open one `aria-current`); the reading pane with a back button, quiet icon actions, a
   [persona](components.md#persona), `.ds-prose` and a reply form; an [empty state](components.md#empty-state) while
   nothing is open.
@@ -440,7 +442,8 @@ the list.
   one event (`DS.overlay.alert({ facts })`).
 - **The project wires:** the week from the day the calendar sends (`ds:change`), the previous and next week and Today
   through `set()`, the shown calendars inside `DS.motion.flip()`, the dates through `DS.calendar`'s engine (`today`,
-  `add`, `compare`, `iso`).
+  `add`, `compare`, `iso`). The New event dialog waits under `data-ds-managed` until its first open (then
+  `DS.init(dialog)`): its picker builds a calendar and the day's times, which the first paint does not need.
 - **Demo rule:** the events sit around the current week, so the page always has some.
 
 ### Kanban board
@@ -449,7 +452,8 @@ the list.
 
 - **Components:** the columns as filled cards in a [reel](components.md#horizontal-scroller) (`.ds-scroll-x--reel`:
   side by side on a desktop, one and a peek on a phone), each with its count as a [badge](components.md#badge); the
-  cards as compact cards with a `.ds-grip` handle named "Move ...", an inline [persona](components.md#persona) and a
+  cards as compact cards with a `.ds-grip` handle named "Move ..." beside a title that gives way
+  (`.ds-truncate--lines` in a `.ds-cluster--nowrap`, so the handle keeps its 32px whatever the title), an inline [persona](components.md#persona) and a
   priority [tag](components.md#tags); `DS.dnd` ([core.md](core.md#dsdnd-pointer-and-keyboard-drag)) for the pointer
   and the keyboard (Space lifts, the arrows move within and across columns, Space drops, Escape cancels; every step
   announced).

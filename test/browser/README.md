@@ -106,7 +106,7 @@ many), runs `DS.init(document)` and `DS.ripple.attach(document)` and then `fixtu
 | `regressions.spec.js`, `styleguide-regressions.spec.js` | per marker | the known bugs as `test.fail` ("Known bugs"); a fixed bug's test stays and passes |
 | `lab.spec.js` | all, `fallback` (videos with `DS_VIDEO=1`) | the Motion Lab ("Motion Lab: `lab.spec.js`"): the speed select, the curve plots and the ladder, coverage of every primitive by a demo, every demo's Replay timeline (JSON) and settled stage (PNG) per engine, Rapid toggle ending on the far state, Reverse at 50% continuous at `?speed=0.1`, the Overlays table of `docs/motion.md` against what each engine plays, and every stage holding its demo at 1280, 1000 and 390px (the open disclosure keeps its stage's height; the skeleton keeps the height of the page that replaces it) |
 | `review.spec.js` | all (forced colours, style scope: Chromium; page loads: Chromium, WebKit) | the review sweeps over both styleguide pages ("Review sweeps: `review.spec.js`"): quiet load, hover, disabled, forced colours, the page load transition, the style scope of a DOM change |
-| `perf.spec.js` | `perf` (Chromium, measured only when that project runs alone) | the paint budget ("Paint budget"): on `fixtures/perf.html` at 4x CPU throttling the p95 rAF interval of the table of 50 wavy progress bars with four shape loaders is at most two frames (33ms, plus 1ms of rAF jitter); the whole fixture and the skeleton alone are recorded in the annotations; the style recalc of a text change inside a card on both styleguide pages, and on the index while its save bar shows, stays under 7.5ms (lower quartile of 21) |
+| `perf.spec.js` | `perf` (Chromium, measured only when that project runs alone) | the paint budget ("Paint budget"): on `fixtures/perf.html` at 4x CPU throttling the p95 rAF interval of the table of 50 wavy progress bars with four shape loaders is at most two frames (33ms, plus 1ms of rAF jitter); the whole fixture and the skeleton alone are recorded in the annotations; the style recalc of a text change inside a card on both styleguide pages, and on the index while its save bar shows, stays under 7.5ms (lower quartile of 21); the longest task of a load of the calendar and files patterns at 4x CPU throttling and 390px stays under 400ms (median of five warm loads; "Load task") |
 
 ### Fixtures
 
@@ -621,6 +621,15 @@ inside a card as in `review.spec.js` is made 21 times, and the lower quartile of
 3-4.5ms (the `:has()` rules of `ds.css` are most of it; without any it is 0.4ms); the per-fact rule of `list.css`
 took it to 8-12ms. In a full parallel run the same change read 8-27ms, so like the paint budget it asserts only in
 the `perf` project run alone, and the lower quartile, not the median, keeps a stray process out.
+
+### Load task
+
+The page patterns that start the most (`src/patterns/calendar.html`, `files.html`) load six times at 4x CPU
+throttling and 390px, and the median of the longest task (`PerformanceObserver`, `longtask`) of the five warm loads
+stays under 400ms (`LOAD_CEILING`). The calendar once built the date and time picker of its closed New event dialog
+at start-up, and files patched its hidden view too; on a dev machine with the CPU alone (about half the container's
+style recalc time) their tasks fell from 215 to 145ms and from 195 to 180ms. Work a page does not show waits until
+it is wanted (the calendar's dialog sits under `data-ds-managed` until its first open).
 
 ## Final review (P8)
 

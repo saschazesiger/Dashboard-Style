@@ -196,6 +196,12 @@
     sheet: { name: 'Spreadsheet', icon: 'data-icon="fileSpreadsheet"' },
     archive: { name: 'ZIP archive', icon: 'data-icon="fileArchive"' },
     folder: { name: 'Folder', icon: 'data-icon="folder"' },
+    file: { name: 'File', icon: 'data-icon="file"' },
+  };
+  // An upload's kind from its MIME type; what no kind names is a plain file.
+  var kindOf = function (type) {
+    return /^image\//.test(type) ? 'image' : /^video\//.test(type) ? 'video' : /pdf$/.test(type) ? 'pdf'
+      : /spreadsheet|excel|csv/.test(type) ? 'sheet' : /zip|compressed|x-tar|gzip/.test(type) ? 'archive' : 'file';
   };
 
   // ── The fake backend: one folder ──
@@ -227,9 +233,23 @@
     return files.filter(function (f) { return !q || f.name.toLowerCase().indexOf(q) >= 0; });
   }
 
-  // Both views from the same data: the hidden one is patched too, so a switch shows it at once.
-  function render(options) {
-    var list = shown();
+  // Both views from the same data. Only the one on screen is patched; the
+  // other is marked stale and patched when the switch shows it.
+  var stale = { grid: false, list: false };
+  function patch(which, list, options) {
+    stale[which] = false;
+    if (which === 'list') {
+      DS.dom.morphHtml(rows, list.map(function (f) {
+        return '<tr data-ds-key="' + f.id + '">' +
+          '<td><input type="checkbox" value="' + f.id + '" aria-label="Select ' + esc(f.name) + '"' + (selected.has(f.id) ? ' checked' : '') + '></td>' +
+          '<td class="ds-col--text"><button class="ds-link-btn" type="button" data-open="' + f.id + '">' + esc(f.name) + '</button></td>' +
+          '<td class="ds-col--secondary">' + esc(KINDS[f.kind].name) + '</td>' +
+          '<td class="ds-num">' + esc(size(f)) + '</td>' +
+          '<td class="ds-col--secondary ds-nowrap">' + esc(f.modified) + '</td>' +
+          '</tr>';
+      }).join(''), options);
+      return;
+    }
     DS.dom.morphHtml(grid, list.map(function (f) {
       return '<li class="ds-media" data-ds-key="' + f.id + '">' +
         '<span class="ds-media__thumb"><span ' + KINDS[f.kind].icon + ' data-icon-size="32"></span>' + (f.tag ? '<span class="ds-media__tag">' + esc(f.tag) + '</span>' : '') + '</span>' +
@@ -237,18 +257,14 @@
         '<span class="ds-media__meta">' + esc(size(f)) + ' · ' + esc(f.modified) + '</span>' +
         '<span class="ds-media__select"><input class="ds-checkbox ds-media__check" type="checkbox" value="' + f.id + '" aria-label="Select ' + esc(f.name) + '"' + (selected.has(f.id) ? ' checked' : '') + '></span>' +
         '</li>';
-    }).join(''), view === 'grid' ? options : undefined);
-    DS.dom.morphHtml(rows, list.map(function (f) {
-      return '<tr data-ds-key="' + f.id + '">' +
-        '<td><input type="checkbox" value="' + f.id + '" aria-label="Select ' + esc(f.name) + '"' + (selected.has(f.id) ? ' checked' : '') + '></td>' +
-        '<td class="ds-col--text"><button class="ds-link-btn" type="button" data-open="' + f.id + '">' + esc(f.name) + '</button></td>' +
-        '<td class="ds-col--secondary">' + esc(KINDS[f.kind].name) + '</td>' +
-        '<td class="ds-num">' + esc(size(f)) + '</td>' +
-        '<td class="ds-col--secondary ds-nowrap">' + esc(f.modified) + '</td>' +
-        '</tr>';
-    }).join(''), view === 'list' ? options : undefined);
+    }).join(''), options);
     DS.icons.fill(grid);
     media.set(list.filter(function (f) { return selected.has(f.id); }).map(function (f) { return f.id; }));
+  }
+  function render(options) {
+    var list = shown();
+    patch(view, list, options);
+    stale[view === 'grid' ? 'list' : 'grid'] = true;
     document.getElementById('empty').hidden = list.length > 0;
     document.getElementById('summary').textContent = files.length + ' items · ' + DS.format.bytes(files.reduce(function (sum, f) { return sum + f.bytes; }, 0));
     // The search sits in the action bar, which leaves the page while the selection bar stands in its place.
@@ -270,14 +286,16 @@
     if (!option || option.getAttribute('data-view') === view) return;
     views.querySelectorAll('.ds-segmented__option').forEach(function (other) { other.setAttribute('aria-checked', String(other === option)); });
     view = option.getAttribute('data-view');
+    if (stale[view]) patch(view, shown());
     grid.hidden = view !== 'grid';
     document.getElementById('list-card').hidden = view !== 'list';
   });
 
-  // ── Search ──
+  // ── Search: one patch a frame, however fast the keys come, and no glide (the list follows the typing) ──
+  var typed = 0;
   document.getElementById('q').addEventListener('input', function (event) {
     query = event.target.value;
-    rerender();
+    if (!typed) typed = requestAnimationFrame(function () { typed = 0; render(); });
   });
 
   // ── Selection: one set for both views; the selection bar takes the toolbar's place while it is not empty ──
@@ -350,7 +368,7 @@
     body.querySelector('[data-preview-icon]').outerHTML = '<span ' + KINDS[f.kind].icon + ' data-icon-size="48"></span>';
     body.querySelector('[data-fact="kind"]').textContent = KINDS[f.kind].name;
     body.querySelector('[data-fact="size"]').textContent = size(f);
-    body.querySelector('[data-fact="modified"]').textContent = f.modified + ', 2026';
+    body.querySelector('[data-fact="modified"]').textContent = f.modified + (f.modified === 'Today' ? '' : ', 2026');
     body.querySelector('[data-fact="owner"]').textContent = f.owner;
     body.querySelector('[data-ds-copy-value]').setAttribute('data-ds-copy-value', 'https://files.example.com/s/' + f.id);
     DS.dom.morphHtml(document.getElementById('preview-body'), body.outerHTML);
@@ -374,7 +392,7 @@
   document.getElementById('upload').addEventListener('click', function () { input.click(); });
   input.addEventListener('change', function () {
     var added = Array.prototype.map.call(input.files, function (file, index) {
-      return { id: 'u' + Date.now() + index, name: file.name, kind: /^image\//.test(file.type) ? 'image' : /^video\//.test(file.type) ? 'video' : /pdf$/.test(file.type) ? 'pdf' : 'archive', bytes: file.size, modified: 'Today', owner: 'Ada Lovelace' };
+      return { id: 'u' + Date.now() + index, name: file.name, kind: kindOf(file.type), bytes: file.size, modified: 'Today', owner: 'Ada Lovelace' };
     });
     if (!added.length) return;
     files = added.concat(files);

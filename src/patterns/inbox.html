@@ -177,7 +177,9 @@
         '<span class="ds-list__media ds-list__media--round" aria-hidden="true">' + esc(initials(m.from)) + '</span>' +
         '<span class="ds-list__text">' +
           '<span class="ds-list__title"><a class="ds-list__action" href="#' + m.id + '" data-ds-listdetail-show="detail"' + (m.id === open ? ' aria-current="true"' : '') + '>' +
-            (m.unread ? '<span class="ds-sr">Unread: </span><strong>' + esc(m.from) + '</strong>' : esc(m.from)) + '</a></span>' +
+            (m.unread ? '<span class="ds-sr">Unread: </span>' : '') + esc(m.from) +
+            // Unread: a dot after the sender (the word is in the .ds-sr, for a reader) and the subject in bold.
+            (m.unread ? ' <span class="ds-badge ds-badge--dot" aria-hidden="true"></span>' : '') + '</a></span>' +
           '<span class="ds-list__description ds-clamp-1">' + (m.unread ? '<strong>' + esc(m.subject) + '</strong>' : esc(m.subject)) + '</span>' +
           '<span class="ds-list__meta ds-clamp-1">' + esc(m.body[0] === 'Hi Ada,' ? m.body[1] : m.body[0]) + '</span>' +
         '</span>' +

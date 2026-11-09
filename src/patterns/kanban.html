@@ -129,7 +129,7 @@
   function cardHtml(card) {
     return '<div class="ds-card ds-density-compact" role="listitem" data-ds-key="' + card.id + '" aria-label="' + esc(card.title) + '">' +
       '<div class="ds-cluster ds-cluster--nowrap ds-cluster--top ds-cluster--between">' +
-        '<h3>' + esc(card.title) + '</h3>' +
+        '<h3 class="ds-card__title ds-truncate ds-truncate--lines" style="--ds-truncate-lines: 3">' + esc(card.title) + '</h3>' +
         '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm ds-grip" type="button" aria-label="Move ' + esc(card.title) + '" data-icon="grip"></button>' +
       '</div>' +
       '<div class="ds-cluster ds-cluster--between">' +
