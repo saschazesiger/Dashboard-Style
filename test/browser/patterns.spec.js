@@ -276,6 +276,33 @@ test.describe('the pages of the app, with the keyboard', () => {
     await expect(more).toBeFocused();
   });
 
+  test('dashboard: 90 days fold into 13 weeks, and the charts morph after the click, one task each', async ({ page }) => {
+    await open(page, 'dashboard');
+    await page.locator('#chart-online').scrollIntoViewIfNeeded();
+    await expect(page.locator('#chart-online tbody tr')).toHaveCount(7);
+    await expect(page.locator('#chart-tickets tbody tr')).toHaveCount(7);
+    // The click's own task only turns the switch: no chart is set in it (load-independent, unlike a time).
+    const inClick = await page.evaluate(() => {
+      document.querySelector('[data-range="90"]').click();
+      return [document.querySelectorAll('#chart-tickets tbody tr').length, document.querySelectorAll('#chart-online tbody tr').length];
+    });
+    expect(inClick, 'no chart morphs inside the click').toEqual([7, 7]);
+    // Then each chart morphs to 13 weekly points, never 90 per series.
+    await expect(page.locator('#chart-tickets tbody tr')).toHaveCount(13);
+    await expect(page.locator('#chart-online tbody tr')).toHaveCount(13);
+  });
+
+  test('dashboard: the alert opens the list filtered to the offline devices', async ({ page }) => {
+    await open(page, 'dashboard');
+    await page.getByRole('link', { name: 'Review devices' }).click();
+    await expect(page).toHaveURL(/list\.html\?d\.view=offline/);
+    await ready(page);
+    await expect(page.locator('.ds-views__name')).toHaveText('Offline');
+    await expect(page.locator('#f-status')).toHaveValue('offline');
+    await expect(page.locator('#range')).not.toHaveText(/of 132$/);
+    expect(await page.locator('#rows tr').count()).toBe(await page.locator('#rows .ds-status.ds-tone-warning').count());
+  });
+
   test('list: search, sort, select in bulk, a saved view', async ({ page }) => {
     await open(page, 'list');
     await expect(page.locator('#rows tr')).toHaveCount(25);
@@ -305,6 +332,11 @@ test.describe('the pages of the app, with the keyboard', () => {
     await page.keyboard.press('Space');
     await expect(page.locator('.ds-selection-bar__count')).toHaveText('1 selected');
     await expect(page.locator('#select-all')).toHaveJSProperty('indeterminate', true);
+    // Searched out of sight, the selected device is still named in the bar.
+    await search.fill('no device has this name');
+    await expect(page.locator('.ds-selection-bar__count')).toHaveText('1 selected, 1 not shown');
+    await search.fill('');
+    await expect(page.locator('.ds-selection-bar__count')).toHaveText('1 selected');
     await page.getByRole('button', { name: 'Clear selection' }).focus();
     await page.keyboard.press('Enter');
     await expect(page.locator('#select-all')).toBeFocused();
@@ -337,6 +369,10 @@ test.describe('the pages of the app, with the keyboard', () => {
     await name.press('Enter');
     await expect(page.locator('#general [data-field="name"]')).toHaveText('LAPTOP-0044');
     await expect(edit).toBeFocused();
+    // The new name reaches the h1, the tab, the history's label and the delete dialog, which then asks for it.
+    await expect(page.locator('h1')).toHaveText('LAPTOP-0044');
+    await expect(page).toHaveTitle(/^LAPTOP-0044 · /);
+    await expect(page.locator('#timeline')).toHaveAttribute('aria-label', 'History of LAPTOP-0044');
 
     const remove = page.locator('#delete');
     await remove.focus();
@@ -344,7 +380,10 @@ test.describe('the pages of the app, with the keyboard', () => {
     const confirm = page.locator('.ds-typeconfirm__confirm');
     await expect(page.getByRole('button', { name: 'Cancel' }).last()).toBeFocused();
     await expect(confirm).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.locator('#delete-title')).toHaveText('Delete LAPTOP-0044?');
     await page.locator('#delete-name').fill('LAPTOP-0042');
+    await expect(confirm).toHaveAttribute('aria-disabled', 'true');
+    await page.locator('#delete-name').fill('LAPTOP-0044');
     await expect(confirm).not.toHaveAttribute('aria-disabled', 'true');
     await page.keyboard.press('Escape');
     await expect(remove).toBeFocused();
@@ -382,9 +421,20 @@ test.describe('the pages of the app, with the keyboard', () => {
     await expect(page.locator('#current')).toHaveAttribute('aria-invalid', 'true');
     await expect(page.locator('#current')).toBeFocused();
 
+    const others = page.getByRole('button', { name: 'Sign out everywhere else' });
     await page.getByRole('button', { name: 'Sign out of Safari on a phone' }).click();
     await expect(page.locator('#sessions .ds-list__item')).toHaveCount(2);
     await expect(page.locator('.ds-toasts')).toContainText('Signed out of 1 session.');
+    await expect(others).not.toHaveAttribute('aria-disabled', 'true');
+    // The last other session, one by one: "everywhere else" has nothing left, says why, and takes the focus.
+    const last = page.getByRole('button', { name: 'Sign out of Chrome on a desktop' });
+    await last.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#sessions .ds-list__item')).toHaveCount(1);
+    await expect(others).toHaveAttribute('aria-disabled', 'true');
+    // Its own description, whether or not its tip shows (a shown tip adds itself to it).
+    await expect(others).toHaveAccessibleDescription(/^No other sessions are signed in\./);
+    await expect(others).toBeFocused();
   });
 
   test('team: the invitation needs an address, then adds the person; a new role says so with Undo', async ({ page }) => {
@@ -424,6 +474,14 @@ test.describe('the pages of the app, with the keyboard', () => {
     await open(page, 'api-keys');
     await page.getByRole('button', { name: 'Create key' }).click();
     await page.locator('#key-name').fill('Backup script');
+    // No access at all is refused in the Access group, with the focus on its first box; the next change clears it.
+    const scopes = page.getByRole('group', { name: 'Access' });
+    await page.getByRole('checkbox', { name: 'Read devices' }).uncheck();
+    await page.getByRole('dialog', { name: 'Create a key' }).getByRole('button', { name: 'Create key' }).click();
+    await expect(scopes).toHaveAccessibleDescription('Choose at least one kind of access.');
+    await expect(page.getByRole('checkbox', { name: 'Read devices' })).toBeFocused();
+    await page.keyboard.press('Space');
+    await expect(page.locator('#scope-error')).toBeHidden();
     await page.locator('#key-name').press('Enter');
     const once = page.getByRole('alertdialog', { name: 'Copy your new key' });
     await expect(once).toBeVisible();
@@ -436,6 +494,13 @@ test.describe('the pages of the app, with the keyboard', () => {
     await done.click();
     await expect(once).toBeHidden();
     await expect(page.locator('#keys')).toContainText('Backup script');
+
+    // A key made today was never used, and its question says so.
+    await page.getByRole('button', { name: 'Revoke Backup script' }).click();
+    const plain = page.getByRole('alertdialog', { name: 'Revoke Backup script?' });
+    await expect(plain).toContainText('It has never been used. This cannot be undone.');
+    await page.keyboard.press('Escape');
+    await expect(plain).toBeHidden();
 
     await page.getByRole('button', { name: 'Revoke Ticket sync' }).click();
     const revoke = page.locator('.ds-typeconfirm__confirm');

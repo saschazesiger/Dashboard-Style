@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="ds-theme ds-base">
+<html lang="en-GB" class="ds-theme ds-base">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -65,8 +65,8 @@
               <a class="ds-btn ds-btn--text ds-sm ds-page-head__back" href="list.html" data-icon="arrowLeft" data-icon-size="18" data-icon-place="start"><span class="ds-sr">Back to </span>Devices</a>
               <div class="ds-page-head__row">
                 <div class="ds-page-head__text">
-                  <h1 class="ds-page-head__title" id="record-title" tabindex="-1">LAPTOP-0042</h1>
-                  <p class="ds-page-head__lead">Laptop 14 · issued to Ada Lovelace</p>
+                  <h1 class="ds-page-head__title" id="record-title" tabindex="-1" data-field="name">LAPTOP-0042</h1>
+                  <p class="ds-page-head__lead">Laptop 14 · issued to <span data-field="owner">Ada Lovelace</span></p>
                   <div class="ds-page-head__status"><span class="ds-status ds-tone-error" data-icon="alertCircle" data-icon-size="16" data-icon-place="start"><span>Disk 96% full</span></span></div>
                 </div>
                 <div class="ds-page-head__actions">
@@ -235,7 +235,7 @@
 
 <dialog class="ds-dialog" id="delete-dialog" role="alertdialog" aria-labelledby="delete-title" aria-describedby="delete-text">
   <div class="ds-dialog__backdrop" data-ds-close></div>
-  <form class="ds-dialog__box ds-typeconfirm" data-ds-typeconfirm="LAPTOP-0042">
+  <form class="ds-dialog__box ds-typeconfirm" id="delete-box" data-ds-typeconfirm="LAPTOP-0042">
     <h2 class="ds-dialog__title" id="delete-title">Delete LAPTOP-0042?</h2>
     <p class="ds-dialog__text" id="delete-text">Its history and its open ticket go with it. This cannot be undone; to keep the history, retire it instead.</p>
     <div class="ds-field">
@@ -306,10 +306,21 @@
       Object.keys(values).forEach(function (name) {
         document.querySelectorAll('[data-field="' + name + '"]').forEach(function (out) { out.textContent = values[name] || 'Not set'; });
       });
-      if (values.name) document.title = values.name + ' · Devices · Product';
+      if (values.name) rename(values.name);
       object.done(section);
     });
   });
+
+  // A new name reaches every place that says it (the data-field outputs, the h1 among them, are written above): the
+  // tab, the history's name, and the delete dialog, whose type-to-confirm then asks for the new name.
+  var deviceName = document.getElementById('record-title').textContent;
+  function rename(name) {
+    deviceName = name;
+    document.title = name + ' · Devices · Product';
+    document.getElementById('timeline').setAttribute('aria-label', 'History of ' + name);
+    document.getElementById('delete-title').textContent = 'Delete ' + name + '?';
+    document.getElementById('delete-box').setAttribute('data-ds-typeconfirm', name);
+  }
 
   // Delete: the name is typed before the red button works (D10); then the list, with the result in words.
   var dialog = document.getElementById('delete-dialog');
@@ -320,7 +331,7 @@
   });
   dialog.addEventListener('ds:confirm', function (event) {
     event.detail.wait(wait(900).then(function () {
-      DS.overlay.toast(toasts, 'LAPTOP-0042 deleted.', { kind: 'success' });
+      DS.overlay.toast(toasts, deviceName + ' deleted.', { kind: 'success' });
       setTimeout(function () { location.href = 'list.html'; }, 1200);
     }));
   });

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="ds-theme ds-base">
+<html lang="en-GB" class="ds-theme ds-base">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -78,7 +78,7 @@
 
           <div class="ds-alert ds-tone-warning" role="status" data-icon="alert" data-icon-place="start">
             <div class="ds-alert__text"><p class="ds-alert__title">3 devices have not synced for a week</p><p>They may be switched off or lost. Check them before their warranty claims expire.</p></div>
-            <div class="ds-alert__actions"><a class="ds-btn ds-btn--text ds-sm" href="list.html?status=offline">Review devices</a></div>
+            <div class="ds-alert__actions"><a class="ds-btn ds-btn--text ds-sm" href="list.html?d.view=offline">Review devices</a></div>
           </div>
 
           <section aria-labelledby="figures-title">
@@ -109,18 +109,17 @@
                   </figure>
                 </div>
               </div>
-              <a class="ds-tile" href="list.html?view=tickets">
-                <span class="ds-tile__label" data-icon="ticket" data-icon-place="start"><span>Open tickets</span></span>
-                <span class="ds-tile__value" id="fig-tickets">37</span>
-                <span class="ds-tile__delta ds-tone-success" data-icon="arrowDown" data-icon-size="16" data-icon-place="start"><span>5 fewer than last week</span></span>
-                <span class="ds-tile__note">Opens the list</span>
-              </a>
-              <a class="ds-tile" href="list.html?status=overdue">
-                <span class="ds-tile__label" data-icon="clock" data-icon-place="start"><span>Overdue</span></span>
-                <span class="ds-tile__value" id="fig-overdue">5</span>
-                <span class="ds-tile__delta ds-tone-error" data-icon="arrowUp" data-icon-size="16" data-icon-place="start"><span>2 more than last week</span></span>
-                <span class="ds-tile__note">Target: none overdue</span>
-              </a>
+              <div class="ds-tile">
+                <p class="ds-tile__label" data-icon="ticket" data-icon-place="start"><span>Open tickets</span></p>
+                <p class="ds-tile__value" id="fig-tickets">37</p>
+                <p class="ds-tile__delta ds-tone-success" data-icon="arrowDown" data-icon-size="16" data-icon-place="start"><span>5 fewer than last week</span></p>
+              </div>
+              <div class="ds-tile">
+                <p class="ds-tile__label" data-icon="clock" data-icon-place="start"><span>Overdue tickets</span></p>
+                <p class="ds-tile__value" id="fig-overdue">5</p>
+                <p class="ds-tile__delta ds-tone-error" data-icon="arrowUp" data-icon-size="16" data-icon-place="start"><span>2 more than last week</span></p>
+                <p class="ds-tile__note">Target: none overdue</p>
+              </div>
               <div class="ds-tile">
                 <p class="ds-tile__label" data-icon="hardDrive" data-icon-place="start"><span>Storage used</span></p>
                 <p class="ds-tile__value"><span class="ds-tile__figure" id="fig-storage">640</span><span class="ds-tile__unit">GB</span></p>
@@ -144,7 +143,6 @@
                   <button class="ds-btn ds-btn--icon ds-btn--quiet ds-sm" type="button" aria-label="Actions for tickets per day" aria-haspopup="menu" aria-expanded="false" aria-controls="p-tickets-menu" data-ds-open="#p-tickets-menu" data-icon="moreVertical" data-icon-size="18"></button>
                   <div class="ds-menu" id="p-tickets-menu" role="menu" aria-label="Tickets per day" hidden>
                     <button class="ds-menu__item" role="menuitem" type="button" data-refresh="tickets" data-icon="sync" data-icon-place="start"><span class="ds-menu__label">Refresh</span></button>
-                    <a class="ds-menu__item" role="menuitem" href="list.html?view=tickets" data-icon="ticket" data-icon-place="start"><span class="ds-menu__label">Open the tickets</span></a>
                   </div>
                 </div>
                 <span class="ds-loadbar" aria-hidden="true"><span class="ds-loadbar__bar"></span></span>
@@ -315,28 +313,33 @@
       return Math.max(0, Math.round(day === 0 || day === 6 ? value * weekend : value));
     });
   }
-  // Columns per day up to 30 days; 90 days are 13 weeks (a column per day would be thinner than a line on a phone).
+  // A point per day up to 30 days; 90 days are 13 whole weeks (91 days, so no week is cut short), each labelled by its
+  // first day: a column per day would be thinner than a line on a phone, and 270 points with their markers take a
+  // slow phone a second to morph.
+  function span(range) { return range > 30 ? Math.ceil(range / 7) * 7 : range; }
+  function byWeek(labels, series, fold) {
+    var starts = [];
+    for (var i = 0; i < labels.length; i += 7) starts.push(i);
+    return {
+      labels: starts.map(function (i) { return labels[i]; }),
+      series: series.map(function (one) {
+        return { name: one.name, values: starts.map(function (i) { return fold(one.values.slice(i, i + 7)); }) };
+      }),
+    };
+  }
+  var sum = function (list) { return list.reduce(function (a, b) { return a + b; }, 0); };
+  var mean = function (list) { return Math.round(sum(list) / list.length); };
   function ticketsSpec(range) {
-    var labels = days(range);
-    var opened = wave(labels, 14, 5, 0, 0.3);
-    var closed = wave(labels, 13, 5, 2, 0.25);
-    if (range > 30) {
-      var weeks = [];
-      var sum = function (list, from) { return list.slice(from, from + 7).reduce(function (a, b) { return a + b; }, 0); };
-      for (var i = range % 7; i < range; i += 7) weeks.push(i);
-      return {
-        type: 'column', labels: weeks.map(function (i) { return labels[i]; }),
-        series: [{ name: 'Opened', values: weeks.map(function (i) { return sum(opened, i); }) }, { name: 'Closed', values: weeks.map(function (i) { return sum(closed, i); }) }],
-      };
-    }
-    return { type: 'column', labels: labels, series: [{ name: 'Opened', values: opened }, { name: 'Closed', values: closed }] };
+    var labels = days(span(range));
+    var series = [{ name: 'Opened', values: wave(labels, 14, 5, 0, 0.3) }, { name: 'Closed', values: wave(labels, 13, 5, 2, 0.25) }];
+    var folded = range > 30 ? byWeek(labels, series, sum) : { labels: labels, series: series };
+    return { type: 'column', labels: folded.labels, series: folded.series };
   }
   function onlineSpec(range) {
-    var labels = days(range);
-    return {
-      type: 'area', stack: 'normal', curve: 'monotone', labels: labels,
-      series: [{ name: 'Laptops', values: wave(labels, 640, 30, 1, 0.92) }, { name: 'Desktops', values: wave(labels, 410, 20, 3, 0.85) }, { name: 'Phones', values: wave(labels, 230, 15, 5, 0.97) }],
-    };
+    var labels = days(span(range));
+    var series = [{ name: 'Laptops', values: wave(labels, 640, 30, 1, 0.92) }, { name: 'Desktops', values: wave(labels, 410, 20, 3, 0.85) }, { name: 'Phones', values: wave(labels, 230, 15, 5, 0.97) }];
+    var folded = range > 30 ? byWeek(labels, series, mean) : { labels: labels, series: series };
+    return { type: 'area', stack: 'normal', curve: 'monotone', labels: folded.labels, series: folded.series };
   }
 
   // The charts draw only when they come near the screen, each in a task of its own after the page shows, so the
@@ -380,9 +383,20 @@
     group.querySelectorAll('[data-range]').forEach(function (item) { item.setAttribute('aria-checked', String(item === option)); });
     range = Number(option.getAttribute('data-range'));
     subtitles.forEach(function (text) { text.textContent = 'Last ' + range + ' days'; });
-    if (charts.tickets) charts.tickets.set(ticketsSpec(range));
-    if (charts.online) charts.online.set(onlineSpec(range));
+    morph();
   });
+  // The switch paints first; then each chart morphs in a task of its own, so no task holds a slow phone for long.
+  // A second choice before they ran replaces the first (the charts read `range` when their turn comes).
+  var turn = 0;
+  function morph() {
+    var mine = turn += 1;
+    var next = function (names) {
+      if (mine !== turn || !names.length) return;
+      if (charts[names[0]]) charts[names[0]].set(specs[names[0]]());
+      setTimeout(function () { next(names.slice(1)); }, 0);
+    };
+    requestAnimationFrame(function () { setTimeout(function () { next(['tickets', 'online']); }, 0); });
+  }
 
   // Refresh a panel: the old chart stays, dimmed after the loader delay, and the loading bar shows; then it morphs.
   document.addEventListener('click', function (event) {
@@ -391,7 +405,7 @@
     var name = item.getAttribute('data-refresh');
     var body = document.getElementById('panel-' + name).querySelector('.ds-dashpanel__body');
     DS.motion.refresh(body, function () { return wait(700); }, { loadbar: false }).then(function () {
-      if (charts[name]) charts[name].set(name === 'tickets' ? ticketsSpec(range) : onlineSpec(range));
+      if (charts[name]) charts[name].set(specs[name]());
       DS.overlay.toast(document.getElementById('toasts'), 'Updated.');
     });
   });

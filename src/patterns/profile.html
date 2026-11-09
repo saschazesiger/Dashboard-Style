@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="ds-theme ds-base">
+<html lang="en-GB" class="ds-theme ds-base">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -171,6 +171,7 @@
             <div class="ds-card__row">
               <h2 class="ds-card__title" id="sessions-title">Where you are signed in</h2>
               <button class="ds-btn ds-sm" type="button" id="sign-out-others">Sign out everywhere else</button>
+              <span class="ds-sr" id="sign-out-others-why"></span>
             </div>
             <ul class="ds-list" id="sessions" aria-label="Sessions">
               <li class="ds-list__item" data-ds-key="s1">
@@ -323,23 +324,32 @@
     });
   });
 
-  // Sessions: one leaves the list (its neighbour takes the focus), or every one but this device.
+  // Sessions: one leaves the list (its neighbour takes the focus), or every one but this device. Once only this device
+  // is left, "Sign out everywhere else" turns aria-disabled and says why (a tip for the eye, a description for a
+  // screen reader); the focus of the last Sign out goes to it.
   var sessions = document.getElementById('sessions');
+  var others = document.getElementById('sign-out-others');
+  var why = document.getElementById('sign-out-others-why');
+  var signedIn = ['s2', 's3'];
   function signOut(keys) {
     var rows = keys.map(function (key) { return sessions.querySelector('[data-ds-key="' + key + '"]'); }).filter(Boolean);
     if (!rows.length) return;
-    DS.motion.flip(sessions, function () { rows.forEach(function (row) { row.remove(); }); }, { items: '.ds-list__item' });
+    signedIn = signedIn.filter(function (key) { return keys.indexOf(key) < 0; });
+    if (!signedIn.length) {
+      why.textContent = 'No other sessions are signed in.';
+      others.setAttribute('aria-disabled', 'true');
+      others.setAttribute('aria-describedby', why.id);
+      others.setAttribute('data-tip', 'No other sessions');
+    }
+    DS.motion.flip(sessions, function () { rows.forEach(function (row) { row.remove(); }); }, { items: '.ds-list__item', refocus: others });
     DS.overlay.toast(toasts, rows.length === 1 ? 'Signed out of 1 session.' : 'Signed out of ' + rows.length + ' sessions.');
   }
   sessions.addEventListener('click', function (event) {
     var button = event.target.closest('[data-session]');
     if (button) signOut([button.getAttribute('data-session')]);
   });
-  var others = document.getElementById('sign-out-others');
   others.addEventListener('click', function () {
-    signOut(['s2', 's3']);
-    others.setAttribute('aria-disabled', 'true');
-    others.setAttribute('data-tip', 'No other sessions');
+    signOut(signedIn.slice());
   });
 
   // Leaving: typing the address unlocks the red button (D10); then the sign-in page.

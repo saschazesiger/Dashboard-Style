@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="ds-theme ds-base">
+<html lang="en-GB" class="ds-theme ds-base">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -69,7 +69,7 @@
             <div class="ds-search" data-icon="search" data-icon-place="start"><input class="ds-input" type="search" id="search" aria-label="Search integrations" placeholder="Search integrations"></div>
             <div class="ds-segmented" role="radiogroup" aria-label="Show" id="show">
               <button class="ds-segmented__option" type="button" role="radio" aria-checked="true" data-show="all" data-label="All">All</button>
-              <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-show="connected" data-label="Connected">Connected<span class="ds-segmented__count"><span class="ds-sr">, </span><span id="connected-count">3</span></span></button>
+              <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-show="connected" data-label="Connected">Connected<span class="ds-segmented__count"><span class="ds-sr">, </span><span id="connected-count">4</span></span></button>
               <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-show="available" data-label="Available">Available</button>
             </div>
             <p class="ds-meta" id="count" role="status"></p>
@@ -119,7 +119,8 @@
 
   var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
   var toasts = document.getElementById('toasts');
-  // Generic services; a project names its own. state: connected, error (it needs a person) or available.
+  // Generic services; a project names its own. state: connected, error (it needs a person) or available. "Connected"
+  // counts both of the first two (4 in the markup): one that needs attention is still connected.
   var services = [
     { id: 'chat', name: 'Team chat', glyph: DS.icons.chat, text: 'Post device alerts and new tickets into a channel.', state: 'connected', detail: 'Posts to #it-alerts', scopes: ['Post messages to the channels you choose'] },
     { id: 'directory', name: 'Directory', glyph: DS.icons.users, text: 'Bring in people, teams and who owns which device.', state: 'connected', detail: 'Synced today, 02:00', scopes: ['Read people and groups', 'Read device assignments'] },
@@ -138,12 +139,13 @@
     error: function () { return '<span class="ds-status ds-tone-error">' + DS.icons.icon(DS.icons.alertCircle, 16) + '<span>Needs attention</span></span>'; },
     available: function () { return ''; },
   };
+  // A connected service offers only Disconnect here: its own options belong to a page of its own, which a project adds.
   function actions(s) {
     var name = esc(s.name);
     if (s.state === 'available') return '<button class="ds-btn ds-btn--tonal ds-sm" type="button" data-connect="' + s.id + '" aria-haspopup="dialog" aria-label="Connect ' + name + '">Connect</button>';
     var first = s.state === 'error'
       ? '<button class="ds-btn ds-btn--tonal ds-sm" type="button" data-connect="' + s.id + '" aria-haspopup="dialog" aria-label="Sign in to ' + name + ' again">Sign in again</button>'
-      : '<a class="ds-btn ds-sm" href="settings.html" aria-label="Settings of ' + name + '">Settings</a>';
+      : '';
     return first + '<button class="ds-btn ds-btn--text ds-sm" type="button" data-disconnect="' + s.id + '" aria-label="Disconnect ' + name + '">Disconnect</button>';
   }
   function cardHtml(s) {

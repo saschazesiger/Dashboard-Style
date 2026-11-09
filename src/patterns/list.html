@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="ds-theme ds-base">
+<html lang="en-GB" class="ds-theme ds-base">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -367,7 +367,10 @@
       selectionBar = null;
       DS.motion.crossfade(slot, listBar);
     }
-    if (selectionBar) selectionBar.querySelector('.ds-selection-bar__count').textContent = selected.size + ' selected';
+    // A selection outlives searches, filters and pages; the bar names the part out of sight, so a bulk action never
+    // takes devices the person cannot see without saying so.
+    var hidden = selected.size - onPage;
+    if (selectionBar) selectionBar.querySelector('.ds-selection-bar__count').textContent = selected.size + ' selected' + (hidden ? ', ' + hidden + ' not shown' : '');
   }
   rows.addEventListener('change', function (event) {
     var box = event.target;

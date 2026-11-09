@@ -290,13 +290,15 @@ tables keep their first columns and scroll sideways in their card, forms fall to
 [dashboard.html](../src/patterns/dashboard.html): the start page, key figures over everything else.
 
 - **Components:** a [page head](components.md#page) with a range switch (a [segmented](components.md#segmented-options-as-buttons)
-  radio group: 7, 30 or 90 days), a warning [alert](components.md#alert) with its action, [tiles](components.md#tiles)
-  (a sparkline of `.ds-columns--mini`, two tiles that open a list, a target meter), [dashboard panels](components.md#dashboard-panel)
+  radio group: 7, 30 or 90 days), a warning [alert](components.md#alert) whose action opens the list's saved view
+  through its address (`list.html?d.view=offline`), [tiles](components.md#tiles) (a sparkline of `.ds-columns--mini`,
+  a delta, a target meter), [dashboard panels](components.md#dashboard-panel)
   with [charts](components.md#charts) (columns, a stacked area, a donut) and their menus, a flush panel with an
   interactive [table](components.md#table) of what needs attention, an activity [timeline](components.md#timeline).
 - **The project wires:** the charts through `DS.chart.create()` once an `IntersectionObserver` sees them near the
   screen, one per task (so the first paint never waits for them and a phone draws only what it scrolls to); the range
-  (`DS.dom.roving()`, `DS.indicator`), which morphs both charts with `set()` (90 days as 13 weekly columns);
+  (`DS.dom.roving()`, `DS.indicator`), which morphs both charts with `set()` after the switch has painted, each in a
+  task of its own (90 days as 13 weeks: summed columns, averaged points, so a slow phone never morphs 270 points);
   "Refresh" in a panel's menu, `DS.motion.refresh()` on its body (the old chart dims, then morphs) and a snackbar.
 - **Demo rule:** the figures are a repeatable wave over the days up to 6 November 2026.
 
@@ -313,8 +315,10 @@ tables keep their first columns and scroll sideways in their card, forms fall to
 - **The project wires:** one `render()` for every change: the rows of the page through `DS.dom.morphHtml` in
   `DS.motion.flip()` (keyed, so a sort glides), the range, the blocked page buttons, the arrow at the sorted column
   (one node that moves, so a reversed sort turns it), the header box (mixed for some), `bar.count()`, and
-  `views.set({ state })` so the view says "Edited"; a picked view applies its filters and sort. "Retire" removes the
-  selected rows at once with Undo, the focus on the header box.
+  `views.set({ state })` so the view says "Edited"; a picked view applies its filters and sort, also from an address
+  another page links to (`list.html?d.view=offline`, `?d.status=offline`). The selection outlives searches, filters
+  and pages, and the bar names what is out of sight ("3 selected, 2 not shown"). "Retire" removes the selected rows at
+  once with Undo, the focus on the header box.
 - **Demo rule:** the devices are a seeded random set; Refresh waits a moment and renders the same rows.
 
 ### Record detail
@@ -328,8 +332,9 @@ tables keep their first columns and scroll sideways in their card, forms fall to
   copy buttons on the facts (`data-ds-facts-copy`), meters in rows, a [persona](components.md#persona), the
   history as a [timeline](components.md#timeline), and Delete behind [type-to-confirm](components.md#type-to-confirm).
 - **The project wires:** `ds:save` cancelled to check what the markup cannot say (required fields and a free name, as
-  errors at their fields), the request with the busy face, the new values written into the view and the head, then
-  `done(section)`; the delete request inside `ds:confirm`'s `wait()`, then back to the list. An action folded into the
+  errors at their fields), the request with the busy face, the new values written into the view and the head (every
+  `data-field` output, the h1 and the lead among them), a new name also into the tab's title, the history's label and
+  the delete dialog (its title and `data-ds-typeconfirm`, so the name to type follows), then `done(section)`; the delete request inside `ds:confirm`'s `wait()`, then back to the list. An action folded into the
   head's More menu opens its dialog against the More button.
 - **Demo rule:** the name `LAPTOP-0043` is taken.
 
@@ -358,8 +363,10 @@ tables keep their first columns and scroll sideways in their card, forms fall to
   [row list](components.md#row-list); deleting the account behind [type-to-confirm](components.md#type-to-confirm)
   with the address.
 - **The project wires:** the checks at the fields, the requests (`DS.motion.busy()`), the picture from a file
-  (`URL.createObjectURL`, at most 2 MB), a session that leaves through `DS.motion.flip()`, "Sign out everywhere else"
-  that turns `aria-disabled` with its reason once nothing is left.
+  (`URL.createObjectURL`, at most 2 MB), a session that leaves through `DS.motion.flip()` (its neighbour takes the
+  focus), "Sign out everywhere else" that turns `aria-disabled` once only this device is left, however the others
+  went, with its reason as a tip and as its description (`aria-describedby` on a `.ds-sr` text); the last Sign out
+  gives it the focus (`refocus`).
 - **Demo rule:** the current password "wrong password" is wrong.
 
 ### Team members
@@ -367,8 +374,8 @@ tables keep their first columns and scroll sideways in their card, forms fall to
 [team.html](../src/patterns/team.html): the people of the workspace and the invitations.
 
 - **Components:** a [table](components.md#table) of [personas](components.md#persona) (avatars coloured by name with
-  `DS.avatar.hue()`), a role select per row (the owner's role is text with a lock), a status for an invitation, row
-  actions on demand (`.ds-hover-actions`), a search with the [empty state](components.md#empty-state); a
+  `DS.avatar.hue()`), a role select per row (the owner's role is text with a lock), an invitation said in words under
+  its address ("Invited 5 Nov", in the column a phone keeps), row actions on demand (`.ds-hover-actions`), a search with the [empty state](components.md#empty-state); a
   [form dialog](components.md#a-form-dialog) with a [tag input](components.md#tag-input) of addresses and a counted note;
   the roles explained in a filled card.
 - **The project wires:** the search (re-render in `flip()`, the count announced once typing pauses), a new role that
@@ -396,16 +403,18 @@ tables keep their first columns and scroll sideways in their card, forms fall to
   [check list](components.md#form) of scopes, an expiry), a second dialog that shows the key once with its
   [copy button](components.md#copy-button) and a warning, closed only by Done once "I have stored the key" is checked,
   and revoking: [type-to-confirm](components.md#type-to-confirm) for a key used in the last 30 days, a plain
-  destructive confirm for one that is not.
-- **The project wires:** the request (the server answers with the whole key, once; the page keeps only its prefix),
-  `data-ds-busy` on the show-once dialog so Escape and the backdrop leave it open, the empty state when the last key
-  goes.
+  destructive confirm for one that is not (its text says when the key was last used, or that it never was).
+- **The project wires:** a create without any scope refused in the Access group itself (an error hint linked by
+  `aria-describedby` on the fieldset, the focus on its first box, gone at the next change), the request (the server
+  answers with the whole key, once; the page keeps only its prefix), `data-ds-busy` on the show-once dialog so Escape
+  and the backdrop leave it open, the empty state when the last key goes.
 
 ### Integrations
 
 [integrations.html](../src/patterns/integrations.html): the services the workspace connects to.
 
-- **Components:** a search and a segmented filter with a count, a `.ds-grid` of [cards](components.md#card) (a square
+- **Components:** a search and a segmented filter with a count (Connected counts the services that need attention
+  too: they are still connected), a `.ds-grid` of [cards](components.md#card) (a square
   [avatar](components.md#avatar) with the glyph, the state as a [status](components.md#status-chip) in words: connected,
   needs attention), Connect as a tonal button, a [form dialog](components.md#a-form-dialog) that lists what the
   service may do (`.ds-dialog__lines`), Disconnect after a [confirm](components.md#a-question-with-yes-or-no).

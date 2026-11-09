@@ -77,7 +77,7 @@ describe('page patterns', () => {
     for (const page of pages) {
       const html = read(page.file);
       const where = page.file;
-      assert.match(html, /^<!doctype html>\n<html lang="en" class="ds-theme ds-base">/, `${where}: the theme on <html>`);
+      assert.match(html, /^<!doctype html>\n<html lang="en-GB" class="ds-theme ds-base">/, `${where}: the theme on <html>, in the British English its text and dates are written in`);
       assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">/, `${where}: the viewport`);
       assert.equal((html.match(/<h1\b/g) ?? []).length, 1, `${where}: one h1`);
       assert.equal((html.match(/<main\b[^>]*\bid="main"/g) ?? []).length, 1, `${where}: one main#main`);

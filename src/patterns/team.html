@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="ds-theme ds-base">
+<html lang="en-GB" class="ds-theme ds-base">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -86,7 +86,6 @@
                 <thead><tr>
                   <th scope="col">Person</th>
                   <th scope="col" class="pt-col-min">Role</th>
-                  <th scope="col" class="ds-col--secondary">Status</th>
                   <th scope="col" class="ds-num ds-col--secondary">Last active</th>
                   <th scope="col"><span class="ds-sr">Actions</span></th>
                 </tr></thead>
@@ -208,11 +207,9 @@
     return '<tr data-ds-key="' + p.id + '">' +
       '<td><span class="ds-persona ds-sm"><span class="ds-avatar ' + hue + '" aria-hidden="true">' + initials + '</span>' +
         '<span class="ds-persona__text"><span class="ds-persona__name">' + esc(p.name || p.email) + (p.you ? ' (you)' : '') + '</span>' +
-        (p.name ? '<span class="ds-persona__role">' + esc(p.email) + '</span>' : '') + '</span></span></td>' +
+        (p.name ? '<span class="ds-persona__role">' + esc(p.email) + '</span>' : '') +
+        (p.invited ? '<span class="ds-persona__role">Invited ' + esc(p.invited) + '</span>' : '') + '</span></span></td>' +
       '<td class="ds-nowrap">' + roleCell(p) + '</td>' +
-      '<td class="ds-col--secondary">' + (p.invited
-        ? '<span class="ds-status">' + DS.icons.icon(DS.icons.mail, 16) + '<span>Invited ' + esc(p.invited) + '</span></span>'
-        : '<span class="ds-muted">Active</span>') + '</td>' +
       '<td class="ds-num ds-col--secondary">' + (p.seen ? esc(p.seen) : '–') + '</td>' +
       '<td class="ds-table__actions"><span class="ds-hover-actions">' + actions + '</span></td></tr>';
   }

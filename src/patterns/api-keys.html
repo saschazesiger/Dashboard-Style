@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="ds-theme ds-base">
+<html lang="en-GB" class="ds-theme ds-base">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -126,6 +126,7 @@
           <label class="ds-check"><input type="checkbox" name="scope" value="tickets:write"><span>Change tickets</span></label>
           <label class="ds-check"><input type="checkbox" name="scope" value="audit:read"><span>Read the audit log</span></label>
         </div>
+        <small class="ds-field__hint ds-field__hint--error" id="scope-error" hidden></small>
       </fieldset>
       <div class="ds-field">
         <label class="ds-field__label" for="key-expiry">Expires</label>
@@ -226,15 +227,29 @@
     document.getElementById('keys-count').textContent = keys.length === 1 ? '1 key' : keys.length + ' keys';
   }
 
-  // Create: a name and at least one scope; the server answers with the whole key, once.
+  // Create: a name and at least one scope; the server answers with the whole key, once. No scope is said in the
+  // Access group itself (icon and words, its description), the focus on its first box; the next change takes it away.
   var create = document.getElementById('create');
   var created = document.getElementById('created');
   var createButton = document.getElementById('create-button');
+  var scopes = create.querySelector('fieldset');
+  var scopeError = document.getElementById('scope-error');
+  function scopeProblem(text) {
+    scopeError.hidden = !text;
+    scopeError.replaceChildren();
+    if (text) {
+      scopeError.append(DS.icons.iconElement(DS.icons.alertCircle, 16), document.createTextNode(text));
+      scopes.setAttribute('aria-describedby', scopeError.id);
+    } else {
+      scopes.removeAttribute('aria-describedby');
+    }
+  }
+  scopes.addEventListener('change', function () { if (!scopeError.hidden) scopeProblem(''); });
   create.addEventListener('ds:submit', function (event) {
     var form = event.detail.form;
-    if (form.querySelector('[name="scope"]:checked')) return;
+    if (form.querySelector('[name="scope"]:checked')) { scopeProblem(''); return; }
     event.preventDefault();
-    DS.overlay.toast(toasts, 'Choose at least one kind of access.', { kind: 'error' });
+    scopeProblem('Choose at least one kind of access.');
     form.querySelector('[name="scope"]').focus();
   });
   DS.dialog.form(create, {
@@ -292,7 +307,7 @@
     var key = keys.find(function (k) { return k.id === button.getAttribute('data-revoke'); });
     if (!key.recent) {
       DS.overlay.confirm({
-        title: 'Revoke ' + key.name + '?', text: 'It has not been used since ' + key.used + '. This cannot be undone.',
+        title: 'Revoke ' + key.name + '?', text: (key.used ? 'It has not been used since ' + key.used + '.' : 'It has never been used.') + ' This cannot be undone.',
         confirmLabel: 'Revoke key', destructive: true, opener: button, onConfirm: function () { return wait(600); },
       }).then(function (ok) { if (ok) drop(key); });
       return;
