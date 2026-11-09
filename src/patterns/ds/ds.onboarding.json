@@ -7,17 +7,17 @@
   "files": {
     "css": {
       "file": "ds.onboarding.css",
-      "bytes": 333939,
-      "gzip": 50261
+      "bytes": 301065,
+      "gzip": 46264
     },
     "js": {
       "file": "ds.onboarding.js",
-      "bytes": 657431,
-      "gzip": 156753
+      "bytes": 560087,
+      "gzip": 132318
     },
     "properties": {
       "file": "properties.css",
-      "count": 35
+      "count": 31
     }
   },
   "components": [
@@ -92,12 +92,6 @@
       "reason": "onboarding.html:147 ds-dialog",
       "bytes": 15994,
       "gzip": 2482
-    },
-    {
-      "name": "table",
-      "reason": "needed by module chart",
-      "bytes": 32874,
-      "gzip": 4760
     },
     {
       "name": "form",
@@ -200,10 +194,6 @@
     {
       "name": "dnd",
       "reason": "needed by list"
-    },
-    {
-      "name": "chart",
-      "reason": "needed by chart"
     },
     {
       "name": "dialog",
@@ -338,10 +328,6 @@
     {
       "name": "video",
       "reason": "onboarding.html:128"
-    },
-    {
-      "name": "table",
-      "reason": "used by module chart"
     },
     {
       "name": "shieldCheck",

@@ -7,17 +7,17 @@
   "files": {
     "css": {
       "file": "ds.wizard.css",
-      "bytes": 308418,
-      "gzip": 46779
+      "bytes": 275544,
+      "gzip": 42783
     },
     "js": {
       "file": "ds.wizard.js",
-      "bytes": 647200,
-      "gzip": 154596
+      "bytes": 482339,
+      "gzip": 114209
     },
     "properties": {
       "file": "properties.css",
-      "count": 35
+      "count": 31
     }
   },
   "components": [
@@ -86,12 +86,6 @@
       "reason": "needed by DS.overlay.confirm (wizard.html:158)",
       "bytes": 15994,
       "gzip": 2482
-    },
-    {
-      "name": "table",
-      "reason": "needed by module chart",
-      "bytes": 32874,
-      "gzip": 4760
     },
     {
       "name": "form",
@@ -214,18 +208,6 @@
       "reason": "needed by toast"
     },
     {
-      "name": "virtual",
-      "reason": "needed by list"
-    },
-    {
-      "name": "dnd",
-      "reason": "needed by list"
-    },
-    {
-      "name": "chart",
-      "reason": "needed by chart"
-    },
-    {
       "name": "dialog",
       "reason": "needed by dialog"
     },
@@ -236,10 +218,6 @@
     {
       "name": "formatted",
       "reason": "needed by formatted"
-    },
-    {
-      "name": "list",
-      "reason": "needed by list"
     },
     {
       "name": "menu",
@@ -280,14 +258,6 @@
       "reason": "used by module page"
     },
     {
-      "name": "grip",
-      "reason": "used by module list"
-    },
-    {
-      "name": "copy",
-      "reason": "used by module list"
-    },
-    {
       "name": "check",
       "reason": "wizard.html:35"
     },
@@ -314,10 +284,6 @@
     {
       "name": "monitor",
       "reason": "wizard.html:36"
-    },
-    {
-      "name": "table",
-      "reason": "used by module chart"
     },
     {
       "name": "smartphone",

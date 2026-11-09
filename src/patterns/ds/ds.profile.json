@@ -7,17 +7,17 @@
   "files": {
     "css": {
       "file": "ds.profile.css",
-      "bytes": 338033,
-      "gzip": 51152
+      "bytes": 305159,
+      "gzip": 47152
     },
     "js": {
       "file": "ds.profile.js",
-      "bytes": 688791,
-      "gzip": 164828
+      "bytes": 591447,
+      "gzip": 140175
     },
     "properties": {
       "file": "properties.css",
-      "count": 35
+      "count": 31
     }
   },
   "components": [
@@ -86,12 +86,6 @@
       "reason": "profile.html:206 ds-dialog",
       "bytes": 15994,
       "gzip": 2482
-    },
-    {
-      "name": "table",
-      "reason": "needed by module chart",
-      "bytes": 32874,
-      "gzip": 4760
     },
     {
       "name": "form",
@@ -228,10 +222,6 @@
     {
       "name": "avatar",
       "reason": "needed by avatar"
-    },
-    {
-      "name": "chart",
-      "reason": "needed by chart"
     },
     {
       "name": "dialog",
@@ -386,10 +376,6 @@
     {
       "name": "monitor",
       "reason": "profile.html:188"
-    },
-    {
-      "name": "table",
-      "reason": "used by module chart"
     },
     {
       "name": "smartphone",

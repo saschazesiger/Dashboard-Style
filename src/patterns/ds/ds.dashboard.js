@@ -1,7 +1,7 @@
 /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style | bundle "dashboard" (ds.dashboard.json) */
 /*
  * Dashboard-Style bundle "dashboard" (tools/bundle.mjs; do not edit): window.DS with
- * DS.core, DS.motion, DS.indicator, DS.dom, DS.ripple, DS.icons, DS.position, DS.overlay, DS.a11y, DS.format, DS.store, DS.chart, DS.form, DS.formatted, DS.menu, DS.page, DS.shell, DS.toast, DS.tooltip and 31 icons.
+ * DS.core, DS.motion, DS.indicator, DS.dom, DS.ripple, DS.icons, DS.position, DS.overlay, DS.a11y, DS.format, DS.store, DS.chart, DS.formatted, DS.menu, DS.page, DS.shell, DS.toast, DS.tooltip and 31 icons.
  * Icon shapes: Lucide (ISC) and Feather (MIT), see LICENSE.
  * Another bundle or ds.js of the same version on the page adds its modules
  * to the same DashboardStyle.versions[version] object.
@@ -10044,113 +10044,6 @@
       parse: parse,
       layout: layout,
       create: create
-    });
-  });
-
-  add('form', ['count', 'counter'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
-    const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
-    const autosize = DS.dom.autosize, own = DS.dom.own, disown = DS.dom.disown;
-    const announce = DS.a11y.announce;
-    const number = DS.format.number, plural = DS.format.plural;
-    function count(value, max) {
-    const length = String(value ?? '').length;
-    const limit = Number.isFinite(Number(max)) && Number(max) >= 0 && max !== null && max !== '' ? Math.floor(Number(max)) : null;
-    if (limit === null) return { length, max: null, remaining: null, over: false };
-    return { length, max: limit, remaining: limit - length, over: length > limit };
-    }
-    function limitOf(field) {
-    const hard = field.getAttribute?.('maxlength');
-    if (hard !== null && hard !== undefined && hard !== '' && Number(hard) >= 0) return Number(hard);
-    const soft = field.getAttribute?.('data-ds-counter-max');
-    return soft !== null && soft !== undefined && soft !== '' && Number(soft) >= 0 ? Number(soft) : null;
-    }
-    function warnOf(field, max) {
-    const given = Number(field.getAttribute?.('data-ds-counter-warn'));
-    if (Number.isFinite(given) && given >= 0 && field.hasAttribute?.('data-ds-counter-warn')) return given;
-    return Math.max(5, Math.round(max / 10));
-    }
-    function counterController(field, signal) {
-    const doc = field.ownerDocument;
-    const named = field.getAttribute?.('data-ds-counter');
-    const output = ((named && doc?.getElementById?.(named)) || field.closest?.('.ds-field')?.querySelector('.ds-field__counter') || null);
-    const listeners = new Set();
-    let last = (null);
-    let zone = 'calm';
-    if (output) own(output, 'classes', 'ds-field__counter--over');
-    const state = () => count(field.value, limitOf(field));
-    const paint = (speak) => {
-    const now = state();
-    if (output) {
-    const text = now.max === null ? number(now.length) : `${number(now.length)} / ${number(now.max)}`;
-    if (output.textContent !== text) output.textContent = text;
-    output.classList.toggle('ds-field__counter--over', now.over);
-    }
-    const next = now.max === null ? 'calm' : now.over ? 'over' : now.remaining <= warnOf(field, now.max) ? 'near' : 'calm';
-    if (speak && next !== zone && next !== 'calm') {
-    const amount = next === 'over' ? now.length - (now.max) : (now.remaining);
-    announce(next === 'over'
-    ? plural(amount, { one: t('charactersOverOne'), other: t('charactersOver') })
-    : plural(amount, { one: t('charactersLeftOne'), other: t('charactersLeft') }));
-    }
-    zone = next;
-    if (last && last.length === now.length && last.max === now.max) return;
-    const changed = last !== null;
-    last = now;
-    if (!changed) return;
-    emit(field, 'change', now);
-    listeners.forEach((fn) => fn(now));
-    };
-    field.addEventListener?.('input', () => paint(true), { signal });
-    field.form?.addEventListener('reset', () => setTimeout(() => paint(false)), { signal });
-    doc?.addEventListener?.('ds:config', () => paint(false), { signal });
-    paint(false);
-    return {
-    get() { return state(); },
-    set(value) {
-    field.value = String(value ?? '');
-    paint(false);
-    },
-    on(type, fn) {
-    if (type !== 'change') return () => {};
-    listeners.add(fn);
-    return () => listeners.delete(fn);
-    },
-    update() { paint(false); },
-    destroy() {
-    listeners.clear();
-    if (output) disown(output, 'classes', 'ds-field__counter--over');
-    },
-    };
-    }
-    define('autosize', {
-    selector: 'textarea.ds-input--grow',
-    init(el) {
-    const handle = autosize( (el));
-    return { update: () => handle.update(), destroy: () => handle.destroy() };
-    },
-    });
-    define('counter', {
-    attribute: 'data-ds-counter',
-    attributes: ['maxlength', 'data-ds-counter-max', 'data-ds-counter-warn'],
-    init(el, ctx) {
-    return counterController(el, ctx.signal);
-    },
-    });
-    function counter(el) {
-    const abort = typeof AbortController === 'function' ? new AbortController() : null;
-    const made = counterController(el, abort?.signal ?? null);
-    const destroy = made.destroy;
-    made.destroy = () => {
-    destroy();
-    abort?.abort();
-    };
-    return made;
-    }
-
-    return Object.freeze({
-      count: count,
-      counter: counter
     });
   });
 

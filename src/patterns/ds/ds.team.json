@@ -12,8 +12,8 @@
     },
     "js": {
       "file": "ds.team.js",
-      "bytes": 687162,
-      "gzip": 163906
+      "bytes": 589818,
+      "gzip": 139263
     },
     "properties": {
       "file": "properties.css",
@@ -230,10 +230,6 @@
       "reason": "team.html:173 DS.avatar.hue"
     },
     {
-      "name": "chart",
-      "reason": "needed by chart"
-    },
-    {
       "name": "dialog",
       "reason": "team.html:310 DS.dialog.form"
     },
@@ -386,10 +382,6 @@
     {
       "name": "laptop",
       "reason": "team.html:45"
-    },
-    {
-      "name": "table",
-      "reason": "used by module chart"
     },
     {
       "name": "userMinus",

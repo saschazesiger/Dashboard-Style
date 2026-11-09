@@ -12,8 +12,8 @@
     },
     "js": {
       "file": "ds.permissions.js",
-      "bytes": 672571,
-      "gzip": 160946
+      "bytes": 575227,
+      "gzip": 136521
     },
     "properties": {
       "file": "properties.css",
@@ -200,10 +200,6 @@
       "reason": "needed by list"
     },
     {
-      "name": "chart",
-      "reason": "needed by chart"
-    },
-    {
       "name": "form",
       "reason": "needed by form"
     },
@@ -332,10 +328,6 @@
     {
       "name": "laptop",
       "reason": "permissions.html:45"
-    },
-    {
-      "name": "table",
-      "reason": "used by module chart"
     },
     {
       "name": "puzzle",

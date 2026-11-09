@@ -12,8 +12,8 @@
     },
     "js": {
       "file": "ds.dashboard.js",
-      "bytes": 577690,
-      "gzip": 138278
+      "bytes": 573263,
+      "gzip": 137279
     },
     "properties": {
       "file": "properties.css",
@@ -202,10 +202,6 @@
     {
       "name": "chart",
       "reason": "dashboard.html:362 DS.chart.create"
-    },
-    {
-      "name": "form",
-      "reason": "needed by form"
     },
     {
       "name": "formatted",

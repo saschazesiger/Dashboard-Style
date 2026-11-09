@@ -467,13 +467,25 @@ export function resolveBundle(scans, copy, { safelist = [], icons = 'auto' } = {
   const warnings = [];
   const unknown = new Map();
   const queue = [];
+  // A component the page uses brings its behaviour modules; one that only another component's CSS requires (a list
+  // styles a .ds-meter it may hold) brings its stylesheet alone: its behaviour is found by the attributes the page
+  // writes, like any other. Otherwise a list would carry the whole chart engine.
+  const used = new Set();
   const addComponent = (name, reason) => {
-    if (components.has(name)) return;
+    const direct = !reason.startsWith('required by ');
+    if (components.has(name)) {
+      if (direct && !used.has(name)) {
+        used.add(name);
+        for (const module of manifest.components[name].js ?? []) addModule(module, `needed by ${name}`);
+      }
+      return;
+    }
     if (!(name in manifest.components)) {
       errors.push(`manifest.json: ${reason} names the component "${name}", which the copy does not have`);
       return;
     }
     components.set(name, reason);
+    if (direct) used.add(name);
     queue.push({ type: 'component', name });
   };
   const addModule = (name, reason) => {
@@ -553,7 +565,7 @@ export function resolveBundle(scans, copy, { safelist = [], icons = 'auto' } = {
     if (item.type === 'component') {
       const component = manifest.components[item.name];
       for (const name of component.requires ?? []) addComponent(name, `required by ${item.name}`);
-      for (const name of component.js ?? []) addModule(name, `needed by ${item.name}`);
+      if (used.has(item.name)) for (const name of component.js ?? []) addModule(name, `needed by ${item.name}`);
     } else {
       const module = copy.modules.get(item.name);
       for (const name of module.imports ?? []) addModule(name, `imported by ${item.name}`);

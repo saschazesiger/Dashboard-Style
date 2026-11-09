@@ -247,7 +247,7 @@
     },
     {
       "name": "dialog",
-      "reason": "needed by dialog"
+      "reason": "imported by views"
     },
     {
       "name": "filterbar",
