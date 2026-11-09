@@ -4,10 +4,11 @@
  * on a bundle of only the components the page uses (ds/, written by
  * tools/bundle.mjs from ds.config.json).
  *
- *   frame       DS.core.init(document): the shell (rail, modal drawer, the
- *               drawer's pill, data-scrolled), the scheme switches, the
- *               ripple, the guard and the tooltips; the scroll spy, the
- *               speed switch, the command palette (Ctrl+K)
+ *   frame       the ripple, the guard and the tooltips at once; after the
+ *               first paint DS.core.init(document): the shell (rail, modal
+ *               drawer, the drawer's pill, data-scrolled), the scheme
+ *               switches; the scroll spy, the speed switch, the command
+ *               palette (Ctrl+K)
  *   lazy stops  every stop below the welcome waits inside data-ds-managed
  *               until it comes near the viewport: then its icons are drawn,
  *               DS.core.init() takes it over part by part (each part a task of
@@ -90,11 +91,11 @@
   for (const part of [$('.ds-topbar'), drawer, $('#welcome'), $('#palette'), $('#confirm'), $('#sheet'), $('#demo-menu')]) drawIcons(part);
   $('#version').textContent = DS.version;
 
-  // The ripple with the action guard, and the tooltips, for the whole page; then DS.core.init(): the shell,
-  // the scheme switches and every behaviour of the frame now, of each stop once it leaves data-ds-managed.
+  // The ripple with the action guard, and the tooltips, for the whole page. DS.core.init() (the shell, the
+  // scheme switches and every behaviour of the frame; each stop once it leaves data-ds-managed) waits for the
+  // first paint: see Start.
   DS.ripple.attach(document);
   DS.overlay.tooltips(document);
-  DS.core.init(document);
 
   /* The appearance switches (top bar and Theme it) pin the scheme; the tour keeps the choice with its theme. */
   document.addEventListener('ds:change', (event) => {
@@ -207,7 +208,6 @@
   /* ── Speed: --ds-time-scale, like the styleguide's speed select ───── */
 
   const speedNav = $('#speed');
-  DS.indicator.create(speedNav, { active: '[aria-current="true"]', className: 'ds-segmented__indicator' });
 
   function setSpeed(factor, announce) {
     for (const option of $$('.ds-segmented__option', speedNav)) {
@@ -232,11 +232,13 @@
   const askedSpeed = Number(params.get('speed'));
   if (askedSpeed > 0 && askedSpeed < 1) setSpeed(askedSpeed, false);
 
-  /* ── Welcome: the tiles count up once ─────────────────────────────── */
+  /* ── Welcome: the tiles count up once (Start runs it) ──────────────── */
 
-  for (const value of $$('#facts .ds-tile__value[data-count]')) {
-    const suffix = value.getAttribute('data-suffix') || '';
-    M.countUp(value, Number(value.getAttribute('data-count')), { format: (n) => `${Math.round(n)}${suffix}`, from: 0 });
+  function countTiles() {
+    for (const value of $$('#facts .ds-tile__value[data-count]')) {
+      const suffix = value.getAttribute('data-suffix') || '';
+      M.countUp(value, Number(value.getAttribute('data-count')), { format: (n) => `${Math.round(n)}${suffix}`, from: 0 });
+    }
   }
 
   /* ── Lazy stops ────────────────────────────────────────────────────── */
@@ -308,7 +310,10 @@
       entry.target.dispatchEvent(new CustomEvent('demo:view', { detail: { visible: entry.isIntersecting } }));
     }
   }, { root: view });
+  /* Watches every stop not set up yet, afresh: observe() on a target already watched brings no new entry, and
+     the entries a jump dropped do not come again, so the stops a jump landed near would never set up. */
   function observeAll() {
+    nearby.disconnect();
     for (const section of sections) if (!started.has(section.id)) nearby.observe(section);
   }
   for (const section of sections) watcher.observe(section);
@@ -482,10 +487,12 @@
   function fleet(count) {
     const rows = [];
     for (let i = 0; i < count; i += 1) {
+      const model = GRID_MODELS[i % GRID_MODELS.length];
       rows.push({
         id: `d${i + 1}`,
-        name: `${i % 3 === 2 ? 'DESKTOP-' : 'LAPTOP-'}${String(100 + i * 7).padStart(4, '0')}`,
-        model: GRID_MODELS[i % GRID_MODELS.length],
+        // The name's prefix follows the model's kind, so a desktop never shows as a tablet.
+        name: `${model.split(' ')[0].toUpperCase()}-${String(100 + i * 7).padStart(4, '0')}`,
+        model,
         owner: OWNERS[(i * 5) % OWNERS.length],
         place: PLACES[(i * 7) % PLACES.length],
         load: (i * 37 + 11) % 100,
@@ -1023,6 +1030,7 @@
       // A segmented mode: one tab stop, the arrow keys choose (the APG radio group); the pill follows.
       const mode = $('#ticket-mode');
       DS.indicator.create(mode, { active: '[aria-checked="true"]', className: 'ds-segmented__indicator' });
+      DS.dom.scrollEdges($('#ticket-mode-strip'));
       const choose = (option) => {
         for (const each of $$('[role="radio"]', mode)) {
           each.setAttribute('aria-checked', String(each === option));
@@ -1387,9 +1395,21 @@
 
   /* ── Start ─────────────────────────────────────────────────────────── */
 
-  // A link to a stop (#theme) lands there at once; else the stops near the top set up as they come.
-  const asked = location.hash.length > 1 ? document.getElementById(location.hash.slice(1)) : null;
-  if (asked?.classList.contains('demo-section')) goTo(asked.id, { instant: true });
-  else observeAll();
-  root.setAttribute('data-demo-ready', '');
+  // On a slow phone the start was one long task: the page's first layout, forced by the gliding pills of the
+  // drawer and the speed switch, plus the tiles' count. The frame paints first, then DS.core.init() takes it
+  // over and the pills read a layout that is done, then the tiles count up, each in a task of its own.
+  async function start() {
+    await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)));
+    DS.core.init(document);
+    DS.indicator.create(speedNav, { active: '[aria-current="true"]', className: 'ds-segmented__indicator' });
+    await breathe();
+    countTiles();
+    await breathe();
+    // A link to a stop (#theme) lands there at once; else the stops near the top set up as they come.
+    const asked = location.hash.length > 1 ? document.getElementById(location.hash.slice(1)) : null;
+    if (asked?.classList.contains('demo-section')) goTo(asked.id, { instant: true });
+    else observeAll();
+    root.setAttribute('data-demo-ready', '');
+  }
+  start().catch(reportError);
 })();

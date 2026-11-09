@@ -24,7 +24,7 @@
 
   <div class="ds-topbar">
     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" id="menu" data-icon="menu"></button>
-    <a class="ds-brand" href="#welcome"><span class="demo-logo" aria-hidden="true"></span><span class="ds-brand__name">Dashboard-Style</span></a>
+    <a class="ds-brand" href="#welcome" aria-label="Dashboard-Style"><span class="demo-logo" aria-hidden="true"></span><span class="ds-brand__name">Dashboard-Style</span></a>
     <div class="ds-topbar__actions">
       <button class="ds-btn ds-btn--quiet demo-wide" type="button" aria-haspopup="dialog" data-ds-open="#palette" aria-keyshortcuts="Control+K Meta+K" id="find" data-icon="search" data-icon-size="18" data-icon-place="start">Jump to<kbd class="ds-kbd demo-find-key" aria-hidden="true">Ctrl K</kbd></button>
       <button class="ds-btn ds-btn--quiet ds-btn--icon demo-narrow" type="button" aria-haspopup="dialog" data-ds-open="#palette" aria-label="Jump to" data-tip="Jump to" data-icon="search"></button>
@@ -791,10 +791,13 @@
                   <button class="ds-btn ds-btn--tonal" type="button" id="steps-next" data-icon="chevronRight" data-icon-size="16" data-icon-place="end">Next</button>
                 </div>
                 <h3 class="ds-card__subtitle">A mode of the same content</h3>
-                <div class="ds-segmented" role="radiogroup" aria-label="Tickets" id="ticket-mode">
-                  <button class="ds-segmented__option" type="button" role="radio" aria-checked="true" data-label="Open" data-icon="inbox" data-icon-size="18" data-icon-place="start">Open<span class="ds-segmented__count"><span class="ds-sr">, </span>12</span></button>
-                  <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-label="Waiting" data-icon="clock" data-icon-size="18" data-icon-place="start">Waiting<span class="ds-segmented__count"><span class="ds-sr">, </span>3</span></button>
-                  <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-label="Closed" data-icon="checkCircle" data-icon-size="18" data-icon-place="start">Closed</button>
+                <!-- On a narrow card the switch scrolls sideways instead of cutting its last option off. -->
+                <div class="ds-scroll-x" id="ticket-mode-strip">
+                  <div class="ds-segmented" role="radiogroup" aria-label="Tickets" id="ticket-mode">
+                    <button class="ds-segmented__option" type="button" role="radio" aria-checked="true" data-label="Open" data-icon="inbox" data-icon-size="18" data-icon-place="start">Open<span class="ds-segmented__count"><span class="ds-sr">, </span>12</span></button>
+                    <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-label="Waiting" data-icon="clock" data-icon-size="18" data-icon-place="start">Waiting<span class="ds-segmented__count"><span class="ds-sr">, </span>3</span></button>
+                    <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-label="Closed" data-icon="checkCircle" data-icon-size="18" data-icon-place="start">Closed</button>
+                  </div>
                 </div>
                 <h3 class="ds-card__subtitle">Pages</h3>
                 <nav class="ds-pagination ds-pagination--simple" aria-label="Pages of tickets" id="ticket-pages">
@@ -815,7 +818,7 @@
                 arrow keys on their divider, and stack on a phone.</p>
             </header>
             <div class="ds-splitpane ds-splitpane--outlined demo-splitpane" data-ds-splitpane data-ds-splitpane-store="demo-tour" data-ds-splitpane-stack="560">
-              <section class="ds-splitpane__pane demo-splitpane__list" id="split-list" aria-label="Devices" data-ds-splitpane-collapsible>
+              <section class="ds-splitpane__pane demo-splitpane__list" id="split-list" aria-label="Device list" data-ds-splitpane-collapsible>
                 <ul class="ds-list ds-list--interactive" aria-label="Devices">
                   <li class="ds-list__item"><span data-glyph="laptop 20 ds-list__icon"></span><span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="#layout" aria-current="true">LAPTOP-0042</a></span><span class="ds-list__meta">Laptop 14 · Building A</span></span></li>
                   <li class="ds-list__item"><span data-glyph="printer 20 ds-list__icon"></span><span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="#layout">PRINTER-0003</a></span><span class="ds-list__meta">Printer · Floor 2</span></span></li>
@@ -1149,11 +1152,11 @@ Back up the device and note its **asset tag**. Run `devicectl backup` first.
               <p class="demo-section__lead">275 outline glyphs on a 24px grid, in <code>DS.icons</code>. Filter them, then click one to copy
                 the line that draws it.</p>
             </header>
-            <section class="ds-card" aria-labelledby="icons-title">
+            <div class="ds-card">
               <div class="ds-search demo-icon-search" data-icon="search" data-icon-place="start"><input class="ds-input" id="icon-search" type="search" placeholder="Filter icons" aria-label="Filter icons" autocomplete="off"></div>
               <ul class="demo-icons" id="icon-grid" aria-label="Icons"></ul>
               <div id="icon-empty"></div>
-            </section>
+            </div>
           </section>
 
           <!-- ── Get started ────────────────────────────────────────── -->

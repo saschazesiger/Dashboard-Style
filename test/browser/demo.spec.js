@@ -9,9 +9,9 @@
  * tour also works on the browser floor. `?live=0` stops the polling, so no
  * live update moves a row under a click.
  *
- * The last test measures the tour on a slow phone (Chromium, 4x CPU, 390x844)
- * and runs only with DS_TOUR_PERF=1, alone: other workers on the CPU would
- * make every time noise.
+ * The last two tests measure the tour on a slow phone (Chromium, 4x CPU,
+ * 390x844) and run only with DS_TOUR_PERF=1, alone: other workers on the CPU
+ * would make every time noise.
  */
 import { test, expect } from './base-test.js';
 import { ready } from './helpers/motion.js';
@@ -137,6 +137,36 @@ test('a link to a stop lands there set up, and the command palette jumps to anot
   await page.locator('#palette-input').press('Enter');
   await expect(page.locator('#nav [aria-current="page"]')).toHaveAttribute('href', '#chat', { timeout: 10000 });
   await expect(page.locator('#chat')).toHaveAttribute('data-demo-ready', '', { timeout: 10000 });
+});
+
+/** Scrolls the view down by one height at once and waits until `id` is set up. */
+async function onwardTo(page, id) {
+  await page.evaluate(() => { const view = document.getElementById('main'); view.scrollBy(0, view.clientHeight); });
+  await expect(page.locator(`#${id}`)).toHaveAttribute('data-demo-ready', '', { timeout: 10000 });
+  await expect(page.locator(`#${id} [data-ds-managed]`)).toHaveCount(0);
+  await expect(page.locator(`#${id} [data-icon]:not(:has(svg))`)).toHaveCount(0);
+}
+
+/** Waits until a smooth jump has landed on `id` and the tour has lined it up. */
+async function landed(page, id) {
+  await expect(page.locator(`#${id}`)).toHaveAttribute('data-demo-ready', '', { timeout: 15000 });
+  await expect.poll(() => page.locator(`#${id}`).evaluate((section) => {
+    const view = document.getElementById('main');
+    return Math.round(section.getBoundingClientRect().top - view.getBoundingClientRect().top);
+  }), { timeout: 10000 }).toBeLessThan(40);
+  await page.waitForTimeout(300);
+}
+
+test('after a jump, the stops next to the target set up as the view moves on', async ({ page }) => {
+  // The entries of the stops a smooth jump passes or lands near are dropped while it runs: once it lands, the tour
+  // watches them afresh, so the next stop sets up although it never crossed the margin again.
+  await open(page);
+  await page.locator('#welcome a[href="#actions"]').click();
+  await landed(page, 'actions');
+  await onwardTo(page, 'forms');
+  await page.locator('#nav a[href="#overlays"]').click();
+  await landed(page, 'overlays');
+  await onwardTo(page, 'feedback');
 });
 
 test('the appearance switch pins the scheme and the tour keeps it', async ({ page }) => {
@@ -424,15 +454,96 @@ test('the icon filter narrows the grid and an unknown name shows the empty state
   await expect(page.locator('#icon-empty .ds-empty')).toBeVisible();
 });
 
+test('feedback: the import runs its bar, its ring and its figure to the end; an alert comes and goes', async ({ page }) => {
+  test.setTimeout(60000);
+  await open(page);
+  await stop(page, 'feedback');
+  await page.locator('#run-import').click();
+  await expect(page.locator('#import-label')).toHaveText('Preparing');
+  await expect(page.locator('#import-ring')).toHaveAttribute('aria-valuenow', '100', { timeout: 15000 });
+  await expect(page.locator('#import-label')).toHaveText('100%', { timeout: 5000 });
+  await expect(page.locator('#import-detail')).toHaveText('2,030 of 2,030 rows');
+  const before = await page.locator('#alerts .ds-alert').count();
+  await page.locator('#add-alert').click();
+  await expect(page.locator('#alerts .ds-alert')).toHaveCount(before + 1);
+  // Status never by colour alone: every alert carries its icon and its words.
+  for (const alert of await page.locator('#alerts .ds-alert').all()) {
+    await expect(alert.locator('svg')).toHaveCount(1);
+    await expect(alert.locator('.ds-alert__text')).not.toBeEmpty();
+  }
+  await page.locator('#alerts [data-dismiss]').first().click();
+  await expect(page.locator('#alerts .ds-alert:not(.ds-leave)')).toHaveCount(before);
+});
+
+test('layout and people: the split pane resizes from the keyboard, the avatar group counts the rest', async ({ page }) => {
+  await open(page);
+  await stop(page, 'layout');
+  const divider = page.locator('#layout .ds-splitpane__divider');
+  const width = () => page.locator('#split-list').evaluate((pane) => Math.round(pane.getBoundingClientRect().width));
+  const start = await width();
+  await divider.focus();
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowRight');
+  await expect.poll(width).toBeGreaterThan(start);
+  await stop(page, 'people');
+  const more = page.locator('#people-group .ds-avatar-group__more');
+  await expect(more).toHaveText('+3');
+  await page.locator('#add-person').click();
+  await expect(more).toHaveText('+4');
+  await expect(more).toHaveAttribute('aria-label', '4 more');
+});
+
+test('get started: the tabs swap the snippet, which names only what the bundle tool knows', async ({ page }) => {
+  await open(page);
+  await stop(page, 'start');
+  await expect(page.locator('#start-bundle-code')).toBeVisible();
+  await page.locator('#start-page').click();
+  await expect(page.locator('#start-page-code')).toBeVisible();
+  await expect(page.locator('#start-bundle-code')).toBeHidden();
+  await expect(page.locator('#start-page-code')).toContainText('ds/ds.bundle.js');
+});
+
 test.describe('on a phone', () => {
   test.use({ viewport: { width: 360, height: 740 } });
 
-  test('nothing is wider than the screen, and the menu opens the drawer as a modal sheet', async ({ page }) => {
+  test('nothing is wider than the screen or its card, and the menu opens the drawer as a modal sheet', async ({ page }) => {
+    test.setTimeout(90000);
     await open(page);
-    for (const id of ['welcome', 'actions', 'forms', 'data', 'chat', 'theme']) {
+    const stops = await page.$$eval('.demo-section', (sections) => sections.map((section) => section.id));
+    for (const id of stops) {
       await stop(page, id);
       const wide = await page.evaluate(() => document.getElementById('main').scrollWidth - document.getElementById('main').clientWidth);
       expect(wide, id).toBeLessThanOrEqual(0);
+      // Inside each card nothing passes its content box (a cut-off option would not widen the view): the parts
+      // that bleed to the card's edge by design (a table, its pager) stay inside its padding box, and what sits in
+      // a scroller of its own (the data grid, a code block, a strip) scrolls there. One known exception, the
+      // system's: a date range field needs about 300px for its two dates at the 16px field text and takes up to
+      // 14px of its card's padding at 360px in Chromium (it does not wrap yet; DS.picker / timerange).
+      const past = await page.locator(`#${id}`).evaluate((section) => {
+        const out = [];
+        const known = (element) => Boolean(element.closest('.ds-field')?.querySelector(':scope > .ds-picker .ds-daterange__preset'));
+        const scrolls = (element, card) => {
+          for (let node = element.parentElement; node && node !== card; node = node.parentElement) {
+            if (getComputedStyle(node).overflowX !== 'visible') return true;
+          }
+          return false;
+        };
+        for (const card of section.querySelectorAll('.ds-card')) {
+          const box = card.getBoundingClientRect();
+          const style = getComputedStyle(card);
+          const content = box.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight);
+          const padding = box.right - parseFloat(style.borderRightWidth);
+          for (const element of card.querySelectorAll('*')) {
+            if (element.closest('.ds-sr, [hidden], [popover], dialog, .ds-menu, .ds-picker__popover') || !element.getClientRects().length) continue;
+            const rect = element.getBoundingClientRect();
+            if (!rect.width || scrolls(element, card) || known(element)) continue;
+            const bleeds = parseFloat(getComputedStyle(element).marginRight) < 0;
+            if (rect.right > (bleeds ? padding : content) + 1) out.push(`${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}.${String(element.className.baseVal ?? element.className).split(' ')[0]} by ${Math.round(rect.right - content)}px`);
+          }
+        }
+        return out;
+      });
+      expect(past, `${id}: nothing past its card`).toEqual([]);
     }
     await page.locator('#menu').click();
     await expect(page.locator('#app')).toHaveAttribute('data-drawer-open', '');
@@ -442,31 +553,80 @@ test.describe('on a phone', () => {
   });
 });
 
-test('on a slow phone (4x CPU) no task after the load runs long while the stops set up and the dialog opens', async ({ page, browserName }, testInfo) => {
+/** Long tasks and interactions (event timing) of the page, from its start. */
+async function watchMainThread(page) {
+  await page.addInitScript(() => {
+    window.demoLong = [];
+    window.demoInteractions = [];
+    new PerformanceObserver((list) => { for (const entry of list.getEntries()) window.demoLong.push(Math.round(entry.duration)); }).observe({ type: 'longtask', buffered: true });
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) if (entry.interactionId) window.demoInteractions.push(Math.round(entry.duration));
+    }).observe({ type: 'event', durationThreshold: 16, buffered: true });
+  });
+}
+
+/** The longest interaction (event-timing duration: input to the next paint) of what `act` does. */
+async function interaction(page, act) {
+  await page.evaluate(() => window.demoInteractions.splice(0));
+  await act();
+  await page.waitForTimeout(1500);
+  return Math.max(0, ...await page.evaluate(() => window.demoInteractions.splice(0)));
+}
+
+/** The scope of the tour: no task over 200ms after the load at 4x CPU, and an answer within it. */
+const TASK_BUDGET = 200;
+/**
+ * What opening the dialog and sorting the grid cost today, in the system rather than the tour: opening the confirm
+ * dialog restyles the page (DS.overlay: inert and the scroll lock); sorting runs DS.motion.flip, whose
+ * getAnimations() commits the whole document's style, and the grid's syncSeparators() reads each header's width
+ * after writing the one before (a layout per column). Down to TASK_BUDGET once those land; never raised.
+ */
+const SYSTEM_BUDGET = 400;
+
+test('on a slow phone (4x CPU) no task of the tour runs over 200ms: the start and the stops as they set up', async ({ page, browserName }, testInfo) => {
   test.skip(browserName !== 'chromium' || !process.env.DS_TOUR_PERF, 'CPU throttling is a CDP command; times need the CPU alone: DS_TOUR_PERF=1, chromium only');
   test.setTimeout(180000);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.addInitScript(() => {
-    window.demoLong = [];
-    new PerformanceObserver((list) => { for (const entry of list.getEntries()) window.demoLong.push(Math.round(entry.duration)); }).observe({ type: 'longtask', buffered: true });
-  });
+  await watchMainThread(page);
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
   try {
     await open(page);
     await page.waitForTimeout(2000);
+    // The start: the frame paints, then DS.core.init() (the pills read a finished layout), then the tiles count.
     const load = await page.evaluate(() => window.demoLong.splice(0));
     const stops = await page.$$eval('.demo-section', (sections) => sections.map((section) => section.id));
     for (const id of stops) await stop(page, id);
     const scroll = await page.evaluate(() => window.demoLong.splice(0));
-    await stop(page, 'overlays');
-    await page.evaluate(() => window.demoLong.splice(0));
-    await page.locator('#open-dialog').click();
-    await page.waitForTimeout(1500);
-    const dialog = await page.evaluate(() => window.demoLong.splice(0));
-    testInfo.annotations.push({ type: 'tour at 4x CPU', description: `load ${JSON.stringify(load)}; stops ${JSON.stringify(scroll)}; dialog ${JSON.stringify(dialog)}` });
-    expect(Math.max(0, ...scroll), 'the longest task while the stops set up').toBeLessThan(400);
-    expect(Math.max(0, ...dialog), 'the longest task of opening the dialog').toBeLessThan(400);
+    testInfo.annotations.push({ type: 'tour at 4x CPU', description: `load ${JSON.stringify(load)}; stops ${JSON.stringify(scroll)}` });
+    expect(Math.max(0, ...load), 'the longest task of the start').toBeLessThan(TASK_BUDGET);
+    expect(Math.max(0, ...scroll), 'the longest task while the stops set up').toBeLessThan(TASK_BUDGET);
+  } finally {
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  }
+});
+
+test('on a slow phone (4x CPU) opening the dialog and sorting the data grid answer in time', async ({ page, browserName }, testInfo) => {
+  test.skip(browserName !== 'chromium' || !process.env.DS_TOUR_PERF, 'CPU throttling is a CDP command; times need the CPU alone: DS_TOUR_PERF=1, chromium only');
+  test.setTimeout(120000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await watchMainThread(page);
+  await open(page);
+  await stop(page, 'data');
+  await stop(page, 'overlays');
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  try {
+    const dialog = await interaction(page, () => page.locator('#open-dialog').click());
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#confirm')).not.toHaveAttribute('data-state', 'open');
+    await page.waitForTimeout(1000);
+    await page.locator('#data').evaluate((section) => section.scrollIntoView({ block: 'start' }));
+    await page.waitForTimeout(1000);
+    const sort = await interaction(page, () => page.locator('#grid th button').first().click());
+    testInfo.annotations.push({ type: 'interactions at 4x CPU', description: `dialog ${dialog}ms; sort ${sort}ms (the scope: ${TASK_BUDGET}ms)` });
+    expect(dialog, 'opening the confirm dialog').toBeLessThanOrEqual(SYSTEM_BUDGET);
+    expect(sort, 'sorting the data grid').toBeLessThanOrEqual(SYSTEM_BUDGET);
   } finally {
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
   }
