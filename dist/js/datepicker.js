@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * The date picker (DS.datepicker): a segmented date field (DS.datefield)
  * and a calendar in a popover (DS.calendar in DS.picker), the WAI-ARIA date

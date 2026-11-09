@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /** Types of DS.banner (js/banner.js): the app's message strip in priority order. */
 
 export type BannerTone = 'error' | 'warning' | 'info' | 'primary' | 'neutral' | 'success';

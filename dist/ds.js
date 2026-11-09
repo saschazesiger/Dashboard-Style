@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Classic-script build of src/js (no modules needed): window.DS.core,
  * DS.motion, DS.indicator, DS.dom, DS.ripple, DS.icons, DS.position,
@@ -37,7 +37,7 @@
  */
 (function (root) {
   'use strict';
-  var version = '3.0.0-alpha.5';
+  var version = '3.0.0-alpha.6';
   var registry = root.DashboardStyle || (root.DashboardStyle = {});
   var versions = registry.versions || (registry.versions = {});
   var first = versions[version];
@@ -1331,6 +1331,18 @@
       return Boolean(element?.closest?.('.ds-theme'));
     }
 
+    /**
+     * Where a motion token is read: the nearest .ds-theme. The scales are the
+     * same everywhere inside a theme (themes and components never set them;
+     * --ds-time-scale sits on the .ds-theme element or above), and the theme
+     * root is usually clean while the element is often new or just changed:
+     * reading the element would force a style flush of the whole document in
+     * the middle of an interaction, reading the root costs nothing.
+     */
+    function tokenSource(element) {
+      return element?.closest?.('.ds-theme') ?? element;
+    }
+
     /* ── Runtime state that a re-render keeps ───────────── */
 
     /**
@@ -1432,7 +1444,7 @@
     function motionDuration(element, token) {
       const fallback = typeof MOTION_FALLBACKS[token] === 'number' ? /** @type {number} */ (MOTION_FALLBACKS[token]) : 0;
       if (!themed(element)) return fallback;
-      const text = computed(element)?.getPropertyValue(token).trim();
+      const text = computed(tokenSource(element))?.getPropertyValue(token).trim();
       if (!text) return fallback;
       return parseDuration(text) ?? probeDuration(/** @type {Element} */ (element), text) ?? fallback;
     }
@@ -1448,7 +1460,7 @@
     function motionEasing(element, token) {
       const fallback = typeof MOTION_FALLBACKS[token] === 'string' ? /** @type {string} */ (MOTION_FALLBACKS[token]) : 'ease';
       if (!themed(element)) return fallback;
-      return computed(element)?.getPropertyValue(token).trim() || fallback;
+      return computed(tokenSource(element))?.getPropertyValue(token).trim() || fallback;
     }
 
     /**

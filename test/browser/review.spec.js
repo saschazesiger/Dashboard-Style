@@ -46,6 +46,8 @@ const PAGES = [...DEMOS.map((name) => `${INDEX}#/components/${name}`), LAB];
 async function open(page, path) {
   await page.goto(path);
   await ready(page);
+  // The Motion Lab: every demo set up and every card rendered for the sweeps (it otherwise sets them up as they come near).
+  await page.evaluate(() => window.SG_LAB_SETUP_ALL?.());
   await page.mouse.move(1, 1);
   await settle(page, { timeout: 20000 });
 }

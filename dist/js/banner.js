@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Banner (DS.banner): messages for the whole app (a system broadcast,
  * maintenance, offline) in the .ds-banner above the view, in priority

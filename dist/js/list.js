@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Lists (3.0): rows that are chosen by a checkbox or a radio, rows that
  * move by drag, a window over thousands of rows, and facts whose values

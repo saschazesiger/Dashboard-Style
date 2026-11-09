@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * The listbox (DS.listbox): a list of options to choose one or several from,
  * standalone (the WAI listbox pattern) and the list engine of the combobox

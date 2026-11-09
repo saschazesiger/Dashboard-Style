@@ -1344,6 +1344,7 @@
     transition:
       background-color var(--ds-dur-fast) var(--ds-ease-in-out),
       box-shadow var(--ds-dur-fast) var(--ds-ease-in-out);
+    box-sizing: border-box;
   }
 
   .ds-field--inset > .ds-field__label {

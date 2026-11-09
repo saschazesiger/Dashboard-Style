@@ -430,6 +430,17 @@
   margin-top: var(--ds-space-2);
 }
 
+/* The lab renders about 200 demo cards: those far from the viewport skip
+   style, layout and paint until they come near (content-visibility), and
+   keep their last height while away. A demo is set up as its card comes
+   near (motion-lab.js), so a setup measures only what is rendered.
+   data-lab-rendered (SG_LAB_SETUP_ALL(), for the tests' sweeps) renders
+   every card. */
+html:not([data-lab-rendered]) [data-sg-page="lab"] .sg-demo {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 360px;
+}
+
 /* The stage: at least its demo's height, and taller where the content
    needs it (a narrow window), so nothing is cut off. Demos keep their size
    between states, so a replay never shifts the page; content that changes

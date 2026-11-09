@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * The bottom sheet (DS.bottomsheet): a modal sheet at the bottom edge with
  * a drag handle, detents and drag to dismiss. DS.overlay opens and closes it

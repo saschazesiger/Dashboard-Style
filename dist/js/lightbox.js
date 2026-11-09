@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * The lightbox (DS.lightbox): the images of a gallery one at a time over the
  * whole window, with thumbnails, keys, zoom and pan, a caption and swipe on

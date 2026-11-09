@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * The combobox (DS.combobox): the behaviour of a .ds-combo marked
  * data-ds-combobox, on the list engine of DS.listbox. Without the attribute

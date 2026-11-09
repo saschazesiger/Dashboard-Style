@@ -1,6 +1,6 @@
 {
   "name": "dashboard-style",
-  "version": "3.0.0-alpha.5",
+  "version": "3.0.0-alpha.6",
   "layers": "@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;",
   "sublayers": "@layer ds.components.global, ds.components.layout, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.calendar, ds.components.container, ds.components.loadmore, ds.components.popover, ds.components.splitpane, ds.components.upload, ds.components.datefield, ds.components.kveditor, ds.components.listdetail, ds.components.sort, ds.components.text, ds.components.toggletip, ds.components.dashpanel, ds.components.filterbar, ds.components.picker, ds.components.spacing, ds.components.wizard, ds.components.facets, ds.components.sticky, ds.components.timepicker, ds.components.unsaved, ds.components.datepicker, ds.components.print, ds.components.query, ds.components.views, ds.components.datagrid, ds.components.daterange, ds.components.timerange, ds.components.duration, ds.components.link, ds.components.toggle, ds.components.button-group, ds.components.menubutton, ds.components.splitbutton, ds.components.copy, ds.components.prioritybar, ds.components.listbox, ds.components.number, ds.components.tree, ds.components.choices, ds.components.jsonview, ds.components.password, ds.components.auditlog, ds.components.secret, ds.components.taginput, ds.components.otp, ds.components.selectpanel, ds.components.inlineedit, ds.components.orderedchoice, ds.components.transfer, ds.components.typeconfirm, ds.components.errorsummary, ds.components.search, ds.components.meter, ds.components.bar-list, ds.components.category-bar, ds.components.lozenge, ds.components.result, ds.components.formatted, ds.components.kbd, ds.components.truncate, ds.components.expandable, ds.components.hits, ds.components.tracker, ds.components.labelgroup, ds.components.image, ds.components.composer, ds.components.message, ds.components.transcript, ds.components.suggestions, ds.components.feedback, ds.components.ailabel, ds.components.tearsheet, ds.components.loadingoverlay, ds.components.lightbox, ds.components.bottomsheet, ds.components.highlight, ds.components.markdown, ds.components.code, ds.components.toc, ds.components.backtop, ds.components.diff, ds.components.logview, ds.components.object, ds.components.terminal, ds.components.shimmer, ds.components.wheel, ds.components.thinking, ds.components.toolcall, ds.components.reasoning, ds.components.cite, ds.components.plan, ds.components.question, ds.components.usage, ds.components.presence, ds.components.avatar, ds.components.persona, ds.components.media, ds.components.levelmeter, ds.components.command, ds.components.shortcuts, ds.components.banner, ds.components.notifications, ds.components.ripple;",
   "core": {
@@ -417,8 +417,8 @@
       "progressive": [
         "text-wrap"
       ],
-      "bytes": 8810,
-      "gzip": 2245
+      "bytes": 8832,
+      "gzip": 2256
     },
     "scroller": {
       "css": "css/components/scroller.css",
@@ -520,7 +520,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4429,
-      "gzip": 1261
+      "gzip": 1262
     },
     "indicator": {
       "css": "css/components/indicator.css",
@@ -789,7 +789,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 5370,
-      "gzip": 1494
+      "gzip": 1495
     },
     "status": {
       "css": "css/components/status.css",
@@ -980,7 +980,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 9514,
-      "gzip": 2239
+      "gzip": 2240
     },
     "chart": {
       "css": "css/components/chart.css",
@@ -1556,7 +1556,7 @@
       "ripple": true,
       "progressive": [],
       "bytes": 12212,
-      "gzip": 2684
+      "gzip": 2685
     },
     "badge": {
       "css": "css/components/badge.css",
@@ -1596,7 +1596,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 7260,
-      "gzip": 1765
+      "gzip": 1766
     },
     "sheet": {
       "css": "css/components/sheet.css",
@@ -1667,7 +1667,7 @@
         "scrollbar-color"
       ],
       "bytes": 15788,
-      "gzip": 3312
+      "gzip": 3311
     },
     "dialog": {
       "css": "css/components/dialog.css",
@@ -1837,8 +1837,8 @@
         "scroll-driven",
         "scrollbar-color"
       ],
-      "bytes": 36431,
-      "gzip": 5561
+      "bytes": 36380,
+      "gzip": 5587
     },
     "pagination": {
       "css": "css/components/pagination.css",
@@ -1878,7 +1878,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 6203,
-      "gzip": 1609
+      "gzip": 1608
     },
     "form": {
       "css": "css/components/form.css",
@@ -2022,8 +2022,8 @@
         "scrollbar-color",
         "field-sizing"
       ],
-      "bytes": 52791,
-      "gzip": 7917
+      "bytes": 52813,
+      "gzip": 7919
     },
     "drag": {
       "css": "css/components/drag.css",
@@ -2066,7 +2066,7 @@
       "ripple": true,
       "progressive": [],
       "bytes": 11924,
-      "gzip": 2718
+      "gzip": 2719
     },
     "combobox": {
       "css": "css/components/combobox.css",
@@ -2147,7 +2147,7 @@
         "scrollbar-color"
       ],
       "bytes": 17006,
-      "gzip": 3832
+      "gzip": 3831
     },
     "tooltip": {
       "css": "css/components/tooltip.css",
@@ -2184,7 +2184,7 @@
         "anchor positioning"
       ],
       "bytes": 5919,
-      "gzip": 1614
+      "gzip": 1615
     },
     "page": {
       "css": "css/components/page.css",
@@ -2482,7 +2482,7 @@
         "scrollbar-color"
       ],
       "bytes": 11372,
-      "gzip": 2773
+      "gzip": 2771
     },
     "steps": {
       "css": "css/components/steps.css",
@@ -2521,7 +2521,7 @@
       "ripple": true,
       "progressive": [],
       "bytes": 15631,
-      "gzip": 3181
+      "gzip": 3180
     },
     "toast": {
       "css": "css/components/toast.css",
@@ -2584,7 +2584,7 @@
         "View Transitions"
       ],
       "bytes": 8778,
-      "gzip": 2294
+      "gzip": 2293
     },
     "savebar": {
       "css": "css/components/savebar.css",
@@ -2684,7 +2684,7 @@
       "ripple": true,
       "progressive": [],
       "bytes": 9441,
-      "gzip": 2339
+      "gzip": 2338
     },
     "container": {
       "css": "css/components/container.css",
@@ -2747,7 +2747,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4826,
-      "gzip": 1341
+      "gzip": 1342
     },
     "popover": {
       "css": "css/components/popover.css",
@@ -2794,7 +2794,7 @@
         "scrollbar-color"
       ],
       "bytes": 7427,
-      "gzip": 1994
+      "gzip": 1993
     },
     "splitpane": {
       "css": "css/components/splitpane.css",
@@ -2896,7 +2896,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 7212,
-      "gzip": 1938
+      "gzip": 1937
     },
     "datefield": {
       "css": "css/components/datefield.css",
@@ -3129,7 +3129,7 @@
         "text-wrap"
       ],
       "bytes": 4301,
-      "gzip": 1153
+      "gzip": 1154
     },
     "toggletip": {
       "css": "css/components/toggletip.css",
@@ -3202,7 +3202,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 6325,
-      "gzip": 1685
+      "gzip": 1686
     },
     "filterbar": {
       "css": "css/components/filterbar.css",
@@ -3254,7 +3254,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 5514,
-      "gzip": 1440
+      "gzip": 1439
     },
     "picker": {
       "css": "css/components/picker.css",
@@ -3304,7 +3304,7 @@
         "scrollbar-color"
       ],
       "bytes": 9548,
-      "gzip": 2486
+      "gzip": 2485
     },
     "spacing": {
       "css": "css/components/spacing.css",
@@ -3495,7 +3495,7 @@
         "scroll-driven"
       ],
       "bytes": 5561,
-      "gzip": 1425
+      "gzip": 1426
     },
     "timepicker": {
       "css": "css/components/timepicker.css",
@@ -3669,7 +3669,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4449,
-      "gzip": 1230
+      "gzip": 1231
     },
     "views": {
       "css": "css/components/views.css",
@@ -3878,7 +3878,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 6630,
-      "gzip": 1844
+      "gzip": 1843
     },
     "duration": {
       "css": "css/components/duration.css",
@@ -4033,7 +4033,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 3969,
-      "gzip": 1082
+      "gzip": 1083
     },
     "splitbutton": {
       "css": "css/components/splitbutton.css",
@@ -4190,7 +4190,7 @@
         "scrollbar-color"
       ],
       "bytes": 11481,
-      "gzip": 2646
+      "gzip": 2645
     },
     "number": {
       "css": "css/components/number.css",
@@ -4554,7 +4554,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 6541,
-      "gzip": 1752
+      "gzip": 1751
     },
     "otp": {
       "css": "css/components/otp.css",
@@ -4755,7 +4755,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4319,
-      "gzip": 1205
+      "gzip": 1204
     },
     "typeconfirm": {
       "css": "css/components/typeconfirm.css",
@@ -4788,7 +4788,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 3912,
-      "gzip": 1014
+      "gzip": 1015
     },
     "errorsummary": {
       "css": "css/components/errorsummary.css",
@@ -4817,7 +4817,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4626,
-      "gzip": 1215
+      "gzip": 1216
     },
     "search": {
       "css": "css/components/search.css",
@@ -4855,7 +4855,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4908,
-      "gzip": 1380
+      "gzip": 1381
     },
     "meter": {
       "css": "css/components/meter.css",
@@ -4961,7 +4961,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 6406,
-      "gzip": 1713
+      "gzip": 1714
     },
     "lozenge": {
       "css": "css/components/lozenge.css",
@@ -4984,7 +4984,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 5036,
-      "gzip": 1440
+      "gzip": 1439
     },
     "result": {
       "css": "css/components/result.css",
@@ -5111,7 +5111,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4016,
-      "gzip": 1082
+      "gzip": 1083
     },
     "expandable": {
       "css": "css/components/expandable.css",
@@ -5141,7 +5141,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4001,
-      "gzip": 1074
+      "gzip": 1075
     },
     "hits": {
       "css": "css/components/hits.css",
@@ -5169,7 +5169,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4020,
-      "gzip": 1084
+      "gzip": 1085
     },
     "tracker": {
       "css": "css/components/tracker.css",
@@ -5468,7 +5468,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4217,
-      "gzip": 1180
+      "gzip": 1181
     },
     "feedback": {
       "css": "css/components/feedback.css",
@@ -5593,7 +5593,7 @@
         "scrollbar-color"
       ],
       "bytes": 9479,
-      "gzip": 2293
+      "gzip": 2294
     },
     "loadingoverlay": {
       "css": "css/components/loadingoverlay.css",
@@ -5724,7 +5724,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 6810,
-      "gzip": 1736
+      "gzip": 1735
     },
     "highlight": {
       "css": "css/components/highlight.css",
@@ -5842,7 +5842,7 @@
         "scrollbar-color"
       ],
       "bytes": 8878,
-      "gzip": 2198
+      "gzip": 2199
     },
     "toc": {
       "css": "css/components/toc.css",
@@ -6123,7 +6123,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4813,
-      "gzip": 1307
+      "gzip": 1308
     },
     "terminal": {
       "css": "css/components/terminal.css",
@@ -6185,7 +6185,7 @@
         "scrollbar-color"
       ],
       "bytes": 8130,
-      "gzip": 2120
+      "gzip": 2121
     },
     "shimmer": {
       "css": "css/components/shimmer.css",
@@ -6240,7 +6240,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4101,
-      "gzip": 1158
+      "gzip": 1159
     },
     "thinking": {
       "css": "css/components/thinking.css",
@@ -6370,7 +6370,7 @@
         "scrollbar-color"
       ],
       "bytes": 4769,
-      "gzip": 1329
+      "gzip": 1330
     },
     "cite": {
       "css": "css/components/cite.css",
@@ -6543,7 +6543,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 5174,
-      "gzip": 1369
+      "gzip": 1368
     },
     "presence": {
       "css": "css/components/presence.css",
@@ -6661,7 +6661,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 5216,
-      "gzip": 1400
+      "gzip": 1401
     },
     "media": {
       "css": "css/components/media.css",
@@ -6862,7 +6862,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 5684,
-      "gzip": 1451
+      "gzip": 1450
     },
     "banner": {
       "css": "css/components/banner.css",
@@ -7013,7 +7013,7 @@
         "overflow-clip-margin"
       ],
       "bytes": 18121,
-      "gzip": 2242
+      "gzip": 2243
     }
   },
   "js": {

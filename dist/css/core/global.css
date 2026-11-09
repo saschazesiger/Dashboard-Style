@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Global: the rules for every element inside .ds-theme, whatever
  * components a page uses, so every bundle and every set of single files
@@ -7,7 +7,11 @@
  * - Border-box sizing: every component is measured as border-box (a 100%
  *   wide field with its padding, a dialog of min(400px, 100%)). Zero
  *   specificity, so a host page that embeds .ds-theme keeps any sizing it
- *   sets itself.
+ *   sets itself. Elements only: a rule whose subject is every ::before and
+ *   ::after makes the engine compute two pseudo-element styles for every
+ *   element of the page, content or not (in Chromium more than half the
+ *   style cost of a plain element). A pseudo-element with a size and a
+ *   border or padding sets box-sizing in its own rule.
  * - Zero-weight defaults that a component of an earlier sublayer must still
  *   beat: the browser margins of paragraphs in a card.
  * - Forced colours: icons coloured on the <svg> itself would keep their
@@ -26,9 +30,7 @@
 
 @layer ds.components.global {
   :where(.ds-theme),
-  :where(.ds-theme) *,
-  :where(.ds-theme) *::before,
-  :where(.ds-theme) *::after {
+  :where(.ds-theme) * {
     box-sizing: border-box;
   }
 

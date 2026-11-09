@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Utilities: screen-reader text and small text helpers, the press model
  * for a project element, actions that show on demand, keys, dividers,
@@ -367,6 +367,7 @@
     min-height: var(--ds-space-2);
     border-top: 0;
     border-inline-start: 1px solid var(--ds-divider-color, var(--ds-line));
+    box-sizing: border-box;
   }
 
   /* Icons that fill when on: the last element of a fillable glyph is a closed outline. */

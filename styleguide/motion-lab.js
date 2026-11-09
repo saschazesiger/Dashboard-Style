@@ -10,7 +10,7 @@
  * the 2.x styleguide that shared this script is retired.
  *
  * Hooks for the browser tests (test/browser/), harmless when opened by hand:
- *   html[data-sg-ready]   set once the frame, the themes and the demos are
+ *   html[data-sg-ready]   set once the frame, the themes and the demos near the viewport are
  *                         set up and a saved theme has loaded (the demos
  *                         come after the first render: startLab)
  *   html[data-sg-theme]   the theme last applied, set once its values and
@@ -335,13 +335,12 @@
     var start = function () {
       setTimeout(function () {
         var sections = renderLabSections();
-        setupLab();
         $$('.sg-section').forEach(function (s) { spy.observe(s); });
         refreshTimes();
         M.enterAll(sections, 'swap');
         var target = location.hash && document.getElementById(location.hash.slice(1));
         if (target) target.scrollIntoView();
-        done();
+        setupLab(done);
       }, 0);
     };
     window.addEventListener('pagereveal', function (event) { transition = event.viewTransition || null; }, { once: true });
@@ -351,52 +350,109 @@
     });
   }
 
-  function setupDemo(demo) {
+  /* Sets a demo up once: its setup runs under data-ds-moving on its card
+     (transition: none, motion.css), lifted after one style flush, so the
+     state it writes at once (a Send button blocked while its field is
+     empty, a meter's share, the ranks of an ordered choice, a scroller's
+     edge hairlines) shows at once instead of playing as a transition. */
+  function setupDemo(demo, batched) {
+    if (demo.ready) return demo;
+    demo.ready = true;
+    if (!batched) demo.card.setAttribute('data-ds-moving', '');
     if (demo.entry.setup) demo.entry.setup(demo.stage, SG);
     labOn(demo);
+    if (!batched) {
+      void getComputedStyle(demo.card).opacity;
+      demo.card.removeAttribute('data-ds-moving');
+    }
+    demo.card.setAttribute('data-lab-ready', '');
+    return demo;
   }
 
   /*
-   * The first setup that measures (an indicator, a scroller) styles every
-   * section, so the state each later setup writes at once (a Send button
-   * blocked while its field is empty, a meter's share, the ranks of an
-   * ordered choice, a scroller's edge hairlines, a roving tabindex) would
-   * play as a transition on load. A page that wires its components before
-   * its first render shows that state at once; so do the demos: the setups
-   * run under data-ds-moving (transition: none, motion.css) on the page,
-   * lifted after one style flush. What a setup starts later (a frame, an
-   * observer) still moves as it would on any page.
+   * About 200 demos, 18,000 elements: set up all at once (each setup
+   * measures, so each forces a style flush of the page) they kept a phone
+   * busy for seconds. The cards render at once; a demo is set up when its
+   * card comes near the viewport, when one of its buttons is pressed, or
+   * in the idle time after the first frames, a few per slice, nearest
+   * first. data-sg-ready comes once the cards near the viewport are set
+   * up, data-lab-complete once the last one is; window.SG_LAB_SETUP(id)
+   * sets one up at once (the tests call it before they drive a demo).
    *
    * The charts are set up last. Once an SVG <text> is in the page (a
    * chart's ticks), WebKit lays the whole page out again after every
    * pointer, touch or wheel listener a later setup adds, at its next
-   * layout read: half a second each on this page, seconds before the lab
-   * was ready. Set up last, they pay it at most once.
+   * layout read: half a second each on this page. Set up last, they pay
+   * it at most once.
    */
-  function setupLab() {
-    var page = $('#sg-page');
-    page.setAttribute('data-ds-moving', '');
+  function setupLab(done) {
+    var pending = [];
     var charts = [];
     LAB.forEach(function (entry) {
       var card = $('[data-lab-demo="' + entry.id + '"]');
-      var demo = labDemos[entry.id] = { entry: entry, card: card, stage: $('.sg-lab-stage', card), on: false, run: 0, timers: [] };
-      if (demo.stage.querySelector('.ds-chart')) charts.push(demo);
-      else setupDemo(demo);
+      var demo = labDemos[entry.id] = { entry: entry, card: card, stage: $('.sg-lab-stage', card), on: false, run: 0, timers: [], ready: false };
+      (demo.stage.querySelector('.ds-chart') ? charts : pending).push(demo);
     });
-    charts.forEach(setupDemo);
-    void getComputedStyle(page).opacity;
-    page.removeAttribute('data-ds-moving');
+    pending = pending.concat(charts);
+    var finished = false;
+    var finish = function () {
+      if (finished || pending.some(function (demo) { return !demo.ready; })) return;
+      finished = true;
+      if (near) near.disconnect();
+      var spatial = $('[data-lab-curve="--ds-ease-spatial"] [data-lab-peak]');
+      if (spatial && $('#sg-lab-peak')) $('#sg-lab-peak').textContent = spatial.getAttribute('data-lab-peak');
+      document.documentElement.setAttribute('data-lab-complete', '');
+    };
+    // Ready once the cards in and near the viewport are set up (the observer's first report comes after the first
+    // frame that lays them out); the rest follow in idle time, or at once through SG_LAB_SETUP.
+    requestAnimationFrame(function () { requestAnimationFrame(function () { setTimeout(done, 0); }); });
+    window.SG_LAB_SETUP = function (id) { var demo = labDemos[id]; if (demo) setupDemo(demo); finish(); return Boolean(demo); };
+    // Everything at once, every card rendered: the sweeps of the tests (curves, stage sizes, hover, forced colours).
+    window.SG_LAB_SETUP_ALL = function () {
+      // One data-ds-moving on the page and one flush for all of them, as a page wires its components before its
+      // first render (a flush per demo on a page this size costs seconds).
+      var page = $('#sg-page');
+      document.documentElement.setAttribute('data-lab-rendered', '');
+      page.setAttribute('data-ds-moving', '');
+      pending.forEach(function (demo) { setupDemo(demo, true); });
+      void getComputedStyle(page).opacity;
+      page.removeAttribute('data-ds-moving');
+      finish();
+    };
+    // Near the viewport: first in the queue (set up in the next idle slice, so a scroll stays smooth).
+    var soon = [];
+    var near = typeof IntersectionObserver === 'function' ? new IntersectionObserver(function (entries) {
+      entries.forEach(function (item) {
+        var demo = item.isIntersecting && labDemos[item.target.getAttribute('data-lab-demo')];
+        if (demo && !demo.ready && soon.indexOf(demo) < 0) soon.push(demo);
+      });
+    }, { rootMargin: '100% 0px' }) : null;
+    if (near) pending.forEach(function (demo) { near.observe(demo.card); });
+    // The rest in idle slices of a few milliseconds, so a phone stays responsive while the lab finishes.
+    var idle = window.requestIdleCallback || function (fn) { return setTimeout(function () { fn({ timeRemaining: function () { return 8; } }); }, 16); };
+    var slice = function (deadline) {
+      var started = performance.now();
+      while (pending.some(function (demo) { return !demo.ready; })) {
+        if ((deadline.timeRemaining ? deadline.timeRemaining() : 0) <= 1 && performance.now() - started > 4) break;
+        if (performance.now() - started > 12) break;
+        var next = soon.shift();
+        while (next && next.ready) next = soon.shift();
+        setupDemo(next || pending.find(function (demo) { return !demo.ready; }));
+      }
+      if (pending.some(function (demo) { return !demo.ready; })) idle(slice, { timeout: 500 });
+      finish();
+    };
+    idle(slice, { timeout: 500 });
     $('#sg-page').addEventListener('click', function (event) {
       var button = event.target.closest('[data-lab]');
       var demo = button && labDemos[button.closest('[data-lab-demo]').getAttribute('data-lab-demo')];
       if (!demo) return;
+      setupDemo(demo);
       var kind = button.getAttribute('data-lab');
       if (kind === 'replay') labReplay(demo);
       if (kind === 'rapid' && demo.entry.toggle) labRapid(demo);
       if (kind === 'reverse' && demo.entry.toggle) labReverse(demo);
     });
-    var spatial = $('[data-lab-curve="--ds-ease-spatial"] [data-lab-peak]');
-    if (spatial && $('#sg-lab-peak')) $('#sg-lab-peak').textContent = spatial.getAttribute('data-lab-peak');
     DS.overlay.tooltips(document);
   }
 

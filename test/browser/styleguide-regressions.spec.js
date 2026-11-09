@@ -271,6 +271,7 @@ test.describe('fixed in 1.6.1', () => {
     });
     const before = await place();
     await stage.evaluate((el) => {
+      window.SG_LAB_SETUP?.('validation');
       const entry = window.SG_LAB.find((item) => item.id === 'validation');
       return Promise.resolve(entry.toggle(el, true, window.SG_LAB_HELPERS)).then(() => undefined);
     });

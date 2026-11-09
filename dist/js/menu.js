@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * The behaviour of a menu (DS.menu): what only a menu does once DS.overlay
  * opened it (the stack, focus return, Escape, a pointerdown outside and the

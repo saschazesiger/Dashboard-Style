@@ -70,9 +70,13 @@ test.afterEach(() => {
   expect(errors, 'console errors').toEqual([]);
 });
 
-async function open(page, path = LAB) {
+async function open(page, path = LAB, { all = true } = {}) {
   await page.goto(path);
   await ready(page);
+  // Every demo set up and every card rendered, as the sweeps below expect (the lab otherwise sets demos up as they
+  // come near and lets far cards skip rendering; work.spec.js covers that path). The speed tests read only the
+  // tokens and a few labels: they keep the lazy path.
+  if (all) await page.evaluate(() => window.SG_LAB_SETUP_ALL?.());
   await page.mouse.move(1, 1);
   // A stored slow speed stretches the first-render stagger too.
   await settle(page, { timeout: 20000 });
@@ -91,17 +95,17 @@ function scale(page) {
 test.describe('speed', () => {
   for (const path of [STYLEGUIDE, LAB]) {
     test(`${path}: the select slows every token, stores the choice, and ?speed= wins without being stored`, async ({ page }) => {
-      await open(page, path);
+      await open(page, path, { all: false });
       expect(await scale(page)).toEqual({ inline: '', medium: 250, speed: null, readout: null });
       await page.locator('#sg-speed-select').selectOption('0.1');
       expect(await scale(page)).toEqual({ inline: '10', medium: 2500, speed: '0.1', readout: 'Slow motion 0.1×' });
       expect(await page.evaluate(() => localStorage.getItem('ds-styleguide-speed'))).toBe('0.1');
       // The stored choice applies on the next load.
-      await open(page, path);
+      await open(page, path, { all: false });
       expect((await scale(page)).medium).toBe(2500);
       await expect(page.locator('#sg-speed-select')).toHaveValue('0.1');
       // ?speed= wins and is not stored.
-      await open(page, `${path}?speed=0.5`);
+      await open(page, `${path}?speed=0.5`, { all: false });
       expect(await scale(page)).toEqual({ inline: '2', medium: 500, speed: '0.5', readout: 'Slow motion 0.5×' });
       expect(await page.evaluate(() => localStorage.getItem('ds-styleguide-speed'))).toBe('0.1');
       await page.locator('#sg-speed-select').selectOption('1');
@@ -110,7 +114,7 @@ test.describe('speed', () => {
   }
 
   test('a demo\'s CSS animation and the lab\'s ms labels follow the select', async ({ page }) => {
-    await open(page);
+    await open(page, LAB, { all: false });
     const label = page.locator('[data-lab-demo="enter-leave"] [data-lab-ms="--ds-dur-medium"]').first();
     await expect(label).toHaveText('250ms');
     await page.locator('#sg-speed-select').selectOption('0.25');
@@ -491,6 +495,7 @@ function seedRandom(page) {
 /** Scrolls a card to the top of the view (the same place on every run) and waits two frames. */
 function bringUp(page, id) {
   return page.evaluate(async (demoId) => {
+    window.SG_LAB_SETUP?.(demoId);
     document.querySelector(`[data-lab-demo="${demoId}"]`).scrollIntoView({ block: 'start' });
     for (let i = 0; i < 2; i += 1) await new Promise((resolve) => requestAnimationFrame(() => resolve()));
   }, id);
@@ -506,6 +511,7 @@ function replayTimeline(page, id) {
   return page.evaluate((demoId) => {
     const card = document.querySelector(`[data-lab-demo="${demoId}"]`);
     const stage = card.querySelector('.sg-lab-stage');
+    window.SG_LAB_SETUP?.(demoId);
     const entry = window.SG_LAB.find((each) => each.id === demoId);
     const TOKENS = ['--ds-ease-in-out', '--ds-ease-value', '--ds-ease-out', '--ds-ease-in', '--ds-ease-exit', '--ds-ease-emphasized', '--ds-ease-spatial'];
     const names = new Map();
@@ -609,6 +615,7 @@ function strays(page, id) {
   return page.evaluate((demoId) => {
     const card = document.querySelector(`[data-lab-demo="${demoId}"]`);
     const stage = card.querySelector('.sg-lab-stage');
+    window.SG_LAB_SETUP?.(demoId);
     const entry = window.SG_LAB.find((each) => each.id === demoId);
     const subject = entry.subject ? entry.subject(stage) : null;
     const nodes = [stage, ...stage.querySelectorAll('*'), ...(subject && !stage.contains(subject) ? [subject, ...subject.querySelectorAll('*')] : [])];
@@ -627,6 +634,7 @@ function hiddenIn(page, id) {
   return page.evaluate((demoId) => {
     const card = document.querySelector(`[data-lab-demo="${demoId}"]`);
     const stage = card.querySelector('.sg-lab-stage');
+    window.SG_LAB_SETUP?.(demoId);
     const entry = window.SG_LAB.find((each) => each.id === demoId);
     const subject = entry.subject ? entry.subject(stage) : null;
     const nodes = [stage, ...stage.querySelectorAll('*'), ...(subject && !stage.contains(subject) ? [subject, ...subject.querySelectorAll('*')] : [])];
@@ -638,6 +646,7 @@ function hiddenIn(page, id) {
 /** Where a reversible demo is (its registry's state()), or null without one. */
 function stateOf(page, id) {
   return page.evaluate((demoId) => {
+    window.SG_LAB_SETUP?.(demoId);
     const entry = window.SG_LAB.find((each) => each.id === demoId);
     return entry.state ? Boolean(entry.state(document.querySelector(`[data-lab-demo="${demoId}"] .sg-lab-stage`))) : null;
   }, id);
@@ -672,6 +681,7 @@ test.describe('demos', () => {
           // that close on their own timers) moves during the rounds.
           if (await page.evaluate((id) => typeof window.SG_LAB.find((entry) => entry.id === id).reset === 'function', demo.id)) {
             await page.evaluate((id) => {
+              window.SG_LAB_SETUP?.(id);
               const entry = window.SG_LAB.find((each) => each.id === id);
               return Promise.resolve(entry.reset(document.querySelector(`[data-lab-demo="${id}"] .sg-lab-stage`), window.SG_LAB_HELPERS)).then(() => undefined);
             }, demo.id);
@@ -821,7 +831,12 @@ function layerStep(page, layer, step, variant, row) {
         await frame();
       }
     };
+    // Set up and in view, as a person who opens it finds it (the lab sets demos up as they come near and lets the
+    // cards far away skip rendering).
+    window.SG_LAB_SETUP?.(demo);
     const card = document.querySelector(`[data-lab-demo="${demo}"]`);
+    card.scrollIntoView({ block: 'center' });
+    await frame();
     const stage = card.querySelector('.sg-lab-stage');
     const pointer = (el, type) => {
       const rect = el.getBoundingClientRect();
@@ -878,7 +893,7 @@ function layerStep(page, layer, step, variant, row) {
       done = act === 'open' ? () => root.getAttribute('data-state') === 'open' : () => root.hidden;
     } else if (spec.drive === 'lab') {
       // toggle() first: a demo may make its layer on the first open, outside the stage (`root`: the element of data-state).
-      window.SG_LAB.find((entry) => entry.id === demo).toggle(stage, act === 'open', window.SG_LAB_HELPERS);
+      (window.SG_LAB_SETUP?.(demo), window.SG_LAB.find((entry) => entry.id === demo)).toggle(stage, act === 'open', window.SG_LAB_HELPERS);
       part = stage.querySelector(spec.part) || document.querySelector(spec.part);
       root = spec.root ? document.querySelector(spec.root) : part;
       done = act === 'open' ? () => root.getAttribute('data-state') === 'open' : () => !root.hasAttribute('data-state');
@@ -995,6 +1010,7 @@ test.describe('stages', () => {
       expect(await overflowing(page)).toEqual([]);
       const heights = await page.evaluate(async () => {
         const stage = document.querySelector('[data-lab-demo="disclosure"] .sg-lab-stage');
+        window.SG_LAB_SETUP?.('disclosure');
         const entry = window.SG_LAB.find((each) => each.id === 'disclosure');
         const closed = stage.getBoundingClientRect().height;
         await entry.toggle(stage, true, window.SG_LAB_HELPERS);

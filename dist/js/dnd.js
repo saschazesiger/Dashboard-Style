@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Drag and drop (3.0): pointer and keyboard moves with announcements, the
  * engine under kanban boards, trees and panel grids. DS.motion.sortable()

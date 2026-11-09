@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Data tables (Material 3): a 48px header in the label style, 52px rows
  * divided by the passive hairline, a quiet hover. Numbers right-aligned
@@ -702,7 +702,14 @@
     padding: 0;
   }
 
+  /* The open state reaches the content through --_shown (and its curve):
+     a rule that styled `... + .ds-table__detail .ds-table__expand > *`
+     behind the row's :has() made Chromium restyle the whole page on every
+     change anywhere. Each wrapper sets its own value, so a nested one stays
+     closed until its own row opens. */
   .ds-table__expand {
+    --_shown: 0;
+    --_shown-ease: var(--ds-ease-in);
     display: grid;
     grid-template-rows: 0fr;
     transition: grid-template-rows var(--ds-dur-base) var(--ds-ease-in);
@@ -714,8 +721,8 @@
     min-height: 0;
     overflow: hidden;
     padding-inline: calc(var(--ds-table-padding, var(--ds-space-4)) + var(--ds-density, 0) * 2px);
-    opacity: 0;
-    transition: opacity var(--ds-dur-fast) var(--ds-ease-in);
+    opacity: var(--_shown);
+    transition: opacity var(--ds-dur-fast) var(--_shown-ease);
   }
 
   .ds-table__expand > *::before,
@@ -734,13 +741,10 @@
   }
 
   tr:has(.ds-table__toggle[aria-expanded="true"]) + .ds-table__detail .ds-table__expand {
+    --_shown: 1;
+    --_shown-ease: var(--ds-ease-in-out);
     grid-template-rows: 1fr;
     transition: grid-template-rows var(--ds-dur-medium) var(--ds-ease-out);
-  }
-
-  tr:has(.ds-table__toggle[aria-expanded="true"]) + .ds-table__detail .ds-table__expand > * {
-    opacity: 1;
-    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
   /* The 40px round toggle hangs out of the 20px text line, so the row

@@ -9,6 +9,29 @@ export is a major change; adding one is a minor change. Identifiers such as D7 r
 A rewrite, built on the `next` branch ([plans/3.0.md](plans/3.0.md)); `main` stays 2.x. The pre-releases carry
 `3.0.0-alpha.<n>`.
 
+### Performance on slow and mobile devices (3.0.0-alpha.6)
+
+Measured in Chromium at 4x CPU throttling on a 390px phone viewport (style and layout work, long tasks, interaction
+latency), then fixed where the system or its pages did more than they need to.
+
+- **Pseudo-elements.** The border-box reset no longer names `::before` and `::after`: a rule whose subject is every
+  pseudo-element made Chromium compute two pseudo-element styles for every element of the page, content or not. The
+  few pseudo-elements with a size and a border or padding set `box-sizing` in their own rule. A unit test keeps any
+  rule from giving every element a pseudo-element style again.
+- **`:has()` before a combinator.** No rule styles a bare or pseudo-element subject behind a `:has()` that is not in
+  its subject (`.x:has(.y) > *`): Chromium then restyles the whole page on every change anywhere. The expandable
+  table row passes its state to its content through private properties; a unit test covers every stylesheet.
+- **Motion tokens.** `DS.motion.motionDuration()` and `motionEasing()` read the tokens on the nearest `.ds-theme`
+  instead of the element: the root is usually clean, while a new or just-changed element forced a style flush of the
+  whole document in the middle of an interaction (several per page change in the styleguide).
+- **View Transitions across pages** (`css/optional/view-transitions.css`): the rules that name the frame while no
+  modal covers it look through the page with `:has()` on `html.ds-theme` only, not on every nested `.ds-theme`.
+- **Styleguide and Motion Lab.** They load `ds.min.css` and `ds.min.js`. The Motion Lab sets a demo up as its card
+  comes near the viewport, in idle time, and lets cards far away skip rendering (`content-visibility`): on a phone at
+  4x CPU it was ready after 16s with a 10s freeze and 180ms scroll frames; it now renders at once and stays
+  responsive while it finishes. `test/browser/work.spec.js` counts the style work of the lab's load, a page change and
+  opening a modal, so it holds in the shared run.
+
 ### Phase 2: the tier-1 catalogue (3.0.0-alpha.5)
 
 The new components of [plans/3.0.md](plans/3.0.md), built in 22 packages, each reviewed and fixed before the merge.

@@ -2690,6 +2690,65 @@ describe('tables and scrollers (2.0)', () => {
     assert.deepEqual(offenders, []);
   });
 
+  /** A selector's subject (the compound after its last combinator outside parentheses) and what comes before it. */
+  const subjectOf = (part) => {
+    let depth = 0;
+    let last = 0;
+    for (let index = 0; index < part.length; index += 1) {
+      const char = part[index];
+      if (char === '(') depth += 1;
+      else if (char === ')') depth -= 1;
+      else if (depth === 0 && /[\s>+~]/.test(char)) last = index + 1;
+    }
+    return { before: part.slice(0, last), subject: part.slice(last) };
+  };
+  /**
+   * Whether a compound names nothing that narrows it: no class, id, attribute or element at its top level or inside
+   * :is() and :where() (only *, :not(), :has() and plain pseudo-classes).
+   */
+  const bare = (compound) => {
+    let text = compound.replace(/::[\w-]+(\([^)]*\))?$/, '');
+    // :not() and :has() narrow nothing for this purpose; :is() and :where() keep what they name.
+    for (let guard = 0; guard < 20 && /:(not|has)\(/.test(text); guard += 1) text = text.replace(/:(not|has)\((?:[^()]|\([^()]*\))*\)/g, '');
+    text = text.replace(/:(is|where)\(/g, '(').replace(/:[\w-]+(\((?:[^()]|\([^()]*\))*\))?/g, '');
+    return !/[.#[]|(^|[\s(,])[a-z]/i.test(text);
+  };
+
+  it('never gives every element a pseudo-element rule (the engine then computes ::before and ::after for each one)', () => {
+    // `:where(.ds-theme) *::before` made Chromium compute two pseudo-element styles for every element of the page,
+    // content or not: more than half the style cost of a plain element (perf audit, 3.0). A pseudo-element rule
+    // names its element's class.
+    const offenders = [];
+    for (const file of [...SRC_CSS, 'src/optional/view-transitions.css']) {
+      for (const rule of rules(read(file))) {
+        for (const part of splitSelectors(rule.selector)) {
+          // Every element of a theme: nothing but the theme or the page base around a bare subject.
+          const { subject } = subjectOf(part);
+          const scope = part.slice(0, part.length - subject.length).replace(/:where\(\.ds-(theme|base)\)|\.ds-(theme|base)\b/g, '').trim();
+          if (/::(before|after|marker|placeholder)$/.test(subject) && bare(subject) && !scope) offenders.push(`${file}: ${part}`);
+        }
+      }
+    }
+    assert.deepEqual(offenders, []);
+  });
+
+  it('never styles a bare or pseudo-element subject behind a :has() before a combinator (Chromium restyles the whole page)', () => {
+    // A :has() that is not in the subject joins one invalidation set with the root's; a rule whose subject names
+    // nothing (`.x:has(.y) > *`, `.x:has(.y) ~ *`, `.x:has(.y) ::placeholder`) then made every change anywhere restyle
+    // and lay out the whole page (the Motion Lab: 150-700ms a change). Pass the state through a property the
+    // children read, or select from the sibling's side.
+    const offenders = [];
+    for (const file of [...SRC_CSS, 'src/optional/view-transitions.css']) {
+      for (const rule of rules(read(file))) {
+        for (const part of splitSelectors(rule.selector)) {
+          const { before, subject } = subjectOf(part);
+          if (before.includes(':has(') && bare(subject)) offenders.push(`${file}: ${part}`);
+        }
+      }
+    }
+    assert.deepEqual(offenders, []);
+  });
+
   it('makes an interactive row the box of its link in WebKit: an identity transform on every body row, none while it holds a script-placed popup, a focused row clipping its ring', () => {
     // WebKit computes a <tr> static whatever its position: the transform is what makes the row the
     // containing block of .ds-table__row-link::after (and of the ripple box) there.

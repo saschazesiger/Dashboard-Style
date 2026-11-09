@@ -238,7 +238,7 @@
    */
   var FRAME_HEAD = '<!doctype html><html lang="en" class="ds-theme ds-base"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1"><title>Demo frame</title>' +
-    '<link rel="stylesheet" href="../dist/fonts/fonts.css"><link rel="stylesheet" href="../dist/ds.css"><link rel="stylesheet" href="styleguide.css">' +
+    '<link rel="stylesheet" href="../dist/fonts/fonts.css"><link rel="stylesheet" href="../dist/ds.min.css"><link rel="stylesheet" href="styleguide.css">' +
     '<link rel="stylesheet" id="sg-theme-link" disabled><style id="sg-theme-style"></style></head>';
 
   var labFrames = [];
@@ -276,7 +276,7 @@
         resolve(frame.contentWindow);
       }, { once: true });
     });
-    frame.srcdoc = FRAME_HEAD + '<body>' + body + '<script src="../dist/ds.js"></script></body></html>';
+    frame.srcdoc = FRAME_HEAD + '<body>' + body + '<script src="../dist/ds.min.js"></script></body></html>';
     labFrames.push(frame);
     if (!frameWatch) {
       frameWatch = new MutationObserver(function () { labFrames.forEach(syncFrame); });

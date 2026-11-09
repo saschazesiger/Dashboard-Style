@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.5 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * The wheel (DS.wheel): a live status line that rolls from one text to the
  * next, one line pushing the other out (plans/wheel-and-shimmer.md, whose

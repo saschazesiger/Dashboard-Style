@@ -1539,9 +1539,12 @@ describe('js/motion', () => {
 
     it('reads its times from the element: --ds-delay-boot in a .ds-boot, else --ds-delay-loader, and --ds-hold-loader (2.0)', () => {
       const values = { '--ds-delay-loader': 'calc(200ms * 10)', '--ds-delay-boot': 'calc(400ms * 10)', '--ds-hold-loader': 'calc(450ms * 10)' };
+      const ownerDocument = { defaultView: { getComputedStyle: () => ({ getPropertyValue: (name) => values[name] ?? '' }) } };
+      // The tokens are read on the nearest .ds-theme, which shares the document.
+      const theme = { ownerDocument, closest: (selector) => (selector === '.ds-theme' ? theme : null) };
       const loader = (inBoot) => ({
-        ownerDocument: { defaultView: { getComputedStyle: () => ({ getPropertyValue: (name) => values[name] ?? '' }) } },
-        closest: (selector) => (selector === '.ds-theme' || (inBoot && selector === '.ds-boot') ? {} : null),
+        ownerDocument,
+        closest: (selector) => (selector === '.ds-theme' ? theme : inBoot && selector === '.ds-boot' ? {} : null),
       });
       // Time scale 10: visible after 2000ms (4000ms in a boot screen), for at least 4500ms.
       assert.equal(loaderHoldMs(0, 2500, { element: loader(false) }), 4000);
