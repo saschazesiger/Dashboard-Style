@@ -902,6 +902,7 @@ strings a script adds have an option, so a page in another language passes its o
 | `{count} lines` | the count of the lines of `DS.logview` (the system's string `logLines`) | `DS.core.config({ strings: { logLines } })` |
 | `{shown} of {count} lines` | the count of `DS.logview` while a filter hides lines (the system's string `logShown`) | `DS.core.config({ strings: { logShown } })` |
 | `No lines yet` | what an empty `DS.logview` shows (the system's string `logEmpty`) | `DS.core.config({ strings: { logEmpty } })` |
+| `Blank line` | what a screen reader hears for an empty line of a `DS.logview` (the system's string `logBlank`) | `DS.core.config({ strings: { logBlank } })` |
 | `No line matches the filters` | what `DS.logview` shows when the filters hide every line (the system's string `logNoneShown`) | `DS.core.config({ strings: { logNoneShown } })` |
 | `Latest` | the pill of `DS.logview` that goes back to the newest line (the system's string `logLatest`) | `DS.core.config({ strings: { logLatest } })` |
 | `Following new lines` | what `DS.logview` announces when the pill takes the reader back to the end (the system's string `logFollowing`) | `DS.core.config({ strings: { logFollowing } })` |

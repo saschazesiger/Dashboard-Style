@@ -634,6 +634,7 @@
       logLines: '{count} lines',
       logShown: '{shown} of {count} lines',
       logEmpty: 'No lines yet',
+      logBlank: 'Blank line',
       logNoneShown: 'No line matches the filters',
       logLatest: 'Latest',
       logFollowing: 'Following new lines',
@@ -36526,7 +36527,7 @@
         return `<div class="ds-logview__line" role="option" aria-selected="${selected.has(entry.seq)}" data-ds-key="l${entry.seq}"${entry.level ? ` data-level="${entry.level}"` : ''}>`
           + `<span class="ds-logview__num" data-line="${entry.seq}" aria-hidden="true"></span> `
           + `<span class="ds-logview__time">${esc(timeText(entry))}</span> ${level} `
-          + `<span class="ds-logview__text">${textHtml(entry, index)}</span></div>`;
+          + `<span class="ds-logview__text">${textHtml(entry, index)}</span>${entry.text ? '' : `<span class="ds-sr">${esc(t('logBlank'))}</span>`}</div>`;
       };
 
       const list = windowRows(scroller, { content: listbox, count: 0, render, estimate: 24 });

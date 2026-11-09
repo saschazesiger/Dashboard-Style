@@ -6340,6 +6340,7 @@
           wizardField(h, 'Serial number', '<input class="ds-input" id="{id}" name="serial" required pattern="SN-[0-9]{4}-[0-9]{2}" placeholder="SN-0000-00">', 'As printed on the label: SN-3381-77') +
           '</div>') +
         panel('Problem', '<fieldset class="ds-fieldset" aria-describedby="' + what + '-hint"><legend class="ds-fieldset__legend" id="' + what + '">What happened</legend>' +
+          '<p class="ds-fieldset__hint" id="' + what + '-hint">The closest one is enough.</p>' +
           '<label class="ds-check"><input type="radio" name="kind" value="power" required><span>It does not start</span></label>' +
           '<label class="ds-check"><input type="radio" name="kind" value="slow"><span>It is slow</span></label>' +
           '<label class="ds-check"><input type="radio" name="kind" value="broken"><span>Something is broken</span></label></fieldset>' +
@@ -9844,10 +9845,10 @@
         return h.section('Causes', '<div class="ds-grid-2">' + RESULTS.map(function (row, index) {
             return '<div class="ds-card">' + resultHtml(h, row, index === 0 && h.tone ? ' ds-tone-' + h.tone : '') + '</div>';
           }).join('') + '</div>', 'Each fills a page in a project; here a card holds each. The icon and the title say what happened, never the colour or the code alone.') +
-          h.section('With a picture', '<div class="ds-card"><section class="ds-result ds-result--not-found" aria-labelledby="' + h.uid('result-pic') + '">' +
+          h.section('With a picture', (function (id) { return '<div class="ds-card"><section class="ds-result ds-result--not-found" aria-labelledby="' + id + '">' +
             '<span class="ds-result__media" aria-hidden="true">' + picture + '</span><p class="ds-result__code">404</p>' +
-            '<h2 class="ds-result__title" tabindex="-1">Nothing at this address</h2><p class="ds-result__text">The page\'s own illustration takes the disc\'s place.</p>' +
-            '<div class="ds-result__actions"><button class="ds-btn ds-btn--filled" type="button">Go to the overview</button></div></section></div>') +
+            '<h2 class="ds-result__title" id="' + id + '" tabindex="-1">Nothing at this address</h2><p class="ds-result__text">The page\'s own illustration takes the disc\'s place.</p>' +
+            '<div class="ds-result__actions"><button class="ds-btn ds-btn--filled" type="button">Go to the overview</button></div></section></div>'; }(h.uid('result-pic')))) +
           h.section('Narrow', '<div class="ds-card" style="max-inline-size: 360px; container-type: inline-size">' + resultHtml(h, RESULTS[3]) + '</div>', 'At a phone\'s width the actions stack, full width.') +
           h.section('Keyboard', '<p class="ds-muted">After a request the page moves focus to the title, so the result is read; <kbd class="ds-kbd">Tab</kbd> then reaches the actions.</p>');
       }

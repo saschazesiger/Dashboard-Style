@@ -27,6 +27,7 @@ function wizardForm(h, steps) {
       wizardField(h, 'Serial number', '<input class="ds-input" id="{id}" name="serial" required pattern="SN-[0-9]{4}-[0-9]{2}" placeholder="SN-0000-00">', 'As printed on the label: SN-3381-77') +
       '</div>') +
     panel('Problem', '<fieldset class="ds-fieldset" aria-describedby="' + what + '-hint"><legend class="ds-fieldset__legend" id="' + what + '">What happened</legend>' +
+      '<p class="ds-fieldset__hint" id="' + what + '-hint">The closest one is enough.</p>' +
       '<label class="ds-check"><input type="radio" name="kind" value="power" required><span>It does not start</span></label>' +
       '<label class="ds-check"><input type="radio" name="kind" value="slow"><span>It is slow</span></label>' +
       '<label class="ds-check"><input type="radio" name="kind" value="broken"><span>Something is broken</span></label></fieldset>' +

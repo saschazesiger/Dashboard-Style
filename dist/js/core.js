@@ -576,6 +576,7 @@ const DEFAULT_STRINGS = Object.freeze({
   logLines: '{count} lines',
   logShown: '{shown} of {count} lines',
   logEmpty: 'No lines yet',
+  logBlank: 'Blank line',
   logNoneShown: 'No line matches the filters',
   logLatest: 'Latest',
   logFollowing: 'Following new lines',

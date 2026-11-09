@@ -31,6 +31,9 @@ latency), then fixed where the system or its pages did more than they need to.
   4x CPU it was ready after 16s with a 10s freeze and 180ms scroll frames; it now renders at once and stays
   responsive while it finishes. `test/browser/work.spec.js` counts the style work of the lab's load, a page change and
   opening a modal, so it holds in the shared run.
+- **Accessibility sweep** (`test/browser/a11y-sweep.spec.js`): every demo's interactive elements are named, ARIA
+  references resolve, ids are unique, images have text and roles are valid. It found a blank line of `DS.logview`
+  without a name (now "Blank line", the string `logBlank`) and broken references in the result and wizard demos.
 
 ### Phase 2: the tier-1 catalogue (3.0.0-alpha.5)
 
