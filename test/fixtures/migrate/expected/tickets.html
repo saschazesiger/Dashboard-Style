@@ -1,0 +1,44 @@
+<!doctype html>
+<html class="ds-theme ds-base" lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tickets</title>
+  <link rel="stylesheet" href="vendor/dashboard-style/ds.css">
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <main class="ds-view">
+    <div class="ds-alert ds-tone-success" role="status"><span class="ds-alert__text">Ticket 1042 is closed.</span></div>
+    <ul class="ds-list">
+      <li class="ds-list__item">
+        <span class="ds-badge ds-tone-warning">Waiting</span> Printer on floor 2 jams
+      </li>
+      <li class="ds-list__item">
+        <span class="ds-badge ds-tone-error">Overdue</span> Product licence renewal
+      </li>
+      <li class="ds-list__item">
+        <span class="ds-badge ds-tone-neutral">Draft</span> Replace the lobby display
+      </li>
+    </ul>
+    <figure class="ds-columns">
+      <figcaption class="ds-sr">Tickets per state</figcaption>
+      <ol class="ds-columns__plot">
+        <li class="ds-columns__col ds-tone-warning"><span class="ds-columns__value">4</span><span class="ds-columns__fill" style="--ds-share: .4"></span><span class="ds-columns__label">Waiting</span></li>
+        <li class="ds-columns__col ds-tone-error"><span class="ds-columns__value">2</span><span class="ds-columns__fill" style="--ds-share: .2"></span><span class="ds-columns__label">Overdue</span></li>
+      </ol>
+    </figure>
+    <div class="ds-alert ds-tone-warning"><span class="ds-alert__text">Two tickets wait for a reply.</span></div>
+    <span class="ds-avatar ds-lg" aria-hidden="true">AL</span>
+    <span class="ds-meter ds-tone-error" role="meter" aria-label="Overdue share" aria-valuemin="0" aria-valuemax="100" aria-valuenow="12" aria-valuetext="12% overdue"></span>
+    <ul class="ds-kv-list">
+      <li><div class="ds-kv-list__row"><span>Escalated</span><strong><svg class="ds-kv-list__icon ds-tone-error" aria-hidden="true"></svg><span class="ds-sr">Error:</span> 1</strong></div></li>
+    </ul>
+    <ul class="ds-legend">
+      <li><span class="ds-legend__key ds-tone-warning"></span> Waiting</li>
+    </ul>
+  </main>
+  <script type="module" src="js/charts.mjs"></script>
+</body>
+</html>

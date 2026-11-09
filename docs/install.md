@@ -19,7 +19,7 @@ Everything a project needs is in `dist/`:
 | `LICENSE` | the MIT notice; keep it with the copy |
 | `SHA256SUMS` | checksums of every file |
 | `themes/` | the shipped themes `dark.css`, `compact.css` and `contrast.css`, loaded after your theme ([theming.md](theming.md#dark-compact-and-contrast)) |
-| `tools/` | dependency-free checks for a project: `verify.mjs` and `verify.sh` (the copy against `SHA256SUMS`, see "Verify a copy"), `check-theme.mjs` (a theme file, see theming.md, "Checking a theme"), `check-project.mjs` (the project rules, see "Check a project"), `bundle.mjs` and `vite-plugin.mjs` (a project bundle of only what it uses, [bundle.md](bundle.md)), and the modules they share: `theme-rules.mjs` (the contrast pairs and motion prefixes), `css-scan.mjs` (a small CSS reader) and `js-wrap.mjs` (the classic-script wrapper of `ds.js`) |
+| `tools/` | dependency-free checks for a project: `verify.mjs` and `verify.sh` (the copy against `SHA256SUMS`, see "Verify a copy"), `check-theme.mjs` (a theme file, see theming.md, "Checking a theme"), `check-project.mjs` (the project rules, see "Check a project"), `bundle.mjs` and `vite-plugin.mjs` (a project bundle of only what it uses, [bundle.md](bundle.md)), `migrate.mjs` (a 2.x project to 3.0, [migration.md](migration.md)), `theme.mjs` (a theme from one seed, [theme-generator.md](theme-generator.md)), and the modules they share: `theme-rules.mjs` (the contrast pairs and motion prefixes), `css-scan.mjs` (a small CSS reader) and `js-wrap.mjs` (the classic-script wrapper of `ds.js`) |
 | `tokens.json` | every `--ds-*` name as data: `{ version, tokens: [{ name, layer, default, type, themeable, component?, deprecated? }] }` (see "Tokens as data") |
 
 The modules of `js/`, in the order `ds.js` holds them (each after the modules it imports; generated from `src/js/`
@@ -1021,6 +1021,7 @@ it; globs know `*`, `**` and `?`):
 
 ```json
 {
+  "major": 3,
   "prefix": "app",
   "css": ["css/**/*.css"],
   "js": ["js/**/*.js"],
@@ -1028,6 +1029,7 @@ it; globs know `*`, `**` and `?`):
   "themes": ["css/theme.css"],
   "themesWith": ["vendor/dashboard-style/themes/dark.css"],
   "vendor": "vendor/dashboard-style",
+  "bundle": "ds.config.json",
   "exceptions": [
     { "rule": "restyle", "file": "css/app.css", "selector": ".app-bar .ds-btn", "reason": "the bar is dark; no hook for it yet" }
   ]
@@ -1041,11 +1043,15 @@ node vendor/dashboard-style/tools/check-project.mjs --config ds-check.json
 It prints `<file>:<line> <rule> <message>` per finding (warnings say so) and exits 1 on an error, 2 on a broken
 configuration. An exception silences one rule for a file (a path or a glob) and, when it names one, a selector; its
 `reason` is required. `themesWith` (optional) names the shipped themes your theme is used with; the `themes` rule passes
-them to `check-theme.mjs --with`.
+them to `check-theme.mjs --with`. `major` is the major version the config and the project are for: the `vendor` rule
+fails when the copy has another one (a 2.x project on a 3.0 copy: [migration.md](migration.md)), and when the
+config names none on a copy of 3.0 or later (no 2.x config names it, so such a config predates 3.0); on an older copy
+none only warns. `bundle` (optional) is the config of the project bundle ([bundle.md](bundle.md)); the `bundle`
+rule runs `tools/bundle.mjs --check` on it with this copy.
 
 | Rule | Level | What |
 |---|---|---|
-| `vendor` | error | the copy verifies against its `SHA256SUMS` ("Verify a copy") |
+| `vendor` | error, warning | the copy verifies against its `SHA256SUMS` ("Verify a copy"), and `major` is the copy's major version (none: an error on a 3.0 copy or later, a warning before) |
 | `classes` | error | every `ds-` class in markup (`class="..."` in pages and template strings), in selectors of scripts and stylesheets and in `classList` calls exists in `ds.css`; a page that links single stylesheets (`css/components/*.css`) links one that defines it: a file whose rules style the class itself, not one that only places it inside another component (`.ds-alert .ds-btn` in `alert.css`); `.ds-theme` needs `css/core/tokens.css`; the `.min.css` of a stylesheet counts as the stylesheet |
 | `deprecated` | error, warning | a name of `deprecations.json`: removed names fail, deprecated ones warn |
 | `literals` | error | a colour, radius, font, shadow, duration or curve literal in a rule of your prefix (`.app-*`): read tokens (`--ds-*`, `--app-*`). `linear` is the curve of the system's loops and has no token: it passes on a `--ds-loop-*` duration (`animation: ds-spin var(--ds-loop-spin) linear infinite`), as do a zero duration (`0s`) and its curve |
@@ -1057,6 +1063,8 @@ them to `check-theme.mjs --with`.
 | `attributes` | error | a script that writes an attribute the system owns (the "Attributes" table of [components.md](components.md#attributes)); `data-toast-reserve` only next to `reserve: false`. A write that `deprecations.json` lists, such as the 1.x hand `data-scrolled` recipe, is reported by `deprecated` instead (a warning in 2.x) |
 | `dom` | warning | `innerHTML` with ds markup: re-render with `DS.dom.morphHtml` |
 | `pressable` | warning | a `::before` state layer of your own (`currentColor` or a `--ds-state-*` opacity): `.ds-pressable` gives a project element the system's hover, press and focus |
+| `options` | error | an option written as a restyle ([options.md](options.md)): a project rule or a script (`style.setProperty()`) that sets what the option classes set (`--ds-size-step`, `--ds-size-font`, `--ds-density`, `--ds-shape`, `--ds-target-min`, the `--ds-tone*` colours; a theme sets the defaults), a rule under an option class that sets a `--ds-*` hook (`.ds-sm .ds-btn { --ds-btn-height: 28px }` redefines what `.ds-sm` means: set the base hook, and the option computes from it), and a `pointer: coarse` media query of your own that reaches ds (touch is `.ds-touch`) |
+| `bundle` | error, warning | with `bundle`, the project bundle is what `tools/bundle.mjs` writes from this copy and holds every class the project uses (`bundle.mjs --check`); without it, a page that links a bundle (`ds.<entry>.css`) warns |
 
 The nightly template runs it as its optional `CHECK` step.
 
@@ -1065,7 +1073,8 @@ The nightly template runs it as its optional `CHECK` step.
 1. Read [CHANGELOG.md](../CHANGELOG.md) since the version in your `VERSION` file. Versions follow semver: a minor
    version adds tokens, classes or hooks or deprecates one; a renamed name keeps working under its old name until a
    later major version removes it. The number does not hold anything back: `main` is what you get. Coming from
-   1.x, work through the "Migration" table of [2.0.0](../CHANGELOG.md#200) first.
+   2.x, follow [migration.md](migration.md): `tools/migrate.mjs` rewrites what it can map and lists the rest. Coming
+   from 1.x, work through the "Migration" table of [2.0.0](../CHANGELOG.md#200) first.
 2. Vendor again over the old copy (`vendor.sh vendor/dashboard-style` fetches the latest `main`); the CDN's `@main`
    URLs update by themselves.
 3. Open your pages and the styleguide with your theme loaded; run your tests (including the checksum check).

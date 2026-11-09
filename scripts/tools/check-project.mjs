@@ -17,6 +17,8 @@
  *     "themesWith": ["vendor/dashboard-style/themes/dark.css"],  shipped themes the
  *                                              theme is used with (check-theme --with; optional)
  *     "vendor": "vendor/dashboard-style",      the copy
+ *     "major": 3,                              the major version this config is for (the copy's)
+ *     "bundle": "ds.config.json",              the project bundle's config (tools/bundle.mjs; optional)
  *     "exceptions": [{ "rule": "restyle", "file": "css/app.css", "selector": ".app-bar .ds-btn", "reason": "why" }]
  *   }
  *
@@ -44,17 +46,50 @@
  *               write deprecations.json lists is left to deprecated)
  *   dom         a warning for innerHTML on ds markup (use DS.dom.morphHtml)
  *   pressable   a warning for a project ::before state layer (use .ds-pressable)
+ *   options     size, density, shape, tone and touch stay option classes: no
+ *               project rule or script sets an option property, no rule under
+ *               an option class sets a --ds-* hook, no coarse-pointer rule of
+ *               the project's own reaches ds (.ds-touch is the opt-in)
+ *   bundle      "bundle" is up to date with the project (tools/bundle.mjs
+ *               --check); a warning for a page that links a bundle the config
+ *               does not name
+ *
+ * The vendor rule also compares "major" with the copy's version: another
+ * major is an error (a 2.x config on a 3.0 copy: run tools/migrate.mjs),
+ * and so is none on a copy of 3.0 or later (no 2.x config names it); none
+ * on an older copy is a warning.
  */
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { checkTheme } from './check-theme.mjs';
+import { ConfigError, bundle as runBundle } from './bundle.mjs';
+import { checkTheme, optionStyled } from './check-theme.mjs';
+import { generateTheme } from './theme.mjs';
 import { isRemoved } from './theme-rules.mjs';
 import { lineAt, scan, selectorList, splitOutside } from './css-scan.mjs';
 import { verify } from './verify.mjs';
 
 /** The rule ids, in the order of the project block of AGENTS.md. */
-export const RULES = ['vendor', 'classes', 'deprecated', 'literals', 'keyframes', 'themes', 'layers', 'hidden', 'restyle', 'attributes', 'dom', 'pressable'];
+export const RULES = ['vendor', 'classes', 'deprecated', 'literals', 'keyframes', 'themes', 'layers', 'hidden', 'restyle', 'attributes', 'dom', 'pressable', 'options', 'bundle'];
+
+/**
+ * The properties the option classes set (docs/options.md), each with the
+ * classes a page uses instead: a project sets none of them itself (a theme
+ * sets the defaults, through tools/check-theme.mjs).
+ */
+export const OPTION_PROPERTIES = {
+  '--ds-size-step': '.ds-xs ... .ds-xl',
+  '--ds-size-font': '.ds-xs ... .ds-xl',
+  '--ds-density': '.ds-density-comfortable, -compact, -dense or -tight',
+  '--ds-shape': '.ds-shape-square, -soft, -default or -round',
+  '--ds-target-min': '.ds-touch',
+  '--ds-tone': '.ds-tone-*',
+  '--ds-on-tone': '.ds-tone-*',
+  '--ds-tone-container': '.ds-tone-*',
+  '--ds-on-tone-container': '.ds-tone-*',
+};
+/** A media query of a coarse pointer: touch is .ds-touch, never the project's own query. */
+const COARSE = /\(\s*(?:any-)?pointer\s*:\s*coarse\s*\)/;
 
 /**
  * Attributes the system writes (the "Attributes" table of
@@ -181,8 +216,9 @@ function compounds(selector) {
 /**
  * The files of the copy (css/...) that define each class. A file defines a
  * class when one of its selectors has the class in the subject compound and
- * no other component's class before it (`.ds-alert .ds-btn` in alert.css
- * places a button, it does not define one); a class only ever used in
+ * no other component's class before it or in the same compound (`.ds-alert
+ * .ds-btn` in alert.css places a button, `.ds-toast__action.ds-sm` in
+ * toast.css sizes the action: neither defines the other); a class only ever used in
  * context falls back to the files whose subjects carry it, then to every
  * file that mentions it. The scopes are fixed: .ds-theme is tokens.css,
  * .ds-base is base.css.
@@ -206,7 +242,10 @@ export function definingFiles(sheets) {
         for (const name of names(selector)) note(2, name, path);
         for (const name of subject) {
           note(1, name, path);
-          if (context.every((other) => block(other) === block(name))) note(0, name, path);
+          // Another component's class in the same compound places this one too (`.ds-toast__action.ds-sm` in
+          // toast.css does not define .ds-sm): only the compounds of its own block define it.
+          const others = [...context, ...subject.filter((other) => other !== name && !NEUTRAL.has(other))];
+          if (others.every((other) => block(other) === block(name))) note(0, name, path);
         }
       }
     }
@@ -235,8 +274,18 @@ function readCopy(vendorDir) {
     .map((path) => ({ path: `css/${path}`, css: readFileSync(join(cssDir, path), 'utf8') })) : [];
   const fileOf = definingFiles(sheets);
   const json = (name) => (existsSync(join(vendorDir, name)) ? JSON.parse(readFileSync(join(vendorDir, name), 'utf8')) : null);
-  return { classes, keyframes, fileOf, tokens: json('tokens.json'), deprecations: json('deprecations.json') };
+  const manifest = json('manifest.json');
+  const deprecations = json('deprecations.json');
+  const stamp = existsSync(join(vendorDir, 'VERSION')) ? /^version (\S+)/.exec(readFileSync(join(vendorDir, 'VERSION'), 'utf8'))?.[1] : null;
+  const version = manifest?.version ?? deprecations?.version ?? stamp ?? null;
+  return { classes, keyframes, fileOf, tokens: json('tokens.json'), deprecations, version };
 }
+
+/** The major version of a version string ("3.0.0-alpha.5" -> 3), or null. */
+const majorOf = (version) => {
+  const match = /^(\d+)\./.exec(String(version ?? ''));
+  return match ? Number(match[1]) : null;
+};
 
 /** ds- class names a page or script uses: class attributes, selectors in strings, classList calls. */
 function usedClasses(source, kind) {
@@ -271,6 +320,8 @@ export function checkProject(config, root) {
   const prefix = config.prefix;
   if (!prefix || !/^[a-z][\w-]*$/.test(prefix)) configErrors.push('"prefix": the project prefix, such as "app"');
   if (!config.vendor) configErrors.push('"vendor": the path of the copy');
+  if (config.major !== undefined && !(Number.isInteger(config.major) && config.major > 0)) configErrors.push('"major": the major version the config is for, a number such as 3');
+  if (config.bundle !== undefined && (typeof config.bundle !== 'string' || !config.bundle)) configErrors.push('"bundle": the path of the bundle\'s ds.config.json');
   for (const exception of config.exceptions ?? []) {
     if (!RULES.includes(exception.rule)) configErrors.push(`exception for an unknown rule "${exception.rule}" (rules: ${RULES.join(', ')})`);
     if (!exception.file) configErrors.push(`exception for ${exception.rule}: a "file" (a path or a glob)`);
@@ -293,6 +344,15 @@ export function checkProject(config, root) {
   if (!existsSync(vendorDir)) add('error', vendor, 0, 'vendor', 'the copy is missing');
   else for (const problem of verify(vendorDir).problems) add('error', `${vendor}/SHA256SUMS`, 0, 'vendor', problem);
   const copy = readCopy(vendorDir);
+  const copyMajor = majorOf(copy.version);
+  if (copyMajor !== null && config.major === undefined) {
+    // No 2.x config names "major": on a 3.0 copy (or later) a config without it is one from before 3.0, so the
+    // nightly stops here instead of committing a copy the project was never moved to.
+    if (copyMajor >= 3) add('error', 'ds-check.json', 0, 'vendor', `the config names no "major", so it predates 3.0 and the copy is ${copy.version}: migrate the project (node ${vendor}/tools/migrate.mjs --config ds-check.json, docs/migration.md), which sets "major": ${copyMajor}`);
+    else add('warning', 'ds-check.json', 0, 'vendor', `the config names no "major": add "major": ${copyMajor} (the copy is ${copy.version})`);
+  } else if (copyMajor !== null && config.major !== copyMajor) {
+    add('error', 'ds-check.json', 0, 'vendor', `the config is for ${config.major}.x, the copy is ${copy.version}: ${config.major < copyMajor ? `migrate the project (node ${vendor}/tools/migrate.mjs --config ds-check.json, docs/migration.md), which sets "major": ${copyMajor}` : 'vendor that major, or set "major" to the copy\'s'}`);
+  }
 
   // deprecated (every project file, themes included)
   const names = copy.deprecations?.names ?? [];
@@ -345,6 +405,7 @@ export function checkProject(config, root) {
     for (const rule of scanned.rules) {
       if (rule.context.some((at) => /^@keyframes\b/.test(at))) continue;
       const layered = rule.context.some((at) => /^@layer\b/.test(at));
+      const coarse = rule.context.some((at) => /^@media\b/.test(at) && COARSE.test(at));
       const selectors = selectorList(rule.selector);
       for (const selector of selectors) {
         for (const match of selector.matchAll(/\.(ds-[\w-]+)/g)) {
@@ -380,6 +441,13 @@ export function checkProject(config, root) {
         if (reaching.length && !declaration.property.startsWith('--') && !PLACEMENT.test(declaration.property)) {
           add('error', file, declaration.line, 'restyle', `${reaching.join(', ')} { ${declaration.property} }: changes the look of a ds component; set its hooks (--ds-*) instead`, rule.selector);
         }
+        if (OPTION_PROPERTIES[declaration.property]) {
+          add('error', file, declaration.line, 'options', `${rule.selector} { ${declaration.property} }: set by the option classes; put ${OPTION_PROPERTIES[declaration.property]} on the element or a container (a theme sets the default)`, rule.selector);
+        } else if (declaration.property.startsWith('--ds-') && optionStyled(rule.selector)) {
+          add('error', file, declaration.line, 'options', `${rule.selector} { ${declaration.property} }: redefines what .${optionStyled(rule.selector)} means; set the hook's base on the element or in the theme, and the option computes from it`, rule.selector);
+        } else if (coarse && (declaration.property.startsWith('--ds-') || selectors.some((selector) => /\.ds-[\w-]/.test(selector)))) {
+          add('error', file, declaration.line, 'options', `${rule.selector} { ${declaration.property} } under a coarse pointer: touch is opt-in, .ds-touch on .ds-theme or a container`, rule.selector);
+        }
       }
       // A project state layer of its own: ::before in currentColor at a state opacity.
       if (own && selectors.some((selector) => /::before/.test(selector) && selector.includes(`.${prefix}-`))) {
@@ -393,7 +461,7 @@ export function checkProject(config, root) {
     const missing = themesWith.filter((path) => !existsSync(join(root, path)));
     for (const path of missing) add('error', path, 0, 'themes', 'a file of "themesWith" is missing');
     const withFiles = themesWith.filter((path) => !missing.includes(path)).map((path) => ({ path, css: read(path) }));
-    for (const finding of checkTheme({ files: themes.map((path) => ({ path, css: read(path) })), withFiles, tokens: copy.tokens, deprecations: copy.deprecations })) {
+    for (const finding of checkTheme({ files: themes.map((path) => ({ path, css: read(path) })), withFiles, tokens: copy.tokens, deprecations: copy.deprecations, generate: generateTheme })) {
       if (finding.level === 'info') continue;
       add(finding.level, finding.file, finding.line, 'themes', `${finding.rule}: ${finding.message}`);
     }
@@ -417,8 +485,34 @@ export function checkProject(config, root) {
       if (listed.some(([start, end]) => match.index >= start && match.index < end)) continue;
       add('error', file, lineAt(source, match.index), 'attributes', `dataset.${match[1]} is written by the system; the page never writes it`);
     }
+    for (const match of source.matchAll(/\.setProperty\(\s*['"`](--ds-[\w-]+)['"`]/g)) {
+      if (OPTION_PROPERTIES[match[1]]) add('error', file, lineAt(source, match.index), 'options', `setProperty('${match[1]}'): set by the option classes; toggle ${OPTION_PROPERTIES[match[1]]} on the element or a container instead`);
+    }
     for (const match of source.matchAll(/\.innerHTML\s*\+?=(?!=)([^;]*)/g)) {
       if (/ds-/.test(match[1])) add('warning', file, lineAt(source, match.index), 'dom', 'innerHTML on ds markup: re-render with DS.dom.morphHtml (it patches in place and keeps focus, listeners and motion)');
+    }
+  }
+
+  // bundle: the project bundle is what tools/bundle.mjs writes from this copy
+  if (config.bundle) {
+    const bundleConfig = posix(config.bundle);
+    const path = resolve(root, bundleConfig);
+    if (!existsSync(path)) add('error', bundleConfig, 0, 'bundle', 'the bundle config is missing');
+    else {
+      try {
+        const own = JSON.parse(readFileSync(path, 'utf8'));
+        const result = runBundle({ config: path, check: true, ...(own?.dist ? {} : { dist: vendorDir }) });
+        for (const problem of [...result.errors, ...result.stale]) add('error', bundleConfig, 0, 'bundle', `${problem} (node ${vendor}/tools/bundle.mjs --config ${bundleConfig})`);
+      } catch (problem) {
+        if (!(problem instanceof ConfigError) && !(problem instanceof SyntaxError)) throw problem;
+        add('error', bundleConfig, 0, 'bundle', problem.message);
+      }
+    }
+  } else {
+    for (const file of htmlFiles) {
+      const source = read(file);
+      const match = /<link\b[^>]*href=["']((?:[^"']*\/)?ds\.(?!min\.)[\w-]+\.css)["']/.exec(source);
+      if (match) add('warning', file, lineAt(source, match.index), 'bundle', `links the bundle ${match[1]}: name its config in "bundle" of ds-check.json, so the check proves it holds every class the project uses`);
     }
   }
 

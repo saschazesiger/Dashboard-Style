@@ -1,0 +1,425 @@
+/**
+ * tools/migrate.mjs: the 2.x fixture project (test/fixtures/migrate/project)
+ * migrates to test/fixtures/migrate/expected, every entry of
+ * src/deprecations.json is either rewritten or listed for a person, each
+ * kind of rewrite on its own, the 3.0 checks without a name, the files a
+ * run reads, the diff, the report and the command line with its exit codes.
+ */
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { build, deprecationsJson, packageInfo, withBanner } from '../scripts/build.mjs';
+import { checkProject } from '../scripts/tools/check-project.mjs';
+import { collectFiles, exitCode, formatReport, main, majorOf, migrate, migrateText, prepare, ruleFor, setMajor, unifiedDiff } from '../scripts/tools/migrate.mjs';
+import { read, ROOT } from './helpers.js';
+
+const FIXTURE = join(ROOT, 'test/fixtures/migrate');
+const DEPRECATIONS = { version: packageInfo().version, ...JSON.parse(read('src/deprecations.json')) };
+const RULES = prepare(DEPRECATIONS);
+const run = (text) => migrateText(text, RULES);
+
+/** Every file under `dir`, relative, sorted. */
+function files(dir, prefix = '') {
+  return readdirSync(join(dir, prefix)).sort().flatMap((name) => {
+    const path = prefix ? `${prefix}/${name}` : name;
+    return statSync(join(dir, path)).isDirectory() ? files(dir, path) : [path];
+  });
+}
+
+/** A copy of the fixture project in a temporary folder. */
+function projectCopy() {
+  const dir = mkdtempSync(join(tmpdir(), 'ds-migrate-'));
+  cpSync(join(FIXTURE, 'project'), dir, { recursive: true });
+  return dir;
+}
+
+/** Captures what main() prints. */
+function cli(argv, cwd) {
+  let out = '';
+  let err = '';
+  const code = main(argv, { cwd, log: (text) => { out += text; }, error: (text) => { err += text; } });
+  return { code, out, err };
+}
+
+describe('tools/migrate.mjs', () => {
+  it('migrates the 2.x fixture project to the expected 3.0 project, and a second run finds nothing to rewrite', () => {
+    const dir = projectCopy();
+    try {
+      const config = JSON.parse(readFileSync(join(dir, 'ds-check.json'), 'utf8'));
+      const dry = migrate({ root: dir, config, configPath: 'ds-check.json', deprecations: DEPRECATIONS });
+      assert.deepEqual(files(dir), files(join(FIXTURE, 'project')), 'a dry run writes nothing');
+      for (const path of files(dir)) assert.equal(readFileSync(join(dir, path), 'utf8'), read(`test/fixtures/migrate/project/${path}`), path);
+      assert.equal(exitCode(dry), 1);
+
+      const written = migrate({ root: dir, config, configPath: 'ds-check.json', deprecations: DEPRECATIONS, write: true });
+      assert.deepEqual(files(dir), files(join(FIXTURE, 'expected')));
+      for (const path of files(dir)) assert.equal(readFileSync(join(dir, path), 'utf8'), read(`test/fixtures/migrate/expected/${path}`), path);
+      assert.equal(exitCode(written, { write: true }), 1, 'something is left for a person');
+
+      const again = migrate({ root: dir, config: JSON.parse(readFileSync(join(dir, 'ds-check.json'), 'utf8')), configPath: 'ds-check.json', deprecations: DEPRECATIONS });
+      assert.deepEqual(again.files.filter((file) => file.after !== file.before).map((file) => file.path), [], 'idempotent');
+      assert.deepEqual(again.files.flatMap((file) => file.manual.map((item) => `${file.path}:${item.line} ${item.name}`)),
+        written.files.flatMap((file) => file.manual.map((item) => `${file.path}:${item.line} ${item.name}`)), 'the same list for a person');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('lists for a person what it cannot map in the fixture project, each with its file and line', () => {
+    const dir = projectCopy();
+    try {
+      const config = JSON.parse(readFileSync(join(dir, 'ds-check.json'), 'utf8'));
+      const result = migrate({ root: dir, config, configPath: 'ds-check.json', deprecations: DEPRECATIONS });
+      assert.deepEqual(result.files.flatMap((file) => file.manual.map((item) => `${file.path}:${item.line} ${item.name}`)), [
+        'css/app.css:25 options',
+        'css/app.css:42 layer',
+        'css/theme.css:14 --ds-btn-sm-height',
+        'css/theme.css:16 --ds-table-dense-row-height',
+        'css/theme.css:17 --ds-loader-sm-size',
+        'js/app.js:23 ds-status--…',
+        'js/charts.mjs:4 module',
+        'js/charts.mjs:4 module',
+        'js/charts.mjs:16 ds-badge--…',
+        'report.html:8 css/core/',
+      ]);
+      const review = result.files.flatMap((file) => file.changes.filter((change) => change.review).map((change) => `${file.path}:${change.line} ${change.name}`));
+      assert.deepEqual(review, ['index.html:93 .ds-input-group__affix', "js/charts.mjs:7 enter(el, 'fill-y')"]);
+      const report = formatReport(result);
+      assert.match(report, /^To rewrite \(\d+\):$/m);
+      assert.match(report, /^To rewrite, check each \(2\):$/m);
+      assert.match(report, /^Needs a person \(10\):$/m);
+      assert.match(report, /css\/app\.css:25 \.app-panel \.ds-table\.ds-density-tight sets --ds-table-row-height under \.ds-density-tight, which redefines what \.ds-density-tight means/);
+      assert.match(report, /js\/charts\.mjs:4 toast of js\/overlay\.js runs in js\/toast\.js in 3\.0: add import '\.\.\/vendor\/dashboard-style\/js\/toast\.js';/);
+      assert.match(report, /css\/theme\.css:14 --ds-btn-sm-height \(removed in 3\.0\.0\): the size and density options compute it from the base --ds-btn-height/);
+      assert.match(report, /^migrate: 8 files read, 8 to change \(62 rewrites, 2 to check\), 10 for a person \(to 3\.x, deprecations\.json 3\.0\.0[^)]*\); run again with --write to apply$/m);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('rewrites every entry of src/deprecations.json it maps, and lists every other one for a person', () => {
+    // A use of each entry as a project would write it; a mapped one is gone afterwards, its replacement in place.
+    const sample = (entry) => {
+      const name = entry.name.replace(/^\./, '');
+      switch (entry.kind) {
+        case 'class': return `<span class="ds-x ${name}"></span>\n.app-a .${name} { margin: 0; }\n`;
+        case 'token': case 'role': case 'hook': return `.app-a { --x: var(${entry.name}); }\n.ds-theme { ${entry.name}: 1px; }\n`;
+        case 'keyframes': return `.app-a { animation: ${entry.name} var(--ds-dur-fast); }\n`;
+        case 'attribute': return /^data-[\w-]+$/.test(entry.name) ? `<b ${entry.name}></b>\nel.closest('[${entry.name}]');\n` : '<div class="ds-combo" data-open></div>\n';
+        case 'export': return `const h = DS.ripple.attach(document);\nh.${entry.name.replace(/^DS\.\w+\./, '').replace('()', '')}();\n`;
+        default: return null;
+      }
+    };
+    const offenders = [];
+    for (const { entry, rule } of RULES) {
+      const text = sample(entry);
+      if (text === null) continue;
+      const result = run(text);
+      const left = new RegExp(entry.pattern).test(result.text);
+      if (rule.type === 'manual') {
+        if (!result.manual.some((item) => item.name === entry.name)) offenders.push(`${entry.name}: manual, but not listed`);
+        if (result.text !== text) offenders.push(`${entry.name}: manual, but rewritten`);
+      } else {
+        if (left) offenders.push(`${entry.name}: still found after the rewrite`);
+        const to = (rule.to ?? rule.add?.[0] ?? '').replace(/^\./, '');
+        if (to && !result.text.includes(to)) offenders.push(`${entry.name}: ${to} not written`);
+      }
+    }
+    assert.deepEqual(offenders, []);
+    // The removed names of 3.0 that are renames all map; what stays manual says why.
+    const manual = RULES.filter(({ entry, rule }) => entry.removed === '3.0.0' && rule.type === 'manual').map(({ entry }) => entry.name).sort();
+    assert.deepEqual(manual, ['--ds-btn-sm-height', '--ds-btn-sm-icon-size', '--ds-check-sm-height', '--ds-loader-sm-size', '--ds-table-dense-row-height']);
+  });
+
+  it('names every entry of src/deprecations.json in docs/migration.md, and says what the tool does with it', () => {
+    const doc = read('docs/migration.md').replace(/`/g, '');
+    const missing = JSON.parse(read('src/deprecations.json')).names
+      .filter((entry) => !doc.includes(entry.name) && !doc.includes(entry.name.replace(/^\./, '')) && !(entry.pattern && new RegExp(entry.pattern).test(doc)))
+      .map((entry) => entry.name);
+    assert.deepEqual(missing, [], 'a row of "Renamed and removed names" for each');
+    // Every row's last cell is what the tool does, as ruleFor() decides it.
+    const said = { rewrites: ['rename', 'attribute', 'string', 'settleLoader'], 'option class': ['classes'], 'rewrites calls and imports': ['export'], 'lists it': ['manual'] };
+    const offenders = [];
+    const start = doc.indexOf('\n## Renamed and removed names');
+    const section = doc.slice(start, doc.indexOf('\n## ', start + 1));
+    for (const { entry, rule } of RULES) {
+      const name = entry.name.replace(/^\./, '');
+      const row = section.split('\n').find((line) => line.startsWith('| ') && (line.includes(name) || new RegExp(entry.pattern).test(line)));
+      const cell = row?.split('|').at(-2).trim();
+      if (!cell) offenders.push(`${entry.name}: no row`);
+      else if (cell === 'rewrites, check each' ? !rule.review : !said[cell]?.includes(rule.type) || Boolean(rule.review)) offenders.push(`${entry.name}: the guide says "${cell}", the tool does ${rule.type}${rule.review ? ' (check each)' : ''}`);
+    }
+    assert.deepEqual(offenders, []);
+  });
+
+  it('reads an entry by its kind and replacement (ruleFor)', () => {
+    assert.deepEqual(ruleFor({ kind: 'class', name: '.ds-a--old', pattern: 'x', replacement: '.ds-a--new' }), { type: 'rename', from: 'ds-a--old', to: 'ds-a--new' });
+    assert.deepEqual(ruleFor({ kind: 'class', name: '.ds-a--sm', pattern: 'x', replacement: '.ds-sm' }), { type: 'classes', add: ['ds-sm'], block: 'ds-a' });
+    assert.deepEqual(ruleFor({ kind: 'class', name: '.ds-a__b--ok', pattern: 'x', replacement: '.ds-tone-success' }), { type: 'classes', add: ['ds-tone-success'], block: 'ds-a__b' });
+    assert.deepEqual(ruleFor({ kind: 'class', name: '.ds-a', pattern: 'x', replacement: 'DS.a.run()' }).type, 'manual');
+    assert.deepEqual(ruleFor({ kind: 'hook', name: '--ds-a-old', pattern: 'x', replacement: '--ds-a-new' }), { type: 'rename', from: '--ds-a-old', to: '--ds-a-new' });
+    assert.equal(ruleFor({ kind: 'hook', name: '--ds-a-lg-gap', pattern: 'x', replacement: '--ds-a-gap' }).type, 'manual', 'a per-size hook');
+    assert.deepEqual(ruleFor({ kind: 'keyframes', name: 'ds-a', pattern: 'x', replacement: 'ds-b' }), { type: 'rename', from: 'ds-a', to: 'ds-b' });
+    assert.equal(ruleFor({ kind: 'keyframes', name: 'ds-a', pattern: 'x', replacement: 'ds-b, ds-c' }).type, 'manual');
+    assert.deepEqual(ruleFor({ kind: 'attribute', name: 'data-a', pattern: 'x', replacement: 'data-ds-a' }), { type: 'attribute', from: 'data-a', to: 'data-ds-a' });
+    assert.deepEqual(ruleFor({ kind: 'export', name: 'DS.a.old()', pattern: 'x', replacement: 'DS.a.fresh()' }), { type: 'export', from: 'old', to: 'fresh', module: 'a' });
+    assert.deepEqual(ruleFor({ kind: 'export', name: 'old()', pattern: 'x', replacement: 'fresh()' }), { type: 'export', from: 'old', to: 'fresh' });
+    assert.equal(ruleFor({ kind: 'export', name: 'DS.a.old', pattern: 'x', replacement: null }).type, 'manual');
+    assert.equal(ruleFor({ kind: 'markup', name: 'a recipe', pattern: null, replacement: 'x' }).type, 'manual');
+  });
+
+  it('turns a modifier into its option class: once per class list, joined to its block in a selector', () => {
+    assert.equal(run('<b class="ds-btn ds-btn--sm">').text, '<b class="ds-btn ds-sm">');
+    assert.equal(run('<b class="ds-btn ds-btn--sm ds-sm">').text, '<b class="ds-btn ds-sm">', 'the option is there already');
+    assert.equal(run('<b class="ds-badge ds-badge--ok ds-tone-success x">').text, '<b class="ds-badge ds-tone-success x">');
+    assert.equal(run('<b class="ds-btn--sm ds-sm">').text, '<b class="ds-sm">');
+    assert.equal(run('.app-a .ds-btn--sm { margin: 0 }').text, '.app-a .ds-btn.ds-sm { margin: 0 }');
+    assert.equal(run('.ds-btn.ds-btn--sm:hover, .ds-badge--ok { }').text, '.ds-btn.ds-sm:hover, .ds-badge.ds-tone-success { }');
+    assert.equal(run('<i class="ds-spinner ds-spinner--sm">').text, '<i class="ds-spinner ds-spinner--ink ds-sm">');
+    assert.equal(run('.ds-spinner--sm { }').text, '.ds-spinner--ink.ds-sm { }', 'the ink modifier names the block');
+    assert.equal(run("el.classList.toggle('ds-badge--ok', ok); el.querySelector('.ds-table--dense td');").text,
+      "el.classList.toggle('ds-tone-success', ok); el.querySelector('.ds-table.ds-density-tight td');");
+  });
+
+  it('renames classes, tokens, hooks, keyframes and attributes wherever they are named', () => {
+    assert.equal(run('<b class="ds-btn ds-btn--primary">').text, '<b class="ds-btn ds-btn--filled">');
+    assert.equal(run('.ds-card .ds-subsection + .ds-more {}').text, '.ds-card .ds-card__section + .ds-card__more {}');
+    assert.equal(run('.ds-theme { --ds-dialog-width-wide: 640px; } a { transition: color 1s var(--ds-ease); }').text,
+      '.ds-theme { --ds-dialog-width-lg: 640px; } a { transition: color 1s var(--ds-ease-emphasized); }');
+    assert.equal(run('a { animation: ds-fill-x 1s; }').text, 'a { animation: ds-fill-share 1s; }');
+    assert.equal(run('<button data-close>x</button> [data-close] {} el.dataset.close; el.dataset.closed;').text,
+      '<button data-ds-close>x</button> [data-ds-close] {} el.dataset.dsClose; el.dataset.closed;');
+    assert.equal(run('<b data-closer>').text, '<b data-closer>', 'whole names only');
+  });
+
+  it('renames a JS export at member calls, named imports and destructuring; a bare call is listed', () => {
+    assert.equal(run('DS.indicator.createIndicator(el);').text, 'DS.indicator.create(el);');
+    const imported = run("import { a, createIndicator } from './js/indicator.js';\ncreateIndicator(el);\n");
+    assert.equal(imported.text, "import { a, create as createIndicator } from './js/indicator.js';\ncreateIndicator(el);\n");
+    assert.deepEqual(imported.manual, []);
+    assert.equal(run("import { createIndicator as make } from './js/indicator.js';").text, "import { create as make } from './js/indicator.js';");
+    assert.equal(run('const { createIndicator } = DS.indicator;').text, 'const { create: createIndicator } = DS.indicator;');
+    const destructured = run('const { detach } = DS.ripple.attach(document);\ndetach();\n');
+    assert.equal(destructured.text, 'const { destroy: detach } = DS.ripple.attach(document);\ndetach();\n', 'the key is renamed, the local name stays');
+    assert.deepEqual(destructured.manual, []);
+    const bare = run('createIndicator(el);');
+    assert.equal(bare.text, 'createIndicator(el);');
+    assert.match(bare.manual[0].message, /createIndicator\(\) \(removed in 3\.0\.0\): use DS\.indicator\.create\(\), or import it as \{ create as createIndicator \}/);
+  });
+
+  it('renames detach() only on the handle of DS.ripple.attach(), and leaves every other detach() alone', () => {
+    const ours = run('const ripple = DS.ripple.attach(document);\nthis.handle = attach(root);\nripple.detach();\nthis.handle?.detach();\n');
+    assert.equal(ours.text, 'const ripple = DS.ripple.attach(document);\nthis.handle = attach(root);\nripple.destroy();\nthis.handle?.destroy();\n');
+    assert.deepEqual(ours.manual, []);
+    assert.deepEqual(ours.changes.filter((change) => change.review), [], 'a bound handle needs no second look');
+    assert.equal(run('const h = DS.ripple.attach(document);\nconst { detach } = h;').text, 'const h = DS.ripple.attach(document);\nconst { destroy: detach } = h;');
+    // jQuery, another library's import and destructuring: unchanged; a call on an unknown receiver is listed.
+    const jquery = run('$(row).detach();\nhandle.detach();\n');
+    assert.equal(jquery.text, '$(row).detach();\nhandle.detach();\n');
+    assert.deepEqual(jquery.manual.map((item) => `${item.line} ${item.name}`), ['1 detach()', '2 detach()']);
+    assert.match(jquery.manual[1].message, /handle\.detach\(\) is not called on a name this file binds from DS\.ripple\.attach\(\): if it is that handle, call destroy\(\)/);
+    const foreign = "import { detach } from 'some-dom-lib';\ndetach(node);\n";
+    assert.deepEqual([run(foreign).text, run(foreign).manual], [foreign, []], 'an import of another module, and its calls');
+    const destructured = 'const { detach } = observer;\ndetach();\n';
+    assert.deepEqual([run(destructured).text, run(destructured).manual], [destructured, []], 'destructuring of another object');
+    // The same for a renamed export of a module: only its own module and DS.<module>.
+    assert.equal(run("import { createIndicator } from 'some-lib';").text, "import { createIndicator } from 'some-lib';");
+    assert.equal(run("import { createIndicator } from '../vendor/dashboard-style/js/indicator.min.js';").text, "import { create as createIndicator } from '../vendor/dashboard-style/js/indicator.min.js';");
+    const tools = run('const { createIndicator } = tools;');
+    assert.equal(tools.text, 'const { createIndicator } = tools;');
+    assert.match(tools.manual[0].message, /destructured from tools: if that is DS\.indicator, rename the key \(\{ create: createIndicator \}\)/);
+  });
+
+  it('lists a hook that a rewritten selector now sets under an option class, on every run until it moved', () => {
+    const before = '.app-panel .ds-table--dense {\n  --ds-table-row-height: 36px;\n}\n.app-bar .ds-btn--sm, .app-x { --ds-btn-gap: 4px; margin: 0 }\n.app-a .ds-table--dense td { margin: 0; }\n';
+    const css = run(before);
+    assert.equal(css.text, '.app-panel .ds-table.ds-density-tight {\n  --ds-table-row-height: 36px;\n}\n.app-bar .ds-btn.ds-sm, .app-x { --ds-btn-gap: 4px; margin: 0 }\n.app-a .ds-table.ds-density-tight td { margin: 0; }\n');
+    assert.deepEqual(css.manual.map((item) => `${item.line} ${item.name}`), ['1 options', '4 options']);
+    assert.match(css.manual[1].message, /^\.app-bar \.ds-btn\.ds-sm sets --ds-btn-gap under \.ds-sm, which redefines what \.ds-sm means \(check-project, rule options; a 2\.x modifier became the option\): set the base hook on the element or in the theme/);
+    assert.deepEqual(run(css.text).manual.map((item) => `${item.line} ${item.name}`), ['1 options', '4 options'], 'the second run');
+    assert.deepEqual(run("for (const row of document.querySelectorAll('.ds-table--dense tr')) { row.style.setProperty('--ds-a', 1); }").manual, [], 'a selector in a script string');
+    assert.deepEqual(run('.ds-theme.ds-touch { --ds-touch-target: 56px; }\n.app-x:not(.ds-sm) { --ds-btn-gap: 0; }\n/* .ds-sm { --ds-a: 1 } */').manual, [], 'the theme root, a condition, a comment');
+  });
+
+  it('rewrites the event, the variant strings and the settleLoader() clock argument', () => {
+    assert.equal(run("el.addEventListener('ds-close', f); emit(el, \"ds-close\");").text, "el.addEventListener('ds:close', f); emit(el, \"ds:close\");");
+    assert.equal(run("enter(el, 'fill-x'); enterAll(els, \"fill-y\");").text, "enter(el, 'fill'); enterAll(els, \"fill\");");
+    assert.equal(run('settleLoader(start, performance.now());').text, 'settleLoader(start, { now: performance.now() });');
+    assert.equal(run('DS.motion.settleLoader(t0, now);').text, 'DS.motion.settleLoader(t0, { now });');
+    assert.equal(run('settleLoader(t0, 1200)').text, 'settleLoader(t0, { now: 1200 })');
+    assert.equal(run('settleLoader(t0, { now: 5 })').text, 'settleLoader(t0, { now: 5 })', 'the 3.0 form stays');
+  });
+
+  it('moves links and imports of the copy\'s core stylesheets to css/core/, and says what single stylesheets need now', () => {
+    const page = '<link rel="stylesheet" href="/static/ds/css/tokens.css">\n<link rel="stylesheet" href="/static/ds/css/components/button.css">\n<link rel="stylesheet" href="css/base.css">\n';
+    const moved = migrateText(page, RULES, { copies: ['static/ds'] });
+    assert.equal(moved.text, page.replace('/ds/css/tokens.css', '/ds/css/core/tokens.css'), 'the project\'s own css/base.css stays');
+    assert.deepEqual(moved.manual.map((item) => `${item.line} ${item.name}`), ['1 css/core/']);
+    assert.match(moved.manual[0].message, /link css\/core\/options\.css \(the option classes\) after css\/core\/tokens\.css and css\/core\/global\.css/);
+    assert.equal(run("@import url('../vendor/dashboard-style/css/motion.min.css');").text, "@import url('../vendor/dashboard-style/css/core/motion.min.css');");
+    const unknown = run('<link href="vendor/x/css/tokens.css">');
+    assert.equal(unknown.text, '<link href="vendor/x/css/tokens.css">', 'not a copy the run knows');
+    assert.deepEqual(unknown.manual.map((item) => item.message), ["vendor/x/css/tokens.css: if this is the copy's stylesheet, it moved to vendor/x/css/core/tokens.css in 3.0 (run with --config, whose vendor names the copy, to rewrite it); a project's own file stays"], 'listed, so the run does not pass');
+    // The documented CDN address, an npm install and another case: the copy, with dist/.
+    assert.equal(run('<link href="https://cdn.jsdelivr.net/gh/x/Dashboard-Style@main/dist/css/tokens.css">').text, '<link href="https://cdn.jsdelivr.net/gh/x/Dashboard-Style@main/dist/css/core/tokens.css">');
+    assert.equal(run("@import '../node_modules/dashboard-style/dist/css/base.min.css';").text, "@import '../node_modules/dashboard-style/dist/css/core/base.min.css';");
+    assert.equal(migrateText('<link href="Vendor/DS/css/motion.css">', RULES, { copies: ['vendor/ds'] }).text, '<link href="Vendor/DS/css/core/motion.css">');
+    const done = '<link href="vendor/dashboard-style/css/core/tokens.css"><link href="vendor/dashboard-style/css/core/options.css">';
+    assert.deepEqual(run(done).manual, [], 'a 3.0 page');
+    assert.equal(run(done).text, done);
+  });
+
+  it('lists the per-size hooks, removed recipes, run-time class names and the 3.0 changes no name shows', () => {
+    const theme = run('.ds-theme {\n  --ds-btn-sm-height: 30px;\n  --ds-check-sm-height: 28px;\n}\n');
+    assert.equal(theme.text, '.ds-theme {\n  --ds-btn-sm-height: 30px;\n  --ds-check-sm-height: 28px;\n}\n');
+    assert.deepEqual(theme.manual.map((item) => `${item.line} ${item.name}`), ['2 --ds-btn-sm-height', '3 --ds-check-sm-height']);
+    assert.match(run('<div class="ds-view ds-view--leaving">').manual[0].message, /\.ds-view--leaving \(deprecated since 2\.0\.0\): use DS\.motion\.transition\(\)/);
+    assert.match(run("const c = 'ds-badge--' + kind;").manual[0].message, /a class built at run time from ds-badge--: its values may name ds-badge--neutral, ds-badge--ok/);
+    assert.match(run('const c = `ds-alert--${tone}`;').manual[0].message, /ds-alert--success/);
+    assert.deepEqual(run('const c = `ds-card--${look}`;').manual, [], 'no removed name starts with the prefix');
+    const modules = run("import { toast, open } from './ds/js/overlay.js';\nimport { tooltips } from './ds/js/overlay.js';\nimport './ds/js/tooltip.js';\n");
+    assert.deepEqual(modules.manual.map((item) => `${item.line} ${item.message.slice(0, 40)}`), ['1 toast of js/overlay.js runs in js/toast.']);
+    assert.match(run('@layer ds.components {\n  .app-a { gap: 0; }\n}\n').manual[0].message, /its own sublayer/);
+    assert.deepEqual(run('@layer ds.components.card {\n}\n').manual, [], 'a component sublayer is 3.0 already');
+  });
+
+  it('sets "major" in ds-check.json, in the file\'s own layout', () => {
+    assert.equal(setMajor('{\n  "prefix": "app"\n}\n', 3), '{\n  "major": 3,\n  "prefix": "app"\n}\n');
+    assert.equal(setMajor('{\n\t"prefix": "app"\n}', 3), '{\n\t"major": 3,\n\t"prefix": "app"\n}');
+    assert.equal(setMajor('{"prefix":"app"}', 3), '{ "major": 3, "prefix":"app"}');
+    assert.equal(setMajor('{ "major": 2, "prefix": "app" }', 3), '{ "major": 3, "prefix": "app" }');
+    assert.equal(setMajor('{}', 3), '{ "major": 3 }');
+    for (const text of ['{\n  "prefix": "app"\n}\n', '{"prefix":"app"}', '{}']) assert.equal(JSON.parse(setMajor(text, 3)).major, 3);
+    assert.equal(majorOf('3.0.0-alpha.5'), 3);
+    assert.equal(majorOf('next'), null);
+  });
+
+  it('writes a unified diff with three lines of context', () => {
+    const before = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm'].join('\n');
+    const after = before.replace('b', 'B').replace('l', 'L');
+    assert.equal(unifiedDiff('x.css', before, before), '');
+    assert.equal(unifiedDiff('x.css', before, after), [
+      '--- a/x.css', '+++ b/x.css',
+      '@@ -1,5 +1,5 @@', ' a', '-b', '+B', ' c', ' d', ' e',
+      '@@ -9,5 +9,5 @@', ' i', ' j', ' k', '-l', '+L', ' m', '',
+    ].join('\n'));
+    assert.equal(unifiedDiff('c.json', '{\n  "a": 1\n}\n', '{\n  "major": 3,\n  "a": 1\n}\n'), [
+      '--- a/c.json', '+++ b/c.json', '@@ -1,4 +1,5 @@', ' {', '+  "major": 3,', '   "a": 1', ' }', ' ', '',
+    ].join('\n'));
+  });
+
+  it('reads the files of ds-check.json, named files, folders and globs; never a copy, node_modules, a minified file or a file the system wrote', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ds-migrate-files-'));
+    try {
+      const put = (path, text) => {
+        mkdirSync(dirname(join(dir, path)), { recursive: true });
+        writeFileSync(join(dir, path), text);
+      };
+      put('index.html', '<b class="ds-btn ds-btn--primary">');
+      put('src/app.ts', "el.classList.add('ds-btn--primary');");
+      put('src/app.min.js', "el.classList.add('ds-btn--primary');");
+      put('src/notes.md', 'ds-btn--primary');
+      put('node_modules/x/index.js', "'ds-btn--primary'");
+      put('public/ds/SHA256SUMS', '');
+      put('public/ds/deprecations.json', '{}');
+      put('public/ds/ds.css', '.ds-btn--primary {}');
+      put('public/ds.bundle.css', '/*! Dashboard-Style 3.0.0 | bundle */\n.ds-btn--primary {}');
+      // A link that loops, and one that leads out of the project: neither is walked (a --write run stays inside).
+      const outside = mkdtempSync(join(tmpdir(), 'ds-migrate-outside-'));
+      writeFileSync(join(outside, 'other.js'), "'ds-btn--primary'");
+      symlinkSync('..', join(dir, 'src/up'));
+      symlinkSync(outside, join(dir, 'elsewhere'));
+      symlinkSync(join(outside, 'other.js'), join(dir, 'linked.js'));
+      try {
+        assert.deepEqual(collectFiles(dir), ['index.html', 'public/ds.bundle.css', 'src/app.ts']);
+      } finally {
+        rmSync(outside, { recursive: true, force: true });
+      }
+      assert.deepEqual(collectFiles(dir, { targets: ['src'] }), ['src/app.ts']);
+      assert.deepEqual(collectFiles(dir, { targets: ['src/notes.md'] }), ['src/notes.md']);
+      assert.deepEqual(collectFiles(dir, { targets: ['**/*.ts'] }), ['src/app.ts']);
+      assert.deepEqual(collectFiles(dir, { config: { html: ['*.html'], js: ['src/**/*.ts'], vendor: 'public/ds' } }), ['index.html', 'src/app.ts']);
+      assert.throws(() => collectFiles(dir, { targets: ['nope'] }), /nope: no such file or folder/);
+      const result = migrate({ root: dir, deprecations: DEPRECATIONS, write: true });
+      assert.deepEqual(result.files.map((file) => file.path), ['index.html', 'src/app.ts'], 'the bundle is skipped by its banner');
+      assert.equal(readFileSync(join(dir, 'public/ds.bundle.css'), 'utf8'), '/*! Dashboard-Style 3.0.0 | bundle */\n.ds-btn--primary {}');
+      assert.equal(readFileSync(join(dir, 'src/app.min.js'), 'utf8'), "el.classList.add('ds-btn--primary');");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('leaves nothing for check-project of this copy that it did not list for a person (the expected project)', () => {
+    const root = mkdtempSync(join(tmpdir(), 'ds-migrate-check-'));
+    try {
+      cpSync(join(FIXTURE, 'expected'), root, { recursive: true });
+      const config = JSON.parse(readFileSync(join(root, 'ds-check.json'), 'utf8'));
+      for (const [path, content] of build()) {
+        mkdirSync(dirname(join(root, config.vendor, path)), { recursive: true });
+        writeFileSync(join(root, config.vendor, path), content);
+      }
+      const listed = migrate({ root, config, deprecations: DEPRECATIONS }).files.flatMap((file) => file.manual.map((item) => ({ ...item, path: file.path })));
+      // An error is listed when migrate named its place: the rule's own line (an option class), or the file's
+      // single stylesheets (check-project then names each file a class needs).
+      const unlisted = checkProject(config, root).findings.filter((finding) => finding.level === 'error').filter((finding) => !listed.some((item) => item.path === finding.file && (
+        finding.rule === 'classes' ? item.name === 'css/core/'
+          : finding.rule === 'options' ? item.name === 'options' && item.line <= finding.line && finding.selector?.includes(item.message.split(' sets ')[0])
+            : item.line === finding.line)));
+      assert.deepEqual(unlisted.map((finding) => `${finding.file}:${finding.line} ${finding.rule} ${finding.message}`), []);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('runs as a CLI: diff and report, --write, --json, exit 0 when nothing is left, 1 when something is, 2 on a usage error', () => {
+    const dir = projectCopy();
+    const depsDir = mkdtempSync(join(tmpdir(), 'ds-migrate-deps-'));
+    const deps = join(depsDir, 'deprecations.json');
+    try {
+      writeFileSync(deps, JSON.stringify(DEPRECATIONS));
+      const dry = cli(['--config', 'ds-check.json', '--deprecations', deps], dir);
+      assert.equal(dry.code, 1);
+      assert.match(dry.out, /^--- a\/css\/app\.css\n\+\+\+ b\/css\/app\.css\n@@ /m);
+      assert.match(dry.out, /^-\.app-toolbar \.ds-btn--sm \{\n\+\.app-toolbar \.ds-btn\.ds-sm \{$/m);
+      const json = JSON.parse(cli(['--config', 'ds-check.json', '--deprecations', deps, '--json'], dir).out);
+      assert.equal(json.exit, 1);
+      assert.equal(json.write, false);
+      assert.equal(json.files.find((file) => file.path === 'css/theme.css').manual.length, 3);
+      assert.equal(cli(['--config', 'ds-check.json', '--deprecations', deps, '--write', '--no-diff'], dir).code, 1, 'written, but something is left for a person');
+      assert.equal(readFileSync(join(dir, 'index.html'), 'utf8'), read('test/fixtures/migrate/expected/index.html'));
+      // Only the CSS of the project, after a person dealt with the manual items: nothing left.
+      writeFileSync(join(dir, 'css/theme.css'), '.ds-theme {\n  --ds-btn-height: 38px;\n}\n');
+      writeFileSync(join(dir, 'css/app.css'), '.app-a { gap: var(--ds-space-1); }\n');
+      const clean = cli(['css', '--deprecations', deps], dir);
+      assert.equal(clean.code, 0, clean.out);
+      assert.match(clean.out, /^migrate: 2 files read, 0 to change \(0 rewrites, 0 to check\), 0 for a person/m);
+      assert.equal(cli(['--bogus'], dir).code, 2);
+      assert.equal(cli(['--config', 'missing.json', '--deprecations', deps], dir).code, 2);
+      assert.equal(cli(['nope', '--deprecations', deps], dir).code, 2);
+      assert.equal(cli(['--deprecations', join(dir, 'none.json')], dir).code, 2);
+    } finally {
+      rmSync(depsDir, { recursive: true, force: true });
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('runs from a built copy with the copy\'s own deprecations.json', () => {
+    const copy = mkdtempSync(join(tmpdir(), 'ds-migrate-copy-'));
+    const dir = projectCopy();
+    try {
+      // The two files the tool reads in a copy: itself in tools/, and deprecations.json as the build writes it.
+      mkdirSync(join(copy, 'tools'));
+      writeFileSync(join(copy, 'tools/migrate.mjs'), withBanner('tools/migrate.mjs', read('scripts/tools/migrate.mjs'), packageInfo()));
+      writeFileSync(join(copy, 'deprecations.json'), deprecationsJson(read('src/deprecations.json'), packageInfo()));
+      const result = spawnSync(process.execPath, [join(copy, 'tools/migrate.mjs'), '--config', 'ds-check.json', '--no-diff'], { cwd: dir, encoding: 'utf8' });
+      assert.equal(result.status, 1, result.stderr);
+      assert.match(result.stdout, /^migrate: 8 files read, 8 to change/m);
+    } finally {
+      rmSync(copy, { recursive: true, force: true });
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});

@@ -54,7 +54,7 @@ function project(files, { deprecations } = {}) {
   return root;
 }
 
-const CONFIG = { prefix: 'app', css: ['css/**/*.css'], js: ['js/**/*.js'], html: ['*.html'], themes: ['css/theme.css'], vendor: VENDOR };
+const CONFIG = { major: 3, prefix: 'app', css: ['css/**/*.css'], js: ['js/**/*.js'], html: ['*.html'], themes: ['css/theme.css'], vendor: VENDOR };
 
 const CLEAN = {
   'index.html': [
@@ -279,14 +279,97 @@ describe('tools/check-project.mjs', () => {
       'index.html': `<link rel="stylesheet" href="${VENDOR}/css/index.css">\n<body class="ds-theme"><div class="ds-card"><button class="ds-btn" type="button">Save</button></div></body>\n`,
       // .ds-link-btn is defined in button.css (no longer in table.css): a page without the table has it whole.
       'link.html': `<link rel="stylesheet" href="${VENDOR}/css/core/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/button.css">\n<body class="ds-theme"><p>See <button class="ds-link-btn ds-link-btn--quiet" type="button">the log</button>.</p></body>\n`,
-      'table.html': `<link rel="stylesheet" href="${VENDOR}/css/core/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/table.css">\n<body class="ds-theme"><table class="ds-table"><tr><td><button class="ds-link-btn" type="button">LAPTOP-0042</button></td></tr></table></body>\n`,
+      'table.html': `<link rel="stylesheet" href="${VENDOR}/css/core/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/table.css">\n<body class="ds-theme"><table class="ds-table"><tr><td><button class="ds-link-btn" type="button">LAPTOP-0042</button></td></tr></table></body>\n`,      // An option class is options.css's alone; toast.css sizes its action with it (.ds-toast__action.ds-sm), which defines nothing.
+      'small.html': `<link rel="stylesheet" href="${VENDOR}/css/core/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/button.css">\n<body class="ds-theme"><button class="ds-btn ds-sm" type="button">Save</button></body>\n`,
+      'sized.html': `<link rel="stylesheet" href="${VENDOR}/css/core/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/core/options.css"><link rel="stylesheet" href="${VENDOR}/css/components/button.css">\n<body class="ds-theme"><button class="ds-btn ds-sm" type="button">Save</button></body>\n`,
     };
     const { findings } = run(files, { ...CONFIG, html: ['*.html'], themes: [] });
     assert.deepEqual(findings.map((f) => `${f.file}:${f.line} ${f.rule} ${f.message}`).sort(), [
       'alert.html:2 classes .ds-btn needs css/components/button.css, which this page does not link',
       'bare.html:2 classes .ds-theme needs css/core/tokens.css, which this page does not link',
+      'small.html:2 classes .ds-sm needs css/core/options.css, which this page does not link',
       'table.html:2 classes .ds-link-btn needs css/components/button.css, which this page does not link',
     ]);
+  });
+
+  it('compares the config\'s "major" with the copy: another major fails, none fails on a 3.0 copy, a bad value is a config error', () => {
+    const root = project(CLEAN);
+    try {
+      const vendor = (config) => checkProject(config, root).findings.filter((f) => f.rule === 'vendor').map((f) => `${f.level} ${f.file} ${f.message}`);
+      assert.deepEqual(vendor(CONFIG), []);
+      const { major, ...without } = CONFIG;
+      assert.equal(major, 3);
+      const missing = vendor(without);
+      assert.equal(missing.length, 1);
+      assert.match(missing[0], /^error ds-check\.json the config names no "major", so it predates 3\.0 and the copy is 3\.[^:]*: migrate the project \(node vendor\/dashboard-style\/tools\/migrate\.mjs --config ds-check\.json/, 'a 2.x config on a 3.0 copy');
+      const old = vendor({ ...CONFIG, major: 2 });
+      assert.equal(old.length, 1);
+      assert.match(old[0], /^error ds-check\.json the config is for 2\.x, the copy is 3\.\d+\.\d+[^:]*: migrate the project \(node vendor\/dashboard-style\/tools\/migrate\.mjs --config ds-check\.json/);
+      assert.match(vendor({ ...CONFIG, major: 4 })[0], /^error .* the config is for 4\.x/);
+      assert.match(checkProject({ ...CONFIG, major: '3' }, root).errors.join('\n'), /"major"/);
+      // A copy before 3.0: a config without "major" only warns.
+      const manifest = join(root, VENDOR, 'manifest.json');
+      writeFileSync(manifest, JSON.stringify({ ...JSON.parse(readFileSync(manifest, 'utf8')), version: '2.9.0' }));
+      resum(join(root, VENDOR));
+      assert.deepEqual(vendor(without).map((line) => line.replace(/\(the copy is [^)]*\)/, '(…)')), ['warning ds-check.json the config names no "major": add "major": 2 (…)']);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('keeps size, density, shape, tone and touch as option classes (options)', () => {
+    const files = {
+      ...CLEAN,
+      'css/app.css': [
+        '.app-bar { --ds-density: -2; }',                                     // 1 an option property
+        '.app-grid .ds-card { --ds-shape: 0; }',                              // 2 an option property on a ds element
+        '.ds-sm .ds-btn { --ds-btn-height: 28px; }',                          // 3 redefines .ds-sm
+        '.app-list.ds-density-dense { --ds-list-row-height: 32px; }',         // 4 redefines a density
+        '.ds-touch .app-row { --app-row-height: 48px; }',                     // project tokens under an option pass
+        '@media (pointer: coarse) {',
+        '  .app-bar .ds-btn { --ds-btn-height: 48px; }',                      // 7 touch by the pointer
+        '  .app-bar { min-height: 48px; }',                                   // the project's own element passes
+        '}',
+        '@media (any-pointer: coarse) { .ds-theme { --ds-touch-target: 56px; } }', // 10 touch by the pointer
+        '.app-chip { --ds-tone: var(--ds-primary); }',                        // 11 a tone property
+      ].join('\n'),
+      'js/app.js': "panel.style.setProperty('--ds-size-step', '-1');\npanel.style.setProperty('--ds-btn-height', '36px');\n",
+    };
+    const { findings } = run(files);
+    assert.deepEqual(findings.filter((f) => f.rule === 'options').map((f) => `${f.level} ${f.file}:${f.line}`).sort(), [
+      'error css/app.css:1', 'error css/app.css:10', 'error css/app.css:11', 'error css/app.css:2', 'error css/app.css:3', 'error css/app.css:4', 'error css/app.css:7', 'error js/app.js:1',
+    ]);
+    const message = (line) => findings.find((f) => f.rule === 'options' && f.file === 'css/app.css' && f.line === line).message;
+    assert.match(message(1), /--ds-density \}: set by the option classes; put \.ds-density-comfortable, -compact, -dense or -tight on the element or a container/);
+    assert.match(message(3), /redefines what \.ds-sm means/);
+    assert.match(message(7), /under a coarse pointer: touch is opt-in, \.ds-touch/);
+  });
+
+  it('checks the project bundle against the copy and the project (bundle)', async () => {
+    const { bundle } = await import('../scripts/tools/bundle.mjs');
+    const page = (body) => `<!doctype html><html class="ds-theme ds-base" lang="en"><head><link rel="stylesheet" href="public/ds.bundle.css"></head><body>${body}</body></html>\n`;
+    const files = {
+      'index.html': page('<button class="ds-btn ds-btn--filled" type="button">Save</button>'),
+      'ds.config.json': JSON.stringify({ content: ['*.html'], out: 'public', js: false }),
+    };
+    const config = { ...CONFIG, css: [], js: [], themes: [], bundle: 'ds.config.json' };
+    const root = project(files);
+    try {
+      const findings = () => checkProject(config, root).findings.filter((f) => f.rule === 'bundle').map((f) => `${f.level} ${f.file} ${f.message}`);
+      assert.match(findings().join('\n'), /^error ds\.config\.json missing: public\/ds\.bundle\.css \(run tools\/bundle\.mjs\) \(node vendor\/dashboard-style\/tools\/bundle\.mjs --config ds\.config\.json\)$/m);
+      assert.ok(bundle({ config: join(root, 'ds.config.json'), dist: join(root, VENDOR) }).ok);
+      assert.deepEqual(findings(), [], 'a fresh bundle passes');
+      writeFileSync(join(root, 'index.html'), page('<button class="ds-btn ds-btn--filled" type="button">Save</button><span class="ds-badge">3</span>'));
+      const stale = findings();
+      assert.ok(stale.some((line) => /index\.html:1 uses \.ds-badge, which public\/ds\.bundle\.css does not hold/.test(line)), stale.join('\n'));
+      assert.ok(stale.every((line) => line.startsWith('error ds.config.json ')), stale.join('\n'));
+      // Without "bundle", a page that links one warns: nothing proves the bundle holds its classes.
+      const { bundle: _, ...unnamed } = config;
+      assert.deepEqual(checkProject(unnamed, root).findings.filter((f) => f.rule === 'bundle').map((f) => `${f.level} ${f.file}:${f.line}`), ['warning index.html:1']);
+      assert.deepEqual(checkProject({ ...config, bundle: 'missing.json' }, root).findings.filter((f) => f.rule === 'bundle').map((f) => f.message), ['the bundle config is missing']);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
   it('leaves the 1.x hand data-scrolled recipe to deprecated: a warning, not an attributes error', () => {
@@ -311,14 +394,14 @@ describe('tools/check-project.mjs', () => {
   // The published pages never show a deprecated or hand-built pattern (AGENTS.md): no error and no warning.
   const published = (folder) => Object.fromEntries(readdirSync(join(ROOT, folder)).filter((name) => /\.(css|js|html)$/.test(name)).map((name) => [`${folder}/${name}`, read(`${folder}/${name}`)]));
   it('passes the reference app without a finding (example/ keeps the project rules, AGENTS.md)', () => {
-    const config = { prefix: 'ex', css: ['example/*.css'], js: ['example/*.js'], html: ['example/*.html'], themes: ['example/theme.css'], themesWith: [`${VENDOR}/themes/dark.css`], vendor: VENDOR };
+    const config = { major: 3, prefix: 'ex', css: ['example/*.css'], js: ['example/*.js'], html: ['example/*.html'], themes: ['example/theme.css'], themesWith: [`${VENDOR}/themes/dark.css`], vendor: VENDOR };
     const { findings, errors } = run(published('example'), config);
     assert.deepEqual(errors, []);
     assert.deepEqual(findings.map((f) => `${f.file}:${f.line} ${f.rule} ${f.message}`), []);
   });
 
   it('passes the live tour without a finding (demo/ is wired as a project wires it)', () => {
-    const config = { prefix: 'demo', css: ['demo/*.css'], js: ['demo/*.js'], html: ['demo/*.html'], vendor: VENDOR };
+    const config = { major: 3, prefix: 'demo', css: ['demo/*.css'], js: ['demo/*.js'], html: ['demo/*.html'], vendor: VENDOR };
     const { findings, errors } = run(published('demo'), config);
     assert.deepEqual(errors, []);
     assert.deepEqual(findings.map((f) => `${f.file}:${f.line} ${f.rule} ${f.message}`), []);
