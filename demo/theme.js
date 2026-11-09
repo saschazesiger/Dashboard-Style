@@ -1,155 +1,153 @@
 /*
- * The tour's theme, built from the choices under "Theme it": accent, shape,
- * density and scheme (light, dark or the system's: the shipped
- * themes/dark.css on a link before the theme, its media set by the choice). A project writes the same thing as a plain theme.css; here it
- * is generated, so the page can show the file it would be (DemoTheme.css())
- * and swap it in one step. Like every theme it sets roles and component
- * hooks on .ds-theme, unlayered, never motion tokens or motion hooks.
+ * The tour's theme, chosen under "Theme it": a seed colour (one of the
+ * shipped presets, or a colour of the visitor's own that the generator turns
+ * into a theme), a palette style, a contrast level, the shape and density
+ * options, and the appearance (light, dark or as the device). A project
+ * writes the same thing as one theme.css: a preset or a generated file
+ * (tools/theme.mjs), both schemes in one file through light-dark(), plus its
+ * numeric options. Like every theme it sets roles and options on .ds-theme,
+ * unlayered, never motion tokens or motion hooks.
  *
- * Loaded in <head>: it applies the saved choice before the first paint.
+ * Loaded in <head> after the preset's <link id="demo-preset">: it applies the
+ * saved choice before the first paint, so a reload never flashes the default.
  *
- *   DemoTheme.CHOICES     the options per setting, the first one the default
- *   DemoTheme.css(choice) the theme file for { accent, shape, density, scheme }
- *   DemoTheme.apply(choice) writes it into <style id="demo-theme"> and stores it
- *   DemoTheme.saved()     the stored choice (defaults where nothing is stored)
+ *   DemoTheme.PRESETS          the shipped presets: name, label, seed, scheme
+ *   DemoTheme.saved()          the stored choice (defaults where nothing is stored)
+ *   DemoTheme.apply(choice, css) applies a choice; css is the generated file of
+ *                              a custom seed (from the generator), kept for the next load
+ *   DemoTheme.file(choice, css) the theme.css a project would write for it
+ *   DemoTheme.appearance(value) stores the appearance (light, dark, auto) and pins it
  */
 (function () {
   'use strict';
 
+  var PRESETS = [
+    { name: 'default', label: 'Default', seed: '#0b57d0', scheme: 'fidelity' },
+    { name: 'slate', label: 'Slate', seed: '#475d78', scheme: 'neutral' },
+    { name: 'ocean', label: 'Ocean', seed: '#00658f', scheme: 'fidelity' },
+    { name: 'forest', label: 'Forest', seed: '#2f6b3a', scheme: 'fidelity' },
+    { name: 'violet', label: 'Violet', seed: '#6750a4', scheme: 'tonal' },
+    { name: 'amber', label: 'Amber', seed: '#9a5b00', scheme: 'fidelity' },
+    { name: 'rose', label: 'Rose', seed: '#b3264d', scheme: 'fidelity' },
+    { name: 'graphite', label: 'Graphite', seed: '#3c4043', scheme: 'monochrome' },
+  ];
   var CHOICES = {
-    accent: ['blue', 'teal', 'violet', 'green'],
-    shape: ['round', 'square'],
-    density: ['comfortable', 'compact'],
-    scheme: ['light', 'dark', 'system'],
+    contrast: ['standard', 'high'],
+    shape: ['1', '.5', '0'],
+    density: ['0', '-1', '-2'],
+    appearance: ['auto', 'light', 'dark'],
+    scheme: ['tonal', 'vibrant', 'neutral', 'fidelity', 'monochrome'],
   };
-
-  /* The media of the dark theme's link per scheme: never, always, or when the device asks. */
-  var SCHEME_MEDIA = { light: 'not all', dark: 'all', system: '(prefers-color-scheme: dark)' };
-
-  /* The accents' dark tones, over themes/dark.css (blue is its own). */
-  var DARK_ACCENTS = {
-    blue: null,
-    teal: {
-      '--ds-primary': '#4cdada', '--ds-on-primary': '#003737',
-      '--ds-accent': '#004f4f', '--ds-on-accent': '#c1f5f4', '--ds-inverse-primary': '#006a6a',
-    },
-    violet: {
-      '--ds-primary': '#d0bcff', '--ds-on-primary': '#381e72',
-      '--ds-accent': '#4f378b', '--ds-on-accent': '#eaddff', '--ds-inverse-primary': '#6750a4',
-    },
-    green: {
-      '--ds-primary': '#6dd58c', '--ds-on-primary': '#00391a',
-      '--ds-accent': '#0f5223', '--ds-on-accent': '#c4eed0', '--ds-inverse-primary': '#146c2e',
-    },
-  };
-
-  /* The roles a brand colour sets; hover, pressed and the link underline are derived from --ds-primary
-     by the system. Blue is the system's own. */
-  var ACCENTS = {
-    blue: null,
-    teal: {
-      '--ds-primary': '#006a6a',
-      '--ds-accent': '#cce8e7', '--ds-on-accent': '#002020', '--ds-inverse-primary': '#4cdada',
-    },
-    violet: {
-      '--ds-primary': '#6750a4',
-      '--ds-accent': '#e8def8', '--ds-on-accent': '#1d192b', '--ds-inverse-primary': '#d0bcff',
-    },
-    green: {
-      '--ds-primary': '#146c2e',
-      '--ds-accent': '#c4eed0', '--ds-on-accent': '#002109', '--ds-inverse-primary': '#8fd89f',
-    },
-  };
-
-  /* Radius roles; actions keep the pill rule (min(radius, half the height)), so 4px reads as square. */
-  var SHAPES = {
-    round: null,
-    square: {
-      '--ds-radius-xs': '2px', '--ds-radius-sm': '2px', '--ds-radius-md': '4px', '--ds-radius-lg': '4px',
-      '--ds-radius-xl': '4px', '--ds-radius-2xl': '4px', '--ds-radius-action': '4px', '--ds-radius-action-pressed': '0',
-    },
-  };
-
-  var DENSITIES = {
-    comfortable: null,
-    compact: {
-      '--ds-font-body': 'var(--ds-weight-regular) 13px/18px var(--ds-font)',
-      '--ds-font-dense': 'var(--ds-weight-regular) 13px/18px var(--ds-font)',
-      '--ds-font-label': 'var(--ds-weight-label) 13px/18px var(--ds-font)',
-      '--ds-density': '-2',
-    },
-  };
-
-  /* The project's own tokens (prefix --demo-): the colour of each accent's dot, whichever accent is on. */
-  var OWN = {
-    '--demo-swatch-blue': '#0b57d0',
-    '--demo-swatch-teal': '#006a6a',
-    '--demo-swatch-violet': '#6750a4',
-    '--demo-swatch-green': '#146c2e',
-  };
-
   var KEY = 'demo-theme';
+  var CSS_KEY = 'demo-theme-css';
+  /* The preset files sit next to the tour in the published site and in a checkout alike. */
+  var PRESET_PATH = '../dist/themes/presets/';
+  var root = document.documentElement;
+
+  function presetOf(name) {
+    for (var i = 0; i < PRESETS.length; i += 1) if (PRESETS[i].name === name) return PRESETS[i];
+    return null;
+  }
 
   function normalise(choice) {
-    var result = {};
-    for (var name in CHOICES) {
-      var value = choice && choice[name];
-      result[name] = CHOICES[name].indexOf(value) >= 0 ? value : CHOICES[name][0];
+    var c = choice || {};
+    var out = { preset: presetOf(c.preset) ? c.preset : null, seed: /^#[0-9a-f]{6}$/i.test(c.seed || '') ? c.seed.toLowerCase() : null };
+    if (!out.preset && !out.seed) out.preset = 'default';
+    for (var name in CHOICES) out[name] = CHOICES[name].indexOf(String(c[name])) >= 0 ? String(c[name]) : CHOICES[name][0];
+    if (out.preset) {
+      out.seed = presetOf(out.preset).seed;
+      out.scheme = presetOf(out.preset).scheme;
     }
-    return result;
+    return out;
   }
 
-  function block(comment, values, indent) {
-    var pad = indent || '  ';
-    var lines = [pad + '/* ' + comment + ' */'];
-    for (var name in values) lines.push(pad + name + ': ' + values[name] + ';');
-    return lines.join('\n');
+  function read(key) {
+    try { return localStorage.getItem(key); } catch (error) { return null; }
   }
-
-  /* The theme file for a choice: only what differs from the defaults. A
-     dark scheme loads themes/dark.css before it and adds the accent's dark
-     tones (always, or inside the media query of the system choice). */
-  function css(choice) {
-    var c = normalise(choice);
-    var parts = [];
-    if (ACCENTS[c.accent]) parts.push(block('Accent: ' + c.accent, ACCENTS[c.accent]));
-    if (SHAPES[c.shape]) parts.push(block('Shape: ' + c.shape, SHAPES[c.shape]));
-    if (DENSITIES[c.density]) parts.push(block('Density: ' + c.density, DENSITIES[c.density]));
-    if (!parts.length) parts.push('  /* The defaults: nothing to override. */');
-    var file = '.ds-theme {\n' + parts.join('\n\n') + '\n}\n';
-    if (c.scheme === 'light') return file;
-    var head = '/* Scheme: ' + c.scheme + '. Before this file: <link rel="stylesheet" href="vendor/dashboard-style/themes/dark.css" media="' + SCHEME_MEDIA[c.scheme] + '"> */\n';
-    var dark = DARK_ACCENTS[c.accent];
-    if (!dark) return head + file;
-    if (c.scheme === 'dark') return head + file + '\n.ds-theme {\n' + block('Accent: ' + c.accent + ', dark tones', dark) + '\n}\n';
-    return head + file + '\n@media (prefers-color-scheme: dark) {\n  .ds-theme {\n' + block('Accent: ' + c.accent + ', dark tones', dark, '    ') + '\n  }\n}\n';
+  function write(key, value) {
+    try {
+      if (value === null) localStorage.removeItem(key);
+      else localStorage.setItem(key, value);
+    } catch (error) { /* storage blocked: the choice lasts for this page */ }
   }
 
   function saved() {
-    try { return normalise(JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (error) { return normalise({}); }
+    var choice;
+    try { choice = JSON.parse(read(KEY) || '{}'); } catch (error) { choice = {}; }
+    return normalise(choice);
   }
 
-  function apply(choice) {
-    var c = normalise(choice);
-    var style = document.getElementById('demo-theme');
-    if (!style) {
-      // The shipped dark theme first, the tour's theme after it (it wins where both set a role).
-      var link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.id = 'demo-dark';
-      link.href = '../dist/themes/dark.css';
-      document.head.appendChild(link);
-      style = document.createElement('style');
-      style.id = 'demo-theme';
-      document.head.appendChild(style);
+  /* The numeric options: they nest, so a region may still set its own option class. */
+  function optionsCss(c) {
+    var lines = [];
+    if (c.shape !== '1') lines.push('  --ds-shape: ' + c.shape + ';');
+    if (c.density !== '0') lines.push('  --ds-density: ' + c.density + ';');
+    return lines.length ? '.ds-theme {\n' + lines.join('\n') + '\n}\n' : '';
+  }
+
+  function element(id, tag) {
+    var el = document.getElementById(id);
+    if (!el) {
+      el = document.createElement(tag);
+      el.id = id;
+      document.head.appendChild(el);
     }
-    document.getElementById('demo-dark').media = SCHEME_MEDIA[c.scheme];
-    // The page's own tokens first, then the theme the code panel shows.
-    style.textContent = '.ds-theme {\n' + block('The tour\'s own tokens', OWN) + '\n}\n\n' + css(c);
-    try { localStorage.setItem(KEY, JSON.stringify(c)); } catch (error) { /* storage blocked */ }
+    return el;
+  }
+
+  /* Applies a choice: the preset's link, or the generated file in a style; the options; the appearance. */
+  function apply(choice, css) {
+    var c = normalise(choice);
+    var link = document.getElementById('demo-preset');
+    var custom = element('demo-custom', 'style');
+    if (c.preset) {
+      var href = PRESET_PATH + c.preset + (c.contrast === 'high' ? '-contrast' : '') + '.css';
+      if (link.getAttribute('href') !== href) link.setAttribute('href', href);
+      link.disabled = false;
+      custom.textContent = '';
+      write(CSS_KEY, null);
+    } else {
+      var text = css || read(CSS_KEY) || '';
+      custom.textContent = text;
+      // Without the generated file (storage blocked) the preset stays: the page keeps a whole theme.
+      link.disabled = Boolean(text);
+      if (css) write(CSS_KEY, css);
+    }
+    element('demo-options', 'style').textContent = optionsCss(c);
+    pin(c.appearance);
+    write(KEY, JSON.stringify(c));
     return c;
   }
 
+  /* data-ds-scheme pins light or dark on the theme; auto lets the device decide (the preset holds both). */
+  function pin(value) {
+    if (value === 'light' || value === 'dark') root.setAttribute('data-ds-scheme', value);
+    else root.removeAttribute('data-ds-scheme');
+  }
+
+  function appearance(value) {
+    var c = saved();
+    c.appearance = CHOICES.appearance.indexOf(value) >= 0 ? value : 'auto';
+    pin(c.appearance);
+    write(KEY, JSON.stringify(c));
+    return c.appearance;
+  }
+
+  /* The theme.css of a choice: the preset's file named, or the generated file, then the options. */
+  function file(choice, css) {
+    var c = normalise(choice);
+    var options = optionsCss(c);
+    var head;
+    if (c.preset) {
+      head = '/* The ' + presetOf(c.preset).label.toLowerCase() + ' preset' + (c.contrast === 'high' ? ' at high contrast' : '') +
+        ': both schemes in one file. Link it after ds.css:\n' +
+        '   <link rel="stylesheet" href="vendor/dashboard-style/themes/presets/' + c.preset + (c.contrast === 'high' ? '-contrast' : '') + '.css"> */\n';
+      return head + (options ? '\n/* theme.css: the options on top of it */\n' + options : '\n/* No options to add: the defaults. */\n');
+    }
+    head = css || read(CSS_KEY) || '/* Generating ... */\n';
+    return head + (options ? '\n/* The options: numeric, read where they are used */\n' + options : '');
+  }
+
   apply(saved());
-  window.DemoTheme = { CHOICES: CHOICES, css: css, apply: apply, saved: saved };
+  window.DemoTheme = { PRESETS: PRESETS, CHOICES: CHOICES, saved: saved, apply: apply, file: file, appearance: appearance, presetOf: presetOf };
 })();

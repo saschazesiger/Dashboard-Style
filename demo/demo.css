@@ -1,25 +1,44 @@
 /*
  * The tour's own components, with the project prefix demo-. They read
- * tokens only (--ds-* and the tour's --demo-* from theme.js): no colour,
- * radius, font, shadow, duration or curve literals, no keyframes of their
- * own. Unlayered, like every project stylesheet, and never restyling a
- * .ds-* component.
+ * tokens only (--ds-* and the tour's --demo-*): no colour, radius, font,
+ * shadow, duration or curve literals, no keyframes of their own. Unlayered,
+ * like every project stylesheet; on a .ds-* element they set only placement,
+ * sizes and hooks.
  *
  *   .demo-logo        the brand mark in the top bar and the drawer
- *   .demo-speed       the motion speed switch in the top bar (hidden on phones)
- *   .demo-section     one stop of the tour: __head, __title, __lead
- *   .demo-hero        the welcome block on the accent: __kicker, __title, __lead
- *   .demo-row         a wrapping row of controls
+ *   .demo-wide        top bar parts shown above 600px; .demo-narrow below it;
+ *                     .demo-speed (the speed switch) from 1200px
+ *   .demo-find-key    the shortcut on the Jump to button
+ *   .demo-section     one stop of the tour: __head, __title, __lead. Every stop
+ *                     below the first skips its rendering while it is far from
+ *                     the view (content-visibility), so a style change (a theme,
+ *                     an open dialog) restyles only what is near
+ *   .demo-part        a card of a stop that renders on its own (content-visibility):
+ *                     a stop that scrolls in styles one card per frame, not all
+ *                     at once. Only on cards without a popup of their own (a
+ *                     menu, a list, a calendar), which the containment would clip
+ *   .demo-hero        the welcome block on the accent: __kicker, __title, __lead, __actions
  *   .demo-tip         a hint line with an icon
  *   .demo-progress    a linear and a round progress side by side
  *   .demo-loaders     a row of loaders
  *   .demo-alerts      the stack the alerts come and go in (flip)
- *   .demo-radios      radio cards in two columns
- *   .demo-swatch      the colour dot of an accent choice
- *   .demo-icons       the icon grid: .demo-icon buttons with their name
- *   .demo-links       interactive cards in a list
  *   .demo-col-status  a stable width for the live status column
  *   .demo-sheet-actions  previous, next and close in the head of the side sheet
+ *   .demo-import      the CSV import card; .demo-file__progress a file's bar
+ *   .demo-inline      a line of text with an info button
+ *   .demo-fill        a tool call that fills the message's column
+ *   .demo-panel       a tab panel's room above its content
+ *   .demo-splitpane   the split pane's height and the list's start size
+ *   .demo-panels      the row of dashboard panels; .demo-figure the figure in one
+ *   .demo-source      the Markdown source field
+ *   .demo-log         the log viewer's height
+ *   .demo-chat        the conversation frame: transcript, thinking, suggestions, composer
+ *   .demo-seeds       the seed colours; .demo-swatch a colour dot (--demo-seed);
+ *                     .demo-seed-picker the colour input
+ *   .demo-theme-code  the theme file, at most a screen high
+ *   .demo-icons       the icon grid: .demo-icon buttons with their name
+ *   .demo-links       interactive cards in a list
+ *   .demo-footer      the licence line
  */
 
 .demo-logo {
@@ -34,19 +53,36 @@
   box-shadow: inset 0 0 0 1px var(--ds-line);
 }
 
-@media (max-width: 600px) {
-  .demo-speed,
-  .demo-topbar-cta {
+.demo-narrow {
+  display: none;
+}
+
+@media (max-width: 1199px) {
+  .demo-speed {
     display: none;
   }
 }
 
-/* ── Sections ─────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .demo-wide {
+    display: none;
+  }
+
+  .demo-narrow {
+    display: inline-flex;
+  }
+}
+
+.demo-find-key {
+  margin-inline-start: var(--ds-space-2);
+}
+
+/* ── Stops ────────────────────────────────────────────────────────── */
 
 .demo-section {
   display: grid;
   gap: var(--ds-space-4);
-  /* The view is the scroller: a jump to a section leaves room above its title. */
+  /* The view is the scroller: a jump to a stop leaves room above its title. */
   scroll-margin-top: var(--ds-space-6);
 }
 
@@ -54,6 +90,20 @@
   margin-top: var(--ds-space-8);
   padding-top: var(--ds-space-8);
   border-top: 1px solid var(--ds-line);
+  /* Far from the view a stop is a box of its last known height: no style, layout or paint inside it. */
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 1400px;
+}
+
+/* Far from the view a heavy card is a box of its last known height as well (charts, the log, the code). */
+.demo-part {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 360px;
+}
+
+/* The card's rhythm between its parts, also where a part sets its own margin to 0 (a chip row, a tracker). */
+.demo-section .ds-card > * + * {
+  margin-top: var(--ds-space-4);
 }
 
 .demo-section__head {
@@ -101,26 +151,19 @@
   font: var(--ds-font-reading);
 }
 
-.demo-hero .demo-row {
+.demo-hero__actions {
   margin-top: var(--ds-space-2);
 }
 
-/* The outlined and text buttons on the accent take its ink. */
-.demo-hero .demo-on-hero {
-  color: var(--ds-on-accent);
+/* The outlined and text buttons on the accent take its ink through the button's hook. */
+.demo-on-hero {
+  --ds-btn-color: var(--ds-on-accent);
 }
 
 @media (max-width: 600px) {
   .demo-hero {
     padding: var(--ds-space-5);
   }
-}
-
-.demo-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--ds-space-2);
 }
 
 .demo-tip {
@@ -137,7 +180,7 @@
   color: var(--ds-primary);
 }
 
-/* ── Controls ─────────────────────────────────────────────────────── */
+/* ── Parts of the stops ───────────────────────────────────────────── */
 
 .demo-progress {
   display: flex;
@@ -172,13 +215,92 @@
   gap: var(--ds-space-1);
 }
 
-/* ── Forms ────────────────────────────────────────────────────────── */
-
-.demo-radios {
-  grid-template-columns: repeat(auto-fit, minmax(176px, 1fr));
+.demo-import {
+  display: grid;
+  gap: var(--ds-space-3);
 }
 
-.demo-radios strong {
+/* The rows are .ds-list rows; the progress bar takes a share of the row between the name and the remove button. */
+.demo-file__progress {
+  flex: 0 1 160px;
+  min-width: 80px;
+}
+
+.demo-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+}
+
+/* A tool call fills the message's column (its parts line up at the start). */
+.demo-fill {
+  align-self: stretch;
+}
+
+.demo-panel {
+  padding-top: var(--ds-space-4);
+}
+
+.demo-splitpane {
+  --ds-splitpane-height: 340px;
+}
+
+.demo-splitpane__list {
+  --ds-splitpane-size: 280px;
+  --ds-splitpane-min: 200px;
+  --ds-splitpane-max: 60%;
+}
+
+.demo-panels {
+  --ds-grid-min: 15rem;
+}
+
+.demo-figure {
+  margin: var(--ds-space-2) 0 0;
+  font: var(--ds-font-title);
+  font-variant-numeric: tabular-nums;
+}
+
+.demo-source {
+  font-family: var(--ds-font-mono);
+}
+
+.demo-log {
+  --ds-logview-height: 320px;
+}
+
+/* The conversation: a frame of a fixed height whose transcript scrolls, over the composer. */
+.demo-chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  block-size: min(620px, 80svh);
+  padding-bottom: var(--ds-space-2);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-surface);
+  overflow: hidden;
+}
+
+.demo-chat > .ds-transcript {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.demo-chat > .ds-thinking,
+.demo-chat > .ds-suggestions,
+.demo-chat > .ds-composer {
+  flex: none;
+  margin-inline: var(--ds-space-2);
+}
+
+/* ── Theme it ─────────────────────────────────────────────────────── */
+
+.demo-seeds {
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+}
+
+.demo-seeds strong {
   display: inline-flex;
   align-items: center;
   gap: var(--ds-space-2);
@@ -186,15 +308,36 @@
 
 .demo-swatch {
   display: inline-block;
-  width: 12px;
-  height: 12px;
+  flex: none;
+  width: 14px;
+  height: 14px;
   border-radius: var(--ds-radius-action);
+  background: var(--demo-seed, var(--ds-primary));
+  box-shadow: inset 0 0 0 1px var(--ds-line);
 }
 
-.demo-swatch--blue { background: var(--demo-swatch-blue); }
-.demo-swatch--teal { background: var(--demo-swatch-teal); }
-.demo-swatch--violet { background: var(--demo-swatch-violet); }
-.demo-swatch--green { background: var(--demo-swatch-green); }
+.demo-swatch--custom {
+  background: conic-gradient(var(--ds-chart-1), var(--ds-chart-2), var(--ds-chart-3), var(--ds-chart-4), var(--ds-chart-1));
+}
+
+.demo-seed-picker {
+  display: inline-flex;
+  flex: none;
+}
+
+.demo-seed-picker > input {
+  width: 48px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--ds-outline);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface);
+  cursor: pointer;
+}
+
+.demo-theme-code {
+  max-height: 70svh;
+}
 
 /* ── Icons ────────────────────────────────────────────────────────── */
 
@@ -209,6 +352,12 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* 275 icons, about 2000 elements: only the rows near the view are styled and laid out. */
+.demo-icons > li {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 80px;
 }
 
 /* A project control on the system's press model (.ds-pressable: state layer, focus snap, ripple host); the radius through its hook. */
@@ -246,18 +395,4 @@
 .demo-footer {
   margin: var(--ds-space-4) 0 0;
   color: var(--ds-text-2);
-}
-
-/* The CSV import of the Forms stop: the drop zone, then a row per file. */
-.demo-import {
-  display: grid;
-  gap: var(--ds-space-3);
-  margin-top: var(--ds-space-4);
-}
-
-/* The rows are .ds-list rows; the progress bar takes a share of the row
-   between the name and the remove button. */
-.demo-file__progress {
-  flex: 0 1 160px;
-  min-width: 80px;
 }

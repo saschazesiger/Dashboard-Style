@@ -1,0 +1,8 @@
+{
+  "content": ["index.html", "*.js", "!ds/**"],
+  "dist": "../dist",
+  "out": "ds",
+  "minify": true,
+  "js": "classic",
+  "icons": "all"
+}
