@@ -209,15 +209,24 @@
   }
 
   // The invitations: the dialog shows it is busy while they go out, then closes; the result is a snackbar.
-  DS.dialog.form(document.getElementById('invite'), {
+  var invite = document.getElementById('invite');
+  DS.dialog.form(invite, {
     onSubmit: function (data) {
       var count = String(data.get('emails')).split(/[\s,;]+/).filter(Boolean).length;
       return wait(900).then(function () {
-        markDone('team');
         DS.overlay.toast(toasts, count === 1 ? 'Invitation sent.' : count + ' invitations sent.', { kind: 'success' });
       });
     },
     errorText: 'The invitations were not sent. Try again.',
+  });
+  // The step is done once the dialog has closed and given the focus back to "Invite people": marking it done removes
+  // that button, so the focus moves on to the next step that is still open (or the page's title).
+  invite.addEventListener('ds:close', function (event) {
+    if (event.detail.reason !== 'submit') return;
+    markDone('team');
+    var next = steps.querySelector('.ds-list__actions .ds-btn');
+    if (next) next.focus();
+    else document.querySelector('.ds-page-head__title').focus();
   });
 
   // Hiding the list moves the focus to the page's title; it stays reachable from Help.

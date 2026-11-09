@@ -24,7 +24,7 @@ Two rules hold everywhere:
 | **Settings** | cards per topic, [switches](components.md#switch) that apply at once, a [form](components.md#form) with labels above fields and one Save button, a [disclosure](components.md#disclosure) for advanced options, a [save bar](components.md#save-bar) (`.ds-savebar`) for long forms | switches on their spring; Save runs `DS.motion.busy()` | a switch is its own result (no snackbar); a saved form says "Saved" in a snackbar; invalid fields get an error list and focus moves to the first | [Settings](../example/index.html#/settings) |
 | **Overview** (the start page) | [tiles](components.md#tiles) with key figures, [alerts](components.md#alert) that come and go with the data, a [chart](components.md#charts) card, a live feed as a [timeline](components.md#timeline) | tiles count on with `countUp()`; alerts and feed rows glide with `flip({ live: true })`, held while pointed at or focused | live changes are not announced one by one; an alert that needs action is | [Overview](../example/index.html#/overview) |
 | **Wizard** (create in steps) | [`.ds-steps`](components.md#steps) above one form per step, Back and Next (the last one names the result: "Create device"), a summary step | steps move on the shared axis (`transition()` forward and backward) | each step's heading takes focus; the step change is announced ("Step 2 of 3, Network") | |
-| **Sign-in** | [`.ds-auth`](components.md#sign-in-page): one card with the product name, fields, one filled button and a text link | none beyond the busy button | the first field has focus on load; a failed sign-in is an alert above the fields, focused | |
+| **Sign-in** | [`.ds-auth`](components.md#sign-in-page): one card with the product name, fields, one filled button and a text link | none beyond the busy button | nothing takes the focus on load (an `autofocus` field would raise a phone's keyboard over the card before it is read); a failed sign-in is an alert above the fields, focused | |
 
 ## Flows
 
@@ -59,8 +59,9 @@ How they are made, so a page stays copy-ready:
   or a stylesheet of the system of its own. The few layout rules they share sit in `src/patterns/pt.css` with the
   prefix `pt-`, read tokens and hooks only and never restyle a `.ds-*` element (a project writes the same with its
   own prefix): `.pt-auth` (the column of a sign-in page), `.pt-brand` (a stand-in logo and the product's name),
-  `.pt-codes` (a list of codes without markers), `.pt-foot` (the links under a card) and `.pt-bar` (the head of a
-  full-screen task). `tools/check-project.mjs` passes them like a project (`test/patterns.test.js`).
+  `.pt-codes` (a list of codes without markers), `.pt-foot` (the colour of the links under a card, on a
+  `.ds-cluster--center`) and `.pt-bar` (the padding and the title of a full-screen task's head, on a
+  `.ds-cluster--nowrap`); the layout itself comes from the layout components. `tools/check-project.mjs` passes them like a project (`test/patterns.test.js`).
 - **How they load the system.** A page links the fonts, the bundle of its family, the theme and `pt.css`, and runs the
   bundle's script and its own wiring at the end of the body:
 
@@ -70,7 +71,7 @@ How they are made, so a page stays copy-ready:
   <link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme"> <!-- stands in for the project's theme -->
   <link rel="stylesheet" href="pt.css">
   <script src="pt.js"></script>                                                    <!-- the demo's frame, not part of the pattern -->
-  <link rel="expect" href="#pt-ready" blocking="render">
+  <link rel="expect" href="#pt-ready" blocking="render">                         <!-- the demo's frame too, see below -->
   ...
   <script src="ds/ds.auth.js"></script>
   <script>
@@ -82,8 +83,12 @@ How they are made, so a page stays copy-ready:
     // ...the page's own wiring...
   }());
   </script>
-  <div id="pt-ready" hidden></div>                                                 <!-- first paint waits for the glyphs (Chromium) -->
+  <div id="pt-ready" hidden></div>                                                 <!-- the demo's frame: first paint waits for the glyphs (Chromium) -->
   ```
+
+  The `pt-ready` render block belongs to the demo's frame, like `pt.js`: it keeps the screenshots and the preview from
+  showing a page before its glyphs, and costs a first paint that waits for the bundle's script to run. A project
+  leaves it out, or keeps it only where a page without its icons for a frame matters more than an earlier paint.
 
   The bundles are written by [`tools/bundle.mjs`](bundle.md) from `src/patterns/ds.config.json` into
   `src/patterns/ds/`: one entry per family of pages (`auth`, `status`, `form`, `onboarding`, `wizard`), so a page
@@ -136,7 +141,8 @@ code.
   recovery code form, and that form with its pattern and error summary.
 - **The project wires:** a wrong code sets `aria-invalid="true"` on the group and adds an error hint in words (named
   in its `aria-describedby`) without moving the focus or clearing the cells (the field's own rule); the next change
-  takes both away. The two forms swap with `DS.motion.enter(form, 'swap')`, the focus goes to the first field.
+  takes both away. A code sent short gets its own hint ("Enter all six digits of the code."), said aloud with
+  `DS.overlay.announce()`, and the focus goes to the first empty cell. The two forms swap with `DS.motion.enter(form, 'swap')`, the focus goes to the first field.
 - **Demo rule:** every code but `000000` is right.
 
 ### Recovery codes
@@ -185,7 +191,7 @@ the terms.
 [verify-email.html](../src/patterns/verify-email.html): confirm the address with the code or the link we sent.
 
 - **Components:** the code field, text buttons to send a new code and to change the address, the done face.
-- **The project wires:** the address from the sign-up (`?email=`), a wrong code as on the two-step page, and the pause
+- **The project wires:** the address from the sign-up (`?email=`), a wrong or short code as on the two-step page, and the pause
   after "Send a new code": the button turns `aria-disabled` (still focusable) and a line says why, for a minute.
 - **Demo rule:** every code but `000000` is right.
 
@@ -258,14 +264,17 @@ the terms.
   one: its action), "Learn the basics" as interactive [cards](components.md#interactive-card) in a `.ds-grid`, a
   [form dialog](components.md#a-form-dialog) to invite people.
 - **The project wires:** a step that turns done (the check, the status, the bar's share and its words), the dialog
-  through `DS.dialog.form()` (busy while the invitations go out, then a snackbar), and "Hide", which hides the card
+  through `DS.dialog.form()` (busy while the invitations go out, then a snackbar; the step turns done on the dialog's
+  `ds:close`, once the focus is back on "Invite people", and the focus moves on to the next open step, since marking it
+  done removes that button), and "Hide", which hides the card
   with `DS.motion.leave()`, gives the focus to the title and offers Undo in a snackbar.
 
 ### Full-screen wizard
 
 [wizard.html](../src/patterns/wizard.html): a task in checked steps on a page of its own.
 
-- **Components:** a sticky head (`.ds-sticky--head` with `.pt-bar`: close, the title, the dark-theme button), the
+- **Components:** a sticky head (`.ds-sticky--head` on a `.ds-cluster--nowrap`, with `.pt-bar`: close, the title as
+  a `.ds-truncate`, the dark-theme button), the
   [form wizard](components.md#form-wizard) (`data-ds-wizard`: the steps it writes, an optional step, the summary) in a
   card in a `.ds-measure` column inside `.ds-content` (so the steps show only the current label on a phone), radio
   tiles, the [result page](components.md#result-page)'s done state after the submit.

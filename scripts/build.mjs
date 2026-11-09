@@ -8,6 +8,7 @@
  *   node scripts/build.mjs           write dist/ and the generated files
  *   node scripts/build.mjs --check   exit 1 if any of them is not what src/ builds
  *   node scripts/build.mjs --generated   print the generated files of the repository, one per line
+ *                                        (the patterns' bundles only once git tracks them)
  *
  * Sources: src/core/{tokens,options,base,motion,global}.css and src/core/hooks.json,
  * one folder per component (src/components/<name>/: <name>.css, meta.json and
@@ -95,6 +96,7 @@
  *
  * The output is deterministic (no dates), so the test suite can compare it.
  */
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
@@ -2040,6 +2042,19 @@ export function diffDist(out = build()) {
   return problems;
 }
 
+/** The paths of `paths` that git tracks; all of them outside a git checkout. */
+function trackedOnly(paths) {
+  if (!paths.length) return paths;
+  let listed;
+  try {
+    listed = execFileSync('git', ['ls-files', '-z', '--', ...paths], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch {
+    return paths;
+  }
+  const tracked = new Set(listed.split('\0').filter(Boolean));
+  return paths.filter((path) => tracked.has(path));
+}
+
 function statSafe(path) {
   try {
     return statSync(path);
@@ -2051,8 +2066,9 @@ function statSafe(path) {
 function main() {
   const files = generatedFiles();
   // The generated paths alone: `git checkout -- dist $(node scripts/build.mjs --generated)` on a group branch.
+  // The patterns' bundles only as far as git tracks them: one path git does not know fails that checkout as a whole.
   if (process.argv.includes('--generated')) {
-    console.log([...files.keys(), ...patternBundleFiles()].join('\n'));
+    console.log([...files.keys(), ...trackedOnly(patternBundleFiles())].join('\n'));
     return;
   }
   if (process.argv.includes('--check')) {

@@ -65,7 +65,7 @@
   </section>
 </main>
 
-<footer class="pt-foot ds-cluster">
+<footer class="pt-foot ds-cluster ds-cluster--center">
   <a class="ds-link--quiet" href="#help">Help</a>
   <a class="ds-link--quiet" href="#privacy">Privacy</a>
   <a class="ds-link--quiet" href="#terms">Terms</a>
@@ -74,6 +74,9 @@
 
 <template id="wrong-code">
   <small class="ds-field__hint ds-field__hint--error" id="code-error" data-icon="alertCircle" data-icon-size="16" data-icon-place="start">That code did not work. Check the newest email from Product.</small>
+</template>
+<template id="short-code">
+  <small class="ds-field__hint ds-field__hint--error" id="code-error" data-icon="alertCircle" data-icon-size="16" data-icon-place="start">Enter all six digits of the code.</small>
 </template>
 
 <script src="ds/ds.auth.js"></script>
@@ -95,25 +98,28 @@
   var group = form.querySelector('[data-ds-otp]');
   var code = DS.get(group, 'otp');
 
-  function markWrong(wrong) {
+  function markWrong(why) {
     var old = document.getElementById('code-error');
     if (old) old.remove();
-    group.setAttribute('aria-describedby', wrong ? 'code-error code-hint' : 'code-hint');
-    if (!wrong) {
+    group.setAttribute('aria-describedby', why ? 'code-error code-hint' : 'code-hint');
+    if (!why) {
       group.removeAttribute('aria-invalid');
       return;
     }
     group.setAttribute('aria-invalid', 'true');
-    document.getElementById('code-field').append(document.getElementById('wrong-code').content.cloneNode(true));
+    document.getElementById('code-field').append(document.getElementById(why).content.cloneNode(true));
     DS.icons.fill(document.getElementById('code-field'));
   }
-  group.addEventListener('ds:change', function () { if (group.hasAttribute('aria-invalid')) markWrong(false); });
+  group.addEventListener('ds:change', function () { if (group.hasAttribute('aria-invalid')) markWrong(null); });
 
   form.addEventListener('submit', function (event) {
     event.preventDefault();
     var value = code.get();
+    // A short code is said at the field too, and aloud: the focus alone, on the next empty cell, tells nobody why.
     if (value.length < 6) {
+      markWrong('short-code');
       code.focus();
+      DS.overlay.announce('Enter all six digits of the code.');
       return;
     }
     DS.motion.busy(form.querySelector('[type="submit"]'), wait(700).then(function () {
@@ -123,7 +129,7 @@
       DS.motion.enter(document.getElementById('done'), 'swap');
       document.getElementById('title').focus();
     }, function () {
-      markWrong(true);
+      markWrong('wrong-code');
       DS.overlay.announce('That code did not work.');
     });
   });

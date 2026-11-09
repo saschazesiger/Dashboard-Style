@@ -93,6 +93,16 @@ describe('page patterns', () => {
     }
   });
 
+  it('writes every pattern attribute as a regular expression the browsers compile (the v flag)', () => {
+    // A pattern that does not compile under v (an unescaped - at the end of a class) is ignored, with a console error.
+    for (const page of pages) {
+      for (const [, source] of read(page.file).matchAll(/\spattern="([^"]*)"/g)) {
+        const pattern = source.replaceAll('&quot;', '"').replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&amp;', '&');
+        assert.doesNotThrow(() => new RegExp(`^(?:${pattern})$`, 'v'), `${page.file}: pattern="${source}"`);
+      }
+    }
+  });
+
   it('defines in pt.css only the pt- classes it documents, from tokens', () => {
     const css = read(`${PATTERNS}/pt.css`);
     const header = css.slice(0, css.indexOf('*/'));

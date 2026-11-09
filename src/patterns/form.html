@@ -47,7 +47,7 @@
 
       <div class="ds-field">
         <label class="ds-field__label" for="serial">Serial number <span class="ds-field__optional">(optional)</span></label>
-        <input class="ds-input ds-mono" id="serial" name="serial" autocomplete="off" autocapitalize="characters" spellcheck="false" pattern="[A-Za-z0-9-]{4,20}" aria-describedby="serial-hint">
+        <input class="ds-input ds-mono" id="serial" name="serial" autocomplete="off" autocapitalize="characters" spellcheck="false" pattern="[A-Za-z0-9\-]{4,20}" aria-describedby="serial-hint">
         <small class="ds-field__hint" id="serial-hint" data-icon="info" data-icon-size="16" data-icon-place="start">On the label under the device, such as SN-0042.</small>
         <small class="ds-field__hint ds-field__hint--error" hidden></small>
       </div>
@@ -108,7 +108,7 @@
   </section>
 </main>
 
-<footer class="pt-foot ds-cluster">
+<footer class="pt-foot ds-cluster ds-cluster--center">
   <a class="ds-link--quiet" href="#help">Help</a>
   <a class="ds-link--quiet" href="#privacy">Privacy</a>
   <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>

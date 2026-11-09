@@ -12,9 +12,11 @@
  *                     is a stand-in logo, a glyph on the primary colour
  *   .pt-codes         a list of recovery codes in a .ds-grid: no markers
  *   .pt-foot          the links under a card or a result, and the dark-theme
- *                     button; it wraps and centres on a phone
+ *                     button, on a centred .ds-cluster: their colour
  *   .pt-bar           the head of a full-screen task (the wizard): close, the
- *                     title, the dark-theme button, on .ds-sticky--head
+ *                     title (.ds-truncate), the dark-theme button, on a
+ *                     .ds-cluster--nowrap and .ds-sticky--head: the padding
+ *                     within the safe areas, the title's type and room
  */
 
 .pt-auth {
@@ -50,24 +52,16 @@
 }
 
 .pt-foot {
-  justify-content: center;
   color: var(--ds-text-2);
 }
 
 .pt-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--ds-space-2);
   padding-block: var(--ds-space-2);
   padding-inline: max(var(--ds-space-2), env(safe-area-inset-left)) max(var(--ds-space-2), env(safe-area-inset-right));
 }
 
 .pt-bar__title {
   flex: 1;
-  min-inline-size: 0;
   margin: 0;
   font: var(--ds-font-title);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }

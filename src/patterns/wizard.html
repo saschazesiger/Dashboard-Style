@@ -15,9 +15,9 @@
 <link rel="expect" href="#pt-ready" blocking="render">
 </head>
 <body>
-<header class="pt-bar ds-sticky ds-sticky--head">
+<header class="pt-bar ds-cluster ds-cluster--nowrap ds-sticky ds-sticky--head">
   <a class="ds-btn ds-btn--quiet ds-btn--icon" href="onboarding.html" id="close" aria-label="Close, back to Get started" data-tip="Close" data-icon="close"></a>
-  <h1 class="pt-bar__title" id="title">Add a device</h1>
+  <h1 class="pt-bar__title ds-truncate" id="title">Add a device</h1>
   <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
 </header>
 
@@ -48,7 +48,7 @@
         </div>
         <div class="ds-field">
           <label class="ds-field__label" for="serial">Serial number</label>
-          <input class="ds-input ds-mono" id="serial" name="serial" required autocomplete="off" autocapitalize="characters" spellcheck="false" pattern="[A-Za-z0-9-]{4,20}" aria-describedby="serial-hint">
+          <input class="ds-input ds-mono" id="serial" name="serial" required autocomplete="off" autocapitalize="characters" spellcheck="false" pattern="[A-Za-z0-9\-]{4,20}" aria-describedby="serial-hint">
           <small class="ds-field__hint" id="serial-hint">On the label under the device: 4 to 20 letters, digits or dashes.</small>
         </div>
       </section>

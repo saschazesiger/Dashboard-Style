@@ -169,7 +169,8 @@ leave a stale body visible under the state.
 </body>
 ```
 
-`.ds-auth` is a page that is one centred card on the backdrop, at least the window's height, within the safe areas.
+`.ds-auth` is a page that is one centred card on the backdrop, at least the window's height, within the safe areas;
+a card taller than the window grows the page (its top stays in reach of the scroll, also under `.ds-base`).
 `.ds-auth__card` is `--ds-auth-width` (400px) wide at most; `.ds-auth__alert`, the slot above it, takes no room while
 empty; the primary action takes the card's width.
 
