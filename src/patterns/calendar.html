@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calendar · Product</title>
+<meta name="pt-title" content="Calendar page">
+<meta name="pt-need" content="Plan the week: a month to pick a day, the week's events by day, the calendars to show and a dialog for a new event">
+<meta name="pt-group" content="Work together">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.calendar.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<div class="ds-app ds-app--drawer" data-ds-shell="patterns">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" data-icon="menu"></button>
+    <a class="ds-brand" href="calendar.html"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></a>
+    <div class="ds-topbar__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="#help" aria-label="Help" data-tip="Help" data-icon="helpCircle"></a>
+    </div>
+    <div class="ds-account">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+      <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+        <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+        <div class="ds-menu__divider" role="separator"></div>
+        <a class="ds-menu__item" role="menuitem" href="#profile" data-icon="user" data-icon-place="start"><span class="ds-menu__label">Profile</span></a>
+        <a class="ds-menu__item" role="menuitem" href="sign-in.html" data-icon="logout" data-icon-place="start"><span class="ds-menu__label">Sign out</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></div>
+    <div class="ds-drawer__list">
+      <div class="ds-drawer__group">
+        <a class="ds-drawer__item" href="#overview" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="#devices" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="#tickets" data-icon="ticket" data-icon-place="start"><span class="ds-drawer__label">Tickets</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Work</p>
+        <a class="ds-drawer__item" href="inbox.html" data-icon="inbox" data-icon-place="start"><span class="ds-drawer__label">Inbox</span></a>
+        <a class="ds-drawer__item" href="chat.html" data-icon="chat" data-icon-place="start"><span class="ds-drawer__label">Chat</span></a>
+        <a class="ds-drawer__item" href="files.html" data-icon="folder" data-icon-place="start"><span class="ds-drawer__label">Files</span></a>
+        <a class="ds-drawer__item" href="calendar.html" aria-current="page" data-icon="calendar" data-icon-place="start"><span class="ds-drawer__label">Calendar</span></a>
+        <a class="ds-drawer__item" href="kanban.html" data-icon="kanban" data-icon-place="start"><span class="ds-drawer__label">Board</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Settings</p>
+        <a class="ds-drawer__item" href="notification-settings.html" data-icon="bell" data-icon-place="start"><span class="ds-drawer__label">Notifications</span></a>
+        <a class="ds-drawer__item" href="webhooks.html" data-icon="webhook" data-icon-place="start"><span class="ds-drawer__label">Webhooks</span></a>
+        <a class="ds-drawer__item" href="billing.html" data-icon="creditCard" data-icon-place="start"><span class="ds-drawer__label">Billing</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content">
+        <div class="ds-page">
+          <header class="ds-page-head">
+            <div class="ds-page-head__row">
+              <div class="ds-page-head__text">
+                <h1 class="ds-page-head__title" tabindex="-1">Calendar</h1>
+                <p class="ds-page-head__lead">Device returns, repairs and the team's appointments.</p>
+              </div>
+              <div class="ds-page-head__actions">
+                <button class="ds-btn ds-btn--filled" type="button" id="new-event" aria-haspopup="dialog" data-icon="calendarPlus" data-icon-size="18" data-icon-place="start">New event</button>
+              </div>
+            </div>
+          </header>
+
+          <div class="ds-split" style="--ds-split-side: 22rem">
+            <aside class="ds-split__side ds-stack" aria-label="Choose a day and the calendars">
+              <section class="ds-card" aria-label="Month">
+                <div class="ds-calendar" id="month" data-ds-calendar data-ds-calendar-first-day="1" aria-label="Choose a day"></div>
+                <button class="ds-btn ds-btn--text" type="button" id="today">Today</button>
+              </section>
+              <section class="ds-card" aria-labelledby="calendars-title">
+                <h2 class="ds-card__title" id="calendars-title">Calendars</h2>
+                <fieldset class="ds-fieldset" id="calendars">
+                  <legend class="ds-sr">Show</legend>
+                  <label class="ds-check"><input type="checkbox" name="calendar" value="mine" checked><span>My events</span></label>
+                  <label class="ds-check"><input type="checkbox" name="calendar" value="team" checked><span>Team</span></label>
+                  <label class="ds-check"><input type="checkbox" name="calendar" value="returns" checked><span>Device returns</span></label>
+                </fieldset>
+              </section>
+            </aside>
+
+            <section class="ds-split__main ds-card" aria-labelledby="week-title">
+              <div class="ds-card__row">
+                <h2 class="ds-card__title" id="week-title" aria-live="polite"></h2>
+                <div class="ds-cluster ds-gap-1">
+                  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="previous" aria-label="Previous week" data-tip="Previous week" data-icon="chevronLeft"></button>
+                  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="next" aria-label="Next week" data-tip="Next week" data-icon="chevronRight"></button>
+                </div>
+              </div>
+              <ul class="ds-list ds-list--interactive" role="list" id="agenda" aria-labelledby="week-title"></ul>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<dialog class="ds-dialog" id="event" aria-labelledby="event-title" data-ds-managed>
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <form class="ds-dialog__box" data-ds-dialog-form>
+    <h2 class="ds-dialog__title" id="event-title">New event</h2>
+    <div class="ds-dialog__body">
+      <div class="ds-field">
+        <label class="ds-field__label" for="event-name">Title</label>
+        <input class="ds-input" id="event-name" name="title" required autofocus>
+      </div>
+      <div class="ds-field">
+        <span class="ds-field__label" id="event-start-label">Starts</span>
+        <div class="ds-picker" id="event-start" data-ds-datepicker data-ds-datepicker-type="datetime" data-ds-datepicker-hour-cycle="h23">
+          <div class="ds-datefield" role="group" aria-labelledby="event-start-label">
+            <button class="ds-btn ds-btn--quiet ds-btn--icon ds-datefield__toggle" type="button" aria-label="Choose date and time" data-icon="calendar"></button>
+          </div>
+        </div>
+      </div>
+      <div class="ds-form-grid ds-form-grid--2">
+        <div class="ds-field">
+          <label class="ds-field__label" for="event-length">Length</label>
+          <select class="ds-input" id="event-length" name="length">
+            <option value="30">30 minutes</option>
+            <option value="60" selected>1 hour</option>
+            <option value="120">2 hours</option>
+          </select>
+        </div>
+        <div class="ds-field">
+          <label class="ds-field__label" for="event-calendar">Calendar</label>
+          <select class="ds-input" id="event-calendar" name="calendar">
+            <option value="mine">My events</option>
+            <option value="team">Team</option>
+            <option value="returns">Device returns</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
+      <button class="ds-btn ds-btn--filled" type="submit">
+        <span class="ds-btn__faces"><span class="ds-btn__face">Add event</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Adding</span></span>
+      </button>
+    </div>
+  </form>
+</dialog>
+<div class="ds-toasts" id="toasts"></div>
+
+<template id="kinds">
+  <span class="ds-tag" data-kind="mine">Mine</span>
+  <span class="ds-tag ds-tone-info" data-kind="team">Team</span>
+  <span class="ds-tag ds-tone-success" data-kind="returns">Return</span>
+</template>
+
+<script src="ds/ds.calendar.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
+  var esc = function (text) { return String(text).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var cal = DS.calendar;
+  var toasts = document.getElementById('toasts');
+  var month = DS.get(document.getElementById('month'), 'calendar');
+
+  var utc = function (date) { return Date.UTC(date.year, date.month - 1, date.day); };
+  var weekday = function (date) { return new Date(utc(date)).getUTCDay() || 7; };   // ISO: Monday 1 ... Sunday 7
+
+  // ── The fake backend: this week and the next, around today ──
+  var today = cal.today();
+  var monday = cal.add(today, { days: 1 - weekday(today) });
+  var TEMPLATE = [
+    [0, '09:00', 30, 'team', 'Stand-up', 'Room 2'],
+    [0, '14:00', 60, 'returns', 'LAPTOP-0042 back from Ada Lovelace', 'Service desk'],
+    [1, '10:00', 120, 'mine', 'Order laptops for the new team', 'At my desk'],
+    [2, '09:00', 30, 'team', 'Stand-up', 'Room 2'],
+    [2, '13:30', 60, 'team', 'Repair review with Alan Turing', 'Workshop'],
+    [3, '11:00', 60, 'returns', 'Printer floor 2 back from repair', 'Floor 2'],
+    [4, '09:00', 30, 'team', 'Stand-up', 'Room 2'],
+    [4, '15:00', 60, 'mine', 'Backup report', 'At my desk'],
+    [7, '09:00', 30, 'team', 'Stand-up', 'Room 2'],
+    [8, '10:00', 60, 'returns', 'Four laptops for the new team arrive', 'Loading bay'],
+    [10, '14:00', 120, 'team', 'Onboarding of the new team', 'Room 1'],
+  ];
+  var events = TEMPLATE.map(function (row, index) {
+    return { id: 'e' + index, date: cal.iso(cal.add(monday, { days: row[0] })), start: row[1], length: row[2], calendar: row[3], title: row[4], place: row[5] };
+  });
+
+  var dayName = new Intl.DateTimeFormat('en', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
+  var short = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  function end(e) {
+    var parts = e.start.split(':').map(Number);
+    var minutes = parts[0] * 60 + parts[1] + e.length;
+    return String(Math.floor(minutes / 60)).padStart(2, '0') + ':' + String(minutes % 60).padStart(2, '0');
+  }
+  var kinds = {};
+  document.getElementById('kinds').content.querySelectorAll('[data-kind]').forEach(function (tag) { kinds[tag.getAttribute('data-kind')] = tag.outerHTML; });
+
+  // ── The week of the chosen day, by day ──
+  var chosen = today;
+  var agenda = document.getElementById('agenda');
+  function render(options) {
+    var start = cal.add(chosen, { days: 1 - weekday(chosen) });
+    var shown = Array.prototype.map.call(document.querySelectorAll('#calendars input:checked'), function (input) { return input.value; });
+    document.getElementById('week-title').textContent = 'Week of ' + short.format(utc(start));
+    var html = '';
+    for (var i = 0; i < 7; i += 1) {
+      var day = cal.add(start, { days: i });
+      var iso = cal.iso(day);
+      var isToday = cal.compare(day, today) === 0;
+      html += '<li class="ds-list__group" role="presentation" data-ds-key="d' + iso + '"><h3 class="ds-list__heading">' + esc(dayName.format(utc(day))) + (isToday ? ' · Today' : '') + '</h3></li>';
+      var list = events.filter(function (e) { return e.date === iso && shown.indexOf(e.calendar) >= 0; }).sort(function (a, b) { return a.start < b.start ? -1 : 1; });
+      if (!list.length) html += '<li class="ds-list__item" data-ds-key="n' + iso + '"><span class="ds-list__text"><span class="ds-list__meta">Nothing planned</span></span></li>';
+      list.forEach(function (e) {
+        html += '<li class="ds-list__item" data-ds-key="' + e.id + '">' +
+          '<span class="ds-list__text">' +
+            '<span class="ds-list__title"><button class="ds-list__action" type="button" data-event="' + e.id + '" aria-haspopup="dialog">' + esc(e.title) + '</button></span>' +
+            '<span class="ds-list__meta">' + esc(e.start + ' to ' + end(e) + ' · ' + e.place) + '</span>' +
+          '</span>' + kinds[e.calendar] +
+          '</li>';
+      });
+    }
+    DS.dom.morphHtml(agenda, html, options);
+  }
+  function choose(date, options) {
+    chosen = date;
+    month.set(cal.iso(date));
+    render(options);
+  }
+
+  document.getElementById('month').addEventListener('ds:change', function (event) {
+    choose(cal.parse(event.detail.value));
+  });
+  document.getElementById('today').addEventListener('click', function () { choose(today); });
+  document.getElementById('previous').addEventListener('click', function () { choose(cal.add(chosen, { days: -7 })); });
+  document.getElementById('next').addEventListener('click', function () { choose(cal.add(chosen, { days: 7 })); });
+  document.getElementById('calendars').addEventListener('change', function () {
+    DS.motion.flip(agenda, function (options) { render(options); }, { items: '.ds-list__item' });
+  });
+
+  // ── One event: its facts in an alert dialog ──
+  agenda.addEventListener('click', function (event) {
+    var button = event.target.closest('[data-event]');
+    if (!button) return;
+    var e = events.find(function (item) { return item.id === button.getAttribute('data-event'); });
+    DS.overlay.alert({
+      title: e.title, opener: button,
+      facts: [['When', dayName.format(utc(cal.parse(e.date))) + ', ' + e.start + ' to ' + end(e)], ['Where', e.place], ['Calendar', { mine: 'My events', team: 'Team', returns: 'Device returns' }[e.calendar]]],
+    });
+  });
+
+  // ── A new event: the dialog starts on the chosen day at 10:00 ──
+  // Its date and time picker builds a calendar and the day's times: the
+  // dialog waits under data-ds-managed until it is first wanted, so the
+  // page's first paint does not pay for it.
+  var dialog = document.getElementById('event');
+  var picker = null;
+  var opener = document.getElementById('new-event');
+  opener.addEventListener('click', function () {
+    if (!picker) {
+      dialog.removeAttribute('data-ds-managed');
+      DS.init(dialog);
+      picker = DS.get(document.getElementById('event-start'), 'datepicker');
+    }
+    dialog.querySelector('form').reset();
+    picker.set(cal.iso(chosen) + 'T10:00');
+    DS.overlay.open(dialog, { opener: opener });
+  });
+  DS.dialog.form(dialog, {
+    onSubmit: function (data) {
+      var value = picker.get();
+      if (!value) return Promise.reject(new Error('no start'));
+      return wait(600).then(function () {
+        var e = { id: 'n' + Date.now(), date: value.slice(0, 10), start: value.slice(11, 16), length: Number(data.get('length')), calendar: String(data.get('calendar')), title: String(data.get('title')), place: 'Not set' };
+        events.push(e);
+        chosen = cal.parse(e.date);
+        month.set(e.date);
+        DS.motion.flip(agenda, function (options) { render(options); }, { items: '.ds-list__item' });
+        DS.overlay.toast(toasts, e.title + ' added on ' + short.format(utc(chosen)) + '.', { kind: 'success' });
+      });
+    },
+    errorText: 'Choose when the event starts.',
+  });
+
+  choose(today);
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

@@ -4,8 +4,9 @@ How the components combine into the pages and flows of an admin dashboard. Each 
 motion, where focus goes and what is announced; the [reference app](../example/README.md) builds most of them (its
 README maps each pattern to its code). Markup: [components.md](components.md); motion: [motion.md](motion.md).
 Whole pages to copy are the [page patterns](#page-patterns) at the end: sign-in, errors, public forms, onboarding, a
-full-screen wizard, and the pages of the app itself (the overview, a list, a record, settings, the profile, the team,
-permissions, API keys, integrations and the audit log).
+full-screen wizard, the pages of the app itself (the overview, a list, a record, settings, the profile, the team,
+permissions, API keys, integrations and the audit log), billing and invoices, webhooks, a status page, a changelog,
+notification settings, a file manager, an inbox, a chat app, pricing, a calendar and a kanban board.
 
 Two rules hold everywhere:
 
@@ -61,10 +62,11 @@ How they are made, so a page stays copy-ready:
   prefix `pt-`, read tokens and hooks only and never restyle a `.ds-*` element (a project writes the same with its
   own prefix): `.pt-auth` (the column of a sign-in page), `.pt-brand` (a stand-in logo and the product's name),
   `.pt-codes` (a list of codes without markers), `.pt-foot` (the colour of the links under a card, on a
-  `.ds-cluster--center`), `.pt-bar` (the padding and the title of a full-screen task's head, on a
-  `.ds-cluster--nowrap`) and `.pt-col-min` (the header cell of a table column that must not get narrower, so a table
-  on a phone scrolls instead of squeezing a select or a row's name); the layout itself comes from the layout
-  components. `tools/check-project.mjs` passes them like a project (`test/patterns.test.js`).
+  `.ds-cluster--center`), `.pt-bar` (the padding and the title of the head of a full-screen task or a public page),
+  `.pt-col-min` (the header cell of a table column that must not get narrower, so a table on a phone scrolls instead
+  of squeezing a select or a row's name), `.pt-price` (a price in the headline type) and `.pt-fill` (the part of a
+  column that takes the rest of its height and scrolls itself); the layout itself comes from the layout components.
+  `tools/check-project.mjs` passes them like a project (`test/patterns.test.js`).
 - **How they load the system.** A page links the fonts, the bundle of its family, the theme and `pt.css`, and runs the
   bundle's script and its own wiring at the end of the body:
 
@@ -94,8 +96,9 @@ How they are made, so a page stays copy-ready:
   leaves it out, or keeps it only where a page without its icons for a frame matters more than an earlier paint.
 
   The bundles are written by [`tools/bundle.mjs`](bundle.md) from `src/patterns/ds.config.json` into
-  `src/patterns/ds/`: one entry per family of pages (`auth`, `status`, `form`, `onboarding`, `wizard`; each page of the
-  app its own, named like the page: `dashboard`, `list`, `record` ...), so a page loads what its family uses (a sign-in page about 33 KB of CSS and 110 KB of script, gzip) instead of the whole
+  `src/patterns/ds/`: one entry per family of pages (`auth`, `status`, `form`, `onboarding`, `wizard`, `billing`,
+  `webhooks`, `public`, `files`, `inbox`, `chat`, `calendar`, `kanban`; each page of the app its own, named like the
+  page: `dashboard`, `list`, `record`, `settings` ...), so a page loads what its family uses (a sign-in page about 33 KB of CSS and 110 KB of script, gzip) instead of the whole
   `ds.min.css` and `ds.min.js`. `npm run build` writes them from the `dist/` it just built; they are generated files
   (`node scripts/build.mjs --generated` lists them) and `--check` compares them, so a change to a component or the
   version reaches them by itself. Each `ds.<entry>.json` says which components and modules a family needs and why.
@@ -439,3 +442,188 @@ tables keep their first columns and scroll sideways in their card, forms fall to
   new values of each change, outcomes in words, its empty state; Export with its busy face.
 - **The project wires:** the records from the API through `DS.auditlog.create()` (a fixed `now` and locale here), and
   the export, which the server sends by email.
+
+### Billing
+
+[billing.html](../src/patterns/billing.html): the plan, what this period used against its quotas, the payment details
+and the invoices, in the app frame.
+
+- **Components:** the [app frame](components.md#app-frame), a [page head](components.md#page) with "Change plan" as the
+  one filled action, a warning [alert](components.md#alert) when a quota nears its limit, two cards in a `.ds-grid-2`
+  (the plan with its [status chip](components.md#status-chip) and a `.ds-kv-list`, the payment details), the quotas as
+  [tiles](components.md#tiles) with a target [meter](components.md#meter-variants) each (`role="meter"`, a
+  `.ds-meter__threshold` at 80%, the state in words under it and in `aria-valuetext`), the invoices as a
+  [table](components.md#table) in a card with status chips, a [form dialog](components.md#a-form-dialog) for the
+  billing details. `.pt-price` sets the price in the headline type.
+- **The project wires:** the quotas' first fill (`DS.motion.enterAll(meters, 'fill')`), the billing details through
+  `DS.dialog.form()` (busy while it saves, then the card shows the values and a snackbar), "Cancel plan" through
+  `DS.overlay.confirm({ destructive: true })` with the facts it concerns, after which the chip says when the plan
+  ends and the button offers to resume it (`DS.motion.setLabel()`), and the CSV export (a `Blob`).
+
+### Printable invoice
+
+[invoice.html](../src/patterns/invoice.html): one invoice as a sheet on screen and on paper.
+
+- **Components:** [Print](components.md#print): the sheet is a `.ds-print-page` (A4 wide, centred on screen, the
+  paper's width and the light scheme in print), the bar above it `.ds-print-hide`, the "printed on" line
+  `.ds-print-only`, the totals and the payment note `.ds-print-avoid`; `.ds-facts--grid` for who and when, a
+  [table](components.md#table) with a `<tfoot>` for the totals (its header row repeats on every sheet), a status chip,
+  `.ds-prose` for the payment note.
+- **The project wires:** `window.print()` behind the Print button (a PDF is the print dialog's "Save as PDF") and the
+  date of the printout on `beforeprint`.
+
+### Pricing table
+
+[pricing.html](../src/patterns/pricing.html): the plans side by side, a feature comparison and the questions people
+ask, on a public page.
+
+- **Components:** a [segmented switch](components.md#segmented-options-as-buttons) of radio buttons for the billing
+  period (the gliding pill of `DS.indicator`, the arrow keys of `DS.dom.roving()`), the plans as cards in a
+  `.ds-grid--max-3` (one per row on a phone; the one to choose `ds-card--elevated` with a [tag](components.md#tags) and
+  the one filled button), the comparison as a [table](components.md#table) with `.ds-table--pin-first` (the feature
+  stays while the plans scroll on a phone; a check or a dash is a `role="img"` named "Included" or "Not included"),
+  the questions as an exclusive [disclosure list](components.md#disclosure) (`name="faq"`).
+- **The project wires:** the period switch: the prices and their unit change at once (no figure counts: a price is
+  not data that moved).
+
+### Webhooks and delivery log
+
+[webhooks.html](../src/patterns/webhooks.html): the endpoints that get events, the signing secret and every delivery,
+in the app frame.
+
+- **Components:** the endpoints as a [row list](components.md#row-list) (the address in `.ds-mono .ds-break`, its
+  events and success rate in the meta line, a failing one with an error [status chip](components.md#status-chip), a
+  [switch](components.md#switch) named after the address to pause it), the signing secret in a
+  [copy field](components.md#copy-button) (`.ds-copy--field`: a masked value on screen, the secret in
+  `data-ds-copy-value`), the deliveries as a [table](components.md#table) filtered by radio
+  [chips](components.md#chips), a [side sheet](components.md#side-sheet) for one delivery (`.ds-facts`, two
+  [code frames](components.md#code-block) with their copy buttons, Resend in the foot), a
+  [form dialog](components.md#a-form-dialog) to add an endpoint.
+- **The project wires:** the lists from its data with `DS.dom.morphHtml` (keyed rows; a status chip comes from a
+  `<template>`, so its glyph stays in the markup) inside `DS.motion.flip()`, the filter's count through
+  `DS.overlay.announce()`, the sheet through `DS.overlay.open(sheet, { opener })` with the code set by
+  `DS.get(figure, 'code').set()`, Resend inside `DS.motion.busy()` (the new delivery leads the log, which goes back to All from the Failed filter), "at least one
+  event" as a custom validity in the dialog, and rolling the secret after `DS.overlay.confirm({ destructive: true })`.
+- **Demo rule:** the ticket endpoint fails now and then (a 500 or a timeout); a resend always gets through.
+
+### Status page
+
+[status-page.html](../src/patterns/status-page.html): how each part of the service runs now, its uptime over 90 days
+and the incidents, on a public page.
+
+- **Components:** a public head (`.pt-bar`: the brand, Subscribe, the dark-theme button), the incident under way as a
+  warning [alert](components.md#alert) with its title over a [timeline](components.md#timeline) of its updates, one
+  [tracker](components.md#tracker) per part (90 cells, one tab stop each, the date and state of a cell in its name and
+  tooltip, the uptime and the incidents in words in its summary) under a shared legend, the past incidents as a
+  timeline grouped by day (planned maintenance `--muted`), a [form dialog](components.md#a-form-dialog) to subscribe.
+- **The project wires:** the trackers from its data, `DS.tracker.create(row).set(cells)` per part with the summary
+  counted by `DS.tracker.counts()`, and the subscription through `DS.dialog.form()`.
+
+### Changelog
+
+[changelog.html](../src/patterns/changelog.html): what changed in each release, newest first.
+
+- **Components:** a [split](components.md#layout) with the releases as sticky [jump links](components.md#jump-links)
+  (`data-ds-toc`: the release being read is marked; above the list on a phone), filter
+  [chips](components.md#chips) for the kinds, a card per release (`<article>`, its date in a `.ds-meta`), the items as a
+  `.ds-plain-list` led by a [tag](components.md#tags) in words ("New", "Improved", "Fixed"; the tone repeats it).
+- **The project wires:** the filter (items of the other kinds hide, a release left empty says so, the count is
+  announced).
+
+### Notification settings
+
+[notification-settings.html](../src/patterns/notification-settings.html): which events reach someone, and where.
+
+- **Components:** one [form](components.md#form) in a card with three [form sections](components.md#form) (the
+  channels as [switches](components.md#switch), push blocked with its reason in a hint; the events as a
+  [table](components.md#table) of checkboxes, each named by its channel and its event through `aria-labelledby`, each
+  in a `.ds-check` label so a checked one never marks its row as selected; the digest as `.ds-radios` and quiet hours
+  as a switch with two time fields), the [unsaved-changes guard](components.md#unsaved-changes-guard)
+  (`data-ds-unsaved`) with its [save bar](components.md#save-bar).
+- **The project wires:** a channel that is off blocks its column (`aria-disabled` and a `data-tip` that says why, so the
+  boxes keep their choice and stay focusable), quiet hours off disables their times, and the save:
+  `event.detail.waitUntil(request)` on `ds:save` (the guard shows the busy face, then "Changes saved.").
+- **Rules it shows:** the payment email is always on (`aria-disabled` with its reason).
+
+### File manager
+
+[files.html](../src/patterns/files.html): a folder as a grid or a list, a selection to act on, and a preview beside
+the list.
+
+- **Components:** [breadcrumbs](components.md#breadcrumbs) in the page head, a toolbar slot (`.ds-toolbar` with a
+  `.ds-swap`) that holds the action bar ([search field](components.md#search-field) with its count and the `/` key, a
+  [segmented switch](components.md#segmented-options-as-buttons) for Grid and List) or the
+  [selection bar](components.md#bulk-selection-bar), the files as a [media grid](components.md#media)
+  (`data-ds-media`: one tab stop, arrows, Space, Shift and Ctrl+A) or a [table](components.md#table) with checkboxes,
+  an [empty state](components.md#empty-state) when nothing matches, and the preview as an inspector panel
+  ([side sheet](components.md#push-and-inspector), `.ds-sheet__panel--inspector`: focus stays in the list) with
+  `.ds-facts--rows` and a [copy button](components.md#copy-button) for the link.
+- **The project wires:** both views from one list with `DS.dom.morphHtml`: the view on screen is patched, inside
+  `DS.motion.flip()` for an upload, a new folder or a delete, and the hidden one when the switch shows it; the search
+  patches at most once a frame and without the glide, so typing stays quick. One selection for both (`DS.get(grid, 'media')` and the table's boxes), the
+  swap of the two bars with `DS.motion.crossfade()`, delete at once with Undo in a snackbar, the upload through a
+  hidden file input, a new folder through `DS.overlay.prompt()`. A card's open link is the file's address; the page
+  opens the preview instead (`preventDefault()`).
+
+### Inbox
+
+[inbox.html](../src/patterns/inbox.html): messages in a list and a reading pane.
+
+- **Components:** the [list-detail layout](components.md#list-detail-layout) (`data-ds-listdetail`, outlined) in a
+  `.ds-view--fixed` view, so each column scrolls by itself; the list's title is the page's `h1`; radio
+  [chips](components.md#chips) for All and Unread; the messages as an interactive [row list](components.md#row-list)
+  (initials, the sender, the subject, a line of the text, the time; while unread a dot
+  [badge](components.md#badge) after the sender, the subject in bold and "Unread" for a reader;
+  the open one `aria-current`); the reading pane with a back button, quiet icon actions, a
+  [persona](components.md#persona), `.ds-prose` and a reply form; an [empty state](components.md#empty-state) while
+  nothing is open.
+- **The project wires:** the message a row opens, rendered in its click listener before the layout moves to it; the
+  browser's back button on a phone (`history.pushState()` when the pane is the only column, `back()` on `popstate`);
+  archive and delete at once with Undo; "Mark as unread" that returns to the list.
+
+### Chat app
+
+[chat.html](../src/patterns/chat.html): the team's conversations, the transcript of one and a composer.
+
+- **Components:** the list-detail layout in a `.ds-view--fixed` view; the conversations as an interactive row list
+  (a [badge](components.md#badge) with "unread" for a reader); the [transcript](components.md#transcript)
+  (`data-ds-transcript`: sticks to the end, a "Latest" pill, day separators, polite announcements) of
+  [messages](components.md#message) (other people in the default look with their initials, one's own as
+  `--user`, system lines), above the [composer](components.md#composer) (`data-ds-composer`: it grows, Enter sends,
+  `@` mentions, a draft per conversation through `data-ds-composer-draft`). `.pt-fill` gives the transcript the
+  column's rest.
+- **The project wires:** the conversation a row opens, the send (`composer.on('send')`, the transcript re-rendered with
+  `DS.dom.morphHtml` and `stick()`), and a new conversation through `DS.overlay.prompt()`.
+- **Demo rule:** a reply arrives a moment after each message, except in Purchasing.
+
+### Calendar page
+
+[calendar.html](../src/patterns/calendar.html): the week's events around a month to pick a day from.
+
+- **Components:** a [split](components.md#layout) with the [calendar](components.md#calendar) (`data-ds-calendar`,
+  Monday first) and the calendars to show as `.ds-check` rows on the side, the week as a [row list](components.md#row-list)
+  with a sticky heading per day (`.ds-list__group`), each event a button with its time, place and a
+  [tag](components.md#tags) for its calendar; a [form dialog](components.md#a-form-dialog) with a
+  [date picker](components.md#date-picker) of type `datetime` for a new event; an alert dialog with the facts of
+  one event (`DS.overlay.alert({ facts })`).
+- **The project wires:** the week from the day the calendar sends (`ds:change`), the previous and next week and Today
+  through `set()`, the shown calendars inside `DS.motion.flip()`, the dates through `DS.calendar`'s engine (`today`,
+  `add`, `compare`, `iso`). The New event dialog waits under `data-ds-managed` until its first open (then
+  `DS.init(dialog)`): its picker builds a calendar and the day's times, which the first paint does not need.
+- **Demo rule:** the events sit around the current week, so the page always has some.
+
+### Kanban board
+
+[kanban.html](../src/patterns/kanban.html): work moved through columns by dragging or with the keyboard.
+
+- **Components:** the columns as filled cards in a [reel](components.md#horizontal-scroller) (`.ds-scroll-x--reel`:
+  side by side on a desktop, one and a peek on a phone), each with its count as a [badge](components.md#badge); the
+  cards as compact cards with a `.ds-grip` handle named "Move ..." beside a title that gives way
+  (`.ds-truncate--lines` in a `.ds-cluster--nowrap`, so the handle keeps its 32px whatever the title), an inline [persona](components.md#persona) and a
+  priority [tag](components.md#tags); `DS.dnd` ([core.md](core.md#dsdnd-pointer-and-keyboard-drag)) for the pointer
+  and the keyboard (Space lifts, the arrows move within and across columns, Space drops, Escape cancels; every step
+  announced).
+- **The project wires:** `DS.dnd.create(board, { zones, list, items, accept, label })`, the save on `ds:drop` (the DOM is
+  already in its new order; the data and the column heads follow through `DS.dom.morphHtml`), a limit of three in
+  progress (`accept()` refuses a fourth: the keyboard skips the full column, a pointer drop goes back), and a new card
+  through `DS.overlay.prompt()`.

@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Notifications · Product</title>
+<meta name="pt-title" content="Notification settings">
+<meta name="pt-need" content="Choose which events reach someone by email, in the app or on the phone, with a digest and quiet hours">
+<meta name="pt-group" content="Settings and integrations">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.settings.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<div class="ds-app ds-app--drawer" data-ds-shell="patterns">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" data-icon="menu"></button>
+    <a class="ds-brand" href="notification-settings.html"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></a>
+    <div class="ds-topbar__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="#help" aria-label="Help" data-tip="Help" data-icon="helpCircle"></a>
+    </div>
+    <div class="ds-account">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+      <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+        <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+        <div class="ds-menu__divider" role="separator"></div>
+        <a class="ds-menu__item" role="menuitem" href="#profile" data-icon="user" data-icon-place="start"><span class="ds-menu__label">Profile</span></a>
+        <a class="ds-menu__item" role="menuitem" href="sign-in.html" data-icon="logout" data-icon-place="start"><span class="ds-menu__label">Sign out</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></div>
+    <div class="ds-drawer__list">
+      <div class="ds-drawer__group">
+        <a class="ds-drawer__item" href="#overview" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="#devices" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="#tickets" data-icon="ticket" data-icon-place="start"><span class="ds-drawer__label">Tickets</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Work</p>
+        <a class="ds-drawer__item" href="inbox.html" data-icon="inbox" data-icon-place="start"><span class="ds-drawer__label">Inbox</span></a>
+        <a class="ds-drawer__item" href="chat.html" data-icon="chat" data-icon-place="start"><span class="ds-drawer__label">Chat</span></a>
+        <a class="ds-drawer__item" href="files.html" data-icon="folder" data-icon-place="start"><span class="ds-drawer__label">Files</span></a>
+        <a class="ds-drawer__item" href="calendar.html" data-icon="calendar" data-icon-place="start"><span class="ds-drawer__label">Calendar</span></a>
+        <a class="ds-drawer__item" href="kanban.html" data-icon="kanban" data-icon-place="start"><span class="ds-drawer__label">Board</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Settings</p>
+        <a class="ds-drawer__item" href="notification-settings.html" aria-current="page" data-icon="bell" data-icon-place="start"><span class="ds-drawer__label">Notifications</span></a>
+        <a class="ds-drawer__item" href="webhooks.html" data-icon="webhook" data-icon-place="start"><span class="ds-drawer__label">Webhooks</span></a>
+        <a class="ds-drawer__item" href="billing.html" data-icon="creditCard" data-icon-place="start"><span class="ds-drawer__label">Billing</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content">
+        <div class="ds-page">
+          <header class="ds-page-head">
+            <h1 class="ds-page-head__title" tabindex="-1">Notifications</h1>
+            <p class="ds-page-head__lead">What reaches you, and where. Your team's settings stay as they are.</p>
+          </header>
+
+          <form class="ds-form ds-card" id="settings" data-ds-unsaved aria-labelledby="settings-title">
+            <h2 class="ds-sr" id="settings-title">Notification settings</h2>
+
+            <section class="ds-form-section ds-form-section--columns" aria-labelledby="channels-title">
+              <div class="ds-form-section__head">
+                <h3 class="ds-form-section__title" id="channels-title">Where we reach you</h3>
+                <p class="ds-form-section__text">A channel that is off gets nothing, whatever you choose below.</p>
+              </div>
+              <div class="ds-form-section__body">
+                <label class="ds-switch">
+                  <input type="checkbox" role="switch" name="channel-email" checked aria-describedby="email-hint">
+                  <span class="ds-switch__track" aria-hidden="true"></span>
+                  <span class="ds-switch__label">Email</span>
+                  <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
+                </label>
+                <small class="ds-field__hint" id="email-hint">To ada@example.org</small>
+                <label class="ds-switch">
+                  <input type="checkbox" role="switch" name="channel-app" checked>
+                  <span class="ds-switch__track" aria-hidden="true"></span>
+                  <span class="ds-switch__label">In the app</span>
+                  <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
+                </label>
+                <label class="ds-switch">
+                  <input type="checkbox" role="switch" name="channel-push" aria-disabled="true" aria-describedby="push-hint">
+                  <span class="ds-switch__track" aria-hidden="true"></span>
+                  <span class="ds-switch__label">Push on your phone</span>
+                  <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
+                </label>
+                <small class="ds-field__hint" id="push-hint">Sign in to the phone app once to turn it on.</small>
+              </div>
+            </section>
+
+            <section class="ds-form-section" aria-labelledby="events-title">
+              <div class="ds-form-section__head">
+                <h3 class="ds-form-section__title" id="events-title">What you hear about</h3>
+                <p class="ds-form-section__text">Payment problems always reach the billing contacts by email.</p>
+              </div>
+              <div class="ds-form-section__body">
+                <div class="ds-table-wrap">
+                  <table class="ds-table ds-density-compact" id="matrix">
+                    <caption class="ds-sr">Events and channels</caption>
+                    <thead><tr>
+                      <th scope="col">Event</th>
+                      <th scope="col">Email</th>
+                      <th scope="col">App</th>
+                      <th scope="col">Push</th>
+                    </tr></thead>
+                    <tbody>
+                      <tr><th scope="rowgroup" colspan="4">Devices</th></tr>
+                      <tr>
+                        <th scope="row" id="ev-offline">A device goes offline</th>
+                        <td><label class="ds-check"><input type="checkbox" name="offline-email" checked aria-labelledby="ch-email ev-offline" data-channel="email"></label></td>
+                        <td><label class="ds-check"><input type="checkbox" name="offline-app" checked aria-labelledby="ch-app ev-offline" data-channel="app"></label></td>
+                        <td><label class="ds-check"><input type="checkbox" name="offline-push" aria-labelledby="ch-push ev-offline" data-channel="push"></label></td>
+                      </tr>
+                      <tr>
+                        <th scope="row" id="ev-warranty">A warranty ends within 30 days</th>
+                        <td><label class="ds-check"><input type="checkbox" name="warranty-email" checked aria-labelledby="ch-email ev-warranty" data-channel="email"></label></td>
+                        <td><label class="ds-check"><input type="checkbox" name="warranty-app" aria-labelledby="ch-app ev-warranty" data-channel="app"></label></td>
+                        <td><label class="ds-check"><input type="checkbox" name="warranty-push" aria-labelledby="ch-push ev-warranty" data-channel="push"></label></td>
+                      </tr>
+                      <tr><th scope="rowgroup" colspan="4">Tickets</th></tr>
+                      <tr>
+                        <th scope="row" id="ev-assigned">A ticket is assigned to you</th>
+                        <td><label class="ds-check"><input type="checkbox" name="assigned-email" checked aria-labelledby="ch-email ev-assigned" data-channel="email"></label></td>
+                        <td><label class="ds-check"><input type="checkbox" name="assigned-app" checked aria-labelledby="ch-app ev-assigned" data-channel="app"></label></td>
+                        <td><label class="ds-check"><input type="checkbox" name="assigned-push" aria-labelledby="ch-push ev-assigned" data-channel="push"></label></td>
+                      </tr>
+                      <tr>
+                        <th scope="row" id="ev-mention">Someone mentions you</th>
+                        <td><label class="ds-check"><input type="checkbox" name="mention-email" aria-labelledby="ch-email ev-mention" data-channel="email"></label></td>
+                        <td><label class="ds-check"><input type="checkbox" name="mention-app" checked aria-labelledby="ch-app ev-mention" data-channel="app"></label></td>
+                        <td><label class="ds-check"><input type="checkbox" name="mention-push" aria-labelledby="ch-push ev-mention" data-channel="push"></label></td>
+                      </tr>
+                      <tr><th scope="rowgroup" colspan="4">Billing</th></tr>
+                      <tr>
+                        <th scope="row" id="ev-invoice">A new invoice</th>
+                        <td><label class="ds-check"><input type="checkbox" name="invoice-email" checked aria-labelledby="ch-email ev-invoice" data-channel="email"></label></td>
+                        <td><label class="ds-check"><input type="checkbox" name="invoice-app" aria-labelledby="ch-app ev-invoice" data-channel="app"></label></td>
+                        <td><label class="ds-check"><input type="checkbox" name="invoice-push" aria-labelledby="ch-push ev-invoice" data-channel="push"></label></td>
+                      </tr>
+                      <tr>
+                        <th scope="row" id="ev-payment">A payment fails</th>
+                        <td><label class="ds-check"><input type="checkbox" name="payment-email" checked aria-disabled="true" aria-labelledby="ch-email ev-payment" data-tip="Always sent to billing contacts"></label></td>
+                        <td><label class="ds-check"><input type="checkbox" name="payment-app" checked aria-labelledby="ch-app ev-payment" data-channel="app"></label></td>
+                        <td><label class="ds-check"><input type="checkbox" name="payment-push" aria-labelledby="ch-push ev-payment" data-channel="push"></label></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="ds-sr"><span id="ch-email">Email:</span> <span id="ch-app">In the app:</span> <span id="ch-push">Push:</span></p>
+              </div>
+            </section>
+
+            <section class="ds-form-section ds-form-section--columns" aria-labelledby="calm-title">
+              <div class="ds-form-section__head">
+                <h3 class="ds-form-section__title" id="calm-title">Digest and quiet hours</h3>
+                <p class="ds-form-section__text">Gather what is not urgent into one email, and keep the phone still at night.</p>
+              </div>
+              <div class="ds-form-section__body">
+                <fieldset class="ds-field">
+                  <legend class="ds-field__label" id="digest-label">Email digest</legend>
+                  <div class="ds-radios" role="radiogroup" aria-labelledby="digest-label">
+                    <label class="ds-radio"><input type="radio" name="digest" value="off"><span><strong>Off</strong><small>Every email on its own, as it happens.</small></span></label>
+                    <label class="ds-radio"><input type="radio" name="digest" value="daily" checked><span><strong>Daily</strong><small>At 08:00, with everything from the day before.</small></span></label>
+                    <label class="ds-radio"><input type="radio" name="digest" value="weekly"><span><strong>Weekly</strong><small>On Monday at 08:00.</small></span></label>
+                  </div>
+                </fieldset>
+                <label class="ds-switch">
+                  <input type="checkbox" role="switch" name="quiet" id="quiet" checked>
+                  <span class="ds-switch__track" aria-hidden="true"></span>
+                  <span class="ds-switch__label">Quiet hours</span>
+                  <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
+                </label>
+                <div class="ds-form-grid ds-form-grid--2" id="quiet-times">
+                  <div class="ds-field">
+                    <label class="ds-field__label" for="quiet-from">From</label>
+                    <input class="ds-input" id="quiet-from" name="quiet-from" type="time" value="20:00" required>
+                  </div>
+                  <div class="ds-field">
+                    <label class="ds-field__label" for="quiet-to">To</label>
+                    <input class="ds-input" id="quiet-to" name="quiet-to" type="time" value="07:00" required>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </form>
+        </div>
+      </div>
+      <div class="ds-savebar">
+        <div class="ds-savebar__bar ds-presence" role="region" aria-label="Unsaved changes" hidden>
+          <p class="ds-savebar__text ds-unsaved__count" data-ds-unsaved-count></p>
+          <div class="ds-savebar__actions">
+            <button class="ds-btn ds-btn--text" type="button" data-ds-unsaved-discard>Discard</button>
+            <button class="ds-btn ds-btn--filled" type="button" data-ds-unsaved-save>
+              <span class="ds-btn__faces"><span class="ds-btn__face">Save</span>
+                <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Saving</span></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="ds/ds.settings.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  var form = document.getElementById('settings');
+  var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
+
+  // A channel that is off takes its column out of use: its boxes keep their choice, blocked, with the reason.
+  var REASON = { email: 'Email is off above', app: 'In the app is off above', push: 'Push is off above' };
+  function syncChannels() {
+    ['email', 'app', 'push'].forEach(function (channel) {
+      var on = form.elements['channel-' + channel].checked;
+      form.querySelectorAll('[data-channel="' + channel + '"]').forEach(function (box) {
+        box.setAttribute('aria-disabled', String(!on));
+        if (on) box.removeAttribute('data-tip'); else box.setAttribute('data-tip', REASON[channel]);
+      });
+    });
+    var quiet = form.elements.quiet.checked;
+    document.getElementById('quiet-times').querySelectorAll('input').forEach(function (input) { input.disabled = !quiet; });
+  }
+  form.addEventListener('change', syncChannels);
+  form.addEventListener('ds:discard', syncChannels);
+  syncChannels();
+
+  // Save: the guard shows the save bar while something changed; the request runs while its button is busy.
+  form.addEventListener('ds:save', function (event) { event.detail.waitUntil(wait(800)); });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

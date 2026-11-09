@@ -89,7 +89,7 @@ describe('page patterns', () => {
       }
       assert.doesNotMatch(html, /\sstyle="(?![^"]*--ds-[\w-]+:)[^"]*"/, `${where}: inline styles set hooks only`);
       assert.doesNotMatch(html, /\.innerHTML\s*=/, `${where}: no innerHTML`);
-      assert.doesNotMatch(html, /\bclass="[^"]*\bpt-(?!auth\b|brand\b|brand__mark\b|codes\b|foot\b|bar\b|bar__title\b|col-min\b)/, `${where}: pt- classes of pt.css only`);
+      assert.doesNotMatch(html, /\bclass="[^"]*\bpt-(?!auth\b|brand\b|brand__mark\b|codes\b|foot\b|bar\b|bar__title\b|col-min\b|price\b|price__unit\b|fill\b)/, `${where}: pt- classes of pt.css only`);
     }
   });
 
@@ -107,7 +107,9 @@ describe('page patterns', () => {
     const css = read(`${PATTERNS}/pt.css`);
     const header = css.slice(0, css.indexOf('*/'));
     const code = css.replace(/\/\*[\s\S]*?\*\//g, '');
-    const rules = [...code.matchAll(/^([^\s{}][^{}]*)\{/gm)].map((match) => match[1].trim());
+    // Rules at the top level and inside a print query, which holds only pt- rules too.
+    const rules = [...code.matchAll(/^\s*([^\s{}@][^{}]*)\{/gm)].map((match) => match[1].trim());
+    for (const [, query] of code.matchAll(/^(@[^{]*)\{/gm)) assert.equal(query.trim(), '@media print', `pt.css: ${query.trim()} is the print query`);
     for (const selector of rules) {
       assert.match(selector, /^\.pt-[\w-]+$/, `pt.css: ${selector} is one pt- class`);
       assert.ok(header.includes(selector.replace(/__.*$/, '')), `pt.css: ${selector} in the header comment`);

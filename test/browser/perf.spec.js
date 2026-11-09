@@ -25,6 +25,8 @@
  * scope") counts the elements a text change inside a card restyles, in the
  * shared run; the test below times those changes, alone, also while the
  * styleguide's save bar shows (its view and content rules apply then).
+ * Last, the longest task while the calendar and files patterns load, at
+ * the same throttling ("Load task").
  */
 import { test, expect } from '@playwright/test';
 import { ready, settle } from './helpers/motion.js';
@@ -218,3 +220,46 @@ test('the reference app at 4x CPU: after the start is ready no task is over 200m
     await cdp.detach();
   }
 });
+
+/**
+ * The longest task while a page pattern loads, at 4x CPU throttling and
+ * 390px: the median of five loads after a first, cold one. The calendar
+ * initialised the date and time picker of its closed New event dialog at
+ * start-up (a calendar and the day's times) and files patched both of its
+ * views; on a dev machine with the CPU alone their tasks fell from 215ms to
+ * 145ms and from 195ms to 180ms (the Style recalc ceiling above reads about
+ * half its container time there). The budget keeps work a page does not
+ * show out of its first paint.
+ */
+const LOAD_CEILING = 400;
+
+for (const name of ['calendar', 'files']) {
+  test(`src/patterns/${name}.html: the longest task of a load at 4x CPU throttling stays under ${LOAD_CEILING}ms (median of 5)`, async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'CPU throttling is a CDP command: Chromium only');
+    test.skip(!process.env.DS_PERF_ALONE, 'task times need the CPU alone: run npm run test:browser -- --project=perf');
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.addInitScript(() => {
+      window.__dsLongest = 0;
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) window.__dsLongest = Math.max(window.__dsLongest, entry.duration);
+      }).observe({ type: 'longtask', buffered: true });
+    });
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    const tasks = [];
+    try {
+      for (let load = 0; load < 6; load += 1) {
+        await page.goto(`/src/patterns/${name}.html?scheme=light`);
+        await ready(page);
+        await settle(page, { timeout: 20000 });
+        if (load) tasks.push(await page.evaluate(() => window.__dsLongest));
+      }
+    } finally {
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+    }
+    tasks.sort((a, b) => a - b);
+    const median = tasks[2];
+    test.info().annotations.push({ type: 'load task', description: `${name}: median ${median.toFixed(0)}ms of ${tasks.map((task) => task.toFixed(0)).join(', ')}` });
+    expect(median, `the longest load task of ${name}.html (${tasks.map((task) => task.toFixed(0)).join(', ')}ms)`).toBeLessThan(LOAD_CEILING);
+  });
+}

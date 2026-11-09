@@ -10,13 +10,21 @@
     "dashboard": ["dashboard.html"],
     "list": ["list.html"],
     "record": ["record.html"],
-    "settings": ["settings.html"],
+    "settings": ["settings.html", "notification-settings.html"],
     "profile": ["profile.html"],
     "team": ["team.html"],
     "api-keys": ["api-keys.html"],
     "integrations": ["integrations.html"],
     "permissions": ["permissions.html"],
-    "audit-log": ["audit-log.html"]
+    "audit-log": ["audit-log.html"],
+    "billing": ["billing.html", "invoice.html", "pricing.html"],
+    "webhooks": ["webhooks.html"],
+    "public": ["status-page.html", "changelog.html"],
+        "files": ["files.html"],
+    "inbox": ["inbox.html"],
+    "chat": ["chat.html"],
+    "calendar": ["calendar.html"],
+    "kanban": ["kanban.html"]
   },
   "out": "ds"
 }

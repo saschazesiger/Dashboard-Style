@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Status · Product</title>
+<meta name="pt-title" content="Status page">
+<meta name="pt-need" content="A public page of how each part of the service runs now, its uptime over 90 days and the incidents">
+<meta name="pt-group" content="Public pages">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.public.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<header class="pt-bar">
+  <a class="pt-brand" href="status-page.html"><span class="pt-brand__mark" data-icon="box"></span>Product status</a>
+  <button class="ds-btn ds-push" type="button" data-ds-open="#subscribe" aria-haspopup="dialog" data-icon="bell" data-icon-size="18" data-icon-place="start">Subscribe</button>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+</header>
+
+<main class="ds-content" id="main">
+  <div class="ds-page">
+    <header class="ds-page-head">
+      <h1 class="ds-page-head__title" tabindex="-1">Status</h1>
+      <p class="ds-page-head__lead">Updated every minute. Times in UTC.</p>
+    </header>
+
+    <section class="ds-card" aria-labelledby="now-title">
+      <div class="ds-alert ds-tone-warning" data-icon="alert" data-icon-place="start">
+        <div class="ds-alert__text">
+          <h2 class="ds-alert__title" id="now-title">Device sync is slow</h2>
+          <p>Changes on devices take up to 20 minutes to show. Nothing is lost. Every other part runs normally.</p>
+        </div>
+      </div>
+      <ol class="ds-timeline" role="list" aria-label="Updates on the device sync incident">
+        <li class="ds-timeline__item" data-ds-key="u3">
+          <div class="ds-timeline__head">
+            <p class="ds-timeline__title">Monitoring</p>
+            <span class="ds-status ds-tone-info" data-icon="activity" data-icon-size="16" data-icon-place="start"><span>Fix rolling out</span></span>
+          </div>
+          <p class="ds-timeline__meta"><time datetime="2026-11-08T10:20Z">Nov 8, 10:20</time></p>
+          <p class="ds-timeline__text">A fix is rolling out region by region. The delay shrinks as it reaches each one.</p>
+        </li>
+        <li class="ds-timeline__item" data-ds-key="u2">
+          <div class="ds-timeline__head"><p class="ds-timeline__title">Identified</p></div>
+          <p class="ds-timeline__meta"><time datetime="2026-11-08T09:35Z">Nov 8, 09:35</time></p>
+          <p class="ds-timeline__text">A queue that sorts incoming changes runs on too few workers after this morning's update.</p>
+        </li>
+        <li class="ds-timeline__item" data-ds-key="u1">
+          <div class="ds-timeline__head"><p class="ds-timeline__title">Investigating</p></div>
+          <p class="ds-timeline__meta"><time datetime="2026-11-08T09:12Z">Nov 8, 09:12</time></p>
+          <p class="ds-timeline__text">We see changes from devices arrive late and are looking into it.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="ds-card" aria-labelledby="parts-title">
+      <div class="ds-card__row">
+        <h2 class="ds-card__title" id="parts-title">Uptime, last 90 days</h2>
+        <ul class="ds-tracker__legend" aria-hidden="true">
+          <li><span class="ds-tracker__cell ds-tracker__cell--success"></span>Up</li>
+          <li><span class="ds-tracker__cell ds-tracker__cell--info"></span>Maintenance</li>
+          <li><span class="ds-tracker__cell ds-tracker__cell--warning"></span>Degraded</li>
+          <li><span class="ds-tracker__cell ds-tracker__cell--error"></span>Down</li>
+        </ul>
+      </div>
+      <div class="ds-stack" id="parts"></div>
+    </section>
+
+    <section class="ds-card" aria-labelledby="past-title">
+      <h2 class="ds-card__title" id="past-title">Past incidents</h2>
+      <ol class="ds-timeline" role="list" aria-labelledby="past-title">
+        <li class="ds-timeline__group" role="presentation"><h3 class="ds-timeline__day">Oct 30, 2026</h3></li>
+        <li class="ds-timeline__item" data-ds-key="i3">
+          <div class="ds-timeline__head">
+            <p class="ds-timeline__title">Sign-in with single sign-on failed</p>
+            <span class="ds-status ds-tone-success" data-icon="check" data-icon-size="16" data-icon-place="start"><span>Resolved</span></span>
+          </div>
+          <p class="ds-timeline__meta"><time datetime="2026-10-30T14:02Z">14:02</time> to <time datetime="2026-10-30T14:44Z">14:44</time> · 42 minutes</p>
+          <p class="ds-timeline__text">An expired certificate on our side refused sign-ins through identity providers. Passwords and passkeys kept working. We now renew certificates 30 days ahead.</p>
+        </li>
+        <li class="ds-timeline__group" role="presentation"><h3 class="ds-timeline__day">Oct 12, 2026</h3></li>
+        <li class="ds-timeline__item ds-timeline__item--muted" data-ds-key="i2">
+          <div class="ds-timeline__head">
+            <p class="ds-timeline__title">Planned maintenance of the database</p>
+            <span class="ds-status" data-icon="wrench" data-icon-size="16" data-icon-place="start"><span>Completed</span></span>
+          </div>
+          <p class="ds-timeline__meta"><time datetime="2026-10-12T02:00Z">02:00</time> to <time datetime="2026-10-12T02:30Z">02:30</time> · announced a week ahead</p>
+          <p class="ds-timeline__text">Read-only for 30 minutes, as planned.</p>
+        </li>
+        <li class="ds-timeline__group" role="presentation"><h3 class="ds-timeline__day">Sep 21, 2026</h3></li>
+        <li class="ds-timeline__item" data-ds-key="i1">
+          <div class="ds-timeline__head">
+            <p class="ds-timeline__title">The API answered slowly</p>
+            <span class="ds-status ds-tone-success" data-icon="check" data-icon-size="16" data-icon-place="start"><span>Resolved</span></span>
+          </div>
+          <p class="ds-timeline__meta"><time datetime="2026-09-21T16:10Z">16:10</time> to <time datetime="2026-09-21T17:05Z">17:05</time> · 55 minutes</p>
+          <p class="ds-timeline__text">One customer's export overloaded a shared worker. Exports now run apart from requests.</p>
+        </li>
+      </ol>
+    </section>
+  </div>
+</main>
+
+<dialog class="ds-dialog" id="subscribe" aria-labelledby="subscribe-title">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <form class="ds-dialog__box" data-ds-dialog-form>
+    <h2 class="ds-dialog__title" id="subscribe-title">Get status updates</h2>
+    <div class="ds-dialog__body">
+      <p>We email you when an incident starts, changes and ends, and a week before planned maintenance.</p>
+      <div class="ds-field">
+        <label class="ds-field__label" for="subscribe-email">Email</label>
+        <input class="ds-input" id="subscribe-email" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" required autofocus>
+      </div>
+    </div>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
+      <button class="ds-btn ds-btn--filled" type="submit">
+        <span class="ds-btn__faces"><span class="ds-btn__face">Subscribe</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Subscribing</span></span>
+      </button>
+    </div>
+  </form>
+</dialog>
+<div class="ds-toasts" id="toasts"></div>
+
+<template id="part">
+  <figure class="ds-tracker">
+    <figcaption class="ds-tracker__head">
+      <span class="ds-tracker__label"></span>
+      <span class="ds-tracker__summary"></span>
+    </figcaption>
+    <div class="ds-tracker__cells" role="group" data-ds-tracker></div>
+    <div class="ds-tracker__axis"><span>90 days ago</span><span>Today</span></div>
+  </figure>
+</template>
+
+<script src="ds/ds.public.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
+
+  // ── The fake backend: 90 days per part, the incidents above among them ──
+  var today = Date.UTC(2026, 10, 8);
+  var day = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  var PARTS = [
+    { name: 'Web app', uptime: '99.97%', days: { 9: ['error', 'down 42 min, single sign-on'] } },
+    { name: 'API', uptime: '99.96%', days: { 48: ['warning', 'slow for 55 min'] } },
+    { name: 'Device sync', uptime: '99.82%', days: { 0: ['warning', 'slow, under way'], 27: ['info', 'maintenance 30 min'] } },
+    { name: 'Notifications', uptime: '100%', days: { 27: ['info', 'maintenance 30 min'] } },
+    { name: 'Single sign-on', uptime: '99.97%', days: { 9: ['error', 'down 42 min'] } },
+  ];
+  var WORDS = { success: 'up', info: 'maintenance', warning: 'degraded', error: 'down' };
+
+  var parts = document.getElementById('parts');
+  var template = document.getElementById('part');
+  PARTS.forEach(function (part) {
+    var cells = [];
+    for (var ago = 89; ago >= 0; ago -= 1) {
+      var mark = part.days[ago];
+      var state = mark ? mark[0] : 'success';
+      cells.push({ state: state, label: day.format(today - ago * 86400000) + ': ' + (mark ? mark[1] : WORDS[state]) });
+    }
+    var counts = DS.tracker.counts(cells);
+    var problems = counts.warning + counts.error;
+    var figure = template.content.firstElementChild.cloneNode(true);
+    figure.querySelector('.ds-tracker__label').textContent = part.name;
+    figure.querySelector('.ds-tracker__summary').textContent = part.uptime + ' uptime, ' +
+      (problems === 0 ? 'no incidents' : problems === 1 ? '1 incident' : problems + ' incidents') + (part.days[0] ? ', degraded now' : '');
+    var row = figure.querySelector('.ds-tracker__cells');
+    row.setAttribute('aria-label', part.name + ', last 90 days');
+    parts.append(figure);
+    DS.tracker.create(row).set(cells);
+  });
+
+  // Subscribing: the dialog is busy while the address is saved, then a snackbar says where updates go.
+  DS.dialog.form(document.getElementById('subscribe'), {
+    onSubmit: function (data) {
+      return wait(700).then(function () {
+        DS.overlay.toast(document.getElementById('toasts'), 'Subscribed. Updates go to ' + data.get('email') + '.', { kind: 'success' });
+      });
+    },
+    errorText: 'That did not work. Try again.',
+  });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

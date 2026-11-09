@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inbox · Product</title>
+<meta name="pt-title" content="Inbox">
+<meta name="pt-need" content="Read messages in a list and a reading pane beside it, one column with a back button on a phone, and answer them">
+<meta name="pt-group" content="Work together">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.inbox.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<div class="ds-app ds-app--drawer" data-ds-shell="patterns">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" data-icon="menu"></button>
+    <a class="ds-brand" href="inbox.html"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></a>
+    <div class="ds-topbar__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="#help" aria-label="Help" data-tip="Help" data-icon="helpCircle"></a>
+    </div>
+    <div class="ds-account">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+      <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+        <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+        <div class="ds-menu__divider" role="separator"></div>
+        <a class="ds-menu__item" role="menuitem" href="#profile" data-icon="user" data-icon-place="start"><span class="ds-menu__label">Profile</span></a>
+        <a class="ds-menu__item" role="menuitem" href="sign-in.html" data-icon="logout" data-icon-place="start"><span class="ds-menu__label">Sign out</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></div>
+    <div class="ds-drawer__list">
+      <div class="ds-drawer__group">
+        <a class="ds-drawer__item" href="#overview" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="#devices" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="#tickets" data-icon="ticket" data-icon-place="start"><span class="ds-drawer__label">Tickets</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Work</p>
+        <a class="ds-drawer__item" href="inbox.html" aria-current="page" data-icon="inbox" data-icon-place="start"><span class="ds-drawer__label">Inbox</span></a>
+        <a class="ds-drawer__item" href="chat.html" data-icon="chat" data-icon-place="start"><span class="ds-drawer__label">Chat</span></a>
+        <a class="ds-drawer__item" href="files.html" data-icon="folder" data-icon-place="start"><span class="ds-drawer__label">Files</span></a>
+        <a class="ds-drawer__item" href="calendar.html" data-icon="calendar" data-icon-place="start"><span class="ds-drawer__label">Calendar</span></a>
+        <a class="ds-drawer__item" href="kanban.html" data-icon="kanban" data-icon-place="start"><span class="ds-drawer__label">Board</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Settings</p>
+        <a class="ds-drawer__item" href="notification-settings.html" data-icon="bell" data-icon-place="start"><span class="ds-drawer__label">Notifications</span></a>
+        <a class="ds-drawer__item" href="webhooks.html" data-icon="webhook" data-icon-place="start"><span class="ds-drawer__label">Webhooks</span></a>
+        <a class="ds-drawer__item" href="billing.html" data-icon="creditCard" data-icon-place="start"><span class="ds-drawer__label">Billing</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view ds-view--fixed" id="main" tabindex="-1">
+      <div class="ds-content">
+        <div class="ds-page">
+          <div class="ds-listdetail ds-listdetail--outlined" id="layout" data-ds-listdetail="list" role="group" aria-label="Inbox">
+            <section class="ds-listdetail__list" aria-labelledby="inbox-title">
+              <header class="ds-listdetail__head">
+                <h1 class="ds-listdetail__title" id="inbox-title" tabindex="-1">Inbox</h1>
+                <span class="ds-meta" id="unread-count"></span>
+              </header>
+              <div class="ds-listdetail__body">
+                <fieldset class="ds-chips" id="show">
+                  <legend class="ds-sr">Show</legend>
+                  <label class="ds-chip"><input class="ds-chip__input" type="radio" name="show" value="all" checked><span class="ds-chip__body"><span class="ds-chip__check" data-icon="check" data-icon-size="18"></span><span>All</span></span></label>
+                  <label class="ds-chip"><input class="ds-chip__input" type="radio" name="show" value="unread"><span class="ds-chip__body"><span class="ds-chip__check" data-icon="check" data-icon-size="18"></span><span>Unread</span></span></label>
+                </fieldset>
+              </div>
+              <ul class="ds-list ds-list--interactive" id="messages" aria-label="Messages"></ul>
+            </section>
+
+            <section class="ds-listdetail__detail" aria-labelledby="message-title">
+              <header class="ds-listdetail__head">
+                <button class="ds-btn ds-btn--icon ds-btn--quiet ds-listdetail__back" type="button" aria-label="Back to the inbox" data-icon="arrowLeft"></button>
+                <h2 class="ds-listdetail__title" id="message-title" tabindex="-1">Messages</h2>
+                <div class="ds-cluster ds-gap-1" id="message-actions" hidden>
+                  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="archive" aria-label="Archive" data-tip="Archive" data-icon="archive"></button>
+                  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="unread" aria-label="Mark as unread" data-tip="Mark as unread" data-icon="mail"></button>
+                  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="delete" aria-label="Delete" data-tip="Delete" data-icon="trash"></button>
+                </div>
+              </header>
+              <div class="ds-listdetail__body">
+                <div class="ds-empty" id="nothing">
+                  <span class="ds-empty__disc" aria-hidden="true" data-icon="mailOpen" data-icon-size="24"></span>
+                  <p class="ds-empty__title">Nothing open</p>
+                  <p class="ds-empty__text">Pick a message to read it here.</p>
+                </div>
+                <article class="ds-stack" id="message" aria-labelledby="message-title" hidden>
+                  <div class="ds-persona">
+                    <span class="ds-avatar ds-lg" aria-hidden="true" id="message-avatar"></span>
+                    <span class="ds-persona__text">
+                      <span class="ds-persona__name" id="message-from"></span>
+                      <span class="ds-persona__role"><span id="message-address"></span> · <span id="message-time"></span> · to Ada Lovelace</span>
+                    </span>
+                  </div>
+                  <div class="ds-prose" id="message-body"></div>
+                  <form class="ds-form" id="reply" aria-label="Reply">
+                    <div class="ds-field">
+                      <label class="ds-field__label" for="reply-text" id="reply-label">Reply</label>
+                      <textarea class="ds-input" id="reply-text" name="text" rows="3" required></textarea>
+                    </div>
+                    <div class="ds-form-actions">
+                      <button class="ds-btn ds-btn--filled" type="submit">
+                        <span class="ds-btn__faces"><span class="ds-btn__face" data-icon="send" data-icon-size="18" data-icon-place="start">Send</span>
+                          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Sending</span></span>
+                      </button>
+                    </div>
+                  </form>
+                </article>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="ds-toasts" id="toasts"></div>
+
+<script src="ds/ds.inbox.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
+  var esc = function (text) { return String(text).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var toasts = document.getElementById('toasts');
+
+  // ── The fake backend ──
+  var messages = [
+    { id: 'm8', from: 'Grace Hopper', address: 'grace@example.org', time: '09:41', subject: 'Second dock for the lab', unread: true,
+      body: ['Hi Ada,', 'The lab needs a second dock for LAPTOP-0042. The one we have is shared by three people and the queue gets long in the afternoon.', 'Could you order one this week?', 'Thanks, Grace'] },
+    { id: 'm7', from: 'Service desk', address: 'desk@example.org', time: '08:15', subject: 'Ticket #1042 is waiting for you', unread: true,
+      body: ['Printer on floor 2 is offline again. The ticket has waited 2 days for an answer from its owner.', 'Open it to answer, or hand it to someone else.'] },
+    { id: 'm6', from: 'Alan Turing', address: 'alan@example.org', time: 'Nov 7', subject: 'Re: Monitor stand', unread: false,
+      body: ['The new stand fits, thank you. The old one can go to the repairs folder.'] },
+    { id: 'm5', from: 'Billing', address: 'billing@example.org', time: 'Nov 7', subject: 'Invoice INV-2026-011', unread: false,
+      body: ['Your invoice for November is ready: $216.00, charged on Nov 15.', 'You find it on the billing page.'] },
+    { id: 'm4', from: 'Katherine Johnson', address: 'katherine@example.org', time: 'Nov 5', subject: 'Laptops for the new team', unread: false,
+      body: ['Four people start on Dec 1. Can we have four laptops ready by Nov 28?', 'Same model as last time is fine.'] },
+    { id: 'm3', from: 'Margaret Hamilton', address: 'margaret@example.org', time: 'Nov 4', subject: 'Backup report', unread: false,
+      body: ['All 412 devices backed up last night. Two took longer than an hour; details in the report.'] },
+    { id: 'm2', from: 'Service desk', address: 'desk@example.org', time: 'Nov 3', subject: 'Weekly summary', unread: false,
+      body: ['12 tickets opened, 15 closed. The oldest open ticket is 9 days old.'] },
+    { id: 'm1', from: 'Grace Hopper', address: 'grace@example.org', time: 'Nov 1', subject: 'Welcome to the team inbox', unread: false,
+      body: ['Everything sent to the team address lands here. Archive what is done; nothing is lost.'] },
+  ];
+  var initials = function (name) { return name.split(' ').map(function (part) { return part[0].toUpperCase(); }).join('').slice(0, 2); };
+
+  var list = document.getElementById('messages');
+  var layoutEl = document.getElementById('layout');
+  var layout = DS.get(layoutEl, 'listdetail');
+  var show = 'all';
+  var open = null;
+
+  function render(options) {
+    var rows = messages.filter(function (m) { return show === 'all' || m.unread || m.id === open; });
+    DS.dom.morphHtml(list, rows.map(function (m) {
+      return '<li class="ds-list__item" data-ds-key="' + m.id + '">' +
+        '<span class="ds-list__media ds-list__media--round" aria-hidden="true">' + esc(initials(m.from)) + '</span>' +
+        '<span class="ds-list__text">' +
+          '<span class="ds-list__title"><a class="ds-list__action" href="#' + m.id + '" data-ds-listdetail-show="detail"' + (m.id === open ? ' aria-current="true"' : '') + '>' +
+            (m.unread ? '<span class="ds-sr">Unread: </span>' : '') + esc(m.from) +
+            // Unread: a dot after the sender (the word is in the .ds-sr, for a reader) and the subject in bold.
+            (m.unread ? ' <span class="ds-badge ds-badge--dot" aria-hidden="true"></span>' : '') + '</a></span>' +
+          '<span class="ds-list__description ds-clamp-1">' + (m.unread ? '<strong>' + esc(m.subject) + '</strong>' : esc(m.subject)) + '</span>' +
+          '<span class="ds-list__meta ds-clamp-1">' + esc(m.body[0] === 'Hi Ada,' ? m.body[1] : m.body[0]) + '</span>' +
+        '</span>' +
+        '<span class="ds-list__aside">' + esc(m.time) + '</span>' +
+        '</li>';
+    }).join(''), options);
+    var unread = messages.filter(function (m) { return m.unread; }).length;
+    document.getElementById('unread-count').textContent = unread ? unread + ' unread' : 'All read';
+  }
+
+  function showMessage(m) {
+    open = m ? m.id : null;
+    document.getElementById('nothing').hidden = !!m;
+    document.getElementById('message').hidden = !m;
+    document.getElementById('message-actions').hidden = !m;
+    document.getElementById('message-title').textContent = m ? m.subject : 'Messages';
+    if (!m) return;
+    m.unread = false;
+    document.getElementById('message-avatar').textContent = initials(m.from);
+    document.getElementById('message-from').textContent = m.from;
+    document.getElementById('message-address').textContent = m.address;
+    document.getElementById('message-time').textContent = m.time;
+    DS.dom.morphHtml(document.getElementById('message-body'), m.body.map(function (line) { return '<p>' + esc(line) + '</p>'; }).join(''));
+    document.getElementById('reply-label').textContent = 'Reply to ' + m.from;
+    document.getElementById('reply').reset();
+  }
+
+  // The page renders what the row opens; the layout then shows the detail (after this listener) and moves the focus.
+  list.addEventListener('click', function (event) {
+    var action = event.target.closest('.ds-list__action');
+    if (!action) return;
+    event.preventDefault();
+    showMessage(messages.find(function (m) { return '#' + m.id === action.getAttribute('href'); }));
+    render();
+  });
+
+  document.getElementById('show').addEventListener('change', function (event) {
+    show = event.target.value;
+    DS.motion.flip(list, function (options) { render(options); }, { items: 'li' });
+  });
+
+  // The browser's back button closes the reading pane where it is the only column (a phone).
+  var fromHistory = false;
+  layout.on('change', function (detail) {
+    if (fromHistory) return;
+    if (detail.level === 'detail' && detail.previous === 'list' && layout.visible().length === 1) history.pushState({ inbox: 'detail' }, '');
+    else if (detail.level === 'list' && history.state && history.state.inbox === 'detail') history.back();
+  });
+  window.addEventListener('popstate', function () {
+    if (layout.get() !== 'detail') return;
+    fromHistory = true;
+    layout.back();
+    fromHistory = false;
+  });
+
+  // Archive, delete: at once, with Undo; the row leaves inside flip() and the pane empties.
+  function remove(word) {
+    var index = messages.findIndex(function (m) { return m.id === open; });
+    var gone = messages[index];
+    // The row after it (or before it, at the end) takes the focus the hidden action button leaves.
+    var row = list.querySelector('[data-ds-key="' + gone.id + '"]');
+    var neighbour = row && (row.nextElementSibling || row.previousElementSibling);
+    var key = neighbour && neighbour.getAttribute('data-ds-key');
+    messages.splice(index, 1);
+    showMessage(null);
+    if (layout.visible().length === 1) layout.back();
+    DS.motion.flip(list, function (options) { render(options); }, { items: 'li' });
+    var next = key && list.querySelector('[data-ds-key="' + key + '"] .ds-list__action');
+    (next || document.getElementById('inbox-title')).focus();
+    DS.overlay.toast(toasts, word + ': ' + gone.subject, {
+      action: { label: 'Undo', onClick: function () {
+        messages.splice(index, 0, gone);
+        DS.motion.flip(list, function (options) { render(options); }, { items: 'li' });
+      } },
+    });
+  }
+  document.getElementById('archive').addEventListener('click', function () { remove('Archived'); });
+  document.getElementById('delete').addEventListener('click', function () { remove('Moved to the bin'); });
+  document.getElementById('unread').addEventListener('click', function () {
+    var m = messages.find(function (item) { return item.id === open; });
+    m.unread = true;
+    var opener = list.querySelector('[data-ds-key="' + m.id + '"] .ds-list__action');
+    showMessage(null);
+    render();
+    if (layout.visible().length === 1) layout.back(); else if (opener) opener.focus();
+    DS.overlay.announce('Marked as unread');
+  });
+
+  // A reply: busy while it goes out, then a snackbar; the field empties.
+  var reply = document.getElementById('reply');
+  reply.addEventListener('submit', function (event) {
+    event.preventDefault();
+    var to = document.getElementById('message-from').textContent;
+    DS.motion.busy(reply.querySelector('[type="submit"]'), wait(800).then(function () {
+      reply.reset();
+      DS.overlay.toast(toasts, 'Reply sent to ' + to + '.', { kind: 'success' });
+    }));
+  });
+
+  render();
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

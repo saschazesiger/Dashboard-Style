@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Invoice INV-2026-011 · Product</title>
+<meta name="pt-title" content="Printable invoice">
+<meta name="pt-need" content="One invoice as a sheet on screen and on paper: who, what, the total and how it is paid">
+<meta name="pt-group" content="Billing and plans">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.billing.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<header class="pt-bar ds-sticky ds-sticky--head ds-print-hide">
+  <a class="ds-btn ds-btn--quiet ds-btn--icon" href="billing.html" aria-label="Back to billing" data-tip="Back to billing" data-icon="arrowLeft"></a>
+  <p class="pt-bar__title">INV-2026-011</p>
+  <button class="ds-btn ds-btn--tonal" type="button" id="print" data-icon="printer" data-icon-size="18" data-icon-place="start">Print</button>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+</header>
+
+<main class="ds-content" id="main">
+  <article class="ds-print-page ds-stack" aria-labelledby="title">
+    <header class="ds-cluster ds-cluster--between ds-cluster--top">
+      <span class="pt-brand"><span class="pt-brand__mark" data-icon="box"></span>Product</span>
+      <div class="ds-stack ds-gap-1">
+        <h1 id="title">Invoice</h1>
+        <p class="ds-muted">INV-2026-011</p>
+      </div>
+    </header>
+
+    <dl class="ds-facts ds-facts--grid">
+      <div><dt>From</dt><dd>Product Ltd<br>1 Example Street<br>12345 Example City<br>Tax ID EX 123 456 789</dd></div>
+      <div><dt>Bill to</dt><dd>Example Ltd<br>For the attention of Ada Lovelace<br>2 Sample Road<br>67890 Sample Town</dd></div>
+      <div><dt>Issued</dt><dd>Nov 1, 2026</dd></div>
+      <div><dt>Due</dt><dd>Nov 15, 2026</dd></div>
+      <div><dt>Period</dt><dd>Nov 1 to Nov 30, 2026</dd></div>
+      <div><dt>Status</dt><dd><span class="ds-status ds-tone-warning" data-icon="clock" data-icon-size="16" data-icon-place="start"><span>Due</span></span></dd></div>
+    </dl>
+
+    <div class="ds-table-wrap">
+      <table class="ds-table">
+        <caption class="ds-sr">What this invoice charges</caption>
+        <thead><tr>
+          <th scope="col">Description</th>
+          <th scope="col" class="ds-num">Quantity</th>
+          <th scope="col" class="ds-num ds-col--secondary">Unit price</th>
+          <th scope="col" class="ds-num">Amount</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td class="ds-col--text">Team plan, seats<br><span class="ds-meta">Nov 1 to Nov 30, 2026</span></td>
+            <td class="ds-num">18</td>
+            <td class="ds-num ds-col--secondary">$12.00</td>
+            <td class="ds-num">$216.00</td>
+          </tr>
+          <tr>
+            <td class="ds-col--text">Storage, first 100 GB<br><span class="ds-meta">Included in the plan</span></td>
+            <td class="ds-num">1</td>
+            <td class="ds-num ds-col--secondary">$0.00</td>
+            <td class="ds-num">$0.00</td>
+          </tr>
+          <tr>
+            <td class="ds-col--text">Devices, first 500<br><span class="ds-meta">Included in the plan</span></td>
+            <td class="ds-num">1</td>
+            <td class="ds-num ds-col--secondary">$0.00</td>
+            <td class="ds-num">$0.00</td>
+          </tr>
+        </tbody>
+        <tfoot class="ds-print-avoid">
+          <tr><th scope="row" colspan="2">Subtotal</th><td class="ds-col--secondary"></td><td class="ds-num">$216.00</td></tr>
+          <tr><th scope="row" colspan="2">Tax, 0% (reverse charge)</th><td class="ds-col--secondary"></td><td class="ds-num">$0.00</td></tr>
+          <tr><th scope="row" colspan="2">Amount due</th><td class="ds-col--secondary"></td><td class="ds-num"><strong>$216.00</strong></td></tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <section class="ds-prose ds-print-avoid" aria-labelledby="pay-title">
+      <h2 id="pay-title">Payment</h2>
+      <p>The card ending in 4242 is charged on Nov 15, 2026. Nothing to do on your side.</p>
+      <p>Questions about this invoice: billing@example.org. Please quote INV-2026-011.</p>
+    </section>
+
+    <footer class="ds-meta">
+      <span class="ds-print-only" id="printed">Printed from Product.</span>
+      <span class="ds-print-hide">To keep a PDF, choose Print and then Save as PDF in the print dialog.</span>
+    </footer>
+  </article>
+</main>
+
+<script src="ds/ds.billing.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  // The paper says when it was printed; the browser's own print dialog does the rest.
+  var printed = document.getElementById('printed');
+  window.addEventListener('beforeprint', function () {
+    printed.textContent = 'Printed on ' + new Date().toLocaleDateString(document.documentElement.lang, { dateStyle: 'long' }) + ' from Product.';
+  });
+  document.getElementById('print').addEventListener('click', function () { window.print(); });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

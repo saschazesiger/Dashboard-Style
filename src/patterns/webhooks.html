@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Webhooks · Product</title>
+<meta name="pt-title" content="Webhooks and delivery log">
+<meta name="pt-need" content="The endpoints that get events, their signing secret, and every delivery with its request, response and a resend">
+<meta name="pt-group" content="Settings and integrations">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.webhooks.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<div class="ds-app ds-app--drawer" data-ds-shell="patterns">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" data-icon="menu"></button>
+    <a class="ds-brand" href="webhooks.html"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></a>
+    <div class="ds-topbar__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="#help" aria-label="Help" data-tip="Help" data-icon="helpCircle"></a>
+    </div>
+    <div class="ds-account">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+      <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+        <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+        <div class="ds-menu__divider" role="separator"></div>
+        <a class="ds-menu__item" role="menuitem" href="#profile" data-icon="user" data-icon-place="start"><span class="ds-menu__label">Profile</span></a>
+        <a class="ds-menu__item" role="menuitem" href="sign-in.html" data-icon="logout" data-icon-place="start"><span class="ds-menu__label">Sign out</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></div>
+    <div class="ds-drawer__list">
+      <div class="ds-drawer__group">
+        <a class="ds-drawer__item" href="#overview" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="#devices" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="#tickets" data-icon="ticket" data-icon-place="start"><span class="ds-drawer__label">Tickets</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Work</p>
+        <a class="ds-drawer__item" href="inbox.html" data-icon="inbox" data-icon-place="start"><span class="ds-drawer__label">Inbox</span></a>
+        <a class="ds-drawer__item" href="chat.html" data-icon="chat" data-icon-place="start"><span class="ds-drawer__label">Chat</span></a>
+        <a class="ds-drawer__item" href="files.html" data-icon="folder" data-icon-place="start"><span class="ds-drawer__label">Files</span></a>
+        <a class="ds-drawer__item" href="calendar.html" data-icon="calendar" data-icon-place="start"><span class="ds-drawer__label">Calendar</span></a>
+        <a class="ds-drawer__item" href="kanban.html" data-icon="kanban" data-icon-place="start"><span class="ds-drawer__label">Board</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Settings</p>
+        <a class="ds-drawer__item" href="notification-settings.html" data-icon="bell" data-icon-place="start"><span class="ds-drawer__label">Notifications</span></a>
+        <a class="ds-drawer__item" href="webhooks.html" aria-current="page" data-icon="webhook" data-icon-place="start"><span class="ds-drawer__label">Webhooks</span></a>
+        <a class="ds-drawer__item" href="billing.html" data-icon="creditCard" data-icon-place="start"><span class="ds-drawer__label">Billing</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content">
+        <div class="ds-page">
+          <header class="ds-page-head">
+            <div class="ds-page-head__row">
+              <div class="ds-page-head__text">
+                <h1 class="ds-page-head__title" tabindex="-1">Webhooks</h1>
+                <p class="ds-page-head__lead">We send a signed POST request to each endpoint when one of its events happens, and retry failures for a day.</p>
+              </div>
+              <div class="ds-page-head__actions">
+                <button class="ds-btn ds-btn--filled" type="button" data-ds-open="#add" aria-haspopup="dialog" data-icon="plus" data-icon-size="18" data-icon-place="start">Add endpoint</button>
+              </div>
+            </div>
+          </header>
+
+          <section class="ds-card" aria-labelledby="endpoints-title">
+            <h2 class="ds-card__title" id="endpoints-title">Endpoints</h2>
+            <ul class="ds-list" id="endpoints" aria-labelledby="endpoints-title"></ul>
+          </section>
+
+          <section class="ds-card" aria-labelledby="secret-title">
+            <h2 class="ds-card__title" id="secret-title">Signing secret</h2>
+            <p class="ds-muted">Every request carries a signature made with this secret in its <code>Signature</code> header. Check it before you trust the body.</p>
+            <span class="ds-copy ds-copy--field">
+              <code class="ds-copy__value" id="secret">whsec_••••••••••••3f9a</code>
+              <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" id="copy-secret" aria-label="Copy the signing secret" data-tip="Copy the signing secret" data-ds-copy data-ds-copy-value="whsec_8c1e5b7a2d904f6e3f9a">
+                <span class="ds-icon-swap"><span class="ds-icon-swap__a" data-icon="copy"></span><span class="ds-icon-swap__b" data-icon="check"></span></span>
+              </button>
+            </span>
+            <div class="ds-cluster">
+              <button class="ds-btn" type="button" id="roll" data-icon="refresh" data-icon-size="18" data-icon-place="start">Roll the secret</button>
+            </div>
+          </section>
+
+          <section class="ds-card" aria-labelledby="log-title">
+            <div class="ds-card__row">
+              <h2 class="ds-card__title" id="log-title">Deliveries</h2>
+              <fieldset class="ds-chips" id="log-filter">
+                <legend class="ds-sr">Show</legend>
+                <label class="ds-chip"><input class="ds-chip__input" type="radio" name="show" value="all" checked><span class="ds-chip__body"><span class="ds-chip__check" data-icon="check" data-icon-size="18"></span><span>All</span></span></label>
+                <label class="ds-chip"><input class="ds-chip__input" type="radio" name="show" value="failed"><span class="ds-chip__body"><span class="ds-chip__check" data-icon="check" data-icon-size="18"></span><span>Failed</span></span></label>
+              </fieldset>
+            </div>
+            <div class="ds-table-wrap">
+              <table class="ds-table">
+                <caption class="ds-sr">Deliveries, newest first</caption>
+                <thead><tr>
+                  <th scope="col">Result</th>
+                  <th scope="col">Event</th>
+                  <th scope="col" class="ds-col--secondary">Endpoint</th>
+                  <th scope="col">Sent</th>
+                  <th scope="col" class="ds-num ds-col--secondary">Time</th>
+                </tr></thead>
+                <tbody id="log"></tbody>
+              </table>
+            </div>
+            <p class="ds-meta">Deliveries are kept for 30 days.</p>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<dialog class="ds-sheet" id="delivery" aria-labelledby="delivery-title">
+  <div class="ds-sheet__backdrop" data-ds-close></div>
+  <section class="ds-sheet__panel ds-sheet__panel--wide">
+    <div class="ds-sheet__head">
+      <div class="ds-sheet__heading">
+        <h2 class="ds-sheet__title" id="delivery-title">Delivery</h2>
+        <p class="ds-sheet__subtitle" id="delivery-subtitle"></p>
+      </div>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close data-icon="close"></button>
+    </div>
+    <div class="ds-sheet__body" tabindex="0"><div class="ds-stack">
+      <dl class="ds-facts" id="delivery-facts">
+        <div><dt>Result</dt><dd id="fact-result"></dd></div>
+        <div><dt>Sent</dt><dd id="fact-sent"></dd></div>
+        <div><dt>Time</dt><dd id="fact-time"></dd></div>
+        <div><dt>Attempt</dt><dd id="fact-attempt"></dd></div>
+      </dl>
+      <figure class="ds-code" id="request" data-ds-code>
+        <div class="ds-code__head ds-sm">
+          <span class="ds-code__title">Request body</span>
+          <span class="ds-code__lang"></span>
+          <span class="ds-code__actions">
+            <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" data-ds-copy aria-label="Copy the request body" data-tip="Copy the request body">
+              <span class="ds-icon-swap"><span class="ds-icon-swap__a" data-icon="copy"></span><span class="ds-icon-swap__b" data-icon="check"></span></span>
+            </button>
+          </span>
+        </div>
+        <pre class="ds-code-block" tabindex="0" data-ds-code-lang="json"><code>{}</code></pre>
+      </figure>
+      <figure class="ds-code" id="response" data-ds-code>
+        <div class="ds-code__head ds-sm">
+          <span class="ds-code__title">Response</span>
+          <span class="ds-code__actions">
+            <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" data-ds-copy aria-label="Copy the response" data-tip="Copy the response">
+              <span class="ds-icon-swap"><span class="ds-icon-swap__a" data-icon="copy"></span><span class="ds-icon-swap__b" data-icon="check"></span></span>
+            </button>
+          </span>
+        </div>
+        <pre class="ds-code-block ds-code-block--wrap" tabindex="0"><code></code></pre>
+      </figure>
+    </div></div>
+    <div class="ds-sheet__foot">
+      <p class="ds-meta">A resend is a new delivery with the same body.</p>
+      <button class="ds-btn ds-btn--filled" type="button" id="resend">
+        <span class="ds-btn__faces"><span class="ds-btn__face">Resend</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Sending</span></span>
+      </button>
+    </div>
+  </section>
+</dialog>
+
+<dialog class="ds-dialog" id="add" aria-labelledby="add-title">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <form class="ds-dialog__box" data-ds-dialog-form>
+    <h2 class="ds-dialog__title" id="add-title">Add an endpoint</h2>
+    <div class="ds-dialog__body">
+      <div class="ds-field">
+        <label class="ds-field__label" for="add-url">Address</label>
+        <input class="ds-input ds-mono" id="add-url" name="url" type="url" inputmode="url" autocapitalize="none" spellcheck="false" required autofocus pattern="https://.+" placeholder="https://" aria-describedby="add-url-hint">
+        <small class="ds-field__hint" id="add-url-hint">An HTTPS address that answers within 10 seconds.</small>
+      </div>
+      <fieldset class="ds-field" id="add-events">
+        <legend class="ds-field__label">Events</legend>
+        <label class="ds-check"><input type="checkbox" name="events" value="device.created" checked><span>A device is added <span class="ds-meta ds-mono">device.created</span></span></label>
+        <label class="ds-check"><input type="checkbox" name="events" value="device.updated"><span>A device changes <span class="ds-meta ds-mono">device.updated</span></span></label>
+        <label class="ds-check"><input type="checkbox" name="events" value="ticket.opened"><span>A ticket is opened <span class="ds-meta ds-mono">ticket.opened</span></span></label>
+        <label class="ds-check"><input type="checkbox" name="events" value="ticket.closed"><span>A ticket is closed <span class="ds-meta ds-mono">ticket.closed</span></span></label>
+      </fieldset>
+    </div>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
+      <button class="ds-btn ds-btn--filled" type="submit">
+        <span class="ds-btn__faces"><span class="ds-btn__face">Add endpoint</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Adding</span></span>
+      </button>
+    </div>
+  </form>
+</dialog>
+<div class="ds-toasts" id="toasts"></div>
+
+<template id="status-ok"><span class="ds-status ds-tone-success" data-icon="check" data-icon-size="16" data-icon-place="start"><span></span></span></template>
+<template id="status-failed"><span class="ds-status ds-tone-error" data-icon="alertCircle" data-icon-size="16" data-icon-place="start"><span></span></span></template>
+
+<script src="ds/ds.webhooks.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  var wait = function (ms) { return new Promise(function (done) { setTimeout(done, ms); }); };
+  var esc = function (text) { return String(text).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var toasts = document.getElementById('toasts');
+
+  // ── The fake backend: what a server would send ──
+  var endpoints = [
+    { id: 'e1', url: 'https://hooks.example.com/devices', events: ['device.created', 'device.updated'], enabled: true, ok: 48, failed: 0 },
+    { id: 'e2', url: 'https://tickets.example.org/inbound', events: ['ticket.opened', 'ticket.closed'], enabled: true, ok: 31, failed: 3 },
+    { id: 'e3', url: 'https://staging.example.net/hook', events: ['device.created'], enabled: false, ok: 0, failed: 0 },
+  ];
+  var EVENTS = ['device.updated', 'ticket.opened', 'device.created', 'ticket.closed', 'device.updated', 'ticket.opened'];
+  var deliveries = [];
+  var now = Date.parse('2026-11-08T10:42:00Z');
+  for (var i = 0; i < 14; i += 1) {
+    var event = EVENTS[i % EVENTS.length];
+    var endpoint = event.indexOf('ticket') === 0 ? endpoints[1] : endpoints[0];
+    var code = endpoint === endpoints[1] && i % 4 === 1 ? (i % 8 === 1 ? 0 : 500) : 200;
+    deliveries.push({ id: 'dl_' + (9120 - i), event: event, endpoint: endpoint, code: code, ms: code === 0 ? 10000 : 80 + (i * 37) % 300, at: now - i * 7 * 60000, attempt: code === 200 && i === 3 ? 2 : 1 });
+  }
+
+  var time = new Intl.DateTimeFormat('en', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+  var result = function (d) { return d.code === 200 ? '200 OK' : d.code === 0 ? 'Timed out' : d.code + ' Server error'; };
+  var duration = function (d) { return d.ms >= 1000 ? (d.ms / 1000) + ' s' : d.ms + ' ms'; };
+
+  // A status chip from its template (the glyphs stay in the markup, where the bundle finds them).
+  function chip(ok, text) {
+    var node = document.getElementById(ok ? 'status-ok' : 'status-failed').content.firstElementChild.cloneNode(true);
+    node.querySelector('span').textContent = text;
+    return node.outerHTML;
+  }
+
+  // ── Endpoints ──
+  var endpointsBody = document.getElementById('endpoints');
+  function renderEndpoints(options) {
+    DS.dom.morphHtml(endpointsBody, endpoints.map(function (e) {
+      var total = e.ok + e.failed;
+      var rate = total ? Math.round(e.ok / total * 100) + '% of ' + total + ' delivered today' : 'Nothing sent today';
+      return '<li class="ds-list__item" data-ds-key="' + e.id + '">' +
+        '<span class="ds-list__text">' +
+          '<span class="ds-list__title ds-mono ds-break">' + esc(e.url) + '</span>' +
+          '<span class="ds-list__meta">' + esc(e.events.join(', ')) + (e.failed ? '' : ' · ' + esc(rate)) + '</span>' +
+        '</span>' +
+        (e.failed ? chip(false, rate) : '') +
+        '<span class="ds-list__actions"><label class="ds-switch"><input type="checkbox" role="switch" data-endpoint="' + e.id + '"' + (e.enabled ? ' checked' : '') + ' aria-label="Send to ' + esc(e.url) + '">' +
+        '<span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span></label></span>' +
+        '</li>';
+    }).join(''), options);
+    DS.icons.fill(endpointsBody);
+  }
+
+  // A switch is its own result: it applies at once (a real page sends it to the server and puts it back on a refusal).
+  endpointsBody.addEventListener('change', function (event) {
+    var input = event.target.closest('[data-endpoint]');
+    if (!input) return;
+    var endpoint = endpoints.find(function (e) { return e.id === input.getAttribute('data-endpoint'); });
+    endpoint.enabled = input.checked;
+    DS.overlay.announce(input.checked ? 'Sending again to ' + endpoint.url : 'Paused: nothing is sent to ' + endpoint.url);
+  });
+
+  // ── Deliveries ──
+  var log = document.getElementById('log');
+  var show = 'all';
+  function renderLog(options) {
+    var rows = deliveries.filter(function (d) { return show === 'all' || d.code !== 200; });
+    DS.dom.morphHtml(log, rows.map(function (d) {
+      return '<tr data-ds-key="' + d.id + '">' +
+        '<td>' + chip(d.code === 200, result(d)) + '</td>' +
+        '<td><button class="ds-link-btn ds-mono" type="button" data-delivery="' + d.id + '" aria-haspopup="dialog">' + esc(d.event) + '</button></td>' +
+        '<td class="ds-col--secondary"><span class="ds-mono ds-break">' + esc(d.endpoint.url.replace('https://', '')) + '</span></td>' +
+        '<td class="ds-nowrap">' + time.format(d.at) + '</td>' +
+        '<td class="ds-num ds-col--secondary">' + duration(d) + '</td>' +
+        '</tr>';
+    }).join(''), options);
+    DS.icons.fill(log);
+    return rows.length;
+  }
+
+  document.getElementById('log-filter').addEventListener('change', function (event) {
+    show = event.target.value;
+    var count = 0;
+    DS.motion.flip(log, function (options) { count = renderLog(options); }, { items: 'tr' });
+    DS.overlay.announce(count === 1 ? '1 delivery' : count + ' deliveries');
+  });
+
+  // ── One delivery in the side sheet ──
+  var sheet = document.getElementById('delivery');
+  var open = null;
+  function body(d) {
+    return JSON.stringify({ id: 'evt_' + d.id.slice(3), type: d.event, created: new Date(d.at).toISOString(), data: d.event.indexOf('ticket') === 0
+      ? { ticket: 1042, title: 'Printer on floor 2 is offline', requester: 'Ada Lovelace' }
+      : { device: 'LAPTOP-0042', model: 'Laptop 14', owner: 'Ada Lovelace' } }, null, 2);
+  }
+  function response(d) {
+    return d.code === 200 ? 'HTTP/1.1 200 OK\ncontent-type: application/json\n\n{"received":true}'
+      : d.code === 0 ? 'No answer within 10 seconds. We retry in 5 minutes, then hourly for a day.'
+      : 'HTTP/1.1 500 Internal Server Error\ncontent-type: text/plain\n\nupstream unavailable';
+  }
+  function showDelivery(d) {
+    open = d;
+    document.getElementById('delivery-title').textContent = d.event;
+    document.getElementById('delivery-subtitle').textContent = 'To ' + d.endpoint.url;
+    DS.dom.morphHtml(document.getElementById('fact-result'), chip(d.code === 200, result(d)));
+    DS.icons.fill(document.getElementById('fact-result'));
+    document.getElementById('fact-sent').textContent = time.format(d.at) + ' UTC';
+    document.getElementById('fact-time').textContent = duration(d);
+    document.getElementById('fact-attempt').textContent = d.attempt === 1 ? 'First' : 'Retry ' + (d.attempt - 1);
+    DS.get(document.getElementById('request'), 'code').set(body(d));
+    DS.get(document.getElementById('response'), 'code').set(response(d));
+  }
+  log.addEventListener('click', function (event) {
+    var button = event.target.closest('[data-delivery]');
+    if (!button) return;
+    var d = deliveries.find(function (item) { return item.id === button.getAttribute('data-delivery'); });
+    showDelivery(d);
+    DS.overlay.open(sheet, { opener: button });
+  });
+
+  // A resend is a new delivery: busy until the endpoint answered, then it leads the log and the sheet shows it.
+  // A good one would hide under the Failed filter, so the log goes back to All to show it.
+  var resend = document.getElementById('resend');
+  resend.addEventListener('click', function () {
+    var source = open;
+    DS.motion.busy(resend, wait(900).then(function () {
+      var d = { id: 'dl_' + (9121 + deliveries.length), event: source.event, endpoint: source.endpoint, code: 200, ms: 142, at: Date.now(), attempt: source.attempt + 1 };
+      deliveries.unshift(d);
+      d.endpoint.ok += 1;
+      if (show !== 'all') {
+        show = 'all';
+        document.querySelector('#log-filter input[value="all"]').checked = true;
+      }
+      DS.motion.flip(log, function (options) { renderLog(options); }, { items: 'tr' });
+      renderEndpoints();
+      showDelivery(d);
+      DS.overlay.toast(toasts, 'Delivered again: 200 OK.', { kind: 'success' });
+    }));
+  });
+
+  // ── A new endpoint ──
+  var add = document.getElementById('add');
+  var boxes = add.querySelectorAll('input[name="events"]');
+  function checkEvents() {
+    var any = Array.prototype.some.call(boxes, function (box) { return box.checked; });
+    boxes[0].setCustomValidity(any ? '' : 'Choose at least one event.');
+  }
+  add.addEventListener('change', checkEvents);
+  checkEvents();
+  DS.dialog.form(add, {
+    onSubmit: function (data) {
+      return wait(700).then(function () {
+        endpoints.push({ id: 'e' + (endpoints.length + 1), url: String(data.get('url')), events: data.getAll('events').map(String), enabled: true, ok: 0, failed: 0 });
+        DS.motion.flip(endpointsBody, function (options) { renderEndpoints(options); }, { items: 'li' });
+        add.querySelector('form').reset();
+        checkEvents();
+        DS.overlay.toast(toasts, 'Endpoint added. It gets the next event.', { kind: 'success' });
+      });
+    },
+    errorText: 'The endpoint was not added. Try again.',
+  });
+
+  // ── Roll the secret: the old one stops working at once, so it asks first ──
+  var roll = document.getElementById('roll');
+  roll.addEventListener('click', function () {
+    DS.overlay.confirm({
+      title: 'Roll the signing secret?',
+      text: 'Requests are signed with a new secret from now on. Endpoints that still check the old one reject them until you update them.',
+      confirmLabel: 'Roll the secret', destructive: true, opener: roll,
+      onConfirm: function () { return wait(700); },
+    }).then(function (ok) {
+      if (!ok) return;
+      var tail = Math.random().toString(16).slice(2, 6);
+      document.getElementById('secret').textContent = 'whsec_••••••••••••' + tail;
+      document.getElementById('copy-secret').setAttribute('data-ds-copy-value', 'whsec_' + Math.random().toString(16).slice(2, 18) + tail);
+      DS.overlay.toast(toasts, 'New signing secret. Copy it to your endpoints.');
+    });
+  });
+
+  renderEndpoints();
+  renderLog();
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

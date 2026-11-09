@@ -9,17 +9,26 @@
  *   .pt-auth          the column of a sign-in page inside <body class="ds-auth">:
  *                     the alert slot and the card, as wide as the card
  *   .pt-brand         the product's mark and name (a link home); .pt-brand__mark
- *                     is a stand-in logo, a glyph on the primary colour
+ *                     is a stand-in logo, a glyph on the primary colour; on
+ *                     paper, which drops backgrounds, the glyph alone in it
  *   .pt-codes         a list of recovery codes in a .ds-grid: no markers
  *   .pt-foot          the links under a card or a result, and the dark-theme
- *                     button, on a centred .ds-cluster: their colour
- *   .pt-bar           the head of a full-screen task (the wizard): close, the
- *                     title (.ds-truncate), the dark-theme button, on a
- *                     .ds-cluster--nowrap and .ds-sticky--head: the padding
- *                     within the safe areas, the title's type and room
+ *                     button, on a centred .ds-cluster: their colour; it
+ *                     wraps and centres on a phone
+ *   .pt-bar           the head of a full-screen task (the wizard, the
+ *                     invoice): close, the title (.ds-truncate), the
+ *                     dark-theme button, on a .ds-cluster--nowrap and
+ *                     .ds-sticky--head; or of a public page (the brand, a
+ *                     link, the dark-theme button): the padding within the
+ *                     safe areas, the title's type and room
  *   .pt-col-min       the header cell of a table column that must not get
  *                     narrower (a role select, the names of a matrix's rows):
  *                     a narrow table scrolls instead of squeezing it
+ *   .pt-fill          the part of a column that takes the rest of its
+ *                     height and scrolls itself (a transcript above its
+ *                     composer)
+ *   .pt-price         a price in the headline type; .pt-price__unit the
+ *                     period after it ("a month") in the body type
  */
 
 .pt-auth {
@@ -45,6 +54,15 @@
   border-radius: calc(var(--ds-radius-sm) * var(--ds-shape, 1));
   background: var(--ds-primary);
   color: var(--ds-on-primary);
+}
+
+/* Paper drops backgrounds by default: an on-primary glyph would print
+   white on white. */
+@media print {
+  .pt-brand__mark {
+    background: none;
+    color: var(--ds-primary);
+  }
 }
 
 /* A list of codes laid out by .ds-grid: no markers, no indent. */
@@ -75,4 +93,22 @@
    sideways in its wrapper instead. */
 .pt-col-min {
   min-inline-size: calc(var(--ds-space-8) * 4);
+}
+
+.pt-price {
+  margin: 0;
+  font: var(--ds-font-headline);
+  font-variant-numeric: tabular-nums;
+  color: var(--ds-text);
+}
+
+.pt-price__unit {
+  margin-inline-start: var(--ds-space-1);
+  font: var(--ds-font-body);
+  color: var(--ds-text-2);
+}
+
+.pt-fill {
+  flex: 1 1 0;
+  min-block-size: 0;
 }

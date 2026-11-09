@@ -624,6 +624,15 @@ inside a card as in `review.spec.js` is made 21 times, and the lower quartile of
 took it to 8-12ms. In a full parallel run the same change read 8-27ms, so like the paint budget it asserts only in
 the `perf` project run alone, and the lower quartile, not the median, keeps a stray process out.
 
+### Load task
+
+The page patterns that start the most (`src/patterns/calendar.html`, `files.html`) load six times at 4x CPU
+throttling and 390px, and the median of the longest task (`PerformanceObserver`, `longtask`) of the five warm loads
+stays under 400ms (`LOAD_CEILING`). The calendar once built the date and time picker of its closed New event dialog
+at start-up, and files patched its hidden view too; on a dev machine with the CPU alone (about half the container's
+style recalc time) their tasks fell from 215 to 145ms and from 195 to 180ms. Work a page does not show waits until
+it is wanted (the calendar's dialog sits under `data-ds-managed` until its first open).
+
 ## Final review (P8)
 
 ### Before/after report

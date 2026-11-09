@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What's new · Product</title>
+<meta name="pt-title" content="Changelog">
+<meta name="pt-need" content="What changed in each release, newest first, with what is new, improved or fixed and a list of the releases">
+<meta name="pt-group" content="Public pages">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.public.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<header class="pt-bar">
+  <a class="pt-brand" href="changelog.html"><span class="pt-brand__mark" data-icon="box"></span>Product</a>
+  <a class="ds-btn ds-btn--text ds-push" href="status-page.html">Status</a>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+</header>
+
+<main class="ds-content" id="main">
+  <div class="ds-page">
+    <header class="ds-page-head">
+      <div class="ds-page-head__row">
+        <div class="ds-page-head__text">
+          <h1 class="ds-page-head__title" tabindex="-1">What's new</h1>
+          <p class="ds-page-head__lead">Every release of Product, newest first. We ship about every two weeks.</p>
+        </div>
+        <div class="ds-page-head__actions">
+          <a class="ds-btn" href="#feed" data-icon="newspaper" data-icon-size="18" data-icon-place="start">Feed</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="ds-split" style="--ds-split-side: 14rem">
+      <nav class="ds-split__side ds-toc ds-toc--sticky" aria-labelledby="toc-title" data-ds-toc>
+        <p class="ds-toc__title" id="toc-title">Releases</p>
+        <ol class="ds-toc__list">
+          <li><a class="ds-toc__link" href="#v4-6">4.6 · Nov 4</a></li>
+          <li><a class="ds-toc__link" href="#v4-5">4.5 · Oct 21</a></li>
+          <li><a class="ds-toc__link" href="#v4-4">4.4 · Oct 7</a></li>
+          <li><a class="ds-toc__link" href="#v4-3">4.3 · Sep 16</a></li>
+        </ol>
+      </nav>
+
+      <div class="ds-split__main ds-stack ds-stack--page">
+        <fieldset class="ds-chips" id="kinds">
+          <legend class="ds-sr">Show</legend>
+          <label class="ds-chip"><input class="ds-chip__input" type="checkbox" name="kind" value="new" checked><span class="ds-chip__body"><span class="ds-chip__check" data-icon="check" data-icon-size="18"></span><span>New</span></span></label>
+          <label class="ds-chip"><input class="ds-chip__input" type="checkbox" name="kind" value="improved" checked><span class="ds-chip__body"><span class="ds-chip__check" data-icon="check" data-icon-size="18"></span><span>Improved</span></span></label>
+          <label class="ds-chip"><input class="ds-chip__input" type="checkbox" name="kind" value="fixed" checked><span class="ds-chip__body"><span class="ds-chip__check" data-icon="check" data-icon-size="18"></span><span>Fixed</span></span></label>
+        </fieldset>
+
+        <article class="ds-card" id="v4-6" aria-labelledby="v4-6-title">
+          <div class="ds-card__row">
+            <h2 class="ds-card__title" id="v4-6-title">4.6</h2>
+            <p class="ds-meta"><time datetime="2026-11-04">Nov 4, 2026</time></p>
+          </div>
+          <div class="ds-prose">
+            <p>Webhooks get a delivery log, and the device list remembers how you left it.</p>
+          </div>
+          <ul class="ds-plain-list">
+            <li data-kind="new"><span class="ds-tag ds-tone-success">New</span> A log of every webhook delivery, with its request and response, and a button to send it again.</li>
+            <li data-kind="new"><span class="ds-tag ds-tone-success">New</span> Saved views on the device list: filters, sort and columns under a name.</li>
+            <li data-kind="improved"><span class="ds-tag ds-tone-info">Improved</span> The device list loads twice as fast with more than 1,000 devices.</li>
+            <li data-kind="fixed"><span class="ds-tag ds-tone-neutral">Fixed</span> Exported CSV files kept a trailing comma in some rows.</li>
+          </ul>
+          <p class="ds-meta" data-empty hidden>Nothing of the chosen kinds in this release.</p>
+        </article>
+
+        <article class="ds-card" id="v4-5" aria-labelledby="v4-5-title">
+          <div class="ds-card__row">
+            <h2 class="ds-card__title" id="v4-5-title">4.5</h2>
+            <p class="ds-meta"><time datetime="2026-10-21">Oct 21, 2026</time></p>
+          </div>
+          <ul class="ds-plain-list">
+            <li data-kind="new"><span class="ds-tag ds-tone-success">New</span> Passkeys: sign in with your fingerprint, face or a security key.</li>
+            <li data-kind="improved"><span class="ds-tag ds-tone-info">Improved</span> Tickets show who looked at them last.</li>
+            <li data-kind="fixed"><span class="ds-tag ds-tone-neutral">Fixed</span> The dark theme forgot itself after signing out.</li>
+          </ul>
+          <p class="ds-meta" data-empty hidden>Nothing of the chosen kinds in this release.</p>
+        </article>
+
+        <article class="ds-card" id="v4-4" aria-labelledby="v4-4-title">
+          <div class="ds-card__row">
+            <h2 class="ds-card__title" id="v4-4-title">4.4</h2>
+            <p class="ds-meta"><time datetime="2026-10-07">Oct 7, 2026</time></p>
+          </div>
+          <ul class="ds-plain-list">
+            <li data-kind="improved"><span class="ds-tag ds-tone-info">Improved</span> Reports open on the period you looked at last.</li>
+            <li data-kind="improved"><span class="ds-tag ds-tone-info">Improved</span> Bigger targets on phones across the app.</li>
+            <li data-kind="fixed"><span class="ds-tag ds-tone-neutral">Fixed</span> A device retired twice showed up twice in the archive.</li>
+          </ul>
+          <p class="ds-meta" data-empty hidden>Nothing of the chosen kinds in this release.</p>
+        </article>
+
+        <article class="ds-card" id="v4-3" aria-labelledby="v4-3-title">
+          <div class="ds-card__row">
+            <h2 class="ds-card__title" id="v4-3-title">4.3</h2>
+            <p class="ds-meta"><time datetime="2026-09-16">Sep 16, 2026</time></p>
+          </div>
+          <ul class="ds-plain-list">
+            <li data-kind="new"><span class="ds-tag ds-tone-success">New</span> The status page, with uptime per part of the service.</li>
+            <li data-kind="fixed"><span class="ds-tag ds-tone-neutral">Fixed</span> Invoices showed the wrong period in the month after a plan change.</li>
+          </ul>
+          <p class="ds-meta" data-empty hidden>Nothing of the chosen kinds in this release.</p>
+        </article>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="ds/ds.public.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  // The kinds to show: items of the others hide; a release left empty says so.
+  var kinds = document.getElementById('kinds');
+  kinds.addEventListener('change', function () {
+    var shown = Array.prototype.map.call(kinds.querySelectorAll('input:checked'), function (input) { return input.value; });
+    var count = 0;
+    document.querySelectorAll('#main article').forEach(function (release) {
+      var left = 0;
+      release.querySelectorAll('[data-kind]').forEach(function (item) {
+        item.hidden = shown.indexOf(item.getAttribute('data-kind')) < 0;
+        if (!item.hidden) left += 1;
+      });
+      release.querySelector('[data-empty]').hidden = left > 0;
+      count += left;
+    });
+    DS.overlay.announce(count === 1 ? '1 change' : count + ' changes');
+  });
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>
