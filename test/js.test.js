@@ -83,19 +83,19 @@ describe('icons (2.0)', () => {
   /** The glyphs that fill when on (.ds-icon--fillable), as docs/icons.md lists them. */
   const FILLABLE = ['thumbUp', 'thumbDown', 'chat', 'shield', 'folder', 'flag', 'bell', 'home', 'moon', 'play'];
 
-  it('has the 27 glyphs of 2.0 (109 in all) and keeps the name map of fill() in step with the exports', () => {
+  it('has the 27 glyphs of 2.0 (110 in all since 2.2) and keeps the name map of fill() in step with the exports', () => {
     const added = ['chevronFirst', 'chevronLast', 'cornerDownLeft', 'moreHorizontal', 'upload', 'clipboard', 'paperclip', 'send',
       'printer', 'play', 'pause', 'stopCircle', 'grip', 'bell', 'mic', 'micOff', 'volume', 'helpCircle', 'eye', 'eyeOff', 'home',
       'panelLeft', 'keyboard', 'terminal', 'tag', 'sun', 'moon'];
     assert.equal(added.length, 27);
     for (const name of added) assert.equal(typeof icons[name], 'string', name);
-    assert.equal(GLYPHS.length, 109);
+    assert.equal(GLYPHS.length, 110);
     const source = read('src/js/icons.js');
     const map = source.slice(source.indexOf('const GLYPHS = {'), source.indexOf('};', source.indexOf('const GLYPHS = {')));
     const mapped = [...map.slice(map.indexOf('{') + 1).matchAll(/[A-Za-z]+/g)].map((match) => match[0]);
     assert.deepEqual([...mapped].sort(), GLYPHS.map(([name]) => name).sort());
     // The count the README, AGENTS.md and the live tour state.
-    for (const file of ['README.md', 'AGENTS.md']) assert.ok(!/\b82\b (outline )?(icons|glyphs)|icons-82/.test(read(file)), `${file}: 109 icons`);
+    for (const file of ['README.md', 'AGENTS.md']) assert.ok(!/\b82\b (outline )?(icons|glyphs)|icons-82/.test(read(file)), `${file}: 110 icons`);
   });
 
   it('ends every fillable glyph with a closed shape (a closed path, rect, circle or ellipse), named in docs/icons.md', () => {

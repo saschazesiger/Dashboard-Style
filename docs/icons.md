@@ -51,9 +51,9 @@ growing the line.
 | Actions | `plus` `close` `minimize` `menu` `moreVertical` `moreHorizontal` `grip` `search` `filter` `sort` `compose` `pencil` `save` `reset` `sync` `undo` `history` `copy` `download` `upload` `clipboard` `paperclip` `printer` `play` `pause` `stopCircle` `trash` `archive` `logout` |
 | Communication | `chat` `send` `bell` `mic` `micOff` `volume` `mail` `phone` `globe` `link` `flag` `thumbUp` `thumbDown` |
 | Status | `check` `checkCircle` `alert` `alertCircle` `info` `helpCircle` `eye` `eyeOff` `clock` `ban` `calendar` `activity` `wifi` `wifiOff` |
-| Places and things | `home` `panelLeft` `keyboard` `terminal` `tag` `sun` `moon` `overview` `apps` `list` `columns` `rows` `barChart` `settings` `cpu` `lock` `key` `shield` `user` `users` `userPlus` `ticket` `file` `fileText` `fileCode` `folder` `box` `building` `mapPin` `laptop` `monitor` `hardDrive` `server` `graduationCap` `presentation` `camera` `video` `image` `leaf` `wrench` `sparkles` |
+| Places and things | `home` `panelLeft` `keyboard` `terminal` `tag` `sun` `moon` `overview` `apps` `list` `columns` `rows` `barChart` `settings` `cpu` `lock` `key` `shield` `user` `users` `userPlus` `userOff` `ticket` `file` `fileText` `fileCode` `folder` `box` `building` `mapPin` `laptop` `monitor` `hardDrive` `server` `graduationCap` `presentation` `camera` `video` `image` `leaf` `wrench` `sparkles` |
 
-109 glyphs. 2.0 added `chevronFirst`, `chevronLast`, `cornerDownLeft`, `moreHorizontal`, `upload`, `clipboard`,
+110 glyphs. 2.2 added `userOff` (an account or person that cannot be used: signed out, at its limit). 2.0 added `chevronFirst`, `chevronLast`, `cornerDownLeft`, `moreHorizontal`, `upload`, `clipboard`,
 `paperclip`, `send`, `printer`, `play`, `pause`, `stopCircle`, `grip`, `bell`, `mic`, `micOff`, `volume`, `helpCircle`,
 `eye`, `eyeOff`, `home`, `panelLeft`, `keyboard`, `terminal`, `tag`, `sun` and `moon`, and swapped the two paths of
 `flag` (the pole first, the flag last): a project that copies glyph strings refreshes `flag`.
