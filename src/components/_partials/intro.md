@@ -1,9 +1,12 @@
 # Components
 
 Copy-paste markup for every component. `[icon check 16]` stands for the SVG that `DS.icons.icon(DS.icons.check, 16)`
-returns ([icons.md](icons.md)). Behaviour (filtering a combobox, what an action does) is up to your scripts; opening
-and closing overlays is `DS.overlay`'s ([motion.md](motion.md#dsoverlay-jsoverlayjs)). The classes and attributes
-below are the contract the styles expect. The [styleguide](../styleguide/index.html) shows every
+returns ([icons.md](icons.md)). Behaviour comes two ways: a component with a `data-ds-*` attribute gets its behaviour
+from `DS.init(document)` (a `data-ds-combobox` filters, a `data-ds-datagrid` sorts and selects, a `data-ds-open`
+button opens its dialog; [core.md](core.md)), or the page writes its own script on the documented markup. What an
+action does is always the page's; opening and closing overlays is `DS.overlay`'s
+([motion.md](motion.md#dsoverlay-jsoverlayjs)). The classes and attributes below are the contract the styles and the
+behaviours expect. The [styleguide](../styleguide/index.html) shows every
 component live.
 
 ## Which component for which need

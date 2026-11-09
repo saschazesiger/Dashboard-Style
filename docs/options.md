@@ -17,8 +17,9 @@ class nearer the component wins. A theme sets the defaults.
 ```
 
 Which component reads which option is in its section of [components.md](components.md) (its options table). In 3.0
-the [button](components.md#button) reads all of them; the other components follow as they are ported, and keep their
-2.x hooks until then.
+every component computes the options that apply to it in its own rule: size and density step its heights and gaps,
+shape scales its radii, touch raises its targets, and a component that shows meaning takes the tone. The
+[button](components.md#button) is the reference (`plans/3.0-conventions.md`, section 11).
 
 ## How it works
 

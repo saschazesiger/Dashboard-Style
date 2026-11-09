@@ -3,7 +3,7 @@
 /**
  * Checks a project that vendors Dashboard-Style against the project rules
  * of AGENTS.md ("Using Dashboard-Style in a project"), without
- * dependencies (Node 18 or later):
+ * dependencies (Node 22 or later, as tools/bundle.mjs it runs):
  *
  *   node <copy>/tools/check-project.mjs --config ds-check.json
  *

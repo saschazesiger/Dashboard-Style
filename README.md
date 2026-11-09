@@ -56,7 +56,7 @@ to their new colour.
 <table>
 <tr>
 <td width="50%"><a href="https://saschazesiger.github.io/Dashboard-Style/example/"><img src="docs/images/reference-app.png" alt="The reference app: an overview with alerts, four tiles, a sync card and a chart"></a><br>🖥️ <b>Reference app</b>: a device console built the way a project uses the system.</td>
-<td width="50%"><a href="https://saschazesiger.github.io/Dashboard-Style/example/#/devices"><img src="docs/images/side-sheet.png" alt="The device table of the reference app with a side sheet open on one device"></a><br>📋 <b>Tables and side sheets</b>: search, filter chips, sorting, bulk selection, details next to the list.</td>
+<td width="50%"><a href="https://saschazesiger.github.io/Dashboard-Style/example/#/devices"><img src="docs/images/object-page.png" alt="A device of the reference app as an object page: key facts, sections and the jump links"></a><br>📋 <b>Data grids and object pages</b>: saved views, filter chips, sorting, bulk selection, a record with its sections.</td>
 </tr>
 <tr>
 <td><a href="https://saschazesiger.github.io/Dashboard-Style/styleguide/index.html"><img src="docs/images/styleguide.png" alt="The styleguide: the page of the button with its options panel (size, density, shape, tone, variant, colour scheme, theme preset and file, width, contrast, touch) above its demo"></a><br>🧩 <b>Styleguide</b>: every component, token and icon, with a theme switcher.</td>
@@ -104,15 +104,22 @@ Copy `dist/` into your project (or use the CDN, see below) and write:
     </section>
   </div></div>
   <script src="dist/ds.js"></script>
+  <script>
+    DS.icons.fill(document);      // the glyphs of every data-icon
+    DS.init(document);            // the behaviours of every data-ds-* attribute, and of what you add later
+    DS.ripple.attach(document);   // the pointer ripple and the action guard
+  </script>
 </body>
 </html>
 ```
 
 - 🎨 `ds-theme` turns the tokens on, `ds-base` (optional) styles the page itself: backdrop, body text, links, focus.
-- 🧠 `ds.js` is only needed for the motion helpers, the sliding indicator, the DOM morph, the pointer ripple
-  (`DS.ripple.attach(document)` once), the overlays (`DS.overlay`: dialogs, side sheets, the modal drawer, menus, the
-  combobox list, tooltips and snackbars) and the icons (`window.DS`). Every component works without it, overlays then
-  opened and closed by hand as [docs/components.md](docs/components.md) describes.
+- 🧠 `ds.js` brings the behaviours: `DS.init(document)` starts every `data-ds-*` behaviour on the page (a
+  `data-ds-open` button opens its dialog, `data-ds-datagrid` sorts and selects, `data-ds-combobox` filters) and keeps
+  watching for markup you add later ([docs/core.md](docs/core.md)). Without it the styles still apply, and a page
+  wires its own scripts and opens overlays through `DS.overlay` ([docs/components.md](docs/components.md)). For
+  production, load only what a page uses: `ds.min.css` and `ds.min.js`, or a project bundle
+  ([docs/bundle.md](docs/bundle.md)).
 - 🖥️ For a whole app (navigation, tables with live data, overlays, forms, a project theme and project components),
   read the reference app in [`example/`](example/README.md): its README maps every pattern to its code.
 - 🚀 The live tour in [`demo/`](demo/index.html) shows one working demo of every behaviour, wired as a project wires it.
@@ -222,8 +229,8 @@ Which component fits which need: the table at the top of [docs/components.md](do
 ## 🗂️ Files
 
 ```
-dist/            what you ship (built, committed): ds.css, ds.min.css, ds.js, ds.min.js, ds.d.ts, css/ (core/, components/, optional/, properties.css; a .min.css next to each), js/, fonts/, themes/ (presets/ too), tools/, manifest.json, tokens.json, LICENSE, SHA256SUMS
-src/             sources: core/ (tokens.css, motion.css, base.css, global.css), components/<name>/ (<name>.css, meta.json, <name>.md, <name>.demo.js), optional/*.css, js/ (core.js first, the other modules, <module>.requires.json), types/ (ds.d.ts, js/*.d.ts), deprecations.json, index.css (generated)
+dist/            what you ship (built, committed): ds.css, ds.min.css, ds.js, ds.min.js, ds.d.ts, css/ (core/, components/, optional/, properties.css; a .min.css next to each), js/, react/ (the optional React adapter), fonts/, themes/ (presets/ too), tools/, manifest.json, tokens.json, deprecations.json, LICENSE, SHA256SUMS
+src/             sources: core/ (tokens.css, options.css, motion.css, base.css, global.css), components/<name>/ (<name>.css, meta.json, <name>.md, <name>.demo.js), optional/*.css, js/ (core.js first, the other modules, <module>.requires.json), types/ (ds.d.ts, js/*.d.ts), react/ (the React adapter), patterns/ (the page patterns, copy-ready pages; not in dist/), deprecations.json, index.css (generated)
 fonts/           Google Sans (latin, latin-ext) with fonts.css and OFL.txt
 themes/          example.css, the theme template; dark.css, compact.css, contrast.css, the shipped themes; presets/, generated by tools/theme.mjs
 demo/            the live tour: one page that demonstrates every behaviour (the start page on GitHub Pages)

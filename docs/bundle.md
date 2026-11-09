@@ -188,17 +188,11 @@ Run the tool without `--check` and commit the bundle with the change that needed
 
 A new vendored copy always makes the old bundle stale (the version in its banner changes, and so may the components),
 so a `--check` in the nightly update would fail every night. The nightly **rebuilds** the bundle from the new copy and
-commits the copy and the bundle together. In `.github/workflows/update-dashboard-style.yml`
-([install.md](install.md#automatic-updates-github-actions)), add a step after "Vendor main":
-
-```yaml
-      - name: Rebuild the bundle
-        if: steps.compare.outputs.changed == 'true'
-        run: node "$DEST/tools/bundle.mjs" --config ds.config.json
-```
-
-and add the bundle's folder to the commit step (`git add -A -- "$DEST" public/ds`). Set `SETUP: node`. Keep `--check`
-in the project's own CI, on every push.
+commits the copy and the bundle together: in `.github/workflows/update-dashboard-style.yml`
+([install.md](install.md#automatic-updates-github-actions)) set `BUNDLE: ds.config.json` (the path of the config) and
+`SETUP: node`. The template then sets up Node, runs `node "$DEST/tools/bundle.mjs" --config "$BUNDLE"` before the
+check, and adds the config's folder (where its `out` folder sits) to the commit. Keep `--check` in the project's own CI,
+on every push.
 
 ## Vite
 

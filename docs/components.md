@@ -1,9 +1,12 @@
 # Components
 
 Copy-paste markup for every component. `[icon check 16]` stands for the SVG that `DS.icons.icon(DS.icons.check, 16)`
-returns ([icons.md](icons.md)). Behaviour (filtering a combobox, what an action does) is up to your scripts; opening
-and closing overlays is `DS.overlay`'s ([motion.md](motion.md#dsoverlay-jsoverlayjs)). The classes and attributes
-below are the contract the styles expect. The [styleguide](../styleguide/index.html) shows every
+returns ([icons.md](icons.md)). Behaviour comes two ways: a component with a `data-ds-*` attribute gets its behaviour
+from `DS.init(document)` (a `data-ds-combobox` filters, a `data-ds-datagrid` sorts and selects, a `data-ds-open`
+button opens its dialog; [core.md](core.md)), or the page writes its own script on the documented markup. What an
+action does is always the page's; opening and closing overlays is `DS.overlay`'s
+([motion.md](motion.md#dsoverlay-jsoverlayjs)). The classes and attributes below are the contract the styles and the
+behaviours expect. The [styleguide](../styleguide/index.html) shows every
 component live.
 
 ## Which component for which need
@@ -9463,7 +9466,8 @@ The toggle is a round target as tall as the field with a state layer (hover, pre
 the press morph of every pill; it stays `tabindex="-1"` (the field opens the list from the keyboard), so it has no ring.
 Options get no ripple: pressing one selects it and closes the list, and the state layer is the feedback.
 
-**Keyboard and names.** The keys are the page's script, as the WAI combobox pattern says: ArrowDown and ArrowUp open the
+**Keyboard and names.** With `data-ds-combobox` (`DS.combobox`) the system handles the keys; a page that wires the
+markup itself follows the same WAI combobox pattern: ArrowDown and ArrowUp open the
 list and move `data-active` and `aria-activedescendant` through the options (past headings and blocked options), Enter
 chooses, Escape closes (`DS.overlay` handles it, after the page's own handlers). When the list closes, on Escape, on blur
 or by a choice, the page clears `data-active` and `aria-activedescendant`, so the field never names an option in a hidden

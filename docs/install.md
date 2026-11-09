@@ -6,13 +6,13 @@ Everything a project needs is in `dist/`:
 |---|---|
 | `ds.css` | all stylesheets in cascade order (tokens, motion, base, components), in `@layer ds.*` (see "Cascade layers and resets") |
 | `ds.min.css` | `ds.css` minified (3.0), with its source map `ds.min.css.map`: the same rules, layers and order |
-| `ds.js` | classic script, sets `window.DS = { version, core, motion, indicator, dom, ripple, icons, overlay }` plus `DS.init`, `DS.get`, `DS.define` and `DS.config` (those of `DS.core`, [core.md](core.md)); see "Two copies on one page" |
+| `ds.js` | classic script, sets `window.DS`: `version` and one namespace per module of the table below (the core, the helpers and every component module: `DS.motion`, `DS.overlay`, `DS.datagrid` ...) plus `DS.init`, `DS.get`, `DS.define` and `DS.config` (those of `DS.core`, [core.md](core.md)); see "Two copies on one page" |
 | `ds.min.js` | `ds.js` without comments and indentation (3.0): the same code, nothing renamed |
-| `css/` | the single stylesheets: `core/tokens.css`, `core/motion.css`, `core/base.css`, `core/global.css` (the rules for every element inside `.ds-theme`), `components/<name>.css` and `index.css` (their `@import` list in cascade order); each starts with the layer statement and the statement of the component sublayers (each file puts its rules into its own), and a `.min.css` with its `.min.css.map` sits next to each (3.0) |
+| `css/` | the single stylesheets: `core/tokens.css`, `core/motion.css`, `core/base.css`, `core/options.css` (the option classes: size, density, shape, tone, touch), `core/global.css` (the rules for every element inside `.ds-theme`), `components/<name>.css` and `index.css` (their `@import` list in cascade order); each starts with the layer statement and the statement of the component sublayers (each file puts its rules into its own), and a `.min.css` with its `.min.css.map` sits next to each (3.0) |
 | `manifest.json` | the components as data (3.0): per component its files, group, classes, attributes, keyframes, hooks, the modules it needs, what it requires and its size; the core stylesheets and their classes; the JS modules with their imports, exports, the components they need (`requires`, and `exportRequires` per export) and the attributes that need them (`attributes`). Tools such as a bundler read it |
 | `css/properties.css` | every `@property` registration of `ds.css` alone (generated; registers `--ds-*` custom properties and styles nothing). A widget that loads `ds.css` inside a shadow root links it in the host document too: `@property` applies only in document-level stylesheets (as does `@font-face` in Chromium and Firefox, so such a widget also links `fonts/fonts.css` in the host document; see theming.md, "Embedded in someone else's page") |
 | `css/optional/` | opt-in stylesheets that `ds.css` never includes: `view-transitions.css` (View Transitions across page loads, needs `<html class="ds-theme">`; see "Multi-page apps") |
-| `js/` | the ES modules, one folder (the table below): the core (`core.js`, `motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`, `overlay.js`) and one behaviour module per component that has one, each with its types next to it (`motion.d.ts` ...), which an `import` of the module finds by itself; `core.js` is the shared runtime, the behaviour registry and `init()` ([core.md](core.md)), and every other module imports from it |
+| `js/` | the ES modules, one folder (the table below): the core and its helpers (`core.js`, `motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`, `position.js`, `overlay.js`, `a11y.js`, `hotkeys.js`, `format.js`, `store.js`, `virtual.js`, `dnd.js`) and one behaviour module per component that has one, each with its types next to it (`motion.d.ts` ...), which an `import` of the module finds by itself; `core.js` is the shared runtime, the behaviour registry and `init()` ([core.md](core.md)), and every other module imports from it |
 | `react/` | the optional React adapter (3.0; React 18 or later is the project's own): `provider.js` (`<DSProvider>`), `shared.js`, one module per component with its `.d.ts`, and `index.js` with every component; each module imports only its own behaviour from `js/` ([react.md](react.md)) |
 | `ds.d.ts` | types of `ds.js`: the global `DS` (every module's exports, their options and handles) and `DashboardStyle.versions` (see "Types") |
 | `fonts/` | Google Sans woff2 (latin, latin-ext), `fonts.css`, `OFL.txt` |
@@ -156,13 +156,21 @@ Load order on a page: fonts (optional), `ds.css`, your theme, then your own styl
 <link rel="stylesheet" href="vendor/dashboard-style/ds.css">
 <link rel="stylesheet" href="css/theme.css">
 <script src="vendor/dashboard-style/ds.js" defer></script>
+<script src="js/app.js" defer></script>
 ```
 
-With `ds.js`, one call gives every action its pointer ripple ([components.md](components.md#ripple)):
+Deferred scripts run in order once the document is parsed, so the page's own script (`js/app.js` above) starts the
+system after `ds.js`:
 
 ```js
-DS.ripple.attach(document);
+DS.icons.fill(document);      // the glyphs of every data-icon
+DS.init(document);            // every data-ds-* behaviour, and the markup added later (core.md)
+DS.ripple.attach(document);   // every action's pointer ripple and the action guard (components.md#ripple)
 ```
+
+Without `DS.init()` the components keep their look, but no `data-ds-*` behaviour starts: a `data-ds-open` button opens
+nothing, a data grid does not sort. In production load `ds.min.css` and `ds.min.js` (the same rules and code, smaller),
+or only what the page uses through a project bundle ([bundle.md](bundle.md)).
 
 On iOS, Safari shows `:active` (the press feedback) only on pages that listen to `touchstart`; `attach()` adds a
 passive listener. A page without `ds.js` adds one itself:
@@ -321,7 +329,9 @@ import './vendor/dashboard-style/js/tooltip.js';
 ```css
 @import './vendor/dashboard-style/css/index.css';   /* everything, or pick files: */
 @import './vendor/dashboard-style/css/core/tokens.css';
+@import './vendor/dashboard-style/css/core/options.css';   /* .ds-sm, .ds-density-*, .ds-shape-*, .ds-tone-*, .ds-touch */
 @import './vendor/dashboard-style/css/core/motion.css';
+@import './vendor/dashboard-style/css/core/base.css';      /* the page base of .ds-base */
 @import './vendor/dashboard-style/css/core/global.css';
 @import './vendor/dashboard-style/css/components/utilities.css';
 @import './vendor/dashboard-style/css/components/button.css';
@@ -329,7 +339,8 @@ import './vendor/dashboard-style/js/tooltip.js';
 ```
 
 When you pick files, keep the order of `css/index.css` and always include `core/tokens.css`, `core/motion.css` (components
-name the keyframes in it), `core/global.css` (the rules for every element inside `.ds-theme`: border-box sizing, the
+name the keyframes in it), `core/options.css` (the option classes every component computes its size, density, shape
+and tone from; without it `.ds-sm` changes nothing), `core/global.css` (the rules for every element inside `.ds-theme`: border-box sizing, the
 forced-colours icon colour) and `components/utilities.css` (`.ds-sr`, which the scripts' live regions use). Add
 `components/ripple.css` whenever you call `DS.ripple.attach()`: without it the ripple span sits in the flow and
 widens the pressed control. With Node subpath imports, `"imports": { "#ds/*": "./vendor/dashboard-style/*" }` in
@@ -968,12 +979,12 @@ strings a script adds have an option, so a page in another language passes its o
 | `then` | the system's string `kbdThen`: between the steps of a key sequence read aloud (`DS.kbd`): "G then I" | `DS.core.config({ strings: { kbdThen } })` |
 | `+{count} more, show all {total}` | the name of the "+N" button of a label group (`DS.labelgroup`; it shows `+{count}`) (the system's string `labelGroupMore`) | `DS.core.config({ strings: { labelGroupMore } })` |
 | `All labels` | the name of a label group's popup when its list has none (the system's string `labelGroupAll`) | `DS.core.config({ strings: { labelGroupAll } })` |
+| `More options for {label}` | the name of a split button's menu toggle without one of its own, `{label}` the action's name (the system's string `moreOptionsFor`) | `DS.core.config({ strings: { moreOptionsFor } })` |
+| `Copying is blocked here. The text is selected: press {keys} to copy it.` | what `DS.copy` announces when the browser refuses both ways of copying, `{keys}` the platform's copy keys (the system's string `copyManual`) | `DS.core.config({ strings: { copyManual } })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow
 the locale of `DS.core.config()` (`lang` on `<html>` by default): `DS.format` ([core.md](core.md#dsformat-numbers-dates-and-the-shared-clock))
 formats figures, sizes, durations, lists, plurals and relative time through `Intl`, and nothing else in the system
-| `More options for {label}` | the name of a split button's menu toggle without one of its own, `{label}` the action's name (the system's string `moreOptionsFor`) | `DS.core.config({ strings: { moreOptionsFor } })` |
-| `Copying is blocked here. The text is selected: press {keys} to copy it.` | what `DS.copy` announces when the browser refuses both ways of copying, `{keys}` the platform's copy keys (the system's string `copyManual`) | `DS.core.config({ strings: { copyManual } })` |
 formats either by itself (`countUp(el, value, { format: DS.format.number })` for a figure that counts).
 
 **Direction.** The components are laid out for left-to-right scripts; `dir="rtl"` is not supported yet (a sheet
@@ -1029,7 +1040,7 @@ your own checks need not parse CSS:
 ## Check a project
 
 `tools/check-project.mjs` runs the project rules of AGENTS.md ("Using Dashboard-Style in a project") on your code,
-without dependencies (Node 18 or later). Describe the project once in `ds-check.json` (paths and globs relative to
+without dependencies (Node 22 or later, like `tools/bundle.mjs`, which it runs for the `bundle` rule). Describe the project once in `ds-check.json` (paths and globs relative to
 it; globs know `*`, `**` and `?`):
 
 ```json
@@ -1095,19 +1106,20 @@ The nightly template runs it as its optional `CHECK` step.
 ### Automatic updates (GitHub Actions)
 
 [templates/update-dashboard-style.yml](../templates/update-dashboard-style.yml) does step 2 every night. Copy it to
-`.github/workflows/` and set three values under `env`:
+`.github/workflows/` and set the values under `env`:
 
 | Value | Meaning |
 |---|---|
 | `DEST` | path of the copy, e.g. `vendor/dashboard-style` |
 | `SETUP` | the toolchain your checks need: `node` (set up when the repository has a `package.json`, or for `CHECK`), `go` (when it has a `go.mod`) or `none`; another one is a commented step to fill in |
 | `CHECK` | optional project check of the new copy, e.g. `node "$DEST/tools/check-project.mjs" --config ds-check.json`; empty to skip |
+| `BUNDLE` | the path of the project bundle's config (`ds.config.json`, [bundle.md](bundle.md)); the update rebuilds the bundle from the new copy and commits it with the copy (needs `SETUP: node`); empty to skip |
 | `VERIFY` | command that must pass before the update is committed (`npm ci && npm test`); empty to skip |
 | `BUILD_WORKFLOW` | workflow file that builds and deploys, started with `workflow_dispatch`; empty if your build starts on push by itself (Cloudflare Pages, Netlify, Vercel) |
 
 It runs daily at 02:30 UTC and on demand (*Run workflow*). If the commit in `DEST/VERSION` equals `main` of
 Dashboard-Style, the run ends there. Otherwise it vendors `main`, verifies the copy (`tools/verify.sh`, no Node
-needed), runs `CHECK` and `VERIFY`, commits the copy to the branch it runs on and starts `BUILD_WORKFLOW`. A push made with `GITHUB_TOKEN` starts no other workflow, which is why the build is
+needed), rebuilds the bundle (`BUNDLE`), runs `CHECK` and `VERIFY`, commits the copy (and the bundle) to the branch it runs on and starts `BUILD_WORKFLOW`. A push made with `GITHUB_TOKEN` starts no other workflow, which is why the build is
 started explicitly; the build workflow needs `on: workflow_dispatch`. The template asks for `contents: write` and
 `actions: write`; a branch protection rule that blocks direct pushes also blocks the update.
 
