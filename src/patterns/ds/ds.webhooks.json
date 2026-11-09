@@ -1,0 +1,537 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "webhooks",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.webhooks.css",
+      "bytes": 371782,
+      "gzip": 55243
+    },
+    "js": {
+      "file": "ds.webhooks.js",
+      "bytes": 631937,
+      "gzip": 151499
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 36
+    }
+  },
+  "components": [
+    {
+      "name": "layout",
+      "reason": "webhooks.html:95 ds-cluster",
+      "bytes": 3326,
+      "gzip": 1048
+    },
+    {
+      "name": "utilities",
+      "reason": "pt.js:57 ds-icon--fillable",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "spinner",
+      "reason": "webhooks.html:175 ds-spinner",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by module indicator",
+      "bytes": 2868,
+      "gzip": 619
+    },
+    {
+      "name": "button",
+      "reason": "webhooks.html:22 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "status",
+      "reason": "webhooks.html:210 ds-status",
+      "bytes": 3164,
+      "gzip": 921
+    },
+    {
+      "name": "switch",
+      "reason": "webhooks.html:265 ds-switch",
+      "bytes": 13984,
+      "gzip": 2262
+    },
+    {
+      "name": "chart",
+      "reason": "required by list",
+      "bytes": 23341,
+      "gzip": 4433
+    },
+    {
+      "name": "list",
+      "reason": "webhooks.html:83 ds-list",
+      "bytes": 18637,
+      "gzip": 3412
+    },
+    {
+      "name": "card",
+      "reason": "webhooks.html:81 ds-card",
+      "bytes": 16606,
+      "gzip": 2659
+    },
+    {
+      "name": "menu",
+      "reason": "webhooks.html:30 ds-menu",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "chip",
+      "reason": "webhooks.html:103 ds-chips",
+      "bytes": 8706,
+      "gzip": 1866
+    },
+    {
+      "name": "sheet",
+      "reason": "webhooks.html:130 ds-sheet",
+      "bytes": 12282,
+      "gzip": 2502
+    },
+    {
+      "name": "dialog",
+      "reason": "webhooks.html:181 ds-dialog",
+      "bytes": 15994,
+      "gzip": 2482
+    },
+    {
+      "name": "table",
+      "reason": "webhooks.html:109 ds-table-wrap",
+      "bytes": 32874,
+      "gzip": 4760
+    },
+    {
+      "name": "form",
+      "reason": "webhooks.html:186 ds-field",
+      "bytes": 49307,
+      "gzip": 7088
+    },
+    {
+      "name": "drag",
+      "reason": "required by list",
+      "bytes": 8418,
+      "gzip": 1901
+    },
+    {
+      "name": "tooltip",
+      "reason": "webhooks.html:25 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "webhooks.html:67 ds-content",
+      "bytes": 8012,
+      "gzip": 2191
+    },
+    {
+      "name": "shell",
+      "reason": "webhooks.html:18 ds-app",
+      "bytes": 39266,
+      "gzip": 6590
+    },
+    {
+      "name": "toast",
+      "reason": "webhooks.html:208 ds-toasts",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "text",
+      "reason": "webhooks.html:188 ds-mono",
+      "bytes": 795,
+      "gzip": 351
+    },
+    {
+      "name": "copy",
+      "reason": "webhooks.html:89 ds-copy",
+      "bytes": 1927,
+      "gzip": 659
+    },
+    {
+      "name": "formatted",
+      "reason": "webhooks.html:25 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "highlight",
+      "reason": "needed by module code",
+      "bytes": 789,
+      "gzip": 275
+    },
+    {
+      "name": "code",
+      "reason": "webhooks.html:147 ds-code",
+      "bytes": 5372,
+      "gzip": 1386
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "webhooks.html:302 DS.motion.flip"
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "dom",
+      "reason": "webhooks.html:256 DS.dom.morphHtml"
+    },
+    {
+      "name": "ripple",
+      "reason": "webhooks.html:220 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "pt.js:16 DS.icons"
+    },
+    {
+      "name": "position",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "overlay",
+      "reason": "webhooks.html:29 data-ds-open"
+    },
+    {
+      "name": "a11y",
+      "reason": "imported by copy"
+    },
+    {
+      "name": "hotkeys",
+      "reason": "imported by copy"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "store",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "virtual",
+      "reason": "needed by list"
+    },
+    {
+      "name": "dnd",
+      "reason": "needed by list"
+    },
+    {
+      "name": "copy",
+      "reason": "webhooks.html:91 data-ds-copy"
+    },
+    {
+      "name": "dialog",
+      "reason": "webhooks.html:368 DS.dialog.form"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "highlight",
+      "reason": "imported by code"
+    },
+    {
+      "name": "code",
+      "reason": "needed by code"
+    },
+    {
+      "name": "list",
+      "reason": "needed by list"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by menu"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "sheet",
+      "reason": "needed by sheet"
+    },
+    {
+      "name": "shell",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    }
+  ],
+  "icons": [
+    {
+      "name": "plus",
+      "reason": "webhooks.html:76"
+    },
+    {
+      "name": "close",
+      "reason": "webhooks.html:138"
+    },
+    {
+      "name": "menu",
+      "reason": "webhooks.html:22"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "used by module page"
+    },
+    {
+      "name": "moreHorizontal",
+      "reason": "used by module shell"
+    },
+    {
+      "name": "grip",
+      "reason": "used by module list"
+    },
+    {
+      "name": "copy",
+      "reason": "webhooks.html:92"
+    },
+    {
+      "name": "logout",
+      "reason": "webhooks.html:34"
+    },
+    {
+      "name": "chat",
+      "reason": "webhooks.html:51"
+    },
+    {
+      "name": "bell",
+      "reason": "webhooks.html:58"
+    },
+    {
+      "name": "check",
+      "reason": "webhooks.html:92"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "webhooks.html:211"
+    },
+    {
+      "name": "info",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "helpCircle",
+      "reason": "webhooks.html:26"
+    },
+    {
+      "name": "calendar",
+      "reason": "webhooks.html:53"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "overview",
+      "reason": "webhooks.html:44"
+    },
+    {
+      "name": "user",
+      "reason": "webhooks.html:33"
+    },
+    {
+      "name": "ticket",
+      "reason": "webhooks.html:46"
+    },
+    {
+      "name": "folder",
+      "reason": "webhooks.html:52"
+    },
+    {
+      "name": "box",
+      "reason": "webhooks.html:23"
+    },
+    {
+      "name": "laptop",
+      "reason": "webhooks.html:45"
+    },
+    {
+      "name": "kanban",
+      "reason": "webhooks.html:54"
+    },
+    {
+      "name": "webhook",
+      "reason": "webhooks.html:59"
+    },
+    {
+      "name": "refresh",
+      "reason": "webhooks.html:96"
+    },
+    {
+      "name": "creditCard",
+      "reason": "webhooks.html:60"
+    },
+    {
+      "name": "inbox",
+      "reason": "webhooks.html:50"
+    }
+  ],
+  "classes": {
+    "ds-account": "webhooks.html:28",
+    "ds-account__avatar": "webhooks.html:29",
+    "ds-account__email": "webhooks.html:31",
+    "ds-account__head": "webhooks.html:31",
+    "ds-account__menu": "webhooks.html:30",
+    "ds-account__name": "webhooks.html:31",
+    "ds-account__trigger": "webhooks.html:29",
+    "ds-app": "webhooks.html:18",
+    "ds-app--drawer": "webhooks.html:18",
+    "ds-base": "webhooks.html:2",
+    "ds-brand": "webhooks.html:23",
+    "ds-brand__name": "webhooks.html:23",
+    "ds-break": "webhooks.html:261",
+    "ds-btn": "webhooks.html:22",
+    "ds-btn--filled": "webhooks.html:76",
+    "ds-btn--icon": "webhooks.html:22",
+    "ds-btn--quiet": "webhooks.html:22",
+    "ds-btn--text": "webhooks.html:200",
+    "ds-btn__face": "webhooks.html:174",
+    "ds-btn__face--busy": "webhooks.html:175",
+    "ds-btn__faces": "webhooks.html:174",
+    "ds-card": "webhooks.html:81",
+    "ds-card__row": "webhooks.html:101",
+    "ds-card__title": "webhooks.html:82",
+    "ds-check": "webhooks.html:193",
+    "ds-chip": "webhooks.html:105",
+    "ds-chip__body": "webhooks.html:105",
+    "ds-chip__check": "webhooks.html:105",
+    "ds-chip__input": "webhooks.html:105",
+    "ds-chips": "webhooks.html:103",
+    "ds-cluster": "webhooks.html:95",
+    "ds-code": "webhooks.html:147",
+    "ds-code-block": "webhooks.html:157",
+    "ds-code-block--wrap": "webhooks.html:168",
+    "ds-code__actions": "webhooks.html:151",
+    "ds-code__head": "webhooks.html:148",
+    "ds-code__lang": "webhooks.html:150",
+    "ds-code__title": "webhooks.html:149",
+    "ds-col--secondary": "webhooks.html:115",
+    "ds-content": "webhooks.html:67",
+    "ds-copy": "webhooks.html:89",
+    "ds-copy--field": "webhooks.html:89",
+    "ds-copy__value": "webhooks.html:90",
+    "ds-dialog": "webhooks.html:181",
+    "ds-dialog__actions": "webhooks.html:199",
+    "ds-dialog__backdrop": "webhooks.html:182",
+    "ds-dialog__body": "webhooks.html:185",
+    "ds-dialog__box": "webhooks.html:183",
+    "ds-dialog__title": "webhooks.html:184",
+    "ds-drawer": "webhooks.html:40",
+    "ds-drawer__group": "webhooks.html:43",
+    "ds-drawer__head": "webhooks.html:41",
+    "ds-drawer__heading": "webhooks.html:49",
+    "ds-drawer__item": "webhooks.html:44",
+    "ds-drawer__label": "webhooks.html:44",
+    "ds-drawer__list": "webhooks.html:42",
+    "ds-facts": "webhooks.html:141",
+    "ds-field": "webhooks.html:186",
+    "ds-field__hint": "webhooks.html:189",
+    "ds-field__label": "webhooks.html:187",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-icon-swap": "webhooks.html:92",
+    "ds-icon-swap__a": "webhooks.html:92",
+    "ds-icon-swap__b": "webhooks.html:92",
+    "ds-input": "webhooks.html:188",
+    "ds-lg": "webhooks.html:31",
+    "ds-link-btn": "webhooks.html:289",
+    "ds-list": "webhooks.html:83",
+    "ds-list__actions": "webhooks.html:265",
+    "ds-list__item": "webhooks.html:259",
+    "ds-list__meta": "webhooks.html:262",
+    "ds-list__text": "webhooks.html:260",
+    "ds-list__title": "webhooks.html:261",
+    "ds-menu": "webhooks.html:30",
+    "ds-menu__divider": "webhooks.html:32",
+    "ds-menu__item": "webhooks.html:33",
+    "ds-menu__label": "webhooks.html:33",
+    "ds-meta": "webhooks.html:122",
+    "ds-mono": "webhooks.html:188",
+    "ds-muted": "webhooks.html:88",
+    "ds-nowrap": "webhooks.html:291",
+    "ds-num": "webhooks.html:117",
+    "ds-page": "webhooks.html:68",
+    "ds-page-head": "webhooks.html:69",
+    "ds-page-head__actions": "webhooks.html:75",
+    "ds-page-head__lead": "webhooks.html:73",
+    "ds-page-head__row": "webhooks.html:70",
+    "ds-page-head__text": "webhooks.html:71",
+    "ds-page-head__title": "webhooks.html:72",
+    "ds-panel": "webhooks.html:65",
+    "ds-scrim": "webhooks.html:39",
+    "ds-sheet": "webhooks.html:130",
+    "ds-sheet__backdrop": "webhooks.html:131",
+    "ds-sheet__body": "webhooks.html:140",
+    "ds-sheet__foot": "webhooks.html:171",
+    "ds-sheet__head": "webhooks.html:133",
+    "ds-sheet__heading": "webhooks.html:134",
+    "ds-sheet__panel": "webhooks.html:132",
+    "ds-sheet__panel--wide": "webhooks.html:132",
+    "ds-sheet__subtitle": "webhooks.html:136",
+    "ds-sheet__title": "webhooks.html:135",
+    "ds-skip": "webhooks.html:19",
+    "ds-sm": "webhooks.html:91",
+    "ds-spinner": "webhooks.html:175",
+    "ds-spinner--ink": "webhooks.html:175",
+    "ds-sr": "webhooks.html:104",
+    "ds-stack": "webhooks.html:140",
+    "ds-status": "webhooks.html:210",
+    "ds-switch": "webhooks.html:265",
+    "ds-switch__off": "webhooks.html:266",
+    "ds-switch__on": "webhooks.html:266",
+    "ds-switch__state": "webhooks.html:266",
+    "ds-switch__track": "webhooks.html:266",
+    "ds-table": "webhooks.html:110",
+    "ds-table-wrap": "webhooks.html:109",
+    "ds-theme": "webhooks.html:2",
+    "ds-toasts": "webhooks.html:208",
+    "ds-tone-error": "webhooks.html:211",
+    "ds-tone-success": "webhooks.html:210",
+    "ds-topbar": "webhooks.html:21",
+    "ds-topbar__actions": "webhooks.html:24",
+    "ds-topbar__menu": "webhooks.html:22",
+    "ds-view": "webhooks.html:66"
+  },
+  "unknown": []
+}

@@ -508,6 +508,18 @@
       {"name":"api-keys","title":"API keys","need":"Keys for scripts and other systems: create one with its scopes, show it once to copy, revoke it","group":"App pages","entry":"api-keys"},
       {"name":"integrations","title":"Integrations","need":"The services the workspace connects to, in a grid: what each does, whether it is connected, connect and disconnect","group":"App pages","entry":"integrations"},
       {"name":"audit-log","title":"Audit log","need":"Who did what in the workspace and when, with old and new values, narrowed by person, kind, day and words","group":"App pages","entry":"audit-log"},
+      {"name":"billing","title":"Billing","need":"The plan, what this period used against its quotas, the payment details and the invoices","group":"Billing and plans","entry":"billing"},
+      {"name":"invoice","title":"Printable invoice","need":"One invoice as a sheet on screen and on paper: who, what, the total and how it is paid","group":"Billing and plans","entry":"billing"},
+      {"name":"pricing","title":"Pricing table","need":"The plans side by side with their price per month or year, what each includes, and the questions people ask","group":"Billing and plans","entry":"billing"},
+      {"name":"webhooks","title":"Webhooks and delivery log","need":"The endpoints that get events, their signing secret, and every delivery with its request, response and a resend","group":"Settings and integrations","entry":"webhooks"},
+      {"name":"status-page","title":"Status page","need":"A public page of how each part of the service runs now, its uptime over 90 days and the incidents","group":"Public pages","entry":"public"},
+      {"name":"changelog","title":"Changelog","need":"What changed in each release, newest first, with what is new, improved or fixed and a list of the releases","group":"Public pages","entry":"public"},
+      {"name":"notification-settings","title":"Notification settings","need":"Choose which events reach someone by email, in the app or on the phone, with a digest and quiet hours","group":"Settings and integrations","entry":"settings"},
+      {"name":"files","title":"File manager","need":"Browse a folder as a grid or a list, select files to act on them, and preview one beside the list","group":"Work together","entry":"files"},
+      {"name":"inbox","title":"Inbox","need":"Read messages in a list and a reading pane beside it, one column with a back button on a phone, and answer them","group":"Work together","entry":"inbox"},
+      {"name":"chat","title":"Chat app","need":"Talk with the team in threads: a list of conversations, the transcript of the open one and a composer","group":"Work together","entry":"chat"},
+      {"name":"calendar","title":"Calendar page","need":"Plan the week: a month to pick a day, the week's events by day, the calendars to show and a dialog for a new event","group":"Work together","entry":"calendar"},
+      {"name":"kanban","title":"Kanban board","need":"Move work through columns by dragging a card or with the keyboard, with a limit on work in progress","group":"Work together","entry":"kanban"},
     ],
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

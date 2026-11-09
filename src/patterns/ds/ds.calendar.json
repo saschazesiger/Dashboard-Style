@@ -1,0 +1,498 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "calendar",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.calendar.css",
+      "bytes": 314673,
+      "gzip": 48006
+    },
+    "js": {
+      "file": "ds.calendar.js",
+      "bytes": 639568,
+      "gzip": 150172
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 31
+    }
+  },
+  "components": [
+    {
+      "name": "layout",
+      "reason": "calendar.html:81 ds-split",
+      "bytes": 3326,
+      "gzip": 1048
+    },
+    {
+      "name": "utilities",
+      "reason": "calendar.html:90 ds-sr",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "spinner",
+      "reason": "calendar.html:154 ds-spinner",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by module indicator",
+      "bytes": 2868,
+      "gzip": 619
+    },
+    {
+      "name": "button",
+      "reason": "calendar.html:22 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "status",
+      "reason": "calendar.html:162 ds-tag",
+      "bytes": 3164,
+      "gzip": 921
+    },
+    {
+      "name": "chart",
+      "reason": "required by list",
+      "bytes": 23341,
+      "gzip": 4433
+    },
+    {
+      "name": "list",
+      "reason": "calendar.html:106 ds-list",
+      "bytes": 18637,
+      "gzip": 3412
+    },
+    {
+      "name": "card",
+      "reason": "calendar.html:83 ds-card",
+      "bytes": 16606,
+      "gzip": 2659
+    },
+    {
+      "name": "menu",
+      "reason": "calendar.html:30 ds-menu",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "dialog",
+      "reason": "calendar.html:114 ds-dialog",
+      "bytes": 15994,
+      "gzip": 2482
+    },
+    {
+      "name": "form",
+      "reason": "calendar.html:89 ds-fieldset",
+      "bytes": 49307,
+      "gzip": 7088
+    },
+    {
+      "name": "drag",
+      "reason": "required by list",
+      "bytes": 8418,
+      "gzip": 1901
+    },
+    {
+      "name": "tooltip",
+      "reason": "calendar.html:25 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "calendar.html:67 ds-content",
+      "bytes": 8012,
+      "gzip": 2191
+    },
+    {
+      "name": "shell",
+      "reason": "calendar.html:18 ds-app",
+      "bytes": 39266,
+      "gzip": 6590
+    },
+    {
+      "name": "toast",
+      "reason": "calendar.html:159 ds-toasts",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "calendar",
+      "reason": "calendar.html:84 ds-calendar",
+      "bytes": 5935,
+      "gzip": 1528
+    },
+    {
+      "name": "datefield",
+      "reason": "calendar.html:126 ds-datefield",
+      "bytes": 4124,
+      "gzip": 1154
+    },
+    {
+      "name": "picker",
+      "reason": "calendar.html:125 ds-picker",
+      "bytes": 6042,
+      "gzip": 1674
+    },
+    {
+      "name": "spacing",
+      "reason": "calendar.html:101 ds-gap-1",
+      "bytes": 866,
+      "gzip": 250
+    },
+    {
+      "name": "timepicker",
+      "reason": "required by datepicker",
+      "bytes": 2046,
+      "gzip": 788
+    },
+    {
+      "name": "datepicker",
+      "reason": "calendar.html:125 data-ds-datepicker",
+      "bytes": 607,
+      "gzip": 320
+    },
+    {
+      "name": "formatted",
+      "reason": "calendar.html:25 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "calendar.html:254 DS.motion.flip"
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "dom",
+      "reason": "calendar.html:239 DS.dom.morphHtml"
+    },
+    {
+      "name": "ripple",
+      "reason": "calendar.html:174 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "calendar.html:172 DS.icons.fill"
+    },
+    {
+      "name": "position",
+      "reason": "needed by picker"
+    },
+    {
+      "name": "overlay",
+      "reason": "calendar.html:29 data-ds-open"
+    },
+    {
+      "name": "a11y",
+      "reason": "needed by picker"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "store",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "virtual",
+      "reason": "needed by list"
+    },
+    {
+      "name": "dnd",
+      "reason": "needed by list"
+    },
+    {
+      "name": "calendar",
+      "reason": "calendar.html:178 DS.calendar"
+    },
+    {
+      "name": "datefield",
+      "reason": "needed by datefield"
+    },
+    {
+      "name": "dialog",
+      "reason": "calendar.html:285 DS.dialog.form"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "list",
+      "reason": "needed by list"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by menu"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "picker",
+      "reason": "needed by picker"
+    },
+    {
+      "name": "shell",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "timepicker",
+      "reason": "needed by datepicker"
+    },
+    {
+      "name": "datepicker",
+      "reason": "needed by datepicker"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    }
+  ],
+  "icons": [
+    {
+      "name": "chevronRight",
+      "reason": "calendar.html:103"
+    },
+    {
+      "name": "chevronLeft",
+      "reason": "calendar.html:102"
+    },
+    {
+      "name": "close",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "menu",
+      "reason": "calendar.html:22"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "used by module page"
+    },
+    {
+      "name": "moreHorizontal",
+      "reason": "used by module shell"
+    },
+    {
+      "name": "grip",
+      "reason": "used by module list"
+    },
+    {
+      "name": "copy",
+      "reason": "used by module list"
+    },
+    {
+      "name": "logout",
+      "reason": "calendar.html:34"
+    },
+    {
+      "name": "chat",
+      "reason": "calendar.html:51"
+    },
+    {
+      "name": "bell",
+      "reason": "calendar.html:58"
+    },
+    {
+      "name": "check",
+      "reason": "used by module list"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "used by module dialog"
+    },
+    {
+      "name": "info",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "helpCircle",
+      "reason": "calendar.html:26"
+    },
+    {
+      "name": "calendar",
+      "reason": "calendar.html:53"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "overview",
+      "reason": "calendar.html:44"
+    },
+    {
+      "name": "user",
+      "reason": "calendar.html:33"
+    },
+    {
+      "name": "ticket",
+      "reason": "calendar.html:46"
+    },
+    {
+      "name": "folder",
+      "reason": "calendar.html:52"
+    },
+    {
+      "name": "box",
+      "reason": "calendar.html:23"
+    },
+    {
+      "name": "laptop",
+      "reason": "calendar.html:45"
+    },
+    {
+      "name": "kanban",
+      "reason": "calendar.html:54"
+    },
+    {
+      "name": "webhook",
+      "reason": "calendar.html:59"
+    },
+    {
+      "name": "calendarPlus",
+      "reason": "calendar.html:76"
+    },
+    {
+      "name": "creditCard",
+      "reason": "calendar.html:60"
+    },
+    {
+      "name": "inbox",
+      "reason": "calendar.html:50"
+    }
+  ],
+  "classes": {
+    "ds-account": "calendar.html:28",
+    "ds-account__avatar": "calendar.html:29",
+    "ds-account__email": "calendar.html:31",
+    "ds-account__head": "calendar.html:31",
+    "ds-account__menu": "calendar.html:30",
+    "ds-account__name": "calendar.html:31",
+    "ds-account__trigger": "calendar.html:29",
+    "ds-app": "calendar.html:18",
+    "ds-app--drawer": "calendar.html:18",
+    "ds-base": "calendar.html:2",
+    "ds-brand": "calendar.html:23",
+    "ds-brand__name": "calendar.html:23",
+    "ds-btn": "calendar.html:22",
+    "ds-btn--filled": "calendar.html:76",
+    "ds-btn--icon": "calendar.html:22",
+    "ds-btn--quiet": "calendar.html:22",
+    "ds-btn--text": "calendar.html:85",
+    "ds-btn__face": "calendar.html:153",
+    "ds-btn__face--busy": "calendar.html:154",
+    "ds-btn__faces": "calendar.html:153",
+    "ds-calendar": "calendar.html:84",
+    "ds-card": "calendar.html:83",
+    "ds-card__row": "calendar.html:99",
+    "ds-card__title": "calendar.html:88",
+    "ds-check": "calendar.html:91",
+    "ds-cluster": "calendar.html:101",
+    "ds-content": "calendar.html:67",
+    "ds-datefield": "calendar.html:126",
+    "ds-datefield__toggle": "calendar.html:127",
+    "ds-dialog": "calendar.html:114",
+    "ds-dialog__actions": "calendar.html:150",
+    "ds-dialog__backdrop": "calendar.html:115",
+    "ds-dialog__body": "calendar.html:118",
+    "ds-dialog__box": "calendar.html:116",
+    "ds-dialog__title": "calendar.html:117",
+    "ds-drawer": "calendar.html:40",
+    "ds-drawer__group": "calendar.html:43",
+    "ds-drawer__head": "calendar.html:41",
+    "ds-drawer__heading": "calendar.html:49",
+    "ds-drawer__item": "calendar.html:44",
+    "ds-drawer__label": "calendar.html:44",
+    "ds-drawer__list": "calendar.html:42",
+    "ds-field": "calendar.html:119",
+    "ds-field__label": "calendar.html:120",
+    "ds-fieldset": "calendar.html:89",
+    "ds-form-grid": "calendar.html:131",
+    "ds-form-grid--2": "calendar.html:131",
+    "ds-gap-1": "calendar.html:101",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-input": "calendar.html:121",
+    "ds-lg": "calendar.html:31",
+    "ds-list": "calendar.html:106",
+    "ds-list--interactive": "calendar.html:106",
+    "ds-list__action": "calendar.html:233",
+    "ds-list__group": "calendar.html:227",
+    "ds-list__heading": "calendar.html:227",
+    "ds-list__item": "calendar.html:229",
+    "ds-list__meta": "calendar.html:229",
+    "ds-list__text": "calendar.html:229",
+    "ds-list__title": "calendar.html:233",
+    "ds-menu": "calendar.html:30",
+    "ds-menu__divider": "calendar.html:32",
+    "ds-menu__item": "calendar.html:33",
+    "ds-menu__label": "calendar.html:33",
+    "ds-page": "calendar.html:68",
+    "ds-page-head": "calendar.html:69",
+    "ds-page-head__actions": "calendar.html:75",
+    "ds-page-head__lead": "calendar.html:73",
+    "ds-page-head__row": "calendar.html:70",
+    "ds-page-head__text": "calendar.html:71",
+    "ds-page-head__title": "calendar.html:72",
+    "ds-panel": "calendar.html:65",
+    "ds-picker": "calendar.html:125",
+    "ds-scrim": "calendar.html:39",
+    "ds-skip": "calendar.html:19",
+    "ds-sm": "calendar.html:154",
+    "ds-spinner": "calendar.html:154",
+    "ds-spinner--ink": "calendar.html:154",
+    "ds-split": "calendar.html:81",
+    "ds-split__main": "calendar.html:98",
+    "ds-split__side": "calendar.html:82",
+    "ds-sr": "calendar.html:90",
+    "ds-stack": "calendar.html:82",
+    "ds-tag": "calendar.html:162",
+    "ds-theme": "calendar.html:2",
+    "ds-toasts": "calendar.html:159",
+    "ds-tone-info": "calendar.html:163",
+    "ds-tone-success": "calendar.html:164",
+    "ds-topbar": "calendar.html:21",
+    "ds-topbar__actions": "calendar.html:24",
+    "ds-topbar__menu": "calendar.html:22",
+    "ds-view": "calendar.html:66"
+  },
+  "unknown": []
+}

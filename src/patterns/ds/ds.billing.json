@@ -1,0 +1,597 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "billing",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.billing.css",
+      "bytes": 373733,
+      "gzip": 55988
+    },
+    "js": {
+      "file": "ds.billing.js",
+      "bytes": 658410,
+      "gzip": 156985
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 35
+    }
+  },
+  "components": [
+    {
+      "name": "layout",
+      "reason": "billing.html:121 ds-cluster",
+      "bytes": 3326,
+      "gzip": 1048
+    },
+    {
+      "name": "utilities",
+      "reason": "billing.html:114 ds-muted",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "spinner",
+      "reason": "billing.html:249 ds-spinner",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by module indicator",
+      "bytes": 2868,
+      "gzip": 619
+    },
+    {
+      "name": "button",
+      "reason": "billing.html:22 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "disclosure",
+      "reason": "pricing.html:110 ds-disclosure-list",
+      "bytes": 3367,
+      "gzip": 1022
+    },
+    {
+      "name": "status",
+      "reason": "billing.html:90 ds-status",
+      "bytes": 3164,
+      "gzip": 921
+    },
+    {
+      "name": "alert",
+      "reason": "billing.html:81 ds-alert",
+      "bytes": 6191,
+      "gzip": 1561
+    },
+    {
+      "name": "chart",
+      "reason": "billing.html:130 ds-meter",
+      "bytes": 23341,
+      "gzip": 4433
+    },
+    {
+      "name": "tile",
+      "reason": "billing.html:125 ds-tiles",
+      "bytes": 6931,
+      "gzip": 1673
+    },
+    {
+      "name": "list",
+      "reason": "billing.html:94 ds-kv-list",
+      "bytes": 18637,
+      "gzip": 3412
+    },
+    {
+      "name": "card",
+      "reason": "billing.html:87 ds-card",
+      "bytes": 16606,
+      "gzip": 2659
+    },
+    {
+      "name": "prose",
+      "reason": "invoice.html:81 ds-prose",
+      "bytes": 10564,
+      "gzip": 1980
+    },
+    {
+      "name": "menu",
+      "reason": "billing.html:30 ds-menu",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "dialog",
+      "reason": "billing.html:226 ds-dialog",
+      "bytes": 15994,
+      "gzip": 2482
+    },
+    {
+      "name": "table",
+      "reason": "billing.html:170 ds-table-wrap",
+      "bytes": 32874,
+      "gzip": 4760
+    },
+    {
+      "name": "form",
+      "reason": "billing.html:231 ds-field",
+      "bytes": 49307,
+      "gzip": 7088
+    },
+    {
+      "name": "drag",
+      "reason": "required by list",
+      "bytes": 8418,
+      "gzip": 1901
+    },
+    {
+      "name": "tooltip",
+      "reason": "billing.html:25 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "billing.html:67 ds-content",
+      "bytes": 8012,
+      "gzip": 2191
+    },
+    {
+      "name": "shell",
+      "reason": "billing.html:18 ds-app",
+      "bytes": 39266,
+      "gzip": 6590
+    },
+    {
+      "name": "toast",
+      "reason": "billing.html:254 ds-toasts",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "text",
+      "reason": "billing.html:241 ds-mono",
+      "bytes": 795,
+      "gzip": 351
+    },
+    {
+      "name": "spacing",
+      "reason": "invoice.html:29 ds-gap-1",
+      "bytes": 866,
+      "gzip": 250
+    },
+    {
+      "name": "sticky",
+      "reason": "invoice.html:18 ds-sticky",
+      "bytes": 2055,
+      "gzip": 623
+    },
+    {
+      "name": "print",
+      "reason": "invoice.html:18 ds-print-hide",
+      "bytes": 1217,
+      "gzip": 573
+    },
+    {
+      "name": "copy",
+      "reason": "required by code",
+      "bytes": 1927,
+      "gzip": 659
+    },
+    {
+      "name": "meter",
+      "reason": "billing.html:131 ds-meter__threshold",
+      "bytes": 6523,
+      "gzip": 1652
+    },
+    {
+      "name": "formatted",
+      "reason": "billing.html:25 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "code",
+      "reason": "required by prose",
+      "bytes": 5372,
+      "gzip": 1386
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "billing.html:269 DS.motion.enterAll"
+    },
+    {
+      "name": "indicator",
+      "reason": "pricing.html:143 DS.indicator.create"
+    },
+    {
+      "name": "dom",
+      "reason": "pricing.html:144 DS.dom.roving"
+    },
+    {
+      "name": "ripple",
+      "reason": "billing.html:263 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "billing.html:261 DS.icons.fill"
+    },
+    {
+      "name": "position",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "overlay",
+      "reason": "billing.html:29 data-ds-open"
+    },
+    {
+      "name": "a11y",
+      "reason": "imported by dialog"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "store",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "virtual",
+      "reason": "needed by list"
+    },
+    {
+      "name": "dnd",
+      "reason": "needed by list"
+    },
+    {
+      "name": "chart",
+      "reason": "needed by chart"
+    },
+    {
+      "name": "dialog",
+      "reason": "billing.html:272 DS.dialog.form"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "list",
+      "reason": "needed by list"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by menu"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "shell",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    }
+  ],
+  "icons": [
+    {
+      "name": "arrowRight",
+      "reason": "billing.html:100"
+    },
+    {
+      "name": "arrowLeft",
+      "reason": "invoice.html:19"
+    },
+    {
+      "name": "chevronDown",
+      "reason": "pricing.html:112"
+    },
+    {
+      "name": "close",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "minimize",
+      "reason": "pricing.html:99"
+    },
+    {
+      "name": "menu",
+      "reason": "billing.html:22"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "used by module page"
+    },
+    {
+      "name": "moreHorizontal",
+      "reason": "used by module shell"
+    },
+    {
+      "name": "grip",
+      "reason": "used by module list"
+    },
+    {
+      "name": "copy",
+      "reason": "used by module list"
+    },
+    {
+      "name": "download",
+      "reason": "billing.html:168"
+    },
+    {
+      "name": "printer",
+      "reason": "invoice.html:21"
+    },
+    {
+      "name": "logout",
+      "reason": "billing.html:34"
+    },
+    {
+      "name": "chat",
+      "reason": "billing.html:51"
+    },
+    {
+      "name": "bell",
+      "reason": "billing.html:58"
+    },
+    {
+      "name": "check",
+      "reason": "billing.html:90"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "alert",
+      "reason": "billing.html:81"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "billing.html:207"
+    },
+    {
+      "name": "info",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "helpCircle",
+      "reason": "billing.html:26"
+    },
+    {
+      "name": "clock",
+      "reason": "billing.html:91"
+    },
+    {
+      "name": "calendar",
+      "reason": "billing.html:53"
+    },
+    {
+      "name": "activity",
+      "reason": "billing.html:154"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "overview",
+      "reason": "billing.html:44"
+    },
+    {
+      "name": "user",
+      "reason": "billing.html:33"
+    },
+    {
+      "name": "users",
+      "reason": "billing.html:127"
+    },
+    {
+      "name": "ticket",
+      "reason": "billing.html:46"
+    },
+    {
+      "name": "folder",
+      "reason": "billing.html:52"
+    },
+    {
+      "name": "box",
+      "reason": "billing.html:23"
+    },
+    {
+      "name": "laptop",
+      "reason": "billing.html:45"
+    },
+    {
+      "name": "hardDrive",
+      "reason": "billing.html:145"
+    },
+    {
+      "name": "table",
+      "reason": "used by module chart"
+    },
+    {
+      "name": "kanban",
+      "reason": "billing.html:54"
+    },
+    {
+      "name": "webhook",
+      "reason": "billing.html:59"
+    },
+    {
+      "name": "creditCard",
+      "reason": "billing.html:60"
+    },
+    {
+      "name": "inbox",
+      "reason": "billing.html:50"
+    }
+  ],
+  "classes": {
+    "ds-account": "billing.html:28",
+    "ds-account__avatar": "billing.html:29",
+    "ds-account__email": "billing.html:31",
+    "ds-account__head": "billing.html:31",
+    "ds-account__menu": "billing.html:30",
+    "ds-account__name": "billing.html:31",
+    "ds-account__trigger": "billing.html:29",
+    "ds-alert": "billing.html:81",
+    "ds-alert__text": "billing.html:82",
+    "ds-app": "billing.html:18",
+    "ds-app--drawer": "billing.html:18",
+    "ds-balance": "pricing.html:27",
+    "ds-base": "billing.html:2",
+    "ds-brand": "billing.html:23",
+    "ds-brand__name": "billing.html:23",
+    "ds-btn": "billing.html:22",
+    "ds-btn--block": "pricing.html:43",
+    "ds-btn--filled": "billing.html:76",
+    "ds-btn--icon": "billing.html:22",
+    "ds-btn--quiet": "billing.html:22",
+    "ds-btn--text": "billing.html:83",
+    "ds-btn--tonal": "invoice.html:21",
+    "ds-btn__face": "billing.html:248",
+    "ds-btn__face--busy": "billing.html:249",
+    "ds-btn__faces": "billing.html:248",
+    "ds-card": "billing.html:87",
+    "ds-card--elevated": "pricing.html:52",
+    "ds-card__link": "billing.html:100",
+    "ds-card__links": "billing.html:99",
+    "ds-card__row": "billing.html:88",
+    "ds-card__title": "billing.html:89",
+    "ds-center": "pricing.html:26",
+    "ds-chevron": "pricing.html:112",
+    "ds-cluster": "billing.html:121",
+    "ds-cluster--baseline": "billing.html:121",
+    "ds-cluster--between": "billing.html:121",
+    "ds-cluster--center": "pricing.html:29",
+    "ds-cluster--top": "invoice.html:27",
+    "ds-col--secondary": "billing.html:176",
+    "ds-col--text": "invoice.html:55",
+    "ds-collapsible": "pricing.html:111",
+    "ds-content": "billing.html:67",
+    "ds-dialog": "billing.html:226",
+    "ds-dialog__actions": "billing.html:245",
+    "ds-dialog__backdrop": "billing.html:227",
+    "ds-dialog__body": "billing.html:230",
+    "ds-dialog__box": "billing.html:228",
+    "ds-dialog__title": "billing.html:229",
+    "ds-disclosure": "pricing.html:111",
+    "ds-disclosure--row": "pricing.html:111",
+    "ds-disclosure-list": "pricing.html:110",
+    "ds-disclosure__body": "pricing.html:113",
+    "ds-disclosure__title": "pricing.html:112",
+    "ds-drawer": "billing.html:40",
+    "ds-drawer__group": "billing.html:43",
+    "ds-drawer__head": "billing.html:41",
+    "ds-drawer__heading": "billing.html:49",
+    "ds-drawer__item": "billing.html:44",
+    "ds-drawer__label": "billing.html:44",
+    "ds-drawer__list": "billing.html:42",
+    "ds-facts": "invoice.html:35",
+    "ds-facts--grid": "invoice.html:35",
+    "ds-field": "billing.html:231",
+    "ds-field__hint": "billing.html:242",
+    "ds-field__label": "billing.html:232",
+    "ds-field__optional": "billing.html:240",
+    "ds-gap-1": "invoice.html:29",
+    "ds-grid": "pricing.html:38",
+    "ds-grid--max-3": "pricing.html:38",
+    "ds-grid-2": "billing.html:86",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-input": "billing.html:233",
+    "ds-kv-list": "billing.html:94",
+    "ds-lg": "billing.html:31",
+    "ds-measure": "pricing.html:26",
+    "ds-menu": "billing.html:30",
+    "ds-menu__divider": "billing.html:32",
+    "ds-menu__item": "billing.html:33",
+    "ds-menu__label": "billing.html:33",
+    "ds-meta": "billing.html:116",
+    "ds-meter": "billing.html:130",
+    "ds-meter__threshold": "billing.html:131",
+    "ds-mono": "billing.html:241",
+    "ds-muted": "billing.html:114",
+    "ds-nowrap": "billing.html:182",
+    "ds-num": "billing.html:177",
+    "ds-page": "billing.html:68",
+    "ds-page-head": "billing.html:69",
+    "ds-page-head__actions": "billing.html:75",
+    "ds-page-head__lead": "billing.html:73",
+    "ds-page-head__row": "billing.html:70",
+    "ds-page-head__text": "billing.html:71",
+    "ds-page-head__title": "billing.html:72",
+    "ds-panel": "billing.html:65",
+    "ds-plain-list": "pricing.html:44",
+    "ds-print-avoid": "invoice.html:73",
+    "ds-print-hide": "invoice.html:18",
+    "ds-print-only": "invoice.html:88",
+    "ds-print-page": "invoice.html:26",
+    "ds-prose": "invoice.html:81",
+    "ds-push": "pricing.html:20",
+    "ds-scrim": "billing.html:39",
+    "ds-segmented": "pricing.html:30",
+    "ds-segmented__indicator": "pricing.html:143",
+    "ds-segmented__option": "pricing.html:31",
+    "ds-skip": "billing.html:19",
+    "ds-sm": "billing.html:83",
+    "ds-spinner": "billing.html:249",
+    "ds-spinner--ink": "billing.html:249",
+    "ds-sr": "billing.html:172",
+    "ds-stack": "billing.html:120",
+    "ds-status": "billing.html:90",
+    "ds-sticky": "invoice.html:18",
+    "ds-sticky--head": "invoice.html:18",
+    "ds-table": "billing.html:171",
+    "ds-table--pin-first": "pricing.html:86",
+    "ds-table-wrap": "billing.html:170",
+    "ds-tag": "pricing.html:34",
+    "ds-theme": "billing.html:2",
+    "ds-tile": "billing.html:126",
+    "ds-tile__figure": "billing.html:128",
+    "ds-tile__label": "billing.html:127",
+    "ds-tile__target": "billing.html:129",
+    "ds-tile__target-text": "billing.html:132",
+    "ds-tile__unit": "billing.html:128",
+    "ds-tile__value": "billing.html:128",
+    "ds-tiles": "billing.html:125",
+    "ds-toasts": "billing.html:254",
+    "ds-tone-error": "billing.html:207",
+    "ds-tone-success": "billing.html:90",
+    "ds-tone-warning": "billing.html:81",
+    "ds-topbar": "billing.html:21",
+    "ds-topbar__actions": "billing.html:24",
+    "ds-topbar__menu": "billing.html:22",
+    "ds-view": "billing.html:66"
+  },
+  "unknown": []
+}

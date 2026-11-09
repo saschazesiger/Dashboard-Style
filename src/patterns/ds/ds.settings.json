@@ -7,17 +7,17 @@
   "files": {
     "css": {
       "file": "ds.settings.css",
-      "bytes": 251310,
-      "gzip": 39393
+      "bytes": 284184,
+      "gzip": 43392
     },
     "js": {
       "file": "ds.settings.js",
-      "bytes": 516718,
-      "gzip": 123010
+      "bytes": 518511,
+      "gzip": 123693
     },
     "properties": {
       "file": "properties.css",
-      "count": 30
+      "count": 34
     }
   },
   "components": [
@@ -29,13 +29,13 @@
     },
     {
       "name": "utilities",
-      "reason": "pt.js:57 ds-icon--fillable",
+      "reason": "notification-settings.html:75 ds-sr",
       "bytes": 5326,
       "gzip": 1448
     },
     {
       "name": "spinner",
-      "reason": "settings.html:209 ds-spinner",
+      "reason": "notification-settings.html:210 ds-spinner",
       "bytes": 3235,
       "gzip": 901
     },
@@ -47,7 +47,7 @@
     },
     {
       "name": "button",
-      "reason": "settings.html:22 ds-btn",
+      "reason": "notification-settings.html:22 ds-btn",
       "bytes": 15255,
       "gzip": 2524
     },
@@ -59,43 +59,49 @@
     },
     {
       "name": "switch",
-      "reason": "settings.html:120 ds-switch-list",
+      "reason": "notification-settings.html:83 ds-switch",
       "bytes": 13984,
       "gzip": 2262
     },
     {
       "name": "card",
-      "reason": "settings.html:84 ds-card",
+      "reason": "notification-settings.html:74 ds-card",
       "bytes": 16606,
       "gzip": 2659
     },
     {
       "name": "menu",
-      "reason": "settings.html:30 ds-menu",
+      "reason": "notification-settings.html:30 ds-menu",
       "bytes": 8287,
       "gzip": 2087
     },
     {
+      "name": "table",
+      "reason": "notification-settings.html:112 ds-table-wrap",
+      "bytes": 32874,
+      "gzip": 4760
+    },
+    {
       "name": "form",
-      "reason": "settings.html:81 ds-form",
+      "reason": "notification-settings.html:74 ds-form",
       "bytes": 49307,
       "gzip": 7088
     },
     {
       "name": "tooltip",
-      "reason": "settings.html:25 data-tip",
+      "reason": "notification-settings.html:25 data-tip",
       "bytes": 2413,
       "gzip": 811
     },
     {
       "name": "page",
-      "reason": "settings.html:61 ds-content",
+      "reason": "notification-settings.html:67 ds-content",
       "bytes": 8012,
       "gzip": 2191
     },
     {
       "name": "shell",
-      "reason": "settings.html:18 ds-app",
+      "reason": "notification-settings.html:18 ds-app",
       "bytes": 39266,
       "gzip": 6590
     },
@@ -107,19 +113,19 @@
     },
     {
       "name": "savebar",
-      "reason": "settings.html:202 ds-savebar",
+      "reason": "notification-settings.html:203 ds-savebar",
       "bytes": 3147,
       "gzip": 958
     },
     {
       "name": "unsaved",
-      "reason": "settings.html:204 ds-unsaved__count",
+      "reason": "notification-settings.html:205 ds-unsaved__count",
       "bytes": 127,
       "gzip": 130
     },
     {
       "name": "formatted",
-      "reason": "settings.html:25 data-tip",
+      "reason": "notification-settings.html:25 data-tip",
       "bytes": 596,
       "gzip": 300
     },
@@ -151,15 +157,15 @@
     },
     {
       "name": "dom",
-      "reason": "needed by toast"
+      "reason": "needed by table"
     },
     {
       "name": "ripple",
-      "reason": "settings.html:226 DS.ripple.attach"
+      "reason": "notification-settings.html:225 DS.ripple.attach"
     },
     {
       "name": "icons",
-      "reason": "pt.js:16 DS.icons"
+      "reason": "notification-settings.html:223 DS.icons.fill"
     },
     {
       "name": "position",
@@ -167,7 +173,7 @@
     },
     {
       "name": "overlay",
-      "reason": "settings.html:29 data-ds-open"
+      "reason": "notification-settings.html:29 data-ds-open"
     },
     {
       "name": "a11y",
@@ -233,7 +239,7 @@
     },
     {
       "name": "menu",
-      "reason": "settings.html:22"
+      "reason": "notification-settings.html:22"
     },
     {
       "name": "moreVertical",
@@ -249,7 +255,15 @@
     },
     {
       "name": "logout",
-      "reason": "settings.html:34"
+      "reason": "notification-settings.html:34"
+    },
+    {
+      "name": "chat",
+      "reason": "notification-settings.html:51"
+    },
+    {
+      "name": "bell",
+      "reason": "notification-settings.html:58"
     },
     {
       "name": "checkCircle",
@@ -265,7 +279,11 @@
     },
     {
       "name": "helpCircle",
-      "reason": "settings.html:26"
+      "reason": "notification-settings.html:26"
+    },
+    {
+      "name": "calendar",
+      "reason": "notification-settings.html:53"
     },
     {
       "name": "moon",
@@ -273,7 +291,7 @@
     },
     {
       "name": "overview",
-      "reason": "settings.html:44"
+      "reason": "notification-settings.html:44"
     },
     {
       "name": "settings",
@@ -289,19 +307,43 @@
     },
     {
       "name": "user",
-      "reason": "settings.html:33"
+      "reason": "notification-settings.html:33"
     },
     {
       "name": "users",
       "reason": "settings.html:51"
     },
     {
+      "name": "ticket",
+      "reason": "notification-settings.html:46"
+    },
+    {
+      "name": "folder",
+      "reason": "notification-settings.html:52"
+    },
+    {
       "name": "box",
-      "reason": "settings.html:23"
+      "reason": "notification-settings.html:23"
     },
     {
       "name": "laptop",
-      "reason": "settings.html:45"
+      "reason": "notification-settings.html:45"
+    },
+    {
+      "name": "kanban",
+      "reason": "notification-settings.html:54"
+    },
+    {
+      "name": "webhook",
+      "reason": "notification-settings.html:59"
+    },
+    {
+      "name": "creditCard",
+      "reason": "notification-settings.html:60"
+    },
+    {
+      "name": "inbox",
+      "reason": "notification-settings.html:50"
     },
     {
       "name": "puzzle",
@@ -309,93 +351,103 @@
     }
   ],
   "classes": {
-    "ds-account": "settings.html:28",
-    "ds-account__avatar": "settings.html:29",
-    "ds-account__email": "settings.html:31",
-    "ds-account__head": "settings.html:31",
-    "ds-account__menu": "settings.html:30",
-    "ds-account__name": "settings.html:31",
-    "ds-account__trigger": "settings.html:29",
-    "ds-app": "settings.html:18",
-    "ds-app--drawer": "settings.html:18",
-    "ds-base": "settings.html:2",
-    "ds-brand": "settings.html:23",
-    "ds-brand__name": "settings.html:23",
-    "ds-btn": "settings.html:22",
-    "ds-btn--filled": "settings.html:207",
-    "ds-btn--icon": "settings.html:22",
-    "ds-btn--quiet": "settings.html:22",
-    "ds-btn--text": "settings.html:195",
-    "ds-btn__face": "settings.html:208",
-    "ds-btn__face--busy": "settings.html:209",
-    "ds-btn__faces": "settings.html:208",
-    "ds-card": "settings.html:84",
+    "ds-account": "notification-settings.html:28",
+    "ds-account__avatar": "notification-settings.html:29",
+    "ds-account__email": "notification-settings.html:31",
+    "ds-account__head": "notification-settings.html:31",
+    "ds-account__menu": "notification-settings.html:30",
+    "ds-account__name": "notification-settings.html:31",
+    "ds-account__trigger": "notification-settings.html:29",
+    "ds-app": "notification-settings.html:18",
+    "ds-app--drawer": "notification-settings.html:18",
+    "ds-base": "notification-settings.html:2",
+    "ds-brand": "notification-settings.html:23",
+    "ds-brand__name": "notification-settings.html:23",
+    "ds-btn": "notification-settings.html:22",
+    "ds-btn--filled": "notification-settings.html:208",
+    "ds-btn--icon": "notification-settings.html:22",
+    "ds-btn--quiet": "notification-settings.html:22",
+    "ds-btn--text": "notification-settings.html:207",
+    "ds-btn__face": "notification-settings.html:209",
+    "ds-btn__face--busy": "notification-settings.html:210",
+    "ds-btn__faces": "notification-settings.html:209",
+    "ds-card": "notification-settings.html:74",
     "ds-card__link": "settings.html:195",
     "ds-card__links": "settings.html:194",
     "ds-card__title": "settings.html:85",
-    "ds-content": "settings.html:61",
-    "ds-drawer": "settings.html:40",
-    "ds-drawer__group": "settings.html:43",
-    "ds-drawer__head": "settings.html:41",
-    "ds-drawer__heading": "settings.html:49",
-    "ds-drawer__item": "settings.html:44",
-    "ds-drawer__label": "settings.html:44",
-    "ds-drawer__list": "settings.html:42",
-    "ds-field": "settings.html:87",
+    "ds-check": "notification-settings.html:125",
+    "ds-content": "notification-settings.html:67",
+    "ds-density-compact": "notification-settings.html:113",
+    "ds-drawer": "notification-settings.html:40",
+    "ds-drawer__group": "notification-settings.html:43",
+    "ds-drawer__head": "notification-settings.html:41",
+    "ds-drawer__heading": "notification-settings.html:49",
+    "ds-drawer__item": "notification-settings.html:44",
+    "ds-drawer__label": "notification-settings.html:44",
+    "ds-drawer__list": "notification-settings.html:42",
+    "ds-field": "notification-settings.html:174",
     "ds-field--full": "settings.html:184",
     "ds-field__changed": "settings.html:88",
-    "ds-field__hint": "settings.html:90",
+    "ds-field__hint": "notification-settings.html:89",
     "ds-field__hint--error": "settings.html:234",
-    "ds-field__label": "settings.html:88",
-    "ds-form": "settings.html:81",
-    "ds-form-grid": "settings.html:86",
-    "ds-form-grid--2": "settings.html:86",
+    "ds-field__label": "notification-settings.html:175",
+    "ds-form": "notification-settings.html:74",
+    "ds-form-grid": "notification-settings.html:188",
+    "ds-form-grid--2": "notification-settings.html:188",
+    "ds-form-section": "notification-settings.html:77",
+    "ds-form-section--columns": "notification-settings.html:77",
+    "ds-form-section__body": "notification-settings.html:82",
+    "ds-form-section__head": "notification-settings.html:78",
+    "ds-form-section__text": "notification-settings.html:80",
+    "ds-form-section__title": "notification-settings.html:79",
     "ds-icon--fillable": "pt.js:57",
-    "ds-input": "settings.html:89",
+    "ds-input": "notification-settings.html:191",
     "ds-input-group": "settings.html:94",
     "ds-input-group__prefix": "settings.html:95",
-    "ds-lg": "settings.html:31",
-    "ds-menu": "settings.html:30",
-    "ds-menu__divider": "settings.html:32",
-    "ds-menu__item": "settings.html:33",
-    "ds-menu__label": "settings.html:33",
+    "ds-lg": "notification-settings.html:31",
+    "ds-menu": "notification-settings.html:30",
+    "ds-menu__divider": "notification-settings.html:32",
+    "ds-menu__item": "notification-settings.html:33",
+    "ds-menu__label": "notification-settings.html:33",
     "ds-muted": "settings.html:119",
-    "ds-page": "settings.html:62",
-    "ds-page-head": "settings.html:63",
-    "ds-page-head__lead": "settings.html:65",
-    "ds-page-head__title": "settings.html:64",
-    "ds-panel": "settings.html:59",
-    "ds-presence": "settings.html:203",
-    "ds-radio": "settings.html:187",
-    "ds-radios": "settings.html:186",
-    "ds-savebar": "settings.html:202",
-    "ds-savebar__actions": "settings.html:205",
-    "ds-savebar__bar": "settings.html:203",
-    "ds-savebar__text": "settings.html:204",
-    "ds-scrim": "settings.html:39",
-    "ds-skip": "settings.html:19",
-    "ds-sm": "settings.html:209",
-    "ds-spinner": "settings.html:209",
-    "ds-spinner--ink": "settings.html:209",
+    "ds-page": "notification-settings.html:68",
+    "ds-page-head": "notification-settings.html:69",
+    "ds-page-head__lead": "notification-settings.html:71",
+    "ds-page-head__title": "notification-settings.html:70",
+    "ds-panel": "notification-settings.html:65",
+    "ds-presence": "notification-settings.html:204",
+    "ds-radio": "notification-settings.html:177",
+    "ds-radios": "notification-settings.html:176",
+    "ds-savebar": "notification-settings.html:203",
+    "ds-savebar__actions": "notification-settings.html:206",
+    "ds-savebar__bar": "notification-settings.html:204",
+    "ds-savebar__text": "notification-settings.html:205",
+    "ds-scrim": "notification-settings.html:39",
+    "ds-skip": "notification-settings.html:19",
+    "ds-sm": "notification-settings.html:210",
+    "ds-spinner": "notification-settings.html:210",
+    "ds-spinner--ink": "notification-settings.html:210",
     "ds-split": "settings.html:68",
     "ds-split--stretch": "settings.html:68",
     "ds-split__main": "settings.html:81",
     "ds-split__side": "settings.html:69",
-    "ds-sr": "settings.html:82",
+    "ds-sr": "notification-settings.html:75",
     "ds-stack": "settings.html:81",
-    "ds-switch": "settings.html:121",
+    "ds-switch": "notification-settings.html:83",
     "ds-switch--locked": "settings.html:156",
     "ds-switch-list": "settings.html:120",
     "ds-switch__hint": "settings.html:125",
     "ds-switch__icon": "settings.html:158",
-    "ds-switch__label": "settings.html:124",
+    "ds-switch__label": "notification-settings.html:86",
     "ds-switch__meta": "settings.html:133",
-    "ds-switch__off": "settings.html:126",
-    "ds-switch__on": "settings.html:126",
-    "ds-switch__state": "settings.html:126",
-    "ds-switch__track": "settings.html:123",
+    "ds-switch__off": "notification-settings.html:87",
+    "ds-switch__on": "notification-settings.html:87",
+    "ds-switch__state": "notification-settings.html:87",
+    "ds-switch__track": "notification-settings.html:85",
+    "ds-table": "notification-settings.html:113",
+    "ds-table-wrap": "notification-settings.html:112",
     "ds-tag": "settings.html:133",
-    "ds-theme": "settings.html:2",
+    "ds-theme": "notification-settings.html:2",
     "ds-toasts": "settings.html:217",
     "ds-toc": "settings.html:70",
     "ds-toc--sticky": "settings.html:70",
@@ -403,11 +455,11 @@
     "ds-toc__list": "settings.html:72",
     "ds-toc__title": "settings.html:71",
     "ds-tone-neutral": "settings.html:133",
-    "ds-topbar": "settings.html:21",
-    "ds-topbar__actions": "settings.html:24",
-    "ds-topbar__menu": "settings.html:22",
-    "ds-unsaved__count": "settings.html:204",
-    "ds-view": "settings.html:60"
+    "ds-topbar": "notification-settings.html:21",
+    "ds-topbar__actions": "notification-settings.html:24",
+    "ds-topbar__menu": "notification-settings.html:22",
+    "ds-unsaved__count": "notification-settings.html:205",
+    "ds-view": "notification-settings.html:66"
   },
   "unknown": []
 }

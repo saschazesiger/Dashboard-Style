@@ -1,0 +1,421 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "public",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.public.css",
+      "bytes": 302101,
+      "gzip": 46620
+    },
+    "js": {
+      "file": "ds.public.js",
+      "bytes": 532432,
+      "gzip": 126397
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 31
+    }
+  },
+  "components": [
+    {
+      "name": "layout",
+      "reason": "changelog.html:20 ds-push",
+      "bytes": 3326,
+      "gzip": 1048
+    },
+    {
+      "name": "utilities",
+      "reason": "changelog.html:51 ds-sr",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "spinner",
+      "reason": "status-page.html:123 ds-spinner",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by module indicator",
+      "bytes": 2868,
+      "gzip": 619
+    },
+    {
+      "name": "button",
+      "reason": "changelog.html:20 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "timeline",
+      "reason": "status-page.html:38 ds-timeline",
+      "bytes": 5511,
+      "gzip": 1367
+    },
+    {
+      "name": "status",
+      "reason": "changelog.html:66 ds-tag",
+      "bytes": 3164,
+      "gzip": 921
+    },
+    {
+      "name": "alert",
+      "reason": "status-page.html:32 ds-alert",
+      "bytes": 6191,
+      "gzip": 1561
+    },
+    {
+      "name": "chart",
+      "reason": "required by list",
+      "bytes": 23341,
+      "gzip": 4433
+    },
+    {
+      "name": "list",
+      "reason": "changelog.html:65 ds-plain-list",
+      "bytes": 18637,
+      "gzip": 3412
+    },
+    {
+      "name": "card",
+      "reason": "changelog.html:57 ds-card",
+      "bytes": 16606,
+      "gzip": 2659
+    },
+    {
+      "name": "prose",
+      "reason": "changelog.html:62 ds-prose",
+      "bytes": 10564,
+      "gzip": 1980
+    },
+    {
+      "name": "menu",
+      "reason": "needed by module menu",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "chip",
+      "reason": "changelog.html:50 ds-chips",
+      "bytes": 8706,
+      "gzip": 1866
+    },
+    {
+      "name": "dialog",
+      "reason": "status-page.html:108 ds-dialog",
+      "bytes": 15994,
+      "gzip": 2482
+    },
+    {
+      "name": "form",
+      "reason": "status-page.html:114 ds-field",
+      "bytes": 49307,
+      "gzip": 7088
+    },
+    {
+      "name": "drag",
+      "reason": "required by list",
+      "bytes": 8418,
+      "gzip": 1901
+    },
+    {
+      "name": "tooltip",
+      "reason": "changelog.html:21 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "changelog.html:24 ds-content",
+      "bytes": 8012,
+      "gzip": 2191
+    },
+    {
+      "name": "toast",
+      "reason": "status-page.html:128 ds-toasts",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "copy",
+      "reason": "required by code",
+      "bytes": 1927,
+      "gzip": 659
+    },
+    {
+      "name": "formatted",
+      "reason": "changelog.html:21 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "tracker",
+      "reason": "status-page.html:63 ds-tracker__legend",
+      "bytes": 2658,
+      "gzip": 922
+    },
+    {
+      "name": "code",
+      "reason": "required by prose",
+      "bytes": 5372,
+      "gzip": 1386
+    },
+    {
+      "name": "toc",
+      "reason": "changelog.html:39 ds-toc",
+      "bytes": 5389,
+      "gzip": 1475
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "imported by ripple"
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by toc"
+    },
+    {
+      "name": "dom",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "ripple",
+      "reason": "changelog.html:123 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "changelog.html:121 DS.icons.fill"
+    },
+    {
+      "name": "position",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "overlay",
+      "reason": "changelog.html:139 DS.overlay.announce"
+    },
+    {
+      "name": "a11y",
+      "reason": "imported by tracker"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "virtual",
+      "reason": "needed by list"
+    },
+    {
+      "name": "dnd",
+      "reason": "needed by list"
+    },
+    {
+      "name": "dialog",
+      "reason": "status-page.html:186 DS.dialog.form"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "list",
+      "reason": "needed by list"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by page"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "toc",
+      "reason": "needed by toc"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    },
+    {
+      "name": "tracker",
+      "reason": "status-page.html:173 DS.tracker.counts"
+    }
+  ],
+  "icons": [
+    {
+      "name": "close",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "used by module page"
+    },
+    {
+      "name": "grip",
+      "reason": "used by module list"
+    },
+    {
+      "name": "copy",
+      "reason": "used by module list"
+    },
+    {
+      "name": "bell",
+      "reason": "status-page.html:20"
+    },
+    {
+      "name": "check",
+      "reason": "changelog.html:52"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "alert",
+      "reason": "status-page.html:32"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "used by module dialog"
+    },
+    {
+      "name": "info",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "activity",
+      "reason": "status-page.html:42"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "box",
+      "reason": "changelog.html:19"
+    },
+    {
+      "name": "wrench",
+      "reason": "status-page.html:89"
+    },
+    {
+      "name": "newspaper",
+      "reason": "changelog.html:33"
+    }
+  ],
+  "classes": {
+    "ds-alert": "status-page.html:32",
+    "ds-alert__text": "status-page.html:33",
+    "ds-alert__title": "status-page.html:34",
+    "ds-base": "changelog.html:2",
+    "ds-btn": "changelog.html:20",
+    "ds-btn--filled": "status-page.html:121",
+    "ds-btn--icon": "changelog.html:21",
+    "ds-btn--quiet": "changelog.html:21",
+    "ds-btn--text": "changelog.html:20",
+    "ds-btn__face": "status-page.html:122",
+    "ds-btn__face--busy": "status-page.html:123",
+    "ds-btn__faces": "status-page.html:122",
+    "ds-card": "changelog.html:57",
+    "ds-card__row": "changelog.html:58",
+    "ds-card__title": "changelog.html:59",
+    "ds-chip": "changelog.html:52",
+    "ds-chip__body": "changelog.html:52",
+    "ds-chip__check": "changelog.html:52",
+    "ds-chip__input": "changelog.html:52",
+    "ds-chips": "changelog.html:50",
+    "ds-content": "changelog.html:24",
+    "ds-dialog": "status-page.html:108",
+    "ds-dialog__actions": "status-page.html:119",
+    "ds-dialog__backdrop": "status-page.html:109",
+    "ds-dialog__body": "status-page.html:112",
+    "ds-dialog__box": "status-page.html:110",
+    "ds-dialog__title": "status-page.html:111",
+    "ds-field": "status-page.html:114",
+    "ds-field__label": "status-page.html:115",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-input": "status-page.html:116",
+    "ds-meta": "changelog.html:60",
+    "ds-page": "changelog.html:25",
+    "ds-page-head": "changelog.html:26",
+    "ds-page-head__actions": "changelog.html:32",
+    "ds-page-head__lead": "changelog.html:30",
+    "ds-page-head__row": "changelog.html:27",
+    "ds-page-head__text": "changelog.html:28",
+    "ds-page-head__title": "changelog.html:29",
+    "ds-plain-list": "changelog.html:65",
+    "ds-prose": "changelog.html:62",
+    "ds-push": "changelog.html:20",
+    "ds-sm": "status-page.html:123",
+    "ds-spinner": "status-page.html:123",
+    "ds-spinner--ink": "status-page.html:123",
+    "ds-split": "changelog.html:38",
+    "ds-split__main": "changelog.html:49",
+    "ds-split__side": "changelog.html:39",
+    "ds-sr": "changelog.html:51",
+    "ds-stack": "changelog.html:49",
+    "ds-stack--page": "changelog.html:49",
+    "ds-status": "status-page.html:42",
+    "ds-tag": "changelog.html:66",
+    "ds-theme": "changelog.html:2",
+    "ds-timeline": "status-page.html:38",
+    "ds-timeline__day": "status-page.html:76",
+    "ds-timeline__group": "status-page.html:76",
+    "ds-timeline__head": "status-page.html:40",
+    "ds-timeline__item": "status-page.html:39",
+    "ds-timeline__item--muted": "status-page.html:86",
+    "ds-timeline__meta": "status-page.html:44",
+    "ds-timeline__text": "status-page.html:45",
+    "ds-timeline__title": "status-page.html:41",
+    "ds-toasts": "status-page.html:128",
+    "ds-toc": "changelog.html:39",
+    "ds-toc--sticky": "changelog.html:39",
+    "ds-toc__link": "changelog.html:42",
+    "ds-toc__list": "changelog.html:41",
+    "ds-toc__title": "changelog.html:40",
+    "ds-tone-info": "changelog.html:68",
+    "ds-tone-neutral": "changelog.html:69",
+    "ds-tone-success": "changelog.html:66",
+    "ds-tone-warning": "status-page.html:32",
+    "ds-tracker": "status-page.html:131",
+    "ds-tracker__axis": "status-page.html:137",
+    "ds-tracker__cell": "status-page.html:64",
+    "ds-tracker__cell--error": "status-page.html:67",
+    "ds-tracker__cell--info": "status-page.html:65",
+    "ds-tracker__cell--success": "status-page.html:64",
+    "ds-tracker__cell--warning": "status-page.html:66",
+    "ds-tracker__cells": "status-page.html:136",
+    "ds-tracker__head": "status-page.html:132",
+    "ds-tracker__label": "status-page.html:133",
+    "ds-tracker__legend": "status-page.html:63",
+    "ds-tracker__summary": "status-page.html:134"
+  },
+  "unknown": []
+}

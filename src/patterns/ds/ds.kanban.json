@@ -1,0 +1,437 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.6",
+  "entry": "kanban",
+  "minify": true,
+  "js": "classic",
+  "files": {
+    "css": {
+      "file": "ds.kanban.css",
+      "bytes": 270230,
+      "gzip": 42266
+    },
+    "js": {
+      "file": "ds.kanban.js",
+      "bytes": 554509,
+      "gzip": 130983
+    },
+    "properties": {
+      "file": "properties.css",
+      "count": 30
+    }
+  },
+  "components": [
+    {
+      "name": "layout",
+      "reason": "kanban.html:131 ds-cluster",
+      "bytes": 3326,
+      "gzip": 1048
+    },
+    {
+      "name": "utilities",
+      "reason": "kanban.html:147 ds-sr",
+      "bytes": 5326,
+      "gzip": 1448
+    },
+    {
+      "name": "scroller",
+      "reason": "kanban.html:81 ds-scroll-x",
+      "bytes": 3876,
+      "gzip": 991
+    },
+    {
+      "name": "spinner",
+      "reason": "needed by DS.overlay.prompt (kanban.html:193)",
+      "bytes": 3235,
+      "gzip": 901
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by module indicator",
+      "bytes": 2868,
+      "gzip": 619
+    },
+    {
+      "name": "button",
+      "reason": "kanban.html:22 ds-btn",
+      "bytes": 15255,
+      "gzip": 2524
+    },
+    {
+      "name": "status",
+      "reason": "kanban.html:90 ds-tag",
+      "bytes": 3164,
+      "gzip": 921
+    },
+    {
+      "name": "card",
+      "reason": "kanban.html:130 ds-card",
+      "bytes": 16606,
+      "gzip": 2659
+    },
+    {
+      "name": "menu",
+      "reason": "kanban.html:30 ds-menu",
+      "bytes": 8287,
+      "gzip": 2087
+    },
+    {
+      "name": "badge",
+      "reason": "kanban.html:146 ds-badge",
+      "bytes": 3754,
+      "gzip": 964
+    },
+    {
+      "name": "dialog",
+      "reason": "needed by DS.overlay.prompt (kanban.html:193)",
+      "bytes": 15994,
+      "gzip": 2482
+    },
+    {
+      "name": "form",
+      "reason": "needed by DS.overlay.prompt (kanban.html:193)",
+      "bytes": 49307,
+      "gzip": 7088
+    },
+    {
+      "name": "drag",
+      "reason": "kanban.html:133 ds-grip",
+      "bytes": 8418,
+      "gzip": 1901
+    },
+    {
+      "name": "tooltip",
+      "reason": "kanban.html:25 data-tip",
+      "bytes": 2413,
+      "gzip": 811
+    },
+    {
+      "name": "page",
+      "reason": "kanban.html:67 ds-content",
+      "bytes": 8012,
+      "gzip": 2191
+    },
+    {
+      "name": "shell",
+      "reason": "kanban.html:18 ds-app",
+      "bytes": 39266,
+      "gzip": 6590
+    },
+    {
+      "name": "toast",
+      "reason": "kanban.html:87 ds-toasts",
+      "bytes": 5272,
+      "gzip": 1486
+    },
+    {
+      "name": "formatted",
+      "reason": "kanban.html:25 data-tip",
+      "bytes": 596,
+      "gzip": 300
+    },
+    {
+      "name": "truncate",
+      "reason": "kanban.html:132 ds-truncate",
+      "bytes": 510,
+      "gzip": 283
+    },
+    {
+      "name": "presence",
+      "reason": "needed by module avatar",
+      "bytes": 1438,
+      "gzip": 558
+    },
+    {
+      "name": "avatar",
+      "reason": "kanban.html:136 ds-avatar",
+      "bytes": 5871,
+      "gzip": 1523
+    },
+    {
+      "name": "persona",
+      "reason": "kanban.html:136 ds-persona",
+      "bytes": 1710,
+      "gzip": 604
+    },
+    {
+      "name": "ripple",
+      "reason": "needed by module ripple",
+      "bytes": 14615,
+      "gzip": 1422
+    }
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "reason": "always included"
+    },
+    {
+      "name": "motion",
+      "reason": "kanban.html:197 DS.motion.flip"
+    },
+    {
+      "name": "indicator",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "dom",
+      "reason": "kanban.html:150 DS.dom.morphHtml"
+    },
+    {
+      "name": "ripple",
+      "reason": "kanban.html:101 DS.ripple.attach"
+    },
+    {
+      "name": "icons",
+      "reason": "kanban.html:99 DS.icons.fill"
+    },
+    {
+      "name": "position",
+      "reason": "imported by overlay"
+    },
+    {
+      "name": "overlay",
+      "reason": "kanban.html:29 data-ds-open"
+    },
+    {
+      "name": "a11y",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "format",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "store",
+      "reason": "imported by shell"
+    },
+    {
+      "name": "dnd",
+      "reason": "kanban.html:169 DS.dnd.create"
+    },
+    {
+      "name": "avatar",
+      "reason": "needed by avatar"
+    },
+    {
+      "name": "badge",
+      "reason": "needed by badge"
+    },
+    {
+      "name": "dialog",
+      "reason": "needed by dialog"
+    },
+    {
+      "name": "form",
+      "reason": "needed by form"
+    },
+    {
+      "name": "formatted",
+      "reason": "needed by formatted"
+    },
+    {
+      "name": "menu",
+      "reason": "needed by menu"
+    },
+    {
+      "name": "page",
+      "reason": "needed by page"
+    },
+    {
+      "name": "shell",
+      "reason": "needed by shell"
+    },
+    {
+      "name": "toast",
+      "reason": "needed by toast"
+    },
+    {
+      "name": "tooltip",
+      "reason": "needed by tooltip"
+    },
+    {
+      "name": "truncate",
+      "reason": "needed by truncate"
+    }
+  ],
+  "icons": [
+    {
+      "name": "plus",
+      "reason": "kanban.html:76"
+    },
+    {
+      "name": "close",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "menu",
+      "reason": "kanban.html:22"
+    },
+    {
+      "name": "moreVertical",
+      "reason": "used by module page"
+    },
+    {
+      "name": "moreHorizontal",
+      "reason": "used by module shell"
+    },
+    {
+      "name": "grip",
+      "reason": "kanban.html:133"
+    },
+    {
+      "name": "logout",
+      "reason": "kanban.html:34"
+    },
+    {
+      "name": "chat",
+      "reason": "kanban.html:51"
+    },
+    {
+      "name": "bell",
+      "reason": "kanban.html:58"
+    },
+    {
+      "name": "checkCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "alertCircle",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "info",
+      "reason": "used by module toast"
+    },
+    {
+      "name": "helpCircle",
+      "reason": "kanban.html:26"
+    },
+    {
+      "name": "calendar",
+      "reason": "kanban.html:53"
+    },
+    {
+      "name": "moon",
+      "reason": "pt.js:57"
+    },
+    {
+      "name": "overview",
+      "reason": "kanban.html:44"
+    },
+    {
+      "name": "user",
+      "reason": "kanban.html:33"
+    },
+    {
+      "name": "ticket",
+      "reason": "kanban.html:46"
+    },
+    {
+      "name": "folder",
+      "reason": "kanban.html:52"
+    },
+    {
+      "name": "box",
+      "reason": "kanban.html:23"
+    },
+    {
+      "name": "laptop",
+      "reason": "kanban.html:45"
+    },
+    {
+      "name": "kanban",
+      "reason": "kanban.html:54"
+    },
+    {
+      "name": "webhook",
+      "reason": "kanban.html:59"
+    },
+    {
+      "name": "creditCard",
+      "reason": "kanban.html:60"
+    },
+    {
+      "name": "inbox",
+      "reason": "kanban.html:50"
+    }
+  ],
+  "classes": {
+    "ds-account": "kanban.html:28",
+    "ds-account__avatar": "kanban.html:29",
+    "ds-account__email": "kanban.html:31",
+    "ds-account__head": "kanban.html:31",
+    "ds-account__menu": "kanban.html:30",
+    "ds-account__name": "kanban.html:31",
+    "ds-account__trigger": "kanban.html:29",
+    "ds-app": "kanban.html:18",
+    "ds-app--drawer": "kanban.html:18",
+    "ds-avatar": "kanban.html:136",
+    "ds-badge": "kanban.html:146",
+    "ds-base": "kanban.html:2",
+    "ds-brand": "kanban.html:23",
+    "ds-brand__name": "kanban.html:23",
+    "ds-btn": "kanban.html:22",
+    "ds-btn--filled": "kanban.html:76",
+    "ds-btn--icon": "kanban.html:22",
+    "ds-btn--quiet": "kanban.html:22",
+    "ds-card": "kanban.html:130",
+    "ds-card--filled": "kanban.html:156",
+    "ds-card__row": "kanban.html:157",
+    "ds-card__title": "kanban.html:132",
+    "ds-cluster": "kanban.html:131",
+    "ds-cluster--between": "kanban.html:131",
+    "ds-cluster--nowrap": "kanban.html:131",
+    "ds-cluster--top": "kanban.html:131",
+    "ds-content": "kanban.html:67",
+    "ds-density-compact": "kanban.html:130",
+    "ds-drawer": "kanban.html:40",
+    "ds-drawer__group": "kanban.html:43",
+    "ds-drawer__head": "kanban.html:41",
+    "ds-drawer__heading": "kanban.html:49",
+    "ds-drawer__item": "kanban.html:44",
+    "ds-drawer__label": "kanban.html:44",
+    "ds-drawer__list": "kanban.html:42",
+    "ds-grip": "kanban.html:133",
+    "ds-icon--fillable": "pt.js:57",
+    "ds-lg": "kanban.html:31",
+    "ds-menu": "kanban.html:30",
+    "ds-menu__divider": "kanban.html:32",
+    "ds-menu__item": "kanban.html:33",
+    "ds-menu__label": "kanban.html:33",
+    "ds-meta": "kanban.html:158",
+    "ds-page": "kanban.html:68",
+    "ds-page-head": "kanban.html:69",
+    "ds-page-head__actions": "kanban.html:75",
+    "ds-page-head__lead": "kanban.html:73",
+    "ds-page-head__row": "kanban.html:70",
+    "ds-page-head__text": "kanban.html:71",
+    "ds-page-head__title": "kanban.html:72",
+    "ds-panel": "kanban.html:65",
+    "ds-persona": "kanban.html:136",
+    "ds-persona--inline": "kanban.html:136",
+    "ds-persona__name": "kanban.html:137",
+    "ds-persona__role": "kanban.html:137",
+    "ds-persona__text": "kanban.html:137",
+    "ds-scrim": "kanban.html:39",
+    "ds-scroll-x": "kanban.html:81",
+    "ds-scroll-x--reel": "kanban.html:81",
+    "ds-skip": "kanban.html:19",
+    "ds-sm": "kanban.html:133",
+    "ds-sr": "kanban.html:147",
+    "ds-stack": "kanban.html:159",
+    "ds-tag": "kanban.html:90",
+    "ds-theme": "kanban.html:2",
+    "ds-toasts": "kanban.html:87",
+    "ds-tone-error": "kanban.html:90",
+    "ds-tone-neutral": "kanban.html:91",
+    "ds-tone-warning": "kanban.html:146",
+    "ds-topbar": "kanban.html:21",
+    "ds-topbar__actions": "kanban.html:24",
+    "ds-topbar__menu": "kanban.html:22",
+    "ds-truncate": "kanban.html:132",
+    "ds-truncate--lines": "kanban.html:132",
+    "ds-view": "kanban.html:66"
+  },
+  "unknown": []
+}

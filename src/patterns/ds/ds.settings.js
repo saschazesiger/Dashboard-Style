@@ -1,7 +1,7 @@
 /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style | bundle "settings" (ds.settings.json) */
 /*
  * Dashboard-Style bundle "settings" (tools/bundle.mjs; do not edit): window.DS with
- * DS.core, DS.motion, DS.indicator, DS.dom, DS.ripple, DS.icons, DS.position, DS.overlay, DS.a11y, DS.hotkeys, DS.format, DS.store, DS.form, DS.formatted, DS.menu, DS.page, DS.shell, DS.toast, DS.toc, DS.tooltip, DS.unsaved and 21 icons.
+ * DS.core, DS.motion, DS.indicator, DS.dom, DS.ripple, DS.icons, DS.position, DS.overlay, DS.a11y, DS.hotkeys, DS.format, DS.store, DS.form, DS.formatted, DS.menu, DS.page, DS.shell, DS.toast, DS.toc, DS.tooltip, DS.unsaved and 30 icons.
  * Icon shapes: Lucide (ISC) and Feather (MIT), see LICENSE.
  * Another bundle or ds.js of the same version on the page adds its modules
  * to the same DashboardStyle.versions[version] object.
@@ -5481,7 +5481,7 @@
     });
   });
 
-  add('icons', ['arrowRight', 'close', 'menu', 'moreVertical', 'moreHorizontal', 'history', 'logout', 'checkCircle', 'alertCircle', 'info', 'helpCircle', 'moon', 'overview', 'settings', 'key', 'shield', 'user', 'users', 'box', 'laptop', 'puzzle', 'ICON_SIZE', 'icon', 'iconElement', 'fill'], function () {
+  add('icons', ['arrowRight', 'close', 'menu', 'moreVertical', 'moreHorizontal', 'history', 'logout', 'chat', 'bell', 'checkCircle', 'alertCircle', 'info', 'helpCircle', 'calendar', 'moon', 'overview', 'settings', 'key', 'shield', 'user', 'users', 'ticket', 'folder', 'box', 'laptop', 'kanban', 'webhook', 'creditCard', 'inbox', 'puzzle', 'ICON_SIZE', 'icon', 'iconElement', 'fill'], function () {
     /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const arrowRight = '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>';
     const close = '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>';
@@ -5490,10 +5490,13 @@
     const moreHorizontal = '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>';
     const history = '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>';
     const logout = '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>';
+    const chat = '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>';
+    const bell = '<path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326z"/>';
     const checkCircle = '<circle cx="12" cy="12" r="10"/><path pathLength="1" d="m9 12 2 2 4-4"/>';
     const alertCircle = '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>';
     const info = '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>';
     const helpCircle = '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>';
+    const calendar = '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>';
     const moon = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>';
     const overview = '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>';
     const settings = '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>';
@@ -5501,8 +5504,14 @@
     const shield = '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>';
     const user = '<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>';
     const users = '<path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/>';
+    const ticket = '<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>';
+    const folder = '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z"/>';
     const box = '<path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/>';
     const laptop = '<path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/>';
+    const kanban = '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 7v7"/><path d="M12 7v4"/><path d="M16 7v9"/>';
+    const webhook = '<path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2"/><path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06"/><path d="m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8"/>';
+    const creditCard = '<rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/>';
+    const inbox = '<path d="M22 12L16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>';
     const puzzle = '<path d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"/>';
     const ICON_SIZE = 20;
     const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -5540,7 +5549,7 @@
     return svg;
     }
     const GLYPHS = {
-    arrowRight, close, menu, moreVertical, moreHorizontal, history, logout, checkCircle, alertCircle, info, helpCircle, moon, overview, settings, key, shield, user, users, box, laptop, puzzle
+    arrowRight, close, menu, moreVertical, moreHorizontal, history, logout, chat, bell, checkCircle, alertCircle, info, helpCircle, calendar, moon, overview, settings, key, shield, user, users, ticket, folder, box, laptop, kanban, webhook, creditCard, inbox, puzzle
     };
     const filled = new WeakMap();
     function fill(root) {
@@ -5590,10 +5599,13 @@
       moreHorizontal: moreHorizontal,
       history: history,
       logout: logout,
+      chat: chat,
+      bell: bell,
       checkCircle: checkCircle,
       alertCircle: alertCircle,
       info: info,
       helpCircle: helpCircle,
+      calendar: calendar,
       moon: moon,
       overview: overview,
       settings: settings,
@@ -5601,8 +5613,14 @@
       shield: shield,
       user: user,
       users: users,
+      ticket: ticket,
+      folder: folder,
       box: box,
       laptop: laptop,
+      kanban: kanban,
+      webhook: webhook,
+      creditCard: creditCard,
+      inbox: inbox,
       puzzle: puzzle,
       ICON_SIZE: ICON_SIZE,
       icon: icon,
