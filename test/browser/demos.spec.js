@@ -49,6 +49,8 @@ test.beforeEach(async ({ page, browserName }) => {
   if (!test.info().titlePath.includes('Motion Lab')) return;
   await page.goto(LAB);
   await ready(page);
+  // Every demo set up and rendered (the lab otherwise sets them up as they come near the view).
+  await page.evaluate(() => window.SG_LAB_SETUP_ALL?.());
   await page.mouse.move(1, 1);
   await settle(page, SETTLE);
 });

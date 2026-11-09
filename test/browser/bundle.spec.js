@@ -180,8 +180,8 @@ test.describe('single files in reverse order cascade as ds.css', () => {
     };
     for (const element of document.querySelectorAll('body, body *')) {
       if (element.closest('script, style, template')) continue;
-      // The state a script wrote (classes, data-*) goes with the key: an element whose state changed is not compared.
-      const state = [...element.attributes].filter(({ name }) => name === 'class' || name.startsWith('data-')).map(({ name, value }) => `${name}=${value}`).join(' ');
+      // The state a script wrote (classes, hidden, data-*) goes with the key: an element whose state changed is not compared.
+      const state = [...element.attributes].filter(({ name }) => name === 'class' || name === 'hidden' || name.startsWith('data-')).map(({ name, value }) => `${name}=${value}`).join(' ');
       out.push([`${key(element)} [${state}]`, read(getComputedStyle(element))]);
       for (const pseudo of ['::before', '::after']) {
         const style = getComputedStyle(element, pseudo);
@@ -244,6 +244,16 @@ test.describe('single files in reverse order cascade as ds.css', () => {
       await page.clock.runFor(3000);
       if (path.includes('component.html')) await expect(page.locator('html')).toHaveAttribute('data-fixture-ready', /.*/);
       else await expect(page.locator('#page')).not.toBeEmpty();
+      // A page that loads a project bundle (the reference app) is read on ds.css: the single files are compared with
+      // the whole stylesheet (the bundle's own tests compare it with its sources).
+      await page.evaluate(async () => {
+        const bundle = document.querySelector('link[rel="stylesheet"][href$="ds.bundle.css"]');
+        if (!bundle) return;
+        const full = Object.assign(document.createElement('link'), { rel: 'stylesheet', href: '/dist/ds.css' });
+        bundle.after(full);
+        await new Promise((resolve, reject) => { full.onload = resolve; full.onerror = () => reject(new Error(full.href)); });
+        bundle.remove();
+      });
       await page.mouse.move(1, 1);
       await page.clock.runFor(2000);
       const before = await everything(page);
@@ -251,7 +261,7 @@ test.describe('single files in reverse order cascade as ds.css', () => {
       expect(names.length).toBeGreaterThan(1);
       // No time passes: the stylesheets load over the network, the page's timers stay where they were.
       await relink(page, names);
-      expect(await page.evaluate(() => [...document.styleSheets].some((sheet) => sheet.href?.endsWith('/ds.css')))).toBe(false);
+      expect(await page.evaluate(() => [...document.styleSheets].some((sheet) => sheet.href?.endsWith('/ds.css') || sheet.href?.endsWith('/ds.bundle.css')))).toBe(false);
       expect(differ(before, await everything(page))).toEqual([]);
     });
   }

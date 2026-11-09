@@ -22055,6 +22055,8 @@
     absolute.append(absoluteHead, fromLabel, fromEl, toLabel, toEl, error, apply, recentHead, recent);
     const quick = make('div', 'ds-picker__presets ds-timerange__quick', { role: 'group', 'aria-labelledby': `${id}-quick` });
     const quickHead = make('p', 'ds-picker__heading', { id: `${id}-quick` });
+    quickHead.textContent = t('quickRanges');
+    quick.append(quickHead);
     panes.append(quick, absolute);
     panel.append(panes);
     wrap.append(trigger, panel);

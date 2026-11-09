@@ -330,6 +330,9 @@ export function create(root, options = {}) {
 
   const quick = make('div', 'ds-picker__presets ds-timerange__quick', { role: 'group', 'aria-labelledby': `${id}-quick` });
   const quickHead = make('p', 'ds-picker__heading', { id: `${id}-quick` });
+  // The group's name exists from the start: its buttons come on the first open, its heading does not wait for them.
+  quickHead.textContent = t('quickRanges');
+  quick.append(quickHead);
   panes.append(quick, absolute);
   panel.append(panes);
   wrap.append(trigger, panel);

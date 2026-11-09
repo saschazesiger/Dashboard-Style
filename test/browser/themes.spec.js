@@ -192,42 +192,49 @@ test.describe('where the themes are offered', () => {
     await expect.poll(scheme).toBe(preset);
   });
 
-  test('the tour: the scheme choice links the dark theme and writes it into the theme file', async ({ page }) => {
+  test('the tour: the appearance switch pins the scheme on <html> over a preset that holds both', async ({ page }) => {
     await page.addInitScript(() => { try { localStorage.removeItem('demo-theme'); } catch (error) { /* blocked */ } });
+    await page.emulateMedia({ colorScheme: 'light' });
     await page.goto('/demo/index.html');
     await ready(page);
     await page.waitForFunction(() => document.documentElement.hasAttribute('data-demo-ready'));
-    await expect(page.locator('#demo-dark')).toHaveAttribute('media', 'not all');
-    await page.locator('#theme-form input[value="teal"]').check({ force: true });
-    await page.locator('#theme-form input[value="dark"]').check({ force: true });
-    await expect(page.locator('#demo-dark')).toHaveAttribute('media', 'all');
-    await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe('dark');
-    expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--ds-primary').trim())).toBe('#4cdada');
-    await expect(page.locator('#theme-code')).toContainText('themes/dark.css');
-    await expect(page.locator('#theme-code')).toContainText('dark tones');
-    await page.locator('#theme-form input[value="system"]').check({ force: true });
-    await expect(page.locator('#demo-dark')).toHaveAttribute('media', '(prefers-color-scheme: dark)');
-    await expect(page.locator('#theme-code')).toContainText('@media (prefers-color-scheme: dark)');
+    const scheme = () => page.evaluate(() => getComputedStyle(document.documentElement).colorScheme);
+    await expect(page.locator('html')).not.toHaveAttribute('data-ds-scheme', /./);
+    const option = (value) => page.locator(`[data-ds-scheme-switch] [data-ds-scheme-value="${value}"]`).first();
+    await option('dark').click();
+    await expect(page.locator('html')).toHaveAttribute('data-ds-scheme', 'dark');
+    await expect.poll(scheme).toBe('dark');
+    await option('auto').click();
+    await expect(page.locator('html')).not.toHaveAttribute('data-ds-scheme', /./);
+    // As the device: both schemes offered, the device (light here) picks.
+    await expect.poll(scheme).toBe('light dark');
   });
 
-  test('the reference app: Appearance under Settings sets the dark link before the first paint', async ({ page }) => {
+  test('the reference app: Appearance under Settings pins the scheme before the first paint', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'light' });
     await page.goto('/example/index.html#/settings');
     await ready(page);
     await page.waitForFunction(() => document.documentElement.hasAttribute('data-ex-ready'));
     await settle(page);
-    await expect(page.locator('#ex-dark')).toHaveAttribute('media', '(prefers-color-scheme: dark)');
-    await page.locator('input[name="appearance"][value="dark"]').check({ force: true });
-    await expect(page.locator('#ex-dark')).toHaveAttribute('media', 'all');
-    await expect(page.locator('html')).toHaveAttribute('data-ex-dark', '');
-    await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe('dark');
+    const scheme = () => page.evaluate(() => getComputedStyle(document.documentElement).colorScheme);
+    const option = (value) => page.locator(`#appearance [data-ds-scheme-value="${value}"]`);
+    await expect(page.locator('html')).not.toHaveAttribute('data-ds-scheme', /./);
+    await option('dark').click();
+    await expect(page.locator('html')).toHaveAttribute('data-ds-scheme', 'dark');
+    await expect.poll(scheme).toBe('dark');
+    // Remembered, and set by the head's script before the first paint: no flash of the light scheme.
+    await page.addInitScript(() => {
+      document.addEventListener('DOMContentLoaded', () => { window.__schemeAtParse = document.documentElement.getAttribute('data-ds-scheme'); }, { once: true });
+    });
     await page.reload();
     await ready(page);
-    await expect(page.locator('#ex-dark')).toHaveAttribute('media', 'all');
+    expect(await page.evaluate(() => window.__schemeAtParse)).toBe('dark');
     await page.waitForFunction(() => document.documentElement.hasAttribute('data-ex-ready'));
     await settle(page);
-    await page.locator('input[name="appearance"][value="system"]').check({ force: true });
-    await expect(page.locator('#ex-dark')).toHaveAttribute('media', '(prefers-color-scheme: dark)');
-    await expect(page.locator('html')).not.toHaveAttribute('data-ex-dark', '');
+    await option('auto').click();
+    await expect(page.locator('html')).not.toHaveAttribute('data-ds-scheme', /./);
+    // As the device: both schemes offered, the device (light here) picks.
+    await expect.poll(scheme).toBe('light dark');
   });
 
   test('the styleguide theme check lists what a loaded theme fails, each row with an icon and a word', async ({ page }) => {
