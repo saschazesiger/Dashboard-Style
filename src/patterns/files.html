@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Device photos · Files · Product</title>
+<meta name="pt-title" content="File manager">
+<meta name="pt-need" content="Browse a folder as a grid or a list, select files to act on them, and preview one beside the list">
+<meta name="pt-group" content="Work together">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.files.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<div class="ds-app ds-app--drawer" data-ds-shell="patterns">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" data-icon="menu"></button>
+    <a class="ds-brand" href="files.html"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></a>
+    <div class="ds-topbar__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="#help" aria-label="Help" data-tip="Help" data-icon="helpCircle"></a>
+    </div>
+    <div class="ds-account">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+      <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+        <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+        <div class="ds-menu__divider" role="separator"></div>
+        <a class="ds-menu__item" role="menuitem" href="#profile" data-icon="user" data-icon-place="start"><span class="ds-menu__label">Profile</span></a>
+        <a class="ds-menu__item" role="menuitem" href="sign-in.html" data-icon="logout" data-icon-place="start"><span class="ds-menu__label">Sign out</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></div>
+    <div class="ds-drawer__list">
+      <div class="ds-drawer__group">
+        <a class="ds-drawer__item" href="#overview" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="#devices" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="#tickets" data-icon="ticket" data-icon-place="start"><span class="ds-drawer__label">Tickets</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Work</p>
+        <a class="ds-drawer__item" href="inbox.html" data-icon="inbox" data-icon-place="start"><span class="ds-drawer__label">Inbox</span></a>
+        <a class="ds-drawer__item" href="chat.html" data-icon="chat" data-icon-place="start"><span class="ds-drawer__label">Chat</span></a>
+        <a class="ds-drawer__item" href="files.html" aria-current="page" data-icon="folder" data-icon-place="start"><span class="ds-drawer__label">Files</span></a>
+        <a class="ds-drawer__item" href="calendar.html" data-icon="calendar" data-icon-place="start"><span class="ds-drawer__label">Calendar</span></a>
+        <a class="ds-drawer__item" href="kanban.html" data-icon="kanban" data-icon-place="start"><span class="ds-drawer__label">Board</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Settings</p>
+        <a class="ds-drawer__item" href="notification-settings.html" data-icon="bell" data-icon-place="start"><span class="ds-drawer__label">Notifications</span></a>
+        <a class="ds-drawer__item" href="webhooks.html" data-icon="webhook" data-icon-place="start"><span class="ds-drawer__label">Webhooks</span></a>
+        <a class="ds-drawer__item" href="billing.html" data-icon="creditCard" data-icon-place="start"><span class="ds-drawer__label">Billing</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content">
+        <div class="ds-page">
+          <header class="ds-page-head">
+            <nav class="ds-breadcrumbs" aria-label="Breadcrumb">
+              <ol>
+                <li><a href="#files">Files</a></li>
+                <li><a href="#shared">Shared</a></li>
+                <li><a href="files.html" aria-current="page">Device photos</a></li>
+              </ol>
+            </nav>
+            <div class="ds-page-head__row">
+              <div class="ds-page-head__text">
+                <h1 class="ds-page-head__title" tabindex="-1">Device photos</h1>
+                <p class="ds-page-head__lead" id="summary"></p>
+              </div>
+              <div class="ds-page-head__actions">
+                <button class="ds-btn" type="button" id="new-folder" data-icon="folderPlus" data-icon-size="18" data-icon-place="start">New folder</button>
+                <button class="ds-btn ds-btn--filled" type="button" id="upload" data-icon="upload" data-icon-size="18" data-icon-place="start">Upload</button>
+                <input type="file" id="upload-input" multiple hidden>
+              </div>
+            </div>
+          </header>
+
+          <div class="ds-toolbar">
+            <div class="ds-swap" id="bar-slot">
+              <div class="ds-action-bar" id="action-bar">
+                <div class="ds-search" data-ds-search data-ds-search-count="file-count" id="search" data-icon="search" data-icon-place="start">
+                  <input class="ds-input" id="q" type="search" aria-label="Search this folder" placeholder="Search this folder" autocomplete="off" data-ds-hotkey="/">
+                  <kbd class="ds-kbd ds-search__key" aria-hidden="true"></kbd>
+                  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-search__clear" type="button" hidden data-icon="close" data-icon-size="18"></button>
+                </div>
+                <span class="ds-search__count ds-meta" id="file-count"></span>
+                <div class="ds-segmented ds-push" role="radiogroup" aria-label="View" id="view">
+                  <button class="ds-segmented__option" type="button" role="radio" aria-checked="true" data-label="Grid" data-view="grid" data-icon="layoutGrid" data-icon-size="18" data-icon-place="start">Grid</button>
+                  <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-label="List" data-view="list" data-icon="list" data-icon-size="18" data-icon-place="start">List</button>
+                </div>
+              </div>
+              <div class="ds-selection-bar" role="toolbar" aria-label="Selected files" id="selection-bar" hidden>
+                <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="clear" aria-label="Clear selection" data-tip="Clear selection" data-icon="close"></button>
+                <p class="ds-selection-bar__count" id="selected-count" aria-live="polite"></p>
+                <div class="ds-selection-bar__actions">
+                  <button class="ds-btn ds-btn--text" type="button" id="download-selected" data-icon="download" data-icon-size="18" data-icon-place="start">Download</button>
+                  <button class="ds-btn ds-btn--text" type="button" id="delete-selected" data-icon="trash" data-icon-size="18" data-icon-place="start">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ds-sheet__layout">
+            <div class="ds-sheet__main">
+              <ul class="ds-media-grid" id="grid" aria-label="Files" data-ds-media></ul>
+              <div class="ds-card" id="list-card" hidden>
+                <div class="ds-table-wrap">
+                  <table class="ds-table">
+                    <caption class="ds-sr">Files</caption>
+                    <thead><tr>
+                      <th scope="col"><input type="checkbox" id="select-all" aria-label="Select all files"></th>
+                      <th scope="col">Name</th>
+                      <th scope="col" class="ds-col--secondary">Kind</th>
+                      <th scope="col" class="ds-num">Size</th>
+                      <th scope="col" class="ds-col--secondary">Modified</th>
+                    </tr></thead>
+                    <tbody id="rows"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="ds-empty" id="empty" hidden>
+                <span class="ds-empty__disc" aria-hidden="true" data-icon="search" data-icon-size="24"></span>
+                <p class="ds-empty__title">No files match</p>
+                <p class="ds-empty__text">Try another name, or clear the search.</p>
+              </div>
+            </div>
+
+            <section class="ds-sheet__panel ds-sheet__panel--inspector" id="preview" aria-labelledby="preview-title" hidden>
+              <div class="ds-sheet__head">
+                <div class="ds-sheet__heading">
+                  <h2 class="ds-sheet__title" id="preview-title">Preview</h2>
+                  <p class="ds-sheet__subtitle" id="preview-subtitle" aria-live="polite"></p>
+                </div>
+                <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close the preview" data-ds-close data-icon="close"></button>
+              </div>
+              <div class="ds-sheet__body" id="preview-body"></div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="ds-toasts" id="toasts"></div>
+
+<template id="preview-template">
+  <div class="ds-stack">
+    <div class="ds-frame ds-frame--4-3"><span data-preview-icon></span></div>
+    <dl class="ds-facts ds-facts--rows">
+      <div><dt>Kind</dt><dd data-fact="kind"></dd></div>
+      <div><dt>Size</dt><dd data-fact="size"></dd></div>
+      <div><dt>Modified</dt><dd data-fact="modified"></dd></div>
+      <div><dt>Owner</dt><dd data-fact="owner"></dd></div>
+    </dl>
+    <div class="ds-cluster">
+      <button class="ds-btn" type="button" data-action="download" data-icon="download" data-icon-size="18" data-icon-place="start">Download</button>
+      <button class="ds-btn" type="button" data-ds-copy data-ds-copy-value="">
+        <span class="ds-btn__faces">
+          <span class="ds-btn__face" data-icon="link" data-icon-size="18" data-icon-place="start">Copy link</span>
+          <span class="ds-btn__face ds-btn__face--done" aria-hidden="true" data-icon="check" data-icon-size="18" data-icon-place="start"><span class="ds-copy__done"></span></span>
+        </span>
+      </button>
+    </div>
+  </div>
+</template>
+
+<script src="ds/ds.files.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  var esc = function (text) { return String(text).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var toasts = document.getElementById('toasts');
+
+  // The glyph of each kind, written out so the bundle finds it.
+  var KINDS = {
+    image: { name: 'JPEG image', icon: 'data-icon="fileImage"' },
+    video: { name: 'Video', icon: 'data-icon="video"' },
+    pdf: { name: 'PDF document', icon: 'data-icon="fileText"' },
+    sheet: { name: 'Spreadsheet', icon: 'data-icon="fileSpreadsheet"' },
+    archive: { name: 'ZIP archive', icon: 'data-icon="fileArchive"' },
+    folder: { name: 'Folder', icon: 'data-icon="folder"' },
+  };
+
+  // ── The fake backend: one folder ──
+  var files = [
+    { id: 'f1', name: 'Returned', kind: 'folder', bytes: 0, modified: 'Nov 6', owner: 'Ada Lovelace', count: 12 },
+    { id: 'f2', name: 'Repairs', kind: 'folder', bytes: 0, modified: 'Oct 30', owner: 'Grace Hopper', count: 5 },
+    { id: 'f3', name: 'LAPTOP-0042 front.jpg', kind: 'image', bytes: 2400000, modified: 'Nov 7', owner: 'Ada Lovelace' },
+    { id: 'f4', name: 'LAPTOP-0042 serial.jpg', kind: 'image', bytes: 1800000, modified: 'Nov 7', owner: 'Ada Lovelace' },
+    { id: 'f5', name: 'Printer floor 2 jam.mp4', kind: 'video', bytes: 48200000, modified: 'Nov 5', owner: 'Alan Turing', tag: '0:42' },
+    { id: 'f6', name: 'Delivery note 1042.pdf', kind: 'pdf', bytes: 310000, modified: 'Nov 4', owner: 'Grace Hopper', tag: '2 pages' },
+    { id: 'f7', name: 'Monitor stand broken.jpg', kind: 'image', bytes: 3100000, modified: 'Nov 3', owner: 'Alan Turing' },
+    { id: 'f8', name: 'Inventory 2026.xlsx', kind: 'sheet', bytes: 920000, modified: 'Nov 2', owner: 'Ada Lovelace' },
+    { id: 'f9', name: 'Dock with cables.jpg', kind: 'image', bytes: 2700000, modified: 'Oct 29', owner: 'Grace Hopper' },
+    { id: 'f10', name: 'Old photos.zip', kind: 'archive', bytes: 152000000, modified: 'Oct 21', owner: 'Ada Lovelace' },
+    { id: 'f11', name: 'Tablet screen crack.jpg', kind: 'image', bytes: 2200000, modified: 'Oct 18', owner: 'Alan Turing' },
+    { id: 'f12', name: 'Warranty claim 77.pdf', kind: 'pdf', bytes: 480000, modified: 'Oct 12', owner: 'Grace Hopper', tag: '5 pages' },
+  ];
+  var size = function (f) { return f.kind === 'folder' ? f.count + ' items' : DS.format.bytes(f.bytes); };
+
+  var view = 'grid';
+  var query = '';
+  var selected = new Set();
+  var grid = document.getElementById('grid');
+  var rows = document.getElementById('rows');
+  var media = DS.get(grid, 'media');
+
+  function shown() {
+    var q = query.trim().toLowerCase();
+    return files.filter(function (f) { return !q || f.name.toLowerCase().indexOf(q) >= 0; });
+  }
+
+  // Both views from the same data: the hidden one is patched too, so a switch shows it at once.
+  function render(options) {
+    var list = shown();
+    DS.dom.morphHtml(grid, list.map(function (f) {
+      return '<li class="ds-media" data-ds-key="' + f.id + '">' +
+        '<span class="ds-media__thumb"><span ' + KINDS[f.kind].icon + ' data-icon-size="32"></span>' + (f.tag ? '<span class="ds-media__tag">' + esc(f.tag) + '</span>' : '') + '</span>' +
+        '<a class="ds-media__open" href="#file-' + f.id + '" data-open="' + f.id + '"><span class="ds-media__title">' + esc(f.name) + '</span></a>' +
+        '<span class="ds-media__meta">' + esc(size(f)) + ' · ' + esc(f.modified) + '</span>' +
+        '<span class="ds-media__select"><input class="ds-checkbox ds-media__check" type="checkbox" value="' + f.id + '" aria-label="Select ' + esc(f.name) + '"' + (selected.has(f.id) ? ' checked' : '') + '></span>' +
+        '</li>';
+    }).join(''), view === 'grid' ? options : undefined);
+    DS.dom.morphHtml(rows, list.map(function (f) {
+      return '<tr data-ds-key="' + f.id + '">' +
+        '<td><input type="checkbox" value="' + f.id + '" aria-label="Select ' + esc(f.name) + '"' + (selected.has(f.id) ? ' checked' : '') + '></td>' +
+        '<td class="ds-col--text"><button class="ds-link-btn" type="button" data-open="' + f.id + '">' + esc(f.name) + '</button></td>' +
+        '<td class="ds-col--secondary">' + esc(KINDS[f.kind].name) + '</td>' +
+        '<td class="ds-num">' + esc(size(f)) + '</td>' +
+        '<td class="ds-col--secondary ds-nowrap">' + esc(f.modified) + '</td>' +
+        '</tr>';
+    }).join(''), view === 'list' ? options : undefined);
+    DS.icons.fill(grid);
+    media.set(list.filter(function (f) { return selected.has(f.id); }).map(function (f) { return f.id; }));
+    document.getElementById('empty').hidden = list.length > 0;
+    document.getElementById('summary').textContent = files.length + ' items · ' + DS.format.bytes(files.reduce(function (sum, f) { return sum + f.bytes; }, 0));
+    // The search sits in the action bar, which leaves the page while the selection bar stands in its place.
+    var search = DS.get(document.getElementById('search'), 'search');
+    if (search) search.set({ count: query ? list.length : null });
+    syncSelection();
+  }
+
+  function rerender() {
+    DS.motion.flip(view === 'grid' ? grid : rows, function (options) { render(options); }, { items: view === 'grid' ? 'li' : 'tr' });
+  }
+
+  // ── Grid or list ──
+  var views = document.getElementById('view');
+  DS.indicator.create(views, { active: '[aria-checked="true"]', className: 'ds-segmented__indicator' });
+  DS.dom.roving(views, { items: '.ds-segmented__option' });
+  views.addEventListener('click', function (event) {
+    var option = event.target.closest('.ds-segmented__option');
+    if (!option || option.getAttribute('data-view') === view) return;
+    views.querySelectorAll('.ds-segmented__option').forEach(function (other) { other.setAttribute('aria-checked', String(other === option)); });
+    view = option.getAttribute('data-view');
+    grid.hidden = view !== 'grid';
+    document.getElementById('list-card').hidden = view !== 'list';
+  });
+
+  // ── Search ──
+  document.getElementById('q').addEventListener('input', function (event) {
+    query = event.target.value;
+    rerender();
+  });
+
+  // ── Selection: one set for both views; the selection bar takes the toolbar's place while it is not empty ──
+  var slot = document.getElementById('bar-slot');
+  var actionBar = document.getElementById('action-bar');
+  var selectionBar = document.getElementById('selection-bar');
+  var selectAll = document.getElementById('select-all');
+  // The selection bar leaves with its buttons: focus goes back to the list (the header box, or the first file).
+  function focusList() {
+    var first = grid.querySelector('.ds-media__open:not([tabindex="-1"])') || grid.querySelector('.ds-media__open');
+    if (view === 'list') selectAll.focus(); else if (first) first.focus(); else document.getElementById('q').focus();
+  }
+  function syncSelection() {
+    var list = shown();
+    var count = list.filter(function (f) { return selected.has(f.id); }).length;
+    document.getElementById('selected-count').textContent = count + ' selected';
+    selectAll.checked = count > 0 && count === list.length;
+    selectAll.indeterminate = count > 0 && count < list.length;
+    var wantBar = count > 0;
+    if (wantBar === selectionBar.hidden) DS.motion.crossfade(slot, wantBar ? selectionBar : actionBar);
+  }
+  media.on('change', function (detail) {
+    shown().forEach(function (f) { selected.delete(f.id); });
+    detail.selected.forEach(function (key) { selected.add(key); });
+    rows.querySelectorAll('input[type="checkbox"]').forEach(function (box) { box.checked = selected.has(box.value); });
+    syncSelection();
+  });
+  rows.addEventListener('change', function (event) {
+    var box = event.target;
+    if (box.checked) selected.add(box.value); else selected.delete(box.value);
+    media.set(Array.from(selected));
+    syncSelection();
+  });
+  selectAll.addEventListener('change', function () {
+    shown().forEach(function (f) { if (selectAll.checked) selected.add(f.id); else selected.delete(f.id); });
+    render();
+  });
+  document.getElementById('clear').addEventListener('click', function () {
+    selected.clear();
+    render();
+    focusList();
+  });
+  document.getElementById('download-selected').addEventListener('click', function () {
+    DS.overlay.toast(toasts, 'Downloading ' + (selected.size === 1 ? '1 item' : selected.size + ' items') + ' as a ZIP file.');
+  });
+
+  // Delete at once, with Undo: the files go to the bin, so nothing needs a question first.
+  document.getElementById('delete-selected').addEventListener('click', function () {
+    var before = files.slice();
+    var gone = selected.size;
+    files = files.filter(function (f) { return !selected.has(f.id); });
+    if (selected.has(current)) DS.overlay.close(preview);
+    selected.clear();
+    rerender();
+    focusList();
+    DS.overlay.toast(toasts, (gone === 1 ? '1 item' : gone + ' items') + ' moved to the bin.', {
+      action: { label: 'Undo', onClick: function () { files = before; rerender(); } },
+    });
+  });
+
+  // ── The preview beside the list: focus stays in the list, another file swaps its content ──
+  var preview = document.getElementById('preview');
+  var current = null;
+  function openPreview(id, opener) {
+    var f = files.find(function (item) { return item.id === id; });
+    current = id;
+    document.getElementById('preview-title').textContent = f.name;
+    document.getElementById('preview-subtitle').textContent = KINDS[f.kind].name;
+    var body = document.getElementById('preview-template').content.firstElementChild.cloneNode(true);
+    body.querySelector('[data-preview-icon]').outerHTML = '<span ' + KINDS[f.kind].icon + ' data-icon-size="48"></span>';
+    body.querySelector('[data-fact="kind"]').textContent = KINDS[f.kind].name;
+    body.querySelector('[data-fact="size"]').textContent = size(f);
+    body.querySelector('[data-fact="modified"]').textContent = f.modified + ', 2026';
+    body.querySelector('[data-fact="owner"]').textContent = f.owner;
+    body.querySelector('[data-ds-copy-value]').setAttribute('data-ds-copy-value', 'https://files.example.com/s/' + f.id);
+    DS.dom.morphHtml(document.getElementById('preview-body'), body.outerHTML);
+    DS.icons.fill(document.getElementById('preview-body'));
+    DS.overlay.open(preview, { opener: opener });
+  }
+  document.querySelector('.ds-sheet__main').addEventListener('click', function (event) {
+    var open = event.target.closest('[data-open]');
+    if (!open) return;
+    event.preventDefault();   // the link is the file's own address; here it opens the preview
+    openPreview(open.getAttribute('data-open'), open);
+  });
+  preview.addEventListener('click', function (event) {
+    if (!event.target.closest('[data-action="download"]')) return;
+    var f = files.find(function (item) { return item.id === current; });
+    DS.overlay.toast(toasts, 'Downloading ' + f.name + '.');
+  });
+
+  // ── Upload and a new folder ──
+  var input = document.getElementById('upload-input');
+  document.getElementById('upload').addEventListener('click', function () { input.click(); });
+  input.addEventListener('change', function () {
+    var added = Array.prototype.map.call(input.files, function (file, index) {
+      return { id: 'u' + Date.now() + index, name: file.name, kind: /^image\//.test(file.type) ? 'image' : /^video\//.test(file.type) ? 'video' : /pdf$/.test(file.type) ? 'pdf' : 'archive', bytes: file.size, modified: 'Today', owner: 'Ada Lovelace' };
+    });
+    if (!added.length) return;
+    files = added.concat(files);
+    input.value = '';
+    rerender();
+    DS.overlay.toast(toasts, (added.length === 1 ? added[0].name : added.length + ' files') + ' uploaded.', { kind: 'success' });
+  });
+  var newFolder = document.getElementById('new-folder');
+  newFolder.addEventListener('click', function () {
+    DS.overlay.prompt({ title: 'New folder', label: 'Name', value: 'New folder', confirmLabel: 'Create', opener: newFolder }).then(function (name) {
+      if (!name) return;
+      files.unshift({ id: 'n' + Date.now(), name: name, kind: 'folder', bytes: 0, modified: 'Today', owner: 'Ada Lovelace', count: 0 });
+      rerender();
+      DS.overlay.toast(toasts, 'Folder ' + name + ' created.', { kind: 'success' });
+    });
+  });
+
+  render();
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

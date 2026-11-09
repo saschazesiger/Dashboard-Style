@@ -9,7 +9,13 @@
     "wizard": ["wizard.html"],
     "billing": ["billing.html", "invoice.html", "pricing.html"],
     "webhooks": ["webhooks.html"],
-    "public": ["status-page.html", "changelog.html"]
+    "public": ["status-page.html", "changelog.html"],
+    "settings": ["notification-settings.html"],
+    "files": ["files.html"],
+    "inbox": ["inbox.html"],
+    "chat": ["chat.html"],
+    "calendar": ["calendar.html"],
+    "kanban": ["kanban.html"]
   },
   "out": "ds"
 }

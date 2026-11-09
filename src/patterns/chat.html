@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chat · Product</title>
+<meta name="pt-title" content="Chat app">
+<meta name="pt-need" content="Talk with the team in threads: a list of conversations, the transcript of the open one and a composer">
+<meta name="pt-group" content="Work together">
+<link rel="stylesheet" href="../../dist/fonts/fonts.css">
+<link rel="stylesheet" href="ds/ds.chat.css">
+<link rel="stylesheet" href="../../dist/themes/presets/default.css" id="pt-theme">
+<link rel="stylesheet" href="pt.css">
+<script src="pt.js"></script>
+<link rel="expect" href="#pt-ready" blocking="render">
+</head>
+<body>
+<div class="ds-app ds-app--drawer" data-ds-shell="patterns">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" data-icon="menu"></button>
+    <a class="ds-brand" href="chat.html"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></a>
+    <div class="ds-topbar__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Dark theme" data-tip="Dark theme" data-pt-scheme></button>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="#help" aria-label="Help" data-tip="Help" data-icon="helpCircle"></a>
+    </div>
+    <div class="ds-account">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+      <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+        <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+        <div class="ds-menu__divider" role="separator"></div>
+        <a class="ds-menu__item" role="menuitem" href="#profile" data-icon="user" data-icon-place="start"><span class="ds-menu__label">Profile</span></a>
+        <a class="ds-menu__item" role="menuitem" href="sign-in.html" data-icon="logout" data-icon-place="start"><span class="ds-menu__label">Sign out</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="pt-brand__mark" data-icon="box"></span><span class="ds-brand__name">Product</span></div>
+    <div class="ds-drawer__list">
+      <div class="ds-drawer__group">
+        <a class="ds-drawer__item" href="#overview" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="#devices" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="#tickets" data-icon="ticket" data-icon-place="start"><span class="ds-drawer__label">Tickets</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Work</p>
+        <a class="ds-drawer__item" href="inbox.html" data-icon="inbox" data-icon-place="start"><span class="ds-drawer__label">Inbox</span></a>
+        <a class="ds-drawer__item" href="chat.html" aria-current="page" data-icon="chat" data-icon-place="start"><span class="ds-drawer__label">Chat</span></a>
+        <a class="ds-drawer__item" href="files.html" data-icon="folder" data-icon-place="start"><span class="ds-drawer__label">Files</span></a>
+        <a class="ds-drawer__item" href="calendar.html" data-icon="calendar" data-icon-place="start"><span class="ds-drawer__label">Calendar</span></a>
+        <a class="ds-drawer__item" href="kanban.html" data-icon="kanban" data-icon-place="start"><span class="ds-drawer__label">Board</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Settings</p>
+        <a class="ds-drawer__item" href="notification-settings.html" data-icon="bell" data-icon-place="start"><span class="ds-drawer__label">Notifications</span></a>
+        <a class="ds-drawer__item" href="webhooks.html" data-icon="webhook" data-icon-place="start"><span class="ds-drawer__label">Webhooks</span></a>
+        <a class="ds-drawer__item" href="billing.html" data-icon="creditCard" data-icon-place="start"><span class="ds-drawer__label">Billing</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view ds-view--fixed" id="main" tabindex="-1">
+      <div class="ds-content">
+        <div class="ds-page">
+          <div class="ds-listdetail ds-listdetail--outlined" id="layout" data-ds-listdetail="list" role="group" aria-label="Chat">
+            <section class="ds-listdetail__list" aria-labelledby="threads-title">
+              <header class="ds-listdetail__head">
+                <h1 class="ds-listdetail__title" id="threads-title" tabindex="-1">Chat</h1>
+                <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="new-thread" aria-label="New conversation" data-tip="New conversation" data-icon="compose"></button>
+              </header>
+              <ul class="ds-list ds-list--interactive" id="threads" aria-label="Conversations"></ul>
+            </section>
+
+            <section class="ds-listdetail__detail" aria-labelledby="thread-title">
+              <header class="ds-listdetail__head">
+                <button class="ds-btn ds-btn--icon ds-btn--quiet ds-listdetail__back" type="button" aria-label="Back to the conversations" data-icon="arrowLeft"></button>
+                <h2 class="ds-listdetail__title" id="thread-title" tabindex="-1"></h2>
+              </header>
+              <div class="ds-transcript pt-fill" id="transcript" data-ds-transcript role="region" aria-labelledby="thread-title" tabindex="0">
+                <div class="ds-transcript__list" role="log" aria-label="Messages" id="log"></div>
+              </div>
+              <div class="ds-listdetail__body">
+                <form class="ds-composer" id="composer" data-ds-composer data-ds-composer-draft="chat-t1">
+                  <textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message" placeholder="Message" id="message-input"></textarea>
+                  <button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send" data-tip="Send">
+                    <span class="ds-icon-swap" data-swap="a"><span class="ds-icon-swap__a" data-icon="send"></span><span class="ds-icon-swap__b" data-icon="square"></span></span>
+                  </button>
+                  <div class="ds-composer__palette" role="listbox" aria-label="People" data-ds-composer-trigger="@" popover="manual" hidden>
+                    <div class="ds-composer__option" role="option" data-value="@Grace Hopper" data-id="grace"><span data-icon="user"></span>
+                      <span class="ds-composer__option-label">Grace Hopper</span><span class="ds-composer__option-hint">Service desk</span></div>
+                    <div class="ds-composer__option" role="option" data-value="@Alan Turing" data-id="alan"><span data-icon="user"></span>
+                      <span class="ds-composer__option-label">Alan Turing</span><span class="ds-composer__option-hint">Repairs</span></div>
+                    <div class="ds-composer__option" role="option" data-value="@Katherine Johnson" data-id="katherine"><span data-icon="user"></span>
+                      <span class="ds-composer__option-label">Katherine Johnson</span><span class="ds-composer__option-hint">Purchasing</span></div>
+                  </div>
+                </form>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="ds/ds.chat.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  DS.icons.fill(document);
+  DS.init(document);
+  DS.ripple.attach(document);
+
+  var esc = function (text) { return String(text).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var initials = function (name) { return name.split(' ').map(function (part) { return part[0].toUpperCase(); }).join('').slice(0, 2); };
+
+  // ── The fake backend: three conversations ──
+  var threads = [
+    { id: 't1', name: 'Service desk', members: 'Grace Hopper, Alan Turing and you', unread: 0, messages: [
+      { day: 'Yesterday' },
+      { from: 'Grace Hopper', time: '16:02', text: 'The printer on floor 2 is jamming again. Ticket #1042.' },
+      { from: 'Alan Turing', time: '16:10', text: 'I can look at it tomorrow morning. Is it the tray or the fuser?' },
+      { from: 'Grace Hopper', time: '16:12', text: 'The tray, from what the photos show. They are in the Repairs folder.' },
+      { day: 'Today' },
+      { system: 'Alan Turing closed ticket #1042' },
+      { from: 'Alan Turing', time: '09:05', text: 'Fixed: a bent guide in the second tray. I swapped it.' },
+      { from: 'Ada Lovelace', time: '09:20', text: 'Thank you! I will tell the floor.' },
+    ] },
+    { id: 't2', name: 'Grace Hopper', members: 'Service desk', unread: 2, messages: [
+      { day: 'Today' },
+      { from: 'Grace Hopper', time: '09:38', text: 'Do we have a spare dock for the lab?' },
+      { from: 'Grace Hopper', time: '09:41', text: 'Second one, I mean. Mine is shared by three people.' },
+    ] },
+    { id: 't3', name: 'Purchasing', members: 'Katherine Johnson and you', unread: 0, messages: [
+      { day: 'Nov 5' },
+      { from: 'Katherine Johnson', time: '14:20', text: 'Four laptops for the new team by Nov 28, same model as last time?' },
+      { from: 'Ada Lovelace', time: '14:31', text: 'Yes, same model. I will send the order today.' },
+    ] },
+  ];
+  var ME = 'Ada Lovelace';
+  var open = threads[0];
+  var count = 0;
+
+  function messageHtml(m) {
+    if (m.day) return '<h3 class="ds-transcript__day">' + esc(m.day) + '</h3>';
+    if (m.system) return '<div class="ds-message ds-message--system"><div class="ds-message__main"><p class="ds-message__content">' + esc(m.system) + '</p></div></div>';
+    count += 1;
+    var id = 'msg-' + count;
+    var mine = m.from === ME;
+    return '<article class="ds-message' + (mine ? ' ds-message--user' : '') + '" aria-labelledby="' + id + '">' +
+      (mine ? '' : '<div class="ds-message__avatar" aria-hidden="true">' + esc(initials(m.from)) + '</div>') +
+      '<div class="ds-message__main">' +
+        '<header class="ds-message__head"><span class="ds-message__author" id="' + id + '">' + esc(mine ? 'You' : m.from) + '</span>' +
+        '<time class="ds-message__time">' + esc(m.time) + '</time></header>' +
+        '<div class="ds-message__content">' + esc(m.text) + '</div>' +
+      '</div></article>';
+  }
+
+  var list = document.getElementById('threads');
+  var log = document.getElementById('log');
+  var layout = DS.get(document.getElementById('layout'), 'listdetail');
+  var transcript = DS.get(document.getElementById('transcript'), 'transcript');
+  var composer = DS.get(document.getElementById('composer'), 'composer');
+
+  function renderThreads() {
+    DS.dom.morphHtml(list, threads.map(function (t) {
+      var last = t.messages[t.messages.length - 1];
+      return '<li class="ds-list__item" data-ds-key="' + t.id + '">' +
+        '<span class="ds-list__media ds-list__media--round" aria-hidden="true">' + esc(initials(t.name)) + '</span>' +
+        '<span class="ds-list__text">' +
+          '<span class="ds-list__title"><a class="ds-list__action" href="#' + t.id + '" data-ds-listdetail-show="detail"' + (t === open ? ' aria-current="true"' : '') + '>' + esc(t.name) + '</a></span>' +
+          '<span class="ds-list__meta ds-clamp-1">' + esc((last.from === ME ? 'You: ' : '') + (last.text || last.system)) + '</span>' +
+        '</span>' +
+        (t.unread ? '<span class="ds-badge">' + t.unread + '<span class="ds-sr"> unread</span></span>' : '<span class="ds-list__aside">' + esc(last.time || '') + '</span>') +
+        '</li>';
+    }).join(''));
+  }
+
+  // A conversation that opens is read, not announced: the transcript says only what arrives while it is open. Its
+  // announcements wait (announce="live" with the log's own aria-live off) until its observer has seen the new list.
+  function renderLog(quiet) {
+    count = 0;
+    var root = document.getElementById('transcript');
+    if (quiet) root.setAttribute('data-ds-transcript-announce', 'live');
+    DS.dom.morphHtml(log, open.messages.map(messageHtml).join(''));
+    if (quiet) queueMicrotask(function () { root.removeAttribute('data-ds-transcript-announce'); });
+  }
+
+  function showThread(t) {
+    open = t;
+    t.unread = 0;
+    document.getElementById('thread-title').textContent = t.name;
+    renderLog(true);
+    document.getElementById('composer').setAttribute('data-ds-composer-draft', 'chat-' + t.id);
+    transcript.stick();
+    renderThreads();
+  }
+
+  list.addEventListener('click', function (event) {
+    var action = event.target.closest('.ds-list__action');
+    if (!action) return;
+    event.preventDefault();
+    showThread(threads.find(function (t) { return '#' + t.id === action.getAttribute('href'); }));
+  });
+
+  // Sending: the message joins the transcript at once and the view sticks to the end; a reply arrives a moment later.
+  composer.on('send', function (detail) {
+    var t = open;
+    var now = new Date();
+    var time = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    t.messages.push({ from: ME, time: time, text: detail.text });
+    renderLog();
+    transcript.stick();
+    renderThreads();
+    if (t.name === 'Purchasing') return;
+    setTimeout(function () {
+      var reply = { from: t.id === 't2' ? 'Grace Hopper' : 'Alan Turing', time: time, text: 'Got it, thanks.' };
+      t.messages.push(reply);
+      if (open === t) renderLog();
+      else t.unread += 1;
+      renderThreads();
+    }, 1500);
+  });
+
+  document.getElementById('new-thread').addEventListener('click', function (event) {
+    DS.overlay.prompt({ title: 'New conversation', label: 'With', value: '', confirmLabel: 'Start', opener: event.currentTarget }).then(function (name) {
+      if (!name) return;
+      var t = { id: 't' + (threads.length + 1), name: name, members: name + ' and you', unread: 0, messages: [{ system: 'You started the conversation' }] };
+      threads.unshift(t);
+      showThread(t);
+      layout.set('detail', { opener: list.querySelector('[href="#' + t.id + '"]') });
+    });
+  });
+
+  showThread(open);
+}());
+</script>
+<div id="pt-ready" hidden></div>
+</body>
+</html>

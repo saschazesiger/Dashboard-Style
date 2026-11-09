@@ -17,6 +17,9 @@
  *                     invoice): close, the title, the dark-theme button, on
  *                     .ds-sticky--head; or of a public page (the brand, a
  *                     link, the dark-theme button)
+ *   .pt-fill          the part of a column that takes the rest of its
+ *                     height and scrolls itself (a transcript above its
+ *                     composer, the columns of a board)
  *   .pt-price         a price in the headline type; .pt-price__unit the
  *                     period after it ("a month") in the body type
  */
@@ -87,4 +90,9 @@
   margin-inline-start: var(--ds-space-1);
   font: var(--ds-font-body);
   color: var(--ds-text-2);
+}
+
+.pt-fill {
+  flex: 1 1 0;
+  min-block-size: 0;
 }

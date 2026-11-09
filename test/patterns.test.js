@@ -89,7 +89,7 @@ describe('page patterns', () => {
       }
       assert.doesNotMatch(html, /\sstyle="(?![^"]*--ds-[\w-]+:)[^"]*"/, `${where}: inline styles set hooks only`);
       assert.doesNotMatch(html, /\.innerHTML\s*=/, `${where}: no innerHTML`);
-      assert.doesNotMatch(html, /\bclass="[^"]*\bpt-(?!auth\b|brand\b|brand__mark\b|codes\b|foot\b|bar\b|bar__title\b|price\b|price__unit\b)/, `${where}: pt- classes of pt.css only`);
+      assert.doesNotMatch(html, /\bclass="[^"]*\bpt-(?!auth\b|brand\b|brand__mark\b|codes\b|foot\b|bar\b|bar__title\b|price\b|price__unit\b|fill\b)/, `${where}: pt- classes of pt.css only`);
     }
   });
 
