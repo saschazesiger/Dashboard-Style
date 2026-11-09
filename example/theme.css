@@ -20,6 +20,9 @@
   /* The device page's sticky head and its jump links lie on the content panel: they take its surface. */
   --ds-page-head-bg: var(--ds-surface);
   --ds-toc-bg: var(--ds-surface);
+  /* The tickets grid needs about 760px for every column it shows on a desktop: below that the
+     facets fold into their sheet (on a 1280px screen too) instead of the grid scrolling sideways. */
+  --ds-facets-main-min: 760px;
 
   /* The project's own tokens, read by app.css. */
   --ex-logo-size: 32px;

@@ -30,7 +30,8 @@
  * document).
  *
  * The scan reads every file as plain text: complete ds-* class names and
- * data-ds-* attributes (and data-tip) against the manifest, DS.<module>.<export> and
+ * data-ds-* attributes (and data-tip) against the manifest, DS.<module>.<export> (DS.init,
+ * DS.get, DS.define and DS.config are the core's) and
  * imports of js/<module>.js, and icon names (DS.icons.<name>,
  * icon('<name>'), data-icon / data-ds-icon="<name>", named imports of
  * js/icons.js). A class built at run time ('ds-btn--' + kind,
@@ -58,6 +59,8 @@ const CONFIG_KEYS = ['$schema', 'content', 'out', 'entries', 'safelist', 'minify
 const SKIP_DIRS = new Set(['node_modules', '.git']);
 /** Icon helpers of the icons module: exports that are not glyphs. */
 const ICON_HELPERS = new Set(['icon', 'iconElement', 'fill', 'ICON_SIZE']);
+/** The aliases ds.js puts on DS itself: DS.init is DS.core.init (docs/core.md). */
+const CORE_ALIASES = new Set(['init', 'get', 'define', 'config']);
 
 const posix = (path) => path.split(sep).join('/');
 const unique = (list) => [...new Set(list)];
@@ -313,6 +316,10 @@ export function scanText(text, file, copy) {
   for (const match of text.matchAll(/(?<![\w$])DS\s*\.\s*([A-Za-z_$][\w$]*)(?:\s*\.\s*([A-Za-z_$][\w$]*)|\s*\[\s*(['"])([\w$]+)\3\s*\]|(\s*\[))?/g)) {
     const [, module, dotted, , quoted, dynamic] = match;
     if (module === 'version') continue;
+    if (CORE_ALIASES.has(module) && copy.modules.has('core') && (copy.modules.get('core').exports ?? []).includes(module)) {
+      use('export', module, match.index, { module: 'core' });
+      continue;
+    }
     if (!copy.modules.has(module)) {
       unknown.push({ kind: 'module', name: `DS.${module}`, line: line(match.index) });
       continue;

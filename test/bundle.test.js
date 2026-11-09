@@ -175,6 +175,14 @@ describe('tools/bundle.mjs: globs and scan', () => {
     assert.deepEqual(scan.unknown.map((entry) => entry.name), ['ds-unknown-thing']);
     assert.deepEqual(scan.partials, []);
   });
+
+  it('reads DS.init, DS.get, DS.define and DS.config as the core aliases they are, not as unknown modules', () => {
+    const copy = loadCopy({ dist: join(ROOT, 'dist') });
+    const scan = scanText('DS.init(document); DS.get(el, "tabs"); DS.config({ locale: "de" }); DS.define("x", {}); DS.version;', 'a.js', copy);
+    const kinds = scan.uses.map((use) => `${use.kind}:${use.module}.${use.name}`);
+    for (const name of ['init', 'get', 'config', 'define']) assert.ok(kinds.includes(`export:core.${name}`), `${name} in ${kinds.join(' ')}`);
+    assert.deepEqual(scan.unknown, []);
+  });
 });
 
 describe('tools/bundle.mjs: the fixture projects', () => {

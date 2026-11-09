@@ -845,6 +845,7 @@
     const Custom = View.CustomEvent ?? globalThis.CustomEvent;
     return el.dispatchEvent(new Custom(name, { bubbles: true, cancelable: Boolean(options?.cancelable), detail: detail ?? null }));
     }
+    let frozenStrings = null;
     function config(options) {
     const settings = core.settings;
     const doc = globalThis.document;
@@ -860,12 +861,15 @@
     if (value === null || value === undefined) delete settings.strings[key];
     else settings.strings[key] = typeof value === 'function' ? value : String(value);
     }
-    if (texts.length) changed.push('strings');
+    if (texts.length) {
+    changed.push('strings');
+    settings.version = (settings.version ?? 0) + 1;
     }
-    const current = Object.freeze({
-    locale: localeNow(),
-    strings: Object.freeze({ ...DEFAULT_STRINGS, ...settings.strings }),
-    });
+    }
+    if (!frozenStrings || frozenStrings.of !== settings || frozenStrings.version !== (settings.version ?? 0)) {
+    frozenStrings = { of: settings, version: settings.version ?? 0, strings: Object.freeze({ ...DEFAULT_STRINGS, ...settings.strings }) };
+    }
+    const current = Object.freeze({ locale: localeNow(), strings: frozenStrings.strings });
     if (changed.length && typeof doc?.dispatchEvent === 'function') emit(doc, 'config', { ...current, changed });
     return current;
     }
@@ -21876,9 +21880,20 @@
     const match = /^(\d+)([smhdw])$/.exec(String(span ?? '').trim());
     return match ? Number(match[1]) * UNIT_MS[match[2]] : 0;
     }
+    const formats = new Map();
+    function format(Type, locale, options) {
+    const key = `${Type.name}|${locale}|${JSON.stringify(options)}`;
+    let made = formats.get(key);
+    if (!made) {
+    made = new Type(locale, options);
+    if (formats.size >= 64) formats.clear();
+    formats.set(key, made);
+    }
+    return made;
+    }
     function spanWords(amount, unit, locale, display = 'long') {
     try {
-    return new Intl.NumberFormat(locale, { style: 'unit', unit: UNIT_NAMES[unit], unitDisplay: display }).format(amount);
+    return format(Intl.NumberFormat, locale, { style: 'unit', unit: UNIT_NAMES[unit], unitDisplay: display }).format(amount);
     } catch {
     return `${amount}${unit}`;
     }
@@ -21894,14 +21909,14 @@
     if (rounded && (to === from || to === 'now') && (!rounded[2] || rounded[2] === rounded[3])) {
     try {
     const amount = rounded[1] ? -Number(rounded[1]) : 0;
-    return capital(new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(amount, UNIT_NAMES[rounded[3]]), locale);
+    return capital(format(Intl.RelativeTimeFormat, locale, { numeric: 'auto' }).format(amount, UNIT_NAMES[rounded[3]]), locale);
     } catch {
     }
     }
     const instants = resolve({ from, to }, options);
     if (!instants) return `${from} – ${to}`;
-    const format = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short', ...(options.timeZone && options.timeZone !== 'local' ? { timeZone: options.timeZone } : {}) });
-    return format.formatRange(instants.start, instants.end);
+    return format(Intl.DateTimeFormat, locale, { dateStyle: 'medium', timeStyle: 'short', ...(options.timeZone && options.timeZone !== 'local' ? { timeZone: options.timeZone } : {}) })
+    .formatRange(instants.start, instants.end);
     }
     function query(range) {
     const params = new URLSearchParams();
@@ -21982,8 +21997,21 @@
     const select = make('select', 'ds-timerange__select');
     selectWrap.append(select, iconNode(chevronDown, 16, 'ds-timerange__chevron'));
     root.replaceChildren(wrap, refreshButton, selectWrap);
-    const fromField = createField(fromEl, { type: 'datetime', zone: settings.zone, locale: settings.locale, silent: true });
-    const toField = createField(toEl, { type: 'datetime', zone: settings.zone, locale: settings.locale, silent: true });
+    let fromField = null;
+    let toField = null;
+    let listed = false;
+    function fields() {
+    if (fromField) return;
+    fromField = createField(fromEl, { type: 'datetime', zone: settings.zone, locale: settings.locale, silent: true });
+    toField = createField(toEl, { type: 'datetime', zone: settings.zone, locale: settings.locale, silent: true });
+    for (const field of [fromField, toField]) {
+    field.on('change', () => {
+    fromField.update({ invalid: false });
+    toField.update({ invalid: false });
+    error.textContent = '';
+    });
+    }
+    }
     function iconNode(glyph, size, extra) {
     return iconElement(glyph, size, extra, doc);
     }
@@ -22030,12 +22058,14 @@
     refreshButton.setAttribute('aria-label', t('refresh'));
     refreshButton.setAttribute('data-tip', t('refresh'));
     select.setAttribute('aria-label', t('autoRefresh'));
+    if (listed) {
     const same = (range) => range.from === state.from && range.to === state.to;
     quick.replaceChildren(quickHead, ...settings.quick.map((from) => rangeButton({ from, to: quickTo(from) }, same({ from, to: quickTo(from) }))));
     const recents = recentList();
     recent.replaceChildren(...recents.map((range) => rangeButton(range, same(range))));
     recentHead.hidden = !recents.length;
     recent.hidden = !recents.length;
+    }
     const intervals = settings.intervals.filter((span) => spanMs(span));
     select.replaceChildren(make('option', '', { value: '' }), ...intervals.map((span) => make('option', '', { value: span })));
     select.options[0].textContent = t('off');
@@ -22047,6 +22077,7 @@
     selectWrap.toggleAttribute('data-on', Boolean(select.value));
     }
     function fillFields() {
+    fields();
     const instants = resolve(state, timeOptions());
     fromField.set(instants ? wallTime(instants.start, zone()) : '');
     toField.set(instants ? wallTime(instants.end, zone()) : '');
@@ -22092,6 +22123,7 @@
     toggle: trigger,
     panel,
     onOpen() {
+    listed = true;
     paint();
     fillFields();
     },
@@ -22104,6 +22136,7 @@
     change({ from: button.getAttribute('data-from'), to: button.getAttribute('data-to') });
     }, { signal });
     apply.addEventListener('click', () => {
+    fields();
     const from = fromField.get();
     const to = toField.get();
     const start = from ? toInstant(from, zone()) : null;
@@ -22122,13 +22155,6 @@
     picker.close('select');
     change({ from: start.toISOString().replace(/\.000Z$/, 'Z'), to: end.toISOString().replace(/\.000Z$/, 'Z') });
     }, { signal });
-    for (const field of [fromField, toField]) {
-    field.on('change', () => {
-    fromField.update({ invalid: false });
-    toField.update({ invalid: false });
-    error.textContent = '';
-    });
-    }
     refreshButton.addEventListener('click', () => refresh('manual'), { signal });
     select.addEventListener('change', () => {
     state.refresh = select.value;
@@ -22167,8 +22193,8 @@
     abort.abort();
     stopClock?.();
     picker.destroy();
-    fromField.destroy();
-    toField.destroy();
+    fromField?.destroy();
+    toField?.destroy();
     prefs.destroy();
     listeners.clear();
     controllers.delete(root);

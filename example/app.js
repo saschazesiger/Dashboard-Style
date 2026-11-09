@@ -257,7 +257,8 @@
   let metricsRun = 0;
 
   /* The charts after the view's render: the range's figures load at once; every ds:refresh of the range loads them
-     again. `defer` (the first render): the charts, below the fold on a phone, are returned to run in the next task. */
+     again. `defer` (the first render): the charts, below the fold on a phone, are returned to run in the next task,
+     the second one in a task after that. */
   function mountOverview(defer) {
     const range = keep(DS.timerange.create($('#overview-range', page)));
     const at = renders;
@@ -267,11 +268,17 @@
         type: 'area', labels: [], series: [{ name: 'Devices', values: [] }], curve: 'monotone', legend: false,
         y: { label: 'Devices' }, x: { format: { hour: '2-digit', minute: '2-digit' } },
       }));
+      loadMetrics(range.resolve());
+      // At the start the second chart takes a task of its own.
+      if (defer) setTimeout(checkins, 0);
+      else checkins();
+    };
+    const checkins = () => {
+      if (at !== renders) return;
       keep(DS.chart.create($('#checkins-chart', page), {
         type: 'column', labels: state.checkins.map(([label]) => label), legend: false,
         series: [{ name: 'Check-ins', values: state.checkins.map(([, value]) => value) }],
       }));
-      loadMetrics(range.resolve());
     };
     if (defer) return charts;
     charts();
@@ -383,7 +390,7 @@
       '</section>' +
       // The last child of the page: in a .ds-view--fill it takes what is left of the view.
       `<div class="ex-list${dense}" id="devices-list">` +
-        '<div class="ds-table-wrap ds-table-wrap--fill"><table class="ds-table ds-datagrid ds-table--interactive" id="devices-grid" aria-label="Devices"></table></div>' +
+        '<div class="ds-table-wrap ds-table-wrap--fill"><table class="ds-table ds-datagrid ds-table--interactive ds-table--pin-last" id="devices-grid" aria-label="Devices"></table></div>' +
         pagerHtml() +
       '</div>';
   }
@@ -412,7 +419,8 @@
       { key: 'location', label: 'Location', sortable: true, hidden: true, className: 'ds-nowrap ds-col--secondary' },
       { key: 'type', label: 'Type', sortable: true, hidden: true, format: (value) => TYPES[value] ?? '' },
       // Live values change width: these columns keep theirs (app.css), so nothing shifts sideways.
-      { key: 'lastSeen', label: 'Last seen', type: 'date', sortable: true, className: 'ds-nowrap ex-col-time', filterable: false,
+      // On a phone Last seen steps aside (the device page has it).
+      { key: 'lastSeen', label: 'Last seen', type: 'date', sortable: true, className: 'ds-nowrap ds-col--secondary ex-col-time', filterable: false,
         value: (row) => new Date(row.lastSeen), render: (row) => cellTimeHtml(row.lastSeen) },
       { key: 'status', label: 'Status', sortable: true, className: 'ex-col-status', filterable: false,
         sortValue: (row) => STATUS[row.status].rank, render: (row) => statusHtml(row.status), exportValue: (row) => STATUS[row.status].label },
@@ -691,7 +699,7 @@
   function ticketDetailHtml(ticket) {
     const device = byId(ticket.device);
     return `<div class="ex-detail"><p>${esc(ticket.text || 'No description.')}</p>` +
-      (ticket.due ? `<p class="ds-meta">Due ${esc(day(ticket.due))}</p>` : '') +
+      `<p class="ds-meta">Ticket #${ticket.id}, ${esc(PRIORITY[ticket.priority].toLowerCase())} priority${ticket.due ? `, due ${esc(day(ticket.due))}` : ''}</p>` +
       '<div class="ex-row">' +
       (ticket.status !== 'closed' ? facesButton('ds-btn ds-sm', 'Close ticket', 'Closing', 'Closed', `data-close-ticket="${ticket.id}"`) : '') +
       (device ? `<a class="ds-link-btn" href="#/devices/${esc(device.id)}">Open ${esc(device.name)}</a>` : '') +
@@ -705,12 +713,13 @@
     const first = panel.get();
     const grid = keep(DS.datagrid.create($('#tickets-grid', page), {
       columns: [
-        { key: 'id', label: 'Ticket', type: 'number', sortable: true, className: 'ds-nowrap', format: (value) => `#${value}` },
+        { key: 'id', label: 'Ticket', type: 'number', sortable: true, className: 'ds-nowrap ds-col--secondary', format: (value) => `#${value}` },
         { key: 'subject', label: 'Subject', sortable: true, className: 'ds-col--text' },
         { key: 'device', label: 'Device', sortable: true, className: 'ds-nowrap ds-col--secondary', value: (row) => byId(row.device)?.name ?? 'Removed device' },
-        { key: 'priority', label: 'Priority', sortable: true, sortValue: (row) => ['high', 'normal', 'low'].indexOf(row.priority), render: (row) => priorityHtml(row.priority), exportValue: (row) => PRIORITY[row.priority] },
+        // On a phone Ticket, Priority and Opened step aside (the row's detail says number and priority); Status keeps its icon and word.
+        { key: 'priority', label: 'Priority', sortable: true, className: 'ds-col--secondary', sortValue: (row) => ['high', 'normal', 'low'].indexOf(row.priority), render: (row) => priorityHtml(row.priority), exportValue: (row) => PRIORITY[row.priority] },
         { key: 'status', label: 'Status', sortable: true, render: (row) => ticketStatusHtml(row.status), exportValue: (row) => TICKET_STATUS[row.status].label },
-        { key: 'opened', label: 'Opened', type: 'date', sortable: true, className: 'ds-nowrap ds-col--secondary ex-col-time', value: (row) => new Date(row.opened), render: (row) => cellTimeHtml(row.opened) },
+        { key: 'opened', label: 'Opened', type: 'date', sortable: true, className: 'ds-nowrap ds-col--secondary', value: (row) => new Date(row.opened), render: (row) => cellTimeHtml(row.opened) },
       ],
       rows: state.tickets,
       filter: (row) => ticketPasses(row, first),
@@ -905,7 +914,9 @@
     }
     const title = state.route === 'device' ? byId(state.id)?.name ?? 'Device' : route.title;
     document.title = `${title} · Example Console`;
-    view.scrollTop = 0;
+    // A new view starts at its top. Not at the start: the view is at its top already, and the write would lay out
+    // the whole view inside this task.
+    if (!defer) view.scrollTop = 0;
     return later;
   }
 
@@ -1146,13 +1157,17 @@
 
   /* ── The ticket dialog ────────────────────────────────────────────── */
 
-  /* Its date picker and combobox are made in a task of their own after the start (or on an earlier first open):
+  /* Its date picker and combobox are made after the start, each in a task of its own (or on an earlier first open):
      nothing of the dialog shows before, so the first paint does not wait for them. */
   let due = null;
   let deviceCombo = null;
+  function dueControl() {
+    due ??= DS.datepicker.create($('#ticket-due'), { name: 'due' });
+  }
+
   function ticketControls() {
-    if (due) return;
-    due = DS.datepicker.create($('#ticket-due'), { name: 'due' });
+    dueControl();
+    if (deviceCombo) return;
     deviceCombo = DS.combobox.create($('#ticket-combo'), { items: [] });
     deviceCombo.on('change', () => setError($('#ticket-device'), ''));
   }
@@ -1207,7 +1222,7 @@
 
   /* ── Wiring ───────────────────────────────────────────────────────── */
 
-  /* Icons of the static markup: data-icon="name" (with data-icon-place, beside the label) is drawn by
+  /* Icons of the static markup: data-icon="<glyph>" (with data-icon-place, beside the label) is drawn by
      DS.icons.fill(); the glyphs that carry a class of their component go in by hand. */
   DS.icons.fill(document);
   for (const element of $$('[data-ex-check]')) element.insertAdjacentHTML('afterbegin', icon('check', 20, 'ds-menu__check'));
@@ -1431,6 +1446,10 @@
     centre = makeCentre();
     await nextTask();
     makePalette();
+    // The first relative time builds the engine's Intl formatter, which costs a slow phone a long task: it is made
+    // here, in a task of its own while the data loads, not inside the first render of the feed and the grids.
+    await nextTask();
+    DS.format.relative(Date.now(), { smallest: 'minute' });
     const data = await loading;
     await M.settleLoader(startedAt, { element: skeleton });
     Object.assign(state, { devices: data.devices, tickets: data.tickets, activity: data.activity, checkins: data.checkins, settings: data.settings });
@@ -1446,6 +1465,8 @@
     centre.add(data.notifications.map(notification), { announce: false });
     document.documentElement.setAttribute('data-ex-ready', '');
     if (new URLSearchParams(location.search).get('live') !== '0') setInterval(poll, 5000);
+    await nextTask();
+    dueControl();
     await nextTask();
     ticketControls();
   }());

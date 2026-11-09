@@ -153,3 +153,68 @@ for (const [path, selector] of Object.entries(STYLE_TARGETS)) {
     expect(quartile, `lower quartile of the style recalc of a text change in ${selector} (median ${median.toFixed(2)}ms)`).toBeLessThan(STYLE_CEILING);
   });
 }
+
+/**
+ * The reference app on a slow phone: 390px wide at 4x CPU throttling. Once
+ * the app says it is ready (data-ex-ready), nothing it still does at the
+ * start (the ticket dialog's controls, the chart's figures) is a task over
+ * START_BUDGET; the view's render, the charts and the formatter's warm-up
+ * before it each take a task of their own, so the start's long tasks (the
+ * scripts' evaluation aside) are recorded too. The longest task of a sort,
+ * the palette, closing it and opening a device are recorded in the
+ * annotations, not asserted: they are the library's work (DS.datagrid,
+ * DS.overlay), not the app's.
+ */
+const START_BUDGET = 200;
+
+test('the reference app at 4x CPU: after the start is ready no task is over 200ms; interactions recorded', async ({ page, browserName }, testInfo) => {
+  test.skip(browserName !== 'chromium', 'CPU throttling is a CDP command: Chromium only');
+  test.skip(!process.env.DS_PERF_ALONE, 'task times need the CPU alone: run npm run test:browser -- --project=perf');
+  test.setTimeout(90000);
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.addInitScript(() => {
+    window.__dsLong = [];
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) window.__dsLong.push({ start: entry.startTime, duration: entry.duration });
+    }).observe({ type: 'longtask', buffered: true });
+    // On the document, subtree: the init script may run before <html> exists.
+    new MutationObserver((records, observer) => {
+      if (!document.documentElement?.hasAttribute('data-ex-ready')) return;
+      window.__dsReady = performance.now();
+      observer.disconnect();
+    }).observe(document, { subtree: true, attributes: true, attributeFilter: ['data-ex-ready'] });
+  });
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  try {
+    await page.goto('/example/index.html?live=0');
+    await page.waitForFunction(() => document.documentElement.hasAttribute('data-ex-ready'), null, { timeout: 30000 });
+    await page.waitForTimeout(3000);
+    const { ready, tasks } = await page.evaluate(() => ({ ready: window.__dsReady, tasks: window.__dsLong }));
+    expect(typeof ready, 'the moment of data-ex-ready was taken').toBe('number');
+    const before = tasks.filter((task) => task.start < ready).map((task) => Math.round(task.duration));
+    const after = tasks.filter((task) => task.start >= ready).map((task) => Math.round(task.duration));
+    const longest = async (action) => {
+      await page.evaluate(() => { window.__dsLong = []; });
+      await action();
+      await page.waitForTimeout(1500);
+      return Math.round(Math.max(0, ...await page.evaluate(() => window.__dsLong.map((task) => task.duration))));
+    };
+    const interactions = {
+      'open the palette (Ctrl+K)': await longest(() => page.keyboard.press('Control+k')),
+      'close it (Escape)': await longest(() => page.keyboard.press('Escape')),
+      'go to the devices': await longest(() => page.evaluate(() => { location.hash = '#/devices'; })),
+      'sort by a header': await longest(() => page.locator('#devices-grid thead th:visible .ds-table__sort').first().click()),
+      'open a device': await longest(() => page.locator('#devices-grid tbody .ds-table__row-link').first().click()),
+    };
+    testInfo.annotations.push(
+      { type: 'perf', description: `start, long tasks before ready (recorded): ${before.join(', ') || 'none'} ms` },
+      { type: 'perf', description: `start, long tasks after ready (asserted, ${START_BUDGET}ms): ${after.join(', ') || 'none'} ms` },
+      ...Object.entries(interactions).map(([name, ms]) => ({ type: 'perf', description: `${name}: longest task ${ms}ms (recorded)` })),
+    );
+    for (const duration of after) expect(duration, `a task after data-ex-ready (all: ${after.join(', ')} ms)`).toBeLessThanOrEqual(START_BUDGET);
+  } finally {
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+    await cdp.detach();
+  }
+});

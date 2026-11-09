@@ -289,6 +289,19 @@ test.describe('the combobox under touch (WebKit)', () => {
 
 test('the ticket facets filter the grid with their counts; a link from the overview opens its ticket', async ({ page }) => {
   await open(page, '#/tickets');
+  // At 1280px the grid would not keep its columns beside the panel: the facets fold into their sheet and the grid
+  // does not scroll sideways.
+  const layout = page.locator('#page .ds-facets-layout');
+  const sideways = () => page.locator('#tickets-grid').evaluate((table) => {
+    const wrap = table.closest('.ds-table-wrap');
+    return wrap.scrollWidth - wrap.clientWidth;
+  });
+  await expect(layout).toHaveAttribute('data-folded', '');
+  expect(await sideways()).toBeLessThanOrEqual(0);
+  // On a wider screen the panel docks beside the grid, which still fits.
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await expect(layout).not.toHaveAttribute('data-folded', '');
+  expect(await sideways()).toBeLessThanOrEqual(0);
   const count = page.locator('#page .ds-facets__count').first();
   const rows = gridRows(page, 'tickets-grid');
   const shown = await rows.count();
@@ -362,12 +375,29 @@ test('the notification centre: the bell counts the unread, a link opens its reco
 test('the time range of the overview goes into the address and loads the chart again', async ({ page }) => {
   await open(page);
   await expect(page.locator('#fleet-chart .ds-chart__line, #fleet-chart .ds-chart__area').first()).toBeAttached();
+  // Every load of the figures, with the hours it spans (ds:refresh -> loadMetrics -> ExampleApi.metrics).
+  await page.evaluate(() => {
+    const api = window.ExampleApi;
+    const metrics = api.metrics.bind(api);
+    window.__metricsCalls = [];
+    api.metrics = (range) => {
+      window.__metricsCalls.push((new Date(range.end) - new Date(range.start)) / 3600000);
+      return metrics(range);
+    };
+  });
+  // The figures the chart shows: its axis labels and the shape of its line.
+  const chartText = () => page.locator('#fleet-chart').evaluate((figure) =>
+    `${figure.textContent}|${figure.querySelector('.ds-chart__line, .ds-chart__area')?.getAttribute('d') ?? ''}`);
+  const before = await chartText();
   await page.locator('#overview-range .ds-timerange__trigger').click();
   await settle(page);
   await page.locator('#overview-range .ds-picker__preset[data-from="now-6h"]').click();
   await settle(page);
   await expect(page.locator('#overview-range .ds-timerange__label')).toHaveText('Last 6 hours');
   expect(new URL(page.url()).hash).toContain('from=now-6h');
+  // The chart loaded again, for six hours, and shows other figures.
+  await expect.poll(() => page.evaluate(() => window.__metricsCalls)).toEqual([6]);
+  await expect.poll(chartText).not.toBe(before);
   // The range survives a reload through the address.
   await page.reload();
   await page.waitForFunction(() => document.documentElement.hasAttribute('data-ex-ready'));
@@ -486,6 +516,31 @@ test.describe('phones at 360px', () => {
       });
       expect(overflow.doc, hash).toBeLessThanOrEqual(0);
       expect(overflow.page, hash).toBeLessThanOrEqual(0);
+    }
+    // Inside the grids too: a row's status word and its row menu show without a sideways scroll (on a
+    // touch phone the menu has no right click or Shift+F10). The tickets grid fits; the devices grid
+    // pins its actions column at the end, so its status word ends before that column.
+    for (const [hash, id] of [['#/tickets', 'tickets-grid'], ['#/devices', 'devices-grid']]) {
+      // Only the hash changes, so the page stays and data-ex-ready is set already: wait for the view's grid.
+      await open(page, hash);
+      await expect(gridRows(page, id).first()).toBeVisible();
+      await settle(page);
+      const fit = await page.evaluate((id) => {
+        const table = document.getElementById(id);
+        const wrap = table.closest('.ds-table-wrap');
+        const row = table.querySelector('tbody tr[data-ds-key]:not(.ds-table__detail)');
+        const word = row.querySelector('.ds-status > span:last-child').getBoundingClientRect();
+        const actions = row.querySelector('.ds-table__actions');
+        const menu = actions?.querySelector('[data-ds-datagrid-menu]').getBoundingClientRect();
+        return {
+          scroll: wrap.scrollWidth - wrap.clientWidth,
+          word: word.right - (actions ? actions.getBoundingClientRect().left : wrap.getBoundingClientRect().right),
+          menu: menu ? Math.max(menu.right - wrap.getBoundingClientRect().right, menu.right - window.innerWidth) : null,
+        };
+      }, id);
+      if (id === 'tickets-grid') expect(fit.scroll, hash).toBeLessThanOrEqual(0);
+      expect(fit.word, hash).toBeLessThanOrEqual(0);
+      if (id === 'devices-grid') expect(fit.menu, hash).toBeLessThanOrEqual(0);
     }
     await open(page, '#/devices');
     await expect(page.locator('#devices-filters')).toHaveAttribute('data-folded', '');

@@ -12,8 +12,8 @@
     },
     "js": {
       "file": "ds.bundle.js",
-      "bytes": 1058345,
-      "gzip": 250626
+      "bytes": 1059163,
+      "gzip": 250855
     },
     "properties": {
       "file": "properties.css",
@@ -59,7 +59,7 @@
     },
     {
       "name": "disclosure",
-      "reason": "app.js:808 ds-disclosure",
+      "reason": "app.js:817 ds-disclosure",
       "bytes": 3367,
       "gzip": 1022
     },
@@ -83,13 +83,13 @@
     },
     {
       "name": "switch",
-      "reason": "app.js:758 ds-switch",
+      "reason": "app.js:767 ds-switch",
       "bytes": 13984,
       "gzip": 2262
     },
     {
       "name": "progress",
-      "reason": "needed by DS.toast.progress (app.js:1132)",
+      "reason": "needed by DS.toast.progress (app.js:1143)",
       "bytes": 6008,
       "gzip": 1430
     },
@@ -119,25 +119,25 @@
     },
     {
       "name": "empty",
-      "reason": "app.js:585 ds-empty",
+      "reason": "app.js:593 ds-empty",
       "bytes": 3869,
       "gzip": 1174
     },
     {
       "name": "menu",
-      "reason": "app.js:315 ds-menu__item",
+      "reason": "app.js:322 ds-menu__item",
       "bytes": 8287,
       "gzip": 2087
     },
     {
       "name": "chip",
-      "reason": "app.js:346 ds-chips",
+      "reason": "app.js:353 ds-chips",
       "bytes": 8706,
       "gzip": 1866
     },
     {
       "name": "badge",
-      "reason": "app.js:343 ds-badge",
+      "reason": "app.js:350 ds-badge",
       "bytes": 3754,
       "gzip": 964
     },
@@ -155,19 +155,19 @@
     },
     {
       "name": "table",
-      "reason": "app.js:375 ds-selection-bar",
+      "reason": "app.js:382 ds-selection-bar",
       "bytes": 32925,
       "gzip": 4735
     },
     {
       "name": "pagination",
-      "reason": "app.js:356 ds-pagination",
+      "reason": "app.js:363 ds-pagination",
       "bytes": 2697,
       "gzip": 807
     },
     {
       "name": "form",
-      "reason": "app.js:337 ds-search",
+      "reason": "app.js:344 ds-search",
       "bytes": 49285,
       "gzip": 7087
     },
@@ -185,7 +185,7 @@
     },
     {
       "name": "tooltip",
-      "reason": "app.js:355 data-tip",
+      "reason": "app.js:362 data-tip",
       "bytes": 2413,
       "gzip": 811
     },
@@ -197,7 +197,7 @@
     },
     {
       "name": "shell",
-      "reason": "app.js:384 ds-view--fill",
+      "reason": "app.js:391 ds-view--fill",
       "bytes": 39266,
       "gzip": 6590
     },
@@ -221,25 +221,25 @@
     },
     {
       "name": "datefield",
-      "reason": "app.js:575 ds-datefield",
+      "reason": "app.js:583 ds-datefield",
       "bytes": 4124,
       "gzip": 1154
     },
     {
       "name": "filterbar",
-      "reason": "app.js:335 ds-filterbar",
+      "reason": "app.js:342 ds-filterbar",
       "bytes": 2008,
       "gzip": 637
     },
     {
       "name": "picker",
-      "reason": "app.js:574 ds-picker",
+      "reason": "app.js:582 ds-picker",
       "bytes": 6042,
       "gzip": 1674
     },
     {
       "name": "facets",
-      "reason": "app.js:649 ds-facet",
+      "reason": "app.js:657 ds-facet",
       "bytes": 3158,
       "gzip": 946
     },
@@ -257,13 +257,13 @@
     },
     {
       "name": "views",
-      "reason": "app.js:319 ds-views",
+      "reason": "app.js:326 ds-views",
       "bytes": 864,
       "gzip": 425
     },
     {
       "name": "datagrid",
-      "reason": "app.js:386 ds-datagrid",
+      "reason": "app.js:393 ds-datagrid",
       "bytes": 8213,
       "gzip": 1914
     },
@@ -287,13 +287,13 @@
     },
     {
       "name": "toc",
-      "reason": "app.js:603 ds-toc",
+      "reason": "app.js:611 ds-toc",
       "bytes": 5389,
       "gzip": 1475
     },
     {
       "name": "object",
-      "reason": "app.js:560 ds-object__section",
+      "reason": "app.js:568 ds-object__section",
       "bytes": 1307,
       "gzip": 509
     },
@@ -327,7 +327,7 @@
     },
     {
       "name": "indicator",
-      "reason": "app.js:822 DS.indicator.create"
+      "reason": "app.js:831 DS.indicator.create"
     },
     {
       "name": "dom",
@@ -335,7 +335,7 @@
     },
     {
       "name": "ripple",
-      "reason": "app.js:1219 DS.ripple.attach"
+      "reason": "app.js:1234 DS.ripple.attach"
     },
     {
       "name": "icons",
@@ -347,7 +347,7 @@
     },
     {
       "name": "overlay",
-      "reason": "app.js:320 data-ds-open"
+      "reason": "app.js:327 data-ds-open"
     },
     {
       "name": "a11y",
@@ -387,7 +387,7 @@
     },
     {
       "name": "command",
-      "reason": "app.js:1035 DS.command.create"
+      "reason": "app.js:1046 DS.command.create"
     },
     {
       "name": "datefield",
@@ -403,7 +403,7 @@
     },
     {
       "name": "facets",
-      "reason": "app.js:704 DS.facets.create"
+      "reason": "app.js:712 DS.facets.create"
     },
     {
       "name": "form",
@@ -423,7 +423,7 @@
     },
     {
       "name": "combobox",
-      "reason": "app.js:1156 DS.combobox.create"
+      "reason": "app.js:1171 DS.combobox.create"
     },
     {
       "name": "menu",
@@ -459,19 +459,19 @@
     },
     {
       "name": "datepicker",
-      "reason": "app.js:1155 DS.datepicker.create"
+      "reason": "app.js:1165 DS.datepicker.create"
     },
     {
       "name": "timerange",
-      "reason": "app.js:262 DS.timerange.create"
+      "reason": "app.js:263 DS.timerange.create"
     },
     {
       "name": "toast",
-      "reason": "app.js:1113 DS.toast.promise"
+      "reason": "app.js:1124 DS.toast.promise"
     },
     {
       "name": "notifications",
-      "reason": "app.js:1022 DS.notifications.create"
+      "reason": "app.js:1033 DS.notifications.create"
     },
     {
       "name": "toc",
@@ -501,7 +501,7 @@
     },
     {
       "name": "chevronDown",
-      "reason": "app.js:321"
+      "reason": "app.js:328"
     },
     {
       "name": "chevronRight",
@@ -509,23 +509,23 @@
     },
     {
       "name": "chevronLeft",
-      "reason": "app.js:360"
+      "reason": "app.js:367"
     },
     {
       "name": "chevronFirst",
-      "reason": "app.js:360"
+      "reason": "app.js:367"
     },
     {
       "name": "chevronLast",
-      "reason": "app.js:361"
+      "reason": "app.js:368"
     },
     {
       "name": "plus",
-      "reason": "app.js:1042"
+      "reason": "app.js:1053"
     },
     {
       "name": "close",
-      "reason": "app.js:376"
+      "reason": "app.js:383"
     },
     {
       "name": "menu",
@@ -533,7 +533,7 @@
     },
     {
       "name": "moreVertical",
-      "reason": "app.js:445"
+      "reason": "app.js:453"
     },
     {
       "name": "moreHorizontal",
@@ -545,23 +545,23 @@
     },
     {
       "name": "search",
-      "reason": "app.js:337"
+      "reason": "app.js:344"
     },
     {
       "name": "filter",
-      "reason": "app.js:343"
+      "reason": "app.js:350"
     },
     {
       "name": "pencil",
-      "reason": "app.js:326"
+      "reason": "app.js:333"
     },
     {
       "name": "save",
-      "reason": "app.js:326"
+      "reason": "app.js:333"
     },
     {
       "name": "sync",
-      "reason": "app.js:1043"
+      "reason": "app.js:1054"
     },
     {
       "name": "undo",
@@ -573,19 +573,19 @@
     },
     {
       "name": "copy",
-      "reason": "app.js:811"
+      "reason": "app.js:820"
     },
     {
       "name": "download",
-      "reason": "app.js:373"
+      "reason": "app.js:380"
     },
     {
       "name": "trash",
-      "reason": "app.js:329"
+      "reason": "app.js:336"
     },
     {
       "name": "bell",
-      "reason": "app.js:1044"
+      "reason": "app.js:1055"
     },
     {
       "name": "mail",
@@ -593,7 +593,7 @@
     },
     {
       "name": "link",
-      "reason": "app.js:328"
+      "reason": "app.js:335"
     },
     {
       "name": "flag",
@@ -625,7 +625,7 @@
     },
     {
       "name": "calendar",
-      "reason": "app.js:575"
+      "reason": "app.js:583"
     },
     {
       "name": "activity",
@@ -637,7 +637,7 @@
     },
     {
       "name": "wifiOff",
-      "reason": "app.js:1039"
+      "reason": "app.js:1050"
     },
     {
       "name": "sun",
@@ -649,7 +649,7 @@
     },
     {
       "name": "overview",
-      "reason": "app.js:1037"
+      "reason": "app.js:1048"
     },
     {
       "name": "apps",
@@ -657,11 +657,11 @@
     },
     {
       "name": "columns",
-      "reason": "app.js:372"
+      "reason": "app.js:379"
     },
     {
       "name": "settings",
-      "reason": "app.js:1041"
+      "reason": "app.js:1052"
     },
     {
       "name": "shield",
@@ -673,7 +673,7 @@
     },
     {
       "name": "ticket",
-      "reason": "app.js:1040"
+      "reason": "app.js:1051"
     },
     {
       "name": "fileText",
@@ -689,7 +689,7 @@
     },
     {
       "name": "laptop",
-      "reason": "app.js:1038"
+      "reason": "app.js:1049"
     },
     {
       "name": "monitor",
@@ -705,7 +705,7 @@
     },
     {
       "name": "star",
-      "reason": "app.js:327"
+      "reason": "app.js:334"
     },
     {
       "name": "refresh",
@@ -713,11 +713,11 @@
     },
     {
       "name": "palette",
-      "reason": "app.js:1047"
+      "reason": "app.js:1058"
     },
     {
       "name": "contrast",
-      "reason": "app.js:1045"
+      "reason": "app.js:1056"
     },
     {
       "name": "mailOpen",
@@ -725,7 +725,7 @@
     },
     {
       "name": "layers",
-      "reason": "app.js:320"
+      "reason": "app.js:327"
     },
     {
       "name": "book",
@@ -740,22 +740,22 @@
     "ds-account__menu": "index.html:48",
     "ds-account__name": "index.html:49",
     "ds-account__trigger": "index.html:47",
-    "ds-action-bar": "app.js:371",
+    "ds-action-bar": "app.js:378",
     "ds-alert": "app.js:186",
     "ds-alert__text": "app.js:186",
     "ds-app": "index.html:34",
     "ds-app--drawer": "index.html:34",
-    "ds-badge": "app.js:343",
-    "ds-banner": "app.js:998",
+    "ds-badge": "app.js:350",
+    "ds-banner": "app.js:1009",
     "ds-base": "index.html:2",
     "ds-brand": "index.html:39",
     "ds-brand__name": "index.html:39",
     "ds-btn": "app.js:143",
-    "ds-btn--filled": "app.js:578",
-    "ds-btn--icon": "app.js:355",
-    "ds-btn--quiet": "app.js:355",
+    "ds-btn--filled": "app.js:586",
+    "ds-btn--icon": "app.js:362",
+    "ds-btn--quiet": "app.js:362",
     "ds-btn--text": "app.js:143",
-    "ds-btn--tonal": "app.js:586",
+    "ds-btn--tonal": "app.js:594",
     "ds-btn__face": "app.js:135",
     "ds-btn__face--busy": "app.js:136",
     "ds-btn__face--done": "app.js:137",
@@ -764,16 +764,16 @@
     "ds-card__link": "app.js:250",
     "ds-card__links": "app.js:250",
     "ds-card__row": "app.js:243",
-    "ds-card__subtitle": "app.js:794",
+    "ds-card__subtitle": "app.js:803",
     "ds-card__title": "app.js:237",
     "ds-chart": "app.js:238",
-    "ds-check": "app.js:650",
-    "ds-check__count": "app.js:650",
-    "ds-chevron": "app.js:808",
-    "ds-chips": "app.js:346",
-    "ds-col--secondary": "app.js:410",
-    "ds-col--text": "app.js:709",
-    "ds-collapsible": "app.js:808",
+    "ds-check": "app.js:658",
+    "ds-check__count": "app.js:658",
+    "ds-chevron": "app.js:817",
+    "ds-chips": "app.js:353",
+    "ds-col--secondary": "app.js:417",
+    "ds-col--text": "app.js:717",
+    "ds-collapsible": "app.js:817",
     "ds-combo": "index.html:215",
     "ds-combo__input": "index.html:216",
     "ds-combo__list": "index.html:220",
@@ -787,17 +787,17 @@
     "ds-command__list": "index.html:147",
     "ds-command__search": "index.html:142",
     "ds-content": "index.html:90",
-    "ds-datagrid": "app.js:386",
-    "ds-datefield": "app.js:575",
-    "ds-datefield__toggle": "app.js:575",
-    "ds-density-dense": "app.js:365",
+    "ds-datagrid": "app.js:393",
+    "ds-datefield": "app.js:583",
+    "ds-datefield__toggle": "app.js:583",
+    "ds-density-dense": "app.js:372",
     "ds-dialog": "index.html:139",
     "ds-dialog__actions": "index.html:249",
     "ds-dialog__backdrop": "index.html:140",
     "ds-dialog__box": "index.html:141",
     "ds-dialog__title": "index.html:206",
-    "ds-disclosure": "app.js:808",
-    "ds-disclosure__body": "app.js:809",
+    "ds-disclosure": "app.js:817",
+    "ds-disclosure__body": "app.js:818",
     "ds-drawer": "index.html:66",
     "ds-drawer__actions": "index.html:68",
     "ds-drawer__count": "index.html:74",
@@ -808,60 +808,60 @@
     "ds-drawer__label": "index.html:68",
     "ds-drawer__list": "index.html:69",
     "ds-drawer__toggle": "index.html:79",
-    "ds-empty": "app.js:585",
-    "ds-empty__disc": "app.js:585",
-    "ds-empty__text": "app.js:586",
-    "ds-empty__title": "app.js:585",
-    "ds-facet": "app.js:649",
-    "ds-facet__options": "app.js:649",
-    "ds-facet__title": "app.js:649",
-    "ds-facets": "app.js:655",
-    "ds-facets-layout": "app.js:654",
-    "ds-facets-layout__main": "app.js:660",
-    "ds-facets__applied": "app.js:657",
-    "ds-facets__badge": "app.js:662",
-    "ds-facets__chips": "app.js:657",
-    "ds-facets__clear": "app.js:656",
-    "ds-facets__count": "app.js:663",
-    "ds-facets__head": "app.js:656",
+    "ds-empty": "app.js:593",
+    "ds-empty__disc": "app.js:593",
+    "ds-empty__text": "app.js:594",
+    "ds-empty__title": "app.js:593",
+    "ds-facet": "app.js:657",
+    "ds-facet__options": "app.js:657",
+    "ds-facet__title": "app.js:657",
+    "ds-facets": "app.js:663",
+    "ds-facets-layout": "app.js:662",
+    "ds-facets-layout__main": "app.js:668",
+    "ds-facets__applied": "app.js:665",
+    "ds-facets__badge": "app.js:670",
+    "ds-facets__chips": "app.js:665",
+    "ds-facets__clear": "app.js:664",
+    "ds-facets__count": "app.js:671",
+    "ds-facets__head": "app.js:664",
     "ds-facets__results": "index.html:198",
-    "ds-facets__title": "app.js:656",
-    "ds-facets__toggle": "app.js:662",
-    "ds-facts": "app.js:538",
-    "ds-facts--rows": "app.js:538",
-    "ds-field": "app.js:339",
-    "ds-field--changed": "app.js:773",
+    "ds-facets__title": "app.js:664",
+    "ds-facets__toggle": "app.js:670",
+    "ds-facts": "app.js:546",
+    "ds-facts--rows": "app.js:546",
+    "ds-field": "app.js:346",
+    "ds-field--changed": "app.js:782",
     "ds-field--full": "index.html:208",
-    "ds-field__changed": "app.js:774",
-    "ds-field__hint": "app.js:803",
-    "ds-field__hint--error": "app.js:858",
-    "ds-field__label": "app.js:339",
-    "ds-field__row": "app.js:809",
-    "ds-filterbar": "app.js:335",
-    "ds-filterbar__applied": "app.js:346",
-    "ds-filterbar__badge": "app.js:343",
-    "ds-filterbar__chips": "app.js:346",
-    "ds-filterbar__clear": "app.js:347",
-    "ds-filterbar__count": "app.js:344",
-    "ds-filterbar__filters": "app.js:338",
-    "ds-filterbar__more": "app.js:343",
+    "ds-field__changed": "app.js:783",
+    "ds-field__hint": "app.js:812",
+    "ds-field__hint--error": "app.js:867",
+    "ds-field__label": "app.js:346",
+    "ds-field__row": "app.js:818",
+    "ds-filterbar": "app.js:342",
+    "ds-filterbar__applied": "app.js:353",
+    "ds-filterbar__badge": "app.js:350",
+    "ds-filterbar__chips": "app.js:353",
+    "ds-filterbar__clear": "app.js:354",
+    "ds-filterbar__count": "app.js:351",
+    "ds-filterbar__filters": "app.js:345",
+    "ds-filterbar__more": "app.js:350",
     "ds-filterbar__results": "index.html:185",
-    "ds-filterbar__row": "app.js:336",
-    "ds-filterbar__search": "app.js:337",
-    "ds-form": "app.js:569",
-    "ds-form-actions": "app.js:577",
-    "ds-form-grid": "app.js:570",
-    "ds-form-grid--2": "app.js:570",
+    "ds-filterbar__row": "app.js:343",
+    "ds-filterbar__search": "app.js:344",
+    "ds-form": "app.js:577",
+    "ds-form-actions": "app.js:585",
+    "ds-form-grid": "app.js:578",
+    "ds-form-grid--2": "app.js:578",
     "ds-grid-2": "app.js:236",
-    "ds-hover-actions": "app.js:444",
-    "ds-icon-swap": "app.js:811",
-    "ds-icon-swap__a": "app.js:811",
-    "ds-icon-swap__b": "app.js:811",
-    "ds-input": "app.js:337",
-    "ds-input--filled": "app.js:358",
+    "ds-hover-actions": "app.js:452",
+    "ds-icon-swap": "app.js:820",
+    "ds-icon-swap__a": "app.js:820",
+    "ds-icon-swap__b": "app.js:820",
+    "ds-input": "app.js:344",
+    "ds-input--filled": "app.js:365",
     "ds-kbd": "index.html:144",
     "ds-lg": "index.html:49",
-    "ds-link-btn": "app.js:409",
+    "ds-link-btn": "app.js:416",
     "ds-list": "app.js:208",
     "ds-list--interactive": "app.js:208",
     "ds-list__action": "app.js:210",
@@ -873,62 +873,62 @@
     "ds-list__title": "app.js:210",
     "ds-loadbar": "index.html:95",
     "ds-loadbar__bar": "index.html:95",
-    "ds-menu": "app.js:323",
-    "ds-menu__check": "app.js:316",
-    "ds-menu__divider": "app.js:325",
+    "ds-menu": "app.js:330",
+    "ds-menu__check": "app.js:323",
+    "ds-menu__divider": "app.js:332",
     "ds-menu__heading": "index.html:53",
-    "ds-menu__item": "app.js:315",
-    "ds-menu__item--danger": "app.js:317",
-    "ds-menu__label": "app.js:316",
+    "ds-menu__item": "app.js:322",
+    "ds-menu__item--danger": "app.js:324",
+    "ds-menu__label": "app.js:323",
     "ds-meta": "app.js:218",
     "ds-muted": "app.js:207",
     "ds-notifications": "index.html:156",
     "ds-notifications__bar": "index.html:167",
     "ds-notifications__bell": "index.html:42",
     "ds-notifications__feed": "index.html:172",
-    "ds-nowrap": "app.js:408",
-    "ds-object": "app.js:589",
-    "ds-object__edit": "app.js:562",
-    "ds-object__form": "app.js:569",
-    "ds-object__head": "app.js:561",
-    "ds-object__section": "app.js:560",
-    "ds-object__title": "app.js:561",
-    "ds-object__view": "app.js:563",
+    "ds-nowrap": "app.js:415",
+    "ds-object": "app.js:597",
+    "ds-object__edit": "app.js:570",
+    "ds-object__form": "app.js:577",
+    "ds-object__head": "app.js:569",
+    "ds-object__section": "app.js:568",
+    "ds-object__title": "app.js:569",
+    "ds-object__view": "app.js:571",
     "ds-page": "index.html:91",
     "ds-page-head": "app.js:142",
-    "ds-page-head--sticky": "app.js:590",
+    "ds-page-head--sticky": "app.js:598",
     "ds-page-head__actions": "app.js:145",
     "ds-page-head__back": "app.js:143",
-    "ds-page-head__detail": "app.js:532",
-    "ds-page-head__details": "app.js:601",
+    "ds-page-head__detail": "app.js:540",
+    "ds-page-head__details": "app.js:609",
     "ds-page-head__lead": "app.js:145",
     "ds-page-head__row": "app.js:144",
-    "ds-page-head__status": "app.js:595",
+    "ds-page-head__status": "app.js:603",
     "ds-page-head__text": "app.js:144",
     "ds-page-head__title": "app.js:144",
-    "ds-pagination": "app.js:356",
-    "ds-pagination__label": "app.js:357",
-    "ds-pagination__range": "app.js:359",
-    "ds-pagination__size": "app.js:357",
-    "ds-panel": "app.js:992",
+    "ds-pagination": "app.js:363",
+    "ds-pagination__label": "app.js:364",
+    "ds-pagination__range": "app.js:366",
+    "ds-pagination__size": "app.js:364",
+    "ds-panel": "app.js:1003",
     "ds-parts": "app.js:219",
     "ds-parts__list": "app.js:219",
-    "ds-picker": "app.js:574",
+    "ds-picker": "app.js:582",
     "ds-presence": "index.html:114",
-    "ds-radio": "app.js:796",
-    "ds-radios": "app.js:795",
+    "ds-radio": "app.js:805",
+    "ds-radios": "app.js:804",
     "ds-savebar": "index.html:113",
     "ds-savebar__actions": "index.html:116",
     "ds-savebar__bar": "index.html:114",
     "ds-savebar__text": "index.html:115",
     "ds-scrim": "index.html:65",
-    "ds-search": "app.js:337",
-    "ds-segmented": "app.js:790",
-    "ds-segmented__indicator": "app.js:822",
-    "ds-segmented__option": "app.js:791",
-    "ds-selection-bar": "app.js:375",
-    "ds-selection-bar__actions": "app.js:378",
-    "ds-selection-bar__count": "app.js:377",
+    "ds-search": "app.js:344",
+    "ds-segmented": "app.js:799",
+    "ds-segmented__indicator": "app.js:831",
+    "ds-segmented__option": "app.js:800",
+    "ds-selection-bar": "app.js:382",
+    "ds-selection-bar__actions": "app.js:385",
+    "ds-selection-bar__count": "app.js:384",
     "ds-sheet": "index.html:156",
     "ds-sheet__backdrop": "index.html:157",
     "ds-sheet__body": "index.html:172",
@@ -938,7 +938,7 @@
     "ds-sheet__panel": "index.html:158",
     "ds-sheet__subtitle": "index.html:162",
     "ds-sheet__title": "index.html:161",
-    "ds-skeleton": "app.js:1425",
+    "ds-skeleton": "app.js:1440",
     "ds-skeleton__card": "index.html:98",
     "ds-skeleton__line": "index.html:96",
     "ds-skeleton__line--heading": "index.html:96",
@@ -952,22 +952,23 @@
     "ds-spinner--ink": "app.js:136",
     "ds-sr": "app.js:143",
     "ds-stack": "app.js:234",
-    "ds-stale": "app.js:509",
+    "ds-stale": "app.js:517",
     "ds-status": "app.js:63",
     "ds-status--running": "app.js:65",
     "ds-status__spinner": "app.js:119",
-    "ds-swap": "app.js:370",
-    "ds-switch": "app.js:758",
-    "ds-switch__label": "app.js:759",
-    "ds-switch__off": "app.js:760",
-    "ds-switch__on": "app.js:760",
-    "ds-switch__state": "app.js:760",
-    "ds-switch__track": "app.js:759",
-    "ds-table": "app.js:386",
-    "ds-table--interactive": "app.js:386",
-    "ds-table-wrap": "app.js:386",
-    "ds-table-wrap--fill": "app.js:386",
-    "ds-table__row-link": "app.js:409",
+    "ds-swap": "app.js:377",
+    "ds-switch": "app.js:767",
+    "ds-switch__label": "app.js:768",
+    "ds-switch__off": "app.js:769",
+    "ds-switch__on": "app.js:769",
+    "ds-switch__state": "app.js:769",
+    "ds-switch__track": "app.js:768",
+    "ds-table": "app.js:393",
+    "ds-table--interactive": "app.js:393",
+    "ds-table--pin-last": "app.js:393",
+    "ds-table-wrap": "app.js:393",
+    "ds-table-wrap--fill": "app.js:393",
+    "ds-table__row-link": "app.js:416",
     "ds-theme": "index.html:2",
     "ds-tile": "app.js:177",
     "ds-tile__label": "app.js:177",
@@ -983,32 +984,28 @@
     "ds-timeline__title": "app.js:200",
     "ds-timerange": "app.js:233",
     "ds-toasts": "index.html:133",
-    "ds-toc": "app.js:603",
-    "ds-toc--bar": "app.js:603",
-    "ds-toc--sticky": "app.js:603",
-    "ds-toc__link": "app.js:605",
-    "ds-toc__list": "app.js:603",
+    "ds-toc": "app.js:611",
+    "ds-toc--bar": "app.js:611",
+    "ds-toc--sticky": "app.js:611",
+    "ds-toc__link": "app.js:613",
+    "ds-toc__list": "app.js:611",
     "ds-tone-error": "app.js:63",
     "ds-tone-info": "app.js:71",
     "ds-tone-success": "app.js:66",
     "ds-tone-warning": "app.js:64",
-    "ds-toolbar": "app.js:370",
+    "ds-toolbar": "app.js:377",
     "ds-topbar": "index.html:37",
     "ds-topbar__actions": "index.html:40",
     "ds-topbar__menu": "index.html:38",
     "ds-view": "index.html:89",
-    "ds-view--fill": "app.js:384",
-    "ds-views": "app.js:319",
-    "ds-views__chevron": "app.js:321",
-    "ds-views__edited": "app.js:321",
-    "ds-views__list": "app.js:324",
-    "ds-views__name": "app.js:321",
-    "ds-views__save": "app.js:322",
-    "ds-views__trigger": "app.js:320"
+    "ds-view--fill": "app.js:391",
+    "ds-views": "app.js:326",
+    "ds-views__chevron": "app.js:328",
+    "ds-views__edited": "app.js:328",
+    "ds-views__list": "app.js:331",
+    "ds-views__name": "app.js:328",
+    "ds-views__save": "app.js:329",
+    "ds-views__trigger": "app.js:327"
   },
-  "unknown": [
-    "app.js:1218 module DS.init",
-    "app.js:1310 module DS.get",
-    "app.js:1210 icon name"
-  ]
+  "unknown": []
 }
