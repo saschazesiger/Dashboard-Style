@@ -1,0 +1,9 @@
+{
+  "prefix": "ex",
+  "css": ["*.css"],
+  "js": ["app.js", "data.js"],
+  "html": ["*.html"],
+  "themes": ["theme.css"],
+  "themesWith": ["../dist/themes/presets/default.css"],
+  "vendor": "../dist"
+}

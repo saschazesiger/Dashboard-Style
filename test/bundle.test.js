@@ -182,6 +182,14 @@ describe('tools/bundle.mjs: globs and scan', () => {
     assert.deepEqual(scan.unknown, []);
     assert.deepEqual(scan.uses.map((use) => `${use.kind}:${use.module}.${use.name}`), ['export:core.init', 'export:core.get', 'export:core.define', 'export:core.config']);
   });
+
+  it('reads DS.init, DS.get, DS.define and DS.config as the core aliases they are, not as unknown modules', () => {
+    const copy = loadCopy({ dist: join(ROOT, 'dist') });
+    const scan = scanText('DS.init(document); DS.get(el, "tabs"); DS.config({ locale: "de" }); DS.define("x", {}); DS.version;', 'a.js', copy);
+    const kinds = scan.uses.map((use) => `${use.kind}:${use.module}.${use.name}`);
+    for (const name of ['init', 'get', 'config', 'define']) assert.ok(kinds.includes(`export:core.${name}`), `${name} in ${kinds.join(' ')}`);
+    assert.deepEqual(scan.unknown, []);
+  });
 });
 
 describe('tools/bundle.mjs: the fixture projects', () => {
@@ -600,6 +608,40 @@ describe('tools/bundle.mjs on this checkout\'s dist/ (its manifest.json)', () =>
       const modules = names(result.entries[0].report.modules);
       assert.ok(!modules.includes('indicator') && !modules.includes('ripple'), `data-ds-keep is the side of morphHtml: ${modules}`);
     });
+  });
+
+  it('keeps the reference app\'s committed bundle fresh (example/ds/, --check), and fails it once the app names more', () => {
+    const check = (cwd) => spawnSync(process.execPath, [join(ROOT, 'scripts/tools/bundle.mjs'), '--config', 'ds.config.json', '--check'], { cwd, encoding: 'utf8' });
+    const fresh = check(join(ROOT, 'example'));
+    assert.equal(fresh.status, 0, `example/ds/ is stale: run node dist/tools/bundle.mjs --config example/ds.config.json\n${fresh.stdout}${fresh.stderr}`);
+    // The same app with one more component: the committed bundle no longer holds it.
+    withTemp((dir) => {
+      const app = join(dir, 'example');
+      cpSync(join(ROOT, 'example'), app, { recursive: true });
+      cpSync(dist, join(dir, 'dist'), { recursive: true });
+      writeFileSync(join(app, 'index.html'), `${readFileSync(join(app, 'index.html'), 'utf8')}<div class="ds-lightbox"></div>\n`);
+      const stale = check(app);
+      assert.equal(stale.status, 1);
+      assert.match(stale.stderr, /stale: ds\/ds\.bundle\.css/);
+    });
+  });
+
+  it('leads to no component by the shared vocabulary: keyed rows, a leaving element, data-ds-value and data-ds-config', () => {
+    withTemp((dir) => {
+      const config = tempProject(dir, {
+        'index.html': '<div class="ds-theme"><ul><li data-ds-key="a" data-ds-keep data-ds-value="1" data-ds-config="{}">A</li></ul></div>\n<script>row.hasAttribute("data-ds-leaving");</script>',
+      }, { dist: relative(dir, dist) });
+      const result = bundle({ config, write: false });
+      assert.deepEqual(result.errors, []);
+      const report = result.entries[0].report;
+      for (const name of ['upload', 'composer', 'tree', 'datagrid', 'command', 'wheel', 'kveditor', 'taginput', 'sort', 'number', 'chart', 'list']) {
+        assert.ok(!names(report.components).includes(name) && !names(report.modules).includes(name), `${name} left out`);
+      }
+    });
+    // A component module's own behaviour attribute still finds it.
+    const manifest = JSON.parse(read('dist/manifest.json'));
+    assert.ok(manifest.components.datagrid.attributes.includes('data-ds-datagrid'));
+    assert.ok(!manifest.components.datagrid.attributes.includes('data-ds-key'));
   });
 });
 

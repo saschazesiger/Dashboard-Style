@@ -179,10 +179,23 @@ export function spanMs(span) {
   return match ? Number(match[1]) * UNIT_MS[match[2]] : 0;
 }
 
+/** Intl formatters by type, locale and options, made once: a time range names some 25 spans when it paints. */
+const formats = new Map();
+function format(Type, locale, options) {
+  const key = `${Type.name}|${locale}|${JSON.stringify(options)}`;
+  let made = formats.get(key);
+  if (!made) {
+    made = new Type(locale, options);
+    if (formats.size >= 64) formats.clear();
+    formats.set(key, made);
+  }
+  return made;
+}
+
 /** A span in words of the locale ("15 minutes", "5s" narrow). */
 function spanWords(amount, unit, locale, display = 'long') {
   try {
-    return new Intl.NumberFormat(locale, { style: 'unit', unit: UNIT_NAMES[unit], unitDisplay: display }).format(amount);
+    return format(Intl.NumberFormat, locale, { style: 'unit', unit: UNIT_NAMES[unit], unitDisplay: display }).format(amount);
   } catch {
     return `${amount}${unit}`;
   }
@@ -207,15 +220,15 @@ export function label(range, options = {}) {
   if (rounded && (to === from || to === 'now') && (!rounded[2] || rounded[2] === rounded[3])) {
     try {
       const amount = rounded[1] ? -Number(rounded[1]) : 0;
-      return capital(new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(amount, UNIT_NAMES[rounded[3]]), locale);
+      return capital(format(Intl.RelativeTimeFormat, locale, { numeric: 'auto' }).format(amount, UNIT_NAMES[rounded[3]]), locale);
     } catch {
       // The instants below.
     }
   }
   const instants = resolve({ from, to }, options);
   if (!instants) return `${from} – ${to}`;
-  const format = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short', ...(options.timeZone && options.timeZone !== 'local' ? { timeZone: options.timeZone } : {}) });
-  return format.formatRange(instants.start, instants.end);
+  return format(Intl.DateTimeFormat, locale, { dateStyle: 'medium', timeStyle: 'short', ...(options.timeZone && options.timeZone !== 'local' ? { timeZone: options.timeZone } : {}) })
+    .formatRange(instants.start, instants.end);
 }
 
 /**
@@ -329,8 +342,24 @@ export function create(root, options = {}) {
   selectWrap.append(select, iconNode(chevronDown, 16, 'ds-timerange__chevron'));
   root.replaceChildren(wrap, refreshButton, selectWrap);
 
-  const fromField = createField(fromEl, { type: 'datetime', zone: settings.zone, locale: settings.locale, silent: true });
-  const toField = createField(toEl, { type: 'datetime', zone: settings.zone, locale: settings.locale, silent: true });
+  // The absolute fields are made on the first open: nothing shows them before, and their Intl formats would make
+  // the start of a view a long task on a slow phone.
+  let fromField = null;
+  let toField = null;
+  let listed = false;
+  function fields() {
+    if (fromField) return;
+    fromField = createField(fromEl, { type: 'datetime', zone: settings.zone, locale: settings.locale, silent: true });
+    toField = createField(toEl, { type: 'datetime', zone: settings.zone, locale: settings.locale, silent: true });
+    // A field typed again is judged again.
+    for (const field of [fromField, toField]) {
+      field.on('change', () => {
+        fromField.update({ invalid: false });
+        toField.update({ invalid: false });
+        error.textContent = '';
+      });
+    }
+  }
 
   function iconNode(glyph, size, extra) {
     return iconElement(glyph, size, extra, doc);
@@ -386,12 +415,15 @@ export function create(root, options = {}) {
     refreshButton.setAttribute('aria-label', t('refresh'));
     refreshButton.setAttribute('data-tip', t('refresh'));
     select.setAttribute('aria-label', t('autoRefresh'));
-    const same = (range) => range.from === state.from && range.to === state.to;
-    quick.replaceChildren(quickHead, ...settings.quick.map((from) => rangeButton({ from, to: quickTo(from) }, same({ from, to: quickTo(from) }))));
-    const recents = recentList();
-    recent.replaceChildren(...recents.map((range) => rangeButton(range, same(range))));
-    recentHead.hidden = !recents.length;
-    recent.hidden = !recents.length;
+    // The quick and recent ranges only once the popover has opened: until then nothing shows them.
+    if (listed) {
+      const same = (range) => range.from === state.from && range.to === state.to;
+      quick.replaceChildren(quickHead, ...settings.quick.map((from) => rangeButton({ from, to: quickTo(from) }, same({ from, to: quickTo(from) }))));
+      const recents = recentList();
+      recent.replaceChildren(...recents.map((range) => rangeButton(range, same(range))));
+      recentHead.hidden = !recents.length;
+      recent.hidden = !recents.length;
+    }
     const intervals = settings.intervals.filter((span) => spanMs(span));
     select.replaceChildren(make('option', '', { value: '' }), ...intervals.map((span) => make('option', '', { value: span })));
     select.options[0].textContent = t('off');
@@ -405,6 +437,7 @@ export function create(root, options = {}) {
 
   /** The absolute fields show the range in force, as wall times in the zone. */
   function fillFields() {
+    fields();
     const instants = resolve(state, timeOptions());
     fromField.set(instants ? wallTime(instants.start, zone()) : '');
     toField.set(instants ? wallTime(instants.end, zone()) : '');
@@ -456,6 +489,7 @@ export function create(root, options = {}) {
     toggle: trigger,
     panel,
     onOpen() {
+      listed = true;
       paint();
       fillFields();
     },
@@ -471,6 +505,7 @@ export function create(root, options = {}) {
   }, { signal });
 
   apply.addEventListener('click', () => {
+    fields();
     const from = fromField.get();
     const to = toField.get();
     const start = from ? toInstant(from, zone()) : null;
@@ -492,15 +527,6 @@ export function create(root, options = {}) {
     picker.close('select');
     change({ from: start.toISOString().replace(/\.000Z$/, 'Z'), to: end.toISOString().replace(/\.000Z$/, 'Z') });
   }, { signal });
-
-  // A field typed again is judged again.
-  for (const field of [fromField, toField]) {
-    field.on('change', () => {
-      fromField.update({ invalid: false });
-      toField.update({ invalid: false });
-      error.textContent = '';
-    });
-  }
 
   refreshButton.addEventListener('click', () => refresh('manual'), { signal });
   select.addEventListener('change', () => {
@@ -547,8 +573,8 @@ export function create(root, options = {}) {
       abort.abort();
       stopClock?.();
       picker.destroy();
-      fromField.destroy();
-      toField.destroy();
+      fromField?.destroy();
+      toField?.destroy();
       prefs.destroy();
       listeners.clear();
       controllers.delete(root);

@@ -628,7 +628,7 @@ const DEFAULT_STRINGS = Object.freeze({
  * This module's shared state (runtime.state('core')): the behaviours by
  * name, the controllers of each element (name to entry), the roots of
  * init() and the page's settings (locale, overridden strings).
- * @type {{ specs: Map<string, any>, elements: WeakMap<Element, Map<string, any>>, roots: Map<Node, any>, settings: { locale: string|null, strings: Record<string, any> } }}
+ * @type {{ specs: Map<string, any>, elements: WeakMap<Element, Map<string, any>>, roots: Map<Node, any>, settings: { locale: string|null, strings: Record<string, any>, version?: number } }}
  */
 const core = runtime.state('core', () => ({
   specs: new Map(),
@@ -1096,6 +1096,9 @@ export function emit(el, type, detail, options = {}) {
 
 /* ── Config and strings ─────────────────────────────── */
 
+/** The strings config() returns, kept until they change: `{ of: the settings, version, strings }`. */
+let frozenStrings = null;
+
 /**
  * Sets the page's locale and overrides strings (a `null` string restores
  * the default; `locale: null` the default locale), and returns the
@@ -1120,12 +1123,17 @@ export function config(options) {
       if (value === null || value === undefined) delete settings.strings[key];
       else settings.strings[key] = typeof value === 'function' ? value : String(value);
     }
-    if (texts.length) changed.push('strings');
+    if (texts.length) {
+      changed.push('strings');
+      settings.version = (settings.version ?? 0) + 1;
+    }
   }
-  const current = Object.freeze({
-    locale: localeNow(),
-    strings: Object.freeze({ ...DEFAULT_STRINGS, ...settings.strings }),
-  });
+  // Read on every format and label: the merged strings are copied once per change, not on every read. The version
+  // sits in the shared settings, so a change through another copy of this module counts too.
+  if (!frozenStrings || frozenStrings.of !== settings || frozenStrings.version !== (settings.version ?? 0)) {
+    frozenStrings = { of: settings, version: settings.version ?? 0, strings: Object.freeze({ ...DEFAULT_STRINGS, ...settings.strings }) };
+  }
+  const current = Object.freeze({ locale: localeNow(), strings: frozenStrings.strings });
   if (changed.length && typeof doc?.dispatchEvent === 'function') emit(doc, 'config', { ...current, changed });
   return current;
 }

@@ -2,15 +2,16 @@
  * The reference app's own components, with the project prefix ex-. They
  * read tokens only (--ds-* and the project's --ex-* from theme.css): no
  * colour, radius, font, shadow, duration or curve literals, no keyframes
- * of their own (the columns fill with .ds-enter--fill). Unlayered, like
- * every project stylesheet, and never restyling a .ds-* component.
+ * of their own. Unlayered, like every project stylesheet, and never
+ * restyling a .ds-* component: they lay ds elements out in the project's
+ * own containers.
  *
  *   .ex-logo         the brand mark in the top bar and the drawer
  *   .ex-row          a wrapping row of buttons
- *   .ex-detail       the content of an expanded table row
+ *   .ex-main         the column beside the ticket facets
+ *   .ex-detail       the content of an expanded ticket row
  *   .ex-col-time, .ex-col-status  stable widths for columns with live values
- *   .ex-list         the devices list: its full-page table and pagination in one column that fills
- *   .ex-pick         the pinned first cell: a row's checkbox (directly in the cell, so the row takes the selection colour) before its link
+ *   .ex-list         the devices list: its full-page grid and pagination in one column that fills
  *   .ex-swatch       the colour dot of an accent choice
  */
 
@@ -30,7 +31,14 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--ds-space-2);
+  gap: var(--ds-space-2) var(--ds-space-3);
+}
+
+.ex-main {
+  display: grid;
+  gap: var(--ds-space-3);
+  min-width: 0;
+  align-content: start;
 }
 
 .ex-detail {
@@ -49,9 +57,17 @@
   min-width: 136px;
 }
 
+/* On a phone's width the row has no room to keep: the values take what they need. */
+@container ds-content (max-width: 600px) {
+  .ex-col-time,
+  .ex-col-status {
+    min-width: 0;
+  }
+}
+
 /* The last child of the devices page: a column that takes what is left of
-   a .ds-view--fill, the full-page table filling it above its pagination.
-   No wider than the page: the table scrolls sideways inside its wrapper
+   a .ds-view--fill, the full-page grid filling it above its pagination.
+   No wider than the page: the grid scrolls sideways inside its wrapper
    (the page's grid track would otherwise grow to the table's width). */
 .ex-list {
   display: flex;
@@ -60,12 +76,6 @@
   gap: var(--ds-space-2);
   min-width: 0;
   min-height: 0;
-}
-
-/* The pinned first cell: the row's checkbox, then its link. */
-.ex-pick > input[type="checkbox"] {
-  margin-inline-end: var(--ds-space-4);
-  vertical-align: middle;
 }
 
 /* ── Accent choice ──────────────────────────────────────────────────── */
@@ -83,7 +93,8 @@
 }
 
 .ex-swatch[data-accent="default"] { background: var(--ex-swatch-default); }
-.ex-swatch[data-accent="teal"] { background: var(--ex-swatch-teal); }
+.ex-swatch[data-accent="ocean"] { background: var(--ex-swatch-ocean); }
+.ex-swatch[data-accent="forest"] { background: var(--ex-swatch-forest); }
 .ex-swatch[data-accent="violet"] { background: var(--ex-swatch-violet); }
 
 @media (forced-colors: active) {

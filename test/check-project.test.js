@@ -394,7 +394,11 @@ describe('tools/check-project.mjs', () => {
   // The published pages never show a deprecated or hand-built pattern (AGENTS.md): no error and no warning.
   const published = (folder) => Object.fromEntries(readdirSync(join(ROOT, folder)).filter((name) => /\.(css|js|html)$/.test(name)).map((name) => [`${folder}/${name}`, read(`${folder}/${name}`)]));
   it('passes the reference app without a finding (example/ keeps the project rules, AGENTS.md)', () => {
-    const config = { major: 3, prefix: 'ex', css: ['example/*.css'], js: ['example/*.js'], html: ['example/*.html'], themes: ['example/theme.css'], themesWith: [`${VENDOR}/themes/dark.css`], vendor: VENDOR };
+    // Its own example/ds-check.json, moved into the test project: the globs under example/, the copy (../dist) at VENDOR.
+    const own = JSON.parse(read('example/ds-check.json'));
+    const under = (globs) => globs.map((glob) => `example/${glob}`);
+    const config = { ...own, css: under(own.css), js: under(own.js), html: under(own.html), themes: under(own.themes),
+      themesWith: own.themesWith.map((path) => path.replace(/^\.\.\/dist/, VENDOR)), vendor: VENDOR };
     const { findings, errors } = run(published('example'), config);
     assert.deepEqual(errors, []);
     assert.deepEqual(findings.map((f) => `${f.file}:${f.line} ${f.rule} ${f.message}`), []);

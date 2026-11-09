@@ -3,62 +3,84 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Devices · Example Console</title>
+<title>Overview · Example Console</title>
 <meta name="description" content="A reference implementation of Dashboard-Style: a small device console built the way a project uses the design system.">
-<!-- The order a project loads: fonts, ds.css, then its own theme and its own components (both unlayered, so they
-     win). A project points these at its vendored copy (vendor/dashboard-style/...); here it is this repository's
-     dist/, so the page also works from disk. -->
+<!-- The order a project loads: fonts, its bundle (ds/ds.bundle.css: only what this app uses, written by
+     tools/bundle.mjs from ds.config.json), the colour theme, its own tokens and its own components (all unlayered,
+     so they win). A project points the copy's paths at its vendored copy (vendor/dashboard-style/...); here it is
+     this repository's dist/, so the page also works from disk. -->
 <link rel="stylesheet" href="../dist/fonts/fonts.css">
-<link rel="stylesheet" href="../dist/ds.css">
+<link rel="stylesheet" href="ds/ds.bundle.css">
+<!-- One theme file for both schemes (a preset of tools/theme.mjs); the accent under Settings swaps it. -->
+<link rel="stylesheet" href="../dist/themes/presets/default.css" id="ex-preset">
 <link rel="stylesheet" href="theme.css">
-<!-- The shipped dark theme, after the project theme: on when the device asks, or by the choice under Settings. -->
-<link rel="stylesheet" href="../dist/themes/dark.css" media="(prefers-color-scheme: dark)" id="ex-dark">
 <link rel="stylesheet" href="app.css">
 <script>
-  // The accent and the appearance chosen under Settings, before the first paint (no flash of the default theme).
-  try { var accent = localStorage.getItem('ex-accent'); if (accent) document.documentElement.setAttribute('data-ex-accent', accent); } catch (error) { /* storage blocked */ }
+  // The accent and the appearance chosen before, applied before the first paint (no flash of the default
+  // theme). Both are DS.store values: JSON under ds:<namespace>:<key> (docs/core.md).
   (function () {
-    var choice = null;
-    try { choice = localStorage.getItem('ex-appearance'); } catch (error) { /* storage blocked: follow the system */ }
-    var link = document.getElementById('ex-dark');
-    link.media = choice === 'dark' ? 'all' : choice === 'light' ? 'not all' : '(prefers-color-scheme: dark)';
-    // data-ex-dark says the dark theme applies: theme.css keys the accents' dark tones to it.
-    document.documentElement.toggleAttribute('data-ex-dark', matchMedia(link.media).matches);
+    var read = function (key) { try { return JSON.parse(localStorage.getItem(key)); } catch (error) { return null; } };
+    var accent = read('ds:example:accent');
+    if (/^(ocean|forest|violet)$/.test(accent)) document.getElementById('ex-preset').href = '../dist/themes/presets/' + accent + '.css';
+    var scheme = read('ds:shell:scheme');
+    if (scheme === 'light' || scheme === 'dark') document.documentElement.setAttribute('data-ds-scheme', scheme);
   })();
 </script>
+<script src="ds/ds.bundle.js" defer></script>
+<script src="data.js" defer></script>
+<script src="app.js" defer></script>
 </head>
 <body>
-<div class="ds-app ds-app--drawer" id="app">
+<div class="ds-app ds-app--drawer" id="app" data-ds-shell="example">
   <a class="ds-skip" href="#main">Skip to content</a>
 
   <div class="ds-topbar">
-    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" id="menu" data-icon="menu" data-icon-place="start"></button>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" id="menu" aria-label="Menu" aria-expanded="false" aria-controls="drawer" data-icon="menu" data-icon-place="start"></button>
     <a class="ds-brand" href="#/overview"><span class="ex-logo" aria-hidden="true"></span><span class="ds-brand__name">Example Console</span></a>
+    <div class="ds-topbar__actions">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="palette-open" aria-label="Search and commands" aria-haspopup="dialog" data-tip="Search and commands" data-ds-open="#palette" data-icon="search" data-icon-place="start"></button>
+      <span class="ds-notifications__bell">
+        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="inbox-open" aria-label="Notifications" aria-haspopup="dialog" data-tip="Notifications" data-ds-open="#inbox" data-icon="bell" data-icon-place="start"></button>
+      </span>
+    </div>
     <div class="ds-account">
-      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="https://github.com/saschazesiger/Dashboard-Style#readme" aria-label="Documentation" data-tip="Documentation" data-icon="info" data-icon-place="start"></a>
-      <div class="ds-account__text"><div class="ds-account__name">Ada Lovelace</div><div class="ds-account__email">ada@example.org</div></div>
-      <span class="ds-account__avatar" role="img" aria-label="Ada Lovelace, ada@example.org" data-tip="Ada Lovelace, ada@example.org" tabindex="0">A</span>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account" data-ds-open="#account" data-tip="Ada Lovelace, ada@example.org"><span class="ds-account__avatar" aria-hidden="true">A</span></button>
+      <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-name account-email" hidden>
+        <div class="ds-account__head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name" id="account-name">Ada Lovelace</div><div class="ds-account__email" id="account-email">ada@example.org</div></div>
+        <div class="ds-menu__divider" role="separator"></div>
+        <!-- Light, dark or the device's: remembered, and every switch on the page follows (Settings has one too). -->
+        <div role="group" aria-labelledby="account-theme" data-ds-scheme-switch>
+          <p class="ds-menu__heading" id="account-theme">Theme</p>
+          <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="false" data-ds-scheme-value="light" data-ex-check data-icon="sun" data-icon-place="end"><span class="ds-menu__label">Light</span></button>
+          <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="false" data-ds-scheme-value="dark" data-ex-check data-icon="moon" data-icon-place="end"><span class="ds-menu__label">Dark</span></button>
+          <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="true" data-ds-scheme-value="auto" data-ex-check data-icon="monitor" data-icon-place="end"><span class="ds-menu__label">Device</span></button>
+        </div>
+        <div class="ds-menu__divider" role="separator"></div>
+        <a class="ds-menu__item" role="menuitem" href="#/settings" data-icon="settings" data-icon-place="start"><span class="ds-menu__label">Settings</span></a>
+        <a class="ds-menu__item" role="menuitem" href="https://github.com/saschazesiger/Dashboard-Style#readme" data-icon="book" data-icon-place="start"><span class="ds-menu__label">Documentation</span></a>
+      </div>
     </div>
   </div>
 
   <div class="ds-scrim"></div>
-  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1" data-ds-drawer="example">
     <div class="ds-drawer__head" aria-hidden="true"><span class="ex-logo"></span><span class="ds-brand__name">Example Console</span></div>
+    <div class="ds-drawer__actions"><button class="ds-btn ds-btn--tonal" type="button" data-act="new-ticket" data-tip="New ticket" data-icon="plus" data-icon-place="start"><span class="ds-drawer__label">New ticket</span></button></div>
     <div class="ds-drawer__list" id="nav">
       <div class="ds-drawer__group">
         <p class="ds-drawer__heading">Console</p>
-        <a class="ds-drawer__item" href="#/overview" data-route="overview" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Overview</span></a>
-        <a class="ds-drawer__item" href="#/devices" data-route="devices" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Devices</span></a>
-        <a class="ds-drawer__item" href="#/tickets" data-route="tickets" data-icon="ticket" data-icon-place="start"><span class="ds-drawer__label">Tickets</span></a>
-        <a class="ds-drawer__item" href="#/settings" data-route="settings" data-icon="settings" data-icon-place="start"><span class="ds-drawer__label">Settings</span></a>
+        <a class="ds-drawer__item" href="#/overview" data-route="overview" data-tip="Overview" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="#/devices" data-route="devices" data-tip="Devices" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="#/tickets" data-route="tickets" data-tip="Tickets" data-icon="ticket" data-icon-place="start"><span class="ds-drawer__label">Tickets</span><span class="ds-drawer__count" id="nav-tickets-count"></span></a>
+        <a class="ds-drawer__item" href="#/settings" data-route="settings" data-tip="Settings" data-icon="settings" data-icon-place="start"><span class="ds-drawer__label">Settings</span></a>
       </div>
-      <!-- A group that closes (its state is kept across loads in app.js); the count shows while it is closed. -->
+      <!-- A group that closes; DS.shell remembers it (data-ds-drawer). The count shows while it is closed. -->
       <details class="ds-drawer__group ds-collapsible" id="nav-design" open>
-        <summary class="ds-drawer__heading ds-drawer__toggle" data-icon-chevron><span>Design system</span><span class="ds-drawer__count" aria-hidden="true">4</span></summary>
-        <a class="ds-drawer__item" href="../styleguide/index.html" data-icon="apps" data-icon-place="start"><span class="ds-drawer__label">Styleguide</span></a>
-        <a class="ds-drawer__item" href="../styleguide/motion.html" data-icon="activity" data-icon-place="start"><span class="ds-drawer__label">Motion Lab</span></a>
-        <a class="ds-drawer__item" href="../styleguide/views.html" data-icon="columns" data-icon-place="start"><span class="ds-drawer__label">Views</span></a>
-        <a class="ds-drawer__item" href="https://github.com/saschazesiger/Dashboard-Style" data-icon="fileCode" data-icon-place="start"><span class="ds-drawer__label">Source</span></a>
+        <summary class="ds-drawer__heading ds-drawer__toggle" data-tip="Design system" data-ex-chevron><span>Design system</span><span class="ds-drawer__count" aria-hidden="true">4</span></summary>
+        <a class="ds-drawer__item" href="../styleguide/index.html" data-tip="Styleguide" data-icon="apps" data-icon-place="start"><span class="ds-drawer__label">Styleguide</span></a>
+        <a class="ds-drawer__item" href="../styleguide/motion.html" data-tip="Motion Lab" data-icon="activity" data-icon-place="start"><span class="ds-drawer__label">Motion Lab</span></a>
+        <a class="ds-drawer__item" href="../styleguide/views.html" data-tip="Views" data-icon="columns" data-icon-place="start"><span class="ds-drawer__label">Views</span></a>
+        <a class="ds-drawer__item" href="https://github.com/saschazesiger/Dashboard-Style" data-tip="Source" data-icon="fileCode" data-icon-place="start"><span class="ds-drawer__label">Source</span></a>
       </details>
     </div>
   </nav>
@@ -97,7 +119,7 @@
               <span class="ds-btn__faces">
                 <span class="ds-btn__face">Save</span>
                 <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Saving</span>
-                <span class="ds-btn__face ds-btn__face--done" aria-hidden="true" data-icon-done>Saved</span>
+                <span class="ds-btn__face ds-btn__face--done" aria-hidden="true" data-icon="check" data-icon-size="16" data-icon-place="start">Saved</span>
               </span>
             </button>
           </div>
@@ -112,18 +134,69 @@
 
 <!-- Overlays sit inside the .ds-theme element (here <html>) and open and close through DS.overlay. -->
 
-<dialog class="ds-sheet" id="sheet" aria-labelledby="sheet-title">
+<!-- The command palette: Ctrl+K (Command+K) anywhere, or the search button of the top bar; app.js makes it
+     (DS.command.create(), the same controller data-ds-command makes) with its commands, in a task after the first paint. -->
+<dialog class="ds-dialog ds-command" id="palette" aria-label="Command palette">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <div class="ds-dialog__box">
+    <div class="ds-command__search" data-icon="search" data-icon-place="start">
+      <input class="ds-command__input" type="text" aria-label="Search devices, tickets and commands" placeholder="Search devices, tickets and commands">
+      <kbd class="ds-kbd">Esc</kbd>
+      <button class="ds-btn ds-btn--text ds-command__close" type="button" data-ds-close>Cancel</button>
+    </div>
+    <div class="ds-command__list" aria-label="Commands"></div>
+    <div class="ds-command__foot">
+      <span><kbd class="ds-kbd">↑</kbd><kbd class="ds-kbd">↓</kbd> Move <kbd class="ds-kbd">Enter</kbd> Run <kbd class="ds-kbd">Esc</kbd> Close</span>
+    </div>
+  </div>
+</dialog>
+
+<!-- The notification centre: the bell of the top bar opens it; app.js makes it (DS.notifications.create()) after the
+     first paint, gives the backlog and adds what the poll brings. -->
+<dialog class="ds-sheet ds-notifications" id="inbox" aria-labelledby="inbox-title">
   <div class="ds-sheet__backdrop" data-ds-close></div>
   <section class="ds-sheet__panel">
     <div class="ds-sheet__head">
-      <h2 class="ds-sheet__title" id="sheet-title">Device</h2>
-      <div class="ex-row">
-        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Previous device" data-tip="Previous device" id="sheet-prev" data-icon="chevronLeft" data-icon-place="start"></button>
-        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Next device" data-tip="Next device" id="sheet-next" data-icon="chevronRight" data-icon-place="start"></button>
-        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close data-icon="close" data-icon-place="start"></button>
+      <div class="ds-sheet__heading">
+        <h2 class="ds-sheet__title" id="inbox-title">Notifications</h2>
+        <p class="ds-sheet__subtitle"></p>
       </div>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="#/settings" aria-label="Notification settings" data-tip="Notification settings" data-ds-close data-icon="settings" data-icon-place="start"></a>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close data-icon="close" data-icon-place="start"></button>
     </div>
-    <div class="ds-sheet__body" tabindex="0" id="sheet-body"></div>
+    <div class="ds-notifications__bar">
+      <label class="ds-switch"><input type="checkbox" role="switch" data-ds-notifications-unread-only>
+        <span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Only unread</span></label>
+      <button class="ds-btn ds-btn--text ds-sm" type="button" data-ds-notifications-read-all>Mark all as read</button>
+    </div>
+    <div class="ds-sheet__body ds-notifications__feed" tabindex="0"></div>
+  </section>
+</dialog>
+
+<!-- The device filters when the bar is too narrow for them (DS.filterbar moves them in and back). -->
+<dialog class="ds-sheet" id="filters-sheet" aria-labelledby="filters-sheet-title">
+  <div class="ds-sheet__backdrop" data-ds-close></div>
+  <section class="ds-sheet__panel">
+    <div class="ds-sheet__head"><h2 class="ds-sheet__title" id="filters-sheet-title">Filters</h2>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close data-icon="close" data-icon-place="start"></button></div>
+    <div class="ds-sheet__body" tabindex="0"></div>
+    <div class="ds-sheet__foot">
+      <button class="ds-btn ds-btn--text ds-filterbar__clear" type="button">Clear all</button>
+      <button class="ds-btn ds-btn--filled ds-filterbar__results" type="button" data-ds-close>Show results</button>
+    </div>
+  </section>
+</dialog>
+
+<!-- The ticket facets on phones and narrow windows (DS.facets folds the panel into it). -->
+<dialog class="ds-sheet" id="facets-sheet" aria-labelledby="facets-sheet-title">
+  <div class="ds-sheet__backdrop" data-ds-close></div>
+  <section class="ds-sheet__panel">
+    <div class="ds-sheet__head"><h2 class="ds-sheet__title" id="facets-sheet-title">Filters</h2>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close data-icon="close" data-icon-place="start"></button></div>
+    <div class="ds-sheet__body" tabindex="0"></div>
+    <div class="ds-sheet__foot">
+      <button class="ds-btn ds-btn--filled ds-facets__results" type="button" data-ds-close>Show results</button>
+    </div>
   </section>
 </dialog>
 
@@ -148,7 +221,7 @@
             <p class="ds-combo__status" role="status"></p>
           </div>
         </div>
-        <small class="ds-field__hint" id="ticket-device-hint">Type a name, owner or model.</small>
+        <small class="ds-field__hint" id="ticket-device-hint">Type a device name, such as LAPTOP-0040.</small>
       </div>
       <div class="ds-field">
         <label class="ds-field__label" for="ticket-priority">Priority</label>
@@ -157,6 +230,15 @@
           <option value="normal" selected>Normal</option>
           <option value="high">High</option>
         </select>
+      </div>
+      <div class="ds-field">
+        <span class="ds-field__label" id="ticket-due-label">Due date</span>
+        <div class="ds-picker" id="ticket-due">
+          <div class="ds-datefield" role="group" aria-labelledby="ticket-due-label" aria-describedby="ticket-due-hint">
+            <button class="ds-btn ds-btn--quiet ds-btn--icon ds-datefield__toggle" type="button" aria-label="Choose due date" data-icon="calendar" data-icon-place="start"></button>
+          </div>
+        </div>
+        <small class="ds-field__hint" id="ticket-due-hint">Optional.</small>
       </div>
       <div class="ds-field ds-field--full">
         <label class="ds-field__label" for="ticket-text">Description</label>
@@ -170,23 +252,20 @@
         <span class="ds-btn__faces">
           <span class="ds-btn__face">Create ticket</span>
           <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Creating</span>
-          <span class="ds-btn__face ds-btn__face--done" aria-hidden="true" data-icon-done>Created</span>
+          <span class="ds-btn__face ds-btn__face--done" aria-hidden="true" data-icon="check" data-icon-size="16" data-icon-place="start">Created</span>
         </span>
       </button>
     </div>
   </form>
 </dialog>
 
+<!-- The menu of a device row (the grid opens it from a row's button, a right click or Shift+F10). -->
 <div class="ds-menu" role="menu" id="row-menu" aria-label="Device actions" hidden>
-  <button class="ds-menu__item" role="menuitem" type="button" data-action="open" data-icon="fileText" data-icon-place="start"><span class="ds-menu__label">Open</span></button>
-  <button class="ds-menu__item" role="menuitem" type="button" data-action="ticket" data-icon="ticket" data-icon-place="start"><span class="ds-menu__label">New ticket</span></button>
-  <button class="ds-menu__item" role="menuitem" type="button" data-action="restart" data-icon="sync" data-icon-place="start"><span class="ds-menu__label">Restart</span></button>
+  <button class="ds-menu__item" role="menuitem" type="button" data-ds-action="open" data-icon="fileText" data-icon-place="start"><span class="ds-menu__label">Open</span></button>
+  <button class="ds-menu__item" role="menuitem" type="button" data-ds-action="ticket" data-icon="ticket" data-icon-place="start"><span class="ds-menu__label">New ticket</span></button>
+  <button class="ds-menu__item" role="menuitem" type="button" data-ds-action="restart" data-icon="sync" data-icon-place="start"><span class="ds-menu__label">Restart</span></button>
   <div class="ds-menu__divider" role="separator"></div>
-  <button class="ds-menu__item" role="menuitem" type="button" data-action="delete" data-icon="trash" data-icon-place="start"><span class="ds-menu__label">Delete</span></button>
+  <button class="ds-menu__item ds-menu__item--danger" role="menuitem" type="button" data-ds-action="delete" data-icon="trash" data-icon-place="start"><span class="ds-menu__label">Delete</span></button>
 </div>
-
-<script src="../dist/ds.js"></script>
-<script src="data.js"></script>
-<script src="app.js"></script>
 </body>
 </html>

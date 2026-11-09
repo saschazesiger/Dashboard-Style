@@ -1799,7 +1799,24 @@ function moduleAttributes(name, claimed = new Set()) {
   if (!MODULES.includes(name)) return [];
   const source = repoText(moduleFiles(name).source);
   const text = moduleFiles(name).component ? source : [...source.matchAll(/^\s+attributes?:\s*(?:'[^'\n]*'|\[[^\]\n]*\])/gm)].map((match) => match[0]).join(' ');
-  return [...text.matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]).filter((attribute) => !claimed.has(attribute));
+  const core = moduleFiles(name).component ? sharedAttributes() : new Set();
+  return [...text.matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]).filter((attribute) => !claimed.has(attribute) && !core.has(attribute));
+}
+
+/**
+ * The shared vocabulary, which a component module reads as well but which
+ * never leads a bundle to that component: every data-ds-* literal a core
+ * module names (data-ds-key and data-ds-keep of morphHtml, data-ds-leaving
+ * of leave()), and the two conventions of every behaviour (data-ds-value,
+ * the initial state; data-ds-config, options as JSON). A page that keys its
+ * rows needs no upload, tree or composer; a date picker's data-ds-value
+ * needs no tag input.
+ */
+const SHARED_OPTIONS = ['data-ds-config', 'data-ds-value'];
+export function sharedAttributes() {
+  // Code only: a comment's example (core.js shows a data-ds-copy behaviour) claims nothing.
+  const code = (source) => source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  return new Set([...SHARED_OPTIONS, ...CORE_MODULES.flatMap((name) => [...code(repoText(moduleFiles(name).source)).matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]))]);
 }
 
 /** The exports and sibling imports of each module of MODULES, and the CSS it needs (moduleRequires). */

@@ -1,0 +1,6 @@
+{
+  "content": ["index.html", "app.js", "data.js"],
+  "out": "ds",
+  "dist": "../dist",
+  "icons": ["alert", "check", "clock", "history", "wifi", "wifiOff", "laptop", "sync", "ticket", "download", "userPlus", "shield", "trash", "undo", "pencil", "sun", "moon", "monitor", "overview", "settings", "plus", "bell", "contrast", "palette"]
+}

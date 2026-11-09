@@ -30,9 +30,9 @@
  * document).
  *
  * The scan reads every file as plain text: complete ds-* class names and
- * data-ds-* attributes (and data-tip) against the manifest, DS.<module>.<export> and
- * imports of js/<module>.js and of the React adapter's react/<file>.js
- * (manifest.json "react": the stylesheets that file renders), and icon names (DS.icons.<name>,
+ * data-ds-* attributes (and data-tip) against the manifest, DS.<module>.<export> (DS.init,
+ * DS.get, DS.define and DS.config are the core's) and imports of js/<module>.js and of the
+ * React adapter's react/<file>.js (manifest.json "react": the stylesheets that file renders), and icon names (DS.icons.<name>,
  * icon('<name>'), data-icon / data-ds-icon="<name>", named imports of
  * js/icons.js). A class built at run time ('ds-btn--' + kind,
  * `ds-${name}`) is an error with its file and line, unless a safelist
@@ -332,7 +332,7 @@ export function scanText(text, file, copy) {
   for (const match of text.matchAll(/(?<![\w$])DS\s*\.\s*([A-Za-z_$][\w$]*)(?:\s*\.\s*([A-Za-z_$][\w$]*)|\s*\[\s*(['"])([\w$]+)\3\s*\]|(\s*\[))?/g)) {
     const [, module, dotted, , quoted, dynamic] = match;
     if (module === 'version') continue;
-    if (CORE_ALIASES.has(module) && copy.modules.get('core')?.exports?.includes(module)) {
+    if (CORE_ALIASES.has(module) && copy.modules.has('core') && (copy.modules.get('core').exports ?? []).includes(module)) {
       use('export', module, match.index, { module: 'core' });
       continue;
     }

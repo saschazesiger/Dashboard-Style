@@ -1,54 +1,34 @@
 /*
- * The project theme of the reference app: loaded after ds.css, unlayered
- * and on .ds-theme, so it wins over every token of the system. A theme
- * sets roles (--ds-primary, --ds-accent ...), component hooks
- * (--ds-card-*, --ds-btn-* ...) and the project's own tokens (--ex-*);
- * never motion tokens or motion hooks, and never a component's look
- * directly. themes/example.css lists every role and hook.
+ * The project theme of the reference app: loaded after the bundle and
+ * after the colour theme, unlayered and on .ds-theme, so it wins over
+ * every token of the system. The colours come from a generated preset
+ * (dist/themes/presets/<name>.css, written by tools/theme.mjs from one
+ * seed: light-dark() roles, so one file serves both schemes, and
+ * data-ds-scheme on <html> pins one). A project generates its own:
+ *
+ *   node vendor/dashboard-style/tools/theme.mjs --seed '#0b57d0' --out css/colours.css
+ *
+ * This file adds what is the project's own: component hooks and the
+ * --ex-* tokens app.css reads. Never motion tokens or motion hooks, never
+ * a component's look directly; themes/example.css lists every role and
+ * hook.
  */
 
 .ds-theme {
   /* A component hook: interactive cards gain a shadow on hover (default: none). */
   --ds-card-hover-shadow: var(--ds-elev-hover);
+  /* The device page's sticky head and its jump links lie on the content panel: they take its surface. */
+  --ds-page-head-bg: var(--ds-surface);
+  --ds-toc-bg: var(--ds-surface);
+  /* The tickets grid needs about 760px for every column it shows on a desktop: below that the
+     facets fold into their sheet (on a 1280px screen too) instead of the grid scrolling sideways. */
+  --ds-facets-main-min: 760px;
 
   /* The project's own tokens, read by app.css. */
   --ex-logo-size: 32px;
-  /* The dots of the accent choice under Settings: each accent's primary colour, whichever accent is on. */
+  /* The dots of the accent choice under Settings: each preset's seed, whichever preset is on. */
   --ex-swatch-default: #0b57d0;
-  --ex-swatch-teal: #006a6a;
+  --ex-swatch-ocean: #00658f;
+  --ex-swatch-forest: #2f6b3a;
   --ex-swatch-violet: #6750a4;
-}
-
-/* A second accent, chosen under Settings (data-ex-accent on <html>): the roles a brand colour sets
-   (hover, pressed and the link underline follow --ds-primary by themselves). */
-.ds-theme[data-ex-accent="teal"] {
-  --ds-primary: #006a6a;
-  --ds-accent: #cce8e7;
-  --ds-on-accent: #002020;
-  --ds-inverse-primary: #4cdada;
-}
-
-.ds-theme[data-ex-accent="violet"] {
-  --ds-primary: #6750a4;
-  --ds-accent: #e8def8;
-  --ds-on-accent: #1d192b;
-  --ds-inverse-primary: #d0bcff;
-}
-
-/* The accents in the dark theme (data-ex-dark, set with the dark link's media): their dark tones. The extra
-   attribute outweighs the plain .ds-theme of themes/dark.css, which loads after this file. */
-.ds-theme[data-ex-dark][data-ex-accent="teal"] {
-  --ds-primary: #4cdada;
-  --ds-on-primary: #003737;
-  --ds-accent: #004f4f;
-  --ds-on-accent: #c1f5f4;
-  --ds-inverse-primary: #006a6a;
-}
-
-.ds-theme[data-ex-dark][data-ex-accent="violet"] {
-  --ds-primary: #d0bcff;
-  --ds-on-primary: #381e72;
-  --ds-accent: #4f378b;
-  --ds-on-accent: #eaddff;
-  --ds-inverse-primary: #6750a4;
 }

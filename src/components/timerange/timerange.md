@@ -93,7 +93,9 @@ interval that sends `ds:refresh`. The values are short and readable, so the rang
 `js/timerange.js` (`DS.timerange`). `create(root, options)` returns the controller that `data-ds-timerange` makes,
 once per root: `get()` (`{ from, to, refresh }`), `set(value)` (`{ from, to, refresh }` or a "from" alone; no event),
 `resolve()` (the instants now), `query()`, `refresh()` (sends `ds:refresh`, reason `manual`), `open()`, `close()`,
-`on(type, fn)` (`change`, `refresh`) and `destroy()`.
+`on(type, fn)` (`change`, `refresh`) and `destroy()`. The two date-time fields (`DS.datefield`) and the buttons of the
+quick and recent ranges are made on the first open: until then the popover's `.ds-datefield` boxes and lists stay
+empty, so a view that starts with a time range pays for them only when they show.
 
 | Export | What |
 |---|---|

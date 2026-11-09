@@ -59,6 +59,24 @@ Additive: nothing of 2.x or of the earlier pre-releases changes meaning.
   doubled and its summary row lost), the command palette its options (their shortcut keys were lost), and Markdown's
   attribute path its source (the rendered headings were read again as text).
 
+### Phase 3: the reference app on 3.0 (unreleased)
+
+The reference app (`example/`) moves to 3.0 as a project would: a project bundle, saved views, the filter bar and the
+data grid, the device as an object page, facets on Tickets, the command palette and the notification centre. What it
+changed in the system:
+
+- **Bundles**: `manifest.json` no longer lists the shared `data-ds-*` vocabulary (what the core modules use themselves,
+  such as `data-ds-key`, `data-ds-keep` and `data-ds-leaving`, and the shared options `data-ds-value` and
+  `data-ds-config`) under the component modules that read it, so a page that keys its rows or sets a value no longer
+  pulls in a dozen component modules (upload, tree, tag input ...). A project that relied on such an attribute alone
+  to bundle a module names the module (`DS.<module>`) or its own attribute instead. `tools/bundle.mjs` reads
+  `DS.init`, `DS.get`, `DS.define` and `DS.config` as the core's aliases (no "unknown module" in the report).
+- **Time range** (`DS.timerange`): its two date-time fields and the buttons of the quick and recent ranges are made on
+  the first open of the popover, and its Intl formatters are made once; a view that starts with a time range no
+  longer spends a long task on a slow phone for what does not show.
+- **Core**: `DS.core.config()` copies the merged strings once per change instead of on every read (every format and
+  label reads it).
+
 ### Phase 2: the tier-1 catalogue (3.0.0-alpha.5)
 
 The new components of [plans/3.0.md](plans/3.0.md), built in 22 packages, each reviewed and fixed before the merge.
