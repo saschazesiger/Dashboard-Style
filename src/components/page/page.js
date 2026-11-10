@@ -190,7 +190,7 @@ function controller(head, options, signal) {
       offset = Math.max(0, Math.round(place - origin + start - stick));
       const tall = head.getBoundingClientRect().height;
       apply(true);
-      foldHeight = Math.max(0, Math.round(tall - head.getBoundingClientRect().height));
+      foldHeight = Math.max(0, tall - head.getBoundingClientRect().height);
       apply(false);
     });
     if (settling) {
@@ -199,7 +199,8 @@ function controller(head, options, signal) {
     }
     scrolling.style.overflowAnchor = anchor;
     // Engines without overflow-anchor (or a scroll that moved anyway) go back to where the reader had it.
-    if (box().scrollTop !== start) box().scrollTop = start;
+    // A whole pixel or more: Firefox reports fractional positions mid-glide, and a write stops a smooth scroll.
+    if (Math.abs(box().scrollTop - start) >= 1) box().scrollTop = start;
   };
 
   /**
@@ -218,8 +219,10 @@ function controller(head, options, signal) {
         const tall = head.getBoundingClientRect().height;
         apply(true, foldHeight);
         // The fold as it is now (a width change may have moved it): the margin follows at once.
-        const fold = Math.max(0, Math.round(tall - head.getBoundingClientRect().height));
-        if (fold !== foldHeight) {
+        const fold = Math.max(0, tall - head.getBoundingClientRect().height);
+        // Exact, not rounded: a margin a fraction off the fold moves the content, and Firefox's scroll anchoring
+        // then moves the scroll (a smooth scroll ended a pixel short).
+        if (Math.abs(fold - foldHeight) > 0.01) {
           foldHeight = fold;
           apply(true, fold);
         }

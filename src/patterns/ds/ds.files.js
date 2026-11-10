@@ -11686,7 +11686,7 @@
     offset = Math.max(0, Math.round(place - origin + start - stick));
     const tall = head.getBoundingClientRect().height;
     apply(true);
-    foldHeight = Math.max(0, Math.round(tall - head.getBoundingClientRect().height));
+    foldHeight = Math.max(0, tall - head.getBoundingClientRect().height);
     apply(false);
     });
     if (settling) {
@@ -11694,7 +11694,7 @@
     head.removeAttribute('data-ds-moving');
     }
     scrolling.style.overflowAnchor = anchor;
-    if (box().scrollTop !== start) box().scrollTop = start;
+    if (Math.abs(box().scrollTop - start) >= 1) box().scrollTop = start;
     };
     const condense = (on, force = false) => {
     if (on === condensed) return false;
@@ -11703,8 +11703,8 @@
     quiet(() => {
     const tall = head.getBoundingClientRect().height;
     apply(true, foldHeight);
-    const fold = Math.max(0, Math.round(tall - head.getBoundingClientRect().height));
-    if (fold !== foldHeight) {
+    const fold = Math.max(0, tall - head.getBoundingClientRect().height);
+    if (Math.abs(fold - foldHeight) > 0.01) {
     foldHeight = fold;
     apply(true, fold);
     }

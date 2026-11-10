@@ -282,26 +282,36 @@ test('a smooth scroll across the fold goes on to its end: unfolding never stops 
   await page.setViewportSize({ width: 1280, height: 900 });
   await open(page);
   const box = page.locator('[data-demo="sticky-box"]');
-  // Back and forth over the fold, as a reader turning round: each smooth scroll ends where it was sent.
-  const ends = await box.evaluate(async (el) => {
+  // Back and forth over the fold, as a reader turning round. The head writes no scroll position while a smooth scroll
+  // runs (a write stops it short), and each one ends where it was sent: within a pixel, as Firefox's own retargeted
+  // smooth scroll now and then ends a pixel early on any box.
+  const result = await box.evaluate(async (el) => {
+    const own = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollTop');
+    let writes = 0;
+    Object.defineProperty(el, 'scrollTop', { configurable: true, get() { return own.get.call(this); }, set(value) { writes += 1; own.set.call(this, value); } });
     const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve()));
     const rest = async () => { let last = -1; let still = 0; while (still < 5) { await frame(); still = el.scrollTop === last ? still + 1 : 0; last = el.scrollTop; } };
     const far = Math.min(260, el.scrollHeight - el.clientHeight);
-    const out = [];
+    const ends = [];
+    let during = 0;
     for (let round = 0; round < 3; round += 1) {
+      writes = 0;
       el.scrollTo({ top: far, behavior: 'smooth' });
       await new Promise((resolve) => setTimeout(resolve, 80));
       el.scrollTo({ top: 0, behavior: 'smooth' });
       await new Promise((resolve) => setTimeout(resolve, 80));
       el.scrollTo({ top: far, behavior: 'smooth' });
       await rest();
-      out.push([Math.round(el.scrollTop), far]);
+      during += writes;
+      ends.push([el.scrollTop, far]);
       el.scrollTo({ top: 0, behavior: 'instant' });
       await rest();
     }
-    return out;
+    delete el.scrollTop;
+    return { ends, during };
   });
-  for (const [at, far] of ends) expect(at, 'where the last smooth scroll ended').toBe(far);
+  expect(result.during, 'scroll positions the head wrote during the smooth scrolls').toBe(0);
+  for (const [at, far] of result.ends) expect(Math.abs(at - far), `where the last smooth scroll ended (${at} of ${far})`).toBeLessThanOrEqual(1);
 });
 
 test('actions fold into More by the row\'s width: the first ones first, the filled one last; the menu presses them', async ({ page }) => {
