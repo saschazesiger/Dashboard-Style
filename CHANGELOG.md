@@ -4,6 +4,17 @@ All notable changes. Versions follow [semver](https://semver.org): renaming or r
 export is a major change; adding one is a minor change. Identifiers such as D7 refer to the design decisions in
 [plans/motion-2.md](plans/motion-2.md).
 
+## 3.0.1
+
+A fix; no class, token, hook or export changed, no migration is required.
+
+### Fixed
+
+- **Reasoning** (`DS.reasoning`, `data-ds-reasoning-auto`): whether the reader opened or closed it is judged by the state
+  a toggle leaves, not by the order of the `toggle` events, which come in a task of their own and coalesce. A reader's
+  event that arrived after `set({ done: false })` kept the new run open at its end, and a reader's click while the
+  automatic open was still on its way was not counted.
+
 ## 3.0.0
 
 A rewrite ([plans/3.0.md](plans/3.0.md)), and a new name: **Dashboard-Style is Z-Dash**. About 170 components in a

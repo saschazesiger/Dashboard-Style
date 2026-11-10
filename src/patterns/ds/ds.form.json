@@ -1,6 +1,6 @@
 {
   "name": "z-dash",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "entry": "form",
   "minify": true,
   "js": "classic",
@@ -13,7 +13,7 @@
     "js": {
       "file": "ds.form.js",
       "bytes": 471633,
-      "gzip": 112270
+      "gzip": 112271
     },
     "properties": {
       "file": "properties.css",

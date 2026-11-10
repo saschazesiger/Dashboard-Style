@@ -74,6 +74,23 @@ test('a reader who toggles it keeps it as they left it', async ({ page }) => {
   await expect(el).toHaveJSProperty('open', false);
 });
 
+test('a reader\'s toggle event that lands after a new run started does not keep the new run open', async ({ page }) => {
+  const el = await own(page);
+  await el.locator('summary').click();
+  await el.locator('summary').click();
+  await expect(el).toHaveJSProperty('open', true);
+  // The toggle event comes in a task of its own: under load a reader's arrives after set({ done: false }).
+  const open = await page.evaluate(() => {
+    const details = document.querySelector('#own');
+    window.reasoning.set({ done: true });
+    window.reasoning.set({ done: false });
+    details.dispatchEvent(new Event('toggle'));
+    window.reasoning.set({ done: true });
+    return details.open;
+  });
+  expect(open).toBe(false);
+});
+
 test('destroy(): the time stops; a toggle is the reader\'s alone', async ({ page }) => {
   const el = await own(page);
   const time = el.locator('.ds-reasoning__time');

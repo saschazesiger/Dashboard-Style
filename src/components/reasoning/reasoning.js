@@ -103,15 +103,19 @@ function controller(el, start, given) {
     else line.setAttribute('data-shimmer', words);
   };
 
-  // A toggle by the reader (not by the auto open or close) keeps it as they left it.
-  let opening = false;
+  // A toggle by the reader (not by the auto open or close) keeps it as they left it. The toggle event comes in a task
+  // of its own and coalesces, so it is judged by the state it leaves, not by the order of events: the module's own
+  // open state (what it set, or found at a new run) is no toggle of the reader's, whenever its event arrives (a
+  // reader's event that lands after set({ done: false }) once kept the new run from closing).
+  let claimed = /** @type {HTMLDetailsElement} */ (el).open;
   el.addEventListener('toggle', () => {
-    if (!opening) state.touched = true;
-    opening = false;
+    const now = /** @type {HTMLDetailsElement} */ (el).open;
+    if (now !== claimed) state.touched = true;
+    claimed = now;
   }, { signal });
   const openTo = (value) => {
     if (!state.auto || state.touched || /** @type {HTMLDetailsElement} */ (el).open === value) return;
-    opening = true;
+    claimed = value;
     /** @type {HTMLDetailsElement} */ (el).open = value;
   };
 
@@ -157,7 +161,10 @@ function controller(el, start, given) {
       if ('done' in changes && Boolean(changes.done) !== state.done) {
         state.done = Boolean(changes.done);
         state.total = state.done ? sinceOf(changes.total) : null;
-        if (!state.done) state.touched = false;
+        if (!state.done) {
+          state.touched = false;
+          claimed = /** @type {HTMLDetailsElement} */ (el).open;
+        }
         changed = true;
       }
       if (!changed) return;
@@ -175,7 +182,10 @@ function controller(el, start, given) {
     update() {
       const read = readAttributes(el);
       if (read.since !== null) state.since = read.since;
-      if (read.done !== state.done && !read.done) state.touched = false;
+      if (read.done !== state.done && !read.done) {
+        state.touched = false;
+        claimed = /** @type {HTMLDetailsElement} */ (el).open;
+      }
       state.done = read.done;
       state.total = read.done ? read.total : null;
       state.auto = read.auto;

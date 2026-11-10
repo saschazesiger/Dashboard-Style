@@ -94,7 +94,7 @@ describe('tools/migrate.mjs', () => {
       assert.match(report, /css\/app\.css:25 \.app-panel \.ds-table\.ds-density-tight sets --ds-table-row-height under \.ds-density-tight, which redefines what \.ds-density-tight means/);
       assert.match(report, /js\/charts\.mjs:4 toast of js\/overlay\.js runs in js\/toast\.js in 3\.0: add import '\.\.\/vendor\/dashboard-style\/js\/toast\.js';/);
       assert.match(report, /css\/theme\.css:14 --ds-btn-sm-height \(removed in 3\.0\.0\): the size and density options compute it from the base --ds-btn-height/);
-      assert.match(report, /^migrate: 8 files read, 8 to change \(62 rewrites, 2 to check\), 10 for a person \(to 3\.x, deprecations\.json 3\.0\.0[^)]*\); run again with --write to apply$/m);
+      assert.match(report, /^migrate: 8 files read, 8 to change \(62 rewrites, 2 to check\), 10 for a person \(to 3\.x, deprecations\.json 3\.\d+\.\d+[^)]*\); run again with --write to apply$/m);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
