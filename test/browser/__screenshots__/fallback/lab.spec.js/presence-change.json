@@ -1,0 +1,7 @@
+[
+  "transition background-color - 250 0 1 --ds-ease-in-out",
+  "transition border-bottom-color - 250 0 1 --ds-ease-in-out",
+  "transition border-left-color - 250 0 1 --ds-ease-in-out",
+  "transition border-right-color - 250 0 1 --ds-ease-in-out",
+  "transition border-top-color - 250 0 1 --ds-ease-in-out"
+]

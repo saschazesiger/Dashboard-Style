@@ -1,0 +1,4 @@
+[
+  "script ds-drag - 270 0 1 --ds-ease-spatial",
+  "script ds-flip - 260 0 1 --ds-ease-spatial"
+]

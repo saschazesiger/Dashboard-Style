@@ -556,7 +556,15 @@ function replayTimeline(page, id) {
         const type = kind === 'CSSAnimation' ? 'animation' : kind === 'CSSTransition' ? 'transition' : 'script';
         const label = type === 'animation' ? animation.animationName : type === 'transition' ? animation.transitionProperty : animation.id || '(script)';
         const easing = type === 'animation' ? effect.getKeyframes()[0]?.easing || 'linear' : timing.easing;
-        lines.add([type, label, effect.pseudoElement || '-', Math.round(Number(computed.duration)), Math.round(timing.delay || 0),
+        // A status line's turn waits out what is left of --ds-hold-status (HOLDS: the demos that roll one).
+        const HOLDS = ['wheel-roll', 'thinking-step'];
+        // A delay off the 5ms grid of the tokens is what is left of a hold (a status line waits out
+        // --ds-hold-status from when it showed): it depends on when the replay starts, so it reads "held".
+        // The focus ring's snap (outline-offset) plays only when the engine judges the focus keyboard-made, which
+        // depends on the input before the replay: it has its own tests (controls.spec.js, regressions.spec.js).
+        if (type === 'transition' && label === 'outline-offset') continue;
+        const delay = Math.round(timing.delay || 0);
+        lines.add([type, label, effect.pseudoElement || '-', Math.round(Number(computed.duration)), delay % 5 || (delay && HOLDS.includes(demoId)) ? 'held' : delay,
           Number.isFinite(computed.iterations) ? computed.iterations : 'infinite', names.get(easing) || easing].join(' '));
       }
     }
@@ -672,7 +680,7 @@ test.describe('demos', () => {
 
   for (const group of GROUPS) {
     test(`${group}: every demo replays to settled within its ceiling and matches its timeline and settled shot; reversible ones rapid-toggle to the implied state`, async ({ page, browserName }) => {
-      test.setTimeout(480000);
+      test.setTimeout(browserName === 'webkit' ? 900000 : 480000);
       await open(page);
       const demos = await page.evaluate((id) => window.SG_LAB.filter((entry) => entry.group === id).map((entry) => ({ id: entry.id, toggle: typeof entry.toggle === 'function' })), group);
       expect(demos.length).toBeGreaterThan(0);
@@ -683,7 +691,10 @@ test.describe('demos', () => {
         await bringUp(page, demo.id);
         const timeline = await replayTimeline(page, demo.id);
         expect(`${JSON.stringify(timeline, null, 2)}\n`).toMatchSnapshot(`${demo.id}.json`);
-        const ceiling = Math.max(LONG_RUNS[demo.id]?.ms ?? 0, 4000 + 10 * longestOf(timeline));
+        // Headless WebKit paints in software: with every demo of the lab rendered, a View Transition of the page
+        // takes four times as long as on the lab a reader loads (lazily rendered), so it gets three times the room.
+        const slow = browserName === 'webkit' ? 3 : 1;
+        const ceiling = slow * Math.max(LONG_RUNS[demo.id]?.ms ?? 0, 4000 + 10 * longestOf(timeline));
         await expect(card, `${demo.id} replay`).toHaveAttribute('data-lab-state', 'settled', { timeout: ceiling });
         await settle(page, { timeout: 20000 });
         await expect(stage, `${demo.id}: the settled stage`).toHaveScreenshot(`${demo.id}.png`, { mask: shotMasks(stage, demo.id, browserName) });
@@ -707,7 +718,7 @@ test.describe('demos', () => {
           const hidden = await hiddenIn(page, demo.id, { remember: true });
           for (const [round, end] of [['far', before === null ? null : !before], ['back', before]]) {
             await card.locator('[data-lab="rapid"]').evaluate((button) => button.click());
-            await expect(card, `${demo.id} rapid (${round})`).toHaveAttribute('data-lab-state', 'settled', { timeout: 20000 });
+            await expect(card, `${demo.id} rapid (${round})`).toHaveAttribute('data-lab-state', 'settled', { timeout: 20000 * slow });
             if (end !== null) expect(await stateOf(page, demo.id), `${demo.id}: five toggles end on the ${round === 'far' ? 'far' : 'first'} state`).toBe(end);
             expect(await strays(page, demo.id), `${demo.id}: nothing inert or closing after Rapid toggle (${round})`).toEqual([]);
           }

@@ -23,7 +23,9 @@ SG_LAB.add({
   },
   toggle: function (stage, on) {
     stage.cite.set(on);
-    return DS.motion.settled(stage.querySelector('.ds-cite__card'));
+    var card = stage.querySelector('.ds-cite__card');
+    // Closing: the overlay's promise, which resolves once the exit has played (settled() can answer before it starts).
+    return on ? DS.motion.settled(card) : DS.overlay.close(card);
   },
   state: function (stage) { return stage.cite.get(); },
 });

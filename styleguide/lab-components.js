@@ -4229,7 +4229,17 @@
       toggle: function (stage, on) {
         stage.at = on ? 1 : 0;
         stage.thinking.set({ step: on ? 'Reading the device list' : 'Thinking' });
-        return DS.motion.settled(stage.querySelector('.ds-wheel'), { subtree: true });
+        // Done once the wheel holds its one line again (a turn waits out its hold; the line it pushed out goes after its exit).
+        var slot = stage.querySelector('.ds-wheel');
+        var left = 600;
+        return new Promise(function (resolve) {
+          (function check() {
+            left -= 1;
+            if (left <= 0 || (!slot.querySelector('[data-ds-leaving]') && slot.querySelectorAll('.ds-wheel__line').length === 1)) {
+              resolve(DS.motion.settled(slot, { subtree: true }));
+            } else requestAnimationFrame(check);
+          }());
+        });
       },
       state: function (stage) { return stage.at === 1; },
       reset: function (stage) {
@@ -4337,7 +4347,9 @@
       },
       toggle: function (stage, on) {
         stage.cite.set(on);
-        return DS.motion.settled(stage.querySelector('.ds-cite__card'));
+        var card = stage.querySelector('.ds-cite__card');
+        // Closing: the overlay's promise, which resolves once the exit has played (settled() can answer before it starts).
+        return on ? DS.motion.settled(card) : DS.overlay.close(card);
       },
       state: function (stage) { return stage.cite.get(); },
     });

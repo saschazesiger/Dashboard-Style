@@ -1,0 +1,4 @@
+[
+  "transition opacity - 250 0 1 --ds-ease-in-out",
+  "transition translate - 450 0 1 --ds-ease-spatial"
+]
