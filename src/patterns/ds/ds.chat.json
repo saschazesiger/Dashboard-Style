@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "entry": "chat",
   "minify": true,
@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.chat.css",
-      "bytes": 300954,
-      "gzip": 46901
+      "bytes": 300936,
+      "gzip": 46894
     },
     "js": {
       "file": "ds.chat.js",
-      "bytes": 617629,
-      "gzip": 145617
+      "bytes": 617256,
+      "gzip": 145657
     },
     "properties": {
       "file": "properties.css",

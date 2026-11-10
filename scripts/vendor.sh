@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Copies a Dashboard-Style build (dist/) into a project directory and records
+# Copies a Z-Dash build (dist/) into a project directory and records
 # exactly which commit it is, so the copy can be verified later.
 #
 #   vendor.sh <dest>                download the latest main from GitHub
@@ -13,7 +13,7 @@
 # tar and sha256sum or shasum. Windows: scripts/vendor.ps1.
 set -eu
 
-REPO="saschazesiger/Dashboard-Style"
+REPO="saschazesiger/Z-Dash"
 ME=vendor.sh
 
 die() { echo "$ME: $*" >&2; exit 1; }
@@ -89,7 +89,7 @@ install_dist() {
   printf 'version %s\nsource %s\ncommit %s\n' "$version" "$source" "$commit" > "$dest/VERSION"
   list=$(cd "$dest" && sums)
   printf '%s\n' "$list" > "$dest/SHA256SUMS"
-  echo "Vendored Dashboard-Style $version into $dest"
+  echo "Vendored Z-Dash $version into $dest"
 }
 
 [ $# -ge 1 ] || usage

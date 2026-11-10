@@ -5,7 +5,7 @@ A theme is one stylesheet, loaded after `ds.css`, that overrides roles (layer 2)
 [`themes/example.css`](../themes/example.css): it lists every role with example values.
 
 ```html
-<link rel="stylesheet" href="vendor/dashboard-style/ds.css">
+<link rel="stylesheet" href="vendor/z-dash/ds.css">
 <link rel="stylesheet" href="css/theme.css">
 ```
 
@@ -142,7 +142,7 @@ of loose text everywhere, inherits the host page's colour and font. Give your ro
 ```
 
 Every token and rule is scoped to
-`.ds-` classes, so a page without Dashboard-Style is not affected. Inside `.ds-theme` every element is
+`.ds-` classes, so a page without Z-Dash is not affected. Inside `.ds-theme` every element is
 `box-sizing: border-box` (zero specificity, so your own sizing rules still win). Overlays (dialogs, side sheets,
 snackbar regions, tooltips, menus) must sit inside the `.ds-theme` element too, not at the end of the host's
 `<body>`: outside it they get neither the tokens nor the motion. `DS.overlay` warns once in the console when it opens
@@ -200,7 +200,7 @@ not the window. Use the native `<dialog>` markup there (the top layer ignores th
 transform your widget's ancestors. Menus and tooltips are placed right either way: anchored in the top layer, or by
 the script, which writes their coordinates in that box's terms (1.6.1).
 
-The host page may use Dashboard-Style itself (`<html class="ds-theme">`), possibly another version or theme. Then
+The host page may use Z-Dash itself (`<html class="ds-theme">`), possibly another version or theme. Then
 both copies share their selectors, and `tokens.css` on bare `.ds-theme` would reset the host's theme to your
 values. Scope what you inject to your root: rewrite `.ds-theme` to `.ds-theme.my-widget` in every stylesheet you
 ship, `tokens.css` and your theme included (a build step can do it), and key any reset of your own the same way
@@ -868,10 +868,10 @@ serves; they set roles and hooks on `.ds-theme` like any theme, never motion tok
 | `themes/contrast.css` | `--ds-text-2` as the text colour, a stronger `--ds-text-3`, hairlines at the outline colour, darker outlines and field borders, 3px focus rings, solid link underlines, a stronger tint; mixed from your text and surface roles, so it works on any palette, dark included | `media="(prefers-contrast: more)"` |
 
 ```html
-<link rel="stylesheet" href="vendor/dashboard-style/ds.css">
+<link rel="stylesheet" href="vendor/z-dash/ds.css">
 <link rel="stylesheet" href="css/theme.css">
-<link rel="stylesheet" href="vendor/dashboard-style/themes/dark.css" media="(prefers-color-scheme: dark)" id="ds-dark">
-<link rel="stylesheet" href="vendor/dashboard-style/themes/contrast.css" media="(prefers-contrast: more)">
+<link rel="stylesheet" href="vendor/z-dash/themes/dark.css" media="(prefers-color-scheme: dark)" id="ds-dark">
+<link rel="stylesheet" href="vendor/z-dash/themes/contrast.css" media="(prefers-contrast: more)">
 ```
 
 A user's choice of appearance (light, dark or the system's) sets the dark link's `media` before the first paint, in an
@@ -902,8 +902,8 @@ dark and contrast themes that pass every pair, and eight generated presets ship 
 The copy checks a theme file without network or dependencies (Node 18 or later):
 
 ```sh
-node vendor/dashboard-style/tools/check-theme.mjs css/theme.css
-node vendor/dashboard-style/tools/check-theme.mjs css/theme-dark.css --with vendor/dashboard-style/themes/dark.css
+node vendor/z-dash/tools/check-theme.mjs css/theme.css
+node vendor/z-dash/tools/check-theme.mjs css/theme-dark.css --with vendor/z-dash/themes/dark.css
 ```
 
 It prints one line per finding, `<file>:<line> <error|warning|info> <rule> <message>`, and exits 1 on an error. The

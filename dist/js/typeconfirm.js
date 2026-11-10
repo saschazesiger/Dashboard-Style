@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Type-to-confirm (DS.typeconfirm): a destructive action that waits until
  * the name of what goes has been typed. It lives in a confirm dialog, whose

@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "entry": "inbox",
   "minify": true,
@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.inbox.css",
-      "bytes": 311064,
-      "gzip": 48698
+      "bytes": 311046,
+      "gzip": 48691
     },
     "js": {
       "file": "ds.inbox.js",
-      "bytes": 574846,
-      "gzip": 135633
+      "bytes": 574527,
+      "gzip": 135672
     },
     "properties": {
       "file": "properties.css",

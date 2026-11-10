@@ -339,7 +339,7 @@ describe('dist/manifest.json', () => {
   it('follows the documented shape', () => {
     const info = packageInfo();
     assert.deepEqual(Object.keys(manifest), ['name', 'version', 'layers', 'sublayers', 'core', 'pseudo', 'order', 'components', 'js', 'react']);
-    assert.equal(manifest.name, 'dashboard-style');
+    assert.equal(manifest.name, 'z-dash');
     assert.equal(manifest.version, info.version);
     assert.equal(manifest.layers, LAYERS);
     assert.equal(manifest.sublayers, sublayerStatement(list));
@@ -529,7 +529,7 @@ describe('ds.min.js and stripJs()', () => {
     for (const glyph of Object.keys(full.icons).filter((key) => typeof full.icons[key] === 'string')) assert.equal(min.icons[glyph], full.icons[glyph], glyph);
     assert.equal(min.icons.icon(min.icons.check, 16, 'x'), full.icons.icon(full.icons.check, 16, 'x'));
     assert.ok(text('ds.min.js').length < text('ds.js').length * 0.6, 'at most 60% of ds.js');
-    assert.match(text('ds.min.js'), /^\/\*! Dashboard-Style [^\n]*\*\/\n\/\*! Icon shapes: Lucide \(ISC\) and Feather \(MIT\), see LICENSE \*\/\n/);
+    assert.match(text('ds.min.js'), /^\/\*! Z-Dash [^\n]*\*\/\n\/\*! Icon shapes: Lucide \(ISC\) and Feather \(MIT\), see LICENSE \*\/\n/);
   });
 });
 
@@ -541,7 +541,7 @@ describe('version banners', () => {
       if (/\.(css|js|mjs|ts)$/.test(path)) {
         const body = content.toString('utf8');
         assert.ok(body.replace(/^#![^\n]*\n/, '').startsWith(line), path);
-      } else if (path.endsWith('.sh')) assert.match(content.toString('utf8'), new RegExp(`^#![^\\n]*\\n# Dashboard-Style ${info.version.replace(/[.-]/g, '\\$&')} `), path);
+      } else if (path.endsWith('.sh')) assert.match(content.toString('utf8'), new RegExp(`^#![^\\n]*\\n# Z-Dash ${info.version.replace(/[.-]/g, '\\$&')} `), path);
       else if (path.endsWith('.json') && !path.endsWith('.map')) assert.equal(JSON.parse(content.toString('utf8')).version, info.version, path);
     }
     assert.equal(withBanner('a.json', '{}', info), '{}');

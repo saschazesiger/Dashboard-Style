@@ -1166,11 +1166,11 @@ test.describe('fixed in 1.6.1 (final review, second pass)', () => {
       widget: document.getElementById('w-dialog').getAttribute('data-state'),
       locked: document.body.classList.contains('ds-no-scroll'),
     }));
-    expect(await page.evaluate(() => typeof window.DashboardStyle.versions.widget?.overlay.open)).toBe('function');
+    expect(await page.evaluate(() => typeof window.ZDash.versions.widget?.overlay.open)).toBe('function');
     // The host's copy opens its div dialog, the widget's copy its native dialog over it.
     await page.evaluate(async () => {
       await DS.overlay.open(document.getElementById('dialog'), { opener: document.getElementById('open-dialog') });
-      await window.DashboardStyle.versions.widget.overlay.open(document.getElementById('w-dialog'), { opener: document.getElementById('w-open') });
+      await window.ZDash.versions.widget.overlay.open(document.getElementById('w-dialog'), { opener: document.getElementById('w-open') });
     });
     expect(await state()).toEqual({ host: 'open', widget: 'open', locked: true });
     // Escape closes the topmost layer (the widget's), not the host's under it; the lock holds.
@@ -1179,8 +1179,8 @@ test.describe('fixed in 1.6.1 (final review, second pass)', () => {
     await settle(page);
     expect(await state()).toEqual({ host: 'open', widget: null, locked: true });
     // Closed by its own copy while the host's is open: the lock still holds, until the last one closes.
-    await page.evaluate(() => window.DashboardStyle.versions.widget.overlay.open(document.getElementById('w-dialog'), { opener: document.getElementById('w-open') }));
-    await page.evaluate(() => window.DashboardStyle.versions.widget.overlay.close(document.getElementById('w-dialog')));
+    await page.evaluate(() => window.ZDash.versions.widget.overlay.open(document.getElementById('w-dialog'), { opener: document.getElementById('w-open') }));
+    await page.evaluate(() => window.ZDash.versions.widget.overlay.close(document.getElementById('w-dialog')));
     expect((await state()).locked).toBe(true);
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => document.getElementById('dialog').hidden);
@@ -1188,7 +1188,7 @@ test.describe('fixed in 1.6.1 (final review, second pass)', () => {
     // Tooltip ids never repeat across the copies.
     const ids = await page.evaluate(() => {
       DS.overlay.tooltips(document.getElementById('page'));
-      window.DashboardStyle.versions.widget.overlay.tooltips(document.getElementById('w-root'));
+      window.ZDash.versions.widget.overlay.tooltips(document.getElementById('w-root'));
       return [...document.querySelectorAll('.ds-tooltip')].map((tip) => tip.id);
     });
     expect(ids.length).toBe(2);

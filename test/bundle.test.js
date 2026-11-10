@@ -16,7 +16,7 @@ import vm from 'node:vm';
 import { MODULES, buildJs, moduleSource, packageInfo } from '../scripts/build.mjs';
 import { bundle, expandGlobs, globRegExp, loadCopy, main, pruneIcons, scanText } from '../scripts/tools/bundle.mjs';
 import { classicScript, stripComments } from '../scripts/tools/js-wrap.mjs';
-import dashboardStyle, { CSS_ID, JS_ID } from '../scripts/tools/vite-plugin.mjs';
+import zDash, { CSS_ID, JS_ID } from '../scripts/tools/vite-plugin.mjs';
 import { ROOT, read } from './helpers.js';
 
 const FIXTURE = join(ROOT, 'test/fixtures/bundle');
@@ -88,7 +88,7 @@ describe('tools/js-wrap.mjs', () => {
     const page = runClassic(a, b);
     assert.equal(page.DS.one.one, 1);
     assert.equal(page.DS.two.two, 1, 'the second script reads the core already on the page');
-    assert.equal(page.DashboardStyle.versions['9.0.0'], page.DS);
+    assert.equal(page.ZDash.versions['9.0.0'], page.DS);
     const plain = runClassic(classicScript({ version: '9.0.0', merge: false, modules: [{ name: 'one', source: 'export const one = 1;' }] }), classicScript({ version: '9.0.0', merge: false, modules: [{ name: 'two', source: 'export const two = 2;' }] }));
     assert.equal(plain.DS.two, undefined, 'without merge, the 2.x behaviour: the second copy does nothing');
   });
@@ -238,7 +238,7 @@ describe('tools/bundle.mjs: the fixture projects', () => {
       assert.deepEqual(names(report.components), ['scrim', 'listbox', 'combobox', 'chart']);
       assert.equal(report.components[0].reason, 'required by listbox');
       assert.equal(report.components[1].reason, 'required by combobox');
-      assert.match(report.modules.find((item) => item.name === 'overlay').reason, /^src\/App\.tsx:1 import 'dashboard-style\/js\/overlay\.js'$/);
+      assert.match(report.modules.find((item) => item.name === 'overlay').reason, /^src\/App\.tsx:1 import 'z-dash\/js\/overlay\.js'$/);
       assert.deepEqual(names(report.icons).sort(), ['check', 'close', 'plus']);
       const entry = readFileSync(join(out, 'ds.bundle.js'), 'utf8');
       const base = relative(out, DIST).split('\\').join('/');
@@ -311,7 +311,7 @@ describe('tools/bundle.mjs: output', () => {
       bundle({ config });
       const css = readFileSync(join(dir, 'out/ds.bundle.css'), 'utf8');
       const manifest = JSON.parse(readFileSync(join(DIST, 'manifest.json'), 'utf8'));
-      assert.ok(css.startsWith(`/*! Dashboard-Style 3.0.0-alpha.0 | MIT License`));
+      assert.ok(css.startsWith(`/*! Z-Dash 3.0.0-alpha.0 | MIT License`));
       const body = css.slice(css.indexOf('\n') + 1);
       assert.ok(body.startsWith(`${manifest.layers}${manifest.sublayers}`), 'both statements first, once');
       assert.equal(css.split('@layer ds.tokens,').length - 1, 1, 'the per-file layer statements go');
@@ -354,7 +354,7 @@ describe('tools/bundle.mjs: output', () => {
     withTemp((dir) => {
       bundle({ config: tempProject(dir, { 'a.js': 'DS.ripple.attach(document);' }) });
       const one = readFileSync(join(dir, 'out/ds.bundle.js'), 'utf8');
-      assert.match(one, /^\/\*! Dashboard-Style 3\.0\.0-alpha\.0/);
+      assert.match(one, /^\/\*! Z-Dash 3\.0\.0-alpha\.0/);
       assert.match(one, /DS\.core, DS\.motion, DS\.ripple\./);
       assert.doesNotMatch(one, /\/\*\* A duration in ms/, 'minified: comments out');
       const page = runClassic(one);
@@ -655,8 +655,8 @@ describe('tools/vite-plugin.mjs (stubbed Vite API)', () => {
   };
 
   it('serves the virtual modules from the content scan and follows the modules Vite transforms (dev)', () => {
-    const plugin = dashboardStyle({ config: 'ds.config.json' });
-    assert.equal(plugin.name, 'dashboard-style');
+    const plugin = zDash({ config: 'ds.config.json' });
+    assert.equal(plugin.name, 'z-dash');
     plugin.configResolved({ root, command: 'serve' });
     const ctx = context();
     plugin.buildStart.call(ctx);
@@ -668,7 +668,7 @@ describe('tools/vite-plugin.mjs (stubbed Vite API)', () => {
     assert.match(css, /\.ds-card\{/);
     assert.doesNotMatch(css, /ds-chip/);
     const js = plugin.load(jsId);
-    assert.match(js, /export default globalThis\.DashboardStyle\.versions\['3\.0\.0-alpha\.0'\];\n$/);
+    assert.match(js, /export default globalThis\.ZDash\.versions\['3\.0\.0-alpha\.0'\];\n$/);
 
     const sent = [];
     const reloaded = [];
@@ -688,14 +688,14 @@ describe('tools/vite-plugin.mjs (stubbed Vite API)', () => {
     plugin.transform('DS.dom.morphHtml(el, html);', join(root, 'src/list.js?v=2'));
     assert.deepEqual(sent, [{ type: 'full-reload' }], 'the script changed: full reload');
     plugin.transform.call(ctx, 'el.className = "ds-btn--" + kind;', join(root, 'src/bad.ts'));
-    assert.match(ctx.seen.warn.join('\n'), /^dashboard-style: src\/bad\.ts:1 a class name built at run time/, 'dev warns, the page keeps running');
+    assert.match(ctx.seen.warn.join('\n'), /^z-dash: src\/bad\.ts:1 a class name built at run time/, 'dev warns, the page keeps running');
     assert.deepEqual(ctx.seen.error, []);
     assert.equal(plugin.transform('<i class="ds-card">', '\0virtual:other'), null);
     assert.equal(plugin.transform('<i class="ds-card">', join(root, 'node_modules/x/index.js')), null);
   });
 
   it('fails a built name and warns about names that reach a build after the stylesheet', () => {
-    const plugin = dashboardStyle({ config: 'ds.config.json', js: 'esm' });
+    const plugin = zDash({ config: 'ds.config.json', js: 'esm' });
     plugin.configResolved({ root, command: 'build' });
     const ctx = context();
     plugin.buildStart.call(ctx);
@@ -704,7 +704,7 @@ describe('tools/vite-plugin.mjs (stubbed Vite API)', () => {
     plugin.transform.call(ctx, '<i class="ds-chip"></i>', join(root, 'src/late.jsx'));
     plugin.buildEnd.call(ctx);
     assert.match(ctx.seen.warn.join('\n'), /component chip \(src\/late\.jsx:1 ds-chip\)[\s\S]*Add their folders to "content"/);
-    const strict = dashboardStyle({ config: 'ds.config.json', strict: true });
+    const strict = zDash({ config: 'ds.config.json', strict: true });
     strict.configResolved({ root, command: 'build' });
     const strictCtx = context();
     strict.buildStart.call(strictCtx);

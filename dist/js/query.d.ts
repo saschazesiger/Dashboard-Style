@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Types of DS.query (src/components/query/query.js). Hand-written; the
  * build test keeps the declared exports and their parameters equal to the

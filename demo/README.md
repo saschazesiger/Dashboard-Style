@@ -1,6 +1,6 @@
 # Live tour
 
-The start page on GitHub Pages (`scripts/site.sh` puts it at the root): one page that walks through Dashboard-Style
+The start page on GitHub Pages (`scripts/site.sh` puts it at the root): one page that walks through Z-Dash
 3.0, every stop a working demo wired the way a project wires it. Open `index.html` from disk or from the published
 site; it needs nothing but this checkout's `dist/` and the bundle next to it.
 

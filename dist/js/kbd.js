@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Key combos (DS.kbd): a shortcut written as the keys of this platform,
  * one .ds-kbd per key, read out in words.

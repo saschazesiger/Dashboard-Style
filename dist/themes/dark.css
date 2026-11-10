@@ -1,11 +1,11 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /*
  * Dark theme: the default palette in the Material 3 dark tones. Load it
  * after ds.css and after your own theme, for the dark colour scheme only:
  *
- *   <link rel="stylesheet" href="vendor/dashboard-style/ds.css">
+ *   <link rel="stylesheet" href="vendor/z-dash/ds.css">
  *   <link rel="stylesheet" href="css/theme.css">
- *   <link rel="stylesheet" href="vendor/dashboard-style/themes/dark.css"
+ *   <link rel="stylesheet" href="vendor/z-dash/themes/dark.css"
  *         media="(prefers-color-scheme: dark)" id="ds-dark">
  *
  * A user's choice (light, dark or the system's) sets that link's media

@@ -111,7 +111,7 @@ the tests in `test/`.
 
 ## Accessibility statement
 
-Dashboard-Style aims at **WCAG 2.2, level AA** for what it draws and does. A page built from it still owes its own
+Z-Dash aims at **WCAG 2.2, level AA** for what it draws and does. A page built from it still owes its own
 content: the system guarantees the parts below, the tests named in each row check them, and the last column says what
 the page adds.
 

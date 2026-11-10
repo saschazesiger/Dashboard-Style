@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Menu button (DS.menubutton): a button that opens a menu (DS.menu, through
  * DS.overlay), with a chevron that turns while it is open. A menu of

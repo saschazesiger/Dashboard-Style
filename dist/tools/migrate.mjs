@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
- * Moves a project from Dashboard-Style 2.x to 3.0, without dependencies
+ * Moves a project from Z-Dash 2.x to 3.0, without dependencies
  * (Node 22 or later; docs/migration.md):
  *
  *   node <copy>/tools/migrate.mjs [--config ds-check.json] [<file, folder or glob> ...]
@@ -30,7 +30,7 @@
  *              ('fill-x' -> 'fill'), and settleLoader(t, now) -> settleLoader(t, { now })
  *   paths      the core stylesheets of the copy moved: <copy>/css/tokens.css
  *              -> <copy>/css/core/tokens.css (base and motion too), in links
- *              and imports that name the copy (its folder, or dashboard-style,
+ *              and imports that name the copy (its folder, or z-dash,
  *              in any case, with or without dist/); any other path to a
  *              css/tokens.css (base, motion) is listed
  *
@@ -100,6 +100,8 @@ const SPECIAL = {
   "enter(el, 'fill-x')": { type: 'string', from: 'fill-x', to: 'fill', review: 'the mark sets --ds-share instead of its own scaleX()' },
   "enter(el, 'fill-y')": { type: 'string', from: 'fill-y', to: 'fill', review: 'the mark sets --ds-share instead of its own scaleY()' },
   'the event ds-close': { type: 'string', from: 'ds-close', to: 'ds:close' },
+  // The registry's name before the rename (3.0); the types DashboardStyleApi and DashboardStyleRegistry follow.
+  DashboardStyle: { type: 'string', from: 'DashboardStyle', to: 'ZDash' },
   'settleLoader(startedAt, now)': { type: 'settleLoader' },
 };
 
@@ -321,7 +323,7 @@ const CORE_SHEETS = ['tokens', 'base', 'motion'];
 /**
  * Migrates one text. `rules` is [{ entry, rule }] (prepare()); `copies` the
  * path parts that name the vendored copy in a link or an import (the
- * config's vendor folder; "dashboard-style" always counts). Returns
+ * config's vendor folder; "z-dash" and the old "dashboard-style" always count). Returns
  * { text, changes: [{ line, name, from, to, review? }], manual: [{ line, name, message }] }.
  */
 export function migrateText(text, rules, { copies = [] } = {}) {
@@ -338,8 +340,9 @@ export function migrateText(text, rules, { copies = [] } = {}) {
   const note = (index, entry, message) => manual.push({ line: lineOf(text, index), name: entry.name, message });
   const aliased = new Map();
   const handles = attachHandles(text);
-  // The path parts that name the copy in an import or a link: its folder, and "dashboard-style" always.
-  const names = [...new Set(['dashboard-style', ...copies.map((path) => path.replace(/\/+$/, '').split('/').at(-1)).filter(Boolean)])];
+  // The path parts that name the copy in an import or a link: its folder, and "z-dash" and the old
+  // "dashboard-style" (the folder name before the rename) always.
+  const names = [...new Set(['z-dash', 'dashboard-style', ...copies.map((path) => path.replace(/\/+$/, '').split('/').at(-1)).filter(Boolean)])];
   const namesCopy = (path) => names.some((name) => path.toLowerCase().includes(`${name.toLowerCase()}/`));
 
   for (const { entry, rule } of rules) {
@@ -442,7 +445,7 @@ export function migrateText(text, rules, { copies = [] } = {}) {
   }
 
   // The single stylesheets of the core moved to css/core/ (3.0.0-alpha.0); 3.0 adds options.css and global.css.
-  // A path names the copy by its folder (any case; a CDN's `Dashboard-Style@main`), with or without dist/.
+  // A path names the copy by its folder (any case; a CDN's `Z-Dash@main`), with or without dist/.
   const copyRoot = `(?:${names.map(escape).join('|')})(?:@[^/"'()\\s]*)?/(?:dist/)?css/`;
   const copyPath = new RegExp(`(["'(])([^"'()\\s]*${copyRoot})(${CORE_SHEETS.join('|')})((?:\\.min)?\\.css)(?=["')])`, 'gi');
   const sheetEntry = { name: 'css/core/' };
@@ -611,7 +614,7 @@ export function migrate({ root = process.cwd(), files, config = null, configPath
     if (raw.includes(0)) continue;
     const before = raw.toString('utf8');
     // A file the system wrote (a bundle, a copied stylesheet): rebuilt, never migrated.
-    if (before.startsWith('/*! Dashboard-Style')) continue;
+    if (before.startsWith('/*! Z-Dash')) continue;
     const { text: after, changes, manual } = migrateText(before, rules, { copies: config?.vendor ? [posix(config.vendor)] : [] });
     results.push({ path, before, after, changes, manual });
   }

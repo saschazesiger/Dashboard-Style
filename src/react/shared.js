@@ -175,7 +175,7 @@ export function contentText(value) {
     return parts.every((part) => part === null) ? null : parts.map((part) => part ?? '').join('');
   }
   if (typeof value === 'string' || typeof value === 'number') return String(value);
-  if (typeof console !== 'undefined') console.warn('Dashboard-Style React: this component takes its content as text (a string prop or string children)');
+  if (typeof console !== 'undefined') console.warn('Z-Dash React: this component takes its content as text (a string prop or string children)');
   return null;
 }
 
@@ -270,7 +270,7 @@ export function useBehaviour(name, options = {}) {
       if (element.textContent !== shown.current) element.textContent = shown.current;
     }
     const handle = manage(element, name);
-    if (!handle && typeof console !== 'undefined') console.warn(`Dashboard-Style React: no behaviour "${name}" (load its module, js/${name}.js)`);
+    if (!handle && typeof console !== 'undefined') console.warn(`Z-Dash React: no behaviour "${name}" (load its module, js/${name}.js)`);
     handleRef.current = handle;
     return handle;
   }, [name]);

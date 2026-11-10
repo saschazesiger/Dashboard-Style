@@ -2,7 +2,7 @@
  * Compact density for desktop consoles: 13/18 UI text and shorter
  * controls, rows and items. Load it after ds.css and your theme:
  *
- *   <link rel="stylesheet" href="vendor/dashboard-style/themes/compact.css">
+ *   <link rel="stylesheet" href="vendor/z-dash/themes/compact.css">
  *
  * In 3.0 it is the dense density (--ds-density: -2, docs/options.md) plus
  * its type roles: every control and row computes its height from the

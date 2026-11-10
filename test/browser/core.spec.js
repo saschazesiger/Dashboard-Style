@@ -155,7 +155,7 @@ test('two copies of ds.js and the ES modules share one runtime, one overlay stac
     document.head.append(script);
   });
   const shared = await page.evaluate(async () => {
-    const other = window.DashboardStyle.versions['9.9.9'];
+    const other = window.ZDash.versions['9.9.9'];
     const coreModule = await import('/dist/js/core.js');
     const overlayModule = await import('/dist/js/overlay.js');
     window.fxOther = other;

@@ -23,10 +23,10 @@ imports `../js/<module>.js`. Your bundler resolves `react` from the project.
 ```js
 import { createRoot } from 'react-dom/client';
 import { StrictMode, createElement as h } from 'react';
-import { DSProvider } from './vendor/dashboard-style/react/provider.js';
-import { Button } from './vendor/dashboard-style/react/button.js';
-import { Tabs } from './vendor/dashboard-style/react/tabs.js';
-import './vendor/dashboard-style/ds.min.css';      // or <link> it, with fonts/fonts.css and your theme after it
+import { DSProvider } from './vendor/z-dash/react/provider.js';
+import { Button } from './vendor/z-dash/react/button.js';
+import { Tabs } from './vendor/z-dash/react/tabs.js';
+import './vendor/z-dash/ds.min.css';      // or <link> it, with fonts/fonts.css and your theme after it
 
 createRoot(document.getElementById('root')).render(
   h(StrictMode, null, h(DSProvider, null, h(App))),

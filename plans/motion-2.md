@@ -1,4 +1,4 @@
-# Plan: Motion 2 (Dashboard-Style 1.0)
+# Plan: Motion 2 (Z-Dash 1.0)
 
 **Status:** complete at 1.6.0; the names marked "removed in 2.0" were removed in 2.0.0.
 

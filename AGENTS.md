@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Dashboard-Style. User documentation:
+Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Z-Dash. User documentation:
 [README.md](README.md) and the [docs](README.md#-documentation).
 
 ## In brief
@@ -59,16 +59,16 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `scripts/react.mjs` | the adapter's part of the build: `REACT_HAND` (each hand-written module and the stylesheets it renders), the generated component of every other behaviour that initialises an element (root from the docs, option props from its `define()`'s `attributes`, variants from its block without `stateClasses()`), `dist/react/index.js`, `manifest.json` `react` and the component table of `docs/react.md` |
 | `dist/react/` | built, never edited: the hand-written modules with their imports rewritten to `../js/<module>.js`, a generated `<behaviour>.js` and `.d.ts` per behaviour, and `index.js` |
 | `test/react/` | the pinned UMD development builds of React 18.3.1 the browser spec mounts the adapter with (not an npm dependency; its `README.md` and `LICENSE`); `test/react.test.js` keeps `src/react/`, `dist/react/` and the manifest in step, `test/browser/react.spec.js` runs the adapter |
-| `src/types/` | hand-written TypeScript declarations of the core: `ds.d.ts` (the global `DS` with its module namespaces, a generated block from `MODULES`, the `DS.init`/`get`/`define`/`config` aliases, and `DashboardStyle.runtime`; copied to `dist/ds.d.ts`) and `js/<module>.d.ts` (each core module's exports with their options and handles, copied next to the module in `dist/js/`); a component's types sit in its folder (`<name>.d.ts`); `test/build.test.js` keeps the declared exports and their parameter names equal to the modules |
+| `src/types/` | hand-written TypeScript declarations of the core: `ds.d.ts` (the global `DS` with its module namespaces, a generated block from `MODULES`, the `DS.init`/`get`/`define`/`config` aliases, and `ZDash.runtime`; copied to `dist/ds.d.ts`) and `js/<module>.d.ts` (each core module's exports with their options and handles, copied next to the module in `dist/js/`); a component's types sit in its folder (`<name>.d.ts`); `test/build.test.js` keeps the declared exports and their parameter names equal to the modules |
 | `src/deprecations.json` | every deprecated and removed name as data (`dist/deprecations.json`); a removed name gets `removed` set |
 | `styleguide/` | living styleguide on top of `dist/`, classic scripts that work from disk: `index.html` with `shell.js` and `shell.css` (the 3.0 shell: a page per registered demo with its options panel, the foundations with the theme choices, search, the need overview, the theme generator; an address of a 2.x section opens the page that took it over), `styleguide.css` (the parts every styleguide page shares), `sg-core.js` (the demo API `SG.demo`, `SG.mount`, the helpers `h`; also used by the fixture route), `demos.js` **generated** from every `<name>.demo.js`, `registry.js` **generated** from every `meta.json` and `tokens.css`, `theme-generator.js` **generated** from `scripts/tools/{color,theme-rules,theme}.mjs`; the "Page patterns" area (`#/patterns`, `#/patterns/<name>`: each pattern of `registry.js` with its need line, a framed preview loaded only when its page opens, at a phone, tablet or desktop width, scaled to fit, in the light, dark or auto scheme, and a link to open it alone); `motion.html` (the Motion Lab) with `motion-lab.js` (its frame, navigation, theme and speed selects, and the demo cards with Replay, Rapid toggle and Reverse at 50%), `lab.js` (its demo registry, `window.SG_LAB`) and `lab-components.js` **generated** from every `<name>.lab.js` (`SG_LAB.add(entry)`, the entry shape of `lab.js`); `views.html` (View Transitions across pages) |
 | `docs/` | `install`, `bundle` (loading only what a page uses), `core` (`js/core.js`: runtime, behaviours, `init()`, events, strings), `tokens`, `options` (size, density, shape, tone, touch and how a component computes them), `theming`, `theme-generator` (`tools/theme.mjs` and the presets), `components` (**generated** from `src/components/_partials/` and every `<name>.md`; edit those; the hooks table of `theming`, the component keyframes table of `motion` and the module table of `install` are generated blocks), `patterns`, `motion`, `icons`, `rules` (with the accessibility statement), `migration` (2.x to 3.0: `tools/migrate.mjs`, every renamed and removed name, what to check by hand) |
 | `docs/images/` | the screenshots and GIFs of `README.md`, taken from the live tour, the reference app and the styleguide; retake them when the look changes |
 | `demo/` | the live tour, the start page on GitHub Pages: one page with a working demo of every behaviour (press, controls, live data, overlays, feedback, forms, theming, icons), wired as a project wires it (`theme.js` builds the theme from the choices under "Theme it" and shows its file, `demo.css` project components with the prefix `demo-`, `demo.js` the page; classic scripts, so it works from disk). It loads a project bundle, as a project does: `demo/ds.config.json` is its setup and `demo/ds/` the bundle, generated by `npm run build` from the `dist/` just built (`--check` compares it) and committed; `test/demo.test.js` guards the config and the links, `test/browser/demo.spec.js` runs the tour |
-| `example/` | the reference app, published on GitHub Pages: a device console that uses the system as a project does (`theme.css` the project theme, `app.css` project components with the prefix `ex-`, `data.js` a fake backend, `app.js` the app; classic scripts on `../dist/`, so it works from disk); its `README.md` maps every pattern to its code. It follows the documented markup and the project rules of "Using Dashboard-Style in a project" below; `test/browser/example.spec.js` runs its flows |
+| `example/` | the reference app, published on GitHub Pages: a device console that uses the system as a project does (`theme.css` the project theme, `app.css` project components with the prefix `ex-`, `data.js` a fake backend, `app.js` the app; classic scripts on `../dist/`, so it works from disk); its `README.md` maps every pattern to its code. It follows the documented markup and the project rules of "Using Z-Dash in a project" below; `test/browser/example.spec.js` runs its flows |
 | `scripts/` | `build.mjs` (deterministic, `--check` covers `dist/` and the generated files, `--generated` lists those; checks every `meta.json`; writes the single stylesheets to `dist/css/core/` and `dist/css/components/<name>.css`, a `.min.css` with source map next to each and `ds.min.css` (lightningcss, at the floor, lowering nothing), `ds.min.js` (`stripJs`), `dist/manifest.json`, the version banner on every CSS, JS, MJS, `.d.ts` and shell file, and `dist/tokens.json` from `tokens.css`, the hooks table of `docs/theming.md` and the stylesheets; every file of `scripts/tools/` ships to `dist/tools/` by itself), `meta-schema.json` (every `meta.json` field; the build validates against it), `gen-meta.mjs` (how the first `meta.json` files were derived, in the 2.x shape, kept for reference), `motion-curves.mjs` (the one source of sampled curves, `--check`), `vendor.sh` / `vendor.ps1` (checksummed copies for projects), `site.sh` (the GitHub Pages site) |
 | `scripts/tools/` | the tools shipped in `dist/tools/`, dependency-free: `verify.mjs` and `verify.sh` (a copy against `SHA256SUMS`; `verify.sh` holds `check_dir` of `vendor.sh` word for word), `check-theme.mjs` (reads `light-dark()`: every pair in each scheme a theme shows), `check-project.mjs`, `migrate.mjs` (2.x to 3.0 from the copy's `deprecations.json`; `docs/migration.md`), `bundle.mjs` and `vite-plugin.mjs` (a project bundle from `manifest.json`; `docs/bundle.md`), `theme.mjs` (the theme generator) and the modules they share: `theme-rules.mjs` (the contrast pairs, the motion prefixes, the colour resolver and `pickLightDark()`, also read by `test/tokens.test.js`), `css-scan.mjs`, `color.mjs` (a port of Material Color Utilities' HCT, Apache-2.0, notice in `LICENSE`) and `js-wrap.mjs` (the classic-script wrapper of `ds.js` and of every bundle) |
-| `templates/update-dashboard-style.yml` | nightly GitHub Actions workflow that projects copy to vendor `main` |
+| `templates/update-z-dash.yml` | nightly GitHub Actions workflow that projects copy to vendor `main` |
 | `test/` | the shared unit tests (a component's own sit in its folder, `<name>.test.js`; `npm test` runs both): `css`, `tokens`, `options` (the option classes of `core/options.css`), `motion`, `js`, `build`, `registry` (meta.json, the generated files, the manifest, the minified output), `repo`, `controls`, `tools`, `check-project`, `migrate`, `bundle`, `patterns` (the page patterns: listed in `docs/patterns.md` and the styleguide, their bundles fresh, `check-project` clean, classes and markup), `core` (`js/core.js` on a fake DOM), the helpers `a11y`, `hotkeys`, `format`, `store`, `virtual`, `dnd`, `theme-generator`, `helpers` and `browser-helpers` unit tests; `helpers.js`; `fixtures/bundle/` (a small fake copy and fixture projects for the bundle tool; the bundle tests also bundle from this checkout's `dist/`); `fixtures/migrate/` (a 2.x project and what `tools/migrate.mjs` makes of it) |
 | `test/browser/` | Playwright harness (`playwright.config.js`, `serve.js` (with the generated page `fixtures/component.html?c=<name>`: a component's demo alone, through `styleguide/sg-core.js`), `base-test.js`: the shared `test` of the specs that also run in `fallback`), `fixtures/`, the one helper module `helpers/motion.js`, the specs (baselines, timelines, capability spike, `lab` for the Motion Lab: coverage, every demo, interruption, the overlay table; `review` for the whole-page sweeps; `work` for the style work budgets (elements restyled, load-independent); `a11y-sweep` for names, references, ids and roles of every demo; `perf` for the paint budget and style recalc times, alone; `patterns` for every page of `src/patterns/` in every engine) and the committed `__screenshots__/`; the projects also run every `src/components/<name>/<name>.spec.js`, its shots under `__screenshots__/<project>/components/`; `README.md` explains them |
 | `plans/` | working plans (`3.0.md`, the 3.0 plan, and `3.0-conventions.md`, the contract of every component folder; `motion-2.md` and its phases, complete; `after-2.0.md`, what 2.0.0 deferred or left open, the names 3.0 may remove and the wishes that were dropped); kept outside `docs/` so the docs tests do not count them |
@@ -280,7 +280,7 @@ the live tour in the same commit, so the published pages never show a deprecated
 ## Releases
 
 - **`main` is always releasable and every push ships.** Projects vendor the latest `main`, and their nightly
-  workflow (`templates/update-dashboard-style.yml`, 02:30 UTC) picks up any new commit, runs their checks, commits
+  workflow (`templates/update-z-dash.yml`, 02:30 UTC) picks up any new commit, runs their checks, commits
   the copy and deploys. A push to `main` reaches every project within about 24 hours without anyone reviewing it
   there, so `npm run check` must pass and the styleguide must look right before pushing.
 - **The nightly does not wait for this repo's CI.** Push to `main` only what passed `npm run check` and
@@ -302,15 +302,15 @@ the live tour in the same commit, so the published pages never show a deprecated
   changelog: patch for fixes, minor for additions and deprecations, major for removing a deprecated name, with a
   migration note (old name, new name, what a project has to change).
 
-## Using Dashboard-Style in a project
+## Using Z-Dash in a project
 
 Copy this block into the project's own `AGENTS.md` and fill in the placeholders (`<dest>`, `<prefix>`,
 `<theme file>`, `<check command>`, `<update command>`):
 
 ```markdown
-## Design system: Dashboard-Style
+## Design system: Z-Dash
 
-- The UI is built on [Dashboard-Style](https://github.com/saschazesiger/Dashboard-Style), vendored in `<dest>`
+- The UI is built on [Z-Dash](https://github.com/saschazesiger/Z-Dash), vendored in `<dest>`
   (tokens `--ds-*`, components `.ds-*`, `DS.motion`, `DS.indicator`, `DS.dom`, `DS.ripple`, `DS.icons`,
   `DS.overlay`). Call `DS.ripple.attach(document)` once at start-up: every action gets the pointer ripple, and the
   action guard it installs blocks busy, done and `aria-disabled="true"` actions for every input (click, keys,
@@ -318,19 +318,19 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
   `DS.overlay.close(el)`, show snackbars with `DS.overlay.toast(region, text)` and tooltips with one
   `DS.overlay.tooltips(document)`; every overlay sits inside the `.ds-theme` element.
 - Never edit `<dest>`: it is checksummed (`<dest>/SHA256SUMS`, checked by `<check command>`) and replaced by the
-  nightly `.github/workflows/update-dashboard-style.yml` (by hand: `<update command>`). A fix or a component every
-  dashboard could use goes to Dashboard-Style itself (project-neutral, English), then the copy is updated.
+  nightly `.github/workflows/update-z-dash.yml` (by hand: `<update command>`). A fix or a component every
+  dashboard could use goes to Z-Dash itself (project-neutral, English), then the copy is updated.
 - When the nightly update fails at "Verify", nothing was committed and the site keeps the old copy: run
-  `<update command>` and `<check command>` locally, read Dashboard-Style's `CHANGELOG.md` for deprecations and
-  removals, and commit the new copy together with the project's fix (or fix Dashboard-Style; the next run picks it
-  up). Then Actions → "Update Dashboard-Style" → *Run workflow*. More in its `docs/install.md`, "When the update
+  `<update command>` and `<check command>` locally, read Z-Dash's `CHANGELOG.md` for deprecations and
+  removals, and commit the new copy together with the project's fix (or fix Z-Dash; the next run picks it
+  up). Then Actions → "Update Z-Dash" → *Run workflow*. More in its `docs/install.md`, "When the update
   fails".
 - Reach for an existing component first. The docs are not part of the vendored copy: the table "Which component
   for which need" and the markup of every component are in
-  https://github.com/saschazesiger/Dashboard-Style/blob/main/docs/components.md; for live examples clone the
+  https://github.com/saschazesiger/Z-Dash/blob/main/docs/components.md; for live examples clone the
   repository and open `styleguide/index.html` (every component) and `styleguide/motion.html` (the Motion Lab: every
   choreography, replayable and slowed down with its speed select; both work from disk). What each component plays
-  is the choreography in https://github.com/saschazesiger/Dashboard-Style/blob/main/docs/motion.md. Copy the
+  is the choreography in https://github.com/saschazesiger/Z-Dash/blob/main/docs/motion.md. Copy the
   documented markup and attributes exactly; behaviour (wiring the triggers, filtering, choosing) is the project's own script, and opening and
   closing go through `DS.overlay`.
 - Theme only through tokens in `<theme file>`, on `.ds-theme`, loaded after `ds.css`: roles (`--ds-primary`,
@@ -343,7 +343,7 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
   before ds (`@layer reset;` first, or `@layer reset, ds, app;`). Under `.ds-base`, `hidden` always hides; never add
   a `[hidden]` rule.
 - Never write the attributes the system owns (those the "Attributes" table in
-  https://github.com/saschazesiger/Dashboard-Style/blob/main/docs/components.md lists as written by the system, such
+  https://github.com/saschazesiger/Z-Dash/blob/main/docs/components.md lists as written by the system, such
   as `data-scrolled`); the page sets only its own ones.
 - Never change the look of a `.ds-*` component in project CSS (colour, radius, type, motion); set its hooks
   instead, in the theme or on the element. Placing a `.ds-*` element inside a project container is fine; document

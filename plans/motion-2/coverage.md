@@ -80,7 +80,7 @@ When a phase finishes, its ids are done or moved explicitly here (definition of 
 | js-stagger-inherit | js | P1 | **Done (P1):** Non-inheriting motion hooks; browser test: `--ds-i` registered `<integer>`, `inherits: false`; `enterAll`/`staggerOnce` cleanup is P2. |
 | js-es-guard-test | js | P1 | **Done (P1):** Build: sibling imports; JS headers; js tests: ES2022 denylist, sibling-import rule, progressive-API guard. |
 | js-build-inline-import | js | P1 | **Done (P1):** Build: `inlineCss()`; `test/build.test.js`: Files wrap themselves, so the build only drops the repeated layer statements instead of wrapping imports. |
-| js-dsjs-double-load | js | P1 | **Done (P1):** Build: double-load guard; install.md: First copy wins; `DashboardStyle.versions`. |
+| js-dsjs-double-load | js | P1 | **Done (P1):** Build: double-load guard; install.md: First copy wins; `ZDash.versions`. |
 | js-icon-classname | js | P1 | **Done (P1):** JS modules: `icon()`: Escape, never throw. |
 | js-missed-6 | js | P1 | **Done (P1):** Keyframe catalogue: `ds-draw` setup, nothing pruned: `stroke-dashoffset` allowed; unused keyframes are kept (P3, P6, P8 use them), not removed. |
 | js-missed-7 | js | P1 | **Done (P1):** Motion tokens: multiplier; styleguide speed: Duration tokens stay unregistered (parsed as `calc()` by P2's `motionDuration`), so "outside `.ds-theme`" stays detectable. The draft's `--ds-hold-*` tokens are not in the canonical spec. |

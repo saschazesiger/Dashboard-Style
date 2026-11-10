@@ -346,8 +346,8 @@ describe('types (dist/ds.d.ts, dist/js/*.d.ts)', () => {
       assert.match(global, new RegExp(`import type \\* as ${name} from '\\./js/${name}\\.js';`), `ds.d.ts imports ${name}`);
       assert.match(global, new RegExp(`readonly ${name}: typeof ${name};`), `DS.${name}`);
     }
-    assert.match(global, /var DS: DashboardStyleApi;/);
-    assert.match(global, /var DashboardStyle: DashboardStyleRegistry;/);
+    assert.match(global, /var DS: ZDashApi;/);
+    assert.match(global, /var ZDash: ZDashRegistry;/);
   });
 
   for (const name of MODULES) {

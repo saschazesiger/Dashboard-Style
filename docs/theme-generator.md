@@ -5,11 +5,11 @@ and the dark scheme at once, and every contrast pair of the theme check passes i
 or dependencies (Node 18 or later), and the same function runs in a browser.
 
 ```sh
-node vendor/dashboard-style/tools/theme.mjs --seed '#0b57d0' --name brand --out css/theme.css
+node vendor/z-dash/tools/theme.mjs --seed '#0b57d0' --name brand --out css/theme.css
 ```
 
 ```html
-<link rel="stylesheet" href="vendor/dashboard-style/ds.css">
+<link rel="stylesheet" href="vendor/z-dash/ds.css">
 <link rel="stylesheet" href="css/theme.css">
 ```
 
@@ -146,9 +146,9 @@ the `high` level), and kept up to date by a test.
 | [`graphite`](../themes/presets/graphite.css) | `#3c4043` | `monochrome` | greys only; status and charts keep their colour |
 
 ```html
-<link rel="stylesheet" href="vendor/dashboard-style/ds.css">
-<link rel="stylesheet" href="vendor/dashboard-style/themes/presets/ocean.css">
-<link rel="stylesheet" href="vendor/dashboard-style/themes/presets/ocean-contrast.css" media="(prefers-contrast: more)">
+<link rel="stylesheet" href="vendor/z-dash/ds.css">
+<link rel="stylesheet" href="vendor/z-dash/themes/presets/ocean.css">
+<link rel="stylesheet" href="vendor/z-dash/themes/presets/ocean-contrast.css" media="(prefers-contrast: more)">
 ```
 
 ## In JavaScript
@@ -157,7 +157,7 @@ the `high` level), and kept up to date by a test.
 `node:` imports are dynamic and run only from the command line.
 
 ```js
-import { generateTheme } from './vendor/dashboard-style/tools/theme.mjs';
+import { generateTheme } from './vendor/z-dash/tools/theme.mjs';
 
 const { css, light, dark, moves, report } = generateTheme({ seed: '#0b57d0', scheme: 'fidelity', contrast: 'standard', name: 'brand' });
 ```

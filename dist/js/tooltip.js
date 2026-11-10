@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Tooltips (DS.tooltip; DS.overlay.tooltips calls it).
  *
@@ -195,7 +195,7 @@ export function tooltips(root = globalThis.document) {
     : rootElement.closest('.ds-theme') ?? (root.nodeType === 9 ? doc.querySelector('.ds-theme') : null);
   if (!theme && !tooltipWarned) {
     tooltipWarned = true;
-    view.console?.warn('Dashboard-Style: DS.overlay.tooltips() on a root outside .ds-theme. The tooltip must sit inside the .ds-theme element, or it gets neither the tokens nor the motion.');
+    view.console?.warn('Z-Dash: DS.overlay.tooltips() on a root outside .ds-theme. The tooltip must sit inside the .ds-theme element, or it gets neither the tokens nor the motion.');
   }
   const anchored = supportsAnchoring(view);
   const home = !theme || theme === doc.documentElement ? doc.body : theme;

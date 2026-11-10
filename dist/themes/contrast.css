@@ -1,10 +1,10 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /*
  * More contrast: quieter text, hairlines and outlines step up towards the
  * text colour, focus rings widen, link underlines turn solid and the tint
  * gets stronger. Load it last, for users who ask for more contrast:
  *
- *   <link rel="stylesheet" href="vendor/dashboard-style/themes/contrast.css"
+ *   <link rel="stylesheet" href="vendor/z-dash/themes/contrast.css"
  *         media="(prefers-contrast: more)">
  *
  * Every value is mixed from the text and surface roles of the theme in

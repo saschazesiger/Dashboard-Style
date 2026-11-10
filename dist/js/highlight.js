@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Syntax highlighter (D13): small tokenizers of the system's own for json,
  * js/ts, sh, html/xml, css, sql, yaml, go, py and diff, and a hook for an

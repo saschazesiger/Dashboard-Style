@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Inline edit (DS.inlineedit): a value shown as text that turns into a field
  * in place, saved with Enter or Save and left with Escape or Cancel; busy

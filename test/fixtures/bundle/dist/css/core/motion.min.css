@@ -1,1 +1,1 @@
-/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | fixture */ @layer ds.tokens,ds.base,ds.components,ds.motion,ds.utilities;@layer ds.motion{@keyframes ds-fade-in{from{opacity: 0}}}@layer ds.utilities{.ds-enter{animation: ds-fade-in var(--ds-dur-fast) both}}
+/*! Z-Dash 3.0.0-alpha.0 | MIT License | fixture */ @layer ds.tokens,ds.base,ds.components,ds.motion,ds.utilities;@layer ds.motion{@keyframes ds-fade-in{from{opacity: 0}}}@layer ds.utilities{.ds-enter{animation: ds-fade-in var(--ds-dur-fast) both}}

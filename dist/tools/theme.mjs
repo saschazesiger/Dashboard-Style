@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * The theme generator: one seed colour in, one theme file out, with every
  * colour role of the system in the light and the dark scheme, checked

@@ -171,7 +171,7 @@ test('a second copy of ds.js shares the one clock', async ({ page }) => {
     const script = document.createElement('script');
     script.textContent = source.replace(/version:\s*"[^"]+"/, 'version: "0.0.0-other"');
     document.head.append(script);
-    const second = window.DashboardStyle.versions['0.0.0-other'] ?? window.DS;
+    const second = window.ZDash.versions['0.0.0-other'] ?? window.DS;
     const span = document.createElement('span');
     span.setAttribute('data-ds-time', new Date().toISOString());
     document.querySelector('#morph-target').append(span);

@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Split pane (DS.splitpane): two or three panes with a divider between each
  * pair that a pointer drags and the keyboard moves, the WAI-ARIA window

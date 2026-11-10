@@ -1,10 +1,10 @@
 /**
  * Types of the classic script ds.js: the global DS and the registry
- * DashboardStyle (versions, runtime). Hand-written, like the module types
+ * ZDash (versions, runtime). Hand-written, like the module types
  * next to each module in js/*.d.ts (an import of js/<module>.js finds them
  * by itself). In a project with TypeScript or checkJs, reference this file:
  *
- *   /// <reference path="vendor/dashboard-style/ds.d.ts" />
+ *   /// <reference path="vendor/z-dash/ds.d.ts" />
  *
  * test/build.test.js keeps every declared export and its parameters equal
  * to the built modules.
@@ -128,7 +128,7 @@ import type * as wizard from './js/wizard.js';
 // /generated: modules
 
 /** What window.DS holds: the version, one namespace per module and the entry points of DS.core at the top level. */
-export interface DashboardStyleApi {
+export interface ZDashApi {
   /** The version of this copy (package.json at build time). */
   readonly version: string;
   /** DS.core.init: attaches every registered behaviour under a root and keeps watching it. */
@@ -258,15 +258,23 @@ export interface DashboardStyleApi {
   // /generated: namespaces
 }
 
-/** Every copy of ds.js on the page, by version: a widget reads DashboardStyle.versions['<its version>'] || DS. */
-export interface DashboardStyleRegistry {
-  versions: Record<string, DashboardStyleApi>;
+/** @deprecated The name before the rename (3.0): use ZDashApi. */
+export type DashboardStyleApi = ZDashApi;
+
+/** Every copy of ds.js on the page, by version: a widget reads ZDash.versions['<its version>'] || DS. */
+export interface ZDashRegistry {
+  versions: Record<string, ZDashApi>;
   /** The page's one runtime, made by the copy that loaded first (DS.core.runtime). */
   readonly runtime: core.Runtime;
 }
 
+/** @deprecated The name before the rename (3.0): use ZDashRegistry. */
+export type DashboardStyleRegistry = ZDashRegistry;
+
 declare global {
   /** The first copy of ds.js on the page (a second copy of another version leaves it alone). */
-  var DS: DashboardStyleApi;
-  var DashboardStyle: DashboardStyleRegistry;
+  var DS: ZDashApi;
+  var ZDash: ZDashRegistry;
+  /** @deprecated The name before the rename (3.0): the same object as ZDash. */
+  var DashboardStyle: ZDashRegistry;
 }

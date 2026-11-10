@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.0",
   "layers": "@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;",
   "sublayers": "@layer ds.components.button, ds.components.chip, ds.components.card, ds.components.scrim, ds.components.listbox, ds.components.combobox, ds.components.dialog, ds.components.toast, ds.components.chart, ds.components.ripple;",

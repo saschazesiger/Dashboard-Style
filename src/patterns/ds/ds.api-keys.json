@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "entry": "api-keys",
   "minify": true,
@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.api-keys.css",
-      "bytes": 287393,
-      "gzip": 43884
+      "bytes": 287375,
+      "gzip": 43878
     },
     "js": {
       "file": "ds.api-keys.js",
-      "bytes": 522672,
-      "gzip": 124399
+      "bytes": 522389,
+      "gzip": 124434
     },
     "properties": {
       "file": "properties.css",

@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /*
  * Classic-script build of src/js (no modules needed): window.DS.core,
  * DS.motion, DS.indicator, DS.dom, DS.ripple, DS.icons, DS.position,
@@ -27,18 +27,21 @@
  * Icon shapes: Lucide (ISC) and Feather (MIT), see LICENSE.
  *
  * Two copies on one page (a host page and an embedded widget, two
- * bundles): every copy registers itself in DashboardStyle.versions[version]
- * and shares the page's one DashboardStyle.runtime (DS.core). A second copy
+ * bundles): every copy registers itself in ZDash.versions[version]
+ * and shares the page's one ZDash.runtime (DS.core). A second copy
  * of the same version adds what the first lacks into it by name (a module,
  * or an export of a module) and keeps everything the first has.
  * window.DS is set only when it is absent or holds the same version, so the
  * first copy keeps it; a copy of another version warns once and leaves DS
- * alone. A widget reads DashboardStyle.versions['<its version>'] || DS.
+ * alone. A widget reads ZDash.versions['<its version>'] || DS.
  */
 (function (root) {
   'use strict';
   var version = '3.0.0-alpha.6';
-  var registry = root.DashboardStyle || (root.DashboardStyle = {});
+  // DashboardStyle: the deprecated name from before the rename (3.0), the same object.
+  var registry = root.ZDash || root.DashboardStyle || {};
+  root.ZDash = registry;
+  if (!root.DashboardStyle) root.DashboardStyle = registry;
   var versions = registry.versions || (registry.versions = {});
   var first = versions[version];
   var DS = first || { version: version };
@@ -71,7 +74,7 @@
      *   DS.core.config({ strings: { close: 'Schliessen' } });
      *   page.destroy();
      *
-     * One runtime per page: globalThis.DashboardStyle.runtime is created by
+     * One runtime per page: globalThis.ZDash.runtime is created by
      * whichever copy loads first (a classic ds.js, a bundle, the ES modules)
      * and every later copy uses it. runtime.state(name, init) returns the
      * shared state of that name, made by init() the first time: the overlay
@@ -141,8 +144,15 @@
      * module may import from it; no DOM is touched until init() runs.
      */
 
-    /** The page-wide registry of every copy (DashboardStyle.versions lives here too). */
-    const registry = globalThis.DashboardStyle ?? (globalThis.DashboardStyle = {});
+    /**
+     * The page-wide registry of every copy (ZDash.versions lives here too).
+     * DashboardStyle is its deprecated name from before the rename (3.0): both
+     * names hold the one object, so a copy that still reads the old name shares
+     * the same runtime.
+     */
+    const registry = globalThis.ZDash ?? globalThis.DashboardStyle ?? {};
+    globalThis.ZDash = registry;
+    globalThis.DashboardStyle ??= registry;
 
     /** A new runtime: shared state by name. */
     function createRuntime() {
@@ -10360,7 +10370,7 @@
     function partFor(name, fn) {
       const found = parts[name] ?? pageParts[name];
       if (found) return found;
-      throw new Error(`Dashboard-Style: DS.overlay.${fn}() needs the ${name} module: import js/${name}.js next to js/overlay.js, or keep ${name} in the bundle.`);
+      throw new Error(`Z-Dash: DS.overlay.${fn}() needs the ${name} module: import js/${name}.js next to js/overlay.js, or keep ${name} in the bundle.`);
     }
 
     /** The kinds open() warned about, once each. */
@@ -10374,7 +10384,7 @@
     function warnMissingPart(element, kind) {
       if (parts[kind] || partsWarned.has(kind)) return;
       partsWarned.add(kind);
-      viewOf(element).console?.warn(`Dashboard-Style: DS.overlay.open() on a ${kind} needs the ${kind} module: import js/${kind}.js next to js/overlay.js, or keep ${kind} in the bundle.`);
+      viewOf(element).console?.warn(`Z-Dash: DS.overlay.open() on a ${kind} needs the ${kind} module: import js/${kind}.js next to js/overlay.js, or keep ${kind} in the bundle.`);
     }
 
     /** Documents with the Escape and pointer listeners. */
@@ -11606,7 +11616,7 @@
       }
       if (!warned && !element.closest('.ds-theme')) {
         warned = true;
-        viewOf(element).console?.warn('Dashboard-Style: DS.overlay.open() on an element outside .ds-theme. Overlays must sit inside the .ds-theme element, or they get neither the tokens nor the motion.');
+        viewOf(element).console?.warn('Z-Dash: DS.overlay.open() on an element outside .ds-theme. Overlays must sit inside the .ds-theme element, or they get neither the tokens nor the motion.');
       }
       if (kind === 'menu' || kind === 'dialog') warnMissingPart(element, kind);
       for (const tip of tooltipControllers) tip.hide();
@@ -11998,7 +12008,7 @@
       const scroller = /** @type {HTMLElement|null} */ ((wrapper ?? bar).closest('.ds-view'));
       if (!scroller && !savebarWarned) {
         savebarWarned = true;
-        view.console?.warn('Dashboard-Style: DS.overlay.savebar() outside .ds-view. The bar shows and hides, but no view keeps room for it or scrolls focus clear of it.');
+        view.console?.warn('Z-Dash: DS.overlay.savebar() outside .ds-view. The bar shows and hides, but no view keeps room for it or scrolls focus clear of it.');
       }
       let shown = false;
       let gen = 0;
@@ -59066,7 +59076,7 @@
         : rootElement.closest('.ds-theme') ?? (root.nodeType === 9 ? doc.querySelector('.ds-theme') : null);
       if (!theme && !tooltipWarned) {
         tooltipWarned = true;
-        view.console?.warn('Dashboard-Style: DS.overlay.tooltips() on a root outside .ds-theme. The tooltip must sit inside the .ds-theme element, or it gets neither the tokens nor the motion.');
+        view.console?.warn('Z-Dash: DS.overlay.tooltips() on a root outside .ds-theme. The tooltip must sit inside the .ds-theme element, or it gets neither the tokens nor the motion.');
       }
       const anchored = supportsAnchoring(view);
       const home = !theme || theme === doc.documentElement ? doc.body : theme;
@@ -66482,6 +66492,6 @@
     if (root.console && typeof root.console.warn === 'function') root.console.warn(message);
   };
   if (current === undefined || current === null || (typeof current === 'object' && current.version === version)) root.DS = DS;
-  else if (typeof current.version === 'string') warn('Dashboard-Style ' + version + ' loaded on a page that already runs ' + current.version + ': window.DS stays ' + current.version + '; this copy is DashboardStyle.versions[\'' + version + '\'].');
-  else warn('Dashboard-Style ' + version + ': window.DS already holds something else; it is left alone, this copy is DashboardStyle.versions[\'' + version + '\'].');
+  else if (typeof current.version === 'string') warn('Z-Dash ' + version + ' loaded on a page that already runs ' + current.version + ': window.DS stays ' + current.version + '; this copy is ZDash.versions[\'' + version + '\'].');
+  else warn('Z-Dash ' + version + ': window.DS already holds something else; it is left alone, this copy is ZDash.versions[\'' + version + '\'].');
 })(typeof globalThis !== 'undefined' ? globalThis : this);

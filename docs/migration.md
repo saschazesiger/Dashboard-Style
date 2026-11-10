@@ -14,10 +14,18 @@ rewrites what it can map and lists the rest. This guide is the whole list, with 
 
 ## Before you start
 
+- **The project has a new name: Z-Dash** (it was Dashboard-Style until 2.x; the repository is
+  `saschazesiger/Z-Dash`, GitHub forwards the old address). Markup, classes, tokens and `DS` keep their `ds` prefix,
+  so the name changes nothing on a page. What names the project: the nightly workflow's `REPO`
+  (`saschazesiger/Z-Dash`; the template is now [templates/update-z-dash.yml](../templates/update-z-dash.yml)), a CDN
+  address (`gh/saschazesiger/Z-Dash@main`, `migrate.mjs` rewrites the stylesheet paths in it but not the name) and
+  the page-wide registry `DashboardStyle`, now `ZDash` (both hold the same object; `migrate.mjs` rewrites it, with the
+  types `DashboardStyleApi` and `DashboardStyleRegistry`). The copy's folder may keep its name
+  (`vendor/dashboard-style`): the tools read both names.
 - **Keep the 2.x copy until the project moves.** The nightly update vendors `main`, and the update workflow has no
   setting for another branch yet. A project that is not ready for 3.0 when it reaches `main` disables its "Update
-  Dashboard-Style" workflow (Actions, "Disable workflow") and, for a 2.x fix, vendors a 2.x tag or commit by hand
-  (`sh vendor.sh <ref> vendor/dashboard-style`, [install.md](install.md#updating)). It turns the workflow back on in
+  Z-Dash" workflow (Actions, "Disable workflow") and, for a 2.x fix, vendors a 2.x tag or commit by hand
+  (`sh vendor.sh <ref> vendor/z-dash`, [install.md](install.md#updating)). It turns the workflow back on in
   the same commit as its migration. A 2.x `ds-check.json` has no `"major"`, so `check-project` of a 3.0 copy fails
   on it: a nightly that picks up 3.0 stops before it commits the copy.
 - **The browser floor rises** to Safari 17.5, Chrome and Edge 123, Firefox 130 ([rules.md](rules.md)). A product that
@@ -27,12 +35,12 @@ rewrites what it can map and lists the rest. This guide is the whole list, with 
 
 ## Run the migration
 
-1. Vendor the 3.0 copy over the 2.x one (`scripts/vendor.sh vendor/dashboard-style`, or your update command). The
+1. Vendor the 3.0 copy over the 2.x one (`scripts/vendor.sh vendor/z-dash`, or your update command). The
    tools of the new copy read its `deprecations.json`.
 2. Look at what the tool would change. It writes nothing:
 
    ```sh
-   node vendor/dashboard-style/tools/migrate.mjs --config ds-check.json
+   node vendor/z-dash/tools/migrate.mjs --config ds-check.json
    ```
 
    It prints a unified diff of every change, then three lists: what it rewrites, what it rewrites but you should
@@ -40,7 +48,7 @@ rewrites what it can map and lists the rest. This guide is the whole list, with 
 3. Apply it, and commit the result on its own, so the review sees the mechanical part apart from your own:
 
    ```sh
-   node vendor/dashboard-style/tools/migrate.mjs --config ds-check.json --write
+   node vendor/z-dash/tools/migrate.mjs --config ds-check.json --write
    ```
 
 4. Work through "Needs a person" and "check each" ([Check by hand](#check-by-hand) says what each kind of item asks
@@ -48,8 +56,8 @@ rewrites what it can map and lists the rest. This guide is the whole list, with 
 5. Run the checks of the new copy. `migrate.mjs` has set `"major": 3` in `ds-check.json`:
 
    ```sh
-   node vendor/dashboard-style/tools/check-project.mjs --config ds-check.json
-   node vendor/dashboard-style/tools/check-theme.mjs css/theme.css
+   node vendor/z-dash/tools/check-project.mjs --config ds-check.json
+   node vendor/z-dash/tools/check-theme.mjs css/theme.css
    ```
 
    `check-project` now also runs the rules `options` (an option written as a restyle) and `bundle`
@@ -97,7 +105,7 @@ What it rewrites, by the kind of name:
 | a method of a handle | `detach()` | `.destroy()` and `const { destroy: detach } = ...` only on a name the same file binds from `DS.ripple.attach()` (or an imported `attach()`); every other `.detach()` (jQuery's, a DOM library's) stays and is listed |
 | an event or a variant string | `'ds-close'`, `'fill-x'` | `'ds:close'`, `'fill'` |
 | an argument form | `settleLoader(t0, now)` | `settleLoader(t0, { now })` |
-| a moved stylesheet | `<copy>/css/tokens.css` | `<copy>/css/core/tokens.css` (also `base.css` and `motion.css`), in links and imports that name the copy: the config's `vendor` folder or `dashboard-style`, in any case, with or without `dist/` (`node_modules/dashboard-style/dist/css/tokens.css`, the jsDelivr address `.../Dashboard-Style@main/dist/css/tokens.css`); any other path to a `css/tokens.css`, `base.css` or `motion.css` is listed, as the tool cannot tell the copy from a file of the project |
+| a moved stylesheet | `<copy>/css/tokens.css` | `<copy>/css/core/tokens.css` (also `base.css` and `motion.css`), in links and imports that name the copy: the config's `vendor` folder or `z-dash`, in any case, with or without `dist/` (`node_modules/z-dash/dist/css/tokens.css`, the jsDelivr address `.../Z-Dash@main/dist/css/tokens.css`); any other path to a `css/tokens.css`, `base.css` or `motion.css` is listed, as the tool cannot tell the copy from a file of the project |
 
 ## Renamed and removed names
 
@@ -155,6 +163,14 @@ A later major version removes them; the checks warn.
 | argument | `enter(el, 'fill-x')`, `enter(el, 'fill-y')` | `enter(el, 'fill')` | rewrites, check each |
 | keyframes | `ds-edge-fade` | `ds-scroll-edge-start`, `ds-scroll-edge-end` with `--ds-scroll-fade` | lists it |
 | token | `--ds-table-fade-start`, `--ds-table-fade-end` | `--ds-scroll-edge-start`, `--ds-scroll-edge-end` | rewrites |
+
+### Deprecated in 3.0
+
+The names of the project before its rename. Both work; the checks warn.
+
+| Kind | 2.x | 3.0 | migrate.mjs |
+|---|---|---|---|
+| export | **deprecated** `DashboardStyle` (`DashboardStyle.versions`, `.runtime`; the types `DashboardStyleApi`, `DashboardStyleRegistry`) | `ZDash` (`ZDashApi`, `ZDashRegistry`), the same object | rewrites |
 
 ### Removed in 2.0.0
 

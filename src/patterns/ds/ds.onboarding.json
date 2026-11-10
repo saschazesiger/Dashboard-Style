@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "entry": "onboarding",
   "minify": true,
@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.onboarding.css",
-      "bytes": 301065,
-      "gzip": 46264
+      "bytes": 301047,
+      "gzip": 46259
     },
     "js": {
       "file": "ds.onboarding.js",
-      "bytes": 561825,
-      "gzip": 132731
+      "bytes": 561542,
+      "gzip": 132758
     },
     "properties": {
       "file": "properties.css",

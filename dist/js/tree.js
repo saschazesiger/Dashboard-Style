@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Tree view (3.0): the APG tree pattern on `.ds-tree` markup. One tab stop
  * (the active item, tabindex="0"); the arrow keys walk the rows that show,

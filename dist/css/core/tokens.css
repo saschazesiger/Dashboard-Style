@@ -1,6 +1,6 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /*
- * Dashboard-Style tokens.
+ * Z-Dash tokens.
  *
  * Every token lives on `.ds-theme`, never on :root: the system can run
  * inside a foreign page (an embedded widget) without touching that page's

@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "entry": "kanban",
   "minify": true,
@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.kanban.css",
-      "bytes": 270230,
-      "gzip": 42266
+      "bytes": 270212,
+      "gzip": 42258
     },
     "js": {
       "file": "ds.kanban.js",
-      "bytes": 554919,
-      "gzip": 131092
+      "bytes": 554618,
+      "gzip": 131125
     },
     "properties": {
       "file": "properties.css",

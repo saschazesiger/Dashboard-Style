@@ -299,7 +299,7 @@
   /* Overview */
   function overviewPage() {
     var groups = groupsOf(COMPONENTS);
-    return '<section class="sg-hero" aria-labelledby="sg-hero-title"><h1 id="sg-hero-title" tabindex="-1">Dashboard-Style ' + esc(DS.version) + '</h1>' +
+    return '<section class="sg-hero" aria-labelledby="sg-hero-title"><h1 id="sg-hero-title" tabindex="-1">Z-Dash ' + esc(DS.version) + '</h1>' +
       '<p>A calm, themeable design system for admin dashboards. Every component on its own page with every option: size, density, shape, tone, variant, colour scheme, contrast, theme preset and touch, at any width.</p>' +
       '<div class="sg-row"><a class="ds-btn ds-btn--filled" href="#/needs">Which component for which need</a><a class="ds-btn" href="#/patterns">' + icon('layoutGrid', 18) + 'Page patterns</a><a class="ds-btn" href="#/theme">' + icon('wand', 18) + 'Theme generator</a><a class="ds-btn ds-btn--text" href="motion.html">Motion Lab ' + icon('arrowRight', 16) + '</a></div></section>' +
       '<div class="ds-tiles">' + tile('Components', String(COMPONENTS.length), 'apps', 'one folder each, with a demo') + tile('Tokens', String(REG.tokens.length), 'braces', 'roles, scales and seeds') +
@@ -1351,7 +1351,7 @@
     });
     setHtml(page, pageHtml(r));
     page.setAttribute('data-sg-page-name', r.name);
-    document.title = pageTitle(r) + ' · Dashboard-Style';
+    document.title = pageTitle(r) + ' · Z-Dash';
     wirePage(page, r);
     setActive();
     if (!(options && options.keepScroll)) $('#main').scrollTop = 0;

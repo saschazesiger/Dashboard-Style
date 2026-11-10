@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/saschazesiger/Dashboard-Style/scripts/meta-schema.json",
+  "$id": "https://github.com/saschazesiger/Z-Dash/scripts/meta-schema.json",
   "title": "src/components/<name>/meta.json",
   "description": "The facts of one component folder. scripts/build.mjs validates every meta.json against this schema (validateSchema(): type, enum, pattern, minimum, maximum, minLength, items, uniqueItems, properties, required, additionalProperties, propertyNames, anyOf and local $ref), then against the folder and its stylesheet (verifyComponents()). The keys are written in the order of \"properties\"; the optional ones may be left out.",
   "type": "object",

@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
-# Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style
-# Verifies a copy of Dashboard-Style against its SHA256SUMS, without network
+# Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash
+# Verifies a copy of Z-Dash against its SHA256SUMS, without network
 # and without Node (POSIX sh; needs sha256sum or shasum, find, sort, diff).
 #
 #   sh <copy>/tools/verify.sh            the copy this file sits in

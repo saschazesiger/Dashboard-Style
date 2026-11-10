@@ -1,11 +1,11 @@
 <div align="center">
 
-# 🎛️ Dashboard-Style
+# 🎛️ Z-Dash
 
 **Calm, themeable admin dashboards in the Material 3 / Google console style.**<br>
 White panels on a tinted backdrop, hairlines instead of shadows, pill-shaped actions and motion that feels right.
 
-[![Live tour](https://img.shields.io/badge/%E2%96%B6%20live%20tour-try%20it%20in%20your%20browser-0b57d0?style=for-the-badge)](https://saschazesiger.github.io/Dashboard-Style/)
+[![Live tour](https://img.shields.io/badge/%E2%96%B6%20live%20tour-try%20it%20in%20your%20browser-0b57d0?style=for-the-badge)](https://saschazesiger.github.io/Z-Dash/)
 
 ![License: MIT](https://img.shields.io/badge/license-MIT-146c2e)
 ![Dependencies: 0](https://img.shields.io/badge/dependencies-0-146c2e)
@@ -13,17 +13,17 @@ White panels on a tinted backdrop, hairlines instead of shadows, pill-shaped act
 ![Components: 143](https://img.shields.io/badge/components-143-6750a4)
 ![Icons: 276](https://img.shields.io/badge/icons-276-6750a4)
 
-[🚀 Live tour](https://saschazesiger.github.io/Dashboard-Style/) ·
-[🖥️ Reference app](https://saschazesiger.github.io/Dashboard-Style/example/) ·
-[🧩 Styleguide](https://saschazesiger.github.io/Dashboard-Style/styleguide/index.html) ·
-[🎬 Motion Lab](https://saschazesiger.github.io/Dashboard-Style/styleguide/motion.html) ·
+[🚀 Live tour](https://saschazesiger.github.io/Z-Dash/) ·
+[🖥️ Reference app](https://saschazesiger.github.io/Z-Dash/example/) ·
+[🧩 Styleguide](https://saschazesiger.github.io/Z-Dash/styleguide/index.html) ·
+[🎬 Motion Lab](https://saschazesiger.github.io/Z-Dash/styleguide/motion.html) ·
 [📚 Docs](#-documentation)
 
-<a href="https://saschazesiger.github.io/Dashboard-Style/"><img src="docs/images/tour.png" alt="The live tour of Dashboard-Style: a hero on the accent colour, four tiles with key figures and the navigation drawer" width="900"></a>
+<a href="https://saschazesiger.github.io/Z-Dash/"><img src="docs/images/tour.png" alt="The live tour of Z-Dash: a hero on the accent colour, four tiles with key figures and the navigation drawer" width="900"></a>
 
 </div>
 
-## ✨ Why Dashboard-Style?
+## ✨ Why Z-Dash?
 
 | | |
 |---|---|
@@ -36,7 +36,7 @@ White panels on a tinted backdrop, hairlines instead of shadows, pill-shaped act
 
 ## 👀 See it in action
 
-> 💡 Everything below is live on the [**tour page**](https://saschazesiger.github.io/Dashboard-Style/). Switch the top bar to
+> 💡 Everything below is live on the [**tour page**](https://saschazesiger.github.io/Z-Dash/). Switch the top bar to
 > **Slow motion** there to watch every animation at a fifth of its speed.
 
 **Overlays** open from where you pressed and close back there: a side sheet that steps between records, a dialog that
@@ -55,16 +55,16 @@ to their new colour.
 
 <table>
 <tr>
-<td width="50%"><a href="https://saschazesiger.github.io/Dashboard-Style/example/"><img src="docs/images/reference-app.png" alt="The reference app: an overview with alerts, four tiles, a sync card and a chart"></a><br>🖥️ <b>Reference app</b>: a device console built the way a project uses the system.</td>
-<td width="50%"><a href="https://saschazesiger.github.io/Dashboard-Style/example/#/devices"><img src="docs/images/object-page.png" alt="A device of the reference app as an object page: key facts, sections and the jump links"></a><br>📋 <b>Data grids and object pages</b>: saved views, filter chips, sorting, bulk selection, a record with its sections.</td>
+<td width="50%"><a href="https://saschazesiger.github.io/Z-Dash/example/"><img src="docs/images/reference-app.png" alt="The reference app: an overview with alerts, four tiles, a sync card and a chart"></a><br>🖥️ <b>Reference app</b>: a device console built the way a project uses the system.</td>
+<td width="50%"><a href="https://saschazesiger.github.io/Z-Dash/example/#/devices"><img src="docs/images/object-page.png" alt="A device of the reference app as an object page: key facts, sections and the jump links"></a><br>📋 <b>Data grids and object pages</b>: saved views, filter chips, sorting, bulk selection, a record with its sections.</td>
 </tr>
 <tr>
-<td><a href="https://saschazesiger.github.io/Dashboard-Style/styleguide/index.html"><img src="docs/images/styleguide.png" alt="The styleguide: the page of the button with its options panel (size, density, shape, tone, variant, colour scheme, theme preset and file, width, contrast, touch) above its demo"></a><br>🧩 <b>Styleguide</b>: every component, token and icon, with a theme switcher.</td>
-<td><a href="https://saschazesiger.github.io/Dashboard-Style/styleguide/motion.html"><img src="docs/images/motion-lab.png" alt="The Motion Lab: the spring curve plotted as the browser plays it, and three boxes on one spring"></a><br>🎬 <b>Motion Lab</b>: every curve sampled from your browser, every choreography replayable.</td>
+<td><a href="https://saschazesiger.github.io/Z-Dash/styleguide/index.html"><img src="docs/images/styleguide.png" alt="The styleguide: the page of the button with its options panel (size, density, shape, tone, variant, colour scheme, theme preset and file, width, contrast, touch) above its demo"></a><br>🧩 <b>Styleguide</b>: every component, token and icon, with a theme switcher.</td>
+<td><a href="https://saschazesiger.github.io/Z-Dash/styleguide/motion.html"><img src="docs/images/motion-lab.png" alt="The Motion Lab: the spring curve plotted as the browser plays it, and three boxes on one spring"></a><br>🎬 <b>Motion Lab</b>: every curve sampled from your browser, every choreography replayable.</td>
 </tr>
 <tr>
-<td><a href="https://saschazesiger.github.io/Dashboard-Style/#choose"><img src="docs/images/controls.png" alt="Switches, checkboxes with a parent in the indeterminate state, filter chips and radio cards"></a><br>✅ <b>Controls</b>: checks that draw themselves, switches on a spring, chips that make room.</td>
-<td><a href="https://saschazesiger.github.io/Dashboard-Style/#icons"><img src="docs/images/icons.png" alt="A grid of the outline icons with their names"></a><br>🖼️ <b>276 icons</b>: one outline set on a 24px grid, in <code>DS.icons</code>.</td>
+<td><a href="https://saschazesiger.github.io/Z-Dash/#choose"><img src="docs/images/controls.png" alt="Switches, checkboxes with a parent in the indeterminate state, filter chips and radio cards"></a><br>✅ <b>Controls</b>: checks that draw themselves, switches on a spring, chips that make room.</td>
+<td><a href="https://saschazesiger.github.io/Z-Dash/#icons"><img src="docs/images/icons.png" alt="A grid of the outline icons with their names"></a><br>🖼️ <b>276 icons</b>: one outline set on a 24px grid, in <code>DS.icons</code>.</td>
 </tr>
 </table>
 
@@ -135,20 +135,20 @@ Copy `dist/` into your project (or use the CDN, see below) and write:
 To update, run it again.
 
 ```sh
-curl -fsSLO https://raw.githubusercontent.com/saschazesiger/Dashboard-Style/main/scripts/vendor.sh
-sh vendor.sh vendor/dashboard-style             # copy the latest main (or: vendor.sh <ref> <dest>)
-sh vendor.sh --check vendor/dashboard-style     # verify (exit 1 if anything changed)
+curl -fsSLO https://raw.githubusercontent.com/saschazesiger/Z-Dash/main/scripts/vendor.sh
+sh vendor.sh vendor/z-dash             # copy the latest main (or: vendor.sh <ref> <dest>)
+sh vendor.sh --check vendor/z-dash     # verify (exit 1 if anything changed)
 ```
 
 Windows PowerShell: `scripts/vendor.ps1` with the same arguments (`-From`, `-Check`). A nightly GitHub Actions
-workflow that keeps the copy on `main` is in [`templates/`](templates/update-dashboard-style.yml).
+workflow that keeps the copy on `main` is in [`templates/`](templates/update-z-dash.yml).
 
 **🌍 CDN.** jsDelivr serves the repository (`@main`, or a commit hash to pin):
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/ds.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/fonts/fonts.css">
-<script src="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/ds.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/saschazesiger/Z-Dash@main/dist/ds.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/saschazesiger/Z-Dash@main/dist/fonts/fonts.css">
+<script src="https://cdn.jsdelivr.net/gh/saschazesiger/Z-Dash@main/dist/ds.js"></script>
 ```
 
 **🧰 Bundlers.** `dist/css/` and `dist/js/` hold the single stylesheets and ES modules (with their `.d.ts` types);
@@ -188,7 +188,7 @@ Load a theme after `ds.css` and override tokens on the same `.ds-theme` selector
 [`themes/example.css`](themes/example.css) is a template listing every role. Guide: [docs/theming.md](docs/theming.md).
 Shipped themes in `dist/themes/`: `dark.css` (for `prefers-color-scheme: dark`), `compact.css` and `contrast.css` (for
 `prefers-contrast: more`). `node dist/tools/check-theme.mjs theme.css` checks a theme file.
-Want to play first? The [**Theme it**](https://saschazesiger.github.io/Dashboard-Style/#theme) stop of the tour builds
+Want to play first? The [**Theme it**](https://saschazesiger.github.io/Z-Dash/#theme) stop of the tour builds
 a theme file from a few clicks and lets you copy it.
 
 ## 🧩 What's inside
@@ -237,7 +237,7 @@ demo/            the live tour: one page that demonstrates every behaviour (the 
 example/         the reference app: a device console on top of dist/, as a project builds one (published on GitHub Pages)
 styleguide/      living styleguide (open index.html; motion.html: the Motion Lab; views.html: view transitions and scrolling)
 scripts/         build.mjs, gen-meta.mjs, motion-curves.mjs, vendor.sh, vendor.ps1, site.sh (assembles the GitHub Pages site); tools/: the sources of dist/tools/
-templates/       update-dashboard-style.yml, a GitHub Actions workflow that keeps a copy on main
+templates/       update-z-dash.yml, a GitHub Actions workflow that keeps a copy on main
 test/            node --test unit tests (npm ci once, for lightningcss); test/browser/ Playwright tests (three engines)
 docs/            the documentation above (docs/images/: the pictures of this README)
 AGENTS.md        how to work on the system (CLAUDE.md points to it)

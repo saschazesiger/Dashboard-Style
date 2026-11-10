@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /** Every component of the React adapter (each file alone loads only its own module: prefer those). */
 export { Alert } from './alert.js';
 export { Badge } from './badge.js';

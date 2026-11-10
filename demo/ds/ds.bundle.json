@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "entry": "bundle",
   "minify": true,
@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.bundle.css",
-      "bytes": 621920,
-      "gzip": 89775
+      "bytes": 621902,
+      "gzip": 89767
     },
     "js": {
       "file": "ds.bundle.js",
-      "bytes": 1496254,
-      "gzip": 358108
+      "bytes": 1495089,
+      "gzip": 358110
     },
     "properties": {
       "file": "properties.css",

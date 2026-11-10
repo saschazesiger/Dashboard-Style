@@ -1,6 +1,6 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
- * The classic-script wrapper of Dashboard-Style (no dependency): turns the
+ * The classic-script wrapper of Z-Dash (no dependency): turns the
  * ES modules of js/ into one script that sets window.DS, as ds.js does.
  * scripts/build.mjs writes ds.js with it; tools/bundle.mjs writes a
  * project's ds.bundle.js with only the modules a project uses.
@@ -23,8 +23,8 @@
  * name: a module the page lacks, or the exports a module on the page lacks
  * (a bundle's icons pruned to other glyphs); a module the page has in full
  * is neither made again nor replaced. So two partial bundles, a bundle and
- * ds.js, or a widget's copy share one DashboardStyle.versions[version]
- * object, and its modules read the page's own (and DashboardStyle.runtime,
+ * ds.js, or a widget's copy share one ZDash.versions[version]
+ * object, and its modules read the page's own (and ZDash.runtime,
  * DS.core's, is one per page whatever the version). window.DS and the
  * warning of another version are the first copy's business. `merge: false`
  * is the 2.x behaviour: a second copy of the same version returns at once.
@@ -254,13 +254,13 @@ ${commentLines(`Classic-script build of src/js (no modules needed): window.DS.${
  * Icon shapes: Lucide (ISC) and Feather (MIT), see LICENSE.
  *
  * Two copies on one page (a host page and an embedded widget, two
- * bundles): every copy registers itself in DashboardStyle.versions[version]
- * and shares the page's one DashboardStyle.runtime (DS.core). A second copy
+ * bundles): every copy registers itself in ZDash.versions[version]
+ * and shares the page's one ZDash.runtime (DS.core). A second copy
  * of the same version adds what the first lacks into it by name (a module,
  * or an export of a module) and keeps everything the first has.
  * window.DS is set only when it is absent or holds the same version, so the
  * first copy keeps it; a copy of another version warns once and leaves DS
- * alone. A widget reads DashboardStyle.versions['<its version>'] || DS.
+ * alone. A widget reads ZDash.versions['<its version>'] || DS.
  */`;
 }
 
@@ -303,7 +303,10 @@ export function classicScript({ version, banner = '', header, modules, merge = t
 (function (root) {
   'use strict';
   var version = '${version}';
-  var registry = root.DashboardStyle || (root.DashboardStyle = {});
+  // DashboardStyle: the deprecated name from before the rename (3.0), the same object.
+  var registry = root.ZDash || root.DashboardStyle || {};
+  root.ZDash = registry;
+  if (!root.DashboardStyle) root.DashboardStyle = registry;
   var versions = registry.versions || (registry.versions = {});
 ${start}
 ${parts.join('\n')}
@@ -313,8 +316,8 @@ ${aliases}${settle}  versions[version] = DS;
     if (root.console && typeof root.console.warn === 'function') root.console.warn(message);
   };
   if (current === undefined || current === null || (typeof current === 'object' && current.version === version)) root.DS = DS;
-  else if (typeof current.version === 'string') warn('Dashboard-Style ' + version + ' loaded on a page that already runs ' + current.version + ': window.DS stays ' + current.version + '; this copy is DashboardStyle.versions[\\'' + version + '\\'].');
-  else warn('Dashboard-Style ' + version + ': window.DS already holds something else; it is left alone, this copy is DashboardStyle.versions[\\'' + version + '\\'].');
+  else if (typeof current.version === 'string') warn('Z-Dash ' + version + ' loaded on a page that already runs ' + current.version + ': window.DS stays ' + current.version + '; this copy is ZDash.versions[\\'' + version + '\\'].');
+  else warn('Z-Dash ' + version + ': window.DS already holds something else; it is left alone, this copy is ZDash.versions[\\'' + version + '\\'].');
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 `;
 }

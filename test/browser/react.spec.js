@@ -21,7 +21,7 @@ async function open(page) {
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
-    if (message.type() === 'error' || (message.type() === 'warning' && /Warning:|Dashboard-Style React/.test(message.text()))) errors.push(message.text());
+    if (message.type() === 'error' || (message.type() === 'warning' && /Warning:|Z-Dash React/.test(message.text()))) errors.push(message.text());
   });
   await page.goto(FIXTURE);
   await page.waitForSelector('html[data-fixture-ready]');

@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * The shared placer (3.0): where a floating box goes next to its anchor.
  * DS.overlay uses it for the menu and the combobox list, DS.tooltip for the

@@ -1,6 +1,6 @@
 /**
  * <DSProvider> (dist/react/provider.js): the root of a React tree on
- * Dashboard-Style. It renders the .ds-theme element (or wraps a tree in
+ * Z-Dash. It renders the .ds-theme element (or wraps a tree in
  * one that exists already) and calls DS.init() on it with the observer
  * on, so the delegated behaviours (the ripple, the action guard, tooltips
  * for every [data-tip], the [data-ds-open] and [data-ds-close] triggers)

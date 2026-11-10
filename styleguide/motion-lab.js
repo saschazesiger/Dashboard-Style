@@ -1,5 +1,5 @@
 /*
- * The Motion Lab (motion.html): every motion of Dashboard-Style as a
+ * The Motion Lab (motion.html): every motion of Z-Dash as a
  * replayable demo, in its frame. A classic script on top of dist/ds.js, so
  * the page runs from disk. It holds the frame, the navigation (the drawer
  * with its scroll-spy, the modal drawer), the theme select, the speed
@@ -180,7 +180,7 @@
     };
     return '<section class="sg-section" id="lab" aria-labelledby="lab-title">' +
       '<div class="sg-hero"><h1 id="lab-title">Motion Lab</h1>' +
-      '<p>Every motion of Dashboard-Style, one demo at a time: the curves and durations it is built from, sampled from this browser, and the choreography of its parts. Replay any demo; Rapid toggle and Reverse at 50% interrupt it, and every motion continues from where it is.</p>' +
+      '<p>Every motion of Z-Dash, one demo at a time: the curves and durations it is built from, sampled from this browser, and the choreography of its parts. Replay any demo; Rapid toggle and Reverse at 50% interrupt it, and every motion continues from where it is.</p>' +
       '<p>The Speed select in the top bar slows everything down to a tenth (or add <code>?speed=0.1</code> to the address): it sets <code>--ds-time-scale</code>, so CSS motion and DS.motion slow down together.</p>' +
       '<div class="sg-row"><a class="ds-btn ds-btn--filled" href="#foundations">Start with the curves</a><a class="ds-btn" href="index.html">' + icon('arrowLeft', 16) + 'Back to the styleguide</a><a class="ds-btn ds-btn--text" href="../docs/motion.md">Motion reference ' + icon('arrowRight', 16) + '</a></div></div>' +
       '<div class="ds-tiles">' +

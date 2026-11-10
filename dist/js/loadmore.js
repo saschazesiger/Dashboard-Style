@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Load more and infinite scroll (DS.loadmore): the end of a list that grows
  * by pages. A "Load more" button, and with data-ds-loadmore-auto the element

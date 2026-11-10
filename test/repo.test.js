@@ -83,7 +83,7 @@ describe('repository', () => {
     assert.equal(read('CHANGELOG.md').match(/^## .*$/m)[0].startsWith(`## ${release}`), true, 'the newest section comes first');
     const escaped = version.replace(/[.-]/g, (c) => `\\${c}`);
     for (const file of ['dist/ds.css', 'dist/ds.min.css', 'dist/ds.js', 'dist/ds.min.js', 'dist/css/components/button.css', 'dist/css/components/button.min.css', 'dist/css/core/tokens.css', 'dist/js/motion.js', 'dist/themes/dark.css']) {
-      assert.match(read(file), new RegExp(`^/\\*! Dashboard-Style ${escaped} `), `${file}: the version banner`);
+      assert.match(read(file), new RegExp(`^/\\*! Z-Dash ${escaped} `), `${file}: the version banner`);
     }
     assert.match(read('dist/ds.js'), new RegExp(`var version = '${escaped}';`), 'DS.version');
     assert.equal(JSON.parse(read('dist/manifest.json')).version, version, 'manifest.json');

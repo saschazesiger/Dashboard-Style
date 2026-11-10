@@ -1,13 +1,13 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "description": "A neutral, themeable design system for admin dashboards in the Material 3 / Google console style: CSS tokens, components, motion and icons, without dependencies.",
   "license": "MIT",
   "type": "module",
-  "homepage": "https://github.com/saschazesiger/Dashboard-Style",
+  "homepage": "https://github.com/saschazesiger/Z-Dash",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/saschazesiger/Dashboard-Style.git"
+    "url": "git+https://github.com/saschazesiger/Z-Dash.git"
   },
   "keywords": [
     "design-system",

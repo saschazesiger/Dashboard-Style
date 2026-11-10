@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Dashboard-Style · Live tour</title>
-<meta name="description" content="A guided, hands-on tour of Dashboard-Style 3.0: every group of components, live in your browser, loaded from a project bundle of only what the page uses.">
+<title>Z-Dash · Live tour</title>
+<meta name="description" content="A guided, hands-on tour of Z-Dash 3.0: every group of components, live in your browser, loaded from a project bundle of only what the page uses.">
 <!-- The order a project loads: fonts, its bundle (ds/ds.bundle.css, written by tools/bundle.mjs from
      ds.config.json: only the components this page names, minified), then its own theme and its own components
      (both unlayered, so they win). Here they point at this repository's dist/, so the page also works from disk. -->
@@ -24,7 +24,7 @@
 
   <div class="ds-topbar">
     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" id="menu" data-icon="menu"></button>
-    <a class="ds-brand" href="#welcome" aria-label="Dashboard-Style"><span class="demo-logo" aria-hidden="true"></span><span class="ds-brand__name">Dashboard-Style</span></a>
+    <a class="ds-brand" href="#welcome" aria-label="Z-Dash"><span class="demo-logo" aria-hidden="true"></span><span class="ds-brand__name">Z-Dash</span></a>
     <div class="ds-topbar__actions">
       <button class="ds-btn ds-btn--quiet demo-wide" type="button" aria-haspopup="dialog" data-ds-open="#palette" aria-keyshortcuts="Control+K Meta+K" id="find" data-icon="search" data-icon-size="18" data-icon-place="start">Jump to<kbd class="ds-kbd demo-find-key" aria-hidden="true">Ctrl K</kbd></button>
       <button class="ds-btn ds-btn--quiet ds-btn--icon demo-narrow" type="button" aria-haspopup="dialog" data-ds-open="#palette" aria-label="Jump to" data-tip="Jump to" data-icon="search"></button>
@@ -37,14 +37,14 @@
         <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" aria-label="Dark" data-tip="Dark" data-ds-scheme-value="dark" data-icon="moon" data-icon-size="18"></button>
         <button class="ds-segmented__option" type="button" role="radio" aria-checked="true" aria-label="As the device" data-tip="As the device" data-ds-scheme-value="auto" data-icon="monitor" data-icon-size="18"></button>
       </div>
-      <a class="ds-btn ds-btn--quiet ds-btn--icon demo-wide" href="https://github.com/saschazesiger/Dashboard-Style" aria-label="Source on GitHub" data-tip="Source on GitHub" data-icon="fileCode"></a>
+      <a class="ds-btn ds-btn--quiet ds-btn--icon demo-wide" href="https://github.com/saschazesiger/Z-Dash" aria-label="Source on GitHub" data-tip="Source on GitHub" data-icon="fileCode"></a>
       <a class="ds-btn ds-btn--tonal demo-wide" href="#start" data-icon="download" data-icon-size="16" data-icon-place="start">Get it</a>
     </div>
   </div>
 
   <div class="ds-scrim"></div>
   <nav class="ds-drawer" id="drawer" aria-label="Tour" tabindex="-1">
-    <div class="ds-drawer__head" aria-hidden="true"><span class="demo-logo"></span><span class="ds-brand__name">Dashboard-Style</span></div>
+    <div class="ds-drawer__head" aria-hidden="true"><span class="demo-logo"></span><span class="ds-brand__name">Z-Dash</span></div>
     <div class="ds-drawer__list" id="nav">
       <div class="ds-drawer__group">
         <p class="ds-drawer__heading">Tour</p>
@@ -69,7 +69,7 @@
         <a class="ds-drawer__item" href="../example/index.html" data-tip="Reference app" data-icon="laptop" data-icon-place="start"><span class="ds-drawer__label">Reference app</span></a>
         <a class="ds-drawer__item" href="../styleguide/index.html" data-tip="Styleguide" data-icon="overview" data-icon-place="start"><span class="ds-drawer__label">Styleguide</span></a>
         <a class="ds-drawer__item" href="../styleguide/motion.html" data-tip="Motion Lab" data-icon="barChart" data-icon-place="start"><span class="ds-drawer__label">Motion Lab</span></a>
-        <a class="ds-drawer__item" href="https://github.com/saschazesiger/Dashboard-Style" data-tip="Source" data-icon="fileCode" data-icon-place="start"><span class="ds-drawer__label">Source</span></a>
+        <a class="ds-drawer__item" href="https://github.com/saschazesiger/Z-Dash" data-tip="Source" data-icon="fileCode" data-icon-place="start"><span class="ds-drawer__label">Source</span></a>
       </div>
     </div>
   </nav>
@@ -1179,20 +1179,20 @@ Back up the device and note its **asset tag**. Run `devicectl backup` first.
                     <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" data-ds-copy aria-label="Copy the snippet" data-tip="Copy the snippet"><span class="ds-icon-swap"><span class="ds-icon-swap__a" data-icon="copy"></span><span class="ds-icon-swap__b" data-icon="check"></span></span></button>
                   </span>
                 </div>
-<pre class="ds-code-block" id="start-bundle-code" role="tabpanel" aria-labelledby="start-bundle" tabindex="0" data-ds-code-lang="sh"><code>sh vendor.sh --from https://github.com/saschazesiger/Dashboard-Style vendor/dashboard-style
-node vendor/dashboard-style/tools/bundle.mjs --config ds.config.json
+<pre class="ds-code-block" id="start-bundle-code" role="tabpanel" aria-labelledby="start-bundle" tabindex="0" data-ds-code-lang="sh"><code>sh vendor.sh --from https://github.com/saschazesiger/Z-Dash vendor/z-dash
+node vendor/z-dash/tools/bundle.mjs --config ds.config.json
 # CI: fail a stale bundle
-node vendor/dashboard-style/tools/bundle.mjs --config ds.config.json --check</code></pre>
+node vendor/z-dash/tools/bundle.mjs --config ds.config.json --check</code></pre>
 <pre class="ds-code-block" id="start-page-code" role="tabpanel" aria-labelledby="start-page" tabindex="0" data-ds-code-lang="html" hidden><code>&lt;html class="ds-theme ds-base"&gt;
 &lt;link rel="stylesheet" href="ds/ds.bundle.css"&gt;
-&lt;link rel="stylesheet" href="vendor/dashboard-style/themes/presets/ocean.css"&gt;
+&lt;link rel="stylesheet" href="vendor/z-dash/themes/presets/ocean.css"&gt;
 &lt;script src="ds/ds.bundle.js" defer&gt;&lt;/script&gt;
 
 &lt;button class="ds-btn ds-btn--filled"&gt;Hello&lt;/button&gt;
 &lt;script type="module"&gt;DS.init(document);&lt;/script&gt;</code></pre>
 <pre class="ds-code-block" id="start-cdn-code" role="tabpanel" aria-labelledby="start-cdn" tabindex="0" data-ds-code-lang="html" hidden><code>&lt;html class="ds-theme ds-base"&gt;
-&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/ds.min.css"&gt;
-&lt;script src="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/ds.min.js" defer&gt;&lt;/script&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/saschazesiger/Z-Dash@main/dist/ds.min.css"&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/saschazesiger/Z-Dash@main/dist/ds.min.js" defer&gt;&lt;/script&gt;
 
 &lt;button class="ds-btn ds-btn--filled"&gt;Hello&lt;/button&gt;
 &lt;script type="module"&gt;DS.init(document);&lt;/script&gt;</code></pre>
@@ -1203,7 +1203,7 @@ node vendor/dashboard-style/tools/bundle.mjs --config ds.config.json --check</co
                   <li><a class="ds-card ds-card--interactive ds-card--filled" href="../example/index.html"><span class="ds-card__title">Reference app</span><span class="ds-muted">A device console built the way a project uses the system.</span></a></li>
                   <li><a class="ds-card ds-card--interactive ds-card--filled" href="../styleguide/index.html"><span class="ds-card__title">Styleguide</span><span class="ds-muted">Every component with its options, the foundations and the theme generator.</span></a></li>
                   <li><a class="ds-card ds-card--interactive ds-card--filled" href="../styleguide/motion.html"><span class="ds-card__title">Motion Lab</span><span class="ds-muted">Every curve and choreography, replayable and slowed down.</span></a></li>
-                  <li><a class="ds-card ds-card--interactive ds-card--filled" href="https://github.com/saschazesiger/Dashboard-Style/tree/main/docs"><span class="ds-card__title">Documentation</span><span class="ds-muted">Install, bundles, tokens, theming, components, motion, icons, rules.</span></a></li>
+                  <li><a class="ds-card ds-card--interactive ds-card--filled" href="https://github.com/saschazesiger/Z-Dash/tree/main/docs"><span class="ds-card__title">Documentation</span><span class="ds-muted">Install, bundles, tokens, theming, components, motion, icons, rules.</span></a></li>
                 </ul>
               </section>
             </div>

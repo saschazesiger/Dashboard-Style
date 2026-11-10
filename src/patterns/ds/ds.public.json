@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "entry": "public",
   "minify": true,
@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.public.css",
-      "bytes": 302101,
-      "gzip": 46620
+      "bytes": 302083,
+      "gzip": 46613
     },
     "js": {
       "file": "ds.public.js",
-      "bytes": 534941,
-      "gzip": 127002
+      "bytes": 534658,
+      "gzip": 127020
     },
     "properties": {
       "file": "properties.css",

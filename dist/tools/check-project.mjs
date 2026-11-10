@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
- * Checks a project that vendors Dashboard-Style against the project rules
- * of AGENTS.md ("Using Dashboard-Style in a project"), without
+ * Checks a project that vendors Z-Dash against the project rules
+ * of AGENTS.md ("Using Z-Dash in a project"), without
  * dependencies (Node 22 or later, as tools/bundle.mjs it runs):
  *
  *   node <copy>/tools/check-project.mjs --config ds-check.json
@@ -15,9 +15,9 @@
  *     "js": ["js/**\/*.js"],                   project scripts
  *     "html": ["*.html"],                      pages and templates (optional)
  *     "themes": ["css/theme.css"],             theme files (tools/check-theme.mjs)
- *     "themesWith": ["vendor/dashboard-style/themes/dark.css"],  shipped themes the
+ *     "themesWith": ["vendor/z-dash/themes/dark.css"],  shipped themes the
  *                                              theme is used with (check-theme --with; optional)
- *     "vendor": "vendor/dashboard-style",      the copy
+ *     "vendor": "vendor/z-dash",      the copy
  *     "major": 3,                              the major version this config is for (the copy's)
  *     "bundle": "ds.config.json",              the project bundle's config (tools/bundle.mjs; optional)
  *     "exceptions": [{ "rule": "restyle", "file": "css/app.css", "selector": ".app-bar .ds-btn", "reason": "why" }]
@@ -380,7 +380,7 @@ export function checkProject(config, root) {
   const linked = new Map();
   for (const file of htmlFiles) {
     const source = read(file);
-    const sheets = [...source.matchAll(/<link\b[^>]*href=["']([^"']+)["'][^>]*>/g)].map((match) => match[1]).filter((href) => href.includes(vendor) || href.includes('dashboard-style'));
+    const sheets = [...source.matchAll(/<link\b[^>]*href=["']([^"']+)["'][^>]*>/g)].map((match) => match[1]).filter((href) => href.includes(vendor) || href.includes('z-dash') || href.includes('dashboard-style'));
     linked.set(file, sheets);
   }
   for (const [file, kind] of [...htmlFiles.map((f) => [f, 'html']), ...jsFiles.map((f) => [f, 'js'])]) {

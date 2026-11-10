@@ -32,7 +32,7 @@
  * colour comes out bit for bit as MCU computes it (test/theme-generator.test.js
  * holds MCU's own reference values). The scheme palettes follow MCU's 2021
  * spec (DynamicSchemePalettesDelegateImpl2021). MCU's dynamic colours (the
- * Material roles and their contrast curves) are not ported: Dashboard-Style
+ * Material roles and their contrast curves) are not ported: Z-Dash
  * has its own roles, and tools/theme.mjs maps them onto these palettes and
  * enforces the pairs of theme-rules.mjs. See LICENSE for the notice.
  */

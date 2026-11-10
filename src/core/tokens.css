@@ -1,5 +1,5 @@
 /*
- * Dashboard-Style tokens.
+ * Z-Dash tokens.
  *
  * Every token lives on `.ds-theme`, never on :root: the system can run
  * inside a foreign page (an embedded widget) without touching that page's

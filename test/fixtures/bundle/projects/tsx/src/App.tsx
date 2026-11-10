@@ -1,5 +1,5 @@
-import { open } from 'dashboard-style/js/overlay.js';
-import { check, icon } from 'dashboard-style/js/icons.js';
+import { open } from 'z-dash/js/overlay.js';
+import { check, icon } from 'z-dash/js/icons.js';
 
 type Props = { kind: 'accent' | 'muted'; values: number[] };
 

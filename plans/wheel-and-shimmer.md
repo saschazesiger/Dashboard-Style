@@ -9,7 +9,7 @@ below is the original proposal, kept for its reasoning.
 
 A project asked for a live status line that says what is running right now (a job's current step, an assistant's
 "Thinking" / "Running npm test" / "Writing") and that feels alive without a spinner or a bar. It built the two
-pieces below as project components, written as Dashboard-Style components are, so they can move here as they are.
+pieces below as project components, written as Z-Dash components are, so they can move here as they are.
 The project's implementation is the reference: the classes there carry the project's prefix, and its design notes
 link to this file. This plan names no project (`test/repo.test.js`); everything it needs is in it.
 

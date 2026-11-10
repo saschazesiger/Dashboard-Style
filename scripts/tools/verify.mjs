@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Verifies a copy of Dashboard-Style against its SHA256SUMS, without
+ * Verifies a copy of Z-Dash against its SHA256SUMS, without
  * network and without dependencies (Node 18 or later):
  *
  *   node <copy>/tools/verify.mjs                 the copy this file sits in

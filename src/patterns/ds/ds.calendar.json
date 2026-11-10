@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "entry": "calendar",
   "minify": true,
@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.calendar.css",
-      "bytes": 314673,
-      "gzip": 48006
+      "bytes": 314655,
+      "gzip": 47999
     },
     "js": {
       "file": "ds.calendar.js",
-      "bytes": 641306,
-      "gzip": 150573
+      "bytes": 640933,
+      "gzip": 150605
     },
     "properties": {
       "file": "properties.css",

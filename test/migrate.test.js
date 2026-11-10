@@ -227,7 +227,7 @@ describe('tools/migrate.mjs', () => {
     assert.deepEqual([run(destructured).text, run(destructured).manual], [destructured, []], 'destructuring of another object');
     // The same for a renamed export of a module: only its own module and DS.<module>.
     assert.equal(run("import { createIndicator } from 'some-lib';").text, "import { createIndicator } from 'some-lib';");
-    assert.equal(run("import { createIndicator } from '../vendor/dashboard-style/js/indicator.min.js';").text, "import { create as createIndicator } from '../vendor/dashboard-style/js/indicator.min.js';");
+    assert.equal(run("import { createIndicator } from '../vendor/z-dash/js/indicator.min.js';").text, "import { create as createIndicator } from '../vendor/z-dash/js/indicator.min.js';");
     const tools = run('const { createIndicator } = tools;');
     assert.equal(tools.text, 'const { createIndicator } = tools;');
     assert.match(tools.manual[0].message, /destructured from tools: if that is DS\.indicator, rename the key \(\{ create: createIndicator \}\)/);
@@ -259,15 +259,21 @@ describe('tools/migrate.mjs', () => {
     assert.equal(moved.text, page.replace('/ds/css/tokens.css', '/ds/css/core/tokens.css'), 'the project\'s own css/base.css stays');
     assert.deepEqual(moved.manual.map((item) => `${item.line} ${item.name}`), ['1 css/core/']);
     assert.match(moved.manual[0].message, /link css\/core\/options\.css \(the option classes\) after css\/core\/tokens\.css and css\/core\/global\.css/);
-    assert.equal(run("@import url('../vendor/dashboard-style/css/motion.min.css');").text, "@import url('../vendor/dashboard-style/css/core/motion.min.css');");
+    assert.equal(run("@import url('../vendor/z-dash/css/motion.min.css');").text, "@import url('../vendor/z-dash/css/core/motion.min.css');");
     const unknown = run('<link href="vendor/x/css/tokens.css">');
     assert.equal(unknown.text, '<link href="vendor/x/css/tokens.css">', 'not a copy the run knows');
     assert.deepEqual(unknown.manual.map((item) => item.message), ["vendor/x/css/tokens.css: if this is the copy's stylesheet, it moved to vendor/x/css/core/tokens.css in 3.0 (run with --config, whose vendor names the copy, to rewrite it); a project's own file stays"], 'listed, so the run does not pass');
     // The documented CDN address, an npm install and another case: the copy, with dist/.
+    assert.equal(run('<link href="https://cdn.jsdelivr.net/gh/x/Z-Dash@main/dist/css/tokens.css">').text, '<link href="https://cdn.jsdelivr.net/gh/x/Z-Dash@main/dist/css/core/tokens.css">');
+    assert.equal(run("@import '../node_modules/z-dash/dist/css/base.min.css';").text, "@import '../node_modules/z-dash/dist/css/core/base.min.css';");
+    // A 2.x project names the copy by the project's name before the rename (Dashboard-Style): still the copy.
     assert.equal(run('<link href="https://cdn.jsdelivr.net/gh/x/Dashboard-Style@main/dist/css/tokens.css">').text, '<link href="https://cdn.jsdelivr.net/gh/x/Dashboard-Style@main/dist/css/core/tokens.css">');
-    assert.equal(run("@import '../node_modules/dashboard-style/dist/css/base.min.css';").text, "@import '../node_modules/dashboard-style/dist/css/core/base.min.css';");
+    assert.equal(run("@import '../vendor/dashboard-style/css/motion.min.css';").text, "@import '../vendor/dashboard-style/css/core/motion.min.css';");
+    // The registry's old name and its types become ZDash, ZDashApi and ZDashRegistry; a longer name stays.
+    assert.equal(run("const ds = window.DashboardStyle.versions['2.2.0']; /** @type {DashboardStyleApi} */ let a; let b = DashboardStyleRegistry; const DashboardStyleX = 1;").text,
+      "const ds = window.ZDash.versions['2.2.0']; /** @type {ZDashApi} */ let a; let b = ZDashRegistry; const DashboardStyleX = 1;");
     assert.equal(migrateText('<link href="Vendor/DS/css/motion.css">', RULES, { copies: ['vendor/ds'] }).text, '<link href="Vendor/DS/css/core/motion.css">');
-    const done = '<link href="vendor/dashboard-style/css/core/tokens.css"><link href="vendor/dashboard-style/css/core/options.css">';
+    const done = '<link href="vendor/z-dash/css/core/tokens.css"><link href="vendor/z-dash/css/core/options.css">';
     assert.deepEqual(run(done).manual, [], 'a 3.0 page');
     assert.equal(run(done).text, done);
   });
@@ -326,7 +332,7 @@ describe('tools/migrate.mjs', () => {
       put('public/ds/SHA256SUMS', '');
       put('public/ds/deprecations.json', '{}');
       put('public/ds/ds.css', '.ds-btn--primary {}');
-      put('public/ds.bundle.css', '/*! Dashboard-Style 3.0.0 | bundle */\n.ds-btn--primary {}');
+      put('public/ds.bundle.css', '/*! Z-Dash 3.0.0 | bundle */\n.ds-btn--primary {}');
       // A link that loops, and one that leads out of the project: neither is walked (a --write run stays inside).
       const outside = mkdtempSync(join(tmpdir(), 'ds-migrate-outside-'));
       writeFileSync(join(outside, 'other.js'), "'ds-btn--primary'");
@@ -345,7 +351,7 @@ describe('tools/migrate.mjs', () => {
       assert.throws(() => collectFiles(dir, { targets: ['nope'] }), /nope: no such file or folder/);
       const result = migrate({ root: dir, deprecations: DEPRECATIONS, write: true });
       assert.deepEqual(result.files.map((file) => file.path), ['index.html', 'src/app.ts'], 'the bundle is skipped by its banner');
-      assert.equal(readFileSync(join(dir, 'public/ds.bundle.css'), 'utf8'), '/*! Dashboard-Style 3.0.0 | bundle */\n.ds-btn--primary {}');
+      assert.equal(readFileSync(join(dir, 'public/ds.bundle.css'), 'utf8'), '/*! Z-Dash 3.0.0 | bundle */\n.ds-btn--primary {}');
       assert.equal(readFileSync(join(dir, 'src/app.min.js'), 'utf8'), "el.classList.add('ds-btn--primary');");
     } finally {
       rmSync(dir, { recursive: true, force: true });

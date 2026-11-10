@@ -80,7 +80,7 @@ test('module.html imports every ES module of manifest.json and they export what 
 test('js/overlay.js alone: a menu or dialog still opens and warns once, naming the file; with js/menu.js next to it the menu works', async ({ page }) => {
   const warnings = [];
   page.on('console', (message) => {
-    if (message.type() === 'warning' && message.text().startsWith('Dashboard-Style:')) warnings.push(message.text());
+    if (message.type() === 'warning' && message.text().startsWith('Z-Dash:')) warnings.push(message.text());
   });
   await page.goto(`${FIXTURES}overlay-alone.html`);
   await page.evaluate(async () => {
@@ -96,8 +96,8 @@ test('js/overlay.js alone: a menu or dialog still opens and warns once, naming t
     }
   });
   expect(warnings).toEqual([
-    'Dashboard-Style: DS.overlay.open() on a menu needs the menu module: import js/menu.js next to js/overlay.js, or keep menu in the bundle.',
-    'Dashboard-Style: DS.overlay.open() on a dialog needs the dialog module: import js/dialog.js next to js/overlay.js, or keep dialog in the bundle.',
+    'Z-Dash: DS.overlay.open() on a menu needs the menu module: import js/menu.js next to js/overlay.js, or keep menu in the bundle.',
+    'Z-Dash: DS.overlay.open() on a dialog needs the dialog module: import js/dialog.js next to js/overlay.js, or keep dialog in the bundle.',
   ]);
 
   warnings.length = 0;

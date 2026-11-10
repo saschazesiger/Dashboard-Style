@@ -1147,7 +1147,7 @@ CSS does is still that of 2.1.3: the one rule that changed place (below) cannot 
   0.460 first, so the new file, calendar and chat glyphs share the outlines of the old ones, 1.67 where 0.460 lacks
   a glyph; lines become paths, `donutChart` is drawn for the set. `docs/icons.md` lists every glyph once.
 - **`js/core.js`, `DS.core`:** the first module, which every other imports from. One runtime per page
-  (`DashboardStyle.runtime`, made by whichever copy loads first, of any version), `define(name, spec)`,
+  (`ZDash.runtime`, made by whichever copy loads first, of any version), `define(name, spec)`,
   `init(root, { observe })` with one `MutationObserver` per root (batched to a microtask; a keyed move keeps its
   controller), `get`, `destroy`, `emit` (bubbling `ds:<type>` events), `config({ locale, strings })` and `t()`. The
   overlay stack, the scroll lock, the action guard and the ripple delegation live in the runtime, so two copies or

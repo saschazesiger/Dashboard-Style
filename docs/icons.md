@@ -5,7 +5,7 @@ round caps and joins, colour from `currentColor`. Icons are decorative (`aria-hi
 them carries the accessible name. A state or theme recolours them with `color`.
 
 ```js
-import { icon, iconElement, check, arrowRight } from './vendor/dashboard-style/js/icons.js';
+import { icon, iconElement, check, arrowRight } from './vendor/z-dash/js/icons.js';
 
 button.insertAdjacentHTML('beforeend', icon(check, 16));    // markup string
 button.append(iconElement(arrowRight, 16, 'my-hook'));      // SVGElement, no innerHTML (strict CSP)

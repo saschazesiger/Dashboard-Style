@@ -222,15 +222,15 @@ const start = (root, options) => {
 /* ── Tests ── */
 
 describe('DS.core runtime', () => {
-  it('is one object per page under DashboardStyle.runtime, with shared state by name', () => {
-    assert.equal(globalThis.DashboardStyle.runtime, core.runtime);
+  it('is one object per page under ZDash.runtime, with shared state by name', () => {
+    assert.equal(globalThis.ZDash.runtime, core.runtime);
     const a = core.runtime.state('test.shared', () => ({ count: 0 }));
     a.count += 1;
     assert.equal(core.runtime.state('test.shared', () => ({ count: 99 })).count, 1);
     assert.equal(core.runtime.state('test.value', 7), 7);
     // The runtime cannot be replaced by a later copy.
-    assert.throws(() => { 'use strict'; globalThis.DashboardStyle.runtime = {}; }, TypeError);
-    assert.equal(globalThis.DashboardStyle.runtime, core.runtime);
+    assert.throws(() => { 'use strict'; globalThis.ZDash.runtime = {}; }, TypeError);
+    assert.equal(globalThis.ZDash.runtime, core.runtime);
   });
 
   it('keeps its registry, controllers, roots and settings in runtime.state("core")', () => {

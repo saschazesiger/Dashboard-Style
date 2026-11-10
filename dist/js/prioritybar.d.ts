@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /** Types of DS.prioritybar (js/prioritybar.js). */
 
 /** A priority action bar's controller: get() the folded actions, update() measures again. */

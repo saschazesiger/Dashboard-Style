@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "entry": "billing",
   "minify": true,
@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.billing.css",
-      "bytes": 373733,
-      "gzip": 55988
+      "bytes": 373715,
+      "gzip": 55981
     },
     "js": {
       "file": "ds.billing.js",
-      "bytes": 660148,
-      "gzip": 157400
+      "bytes": 659847,
+      "gzip": 157429
     },
     "properties": {
       "file": "properties.css",

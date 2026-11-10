@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Icons: one outline set on a 24px grid (shapes from Lucide, ISC, partly
  * from Feather, MIT; notices in LICENSE): stroke width 2, round caps and

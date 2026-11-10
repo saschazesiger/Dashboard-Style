@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /** Types of <Toggletip> (react/toggletip.js), generated from src/components/toggletip/. */
 import type { BehaviourComponent } from './shared.js';
 

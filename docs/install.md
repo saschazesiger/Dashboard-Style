@@ -14,7 +14,7 @@ Everything a project needs is in `dist/`:
 | `css/optional/` | opt-in stylesheets that `ds.css` never includes: `view-transitions.css` (View Transitions across page loads, needs `<html class="ds-theme">`; see "Multi-page apps") |
 | `js/` | the ES modules, one folder (the table below): the core and its helpers (`core.js`, `motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`, `position.js`, `overlay.js`, `a11y.js`, `hotkeys.js`, `format.js`, `store.js`, `virtual.js`, `dnd.js`) and one behaviour module per component that has one, each with its types next to it (`motion.d.ts` ...), which an `import` of the module finds by itself; `core.js` is the shared runtime, the behaviour registry and `init()` ([core.md](core.md)), and every other module imports from it |
 | `react/` | the optional React adapter (3.0; React 18 or later is the project's own): `provider.js` (`<DSProvider>`), `shared.js`, one module per component with its `.d.ts`, and `index.js` with every component; each module imports only its own behaviour from `js/` ([react.md](react.md)) |
-| `ds.d.ts` | types of `ds.js`: the global `DS` (every module's exports, their options and handles) and `DashboardStyle.versions` (see "Types") |
+| `ds.d.ts` | types of `ds.js`: the global `DS` (every module's exports, their options and handles) and `ZDash.versions` (see "Types") |
 | `fonts/` | Google Sans woff2 (latin, latin-ext), `fonts.css`, `OFL.txt` |
 | `deprecations.json` | every deprecated and removed name as data, for a project's own checks (see "Deprecated and removed names") |
 | `LICENSE` | the MIT notice; keep it with the copy |
@@ -152,10 +152,10 @@ files name under "Progressive:"; older engines on that floor get the same page w
 Load order on a page: fonts (optional), `ds.css`, your theme, then your own styles.
 
 ```html
-<link rel="stylesheet" href="vendor/dashboard-style/fonts/fonts.css">
-<link rel="stylesheet" href="vendor/dashboard-style/ds.css">
+<link rel="stylesheet" href="vendor/z-dash/fonts/fonts.css">
+<link rel="stylesheet" href="vendor/z-dash/ds.css">
 <link rel="stylesheet" href="css/theme.css">
-<script src="vendor/dashboard-style/ds.js" defer></script>
+<script src="vendor/z-dash/ds.js" defer></script>
 <script src="js/app.js" defer></script>
 ```
 
@@ -196,7 +196,7 @@ the preflight of a utility framework) now overrides the components too. Put it i
 ```html
 <style>@layer reset;</style>
 <link rel="stylesheet" href="css/reset.css">            <!-- its rules inside @layer reset { ... } -->
-<link rel="stylesheet" href="vendor/dashboard-style/ds.css">
+<link rel="stylesheet" href="vendor/z-dash/ds.css">
 ```
 
 A project with its own layers lists `ds` where it belongs, for example `@layer reset, ds, app;` before anything
@@ -216,24 +216,24 @@ branch, tag or commit can be named instead. `scripts/vendor.sh` (POSIX shell; ne
 shasum) and `scripts/vendor.ps1` (Windows PowerShell 5.1 or PowerShell 7) do the same things:
 
 ```sh
-sh vendor.sh vendor/dashboard-style                   # download the latest main from GitHub
-sh vendor.sh <ref> vendor/dashboard-style             # a branch, tag or commit instead
-sh vendor.sh --from ../Dashboard-Style vendor/ds      # copy from a local checkout (built dist/)
-sh vendor.sh --check vendor/dashboard-style           # verify; exit 1 on any change
+sh vendor.sh vendor/z-dash                   # download the latest main from GitHub
+sh vendor.sh <ref> vendor/z-dash             # a branch, tag or commit instead
+sh vendor.sh --from ../Z-Dash vendor/ds      # copy from a local checkout (built dist/)
+sh vendor.sh --check vendor/z-dash           # verify; exit 1 on any change
 ```
 
 ```powershell
-.\vendor.ps1 vendor\dashboard-style
-.\vendor.ps1 <ref> vendor\dashboard-style
-.\vendor.ps1 -From ..\Dashboard-Style vendor\dashboard-style
-.\vendor.ps1 -Check vendor\dashboard-style
+.\vendor.ps1 vendor\z-dash
+.\vendor.ps1 <ref> vendor\z-dash
+.\vendor.ps1 -From ..\Z-Dash vendor\z-dash
+.\vendor.ps1 -Check vendor\z-dash
 ```
 
 The destination is replaced as a whole. It must be missing, empty or an earlier vendored copy (a `VERSION` file that
 starts with `version ` and a `SHA256SUMS` that lists `ds.css`); anything else is refused. It then gets two extra
 files:
 
-- `VERSION`: `version 1.0.0`, `source github:saschazesiger/Dashboard-Style@main` (or `local`) and `commit`: the
+- `VERSION`: `version 1.0.0`, `source github:saschazesiger/Z-Dash@main` (or `local`) and `commit`: the
   exact commit the ref resolved to; with `--from`, the commit hash of the source checkout (`-modified` if it is dirty), or `none` for a copy that
   is not a Git checkout of its own (an unpacked archive). A Git checkout without commits records the version as
   `1.0.0-dev`.
@@ -243,7 +243,7 @@ Verify it in your tests or CI so edits to the vendored files fail loudly ("Verif
 checkouts, mark the folder binary so Git does not rewrite line ends:
 
 ```gitattributes
-vendor/dashboard-style/** -text
+vendor/z-dash/** -text
 ```
 
 ### Verify a copy
@@ -251,9 +251,9 @@ vendor/dashboard-style/** -text
 The copy carries its own check, so a project needs neither the network nor this repository to verify it:
 
 ```sh
-node vendor/dashboard-style/tools/verify.mjs        # Node 18 or later, no dependency
-sh vendor/dashboard-style/tools/verify.sh           # POSIX sh with sha256sum or shasum (a Go or other non-Node project)
-sh vendor.sh --check vendor/dashboard-style         # the same check from the vendoring script
+node vendor/z-dash/tools/verify.mjs        # Node 18 or later, no dependency
+sh vendor/z-dash/tools/verify.sh           # POSIX sh with sha256sum or shasum (a Go or other non-Node project)
+sh vendor.sh --check vendor/z-dash         # the same check from the vendoring script
 ```
 
 Each checks the copy it sits in (`verify.mjs --dir <path>` and `verify.sh <path>` check another one, a built `dist/`
@@ -280,9 +280,9 @@ jsDelivr serves any branch, tag or commit of the public repository. `@main` foll
 caches branches for up to a day); pin a commit hash when a page must never change by itself:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/ds.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/fonts/fonts.css">
-<script src="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/ds.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/saschazesiger/Z-Dash@main/dist/ds.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/saschazesiger/Z-Dash@main/dist/fonts/fonts.css">
+<script src="https://cdn.jsdelivr.net/gh/saschazesiger/Z-Dash@main/dist/ds.js"></script>
 ```
 
 For subresource integrity, compute the hash of the file you load
@@ -306,9 +306,9 @@ Import the single files from the vendored copy (or `dist/` of a checkout). A mod
 in `js/` (`./motion.js`), so keep the folder together.
 
 ```js
-import { enter, leave, stagger } from './vendor/dashboard-style/js/motion.js';
-import { create } from './vendor/dashboard-style/js/indicator.js';
-import { icon, check } from './vendor/dashboard-style/js/icons.js';
+import { enter, leave, stagger } from './vendor/z-dash/js/motion.js';
+import { create } from './vendor/z-dash/js/indicator.js';
+import { icon, check } from './vendor/z-dash/js/icons.js';
 ```
 
 `js/overlay.js` is the shared core of the overlays (3.0): what only one component does lives in that component's module,
@@ -319,23 +319,23 @@ dialog still opens, and `open()` warns once in the console; `DS.overlay.confirm(
 like throw an error that names the file. `ds.js` holds them all, and a bundle keeps what the page uses.
 
 ```js
-import { open, close } from './vendor/dashboard-style/js/overlay.js';
-import './vendor/dashboard-style/js/menu.js';
-import './vendor/dashboard-style/js/dialog.js';
-import './vendor/dashboard-style/js/toast.js';
-import './vendor/dashboard-style/js/tooltip.js';
+import { open, close } from './vendor/z-dash/js/overlay.js';
+import './vendor/z-dash/js/menu.js';
+import './vendor/z-dash/js/dialog.js';
+import './vendor/z-dash/js/toast.js';
+import './vendor/z-dash/js/tooltip.js';
 ```
 
 ```css
-@import './vendor/dashboard-style/css/index.css';   /* everything, or pick files: */
-@import './vendor/dashboard-style/css/core/tokens.css';
-@import './vendor/dashboard-style/css/core/options.css';   /* .ds-sm, .ds-density-*, .ds-shape-*, .ds-tone-*, .ds-touch */
-@import './vendor/dashboard-style/css/core/motion.css';
-@import './vendor/dashboard-style/css/core/base.css';      /* the page base of .ds-base */
-@import './vendor/dashboard-style/css/core/global.css';
-@import './vendor/dashboard-style/css/components/utilities.css';
-@import './vendor/dashboard-style/css/components/button.css';
-@import './vendor/dashboard-style/css/components/ripple.css';   /* with DS.ripple */
+@import './vendor/z-dash/css/index.css';   /* everything, or pick files: */
+@import './vendor/z-dash/css/core/tokens.css';
+@import './vendor/z-dash/css/core/options.css';   /* .ds-sm, .ds-density-*, .ds-shape-*, .ds-tone-*, .ds-touch */
+@import './vendor/z-dash/css/core/motion.css';
+@import './vendor/z-dash/css/core/base.css';      /* the page base of .ds-base */
+@import './vendor/z-dash/css/core/global.css';
+@import './vendor/z-dash/css/components/utilities.css';
+@import './vendor/z-dash/css/components/button.css';
+@import './vendor/z-dash/css/components/ripple.css';   /* with DS.ripple */
 ```
 
 When you pick files, keep the order of `css/index.css` and always include `core/tokens.css`, `core/motion.css` (components
@@ -343,7 +343,7 @@ name the keyframes in it), `core/options.css` (the option classes every componen
 and tone from; without it `.ds-sm` changes nothing), `core/global.css` (the rules for every element inside `.ds-theme`: border-box sizing, the
 forced-colours icon colour) and `components/utilities.css` (`.ds-sr`, which the scripts' live regions use). Add
 `components/ripple.css` whenever you call `DS.ripple.attach()`: without it the ripple span sits in the flow and
-widens the pressed control. With Node subpath imports, `"imports": { "#ds/*": "./vendor/dashboard-style/*" }` in
+widens the pressed control. With Node subpath imports, `"imports": { "#ds/*": "./vendor/z-dash/*" }` in
 `package.json` lets both the bundler and Node tests write `#ds/js/motion.js`.
 
 To load only what a project uses without picking files by hand, let `tools/bundle.mjs` scan the project and write
@@ -358,19 +358,19 @@ loads only the modules it uses; `manifest.json` `react` lists per file its expor
 modules it loads. Everything else, the provider, the props and what the adapter leaves to the page: [react.md](react.md).
 
 ```js
-import { DSProvider } from './vendor/dashboard-style/react/provider.js';
-import { Tabs } from './vendor/dashboard-style/react/tabs.js';
+import { DSProvider } from './vendor/z-dash/react/provider.js';
+import { Tabs } from './vendor/z-dash/react/tabs.js';
 ```
 
 ### Types
 
 The copy carries hand-written TypeScript declarations (2.0), for TypeScript and for `checkJs` in an editor. An
 `import` of `js/<module>.js` finds `js/<module>.d.ts` by itself. A page on the classic `ds.js` references
-`ds.d.ts`, which declares the global `DS` (and `DashboardStyle.versions`) with every module's exports, their option
+`ds.d.ts`, which declares the global `DS` (and `ZDash.versions`) with every module's exports, their option
 objects and the handles they return:
 
 ```js
-/// <reference path="vendor/dashboard-style/ds.d.ts" />
+/// <reference path="vendor/z-dash/ds.d.ts" />
 const handle = DS.ripple.attach(document);   // RippleHandle: { destroy, release, detach }
 DS.overlay.toast(null, 'Saved', { kind: 'success' });
 ```
@@ -395,8 +395,8 @@ Browsers without cross-document View Transitions load pages as before.
 
 ```html
 <html class="ds-theme" lang="en">
-<link rel="stylesheet" href="vendor/dashboard-style/ds.css">
-<link rel="stylesheet" href="vendor/dashboard-style/css/optional/view-transitions.css">
+<link rel="stylesheet" href="vendor/z-dash/ds.css">
+<link rel="stylesheet" href="vendor/z-dash/css/optional/view-transitions.css">
 ```
 
 An indicator glides across the load only with a `name` (`DS.indicator.create(list, { ..., name: 'nav' })`, unique on the
@@ -412,7 +412,7 @@ them:
 </head>
 <body>
   ...
-  <script src="vendor/dashboard-style/ds.js"></script>
+  <script src="vendor/z-dash/ds.js"></script>
   <script src="app.js"></script>               <!-- DS.indicator.create(list, { ..., name: 'nav' }) -->
   <div id="rendered" hidden></div>
 </body>
@@ -441,18 +441,18 @@ the `pagereveal` snippet that sets `data-ds-vt` from `navigation.activation`.
 ## Two copies on one page
 
 A host page and an embedded widget may each load their own `ds.js`. Every copy registers itself in
-`window.DashboardStyle.versions['<version>']`; `window.DS` is set only when it is absent or holds the same version,
+`window.ZDash.versions['<version>']`; `window.DS` is set only when it is absent or holds the same version,
 so the first copy keeps it. A second copy of the same version adds into the first, by name, only what the first
 lacks (a module, or an export of a module; the first copy's own stay), so two bundles of one version make one
 `DS`. A copy of another version leaves `window.DS` alone and logs one warning naming both versions; a `window.DS`
-that is not Dashboard-Style (no `version` string) is never touched either. Code that must run on its own copy reads
+that is not Z-Dash (no `version` string) is never touched either. Code that must run on its own copy reads
 it by version:
 
 ```js
-const ds = window.DashboardStyle.versions['1.0.0'] || window.DS;
+const ds = window.ZDash.versions['1.0.0'] || window.DS;
 ```
 
-Every copy, of any version, and the ES modules next to it share one runtime, `window.DashboardStyle.runtime`
+Every copy, of any version, and the ES modules next to it share one runtime, `window.ZDash.runtime`
 (`DS.core.runtime`, made by whichever loads first; [core.md](core.md#one-runtime-per-page)): the overlay state that
 belongs to the page (the Escape stack, the scroll lock, the numbering of anchor names and tooltip ids, the tooltip
 roots), the action guard of each document, the ripple of each root and the behaviour registry. Copies from 1.6.1
@@ -1002,7 +1002,7 @@ the folder can live anywhere. It is optional: without it `--ds-font` falls back 
 font. Preload the latin file for a faster first paint:
 
 ```html
-<link rel="preload" href="vendor/dashboard-style/fonts/google-sans-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="vendor/z-dash/fonts/google-sans-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
 ```
 
 Keep `OFL.txt` next to the font files and do not rename or re-subset them. To use another typeface, set `--ds-font`
@@ -1039,7 +1039,7 @@ your own checks need not parse CSS:
 
 ## Check a project
 
-`tools/check-project.mjs` runs the project rules of AGENTS.md ("Using Dashboard-Style in a project") on your code,
+`tools/check-project.mjs` runs the project rules of AGENTS.md ("Using Z-Dash in a project") on your code,
 without dependencies (Node 22 or later, like `tools/bundle.mjs`, which it runs for the `bundle` rule). Describe the project once in `ds-check.json` (paths and globs relative to
 it; globs know `*`, `**` and `?`):
 
@@ -1051,8 +1051,8 @@ it; globs know `*`, `**` and `?`):
   "js": ["js/**/*.js"],
   "html": ["*.html", "templates/**/*.html"],
   "themes": ["css/theme.css"],
-  "themesWith": ["vendor/dashboard-style/themes/dark.css"],
-  "vendor": "vendor/dashboard-style",
+  "themesWith": ["vendor/z-dash/themes/dark.css"],
+  "vendor": "vendor/z-dash",
   "bundle": "ds.config.json",
   "exceptions": [
     { "rule": "restyle", "file": "css/app.css", "selector": ".app-bar .ds-btn", "reason": "the bar is dark; no hook for it yet" }
@@ -1061,7 +1061,7 @@ it; globs know `*`, `**` and `?`):
 ```
 
 ```sh
-node vendor/dashboard-style/tools/check-project.mjs --config ds-check.json
+node vendor/z-dash/tools/check-project.mjs --config ds-check.json
 ```
 
 It prints `<file>:<line> <rule> <message>` per finding (warnings say so) and exits 1 on an error, 2 on a broken
@@ -1099,18 +1099,18 @@ The nightly template runs it as its optional `CHECK` step.
    later major version removes it. The number does not hold anything back: `main` is what you get. Coming from
    2.x, follow [migration.md](migration.md): `tools/migrate.mjs` rewrites what it can map and lists the rest. Coming
    from 1.x, work through the "Migration" table of [2.0.0](../CHANGELOG.md#200) first.
-2. Vendor again over the old copy (`vendor.sh vendor/dashboard-style` fetches the latest `main`); the CDN's `@main`
+2. Vendor again over the old copy (`vendor.sh vendor/z-dash` fetches the latest `main`); the CDN's `@main`
    URLs update by themselves.
 3. Open your pages and the styleguide with your theme loaded; run your tests (including the checksum check).
 
 ### Automatic updates (GitHub Actions)
 
-[templates/update-dashboard-style.yml](../templates/update-dashboard-style.yml) does step 2 every night. Copy it to
+[templates/update-z-dash.yml](../templates/update-z-dash.yml) does step 2 every night. Copy it to
 `.github/workflows/` and set the values under `env`:
 
 | Value | Meaning |
 |---|---|
-| `DEST` | path of the copy, e.g. `vendor/dashboard-style` |
+| `DEST` | path of the copy, e.g. `vendor/z-dash` |
 | `SETUP` | the toolchain your checks need: `node` (set up when the repository has a `package.json`, or for `CHECK`), `go` (when it has a `go.mod`) or `none`; another one is a commented step to fill in |
 | `CHECK` | optional project check of the new copy, e.g. `node "$DEST/tools/check-project.mjs" --config ds-check.json`; empty to skip |
 | `BUNDLE` | the path of the project bundle's config (`ds.config.json`, [bundle.md](bundle.md)); the update rebuilds the bundle from the new copy and commits it with the copy (needs `SETUP: node`); empty to skip |
@@ -1118,7 +1118,7 @@ The nightly template runs it as its optional `CHECK` step.
 | `BUILD_WORKFLOW` | workflow file that builds and deploys, started with `workflow_dispatch`; empty if your build starts on push by itself (Cloudflare Pages, Netlify, Vercel) |
 
 It runs daily at 02:30 UTC and on demand (*Run workflow*). If the commit in `DEST/VERSION` equals `main` of
-Dashboard-Style, the run ends there. Otherwise it vendors `main`, verifies the copy (`tools/verify.sh`, no Node
+Z-Dash, the run ends there. Otherwise it vendors `main`, verifies the copy (`tools/verify.sh`, no Node
 needed), rebuilds the bundle (`BUNDLE`), runs `CHECK` and `VERIFY`, commits the copy (and the bundle) to the branch it runs on and starts `BUILD_WORKFLOW`. A push made with `GITHUB_TOKEN` starts no other workflow, which is why the build is
 started explicitly; the build workflow needs `on: workflow_dispatch`. The template asks for `contents: write` and
 `actions: write`; a branch protection rule that blocks direct pushes also blocks the update.
@@ -1133,10 +1133,10 @@ started explicitly; the build workflow needs `on: workflow_dispatch`. The templa
   the copy's `deprecations.json` (below; `tools/check-project.mjs`, rule `deprecated`, finds those names in your
   code), and commit the new copy together with your fix. A major version has a "Migration" section at the top of its
   changelog entry (for 2.0: `## 2.0.0`, "Migration") with what a project has to change. If the fault is in
-  Dashboard-Style, fix it there; the next run picks it up.
+  Z-Dash, fix it there; the next run picks it up.
 - **Commit and push**: usually branch protection (above).
 
-Afterwards start it again under Actions → "Update Dashboard-Style" → *Run workflow*, or wait for the next night.
+Afterwards start it again under Actions → "Update Z-Dash" → *Run workflow*, or wait for the next night.
 
 ### Deprecated and removed names
 
@@ -1174,7 +1174,7 @@ nightly update red:
 
 ```js
 import { readFileSync } from 'node:fs';
-const { names } = JSON.parse(readFileSync('vendor/dashboard-style/deprecations.json', 'utf8'));
+const { names } = JSON.parse(readFileSync('vendor/z-dash/deprecations.json', 'utf8'));
 for (const entry of names.filter((name) => name.pattern)) {
   if (new RegExp(entry.pattern).test(source)) (entry.removed ? errors : warnings).push(`${entry.name}: ${entry.replacement ?? entry.note}`);
 }

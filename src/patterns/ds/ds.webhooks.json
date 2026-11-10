@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "entry": "webhooks",
   "minify": true,
@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.webhooks.css",
-      "bytes": 371782,
-      "gzip": 55243
+      "bytes": 371764,
+      "gzip": 55236
     },
     "js": {
       "file": "ds.webhooks.js",
-      "bytes": 633675,
-      "gzip": 151916
+      "bytes": 633302,
+      "gzip": 151955
     },
     "properties": {
       "file": "properties.css",

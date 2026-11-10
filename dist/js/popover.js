@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Popovers (DS.popover): an anchored, non-modal panel that DS.overlay opens
  * and closes (the stack, Escape, focus return, ds:open and ds:close stay in

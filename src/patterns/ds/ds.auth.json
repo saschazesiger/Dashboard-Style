@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "entry": "auth",
   "minify": true,
@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.auth.css",
-      "bytes": 203460,
-      "gzip": 33393
+      "bytes": 203442,
+      "gzip": 33386
     },
     "js": {
       "file": "ds.auth.js",
-      "bytes": 467300,
-      "gzip": 111727
+      "bytes": 467053,
+      "gzip": 111770
     },
     "properties": {
       "file": "properties.css",

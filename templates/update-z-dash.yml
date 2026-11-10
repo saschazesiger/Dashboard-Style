@@ -1,9 +1,9 @@
-# Keeps a vendored copy of Dashboard-Style on the latest main.
+# Keeps a vendored copy of Z-Dash on the latest main.
 #
-# Copy this file to .github/workflows/update-dashboard-style.yml in a project
-# that vendors Dashboard-Style (docs/install.md) and adjust the values under
+# Copy this file to .github/workflows/update-z-dash.yml in a project
+# that vendors Z-Dash (docs/install.md) and adjust the values under
 # `env`. Once a day it compares the commit in <DEST>/VERSION with main of
-# Dashboard-Style: unchanged, the run ends after that one request; changed, it
+# Z-Dash: unchanged, the run ends after that one request; changed, it
 # vendors main, verifies the copy against its SHA256SUMS (tools/verify.sh, no
 # Node needed), runs the project check and your checks, commits the new copy
 # to the default branch and starts your build.
@@ -13,7 +13,7 @@
 # does. Builds outside GitHub Actions that listen to pushes (Cloudflare Pages,
 # Netlify, Vercel) start by themselves; leave BUILD_WORKFLOW empty then.
 
-name: Update Dashboard-Style
+name: Update Z-Dash
 
 on:
   schedule:
@@ -27,12 +27,12 @@ permissions:
   actions: write    # start BUILD_WORKFLOW
 
 concurrency:
-  group: update-dashboard-style
+  group: update-z-dash
   cancel-in-progress: false
 
 env:
   # Where the copy lives, relative to the repository root.
-  DEST: vendor/dashboard-style
+  DEST: vendor/z-dash
   # The toolchain your checks need: node (actions/setup-node, when the
   # repository has a package.json), go (actions/setup-go, when it has a
   # go.mod) or none (only the shell; the copy still verifies with
@@ -56,7 +56,7 @@ env:
   # File name of the workflow that builds and deploys (it needs a
   # workflow_dispatch trigger); empty if your build starts on push by itself.
   BUILD_WORKFLOW: ''
-  REPO: saschazesiger/Dashboard-Style
+  REPO: saschazesiger/Z-Dash
 
 jobs:
   update:
@@ -64,14 +64,14 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Compare with main of Dashboard-Style
+      - name: Compare with main of Z-Dash
         id: compare
         run: |
           current=$(sed -n 's/^commit //p' "$DEST/VERSION" 2>/dev/null || true)
           latest=$(curl -fsSL -H 'Accept: application/vnd.github.sha' "https://api.github.com/repos/$REPO/commits/main")
           echo "current ${current:-none}, latest $latest"
           if [ "$current" = "$latest" ]; then
-            echo "Dashboard-Style is up to date; nothing to build." >> "$GITHUB_STEP_SUMMARY"
+            echo "Z-Dash is up to date; nothing to build." >> "$GITHUB_STEP_SUMMARY"
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -127,10 +127,10 @@ jobs:
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m "Update Dashboard-Style to ${{ steps.compare.outputs.latest }}"
+          git commit -m "Update Z-Dash to ${{ steps.compare.outputs.latest }}"
           git push
           echo "pushed=true" >> "$GITHUB_OUTPUT"
-          echo "Updated Dashboard-Style to ${{ steps.compare.outputs.latest }}." >> "$GITHUB_STEP_SUMMARY"
+          echo "Updated Z-Dash to ${{ steps.compare.outputs.latest }}." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Start the build
         if: steps.commit.outputs.pushed == 'true' && env.BUILD_WORKFLOW != ''

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
- * Verifies a copy of Dashboard-Style against its SHA256SUMS, without
+ * Verifies a copy of Z-Dash against its SHA256SUMS, without
  * network and without dependencies (Node 18 or later):
  *
  *   node <copy>/tools/verify.mjs                 the copy this file sits in

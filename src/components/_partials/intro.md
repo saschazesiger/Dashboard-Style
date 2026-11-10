@@ -132,7 +132,7 @@ component live.
 | An icon toggle whose glyph fills when on (a rating) | `.ds-icon--fillable` in an `aria-pressed` button ([icons.md](icons.md#glyphs)) |
 | An icon | `DS.icons` ([icons.md](icons.md)); brand logos stay in the project |
 
-Nothing fits? If any dashboard could use it, add it to Dashboard-Style ([AGENTS.md](../AGENTS.md#making-a-change))
+Nothing fits? If any dashboard could use it, add it to Z-Dash ([AGENTS.md](../AGENTS.md#making-a-change))
 and update the copy; otherwise build it in the project with the project's own class prefix, from the tokens only
 ([rules.md](rules.md#code)).
 

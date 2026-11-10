@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "entry": "integrations",
   "minify": true,
@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.integrations.css",
-      "bytes": 258419,
-      "gzip": 40814
+      "bytes": 258401,
+      "gzip": 40806
     },
     "js": {
       "file": "ds.integrations.js",
-      "bytes": 510194,
-      "gzip": 121100
+      "bytes": 509947,
+      "gzip": 121134
     },
     "properties": {
       "file": "properties.css",

@@ -1,6 +1,6 @@
 # Reference app
 
-A small device console built on Dashboard-Style 3.0 the way a project uses it: one page, five views, live data from
+A small device console built on Z-Dash 3.0 the way a project uses it: one page, five views, live data from
 a fake backend, and a project bundle that holds only what the app uses. Copy from it. Live on GitHub Pages
 (`.github/workflows/pages.yml`), or open `index.html` from disk.
 
@@ -15,7 +15,7 @@ a fake backend, and a project bundle that holds only what the app uses. Copy fro
 | `data.js` | the fake backend (`window.ExampleApi`), promises with latency; a project calls its API here |
 | `app.js` | the app: rendering, navigation, live data, every interaction |
 
-In a project the links point at the vendored copy (`vendor/dashboard-style/...`), not at `../dist/`. After a change
+In a project the links point at the vendored copy (`vendor/z-dash/...`), not at `../dist/`. After a change
 that names another class, attribute, module or glyph, write the bundle again and commit it with the change; CI runs
 `tools/bundle.mjs --check` (here `test/bundle.test.js`) and `tools/check-project.mjs --config ds-check.json` (here
 `test/check-project.test.js`):

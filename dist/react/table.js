@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * <Table> (dist/react/table.js): the .ds-table of docs/components.md,
  * "Table", from columns and rows, in its .ds-table-wrap.

@@ -629,6 +629,15 @@
       "deprecated": "3.0.0",
       "removed": "3.0.0",
       "note": "Sizes are option classes on the avatar or any ancestor (.ds-xs ... .ds-xl, docs/options.md). The alias keeps the fixed 2.x disc (40px, the subtitle role) until 3.0 ships; .ds-lg is the same."
+    },
+    {
+      "kind": "export",
+      "name": "DashboardStyle",
+      "pattern": "(?<![\\w$])DashboardStyle(?:Api|Registry)?(?![\\w$])",
+      "replacement": "ZDash",
+      "deprecated": "3.0.0",
+      "removed": null,
+      "note": "The project was renamed from Dashboard-Style to Z-Dash in 3.0: the page-wide registry is globalThis.ZDash (ZDash.versions, ZDash.runtime), the types ZDashApi and ZDashRegistry. Both globals hold the same object and the old type names stay as aliases."
     }
   ]
 }

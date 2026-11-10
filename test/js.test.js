@@ -2718,7 +2718,7 @@ describe('classic-script build (dist/ds.js)', () => {
     for (const key of ['init', 'get', 'define', 'config']) assert.equal(DS[key], DS.core[key], `DS.${key}`);
     assert.equal(DS.icons.icon(DS.icons.plus, 16), icons.icon(icons.plus, 16));
     assert.equal(DS.motion.loaderHoldMs(1000, 1300), motion.loaderHoldMs(1000, 1300));
-    assert.equal(sandbox.DashboardStyle.versions[DS.version], DS);
+    assert.equal(sandbox.ZDash.versions[DS.version], DS);
   });
 
   describe('two copies on one page', () => {
@@ -2739,9 +2739,9 @@ describe('classic-script build (dist/ds.js)', () => {
       load(asVersion('9.9.9'));
       assert.equal(sandbox.DS, first);
       assert.equal(sandbox.DS.version, version);
-      assert.deepEqual(Object.keys(sandbox.DashboardStyle.versions).sort(), [version, '9.9.9'].sort());
-      assert.equal(sandbox.DashboardStyle.versions['9.9.9'].version, '9.9.9');
-      assert.equal(typeof sandbox.DashboardStyle.versions['9.9.9'].motion.enter, 'function');
+      assert.deepEqual(Object.keys(sandbox.ZDash.versions).sort(), [version, '9.9.9'].sort());
+      assert.equal(sandbox.ZDash.versions['9.9.9'].version, '9.9.9');
+      assert.equal(typeof sandbox.ZDash.versions['9.9.9'].motion.enter, 'function');
       assert.equal(warnings.length, 1);
       assert.match(warnings[0], new RegExp(`9\\.9\\.9.*${version.replace(/\./g, '\\.')}`));
     });
@@ -2770,7 +2770,7 @@ describe('classic-script build (dist/ds.js)', () => {
       const overlay = first.overlay;
       load(read('dist/ds.js'));
       assert.equal(sandbox.DS, first);
-      assert.equal(sandbox.DashboardStyle.versions[version], first);
+      assert.equal(sandbox.ZDash.versions[version], first);
       assert.equal(typeof sandbox.DS.icons.icon, 'function', 'the missing module was added');
       assert.equal(typeof sandbox.DS.dom.morphHtml, 'function', 'the missing export was added');
       assert.equal(sandbox.DS.dom.watchScrolled, partialDom.watchScrolled, 'the first copy keeps its own exports');
@@ -2782,16 +2782,16 @@ describe('classic-script build (dist/ds.js)', () => {
     it('shares one runtime between every copy, also of another version', () => {
       const { sandbox, load } = page();
       load(read('dist/ds.js'));
-      const runtime = sandbox.DashboardStyle.runtime;
+      const runtime = sandbox.ZDash.runtime;
       assert.equal(sandbox.DS.core.runtime, runtime);
       load(asVersion('9.9.9'));
-      assert.equal(sandbox.DashboardStyle.versions['9.9.9'].core.runtime, runtime);
-      assert.notEqual(sandbox.DashboardStyle.versions['9.9.9'].core, sandbox.DS.core);
+      assert.equal(sandbox.ZDash.versions['9.9.9'].core.runtime, runtime);
+      assert.notEqual(sandbox.ZDash.versions['9.9.9'].core, sandbox.DS.core);
       // The behaviours of the first copy stay registered; the second copy's definitions are ignored.
       // The core's own behaviours first; a component module's definition follows them.
       assert.deepEqual([...runtime.state('core').specs.keys()].slice(0, 4), ['guard', 'indicator', 'ripple', 'triggers']);
       assert.ok(runtime.state('core').specs.has('tooltips'), 'the tooltip module defines the tooltips of every root');
-      assert.equal(sandbox.DashboardStyle.versions['9.9.9'].core.define('guard', { global() {} }), false);
+      assert.equal(sandbox.ZDash.versions['9.9.9'].core.define('guard', { global() {} }), false);
     });
 
     it('leaves a foreign DS without a version untouched', () => {
@@ -2800,7 +2800,7 @@ describe('classic-script build (dist/ds.js)', () => {
       load(read('dist/ds.js'));
       assert.equal(sandbox.DS, foreign);
       assert.deepEqual(Object.keys(sandbox.DS), ['mine']);
-      assert.equal(sandbox.DashboardStyle.versions[version].version, version);
+      assert.equal(sandbox.ZDash.versions[version].version, version);
       assert.equal(warnings.length, 1);
     });
   });

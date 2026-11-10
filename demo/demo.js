@@ -1,6 +1,6 @@
 /*
  * The live tour (demo/index.html): one page that walks through what
- * Dashboard-Style 3.0 does, every demo wired the way a project wires it,
+ * Z-Dash 3.0 does, every demo wired the way a project wires it,
  * on a bundle of only the components the page uses (ds/, written by
  * tools/bundle.mjs from ds.config.json).
  *
@@ -1386,7 +1386,7 @@
         { id: 'chart', label: 'New data in the charts', icon: DS.icons.barChart, run: () => goTo('data') },
         { id: 'message', label: 'Show a message', icon: DS.icons.info, run: () => toast('Hello from the command palette.') },
       ] },
-      { id: 'source', label: 'Open the source', group: 'Explore', icon: DS.icons.fileCode, href: 'https://github.com/saschazesiger/Dashboard-Style' },
+      { id: 'source', label: 'Open the source', group: 'Explore', icon: DS.icons.fileCode, href: 'https://github.com/saschazesiger/Z-Dash' },
       { id: 'styleguide', label: 'Open the styleguide', group: 'Explore', icon: DS.icons.overview, href: '../styleguide/index.html' },
       { id: 'example', label: 'Open the reference app', group: 'Explore', icon: DS.icons.laptop, href: '../example/index.html' },
     ],

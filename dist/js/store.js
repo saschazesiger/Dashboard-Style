@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Remembered UI preferences (3.0): columns, density, dismissed banners, sheet
  * widths. JSON values in localStorage under `ds:<namespace>:<key>`, so a host

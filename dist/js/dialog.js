@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * The behaviour of a dialog (DS.dialog): what only a dialog does once
  * DS.overlay opened it (the stack, the trap, focus return, Escape, dismiss

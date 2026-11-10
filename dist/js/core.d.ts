@@ -1,10 +1,10 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Types of DS.core (js/core.js). Hand-written; test/build.test.js keeps
  * the declared exports and their parameters equal to the module's.
  */
 
-/** The page's one runtime (globalThis.DashboardStyle.runtime), shared by every copy. */
+/** The page's one runtime (globalThis.ZDash.runtime), shared by every copy. */
 export interface Runtime {
   /** The shared state `name`, made by `init` (a function, or the value itself) the first time any copy asks. */
   state<T = any>(name: string, init?: (() => T) | T): T;

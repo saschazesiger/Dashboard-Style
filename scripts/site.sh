@@ -32,14 +32,14 @@ cat > "$dest/index.html" <<'HTML'
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dashboard-Style</title>
+<title>Z-Dash</title>
 <meta http-equiv="refresh" content="0; url=demo/">
 <link rel="canonical" href="demo/">
 </head>
 <body>
 <p><a href="demo/">The live tour</a> · <a href="example/">The reference app</a> · <a href="styleguide/index.html">Styleguide</a> ·
 <a href="styleguide/motion.html">Motion Lab</a> · <a href="styleguide/index.html#/patterns">Page patterns</a> ·
-<a href="https://github.com/saschazesiger/Dashboard-Style">Source</a></p>
+<a href="https://github.com/saschazesiger/Z-Dash">Source</a></p>
 </body>
 </html>
 HTML

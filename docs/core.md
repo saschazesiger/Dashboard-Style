@@ -15,7 +15,7 @@ them from `js/core.js`.
 
 | Export | What |
 |---|---|
-| `runtime` | the page's one runtime (`globalThis.DashboardStyle.runtime`); `runtime.state(name, init)` returns the shared state `name`, made by `init()` (a function, or the value itself) the first time any copy asks |
+| `runtime` | the page's one runtime (`globalThis.ZDash.runtime`); `runtime.state(name, init)` returns the shared state `name`, made by `init()` (a function, or the value itself) the first time any copy asks |
 | `define(name, spec)` | adds the behaviour `name` (below); returns `true`, or `false` when a copy loaded earlier defined the name (that copy's definition stays) |
 | `init(root?, { observe })` | installs every global behaviour on `root` (default: the document) and initialises every matching element in it; `observe` (default `true`) keeps doing so for markup added, changed or removed later. Returns `{ destroy() }` |
 | `get(el, name?)` | the controller of `el` for the behaviour `name` (without a name: its first), or `null`. A behaviour whose `init` returned a function or nothing has a handle with `destroy()` only |
@@ -29,7 +29,7 @@ them from `js/core.js`.
 ## One runtime per page
 
 A host page and an embedded widget, two bundles, or a bundle and the ES modules next to it: whichever loads first
-makes `globalThis.DashboardStyle.runtime`, and every later copy, of any version, uses it. The state that must be
+makes `globalThis.ZDash.runtime`, and every later copy, of any version, uses it. The state that must be
 unique per page lives there, by name:
 
 | State | Owner | What |

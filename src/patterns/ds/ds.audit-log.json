@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "entry": "audit-log",
   "minify": true,
@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.audit-log.css",
-      "bytes": 246471,
-      "gzip": 38837
+      "bytes": 246453,
+      "gzip": 38830
     },
     "js": {
       "file": "ds.audit-log.js",
-      "bytes": 499932,
-      "gzip": 119050
+      "bytes": 499703,
+      "gzip": 119087
     },
     "properties": {
       "file": "properties.css",

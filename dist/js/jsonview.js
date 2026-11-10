@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * JSON viewer (3.0): a JSON document as a tree that opens and closes, on
  * DS.tree (the APG tree: one tab stop, the arrows walk and open the rows,

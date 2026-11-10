@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "entry": "list",
   "minify": true,
@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.list.css",
-      "bytes": 322741,
-      "gzip": 49048
+      "bytes": 322723,
+      "gzip": 49041
     },
     "js": {
       "file": "ds.list.js",
-      "bytes": 558834,
-      "gzip": 132578
+      "bytes": 558497,
+      "gzip": 132609
     },
     "properties": {
       "file": "properties.css",

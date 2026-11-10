@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Core runtime (3.0): one shared runtime per page, the behaviour registry,
  * declarative initialisation, events and the system's own strings.
@@ -13,7 +13,7 @@
  *   DS.core.config({ strings: { close: 'Schliessen' } });
  *   page.destroy();
  *
- * One runtime per page: globalThis.DashboardStyle.runtime is created by
+ * One runtime per page: globalThis.ZDash.runtime is created by
  * whichever copy loads first (a classic ds.js, a bundle, the ES modules)
  * and every later copy uses it. runtime.state(name, init) returns the
  * shared state of that name, made by init() the first time: the overlay
@@ -83,8 +83,15 @@
  * module may import from it; no DOM is touched until init() runs.
  */
 
-/** The page-wide registry of every copy (DashboardStyle.versions lives here too). */
-const registry = globalThis.DashboardStyle ?? (globalThis.DashboardStyle = {});
+/**
+ * The page-wide registry of every copy (ZDash.versions lives here too).
+ * DashboardStyle is its deprecated name from before the rename (3.0): both
+ * names hold the one object, so a copy that still reads the old name shares
+ * the same runtime.
+ */
+const registry = globalThis.ZDash ?? globalThis.DashboardStyle ?? {};
+globalThis.ZDash = registry;
+globalThis.DashboardStyle ??= registry;
 
 /** A new runtime: shared state by name. */
 function createRuntime() {

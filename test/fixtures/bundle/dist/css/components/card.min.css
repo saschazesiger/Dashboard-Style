@@ -1,1 +1,1 @@
-/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | fixture */ @layer ds.tokens,ds.base,ds.components,ds.motion,ds.utilities;@layer ds.components.card{.ds-card{background: var(--ds-surface)}.ds-card__title{margin: 0}}
+/*! Z-Dash 3.0.0-alpha.0 | MIT License | fixture */ @layer ds.tokens,ds.base,ds.components,ds.motion,ds.utilities;@layer ds.components.card{.ds-card{background: var(--ds-surface)}.ds-card__title{margin: 0}}

@@ -6,7 +6,7 @@
  * seed: light-dark() roles, so one file serves both schemes, and
  * data-ds-scheme on <html> pins one). A project generates its own:
  *
- *   node vendor/dashboard-style/tools/theme.mjs --seed '#0b57d0' --out css/colours.css
+ *   node vendor/z-dash/tools/theme.mjs --seed '#0b57d0' --out css/colours.css
  *
  * This file adds what is the project's own: component hooks and the
  * --ex-* tokens app.css reads. Never motion tokens or motion hooks, never

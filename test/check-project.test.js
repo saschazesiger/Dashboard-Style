@@ -19,7 +19,7 @@ import { read } from './helpers.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-const VENDOR = 'vendor/dashboard-style';
+const VENDOR = 'vendor/z-dash';
 
 /** Rewrites the copy's SHA256SUMS (after a test added a file to it on purpose). */
 function resum(dir) {
@@ -301,10 +301,10 @@ describe('tools/check-project.mjs', () => {
       assert.equal(major, 3);
       const missing = vendor(without);
       assert.equal(missing.length, 1);
-      assert.match(missing[0], /^error ds-check\.json the config names no "major", so it predates 3\.0 and the copy is 3\.[^:]*: migrate the project \(node vendor\/dashboard-style\/tools\/migrate\.mjs --config ds-check\.json/, 'a 2.x config on a 3.0 copy');
+      assert.match(missing[0], /^error ds-check\.json the config names no "major", so it predates 3\.0 and the copy is 3\.[^:]*: migrate the project \(node vendor\/z-dash\/tools\/migrate\.mjs --config ds-check\.json/, 'a 2.x config on a 3.0 copy');
       const old = vendor({ ...CONFIG, major: 2 });
       assert.equal(old.length, 1);
-      assert.match(old[0], /^error ds-check\.json the config is for 2\.x, the copy is 3\.\d+\.\d+[^:]*: migrate the project \(node vendor\/dashboard-style\/tools\/migrate\.mjs --config ds-check\.json/);
+      assert.match(old[0], /^error ds-check\.json the config is for 2\.x, the copy is 3\.\d+\.\d+[^:]*: migrate the project \(node vendor\/z-dash\/tools\/migrate\.mjs --config ds-check\.json/);
       assert.match(vendor({ ...CONFIG, major: 4 })[0], /^error .* the config is for 4\.x/);
       assert.match(checkProject({ ...CONFIG, major: '3' }, root).errors.join('\n'), /"major"/);
       // A copy before 3.0: a config without "major" only warns.
@@ -356,7 +356,7 @@ describe('tools/check-project.mjs', () => {
     const root = project(files);
     try {
       const findings = () => checkProject(config, root).findings.filter((f) => f.rule === 'bundle').map((f) => `${f.level} ${f.file} ${f.message}`);
-      assert.match(findings().join('\n'), /^error ds\.config\.json missing: public\/ds\.bundle\.css \(run tools\/bundle\.mjs\) \(node vendor\/dashboard-style\/tools\/bundle\.mjs --config ds\.config\.json\)$/m);
+      assert.match(findings().join('\n'), /^error ds\.config\.json missing: public\/ds\.bundle\.css \(run tools\/bundle\.mjs\) \(node vendor\/z-dash\/tools\/bundle\.mjs --config ds\.config\.json\)$/m);
       assert.ok(bundle({ config: join(root, 'ds.config.json'), dist: join(root, VENDOR) }).ok);
       assert.deepEqual(findings(), [], 'a fresh bundle passes');
       writeFileSync(join(root, 'index.html'), page('<button class="ds-btn ds-btn--filled" type="button">Save</button><span class="ds-badge">3</span>'));
@@ -420,7 +420,7 @@ describe('tools/check-project.mjs', () => {
 
   it('keeps its rule ids in the AGENTS.md project block and its system attributes in the Attributes table', () => {
     const agents = read('AGENTS.md');
-    const block = agents.slice(agents.indexOf('## Design system: Dashboard-Style'), agents.indexOf('```', agents.indexOf('## Design system: Dashboard-Style')));
+    const block = agents.slice(agents.indexOf('## Design system: Z-Dash'), agents.indexOf('```', agents.indexOf('## Design system: Z-Dash')));
     const listed = /check-project\.mjs[\s\S]*?rules ([^)]*)\)/.exec(block)?.[1] ?? '';
     assert.deepEqual([...listed.matchAll(/`([\w-]+)`/g)].map((match) => match[1]), RULES);
     const components = read('docs/components.md');

@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "entry": "permissions",
   "minify": true,
@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.permissions.css",
-      "bytes": 311887,
-      "gzip": 47275
+      "bytes": 311869,
+      "gzip": 47268
     },
     "js": {
       "file": "ds.permissions.js",
-      "bytes": 576965,
-      "gzip": 136935
+      "bytes": 576664,
+      "gzip": 136967
     },
     "properties": {
       "file": "properties.css",

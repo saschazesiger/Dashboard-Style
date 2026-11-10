@@ -1,15 +1,18 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style | bundle "inbox" (ds.inbox.json) */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash | bundle "inbox" (ds.inbox.json) */
 /*
- * Dashboard-Style bundle "inbox" (tools/bundle.mjs; do not edit): window.DS with
+ * Z-Dash bundle "inbox" (tools/bundle.mjs; do not edit): window.DS with
  * DS.core, DS.motion, DS.indicator, DS.dom, DS.ripple, DS.icons, DS.position, DS.overlay, DS.a11y, DS.format, DS.store, DS.virtual, DS.dnd, DS.avatar, DS.badge, DS.form, DS.formatted, DS.list, DS.listdetail, DS.menu, DS.page, DS.shell, DS.toast, DS.tooltip and 32 icons.
  * Icon shapes: Lucide (ISC) and Feather (MIT), see LICENSE.
  * Another bundle or ds.js of the same version on the page adds its modules
- * to the same DashboardStyle.versions[version] object.
+ * to the same ZDash.versions[version] object.
  */
 (function (root) {
   'use strict';
   var version = '3.0.0-alpha.6';
-  var registry = root.DashboardStyle || (root.DashboardStyle = {});
+  // DashboardStyle: the deprecated name from before the rename (3.0), the same object.
+  var registry = root.ZDash || root.DashboardStyle || {};
+  root.ZDash = registry;
+  if (!root.DashboardStyle) root.DashboardStyle = registry;
   var versions = registry.versions || (registry.versions = {});
   var first = versions[version];
   var DS = first || { version: version };
@@ -28,8 +31,10 @@
   };
 
   add('core', ['runtime', 'define', 'get', 'manage', 'init', 'destroy', 'emit', 'config', 't', 'safeHref'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
-    const registry = globalThis.DashboardStyle ?? (globalThis.DashboardStyle = {});
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
+    const registry = globalThis.ZDash ?? globalThis.DashboardStyle ?? {};
+    globalThis.ZDash = registry;
+    globalThis.DashboardStyle ??= registry;
     function createRuntime() {
     const states = new Map();
     return Object.freeze({
@@ -965,7 +970,7 @@
   });
 
   add('motion', ['MOTION_FALLBACKS', 'LOADER_DELAY_MS', 'LOADER_MIN_VISIBLE_MS', 'STAGGER_MAX', 'motionDuration', 'motionEasing', 'travelDuration', 'resyncScroll', 'stagger', 'replay', 'settled', 'enter', 'leave', 'cancel', 'enterAll', 'staggerOnce', 'loaderHoldMs', 'settleLoader', 'refresh', 'guard', 'setLabel', 'busy', 'COUNT_UP_MS', 'countUp', 'originFrom', 'roll', 'crossfade', 'flip', 'sortable', 'transition'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const define = DS.core.define, runtime = DS.core.runtime;
     const MOTION_FALLBACKS = Object.freeze({
     '--ds-dur-micro': 50,
@@ -3187,7 +3192,7 @@
   });
 
   add('indicator', ['OVERSHOOT', 'create', 'createIndicator'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const define = DS.core.define, emit = DS.core.emit;
     const motionDuration = DS.motion.motionDuration, travelDuration = DS.motion.travelDuration;
     const OVERSHOOT = 0.05;
@@ -3739,7 +3744,7 @@
   });
 
   add('dom', ['morphChildren', 'morphHtml', 'own', 'disown', 'watchScrolled', 'scrollEdges', 'progress', 'roving', 'typesText', 'followViewport', 'followEnd', 'autosize', 'dropzone'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const resyncScroll = DS.motion.resyncScroll;
     const LOOKAHEAD = 8;
     const RUNTIME_CLASS = /^ds-(?:enter|leave)(?:--[\w-]+)?$|^ds-(?:has-indicator|pressed|ripples)$/;
@@ -4924,7 +4929,7 @@
   });
 
   add('ripple', ['RIPPLE_HOSTS', 'attach'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const define = DS.core.define, runtime = DS.core.runtime;
     const flip = DS.motion.flip, guard = DS.motion.guard, motionDuration = DS.motion.motionDuration, motionEasing = DS.motion.motionEasing, settled = DS.motion.settled, travelDuration = DS.motion.travelDuration;
     const RIPPLE_HOSTS = [
@@ -5482,7 +5487,7 @@
   });
 
   add('icons', ['arrowLeft', 'close', 'menu', 'moreVertical', 'moreHorizontal', 'grip', 'copy', 'trash', 'archive', 'logout', 'chat', 'send', 'bell', 'mail', 'check', 'checkCircle', 'alertCircle', 'info', 'helpCircle', 'calendar', 'moon', 'overview', 'user', 'ticket', 'folder', 'box', 'laptop', 'kanban', 'webhook', 'creditCard', 'mailOpen', 'inbox', 'ICON_SIZE', 'icon', 'iconElement', 'fill'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const arrowLeft = '<path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>';
     const close = '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>';
     const menu = '<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/>';
@@ -5634,7 +5639,7 @@
   });
 
   add('position', ['round', 'pxOf', 'computePlacement', 'viewportBounds', 'clippedBounds', 'fixedOrigin', 'dropProbe', 'place', 'supportsAnchoring', 'claimAnchor', 'releaseAnchor', 'anchorPopup'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const viewOf = (element) => element.ownerDocument?.defaultView ?? globalThis;
     const OWNED = Symbol.for('ds.owned');
     function own(element, kind, name) {
@@ -5829,7 +5834,7 @@
   });
 
   add('overlay', ['TOAST_MS', 'TOAST_MAX_MS', 'TOAST_LIMIT', 'TOOLTIP_DELAY_MS', 'TOOLTIP_SKIP_MS', 'TOOLTIP_HIDE_MS', 'DISMISS_DELAY_MS', 'DRAWER_QUERY', 'FOCUSABLE', 'canFocus', 'holdInert', 'lockScroll', 'unlockScroll', 'typeAhead', 'open', 'close', 'topmost', 'layerAt', 'savebar', 'confirm', 'alert', 'prompt', 'toastRegion', 'announce', 'toast', 'closeToasts', 'tooltips', 'internals'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const define = DS.core.define, emit = DS.core.emit, runtime = DS.core.runtime;
     const motionDuration = DS.motion.motionDuration, originFrom = DS.motion.originFrom, settled = DS.motion.settled, transition = DS.motion.transition;
     const scrollEdges = DS.dom.scrollEdges, watchScrolled = DS.dom.watchScrolled;
@@ -5911,13 +5916,13 @@
     function partFor(name, fn) {
     const found = parts[name] ?? pageParts[name];
     if (found) return found;
-    throw new Error(`Dashboard-Style: DS.overlay.${fn}() needs the ${name} module: import js/${name}.js next to js/overlay.js, or keep ${name} in the bundle.`);
+    throw new Error(`Z-Dash: DS.overlay.${fn}() needs the ${name} module: import js/${name}.js next to js/overlay.js, or keep ${name} in the bundle.`);
     }
     const partsWarned = new Set();
     function warnMissingPart(element, kind) {
     if (parts[kind] || partsWarned.has(kind)) return;
     partsWarned.add(kind);
-    viewOf(element).console?.warn(`Dashboard-Style: DS.overlay.open() on a ${kind} needs the ${kind} module: import js/${kind}.js next to js/overlay.js, or keep ${kind} in the bundle.`);
+    viewOf(element).console?.warn(`Z-Dash: DS.overlay.open() on a ${kind} needs the ${kind} module: import js/${kind}.js next to js/overlay.js, or keep ${kind} in the bundle.`);
     }
     const listening = new WeakSet();
     const wired = new WeakSet();
@@ -6669,7 +6674,7 @@
     }
     if (!warned && !element.closest('.ds-theme')) {
     warned = true;
-    viewOf(element).console?.warn('Dashboard-Style: DS.overlay.open() on an element outside .ds-theme. Overlays must sit inside the .ds-theme element, or they get neither the tokens nor the motion.');
+    viewOf(element).console?.warn('Z-Dash: DS.overlay.open() on an element outside .ds-theme. Overlays must sit inside the .ds-theme element, or they get neither the tokens nor the motion.');
     }
     if (kind === 'menu' || kind === 'dialog') warnMissingPart(element, kind);
     for (const tip of tooltipControllers) tip.hide();
@@ -6905,7 +6910,7 @@
     const scroller = ((wrapper ?? bar).closest('.ds-view'));
     if (!scroller && !savebarWarned) {
     savebarWarned = true;
-    view.console?.warn('Dashboard-Style: DS.overlay.savebar() outside .ds-view. The bar shows and hides, but no view keeps room for it or scrolls focus clear of it.');
+    view.console?.warn('Z-Dash: DS.overlay.savebar() outside .ds-view. The bar shows and hides, but no view keeps room for it or scrolls focus clear of it.');
     }
     let shown = false;
     let gen = 0;
@@ -7233,7 +7238,7 @@
   });
 
   add('a11y', ['canTakeFocus', 'tabbables', 'readsKeys', 'trap', 'roving', 'typeaheadMatch', 'typeahead', 'announce', 'inert'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const runtime = DS.core.runtime;
     const motionDuration = DS.motion.motionDuration;
     const rovingOf = DS.dom.roving, typesText = DS.dom.typesText;
@@ -7433,7 +7438,7 @@
   });
 
   add('format', ['number', 'percent', 'currency', 'bytes', 'duration', 'list', 'plural', 'relative', 'absolute', 'clock', 'time'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const config = DS.core.config, define = DS.core.define, runtime = DS.core.runtime;
     const SECOND = 1000;
     const MINUTE = 60 * SECOND;
@@ -7825,7 +7830,7 @@
   });
 
   add('store', ['available', 'open'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const emit = DS.core.emit, runtime = DS.core.runtime;
     const PREFIX = 'ds';
     const shared = runtime.state('store', () => ({
@@ -8016,7 +8021,7 @@
   });
 
   add('virtual', ['sizes', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const emit = DS.core.emit;
     const morphHtml = DS.dom.morphHtml;
     const ESTIMATE = 44;
@@ -8585,7 +8590,7 @@
   });
 
   add('dnd', ['create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const emit = DS.core.emit, runtime = DS.core.runtime, t = DS.core.t;
     const flip = DS.motion.flip, motionDuration = DS.motion.motionDuration, motionEasing = DS.motion.motionEasing, travelDuration = DS.motion.travelDuration;
     const DRAG_THRESHOLD = 4;
@@ -9252,7 +9257,7 @@
   });
 
   add('avatar', ['initials', 'hue', 'create', 'group'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const own = DS.dom.own, disown = DS.dom.disown, morphChildren = DS.dom.morphChildren;
     const canFocus = DS.overlay.canFocus, close = DS.overlay.close;
@@ -9673,7 +9678,7 @@
   });
 
   add('badge', ['format', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const define = DS.core.define, emit = DS.core.emit;
     const enter = DS.motion.enter, leave = DS.motion.leave;
     const DEFAULT_MAX = 99;
@@ -9757,7 +9762,7 @@
   });
 
   add('form', ['count', 'counter'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const autosize = DS.dom.autosize, own = DS.dom.own, disown = DS.dom.disown;
     const announce = DS.a11y.announce;
@@ -9864,7 +9869,7 @@
   });
 
   add('formatted', ['text', 'exact', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const define = DS.core.define, emit = DS.core.emit;
     const own = DS.dom.own, disown = DS.dom.disown;
     const number = DS.format.number, percent = DS.format.percent, currency = DS.format.currency, bytes = DS.format.bytes, duration = DS.format.duration;
@@ -10055,7 +10060,7 @@
   });
 
   add('list', ['rangeKeys', 'allState', 'create', 'facts'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const motionDuration = DS.motion.motionDuration;
     const announce = DS.a11y.announce;
@@ -10460,7 +10465,7 @@
   });
 
   add('listdetail', ['level', 'parent', 'arrange', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const define = DS.core.define, emit = DS.core.emit, get = DS.core.get, t = DS.core.t;
     const enter = DS.motion.enter;
     const canTakeFocus = DS.a11y.canTakeFocus;
@@ -10637,7 +10642,7 @@
   });
 
   add('menu', ['open', 'openAt', 'close', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const motionDuration = DS.motion.motionDuration, originFrom = DS.motion.originFrom, settled = DS.motion.settled;
     const computePlacement = DS.position.computePlacement, place = DS.position.place, pxOf = DS.position.pxOf, releaseAnchor = DS.position.releaseAnchor, round = DS.position.round, viewportBounds = DS.position.viewportBounds;
@@ -11211,7 +11216,7 @@
   });
 
   add('page', ['fold', 'create'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const own = DS.dom.own, disown = DS.dom.disown;
     const iconElement = DS.icons.iconElement, moreVertical = DS.icons.moreVertical;
@@ -11541,7 +11546,7 @@
   });
 
   add('shell', ['SEARCH_QUERY', 'matchText', 'create', 'drawer', 'searchSheet', 'launcher', 'setScheme', 'schemeSwitch', 'fitCrumbs', 'breadcrumbs'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const define = DS.core.define, emit = DS.core.emit, get = DS.core.get, runtime = DS.core.runtime, t = DS.core.t;
     const motionDuration = DS.motion.motionDuration;
     const disown = DS.dom.disown, own = DS.dom.own, scrollEdges = DS.dom.scrollEdges, watchScrolled = DS.dom.watchScrolled;
@@ -12336,7 +12341,7 @@
   });
 
   add('toast', ['toastRegion', 'announce', 'toast', 'closeToasts', 'promise', 'progress'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const t = DS.core.t;
     const flip = DS.motion.flip, settled = DS.motion.settled;
     const alertCircle = DS.icons.alertCircle, checkCircle = DS.icons.checkCircle, closeGlyph = DS.icons.close, iconElement = DS.icons.iconElement, info = DS.icons.info;
@@ -13287,7 +13292,7 @@
   });
 
   add('tooltip', ['tooltips'], function () {
-    /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+    /*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
     const define = DS.core.define;
     const motionDuration = DS.motion.motionDuration, originFrom = DS.motion.originFrom, settled = DS.motion.settled;
     const claimAnchor = DS.position.claimAnchor, dropProbe = DS.position.dropProbe, positionPlace = DS.position.place, pxOf = DS.position.pxOf, releaseAnchor = DS.position.releaseAnchor, supportsAnchoring = DS.position.supportsAnchoring;
@@ -13374,7 +13379,7 @@
     : rootElement.closest('.ds-theme') ?? (root.nodeType === 9 ? doc.querySelector('.ds-theme') : null);
     if (!theme && !tooltipWarned) {
     tooltipWarned = true;
-    view.console?.warn('Dashboard-Style: DS.overlay.tooltips() on a root outside .ds-theme. The tooltip must sit inside the .ds-theme element, or it gets neither the tokens nor the motion.');
+    view.console?.warn('Z-Dash: DS.overlay.tooltips() on a root outside .ds-theme. The tooltip must sit inside the .ds-theme element, or it gets neither the tokens nor the motion.');
     }
     const anchored = supportsAnchoring(view);
     const home = !theme || theme === doc.documentElement ? doc.body : theme;
@@ -13824,6 +13829,6 @@
     if (root.console && typeof root.console.warn === 'function') root.console.warn(message);
   };
   if (current === undefined || current === null || (typeof current === 'object' && current.version === version)) root.DS = DS;
-  else if (typeof current.version === 'string') warn('Dashboard-Style ' + version + ' loaded on a page that already runs ' + current.version + ': window.DS stays ' + current.version + '; this copy is DashboardStyle.versions[\'' + version + '\'].');
-  else warn('Dashboard-Style ' + version + ': window.DS already holds something else; it is left alone, this copy is DashboardStyle.versions[\'' + version + '\'].');
+  else if (typeof current.version === 'string') warn('Z-Dash ' + version + ' loaded on a page that already runs ' + current.version + ': window.DS stays ' + current.version + '; this copy is ZDash.versions[\'' + version + '\'].');
+  else warn('Z-Dash ' + version + ': window.DS already holds something else; it is left alone, this copy is ZDash.versions[\'' + version + '\'].');
 })(typeof globalThis !== 'undefined' ? globalThis : this);

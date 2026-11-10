@@ -1,15 +1,15 @@
 /**
- * Dashboard-Style for Vite, without dependencies: the scan of
+ * Z-Dash for Vite, without dependencies: the scan of
  * tools/bundle.mjs over the files Vite transforms, served as two virtual
  * modules.
  *
  *   // vite.config.js
- *   import dashboardStyle from './vendor/dashboard-style/tools/vite-plugin.mjs';
- *   export default { plugins: [dashboardStyle({ config: 'ds.config.json' })] };
+ *   import zDash from './vendor/z-dash/tools/vite-plugin.mjs';
+ *   export default { plugins: [zDash({ config: 'ds.config.json' })] };
  *
  *   // main.js
- *   import 'virtual:dashboard-style.css';
- *   import DS from 'virtual:dashboard-style.js';
+ *   import 'virtual:z-dash.css';
+ *   import DS from 'virtual:z-dash.js';
  *
  * Options: `config` (a ds.config.json path relative to Vite's root, or the
  * config itself; default ds.config.json when it exists), `dist` (the copy;
@@ -31,8 +31,8 @@ import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expandGlobs, globRegExp, loadCopy, readConfig, renderBundle, resolveBundle, scanText } from './bundle.mjs';
 
-export const CSS_ID = 'virtual:dashboard-style.css';
-export const JS_ID = 'virtual:dashboard-style.js';
+export const CSS_ID = 'virtual:z-dash.css';
+export const JS_ID = 'virtual:z-dash.js';
 const RESOLVED_CSS = `\0${CSS_ID}`;
 const RESOLVED_JS = `\0${JS_ID}`;
 const SCANNED = /\.(html?|[cm]?[jt]sx?|vue|svelte|astro|mdx?)$/;
@@ -41,7 +41,7 @@ const OPTION_KEYS = ['content', 'safelist', 'minify', 'js', 'icons'];
 const posix = (path) => path.split(sep).join('/');
 
 /** The plugin (see the file comment). */
-export default function dashboardStyle(options = {}) {
+export default function zDash(options = {}) {
   let root = process.cwd();
   let command = 'serve';
   let copy = null;
@@ -60,7 +60,7 @@ export default function dashboardStyle(options = {}) {
       if (existsSync(path)) {
         raw = JSON.parse(readFileSync(path, 'utf8'));
         base = dirname(path);
-      } else if (options.config !== undefined) throw new Error(`dashboard-style: no config at ${path}`);
+      } else if (options.config !== undefined) throw new Error(`z-dash: no config at ${path}`);
       else raw = {};
     }
     const merged = { content: ['index.html'], ...raw };
@@ -85,7 +85,7 @@ export default function dashboardStyle(options = {}) {
   /** Errors fail a build and warn in dev (the page keeps running while the name is fixed). */
   const report = (context, errors) => {
     const say = command === 'build' ? context.error?.bind(context) : context.warn?.bind(context);
-    for (const problem of errors) (say ?? console.warn)(`dashboard-style: ${problem}`);
+    for (const problem of errors) (say ?? console.warn)(`z-dash: ${problem}`);
   };
 
   const update = (cssBefore, jsBefore) => {
@@ -124,7 +124,7 @@ export default function dashboardStyle(options = {}) {
   };
 
   return {
-    name: 'dashboard-style',
+    name: 'z-dash',
     enforce: 'pre',
 
     configResolved(resolved) {
@@ -155,7 +155,7 @@ export default function dashboardStyle(options = {}) {
     load(id) {
       if (id === RESOLVED_CSS) return rendered.css;
       if (id !== RESOLVED_JS) return null;
-      if (config.js === 'classic') return `${rendered.js}\nexport default globalThis.DashboardStyle.versions['${copy.manifest.version}'];\n`;
+      if (config.js === 'classic') return `${rendered.js}\nexport default globalThis.ZDash.versions['${copy.manifest.version}'];\n`;
       if (config.js === 'esm') return rendered.js;
       return 'export default undefined;\n';
     },
@@ -185,7 +185,7 @@ export default function dashboardStyle(options = {}) {
 
     buildEnd() {
       if (command !== 'build' || !late.size) return;
-      const message = `dashboard-style: the stylesheet was made at buildStart from "content", and these names first appeared in modules outside it: ${[...late].join(', ')}. Add their folders to "content".`;
+      const message = `z-dash: the stylesheet was made at buildStart from "content", and these names first appeared in modules outside it: ${[...late].join(', ')}. Add their folders to "content".`;
       if (options.strict) this.error(message);
       else this.warn(message);
     },

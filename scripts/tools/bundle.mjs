@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Writes a project's Dashboard-Style bundle: only the stylesheets, modules
+ * Writes a project's Z-Dash bundle: only the stylesheets, modules
  * and icons the project uses, without dependencies (Node 22 or later).
  *
  *   node <copy>/tools/bundle.mjs [--config ds.config.json] [--dist <copy>] [--out <dir>]
@@ -54,7 +54,7 @@ import { gzipSync } from 'node:zlib';
 import { classicScript, stripComments } from './js-wrap.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const HOMEPAGE = 'https://github.com/saschazesiger/Dashboard-Style';
+const HOMEPAGE = 'https://github.com/saschazesiger/Z-Dash';
 const CONFIG_KEYS = ['$schema', 'content', 'out', 'entries', 'safelist', 'minify', 'js', 'icons', 'dist'];
 const SKIP_DIRS = new Set(['node_modules', '.git']);
 /** Icon helpers of the icons module: exports that are not glyphs. */
@@ -164,7 +164,7 @@ export function loadCopy({ dist = resolve(HERE, '..'), manifest } = {}) {
   let data = manifest;
   if (data === undefined || typeof data === 'string') {
     const path = data === undefined ? join(root, 'manifest.json') : resolve(data);
-    if (!existsSync(path)) throw new ConfigError(`no manifest at ${path}: point --dist at a copy of Dashboard-Style 3 (its folder holds manifest.json)`);
+    if (!existsSync(path)) throw new ConfigError(`no manifest at ${path}: point --dist at a copy of Z-Dash 3 (its folder holds manifest.json)`);
     try {
       data = JSON.parse(readFileSync(path, 'utf8'));
     } catch (error) {
@@ -635,9 +635,9 @@ export function pruneIcons(source, keep) {
  */
 export function renderBundle(resolved, copy, { entry = 'bundle', minify = true, js = 'classic', jsBase = '.', files = {} } = {}) {
   const { manifest } = copy;
-  const banner = `/*! Dashboard-Style ${manifest.version} | MIT License | ${HOMEPAGE} | bundle "${entry}": ${resolved.components.size} components (ds.${entry}.json) */\n`;
+  const banner = `/*! Z-Dash ${manifest.version} | MIT License | ${HOMEPAGE} | bundle "${entry}": ${resolved.components.size} components (ds.${entry}.json) */\n`;
   // The script's banner leaves the components out: a change of CSS alone leaves the script as it is.
-  const scriptBanner = `/*! Dashboard-Style ${manifest.version} | MIT License | ${HOMEPAGE} | bundle "${entry}" (ds.${entry}.json) */\n`;
+  const scriptBanner = `/*! Z-Dash ${manifest.version} | MIT License | ${HOMEPAGE} | bundle "${entry}" (ds.${entry}.json) */\n`;
   const pick = (path) => {
     if (!minify) return path;
     const min = path.replace(/\.css$/, '.min.css');
@@ -673,11 +673,11 @@ export function renderBundle(resolved, copy, { entry = 'bundle', minify = true, 
       return { name, source: minify ? stripComments(source) : source };
     });
     const header = `/*
- * Dashboard-Style bundle "${entry}" (tools/bundle.mjs; do not edit): window.DS with
+ * Z-Dash bundle "${entry}" (tools/bundle.mjs; do not edit): window.DS with
  * ${[...resolved.modules.keys()].map((name) => `DS.${name}`).join(', ')}${resolved.modules.has('icons') ? ` and ${resolved.icons.size} icons` : ''}.
  * Icon shapes: Lucide (ISC) and Feather (MIT), see LICENSE.
  * Another bundle or ds.js of the same version on the page adds its modules
- * to the same DashboardStyle.versions[version] object.
+ * to the same ZDash.versions[version] object.
  */`;
     script = classicScript({ version: manifest.version, banner: scriptBanner, header, modules, merge: true });
   } else if (js === 'esm') {
@@ -693,7 +693,7 @@ export function renderBundle(resolved, copy, { entry = 'bundle', minify = true, 
       } else lines.push(`export * as ${name} from '${spec(file)}';`);
     }
     script = `${scriptBanner}/*
- * Dashboard-Style bundle "${entry}" as an ES module (tools/bundle.mjs; do not edit):
+ * Z-Dash bundle "${entry}" as an ES module (tools/bundle.mjs; do not edit):
  * the modules this project uses, by name. A bundler takes it from here.
  */
 export const version = '${manifest.version}';
@@ -702,7 +702,7 @@ ${lines.join('\n')}
   }
 
   const report = {
-    name: manifest.name ?? 'dashboard-style',
+    name: manifest.name ?? 'z-dash',
     version: manifest.version,
     entry,
     minify,
@@ -722,7 +722,7 @@ ${lines.join('\n')}
 }
 
 function propertiesFile(version, blocks) {
-  return `/*! Dashboard-Style ${version} | MIT License | ${HOMEPAGE} */
+  return `/*! Z-Dash ${version} | MIT License | ${HOMEPAGE} */
 /*
  * The @property registrations of the bundle (tools/bundle.mjs; do not
  * edit). @property applies only in stylesheets of the document: a widget

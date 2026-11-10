@@ -1,6 +1,6 @@
 # Loading only what a page uses
 
-A page loads Dashboard-Style in one of three ways, from the simplest to the smallest. All three cascade the same: the
+A page loads Z-Dash in one of three ways, from the simplest to the smallest. All three cascade the same: the
 layer statement fixes the order of the layers, and each component sits in a sublayer of its own,
 `ds.components.<name>`, declared in manifest order. So a page that links single files, a partial bundle and several
 bundles on one page all cascade exactly as the whole of `ds.css` does.
@@ -23,7 +23,7 @@ whatever they sit on (`attributes`: `data-ds-open`, `data-ds-close` and `data-ds
 ## The project bundle
 
 ```sh
-node vendor/dashboard-style/tools/bundle.mjs --config ds.config.json
+node vendor/z-dash/tools/bundle.mjs --config ds.config.json
 ```
 
 It reads `manifest.json` of the copy it sits in (`../manifest.json` next to `tools/`), or of the copy `--dist <path>`
@@ -76,7 +76,7 @@ Vue, Svelte, Markdown and server templates alike. It looks for:
   A name the copy does not know goes into the report's `unknown` list (`tools/check-project.mjs` fails it).
 - **Attributes**: `data-ds-*` names that a component styles (`data-ds-ripple`), also written as `dataset.dsRipple`.
 - **Modules**: `DS.<module>.<export>` (also through `window.DS` and `const { open } = DS.overlay`), and ES imports
-  of `js/<module>.js` (`import { open } from 'vendor/dashboard-style/js/overlay.js'`), with the names they import.
+  of `js/<module>.js` (`import { open } from 'vendor/z-dash/js/overlay.js'`), with the names they import.
 - **React adapter**: ES imports of `react/<file>.js` ([react.md](react.md)) bring the stylesheets that file renders
   and those its modules always need (`manifest.json` `react`), since its classes sit in the adapter, not in the
   project; from `react/index.js` the files of the names imported. The adapter's modules load themselves, so a React
@@ -124,7 +124,7 @@ list the glyphs it can be in `icons` (`"icons": ["check", "alert"]`), or set `"i
 |---|---|
 | `"ds-btn--*"` | every class the glob matches, and so their components; it also covers a name built from `ds-btn--` |
 | `"component:chart"` | the component and everything it requires; it covers a name built from a prefix that only its classes start with (`'ds-chart__bar--' + tone`) |
-| `"module:dom"` | the module (for a name the scan cannot see: `const ui = DashboardStyle.versions['3.0.0']`) |
+| `"module:dom"` | the module (for a name the scan cannot see: `const ui = ZDash.versions['3.0.0']`) |
 | `"icon:check"` | the glyph |
 
 A safelist entry that names nothing in the copy is an error (a component or module) or a warning (a glob).
@@ -139,8 +139,8 @@ Per bundle (`ds.bundle.*`, or `ds.<entry>.*` with `entries`):
 - `ds.bundle.js`:
   - `"classic"`: one script with only the modules the project needs, plus `core`, and an icons module that holds only
     the glyphs it uses. Another bundle (or `ds.js`) of the same version on the page adds its modules to the same
-    `DashboardStyle.versions[version]` object, so two bundles share one overlay stack, one scroll lock and one guard.
-  - `"esm"`: an entry module (`export * as overlay from '../vendor/dashboard-style/js/overlay.js'` ...) for a bundler
+    `ZDash.versions[version]` object, so two bundles share one overlay stack, one scroll lock and one guard.
+  - `"esm"`: an entry module (`export * as overlay from '../vendor/z-dash/js/overlay.js'` ...) for a bundler
     to take from there; it imports only the glyphs the project uses.
 - `ds.bundle.json`, the report: the version, the files with their bytes and gzip sizes, every component, module and
   icon with the reason it is in (`src/app.js:12 ds-btn`, `required by dialog`, `needed by DS.overlay.toast (...)`,
@@ -170,7 +170,7 @@ Each entry scans its own globs and `content` (the shared layout), and writes `ds
 ## In CI: `--check`
 
 ```sh
-node vendor/dashboard-style/tools/bundle.mjs --config ds.config.json --check
+node vendor/z-dash/tools/bundle.mjs --config ds.config.json --check
 ```
 
 It writes nothing and exits 1 with a summary when the bundle on disk no longer matches the project:
@@ -188,7 +188,7 @@ Run the tool without `--check` and commit the bundle with the change that needed
 
 A new vendored copy always makes the old bundle stale (the version in its banner changes, and so may the components),
 so a `--check` in the nightly update would fail every night. The nightly **rebuilds** the bundle from the new copy and
-commits the copy and the bundle together: in `.github/workflows/update-dashboard-style.yml`
+commits the copy and the bundle together: in `.github/workflows/update-z-dash.yml`
 ([install.md](install.md#automatic-updates-github-actions)) set `BUNDLE: ds.config.json` (the path of the config) and
 `SETUP: node`. The template then sets up Node, runs `node "$DEST/tools/bundle.mjs" --config "$BUNDLE"` before the
 check, and adds the config's folder (where its `out` folder sits) to the commit. Keep `--check` in the project's own CI,
@@ -200,15 +200,15 @@ on every push.
 
 ```js
 // vite.config.js
-import dashboardStyle from './vendor/dashboard-style/tools/vite-plugin.mjs';
+import zDash from './vendor/z-dash/tools/vite-plugin.mjs';
 
-export default { plugins: [dashboardStyle({ config: 'ds.config.json' })] };
+export default { plugins: [zDash({ config: 'ds.config.json' })] };
 ```
 
 ```js
 // main.js
-import 'virtual:dashboard-style.css';
-import DS from 'virtual:dashboard-style.js';
+import 'virtual:z-dash.css';
+import DS from 'virtual:z-dash.js';
 ```
 
 At `buildStart` it scans `content` (default `index.html`); after that it scans every module Vite transforms and every

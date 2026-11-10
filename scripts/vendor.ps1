@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Copies a Dashboard-Style build (dist/) into a project directory and records
+  Copies a Z-Dash build (dist/) into a project directory and records
   exactly which commit it is, so the copy can be verified later.
 
 .DESCRIPTION
@@ -17,13 +17,13 @@
   empty or an earlier vendored copy.
 
 .EXAMPLE
-  .\vendor.ps1 vendor\dashboard-style
+  .\vendor.ps1 vendor\z-dash
 
 .EXAMPLE
-  .\vendor.ps1 -From ..\Dashboard-Style vendor\dashboard-style
+  .\vendor.ps1 -From ..\Z-Dash vendor\z-dash
 
 .EXAMPLE
-  .\vendor.ps1 -Check vendor\dashboard-style
+  .\vendor.ps1 -Check vendor\z-dash
 #>
 [CmdletBinding()]
 param(
@@ -34,7 +34,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$Repo = 'saschazesiger/Dashboard-Style'
+$Repo = 'saschazesiger/Z-Dash'
 $Utf8 = New-Object System.Text.UTF8Encoding($false)
 
 # [IO.File] resolves relative paths against .NET's current directory, which
@@ -123,7 +123,7 @@ function Install-Dist([string] $Src, [string] $Target, [string] $Version, [strin
   [IO.File]::WriteAllText((Join-Path $Target 'VERSION'), "version $Version`nsource $Source`ncommit $Commit`n", $Utf8)
   $sums = (@(Get-Sums $Target) -join "`n") + "`n"
   [IO.File]::WriteAllText((Join-Path $Target 'SHA256SUMS'), $sums, $Utf8)
-  Write-Output "Vendored Dashboard-Style $Version into $Target"
+  Write-Output "Vendored Z-Dash $Version into $Target"
 }
 
 if ($Check) {

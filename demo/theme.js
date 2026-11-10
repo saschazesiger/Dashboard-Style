@@ -141,7 +141,7 @@
     if (c.preset) {
       head = '/* The ' + presetOf(c.preset).label.toLowerCase() + ' preset' + (c.contrast === 'high' ? ' at high contrast' : '') +
         ': both schemes in one file. Link it after ds.css:\n' +
-        '   <link rel="stylesheet" href="vendor/dashboard-style/themes/presets/' + c.preset + (c.contrast === 'high' ? '-contrast' : '') + '.css"> */\n';
+        '   <link rel="stylesheet" href="vendor/z-dash/themes/presets/' + c.preset + (c.contrast === 'high' ? '-contrast' : '') + '.css"> */\n';
       return head + (options ? '\n/* theme.css: the options on top of it */\n' + options : '\n/* No options to add: the defaults. */\n');
     }
     head = css || read(CSS_KEY) || '/* Generating ... */\n';

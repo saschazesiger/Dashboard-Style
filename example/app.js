@@ -1,5 +1,5 @@
 /*
- * The reference app: a small device console built on Dashboard-Style 3.0
+ * The reference app: a small device console built on Z-Dash 3.0
  * the way a project uses it. Every pattern follows docs/components.md and
  * docs/motion.md; README.md in this folder maps each one to its place.
  *

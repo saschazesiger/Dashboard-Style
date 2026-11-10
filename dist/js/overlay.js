@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Overlays (D18): the dialog, the side sheet, the modal drawer and the
  * popups (.ds-menu, .ds-combo__popup) open and close through one pair of
@@ -456,7 +456,7 @@ const pageParts = runtime.state('overlay-parts', () => ({}));
 function partFor(name, fn) {
   const found = parts[name] ?? pageParts[name];
   if (found) return found;
-  throw new Error(`Dashboard-Style: DS.overlay.${fn}() needs the ${name} module: import js/${name}.js next to js/overlay.js, or keep ${name} in the bundle.`);
+  throw new Error(`Z-Dash: DS.overlay.${fn}() needs the ${name} module: import js/${name}.js next to js/overlay.js, or keep ${name} in the bundle.`);
 }
 
 /** The kinds open() warned about, once each. */
@@ -470,7 +470,7 @@ const partsWarned = new Set();
 function warnMissingPart(element, kind) {
   if (parts[kind] || partsWarned.has(kind)) return;
   partsWarned.add(kind);
-  viewOf(element).console?.warn(`Dashboard-Style: DS.overlay.open() on a ${kind} needs the ${kind} module: import js/${kind}.js next to js/overlay.js, or keep ${kind} in the bundle.`);
+  viewOf(element).console?.warn(`Z-Dash: DS.overlay.open() on a ${kind} needs the ${kind} module: import js/${kind}.js next to js/overlay.js, or keep ${kind} in the bundle.`);
 }
 
 /** Documents with the Escape and pointer listeners. */
@@ -1702,7 +1702,7 @@ function show(element, options, transform) {
   }
   if (!warned && !element.closest('.ds-theme')) {
     warned = true;
-    viewOf(element).console?.warn('Dashboard-Style: DS.overlay.open() on an element outside .ds-theme. Overlays must sit inside the .ds-theme element, or they get neither the tokens nor the motion.');
+    viewOf(element).console?.warn('Z-Dash: DS.overlay.open() on an element outside .ds-theme. Overlays must sit inside the .ds-theme element, or they get neither the tokens nor the motion.');
   }
   if (kind === 'menu' || kind === 'dialog') warnMissingPart(element, kind);
   for (const tip of tooltipControllers) tip.hide();
@@ -2094,7 +2094,7 @@ export function savebar(element, options = {}) {
   const scroller = /** @type {HTMLElement|null} */ ((wrapper ?? bar).closest('.ds-view'));
   if (!scroller && !savebarWarned) {
     savebarWarned = true;
-    view.console?.warn('Dashboard-Style: DS.overlay.savebar() outside .ds-view. The bar shows and hides, but no view keeps room for it or scrolls focus clear of it.');
+    view.console?.warn('Z-Dash: DS.overlay.savebar() outside .ds-view. The bar shows and hides, but no view keeps room for it or scrolls focus clear of it.');
   }
   let shown = false;
   let gen = 0;

@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-style",
+  "name": "z-dash",
   "version": "3.0.0-alpha.6",
   "entry": "record",
   "minify": true,
@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.record.css",
-      "bytes": 347024,
-      "gzip": 52070
+      "bytes": 347006,
+      "gzip": 52063
     },
     "js": {
       "file": "ds.record.js",
-      "bytes": 703147,
-      "gzip": 167279
+      "bytes": 702774,
+      "gzip": 167299
     },
     "properties": {
       "file": "properties.css",

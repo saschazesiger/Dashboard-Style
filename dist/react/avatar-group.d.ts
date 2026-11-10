@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /** Types of <AvatarGroup> (react/avatar-group.js), generated from src/components/avatar/. */
 import type { BehaviourComponent, Controller } from './shared.js';
 

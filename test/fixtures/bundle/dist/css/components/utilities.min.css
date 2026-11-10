@@ -1,1 +1,1 @@
-/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | fixture */ @layer ds.tokens,ds.base,ds.components,ds.motion,ds.utilities;@layer ds.components.utilities{.ds-sr{position: absolute;width: 1px;height: 1px;overflow: hidden}.ds-num{font-variant-numeric: tabular-nums}}
+/*! Z-Dash 3.0.0-alpha.0 | MIT License | fixture */ @layer ds.tokens,ds.base,ds.components,ds.motion,ds.utilities;@layer ds.components.utilities{.ds-sr{position: absolute;width: 1px;height: 1px;overflow: hidden}.ds-num{font-variant-numeric: tabular-nums}}
