@@ -2598,7 +2598,7 @@ describe('snackbars, tooltips and the save bar (2.0)', () => {
     for (const name of ['announce', 'toastRegion', 'closeToasts', 'savebar']) assert.equal(typeof overlay[name], 'function', name);
     assert.match(doc, /\| `toast\(region, content, \{ kind, persistent, timeout, closeLabel, action, key, restart, reserve \}\)` \|/);
     assert.match(doc, /\| `closeToasts\(region = toastRegion\(\), \{ kind, key \}\)` \|/);
-    assert.match(doc, /\| `announce\(text, \{ assertive, region \}\)` \|/);
+    assert.match(doc, /\| `announce\(text, \{ assertive, region, key \}\)` \|/);
     assert.match(doc, /\| `toastRegion\(doc = document\)` \|/);
     assert.match(doc, /\| `savebar\(element, \{ focusTarget \}\)` \|/);
   });
