@@ -1,19 +1,19 @@
 {
   "name": "z-dash",
-  "version": "3.0.0-alpha.6",
+  "version": "3.0.0",
   "entry": "record",
   "minify": true,
   "js": "classic",
   "files": {
     "css": {
       "file": "ds.record.css",
-      "bytes": 344550,
-      "gzip": 51596
+      "bytes": 344542,
+      "gzip": 51590
     },
     "js": {
       "file": "ds.record.js",
-      "bytes": 702347,
-      "gzip": 167201
+      "bytes": 702115,
+      "gzip": 167140
     },
     "properties": {
       "file": "properties.css",

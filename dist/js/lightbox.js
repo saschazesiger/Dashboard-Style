@@ -1,4 +1,4 @@
-/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
+/*! Z-Dash 3.0.0 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * The lightbox (DS.lightbox): the images of a gallery one at a time over the
  * whole window, with thumbnails, keys, zoom and pan, a caption and swipe on

@@ -1,19 +1,19 @@
 {
   "name": "z-dash",
-  "version": "3.0.0-alpha.6",
+  "version": "3.0.0",
   "entry": "webhooks",
   "minify": true,
   "js": "classic",
   "files": {
     "css": {
       "file": "ds.webhooks.css",
-      "bytes": 369500,
-      "gzip": 54799
+      "bytes": 369492,
+      "gzip": 54792
     },
     "js": {
       "file": "ds.webhooks.js",
-      "bytes": 632875,
-      "gzip": 151856
+      "bytes": 632643,
+      "gzip": 151805
     },
     "properties": {
       "file": "properties.css",

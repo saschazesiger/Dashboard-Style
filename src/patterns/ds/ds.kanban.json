@@ -1,19 +1,19 @@
 {
   "name": "z-dash",
-  "version": "3.0.0-alpha.6",
+  "version": "3.0.0",
   "entry": "kanban",
   "minify": true,
   "js": "classic",
   "files": {
     "css": {
       "file": "ds.kanban.css",
-      "bytes": 268269,
-      "gzip": 41926
+      "bytes": 268261,
+      "gzip": 41919
     },
     "js": {
       "file": "ds.kanban.js",
-      "bytes": 554195,
-      "gzip": 131025
+      "bytes": 553995,
+      "gzip": 130975
     },
     "properties": {
       "file": "properties.css",

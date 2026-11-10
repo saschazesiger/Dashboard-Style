@@ -1,4 +1,4 @@
-/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
+/*! Z-Dash 3.0.0 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Tooltips (DS.tooltip; DS.overlay.tooltips calls it).
  *

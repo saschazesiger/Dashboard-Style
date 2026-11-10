@@ -1,19 +1,19 @@
 {
   "name": "z-dash",
-  "version": "3.0.0-alpha.6",
+  "version": "3.0.0",
   "entry": "calendar",
   "minify": true,
   "js": "classic",
   "files": {
     "css": {
       "file": "ds.calendar.css",
-      "bytes": 312992,
-      "gzip": 47699
+      "bytes": 312984,
+      "gzip": 47692
     },
     "js": {
       "file": "ds.calendar.js",
-      "bytes": 640510,
-      "gzip": 150503
+      "bytes": 640278,
+      "gzip": 150451
     },
     "properties": {
       "file": "properties.css",

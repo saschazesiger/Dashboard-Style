@@ -1,4 +1,4 @@
-/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
+/*! Z-Dash 3.0.0 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Types of DS.reasoning (src/components/reasoning/reasoning.js).
  * Hand-written; the build test keeps the declared exports and their

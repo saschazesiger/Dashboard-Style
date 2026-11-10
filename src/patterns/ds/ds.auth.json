@@ -1,19 +1,19 @@
 {
   "name": "z-dash",
-  "version": "3.0.0-alpha.6",
+  "version": "3.0.0",
   "entry": "auth",
   "minify": true,
   "js": "classic",
   "files": {
     "css": {
       "file": "ds.auth.css",
-      "bytes": 202391,
-      "gzip": 33230
+      "bytes": 202383,
+      "gzip": 33223
     },
     "js": {
       "file": "ds.auth.js",
-      "bytes": 466805,
-      "gzip": 111707
+      "bytes": 466629,
+      "gzip": 111665
     },
     "properties": {
       "file": "properties.css",

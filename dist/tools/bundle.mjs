@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
+/*! Z-Dash 3.0.0 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Writes a project's Z-Dash bundle: only the stylesheets, modules
  * and icons the project uses, without dependencies (Node 22 or later).

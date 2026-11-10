@@ -1,19 +1,19 @@
 {
   "name": "z-dash",
-  "version": "3.0.0-alpha.6",
+  "version": "3.0.0",
   "entry": "audit-log",
   "minify": true,
   "js": "classic",
   "files": {
     "css": {
       "file": "ds.audit-log.css",
-      "bytes": 245213,
-      "gzip": 38622
+      "bytes": 245205,
+      "gzip": 38617
     },
     "js": {
       "file": "ds.audit-log.js",
-      "bytes": 499308,
-      "gzip": 118993
+      "bytes": 499140,
+      "gzip": 118942
     },
     "properties": {
       "file": "properties.css",

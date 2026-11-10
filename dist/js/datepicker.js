@@ -1,4 +1,4 @@
-/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
+/*! Z-Dash 3.0.0 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * The date picker (DS.datepicker): a segmented date field (DS.datefield)
  * and a calendar in a popover (DS.calendar in DS.picker), the WAI-ARIA date

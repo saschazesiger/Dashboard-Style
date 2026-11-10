@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
+/*! Z-Dash 3.0.0 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /**
  * Checks a theme file against the rules of docs/theming.md, without
  * dependencies (Node 18 or later):

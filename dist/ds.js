@@ -1,4 +1,4 @@
-/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
+/*! Z-Dash 3.0.0 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /*
  * Classic-script build of src/js (no modules needed): window.DS.core,
  * DS.motion, DS.indicator, DS.dom, DS.ripple, DS.icons, DS.position,
@@ -37,7 +37,7 @@
  */
 (function (root) {
   'use strict';
-  var version = '3.0.0-alpha.6';
+  var version = '3.0.0';
   // DashboardStyle: the deprecated name from before the rename (3.0), the same object.
   var registry = root.ZDash || root.DashboardStyle || {};
   root.ZDash = registry;

@@ -1,4 +1,4 @@
-/*! Z-Dash 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Z-Dash */
+/*! Z-Dash 3.0.0 | MIT License | https://github.com/saschazesiger/Z-Dash */
 /** Types of <TransferList> (react/transfer.js), generated from src/components/transfer/. */
 import type { BehaviourComponent } from './shared.js';
 

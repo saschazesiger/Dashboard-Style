@@ -127,13 +127,23 @@ describe('tools/check-project.mjs', () => {
     };
     assert.deepEqual(levels('3.0.0-alpha.2'), ['warning css/theme.css', 'warning index.html']);
     assert.deepEqual(levels('3.0.0'), ['error css/theme.css', 'error index.html']);
-    // In this copy (a pre-release) they are planned removals, so the deprecated rule warns; the aliases already left
-    // ds.css, so the classes rule fails on the class.
+    // This copy is the release: the deprecated rule fails on them, and reports the removed class once (the classes
+    // rule leaves it to deprecated).
     const today = run(files);
     assert.deepEqual(today.errors, []);
-    assert.deepEqual([...new Set(today.findings.filter((f) => f.rule === 'deprecated').map((f) => f.level))], ['warning']);
-    assert.deepEqual(today.findings.filter((f) => f.rule === 'classes').map((f) => `${f.level} ${f.file} ${f.message}`), ['error index.html .ds-btn--primary is not a class of this copy (ds.css)']);
-    assert.match(today.findings.find((f) => f.message.includes('ds-btn--primary')).message, /deprecated since 3\.0\.0, removed in 3\.0\.0: use \.ds-btn--filled/);
+    assert.deepEqual([...new Set(today.findings.filter((f) => f.rule === 'deprecated').map((f) => f.level))], ['error']);
+    assert.deepEqual(today.findings.filter((f) => f.rule === 'classes').map((f) => `${f.level} ${f.file} ${f.message}`), []);
+    assert.match(today.findings.find((f) => f.message.includes('ds-btn--primary')).message, /was removed in 3\.0\.0: use \.ds-btn--filled/);
+  });
+
+  it('leaves a name the file binds itself (an import alias) alone, and fails on the removed export', () => {
+    const names = [{ kind: 'export', name: 'createIndicator()', pattern: '(?<![\\w$-])createIndicator(?![\\w$-])', replacement: 'DS.indicator.create()', deprecated: '3.0.0', removed: '3.0.0' }];
+    const own = "import { create as createIndicator } from '../vendor/z-dash/js/indicator.js';\ncreateIndicator(tabs);\n";
+    const removed = "import { createIndicator } from '../vendor/z-dash/js/indicator.js';\nDS.indicator.createIndicator(tabs);\nimport { createIndicator as ci } from './x.js';\n";
+    const lines = (js) => run({ ...CLEAN, 'js/app.js': js }, CONFIG, { deprecations: { version: '3.0.0', names } }).findings
+      .filter((f) => f.rule === 'deprecated').map((f) => `${f.level} ${f.line}`);
+    assert.deepEqual(lines(own), []);
+    assert.deepEqual(lines(removed), ['error 1', 'error 2', 'error 3']);
   });
 
   it('finds each broken rule, with its file and line', () => {

@@ -1,19 +1,19 @@
 {
   "name": "z-dash",
-  "version": "3.0.0-alpha.6",
+  "version": "3.0.0",
   "entry": "billing",
   "minify": true,
   "js": "classic",
   "files": {
     "css": {
       "file": "ds.billing.css",
-      "bytes": 371279,
-      "gzip": 55553
+      "bytes": 371271,
+      "gzip": 55547
     },
     "js": {
       "file": "ds.billing.js",
-      "bytes": 659424,
-      "gzip": 157331
+      "bytes": 659224,
+      "gzip": 157272
     },
     "properties": {
       "file": "properties.css",

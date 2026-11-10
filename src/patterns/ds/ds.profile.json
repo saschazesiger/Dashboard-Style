@@ -1,19 +1,19 @@
 {
   "name": "z-dash",
-  "version": "3.0.0-alpha.6",
+  "version": "3.0.0",
   "entry": "profile",
   "minify": true,
   "js": "classic",
   "files": {
     "css": {
       "file": "ds.profile.css",
-      "bytes": 303286,
-      "gzip": 46809
+      "bytes": 303278,
+      "gzip": 46803
     },
     "js": {
       "file": "ds.profile.js",
-      "bytes": 592425,
-      "gzip": 140526
+      "bytes": 592209,
+      "gzip": 140477
     },
     "properties": {
       "file": "properties.css",

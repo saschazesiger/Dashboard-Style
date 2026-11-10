@@ -4,7 +4,7 @@ All notable changes. Versions follow [semver](https://semver.org): renaming or r
 export is a major change; adding one is a minor change. Identifiers such as D7 refer to the design decisions in
 [plans/motion-2.md](plans/motion-2.md).
 
-## 3.0.0 (unreleased)
+## 3.0.0
 
 A rewrite ([plans/3.0.md](plans/3.0.md)), and a new name: **Dashboard-Style is Z-Dash**. About 170 components in a
 folder each, pages that load only what they use (project bundles), size, density, shape, tone and touch as option
@@ -53,6 +53,9 @@ still name them; [docs/migration.md](docs/migration.md) lists each with its repl
   to (3.0.0 from a 3.0.0 pre-release) as gone, so no file of the repository uses one and no doc marks one deprecated;
   the tests that kept the aliases working check that they are gone. The shipped tools keep their rule: a pre-release
   copy warns on these names, 3.0.0 fails on them.
+- **`check-project`:** a name a file binds itself through an import or destructuring alias is the file's own, not
+  a removed export: `import { create as createIndicator }`, which `migrate.mjs` writes, and the calls of that local
+  name pass; `DS.indicator.createIndicator` and `import { createIndicator }` still fail.
 
 ### Performance on slow and mobile devices (3.0.0-alpha.6)
 

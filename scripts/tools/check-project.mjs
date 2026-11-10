@@ -365,8 +365,15 @@ export function checkProject(config, root) {
   const gone = (entry) => isRemoved(entry, copy.deprecations?.version);
   for (const file of [...cssFiles, ...themes, ...jsFiles, ...htmlFiles]) {
     const source = read(file);
+    // Names the file binds itself through an import or destructuring alias (`create as createIndicator`, what
+    // migrate.mjs writes): a use of such a name is the file's own, not the removed export, unless it is read as a
+    // member (`DS.indicator.createIndicator`) or imported under it (`{ createIndicator as x }`).
+    const local = new Set([...source.matchAll(/\bas\s+([A-Za-z_$][\w$]*)/g)].map((found) => found[1]));
+    const ownName = (entry, match) => entry.kind === 'export' && local.has(match[0]) && source[match.index - 1] !== '.'
+      && !/^\s+as\b/.test(source.slice(match.index + match[0].length, match.index + match[0].length + 8));
     for (const entry of names.filter((d) => d.pattern)) {
       for (const match of source.matchAll(new RegExp(entry.pattern, 'g'))) {
+        if (ownName(entry, match)) continue;
         const planned = entry.removed && !gone(entry) ? `, removed in ${entry.removed}` : '';
         add(gone(entry) ? 'error' : 'warning', file, lineAt(source, match.index), 'deprecated',
           `${entry.name} ${gone(entry) ? `was removed in ${entry.removed}` : `is deprecated since ${entry.deprecated}${planned}`}${entry.replacement ? `: use ${entry.replacement}` : ''}`);

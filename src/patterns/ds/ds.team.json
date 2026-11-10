@@ -1,19 +1,19 @@
 {
   "name": "z-dash",
-  "version": "3.0.0-alpha.6",
+  "version": "3.0.0",
   "entry": "team",
   "minify": true,
   "js": "classic",
   "files": {
     "css": {
       "file": "ds.team.css",
-      "bytes": 346748,
-      "gzip": 51940
+      "bytes": 346740,
+      "gzip": 51934
     },
     "js": {
       "file": "ds.team.js",
-      "bytes": 590814,
-      "gzip": 139608
+      "bytes": 590606,
+      "gzip": 139558
     },
     "properties": {
       "file": "properties.css",

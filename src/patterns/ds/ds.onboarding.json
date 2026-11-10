@@ -1,19 +1,19 @@
 {
   "name": "z-dash",
-  "version": "3.0.0-alpha.6",
+  "version": "3.0.0",
   "entry": "onboarding",
   "minify": true,
   "js": "classic",
   "files": {
     "css": {
       "file": "ds.onboarding.css",
-      "bytes": 299384,
-      "gzip": 45973
+      "bytes": 299376,
+      "gzip": 45967
     },
     "js": {
       "file": "ds.onboarding.js",
-      "bytes": 561119,
-      "gzip": 132662
+      "bytes": 560927,
+      "gzip": 132610
     },
     "properties": {
       "file": "properties.css",

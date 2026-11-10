@@ -1,19 +1,19 @@
 {
   "name": "z-dash",
-  "version": "3.0.0-alpha.6",
+  "version": "3.0.0",
   "entry": "chat",
   "minify": true,
   "js": "classic",
   "files": {
     "css": {
       "file": "ds.chat.css",
-      "bytes": 298898,
-      "gzip": 46555
+      "bytes": 298890,
+      "gzip": 46549
     },
     "js": {
       "file": "ds.chat.js",
-      "bytes": 616833,
-      "gzip": 145556
+      "bytes": 616601,
+      "gzip": 145503
     },
     "properties": {
       "file": "properties.css",
