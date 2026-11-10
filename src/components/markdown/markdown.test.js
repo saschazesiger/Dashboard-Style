@@ -283,8 +283,8 @@ describe('robustness', () => {
     'runs': (n) => '*'.repeat(n),
     'underscores': (n) => 'a'.repeat(n / 2) + '_'.repeat(n / 2),
   };
-  /** The faster of two runs, in ms. */
-  const time = (source) => Math.min(...[0, 1].map(() => {
+  /** The fastest of five runs, in ms: one run a busy machine interrupts says nothing about the parser. */
+  const time = (source) => Math.min(...[0, 1, 2, 3, 4].map(() => {
     const start = performance.now();
     render(source, { anchors: true, code: 'block' });
     return performance.now() - start;

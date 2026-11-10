@@ -294,7 +294,7 @@ scaled `--ds-dur-glide`, and the indicator, whose travel time is `travelDuration
 
 The committed set in `__screenshots__/<project>/<spec>/` comes from the CI container
 `mcr.microsoft.com/playwright:v1.63.0-noble`: run the `check` workflow by hand (Actions, "check", Run workflow) with
-"update screenshots" set, download the uploaded `screenshots-<browser>-<shard>` artifacts (three per engine, its
+"update screenshots" set, download the uploaded `screenshots-<browser>-<shard>` artifacts (four per engine, its
 shards, each the whole `__screenshots__/` folder after that shard's run: together they hold the engine's set), copy
 each one's `<browser>/` folder into `test/browser/__screenshots__/` and commit them. The same image runs locally with
 Docker (`docker run --ipc=host -v "$PWD":/work -w /work mcr.microsoft.com/playwright:v1.63.0-noble npx playwright

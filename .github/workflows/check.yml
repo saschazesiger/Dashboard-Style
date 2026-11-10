@@ -37,14 +37,14 @@ jobs:
   browser:
     needs: check
     runs-on: ubuntu-latest
-    # 3.0 runs about 2,700 tests per engine, past 35 minutes in one job: each engine runs in three shards (--shard),
-    # each well inside the limit, which only catches a hang.
-    timeout-minutes: 35
+    # 3.0 runs about 2,700 tests per engine, past 35 minutes in one job: each engine runs in four shards (--shard);
+    # the shard that holds the Motion Lab spec takes the longest (WebKit about 30 minutes). The limit only catches a hang.
+    timeout-minutes: 50
     strategy:
       fail-fast: false
       matrix:
         browser: [chromium, firefox, webkit, fallback]
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4]
         include:
           # perf: the paint budget and the style recalc times (perf.spec.js), alone in its job so no other test
           # shares the CPU; one shard.
@@ -58,7 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm ci
-      - run: npx playwright test --config test/browser/playwright.config.js --project=${{ matrix.browser }} ${{ matrix.shard > 0 && format('--shard={0}/3', matrix.shard) || '' }} ${{ inputs.update-screenshots && '--update-snapshots' || '' }}
+      - run: npx playwright test --config test/browser/playwright.config.js --project=${{ matrix.browser }} ${{ matrix.shard > 0 && format('--shard={0}/4', matrix.shard) || '' }} ${{ inputs.update-screenshots && '--update-snapshots' || '' }}
       # The job never commits: the engineer downloads the screenshots and commits them.
       - if: ${{ always() && inputs.update-screenshots }}
         uses: actions/upload-artifact@v7

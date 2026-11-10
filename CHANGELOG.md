@@ -61,7 +61,7 @@ latency), then fixed where the system or its pages did more than they need to.
   `key` option lets a newer text replace the one of the same key not read yet. The composer's palette, the audit log's
   filter and the JSON viewer's search say their counts keyed, so typing quickly says the last count only.
 - **CI**: the screenshot set of 3.0 for every engine from the Playwright container (the committed one was 2.x's); each
-  engine runs in three shards, past 35 minutes in one job.
+  engine runs in four shards, past 35 minutes in one job.
 - **Accessibility sweep** (`test/browser/a11y-sweep.spec.js`): every demo's interactive elements are named, ARIA
   references resolve, ids are unique, images have text and roles are valid. It found a blank line of `DS.logview`
   without a name (now "Blank line", the string `logBlank`) and broken references in the result and wizard demos.

@@ -19,7 +19,8 @@ SG_LAB.add({
   play: function (stage) {
     var row = stage.querySelector('[data-lab-toolcall]');
     var running = stage.call.get().status === 'running';
-    stage.call.set(running ? { status: 'done', label: 'Done' } : { status: 'running', label: 'Running', since: Date.now() });
+    // A known duration, as a page that has it passes it: the same figure on every run.
+    stage.call.set(running ? { status: 'done', label: 'Done', duration: 1240 } : { status: 'running', label: 'Running', since: Date.now() });
     row.open = running;
     return DS.motion.settled(row, { subtree: true });
   },

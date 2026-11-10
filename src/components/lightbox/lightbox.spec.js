@@ -47,7 +47,8 @@ test('an item opens the viewer at its image; the arrows, keys and thumbnails mov
   await page.keyboard.press('ArrowRight');
   await expect(thumbs.nth(4)).toBeFocused();
   await expect(box.locator('.ds-lightbox__count')).toHaveText('Image 5 of 6');
-  expect(await page.evaluate(() => [...document.querySelectorAll('[aria-live]')].some((region) => region.textContent.includes('Image 5 of 6')))).toBe(true);
+  // Announcements are written on the next frame.
+  await expect.poll(() => page.evaluate(() => [...document.querySelectorAll('[aria-live]')].some((region) => region.textContent.includes('Image 5 of 6')))).toBe(true);
   await page.keyboard.press('Escape');
   await settle(page);
   await expect(box).toBeHidden();
