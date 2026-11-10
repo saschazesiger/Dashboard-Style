@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.permissions.css",
-      "bytes": 311869,
-      "gzip": 47268
+      "bytes": 309666,
+      "gzip": 46859
     },
     "js": {
       "file": "ds.permissions.js",
-      "bytes": 576664,
-      "gzip": 136967
+      "bytes": 576269,
+      "gzip": 136879
     },
     "properties": {
       "file": "properties.css",
@@ -30,8 +30,8 @@
     {
       "name": "spinner",
       "reason": "permissions.html:101 ds-spinner",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "indicator",
@@ -42,32 +42,32 @@
     {
       "name": "button",
       "reason": "permissions.html:22 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "status",
       "reason": "permissions.html:82 ds-tag",
-      "bytes": 3164,
-      "gzip": 921
+      "bytes": 2830,
+      "gzip": 865
     },
     {
       "name": "chart",
       "reason": "required by list",
-      "bytes": 23341,
-      "gzip": 4433
+      "bytes": 23123,
+      "gzip": 4396
     },
     {
       "name": "list",
       "reason": "permissions.html:88 ds-lock",
-      "bytes": 18637,
-      "gzip": 3412
+      "bytes": 18493,
+      "gzip": 3387
     },
     {
       "name": "card",
       "reason": "permissions.html:68 ds-card",
-      "bytes": 16606,
-      "gzip": 2659
+      "bytes": 16531,
+      "gzip": 2644
     },
     {
       "name": "menu",
@@ -78,14 +78,14 @@
     {
       "name": "table",
       "reason": "permissions.html:73 ds-table-wrap",
-      "bytes": 32874,
-      "gzip": 4760
+      "bytes": 32273,
+      "gzip": 4685
     },
     {
       "name": "form",
       "reason": "permissions.html:157 ds-check",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "drag",
@@ -102,14 +102,14 @@
     {
       "name": "page",
       "reason": "permissions.html:61 ds-content",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "shell",
       "reason": "permissions.html:18 ds-app",
-      "bytes": 39266,
-      "gzip": 6590
+      "bytes": 39239,
+      "gzip": 6579
     },
     {
       "name": "toast",

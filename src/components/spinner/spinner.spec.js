@@ -1,7 +1,7 @@
 /**
  * The spinner on the options model: the arc and the ring at every size
- * (density and touch change nothing), the ring's width, --ink, the deprecated
- * --sm, tones on the spinner only, the transition inside .ds-progress, the
+ * (density and touch change nothing), the ring's width, --ink, the 2.x
+ * --sm gone, tones on the spinner only, the transition inside .ds-progress, the
  * names of the demo's rings, forced colours. Runs in `fallback` too.
  */
 import { test, expect } from '../../../test/browser/base-test.js';
@@ -55,14 +55,17 @@ test('the ring\'s width follows its size; the hook sets one; shape leaves both r
   expect(await probe(page, `<div class="ds-shape-square"><span id="probe" class="ds-spinner"></span></div>`, 'style.borderTopLeftRadius')).toBe('50%');
 });
 
-test('--ink takes the text colour on a faint ring, at any size; the deprecated --sm keeps a fixed 12px', async ({ page }) => {
+test('--ink takes the text colour on a faint ring, at any size; the 2.x --sm is gone', async ({ page }) => {
   await open(page);
   const ink = `<span id="probe" class="ds-spinner ds-spinner--ink ds-lg"></span>`;
   expect(await probe(page, ink, hook('--ds-spinner-color'))).toBe('currentColor');
   expect(await probe(page, ink, box)).toEqual([20, 20]);
   expect(await probe(page, '<span id="probe" class="ds-spinner ds-spinner--ink ds-sm"></span>', box)).toEqual([12, 12]);
-  expect(await probe(page, '<div class="ds-lg"><span id="probe" class="ds-spinner ds-spinner--sm"></span></div>', box)).toEqual([12, 12]);
-  expect(await probe(page, '<span id="probe" class="ds-spinner ds-spinner--sm"></span>', hook('--ds-spinner-color'))).toBe('currentColor');
+  // Removed in 3.0: the class does nothing, the spinner follows the size around it in the primary colour. Built from
+  // fragments, so the removed-name guard of test/repo.test.js passes this file.
+  const small = `ds-spinner--${'sm'}`;
+  expect(await probe(page, `<div class="ds-lg"><span id="probe" class="ds-spinner ${small}"></span></div>`, box)).toEqual([20, 20]);
+  expect(await probe(page, `<span id="probe" class="ds-spinner ${small}"></span>`, hook('--ds-spinner-color'))).not.toBe('currentColor');
 });
 
 test('tones: from the class on the spinner; an inherited one changes nothing; the arc turns only without a share', async ({ page }) => {

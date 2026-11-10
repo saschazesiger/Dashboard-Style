@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.bundle.css",
-      "bytes": 482701,
-      "gzip": 69979
+      "bytes": 479765,
+      "gzip": 69453
     },
     "js": {
       "file": "ds.bundle.js",
-      "bytes": 1063609,
-      "gzip": 251990
+      "bytes": 1063182,
+      "gzip": 251897
     },
     "properties": {
       "file": "properties.css",
@@ -30,14 +30,14 @@
     {
       "name": "spinner",
       "reason": "app.js:119 ds-spinner",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "loader",
       "reason": "required by datagrid",
-      "bytes": 923,
-      "gzip": 465
+      "bytes": 873,
+      "gzip": 452
     },
     {
       "name": "indicator",
@@ -48,8 +48,8 @@
     {
       "name": "button",
       "reason": "app.js:134 ds-btn__faces",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "loading",
@@ -72,14 +72,14 @@
     {
       "name": "status",
       "reason": "app.js:63 ds-status",
-      "bytes": 3164,
-      "gzip": 921
+      "bytes": 2830,
+      "gzip": 865
     },
     {
       "name": "alert",
       "reason": "app.js:186 ds-alert",
-      "bytes": 6191,
-      "gzip": 1561
+      "bytes": 6019,
+      "gzip": 1532
     },
     {
       "name": "switch",
@@ -96,8 +96,8 @@
     {
       "name": "chart",
       "reason": "app.js:238 ds-chart",
-      "bytes": 23341,
-      "gzip": 4433
+      "bytes": 23123,
+      "gzip": 4396
     },
     {
       "name": "tile",
@@ -108,14 +108,14 @@
     {
       "name": "list",
       "reason": "app.js:208 ds-list",
-      "bytes": 18637,
-      "gzip": 3412
+      "bytes": 18493,
+      "gzip": 3387
     },
     {
       "name": "card",
       "reason": "app.js:237 ds-card",
-      "bytes": 16606,
-      "gzip": 2659
+      "bytes": 16531,
+      "gzip": 2644
     },
     {
       "name": "empty",
@@ -138,8 +138,8 @@
     {
       "name": "badge",
       "reason": "app.js:350 ds-badge",
-      "bytes": 3754,
-      "gzip": 964
+      "bytes": 3304,
+      "gzip": 896
     },
     {
       "name": "sheet",
@@ -150,14 +150,14 @@
     {
       "name": "dialog",
       "reason": "index.html:139 ds-dialog",
-      "bytes": 15994,
-      "gzip": 2482
+      "bytes": 15933,
+      "gzip": 2468
     },
     {
       "name": "table",
       "reason": "app.js:382 ds-selection-bar",
-      "bytes": 32874,
-      "gzip": 4760
+      "bytes": 32273,
+      "gzip": 4685
     },
     {
       "name": "pagination",
@@ -168,8 +168,8 @@
     {
       "name": "form",
       "reason": "app.js:344 ds-search",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "drag",
@@ -192,14 +192,14 @@
     {
       "name": "page",
       "reason": "app.js:142 ds-page-head",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "shell",
       "reason": "app.js:391 ds-view--fill",
-      "bytes": 39266,
-      "gzip": 6590
+      "bytes": 39239,
+      "gzip": 6579
     },
     {
       "name": "toast",

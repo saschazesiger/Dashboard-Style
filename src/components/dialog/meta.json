@@ -18,7 +18,6 @@
     "ds-dialog--nested",
     "ds-dialog--scroll-outside",
     "ds-dialog--sm",
-    "ds-dialog--wide",
     "ds-dialog--xl",
     "ds-dialog__actions",
     "ds-dialog__backdrop",
@@ -59,10 +58,6 @@
     "--ds-dialog-width-xl": {
       "default": "720px",
       "description": "`.ds-dialog--xl`"
-    },
-    "--ds-dialog-width-wide": {
-      "default": "560px",
-      "description": "**deprecated** name of `--ds-dialog-width-lg`, read after it"
     },
     "--ds-dialog-padding": {
       "default": "`--ds-space-6`",

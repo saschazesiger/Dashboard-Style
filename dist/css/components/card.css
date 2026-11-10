@@ -100,9 +100,6 @@
  * --ds-card-media-size, --ds-card-body-min. --ds-card-pad is the resulting
  * padding of each card, which tables read to bleed to its edges: read it,
  * never set it. --_radius and --_card-gap are private.
- *
- * Deprecated aliases until 3.0 ships: .ds-subsection (.ds-card__section),
- * .ds-card__more (.ds-card__more).
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -681,9 +678,8 @@
   }
 
   /* A part of a card with its own small title: a hairline and room above,
-     the content close under its title. (.ds-subsection: its 2.x name.) */
-  .ds-card__section,
-  .ds-subsection {
+     the content close under its title. */
+  .ds-card__section {
     display: grid;
     gap: calc(var(--ds-space-3) + var(--ds-density, 0) * 2px);
     margin-top: var(--ds-space-2);
@@ -692,15 +688,12 @@
   }
 
   .ds-card__section > .ds-card__subtitle,
-  .ds-card__section > p,
-  .ds-subsection > .ds-card__subtitle,
-  .ds-subsection > p {
+  .ds-card__section > p {
     margin: 0;
   }
 
-  /* A centred "load more" row. (.ds-more: its 2.x name.) */
-  .ds-card__more,
-  .ds-more {
+  /* A centred "load more" row. */
+  .ds-card__more {
     display: flex;
     justify-content: center;
   }

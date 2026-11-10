@@ -7,7 +7,7 @@
  *
  *   const ripples = DS.ripple.attach(document);   // once, for every action on the page
  *   ripples.release(host);                        // end a running press (no argument: every press)
- *   ripples.destroy();                            // detach() is its deprecated alias until 3.0 ships
+ *   ripples.destroy();                            // takes it all back
  *
  * attach(root) adds .ds-ripples to the root element (<html> for document),
  * which positions and clips the hosts (ripple.css), and listens once on
@@ -196,7 +196,6 @@ const pressing = new Set();
  * @typedef {object} RippleHandle
  * @property {() => void} destroy  removes the listeners and .ds-ripples; ripples already shown finish
  * @property {(host?: Element) => void} release  ends the running press of `host`, or every press under the root
- * @property {() => void} detach  deprecated alias of destroy() until 3.0 ships
  */
 
 /** The handle of each attached root, shared by every copy on the page (DS.core.runtime). @type {WeakMap<Node, RippleHandle>} */
@@ -762,8 +761,7 @@ function watchInput(doc) {
  * Returns a handle: destroy() takes it all back (its hold on the guard
  * too; busy() keeps its own), release(host?) ends a running press (the
  * ripple fades as on release; without a host every press under the root;
- * nothing when there is none). detach() is the deprecated alias of
- * destroy().
+ * nothing when there is none).
  * @param {Document|Element|ShadowRoot} [root]
  * @returns {RippleHandle}
  */
@@ -913,10 +911,6 @@ export function attach(root = document) {
     release(host) {
       const hosts = host ? [host] : [...pressing].filter((item) => element.contains(item));
       for (const item of hosts) end(item);
-    },
-    /** Deprecated (removed in 3.0 at the earliest): destroy(). */
-    detach() {
-      handle.destroy();
     },
   };
   attached.set(root, handle);

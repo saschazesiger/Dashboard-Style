@@ -109,9 +109,7 @@ render the "+N" yourself.
 | Tone | `.ds-tone-*` | on a `.ds-avatar--ring` itself | the ring's colour; the label says what it means |
 | Density | | | not read: an avatar is the size of a face; a dense row takes a smaller size class |
 
-`.ds-avatar--sm` and `.ds-avatar--lg` are **deprecated** (3.0, removed when 3.0 ships): `.ds-sm` and `.ds-lg`, also on any
-ancestor. Until then they keep the fixed 2.x discs (24 and 40px). The account avatar of the app frame
-(`.ds-account__avatar`) is the same disc.
+The account avatar of the app frame (`.ds-account__avatar`) is the same disc.
 
 ### Behaviour: `data-ds-avatar`
 

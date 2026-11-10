@@ -40,7 +40,7 @@
  */
 import { define, emit } from './core.js';
 import { own, disown } from './dom.js';
-import { create as createIndicator } from './indicator.js';
+import { create as makeIndicator } from './indicator.js';
 
 /** How many heights of the scroller a link glides through before it jumps. */
 const GLIDE_SCREENS = 3;
@@ -280,7 +280,7 @@ function controller(nav, options, signal) {
   // After the first mark: the pill's first placement jumps, so the link
   // the page loads on is marked in place instead of growing on load.
   const top = nav.querySelector('.ds-toc__list');
-  const indicator = top ? createIndicator(top, {
+  const indicator = top ? makeIndicator(top, {
     active: '.ds-toc__link[aria-current]:not([aria-current="false"])',
     className: 'ds-toc__indicator',
     reveal: nav.classList.contains('ds-toc--bar'),

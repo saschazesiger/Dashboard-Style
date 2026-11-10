@@ -4913,9 +4913,6 @@
     const hosts = host ? [host] : [...pressing].filter((item) => element.contains(item));
     for (const item of hosts) end(item);
     },
-    detach() {
-    handle.destroy();
-    },
     };
     attached.set(root, handle);
     return handle;
@@ -5699,7 +5696,7 @@
     target.dispatchEvent(new view.Event('input', { bubbles: true, composed: true }));
     return true;
     }
-    const CLOSERS = '[data-ds-close=""], [data-close]';
+    const CLOSERS = '[data-ds-close=""]';
     const USER_CLOSE = new Set(['escape', 'backdrop', 'close']);
     function dismissable(element, state, part, event) {
     if (event.detail === 0) return true;
@@ -6241,9 +6238,6 @@
     return order.some((entry) => entry.open() && entry.opener?.() === node);
     }
     function announceClose(element, reason) {
-    const view = viewOf(element);
-    if (typeof view.CustomEvent !== 'function') return;
-    element.dispatchEvent(new view.CustomEvent('ds-close', { bubbles: true, detail: { reason } }));
     emit(element, 'close', { reason });
     }
     function closeFrom(element, cause, reason = cause) {

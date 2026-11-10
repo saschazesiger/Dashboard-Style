@@ -285,9 +285,7 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
 | Stacked | `.ds-table--stack`, `.ds-table--stack-wide` | the table | a block per row where a row of fields has no room |
 
 Zebra, borders, sticky rows and pinned columns combine. There is no tone: a table shows no meaning of its own, a
-`.ds-status` in a cell does. `.ds-table--dense` is **deprecated** (removed when 3.0 ships), with its hook
-`--ds-table-dense-row-height`: the 2.x 40px head and rows at a fixed height, which size and density do not change. Use
-`.ds-density-tight` on the table or a container: 40px rows and a 36px head.
+`.ds-status` in a cell does. Rows of 40px are `.ds-density-tight` on the table or a container (with a 36px head).
 
 ### Sticky rows
 
@@ -347,7 +345,6 @@ and a selected row its checkbox), and the selection bar keeps an outline.
 |---|---|---|
 | `--ds-table-head-height` | 48px | the head's base height, which size and density step from |
 | `--ds-table-row-height` | 52px | the rows' base height, which size and density step from |
-| `--ds-table-dense-row-height` | 40px | `.ds-table--dense` (deprecated) |
 | `--ds-table-padding` | `--ds-space-4` | the cells' side padding, which density steps from; on phones (600px) three quarters of it, below 360px half |
 | `--ds-table-row-hover` | `currentColor` at `--ds-state-hover-lg` | the row's hover layer |
 | `--ds-table-row-selected` | `--ds-accent` | a selected row |

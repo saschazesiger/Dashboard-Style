@@ -104,8 +104,8 @@
     <h2 id="stack-title">Alert stack</h2>
     <div class="fx-stack fx-narrow" id="alerts">
       <div class="ds-alert" role="status" id="alert-1"><span data-icon="info" data-size="20"></span><span class="ds-alert__text">The nightly sync runs at 02:00.</span></div>
-      <div class="ds-alert ds-alert--warning" id="alert-2"><span data-icon="alert" data-size="20"></span><span class="ds-alert__text">The certificate expires in 5 days.</span></div>
-      <div class="ds-alert ds-alert--success" id="alert-3"><span data-icon="checkCircle" data-size="20"></span><span class="ds-alert__text">All 128 devices are up to date.</span></div>
+      <div class="ds-alert ds-tone-warning" id="alert-2"><span data-icon="alert" data-size="20"></span><span class="ds-alert__text">The certificate expires in 5 days.</span></div>
+      <div class="ds-alert ds-tone-success" id="alert-3"><span data-icon="checkCircle" data-size="20"></span><span class="ds-alert__text">All 128 devices are up to date.</span></div>
     </div>
   </section>
 
@@ -116,7 +116,7 @@
       <div class="ds-card ds-card--interactive" id="card-div">
         <div class="ds-card__row">
           <h3 class="ds-card__title"><a class="ds-card__action" href="#desktop">DESKTOP-0107</a></h3>
-          <button class="ds-btn ds-btn--sm" type="button" id="card-div-button">Restart</button>
+          <button class="ds-btn ds-sm" type="button" id="card-div-button">Restart</button>
         </div>
         <p class="ds-muted">Last seen today, 09:12.</p>
       </div>
@@ -135,7 +135,7 @@
         <nav class="ds-card__links" aria-label="Related" id="links-tall-row"><a class="ds-btn ds-btn--text ds-card__link" href="#tickets">Tickets</a></nav></section>
     </div>
     <section class="ds-card" id="head-card">
-      <div class="ds-card__row" id="head-row"><h3 class="ds-card__title" id="head-title">Workstation in the second floor office</h3><span class="ds-status ds-status--ok" id="head-status"><span data-icon="check" data-size="16"></span><span>Managed</span></span></div>
+      <div class="ds-card__row" id="head-row"><h3 class="ds-card__title" id="head-title">Workstation in the second floor office</h3><span class="ds-status ds-tone-success" id="head-status"><span data-icon="check" data-size="16"></span><span>Managed</span></span></div>
       <p class="ds-muted" id="head-text">Issued to Grace Hopper.</p>
     </section>
   </section>

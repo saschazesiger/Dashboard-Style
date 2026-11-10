@@ -9,11 +9,7 @@
   "classes": [
     "ds-badge",
     "ds-badge--corner",
-    "ds-badge--dot",
-    "ds-badge--error",
-    "ds-badge--neutral",
-    "ds-badge--ok",
-    "ds-badge--warning"
+    "ds-badge--dot"
   ],
   "attributes": [],
   "requires": [],

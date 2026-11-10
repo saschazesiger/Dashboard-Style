@@ -55,7 +55,6 @@ An inline message under a field or in a row; a section message, a block with its
 | Shape | `.ds-shape-*` | any container or the theme | the corners times 0, .5, 1, 1.5; `--plain` and `--inline` have none |
 | Touch | `.ds-touch` | the theme or a container | its buttons and the `.ds-errors` summary, at least `--ds-touch-target` high; the alert itself is no target, but it grows to hold its button (below) |
 
-- `.ds-alert--success`, `.ds-alert--warning`, `.ds-alert--error` are **deprecated** (3.0, removed when 3.0 ships): `.ds-tone-success`, `.ds-tone-warning`, `.ds-tone-error` on the alert, the same look under the option every component shares.
 - `.ds-alert__title` (the label font, the alert's ink) opens `.ds-alert__text` in every alert; paragraphs in the text
   lose their margins and stand `--ds-space-2` apart.
 - `.ds-alert__actions` after the text holds one or more buttons side by side; the alert then wraps, the text takes at

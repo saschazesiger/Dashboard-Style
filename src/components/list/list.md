@@ -204,9 +204,7 @@ The list controller: `get()` (multiple: the checked keys; single: the key or `nu
   and a ring that snaps in, the ripple, no morph; `disabled` and `aria-disabled="true"` rows take the disabled
   model (`GrayText` in forced colours). A `div.ds-kv-list__row` is a static row among them.
 - `.ds-kv-list__icon` before a value, with a tone on the icon itself (`.ds-tone-success`, `.ds-tone-warning`,
-  `.ds-tone-error` ...), always with a `.ds-sr` word. `.ds-kv-list__icon--ok`, `.ds-kv-list__icon--warning` and
-  `.ds-kv-list__icon--error` are **deprecated** (3.0, removed when 3.0 ships): `.ds-tone-success`, `.ds-tone-warning`,
-  `.ds-tone-error`, the same colours. `strong.ds-muted` is a quiet value ("Not set") in the regular weight.
+  `.ds-tone-error` ...), always with a `.ds-sr` word. `strong.ds-muted` is a quiet value ("Not set") in the regular weight.
 - `.ds-kv-list--bars` puts a [meter](#charts) under each row, `aria-hidden` (the figure is in the text); the label
   stays on one line and ends in an ellipsis (give it a `data-tip` with the full text). A tone on the meter also goes
   into the row as a word ("78%, high"): the meter is hidden and a figure is no status.

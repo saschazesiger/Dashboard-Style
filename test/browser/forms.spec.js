@@ -379,7 +379,7 @@ test.describe('tiles, actions, slider', () => {
     await open(page);
     await page.setViewportSize({ width: 390, height: 700 });
     const edges = await page.evaluate(() => {
-      const actions = '<div class="ds-form-actions ds-form-actions--sticky"><button class="ds-btn ds-btn--primary" type="submit">Save</button></div>';
+      const actions = '<div class="ds-form-actions ds-form-actions--sticky"><button class="ds-btn ds-btn--filled" type="submit">Save</button></div>';
       const host = document.createElement('div');
       host.innerHTML =
         '<div id="x-box" style="padding: 20px; border: 1px solid; --ds-form-actions-bleed: 20px"><form class="ds-form" onsubmit="return false">' + actions + '</form></div>' +

@@ -311,7 +311,8 @@ describe('icons (3.0)', () => {
 
 describe('indicator, dom, ripple and overlay', () => {
   it('exports the documented functions', () => {
-    assert.equal(typeof indicator.createIndicator, 'function');
+    assert.equal(typeof indicator.create, 'function');
+    assert.ok(!('createIndicator' in indicator), 'the 2.x alias was removed in 3.0');
     // DS.motion.transition (1.5.0), documented in docs/motion.md; its behaviour: test/motion.test.js.
     assert.equal(typeof motion.transition, 'function');
     assert.match(read('docs/motion.md'), /\| `transition\(update, \{ type, from(, focus)? \}\)` \|/);
@@ -329,7 +330,7 @@ describe('indicator, dom, ripple and overlay', () => {
     );
   });
 
-  it('exports the overlay additions of 2.0 and documents the ds:close event, its 2.x name and its reasons', () => {
+  it('exports the overlay additions of 2.0 and documents the ds:close event and its reasons; the 2.x names are gone', () => {
     for (const name of ['topmost', 'confirm', 'alert', 'prompt']) assert.equal(typeof overlay[name], 'function', name);
     assert.equal(overlay.DISMISS_DELAY_MS, 300);
     // Without a DOM: no layer, no throw.
@@ -337,11 +338,11 @@ describe('indicator, dom, ripple and overlay', () => {
     const docs = read('docs/motion.md');
     assert.match(docs, /\| `close\(el, \{ reason \}\)` \|/);
     assert.match(docs, /\| `open\(el, \{ opener, container, returnTo \}\)` \|/);
-    assert.match(read('src/js/overlay.js'), /new view\.CustomEvent\('ds-close', \{ bubbles: true, detail: \{ reason \} \}\)/);
+    assert.match(read('src/js/overlay.js'), /emit\(element, 'close', \{ reason \}\)/);
+    assert.doesNotMatch(read('src/js/overlay.js'), /'ds-close'|\[data-close\]/, 'the 2.x event and attribute were removed in 3.0');
     const start = docs.indexOf('**Why it closed: `ds:close`**');
     assert.ok(start >= 0, 'docs/motion.md documents the ds:close event');
     const event = docs.slice(start);
-    assert.match(event.slice(0, 200), /`ds-close`, its \*\*deprecated\*\* 2\.x name/);
     for (const reason of ['escape', 'backdrop', 'close', 'item', 'tab', 'outside', 'parent', 'api', 'removed', 'breakpoint', 'submit']) {
       assert.ok(event.slice(0, 1700).includes(`\`'${reason}'\``), `the reason ${reason} is documented`);
       if (!['item', 'tab', 'outside', 'api', 'submit'].includes(reason)) assert.ok(read('src/js/overlay.js').includes(`'${reason}'`), `overlay.js sends ${reason}`);
@@ -364,7 +365,7 @@ describe('indicator, dom, ripple and overlay', () => {
     }
   });
 
-  it('returns a ripple handle with destroy(), release() and the deprecated detach() (2.0)', () => {
+  it('returns a ripple handle with destroy() and release() (2.0; the 2.x alias detach() went with 3.0)', () => {
     const listeners = new Map();
     const classes = new Set();
     const doc = { addEventListener() {}, removeEventListener() {} };
@@ -377,7 +378,7 @@ describe('indicator, dom, ripple and overlay', () => {
       contains: () => false,
     };
     const handle = ripple.attach(root);
-    assert.deepEqual(Object.keys(handle).sort(), ['destroy', 'detach', 'release']);
+    assert.deepEqual(Object.keys(handle).sort(), ['destroy', 'release']);
     assert.equal(ripple.attach(root), handle, 'idempotent per root');
     assert.ok(classes.has('ds-ripples'));
     for (const type of ['pointerdown', 'keydown', 'keyup', 'touchstart', 'change']) assert.ok(listeners.has(type), type);
@@ -385,17 +386,16 @@ describe('indicator, dom, ripple and overlay', () => {
     handle.release();
     handle.release(/** @type {any} */ ({}));
     assert.ok(classes.has('ds-ripples'));
-    // detach() is destroy(): the listeners and the class go, and a new attach() is a new handle.
-    handle.detach();
+    // destroy(): the listeners and the class go, and a new attach() is a new handle.
+    handle.destroy();
     assert.equal(listeners.size, 0);
     assert.ok(!classes.has('ds-ripples'));
     const again = ripple.attach(root);
     assert.notEqual(again, handle);
     again.destroy();
     assert.equal(listeners.size, 0);
-    // The source marks detach() deprecated, and the docs name the handle.
-    assert.match(read('src/js/ripple.js'), /\/\*\* Deprecated \(removed in 3\.0 at the earliest\): destroy\(\)\. \*\/\n\s+detach\(\)/);
-    assert.match(read('docs/motion.md'), /`\{ destroy, release, detach \}`/);
+    // The docs name the handle.
+    assert.match(read('docs/motion.md'), /`\{ destroy, release \}`/);
   });
 
   it('gives no press to a host whose own input or stretched link is blocked (2.0)', () => {
@@ -518,13 +518,13 @@ describe('indicator, dom, ripple and overlay', () => {
     const shape = (parent) => parent.childNodes.map((node) => (node.nodeType === 3 ? node.nodeValue : `${node.getAttribute('data-ds-key') ?? node.tagName.toLowerCase()}:${node.textContent}`));
 
     it('patches a changed attribute instead of replacing, keeping runtime classes and --ds-i', () => {
-      const status = h('span', { class: 'ds-status ds-status--ok ds-enter ds-enter--fade', style: '--ds-i: 2' }, text('Active'));
+      const status = h('span', { class: 'ds-status ds-tone-success ds-enter ds-enter--fade', style: '--ds-i: 2' }, text('Active'));
       const bar = h('div', { class: 'ds-progress', style: '--ds-progress: 20%' });
       const target = h('div', {}, status, bar);
-      dom.morphChildren(target, [h('span', { class: 'ds-status ds-status--error' }, text('Failed')), h('div', { class: 'ds-progress', style: '--ds-progress: 60%' })]);
+      dom.morphChildren(target, [h('span', { class: 'ds-status ds-tone-error' }, text('Failed')), h('div', { class: 'ds-progress', style: '--ds-progress: 60%' })]);
       assert.equal(target.childNodes[0], status, 'the same node');
       assert.equal(target.childNodes[1], bar);
-      assert.deepEqual([...status.classList], ['ds-status', 'ds-status--error', 'ds-enter', 'ds-enter--fade']);
+      assert.deepEqual([...status.classList], ['ds-status', 'ds-tone-error', 'ds-enter', 'ds-enter--fade']);
       assert.equal(status.style.getPropertyValue('--ds-i'), '2');
       assert.equal(status.textContent, 'Failed');
       assert.equal(bar.style.getPropertyValue('--ds-progress'), '60%');

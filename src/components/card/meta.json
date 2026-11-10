@@ -24,9 +24,7 @@
     "ds-card__row",
     "ds-card__section",
     "ds-card__subtitle",
-    "ds-card__title",
-    "ds-more",
-    "ds-subsection"
+    "ds-card__title"
   ],
   "attributes": [
     "data-ds-shown"

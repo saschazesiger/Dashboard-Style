@@ -912,13 +912,12 @@ change colour on `--ds-indicator-dur`. Forced colors keep the button's selection
 | Export | |
 |---|---|
 | `create(track, { active, className, observe, name, reveal })` | see above; returns the handle (the live one again for the same track and options); `data-ds-indicator` is its declarative path ([Indicator](components.md#indicator)) |
-| `createIndicator(track, options)` | **deprecated**, an alias of `create()` until 3.0 ships |
 | `OVERSHOOT` | 0.05: the largest pass of an edge beyond its target, as a share of its travel (the peak contract of `--ds-ease-spatial`); the overshoot margin of the glide box |
 
 ### DS.ripple (js/ripple.js)
 
 `attach(root = document)` gives every action inside `root` the pointer ripple and returns
-`{ destroy, release, detach }`; a second call for the same root returns the same handle. It adds `.ds-ripples` to the root element (`<html>` for
+`{ destroy, release }`; a second call for the same root returns the same handle. It adds `.ds-ripples` to the root element (`<html>` for
 `document`; for an open shadow root the `.ds-theme` inside it, else its host, see [theming.md](theming.md)) and
 listens on the root once (delegated): `pointerdown` with the primary button grows a ripple from the
 pointer, Enter or Space on a focused host one from the centre. Hosts, skips, the runtime properties
@@ -931,7 +930,7 @@ remembering the document's last input (a press or a key, under `Symbol.for('ds.i
 `DS.overlay` moves outside any input event follows (no keyboard ring after a tap). `destroy()` removes
 the listeners, the class and its hold on the guard (a guard that `busy()` installed stays; the shared input record
 stays too); ripples already shown
-finish (`detach()` is its **deprecated** alias until 3.0 ships).
+finish.
 
 A press ends when another element takes the pointer (2.0): an ancestor that captures it (a chip row that drags to
 scroll, a sortable list's row) fires `gotpointercapture`, and the ripple fades as on release while `.ds-pressed`
@@ -1068,8 +1067,7 @@ button: give row buttons stable ids); else the nearest `tabindex="-1"` ancestor,
 DS.overlay.open(sheet, { opener: rowButton, returnTo: () => table.querySelector('[data-ds-key="d-42"] button') });
 ```
 
-**Why it closed: `ds:close`** (3.0; `ds-close`, its **deprecated** 2.x name from 2.0, is sent right before it with the
-same detail). Once per close, as soon as it starts (the trap released, focus back on the
+**Why it closed: `ds:close`** (3.0). Once per close, as soon as it starts (the trap released, focus back on the
 opener, the box inert, `data-state="closed"`), the overlay dispatches
 `new CustomEvent('ds:close', { bubbles: true, detail: { reason } })`, synchronously and not cancelable. `reason`:
 `'escape'` (Escape, the native `cancel`, Android Back), `'backdrop'` (`.ds-dialog__backdrop`, `.ds-sheet__backdrop`,

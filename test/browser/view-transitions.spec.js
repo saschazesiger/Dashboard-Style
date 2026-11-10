@@ -665,7 +665,7 @@ test.describe('page loads (css/optional/view-transitions.css)', () => {
 
   test('a page left with a dialog open: the frame and the pill stay under its scrim; the pill is no group from the old page', async ({ page, browserName }) => {
     await page.evaluate(() => {
-      document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', '<div class="ds-dialog" id="fx-dialog" hidden><div class="ds-dialog__backdrop" data-close></div><div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-labelledby="fx-dialog-title"><h2 class="ds-dialog__title" id="fx-dialog-title">Leave the page?</h2><div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close>Stay</button></div></div></div>');
+      document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', '<div class="ds-dialog" id="fx-dialog" hidden><div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-labelledby="fx-dialog-title"><h2 class="ds-dialog__title" id="fx-dialog-title">Leave the page?</h2><div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Stay</button></div></div></div>');
       return DS.overlay.open(document.getElementById('fx-dialog'));
     });
     expect(await page.evaluate(() => getComputedStyle(document.querySelector('.ds-indicator')).viewTransitionName), 'named while the page shows').toBe('ds-indicator-nav');

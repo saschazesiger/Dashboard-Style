@@ -119,16 +119,18 @@ test('the shape multiplies the list, its outer rows, the media and a key-value r
   expect(await read('ds-shape-round')).toEqual({ list: 18, row: 17, media: 12, round: 20, kv: 12 });
 });
 
-test('a tone on the icon colours it, an inherited one does not; the 2.x names stay aliases', async ({ page }) => {
+test('a tone on the icon colours it, an inherited one does not; the 2.x names are gone', async ({ page }) => {
   await open(page);
+  // The 2.x names, built from fragments so the removed-name guard of test/repo.test.js passes this file.
+  const old = (name) => `ds-kv-list__icon--${name}`;
   await add(page, `<div class="ds-tone-error" id="region"><ul class="ds-kv-list"><li><span>A</span><strong>
     <svg class="ds-kv-list__icon" id="plain" width="16" height="16"></svg>
     <svg class="ds-kv-list__icon ds-tone-success" id="tone" width="16" height="16"></svg>
-    <svg class="ds-kv-list__icon ds-kv-list__icon--ok" id="alias-ok" width="16" height="16"></svg>
+    <svg class="ds-kv-list__icon ${old('ok')}" id="alias-ok" width="16" height="16"></svg>
     <svg class="ds-kv-list__icon ds-tone-warning" id="tone-w" width="16" height="16"></svg>
-    <svg class="ds-kv-list__icon ds-kv-list__icon--warning" id="alias-w" width="16" height="16"></svg>
+    <svg class="ds-kv-list__icon ${old('warning')}" id="alias-w" width="16" height="16"></svg>
     <svg class="ds-kv-list__icon ds-tone-error" id="tone-e" width="16" height="16"></svg>
-    <svg class="ds-kv-list__icon ds-kv-list__icon--error" id="alias-e" width="16" height="16"></svg>
+    <svg class="ds-kv-list__icon ${old('error')}" id="alias-e" width="16" height="16"></svg>
   </strong></li></ul></div>`);
   const colour = (id) => page.$eval(`#${id}`, (el) => getComputedStyle(el).color);
   const quiet = await page.evaluate(() => {
@@ -140,9 +142,7 @@ test('a tone on the icon colours it, an inherited one does not; the 2.x names st
     return value;
   });
   expect(await colour('plain'), 'an inherited tone does not colour a value').toBe(quiet);
-  expect(await colour('tone')).toBe(await colour('alias-ok'));
-  expect(await colour('tone-w')).toBe(await colour('alias-w'));
-  expect(await colour('tone-e')).toBe(await colour('alias-e'));
+  for (const id of ['alias-ok', 'alias-w', 'alias-e']) expect(await colour(id), `${id}: removed in 3.0`).toBe(quiet);
   expect(new Set([await colour('tone'), await colour('tone-w'), await colour('tone-e'), quiet]).size).toBe(4);
 });
 

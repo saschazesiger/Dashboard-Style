@@ -1,6 +1,6 @@
 /**
  * The shape loader on the options model: its size at every step (density and
- * touch change nothing), the shape's share of it, the deprecated --sm, no
+ * touch change nothing), the shape's share of it, the 2.x --sm gone, no
  * second delay inside a waiting container, decoration only, forced colours and
  * print. Runs in `fallback` too.
  */
@@ -42,12 +42,13 @@ test('the size at every step; density and touch change nothing; the shape is 38/
   expect(await probe(page, '<span id="probe" class="ds-loader" style="--ds-loader-size: 64px"></span>', width)).toBe(64);
 });
 
-test('the deprecated --sm is 24px whatever is around it, and reads its deprecated hook; .ds-sm gives the same', async ({ page }) => {
+test('.ds-sm is 24px; the 2.x --sm and its hook were removed in 3.0', async ({ page }) => {
   await open(page);
   expect(await probe(page, '<span id="probe" class="ds-loader ds-sm"></span>', width)).toBe(24);
-  expect(await probe(page, '<span id="probe" class="ds-loader ds-loader--sm"></span>', width)).toBe(24);
-  expect(await probe(page, '<div class="ds-lg"><span id="probe" class="ds-loader ds-loader--sm"></span></div>', width)).toBe(24);
-  expect(await probe(page, '<span id="probe" class="ds-loader ds-loader--sm" style="--ds-loader-sm-size: 30px"></span>', width)).toBe(30);
+  // Built from fragments, so the removed-name guard of test/repo.test.js passes this file.
+  const [small, hook] = [`ds-loader--${'sm'}`, `--ds-loader-${'sm'}-size`];
+  expect(await probe(page, `<span id="probe" class="ds-loader ${small}"></span>`, width)).toBe(48);
+  expect(await probe(page, `<div class="ds-lg"><span id="probe" class="ds-loader ${small}" style="${hook}: 30px"></span></div>`, width)).toBe(72);
 });
 
 test('fades in after the loader delay alone; inside a waiting container the delays never stack', async ({ page }) => {

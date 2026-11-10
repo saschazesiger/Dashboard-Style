@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.onboarding.css",
-      "bytes": 301047,
-      "gzip": 46259
+      "bytes": 299384,
+      "gzip": 45973
     },
     "js": {
       "file": "ds.onboarding.js",
-      "bytes": 561542,
-      "gzip": 132758
+      "bytes": 561119,
+      "gzip": 132662
     },
     "properties": {
       "file": "properties.css",
@@ -36,8 +36,8 @@
     {
       "name": "spinner",
       "reason": "onboarding.html:169 ds-spinner",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "indicator",
@@ -48,14 +48,14 @@
     {
       "name": "button",
       "reason": "onboarding.html:22 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "status",
       "reason": "onboarding.html:83 ds-status",
-      "bytes": 3164,
-      "gzip": 921
+      "bytes": 2830,
+      "gzip": 865
     },
     {
       "name": "progress",
@@ -66,20 +66,20 @@
     {
       "name": "chart",
       "reason": "required by list",
-      "bytes": 23341,
-      "gzip": 4433
+      "bytes": 23123,
+      "gzip": 4396
     },
     {
       "name": "list",
       "reason": "onboarding.html:76 ds-list",
-      "bytes": 18637,
-      "gzip": 3412
+      "bytes": 18493,
+      "gzip": 3387
     },
     {
       "name": "card",
       "reason": "onboarding.html:65 ds-card",
-      "bytes": 16606,
-      "gzip": 2659
+      "bytes": 16531,
+      "gzip": 2644
     },
     {
       "name": "menu",
@@ -90,14 +90,14 @@
     {
       "name": "dialog",
       "reason": "onboarding.html:147 ds-dialog",
-      "bytes": 15994,
-      "gzip": 2482
+      "bytes": 15933,
+      "gzip": 2468
     },
     {
       "name": "form",
       "reason": "onboarding.html:152 ds-field",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "drag",
@@ -114,14 +114,14 @@
     {
       "name": "page",
       "reason": "onboarding.html:58 ds-content",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "shell",
       "reason": "onboarding.html:18 ds-app",
-      "bytes": 39266,
-      "gzip": 6590
+      "bytes": 39239,
+      "gzip": 6579
     },
     {
       "name": "toast",

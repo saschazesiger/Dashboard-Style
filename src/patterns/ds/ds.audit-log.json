@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.audit-log.css",
-      "bytes": 246453,
-      "gzip": 38830
+      "bytes": 245213,
+      "gzip": 38622
     },
     "js": {
       "file": "ds.audit-log.js",
-      "bytes": 499703,
-      "gzip": 119087
+      "bytes": 499308,
+      "gzip": 118993
     },
     "properties": {
       "file": "properties.css",
@@ -30,8 +30,8 @@
     {
       "name": "spinner",
       "reason": "audit-log.html:72 ds-spinner",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "indicator",
@@ -42,8 +42,8 @@
     {
       "name": "button",
       "reason": "audit-log.html:22 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "timeline",
@@ -54,14 +54,14 @@
     {
       "name": "status",
       "reason": "required by auditlog",
-      "bytes": 3164,
-      "gzip": 921
+      "bytes": 2830,
+      "gzip": 865
     },
     {
       "name": "card",
       "reason": "audit-log.html:78 ds-card",
-      "bytes": 16606,
-      "gzip": 2659
+      "bytes": 16531,
+      "gzip": 2644
     },
     {
       "name": "empty",
@@ -84,8 +84,8 @@
     {
       "name": "form",
       "reason": "audit-log.html:81 ds-search",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "tooltip",
@@ -96,14 +96,14 @@
     {
       "name": "page",
       "reason": "audit-log.html:61 ds-content",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "shell",
       "reason": "audit-log.html:18 ds-app",
-      "bytes": 39266,
-      "gzip": 6590
+      "bytes": 39239,
+      "gzip": 6579
     },
     {
       "name": "toast",

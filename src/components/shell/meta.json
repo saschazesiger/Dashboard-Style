@@ -174,9 +174,6 @@
     "--ds-btn-icon-size": {
       "owner": "button"
     },
-    "--ds-btn-sm-icon-size": {
-      "owner": "button"
-    },
     "--ds-scroll-fade": {
       "owner": "scroller"
     },

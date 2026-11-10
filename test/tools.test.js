@@ -184,7 +184,7 @@ describe('tools/check-theme.mjs', () => {
       '  --ds-space-4: 20px;',
       '  --app-own-token: 1px;',
       '}',
-      '.ds-btn--primary { border-radius: 0; --ds-btn-bg: #000; }',
+      '.ds-btn--filled { border-radius: 0; --ds-btn-bg: #000; }',
       '.app-card { color: red; }',
     ].join('\n');
     const findings = check(css);

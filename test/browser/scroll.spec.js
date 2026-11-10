@@ -337,10 +337,10 @@ test('DS.overlay.open() watches a dialog body: data-scrolled on the box; an empt
     const frames = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const settle = () => new Promise((resolve) => setTimeout(resolve, 50));
     document.querySelector('.ds-theme').insertAdjacentHTML('beforeend',
-      '<dialog class="ds-dialog" id="watched" aria-labelledby="watched-title"><div class="ds-dialog__backdrop" data-close></div>' +
+      '<dialog class="ds-dialog" id="watched" aria-labelledby="watched-title"><div class="ds-dialog__backdrop" data-ds-close></div>' +
       '<div class="ds-dialog__box"><h2 class="ds-dialog__title" id="watched-title">Notify people</h2>' +
       '<div class="ds-dialog__body" id="watched-body"></div>' +
-      '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close>Close</button></div></div></dialog>');
+      '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Close</button></div></div></dialog>');
     const dialog = document.getElementById('watched');
     const box = dialog.querySelector('.ds-dialog__box');
     const body = document.getElementById('watched-body');
@@ -380,10 +380,10 @@ test('watchScrolled: the sentinel takes no grid row or gap in a padded dialog bo
     let rows = '<div class="ds-field"><label class="ds-label" for="pad-field">Name</label><input class="ds-input" id="pad-field"></div>';
     for (let i = 0; i < 60; i += 1) rows += '<p>Line ' + (i + 1) + '</p>';
     document.querySelector('.ds-theme').insertAdjacentHTML('beforeend',
-      '<dialog class="ds-dialog" id="padded" aria-labelledby="padded-title"><div class="ds-dialog__backdrop" data-close></div>' +
+      '<dialog class="ds-dialog" id="padded" aria-labelledby="padded-title"><div class="ds-dialog__backdrop" data-ds-close></div>' +
       '<div class="ds-dialog__box"><h2 class="ds-dialog__title" id="padded-title">Rename</h2>' +
       '<div class="ds-dialog__body" id="padded-body">' + rows + '</div>' +
-      '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close>Close</button></div></div></dialog>');
+      '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Close</button></div></div></dialog>');
     const dialog = document.getElementById('padded');
     const box = dialog.querySelector('.ds-dialog__box');
     const body = document.getElementById('padded-body');

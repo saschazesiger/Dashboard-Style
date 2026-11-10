@@ -1,7 +1,7 @@
 /**
  * The badge on the options model: the height at every size (density and touch
  * change nothing), the shape, the dot, the tone from the class on the badge
- * only, the deprecated tones, a count with a maximum through the attribute and
+ * only, the 2.x tones gone, a count with a maximum through the attribute and
  * the controller (with its pop), a blocked and a tinted host, forced colours.
  * Runs in `fallback` too.
  */
@@ -106,10 +106,11 @@ test('a dot without a tone holds 3:1 on a surface: primary, the hook on top; on 
   expect(await probe(page, `<button class="ds-btn ds-btn--tonal" type="button">x ${badge('ds-tone-neutral')}</button>`, fill)).toBe(roles.surface);
 });
 
-test('the deprecated tones look like the new ones until 3.0 ships', async ({ page }) => {
+test('the 2.x tones were removed in 3.0: a badge with one looks like the plain one', async ({ page }) => {
   await open(page);
-  for (const [kind, tone] of [['neutral', 'neutral'], ['ok', 'success'], ['warning', 'warning'], ['error', 'error']]) {
-    expect(await probe(page, badge(`ds-badge--${kind}`), look), kind).toEqual(await probe(page, badge(`ds-tone-${tone}`), look));
+  const plain = await probe(page, badge(''), look);
+  for (const kind of ['neutral', 'ok', 'warning', 'error']) {
+    expect(await probe(page, badge(`ds-badge--${kind}`), look), kind).toEqual(plain);
   }
 });
 

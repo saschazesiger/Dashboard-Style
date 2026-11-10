@@ -25,22 +25,22 @@
   </p>
 </main>
 
-<dialog class="ds-dialog ds-dialog--wide" id="people" aria-labelledby="people-title" style="--ds-dialog-height: 480px">
-  <div class="ds-dialog__backdrop" data-close></div>
+<dialog class="ds-dialog ds-dialog--lg" id="people" aria-labelledby="people-title" style="--ds-dialog-height: 480px">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
   <div class="ds-dialog__box">
     <h2 class="ds-dialog__title" id="people-title">Choose people</h2>
     <div class="ds-search"><span data-icon="search" data-size="20"></span><input class="ds-input" id="people-search" type="search" aria-label="Search people" placeholder="Search"></div>
     <p class="ds-meta" id="people-count">40 people</p>
     <div class="ds-dialog__body" id="people-body"></div>
     <div class="ds-dialog__actions">
-      <button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button>
-      <button class="ds-btn ds-btn--primary" type="button" id="people-ok" data-close>Choose</button>
+      <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
+      <button class="ds-btn ds-btn--filled" type="button" id="people-ok" data-ds-close>Choose</button>
     </div>
   </div>
 </dialog>
 
 <div class="ds-dialog" id="note" hidden>
-  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__backdrop" data-ds-close></div>
   <div class="ds-dialog__box" role="dialog" aria-modal="true" aria-labelledby="note-title">
     <h2 class="ds-dialog__title" id="note-title">Synced</h2>
     <p class="ds-dialog__text">Every device is up to date.</p>
@@ -50,12 +50,12 @@
 </div>
 
 <dialog class="ds-dialog ds-dialog--full-narrow" id="full" aria-labelledby="full-title">
-  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__backdrop" data-ds-close></div>
   <div class="ds-dialog__box">
     <div class="ds-dialog__head">
-      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="full-close" aria-label="Close" data-close><span data-icon="close" data-size="20"></span></button>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="full-close" aria-label="Close" data-ds-close><span data-icon="close" data-size="20"></span></button>
       <h2 class="ds-dialog__title" id="full-title">New ticket</h2>
-      <button class="ds-btn ds-btn--text" type="button" id="full-save" data-close>Save</button>
+      <button class="ds-btn ds-btn--text" type="button" id="full-save" data-ds-close>Save</button>
     </div>
     <div class="ds-dialog__body">
       <div class="ds-field"><label class="ds-field__label" for="full-subject">Subject</label><input class="ds-input" id="full-subject"></div>
@@ -65,27 +65,27 @@
 </dialog>
 
 <dialog class="ds-dialog ds-dialog--bottom" id="actions" aria-labelledby="actions-title">
-  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__backdrop" data-ds-close></div>
   <div class="ds-dialog__box">
     <h2 class="ds-dialog__title" id="actions-title">LAPTOP-0042</h2>
     <div class="ds-dialog__list">
-      <button class="ds-menu__item" type="button" id="act-edit" data-close><span data-icon="pencil" data-size="20"></span><span class="ds-menu__label">Edit</span></button>
-      <button class="ds-menu__item" type="button" id="act-copy" data-close><span data-icon="copy" data-size="20"></span><span class="ds-menu__label">Duplicate</span></button>
-      <button class="ds-menu__item" type="button" id="act-archive" data-close><span data-icon="archive" data-size="20"></span><span class="ds-menu__label">Archive</span></button>
+      <button class="ds-menu__item" type="button" id="act-edit" data-ds-close><span data-icon="pencil" data-size="20"></span><span class="ds-menu__label">Edit</span></button>
+      <button class="ds-menu__item" type="button" id="act-copy" data-ds-close><span data-icon="copy" data-size="20"></span><span class="ds-menu__label">Duplicate</span></button>
+      <button class="ds-menu__item" type="button" id="act-archive" data-ds-close><span data-icon="archive" data-size="20"></span><span class="ds-menu__label">Archive</span></button>
     </div>
-    <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="act-cancel" data-close>Cancel</button></div>
+    <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="act-cancel" data-ds-close>Cancel</button></div>
   </div>
 </dialog>
 
 <dialog class="ds-sheet" id="filters" aria-labelledby="filters-title">
-  <div class="ds-sheet__backdrop" data-close></div>
+  <div class="ds-sheet__backdrop" data-ds-close></div>
   <section class="ds-sheet__panel">
     <div class="ds-sheet__head">
       <div class="ds-sheet__heading">
         <h2 class="ds-sheet__title" id="filters-title">Filters for the devices of the second floor of building A</h2>
         <p class="ds-sheet__subtitle" id="filters-count">12 of 240 devices</p>
       </div>
-      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close><span data-icon="close" data-size="20"></span></button>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close><span data-icon="close" data-size="20"></span></button>
     </div>
     <div class="ds-sheet__body" tabindex="0" id="filters-body">
       <label class="ds-check"><input type="checkbox" checked> Laptops</label>
@@ -95,7 +95,7 @@
     <div class="ds-sheet__foot" id="filters-foot">
       <p class="ds-meta">1 filter</p>
       <button class="ds-btn ds-btn--text" type="button">Reset</button>
-      <button class="ds-btn ds-btn--primary" type="button" data-close>Show 12 devices</button>
+      <button class="ds-btn ds-btn--filled" type="button" data-ds-close>Show 12 devices</button>
     </div>
   </section>
 </dialog>

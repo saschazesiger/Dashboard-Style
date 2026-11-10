@@ -61,7 +61,7 @@
 import { define, emit, runtime, t } from './core.js';
 import { disown, morphHtml, own, roving } from './dom.js';
 import { enter, motionDuration } from './motion.js';
-import { create as createIndicator } from './indicator.js';
+import { create as makeIndicator } from './indicator.js';
 import { open as openStore } from './store.js';
 import { language as knownLanguage, lines as highlightLines } from './highlight.js';
 
@@ -355,7 +355,7 @@ function controller(root, options, signal) {
   };
   for (const tab of tabs) claim(tab, 'attrs', 'aria-selected', 'tabindex');
   if (tablist && tabs.length) {
-    indicator = createIndicator(tablist, { active: '[aria-selected="true"]', className: 'ds-tabs__indicator', reveal: true });
+    indicator = makeIndicator(tablist, { active: '[aria-selected="true"]', className: 'ds-tabs__indicator', reveal: true });
     rover = roving(tablist, { onActivate: (tab) => select(panels.findIndex((panel) => tabOf(panel) === tab)) });
     listen(tablist, 'click', (event) => {
       const tab = event.target.closest?.('[role="tab"]');

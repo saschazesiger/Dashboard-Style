@@ -34,5 +34,3 @@ export interface IndicatorHandle {
  * The same handle as DS.core.get(track, 'indicator') on a track with data-ds-indicator.
  */
 export declare function create(track: HTMLElement, options: IndicatorOptions): IndicatorHandle;
-/** @deprecated The 2.x name of create(), an alias until 3.0 ships. */
-export declare function createIndicator(track: HTMLElement, options: IndicatorOptions): IndicatorHandle;

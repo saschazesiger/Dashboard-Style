@@ -45,22 +45,22 @@
   </main>
 
   <dialog class="ds-dialog" id="native" role="alertdialog" aria-labelledby="native-title">
-    <div class="ds-dialog__backdrop" data-close></div>
+    <div class="ds-dialog__backdrop" data-ds-close></div>
     <div class="ds-dialog__box">
       <h2 class="ds-dialog__title" id="native-title">Delete 3 devices?</h2>
       <div class="ds-dialog__actions">
         <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Info" data-tip="Deleted devices go to the archive" id="tip-dialog"><span data-icon="info" data-size="20"></span></button>
-        <button class="ds-btn ds-btn--text" type="button" id="native-cancel" data-close autofocus>Cancel</button>
+        <button class="ds-btn ds-btn--text" type="button" id="native-cancel" data-ds-close autofocus>Cancel</button>
       </div>
     </div>
   </dialog>
 
   <div class="ds-sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
-    <div class="ds-sheet__backdrop" data-close></div>
+    <div class="ds-sheet__backdrop" data-ds-close></div>
     <section class="ds-sheet__panel">
       <div class="ds-sheet__head">
         <h2 class="ds-sheet__title" id="sheet-title">LAPTOP-0042</h2>
-        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="sheet-close" aria-label="Close" data-close><span data-icon="close" data-size="20"></span></button>
+        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="sheet-close" aria-label="Close" data-ds-close><span data-icon="close" data-size="20"></span></button>
       </div>
       <div class="ds-sheet__body" tabindex="0"><p>Synced nightly.</p></div>
     </section>

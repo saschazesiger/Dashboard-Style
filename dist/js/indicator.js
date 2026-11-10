@@ -870,15 +870,6 @@ export function create(track, options) {
   return openPill(track, options, null);
 }
 
-/**
- * The 2.x name of create(), a deprecated alias until 3.0 ships.
- * @param {HTMLElement} track
- * @param {{ active: string, className?: string, observe?: boolean, name?: string, reveal?: boolean }} options
- */
-export function createIndicator(track, options) {
-  return create(track, options);
-}
-
 /** Any item that says it is the current one: the active item of data-ds-indicator without a selector. */
 const ANY_ACTIVE = '[aria-current]:not([aria-current="false"]), [aria-pressed="true"], [aria-selected="true"], [aria-checked="true"]';
 

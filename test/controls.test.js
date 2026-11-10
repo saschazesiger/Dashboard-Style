@@ -132,7 +132,7 @@ describe('utilities (2.0)', () => {
     // 3.0: buttons take the touch target from --ds-target-min (core/options.css), as a minimum over size and density.
     assert.deepEqual(own(stripComments(read('src/core/options.css')), '.ds-touch'), { '--ds-target-min': 'var(--ds-touch-target)' });
     // Every component is on the options model: the minimum alone, so a theme's own height and a smaller target keep their meaning.
-    for (const hook of ['--ds-btn-height', '--ds-input-height', '--ds-check-height', '--ds-check-sm-height', '--ds-check-target', '--ds-switch-height', '--ds-switch-halo', '--ds-chip-height', '--ds-combo-option-height', '--ds-menu-item-height', '--ds-drawer-item-height', '--ds-toast-close-size', '--ds-tabs-height', '--ds-disclosure-height']) assert.ok(!(hook in touch), `${hook}: --ds-target-min, not the hook`);
+    for (const hook of ['--ds-btn-height', '--ds-input-height', '--ds-check-height', '--ds-check-target', '--ds-switch-height', '--ds-switch-halo', '--ds-chip-height', '--ds-combo-option-height', '--ds-menu-item-height', '--ds-drawer-item-height', '--ds-toast-close-size', '--ds-tabs-height', '--ds-disclosure-height']) assert.ok(!(hook in touch), `${hook}: --ds-target-min, not the hook`);
     assert.deepEqual(touch, { '--ds-input-font': 'var(--ds-font-input)' });
     // The role sits after the palette marker, 48px; never automatic on a coarse pointer.
     const tokens = stripComments(read('src/core/tokens.css'));
@@ -188,7 +188,7 @@ describe('buttons (2.0)', () => {
     assert.equal(own(container, '.ds-btn--adaptive').width, 'var(--_box)');
     assert.equal(own(container, '.ds-btn--adaptive')['--_box'], 'max(var(--ds-target-min, 0px), calc(var(--ds-btn-icon-size, 40px) + var(--ds-size-step, 0) * 8px))');
     assert.equal(own(container, '.ds-btn--adaptive')['--ds-btn-bg'], 'transparent');
-    assert.equal(own(container, '.ds-btn--adaptive.ds-btn--sm')['--_box'], 'max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, 32px))');
+    assert.ok(!stripComments(read('src/components/button/button.css')).includes('.ds-btn--sm'), 'the 2.x small button was removed in 3.0');
     assert.equal(own(container, '.ds-btn--adaptive .ds-btn__label').clip, 'rect(0, 0, 0, 0)');
     // The window rules repeat the panel's for every button outside a .ds-content (the top bar, a page outside the
     // frame) and in sheets and dialogs, at the weight of the old sheet and dialog rules (0,2,0): one exclusion
@@ -196,7 +196,6 @@ describe('buttons (2.0)', () => {
     const OUTSIDE = ':not(:where(.ds-content *):not(:is(.ds-sheet, .ds-dialog) *))';
     for (const [window, panel] of [
       [`.ds-btn--adaptive${OUTSIDE}`, '.ds-btn--adaptive'],
-      [`.ds-btn--adaptive.ds-btn--sm${OUTSIDE}`, '.ds-btn--adaptive.ds-btn--sm'],
       [`.ds-btn--adaptive${OUTSIDE} > svg`, '.ds-btn--adaptive > svg'],
       [`.ds-btn--adaptive${OUTSIDE} .ds-btn__label`, '.ds-btn--adaptive .ds-btn__label'],
     ]) {
@@ -287,11 +286,12 @@ describe('chips, badges and tags (2.0)', () => {
     assert.equal(base.font, 'var(--ds-font-caption)');
     assert.equal(base['font-variant-numeric'], 'tabular-nums');
     assert.equal(own(badge, '.ds-badge:empty').display, 'none');
-    for (const tone of ['neutral', 'ok', 'warning', 'error']) assert.ok(own(badge, `.ds-badge--${tone}`)['--ds-badge-bg'], tone);
-    const tinted = selectorsOf(badge).find((part) => part.endsWith('.ds-badge:not(.ds-badge--neutral, .ds-badge--ok, .ds-badge--warning, .ds-badge--error, .ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error)'));
+    assert.ok(own(badge, '.ds-badge.ds-tone-neutral:not(.ds-badge--dot)')['--ds-badge-bg']);
+    for (const tone of ['neutral', 'ok', 'warning', 'error']) assert.ok(!selectorsOf(badge).some((part) => part.includes(`.ds-badge--${tone}`)), `the 2.x --${tone} was removed in 3.0`);
+    const tinted = selectorsOf(badge).find((part) => part.endsWith('.ds-badge:not(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error)'));
     for (const host of ['.ds-btn[aria-pressed="true"]', '.ds-btn--tonal', '.ds-chip--input', '.ds-chip__input:checked + .ds-chip__body']) assert.ok(tinted.includes(host), host);
     // A selected table row is a later component's host: table.css repeats the rule (its sublayer comes later).
-    const row = selectorsOf(read('src/components/table/table.css')).find((part) => part.endsWith(' .ds-badge:not(.ds-badge--neutral, .ds-badge--ok, .ds-badge--warning, .ds-badge--error, .ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error)'));
+    const row = selectorsOf(read('src/components/table/table.css')).find((part) => part.endsWith(' .ds-badge:not(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error)'));
     assert.ok(row?.includes('.ds-table__row--selected'), 'a badge in a selected row');
     assert.equal(own(forcedColorBlocks(badge).join('\n'), '.ds-badge').outline, '1px solid CanvasText');
     assert.match(read('src/index.css'), /@import '\.\/components\/chip\/chip\.css';\n@import '\.\/components\/badge\/badge\.css';/);
@@ -303,7 +303,7 @@ describe('chips, badges and tags (2.0)', () => {
     assert.equal(tag['--_half'], 'calc(max(var(--_h), 1lh) / 2)');
     assert.equal(tag['border-radius'], 'min(calc(min(var(--ds-radius-action), var(--_half)) * var(--ds-shape, 1)), var(--_half))');
     assert.equal(own(status, '.ds-tag > svg').color, 'var(--ds-on-accent-icon)');
-    assert.deepEqual(own(status, '.ds-tag--neutral'), { '--ds-tag-bg': 'var(--ds-surface-high)', '--ds-tag-color': 'var(--ds-text)' });
+    assert.deepEqual(own(status, '.ds-tag.ds-tone-neutral'), { '--ds-tag-bg': 'var(--ds-surface-high)', '--ds-tag-color': 'var(--ds-text)' });
     assert.equal(own(forcedColorBlocks(status).join('\n'), '.ds-tag').outline, '1px solid CanvasText');
     // Not interactive: no cursor, no state layer.
     assert.ok(!rules(status).some((rule) => rule.selector.includes('.ds-tag') && /cursor|::before/.test(rule.selector + rule.body)));
@@ -384,7 +384,7 @@ describe('alerts (2.0)', () => {
     };
     const hooks = new Set(['--ds-alert-bg', '--ds-alert-color', '--ds-alert-icon', '--ds-alert-edge']);
     for (const [kind, [bg, color, icon]] of Object.entries(kinds)) {
-      assert.deepEqual(own(flat, `.ds-alert--${kind}`), {
+      assert.deepEqual(own(flat, `.ds-alert:where(.ds-tone-${kind})`), {
         '--ds-alert-bg': `var(--ds-alert-${kind}-bg, var(${bg}))`,
         '--ds-alert-color': `var(--ds-alert-${kind}-color, var(${color}))`,
         '--ds-alert-icon': `var(--ds-alert-${kind}-icon, var(${icon}))`,
@@ -392,7 +392,7 @@ describe('alerts (2.0)', () => {
       for (const part of ['bg', 'color', 'icon']) hooks.add(`--ds-alert-${kind}-${part}`);
     }
     assert.equal(hooks.size, 13);
-    assert.equal(own(flat, '.ds-alert--error:not(.ds-alert--plain) .ds-btn:not(.ds-btn--filled, .ds-btn--primary, .ds-btn--tonal)')['--ds-btn-color'], 'var(--ds-alert-error-color, var(--ds-on-error-container))');
+    assert.equal(own(flat, '.ds-alert:where(.ds-tone-error):not(.ds-alert--plain, .ds-alert--inline) .ds-btn:not(.ds-btn--filled, .ds-btn--tonal)')['--ds-btn-color'], 'var(--ds-alert-error-color, var(--ds-on-error-container))');
     const theming = read('docs/theming.md');
     for (const hook of hooks) assert.ok(theming.includes(`\`${hook}\``), hook);
     assert.equal(own(forcedColorBlocks(css).join('\n'), '.ds-alert:not(.ds-alert--plain, .ds-alert--inline)').outline, '1px solid transparent');
@@ -401,7 +401,7 @@ describe('alerts (2.0)', () => {
   it('has a plain preset after the kinds, titles, paragraphs and an actions row; centres buttons on their own height', () => {
     const plain = own(flat, '.ds-alert--plain');
     assert.deepEqual(plain, { '--ds-alert-bg': 'transparent', '--ds-alert-color': 'var(--ds-text)', '--ds-alert-edge': '0', 'padding-inline': '0', 'border-radius': '0' });
-    assert.ok(stripComments(css).indexOf('.ds-alert--plain {') > stripComments(css).indexOf('.ds-alert--error {'), 'after the kinds');
+    assert.ok(stripComments(css).indexOf('.ds-alert--plain {') > stripComments(css).indexOf('.ds-alert:where(.ds-tone-error) {'), 'after the kinds');
     assert.equal(own(flat, '.ds-alert--plain + .ds-alert--plain')['border-top'], '1px solid var(--ds-line)');
     assert.equal(own(flat, '.ds-alert__title').font, 'var(--ds-font-label)');
     assert.equal(own(flat, '.ds-alert__text > p').margin, '0');

@@ -127,10 +127,12 @@ describe('tools/check-project.mjs', () => {
     };
     assert.deepEqual(levels('3.0.0-alpha.2'), ['warning css/theme.css', 'warning index.html']);
     assert.deepEqual(levels('3.0.0'), ['error css/theme.css', 'error index.html']);
-    // In this copy they are planned removals: warnings, and the aliases are still classes of ds.css.
+    // In this copy (a pre-release) they are planned removals, so the deprecated rule warns; the aliases already left
+    // ds.css, so the classes rule fails on the class.
     const today = run(files);
     assert.deepEqual(today.errors, []);
     assert.deepEqual([...new Set(today.findings.filter((f) => f.rule === 'deprecated').map((f) => f.level))], ['warning']);
+    assert.deepEqual(today.findings.filter((f) => f.rule === 'classes').map((f) => `${f.level} ${f.file} ${f.message}`), ['error index.html .ds-btn--primary is not a class of this copy (ds.css)']);
     assert.match(today.findings.find((f) => f.message.includes('ds-btn--primary')).message, /deprecated since 3\.0\.0, removed in 3\.0\.0: use \.ds-btn--filled/);
   });
 

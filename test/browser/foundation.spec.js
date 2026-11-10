@@ -72,7 +72,7 @@ test.describe('cascade layers', () => {
 
   test('unlayered page CSS beats a component rule of higher specificity', async ({ page }) => {
     await open(page, 'controls.html');
-    const button = page.locator('.ds-btn--primary').first();
+    const button = page.locator('.ds-btn--filled').first();
     expect(await button.evaluate((el) => getComputedStyle(el).borderTopLeftRadius)).not.toBe('0px');
     await page.addStyleTag({ content: '.ds-btn { border-radius: 0; background-color: rgb(1, 2, 3); }' });
     await settle(page); // the button transitions its background colour
@@ -83,7 +83,7 @@ test.describe('cascade layers', () => {
   test('an unlayered reset overrides the components; the same reset in a layer before ds does not', async ({ page }) => {
     const primary = async (name) => {
       await open(page, name);
-      return page.locator('#reset-buttons .ds-btn--primary').evaluate((el) => getComputedStyle(el).backgroundColor);
+      return page.locator('#reset-buttons .ds-btn--filled').evaluate((el) => getComputedStyle(el).backgroundColor);
     };
     // The migration note of 1.0.0: `button { background: none }` without a layer wins.
     expect(await primary('reset.html')).toBe('rgba(0, 0, 0, 0)');

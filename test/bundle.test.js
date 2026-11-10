@@ -439,7 +439,7 @@ describe('tools/bundle.mjs on this checkout\'s dist/ (its manifest.json)', () =>
   it('bundles a page from the built copy, a fraction of ds.css and ds.js', () => {
     withTemp((dir) => {
       const config = tempProject(dir, {
-        'index.html': '<div class="ds-theme"><button class="ds-btn ds-btn--primary">Go</button><span data-icon="bell"></span></div>\n<script>DS.ripple.attach(document); DS.icons.fill(document);</script>',
+        'index.html': '<div class="ds-theme"><button class="ds-btn ds-btn--filled">Go</button><span data-icon="bell"></span></div>\n<script>DS.ripple.attach(document); DS.icons.fill(document);</script>',
       }, { dist: relative(dir, dist) });
       const result = bundle({ config });
       assert.deepEqual(result.errors, []);

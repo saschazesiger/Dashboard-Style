@@ -29,8 +29,7 @@
  *     <div class="ds-check-group__children" role="group" aria-label="Sites"> <label class="ds-check">...</label> ...
  *
  * Hooks: --ds-check-size (18px box), --ds-check-target (40px halo),
- * --ds-check-height (40px row; the deprecated --sm: --ds-check-sm-height,
- * 32px), --ds-check-list-max-height (264px), --ds-radio-padding (16px),
+ * --ds-check-height (40px row), --ds-check-list-max-height (264px), --ds-radio-padding (16px),
  * --ds-form-actions-bleed (the inline padding of the container a sticky
  * action bar runs through; default --ds-content-pad-x, in a .ds-card
  * --ds-card-pad).
@@ -53,7 +52,6 @@
  *           <input class="ds-input" id="quota">
  *           <span class="ds-input-group__suffix" aria-hidden="true">GB</span>
  *           <span class="ds-input-group__trailing">(icon, tag or a button)</span>
- *           (.ds-input-group__affix: the 2.x name of prefix and suffix, deprecated)
  *         <div class="ds-field__foot"> <small class="ds-field__hint">...</small> <span class="ds-field__counter" aria-hidden="true">12 / 80</span>   (--over: past the limit)
  *       <div class="ds-field" role="group" aria-labelledby="serial-l">
  *         <span class="ds-field__label" id="serial-l">Serial</span> <span class="ds-field__value">SN-0042</span>
@@ -1140,7 +1138,7 @@
 
   /*
    * Input group: a unit or prefix inside the field (an aria-hidden
-   * .ds-input-group__affix; the unit is in the label too) or a trailing
+   * .ds-input-group__prefix or __suffix; the unit is in the label too) or a trailing
    * quiet icon button (a password reveal with aria-pressed). The group
    * draws the field (border, radius, background, height); the input inside
    * loses its box. The ring moves to the group while the input has the
@@ -1239,7 +1237,6 @@
     padding-inline-end: var(--ds-space-1);
   }
 
-  .ds-input-group__affix,
   .ds-input-group__prefix,
   .ds-input-group__suffix {
     flex: none;
@@ -1250,7 +1247,6 @@
   }
 
   @media (max-width: 600px) {
-    .ds-input-group__affix,
     .ds-input-group__prefix,
     .ds-input-group__suffix {
       font: var(--ds-input-font, var(--ds-font-input));
@@ -1723,13 +1719,6 @@
      (the box plus the gap). */
   .ds-check + .ds-field__hint {
     padding-inline-start: calc(var(--ds-check-size, 18px) + var(--ds-size-step, 0) * 2px + var(--ds-space-3));
-  }
-
-  /* The 2.x small row, a deprecated alias of .ds-sm until 3.0 ships: its fixed
-     height and the quieter ink; the touch minimum still wins. */
-  .ds-check--sm {
-    --_h: var(--ds-check-sm-height, 32px);
-    color: var(--ds-text-2);
   }
 
   /*

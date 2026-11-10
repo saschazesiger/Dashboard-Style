@@ -585,7 +585,7 @@
     display: none;
   }
 
-  .ds-auth .ds-form-actions > :is(.ds-btn--filled, .ds-btn--primary) {
+  .ds-auth .ds-form-actions > .ds-btn--filled {
     flex: 1;
   }
 

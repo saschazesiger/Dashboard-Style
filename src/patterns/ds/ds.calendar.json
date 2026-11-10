@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.calendar.css",
-      "bytes": 314655,
-      "gzip": 47999
+      "bytes": 312992,
+      "gzip": 47699
     },
     "js": {
       "file": "ds.calendar.js",
-      "bytes": 640933,
-      "gzip": 150605
+      "bytes": 640510,
+      "gzip": 150503
     },
     "properties": {
       "file": "properties.css",
@@ -36,8 +36,8 @@
     {
       "name": "spinner",
       "reason": "calendar.html:154 ds-spinner",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "indicator",
@@ -48,32 +48,32 @@
     {
       "name": "button",
       "reason": "calendar.html:22 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "status",
       "reason": "calendar.html:162 ds-tag",
-      "bytes": 3164,
-      "gzip": 921
+      "bytes": 2830,
+      "gzip": 865
     },
     {
       "name": "chart",
       "reason": "required by list",
-      "bytes": 23341,
-      "gzip": 4433
+      "bytes": 23123,
+      "gzip": 4396
     },
     {
       "name": "list",
       "reason": "calendar.html:106 ds-list",
-      "bytes": 18637,
-      "gzip": 3412
+      "bytes": 18493,
+      "gzip": 3387
     },
     {
       "name": "card",
       "reason": "calendar.html:83 ds-card",
-      "bytes": 16606,
-      "gzip": 2659
+      "bytes": 16531,
+      "gzip": 2644
     },
     {
       "name": "menu",
@@ -84,14 +84,14 @@
     {
       "name": "dialog",
       "reason": "calendar.html:114 ds-dialog",
-      "bytes": 15994,
-      "gzip": 2482
+      "bytes": 15933,
+      "gzip": 2468
     },
     {
       "name": "form",
       "reason": "calendar.html:89 ds-fieldset",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "drag",
@@ -108,14 +108,14 @@
     {
       "name": "page",
       "reason": "calendar.html:67 ds-content",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "shell",
       "reason": "calendar.html:18 ds-app",
-      "bytes": 39266,
-      "gzip": 6590
+      "bytes": 39239,
+      "gzip": 6579
     },
     {
       "name": "toast",

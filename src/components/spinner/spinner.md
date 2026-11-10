@@ -21,8 +21,6 @@ and table cells. A known share is the same component as a ring.
 | Tone | `.ds-tone-*` | the spinner itself; an inherited tone is ignored | the arc in the tone, a ring's track in the tone's container; a share in a tone needs its word next to it |
 | Density, shape, touch | | | not read: a spinner is round, no target, and its size follows the size step alone |
 
-- `.ds-spinner--sm` is **deprecated** (3.0, removed when 3.0 ships): `.ds-spinner--ink` with `.ds-sm`, the same look.
-  Until then it keeps its fixed 12px at any size.
 - Show it only after `--ds-delay-loader`, so fast loads never flash it: delay it through `.ds-loading`, a busy button or
   `<span class="ds-enter ds-enter--delayed">`. Never put `.ds-enter` on it in static markup (wrap it); it would replace
   the arc and the turn while it runs. A block of the page that waits shows the [shape loader](#shape-loader) instead.

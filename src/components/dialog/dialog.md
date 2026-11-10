@@ -26,8 +26,7 @@ aria-modal="true" aria-labelledby="del-title" aria-describedby="del-text">`.
 Declaratively, without a script of your own (3.0): `data-ds-open` on the button opens it, with the button as its opener,
 and `data-ds-close` inside it closes it. `data-ds-close="#id"` closes that one, from outside or from another overlay it
 leaves open, and `[data-ds-open]` works on a
-sheet and a menu too. `data-close` is the **deprecated** 2.x name of `data-ds-close` and works until 3.0 ships, and so does the event
-`'ds-close'`, next to `ds:close`.
+sheet and a menu too.
 
 ```html
 <button class="ds-btn" type="button" data-ds-open="#del-dialog">Delete</button>
@@ -38,7 +37,7 @@ sheet and a menu too. `data-close` is the **deprecated** 2.x name of `data-ds-cl
 
 | Option | Classes | Where it applies | Effect |
 |---|---|---|---|
-| Size | `.ds-dialog--sm`, the default, `.ds-dialog--lg`, `.ds-dialog--xl` | the dialog | the width of the box: 320px, 400px, 560px, 720px (never wider than the window). A size class (`.ds-sm`) on it would change every control inside, so the dialog has these instead. `.ds-dialog--wide` is the **deprecated** name of `.ds-dialog--lg`, and the hook `--ds-dialog-width-wide` of `--ds-dialog-width-lg`, until 3.0 ships |
+| Size | `.ds-dialog--sm`, the default, `.ds-dialog--lg`, `.ds-dialog--xl` | the dialog | the width of the box: 320px, 400px, 560px, 720px (never wider than the window). A size class (`.ds-sm`) on it would change every control inside, so the dialog has these instead |
 | Full screen | `.ds-dialog--full`; `.ds-dialog--full-narrow` | the dialog | the box fills the window; `--full-narrow` only at 600px and below |
 | Action sheet | `.ds-dialog--bottom` | the dialog | the box sits at the bottom edge |
 | Contained | `.ds-dialog--contained` | the dialog, div markup | it covers its positioned container |
@@ -383,7 +382,7 @@ Limits: a morph that drops the attribute frees the dialog (render it, or set it 
 Android Back can still force a native close (it follows with reason `escape`); never set `closedby` on a dialog that
 `DS.overlay` drives; a `<form method="dialog">` submit closes natively (give its buttons `type="button"`).
 
-- **Why it closed.** Every close sends `ds:close` (and `ds-close`, its **deprecated** 2.x name) with `detail.reason` (`escape`, `backdrop`, `close`, `api`, `submit`, your own
+- **Why it closed.** Every close sends `ds:close` with `detail.reason` (`escape`, `backdrop`, `close`, `api`, `submit`, your own
   string from `close(dialog, { reason })` ...; [motion.md](motion.md#dsoverlay-jsoverlayjs)), once, as soon as it starts.
   It bubbles: a listener on the dialog also hears the menus, lists and dialogs inside it, so check
   `event.target === dialog`.

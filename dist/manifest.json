@@ -471,8 +471,7 @@
         "ds-spinner",
         "ds-spinner--determinate",
         "ds-spinner--flat",
-        "ds-spinner--ink",
-        "ds-spinner--sm"
+        "ds-spinner--ink"
       ],
       "attributes": [],
       "keyframes": [
@@ -490,8 +489,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 6723,
-      "gzip": 1699
+      "bytes": 6681,
+      "gzip": 1686
     },
     "loader": {
       "css": "css/components/loader.css",
@@ -502,8 +501,7 @@
       "context": [],
       "classes": [
         "ds-loader",
-        "ds-loader--contained",
-        "ds-loader--sm"
+        "ds-loader--contained"
       ],
       "attributes": [],
       "keyframes": [
@@ -514,13 +512,12 @@
       "js": [],
       "hooks": [
         "--ds-loader-color",
-        "--ds-loader-size",
-        "--ds-loader-sm-size"
+        "--ds-loader-size"
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 4411,
-      "gzip": 1258
+      "bytes": 4361,
+      "gzip": 1244
     },
     "indicator": {
       "css": "css/components/indicator.css",
@@ -576,9 +573,7 @@
         "ds-btn--ghost",
         "ds-btn--icon",
         "ds-btn--outlined",
-        "ds-btn--primary",
         "ds-btn--quiet",
-        "ds-btn--sm",
         "ds-btn--text",
         "ds-btn--tonal",
         "ds-btn__face",
@@ -616,8 +611,6 @@
         "--ds-btn-radius",
         "--ds-btn-radius-pressed",
         "--ds-btn-shadow",
-        "--ds-btn-sm-height",
-        "--ds-btn-sm-icon-size",
         "--ds-btn-state",
         "--ds-btn-state-focus-opacity",
         "--ds-btn-state-opacity",
@@ -625,8 +618,8 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 18743,
-      "gzip": 3334
+      "bytes": 18122,
+      "gzip": 3250
     },
     "loading": {
       "css": "css/components/loading.css",
@@ -802,13 +795,9 @@
       "context": [],
       "classes": [
         "ds-status",
-        "ds-status--error",
-        "ds-status--ok",
         "ds-status--running",
-        "ds-status--warning",
         "ds-status__spinner",
-        "ds-tag",
-        "ds-tag--neutral"
+        "ds-tag"
       ],
       "attributes": [],
       "keyframes": [],
@@ -823,8 +812,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 6652,
-      "gzip": 1722
+      "bytes": 6318,
+      "gzip": 1669
     },
     "alert": {
       "css": "css/components/alert.css",
@@ -837,12 +826,9 @@
       "context": [],
       "classes": [
         "ds-alert",
-        "ds-alert--error",
         "ds-alert--inline",
         "ds-alert--plain",
         "ds-alert--section",
-        "ds-alert--success",
-        "ds-alert--warning",
         "ds-alert__actions",
         "ds-alert__text",
         "ds-alert__title",
@@ -874,8 +860,8 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 9679,
-      "gzip": 2372
+      "bytes": 9507,
+      "gzip": 2344
     },
     "switch": {
       "css": "css/components/switch.css",
@@ -1073,12 +1059,10 @@
         "ds-columns--grouped",
         "ds-columns--mini",
         "ds-columns__col",
-        "ds-columns__col--error",
         "ds-columns__col--highlight",
         "ds-columns__col--s2",
         "ds-columns__col--s3",
         "ds-columns__col--s4",
-        "ds-columns__col--warning",
         "ds-columns__fill",
         "ds-columns__group",
         "ds-columns__group--current",
@@ -1088,16 +1072,10 @@
         "ds-columns__value",
         "ds-legend",
         "ds-legend__key",
-        "ds-legend__key--error",
-        "ds-legend__key--neutral",
         "ds-legend__key--s2",
         "ds-legend__key--s3",
         "ds-legend__key--s4",
-        "ds-legend__key--warning",
-        "ds-meter",
-        "ds-meter--error",
-        "ds-meter--neutral",
-        "ds-meter--warning"
+        "ds-meter"
       ],
       "attributes": [
         "data-ds-chart",
@@ -1138,8 +1116,8 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 26829,
-      "gzip": 5256
+      "bytes": 26611,
+      "gzip": 5216
     },
     "tile": {
       "css": "css/components/tile.css",
@@ -1213,9 +1191,6 @@
         "ds-kv-list--bars",
         "ds-kv-list--interactive",
         "ds-kv-list__icon",
-        "ds-kv-list__icon--error",
-        "ds-kv-list__icon--ok",
-        "ds-kv-list__icon--warning",
         "ds-kv-list__row",
         "ds-list",
         "ds-list--interactive",
@@ -1281,8 +1256,8 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 22125,
-      "gzip": 4235
+      "bytes": 21981,
+      "gzip": 4209
     },
     "card": {
       "css": "css/components/card.css",
@@ -1320,9 +1295,7 @@
         "ds-card__row",
         "ds-card__section",
         "ds-card__subtitle",
-        "ds-card__title",
-        "ds-more",
-        "ds-subsection"
+        "ds-card__title"
       ],
       "attributes": [
         "data-ds-shown"
@@ -1352,8 +1325,8 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 20094,
-      "gzip": 3474
+      "bytes": 20019,
+      "gzip": 3459
     },
     "prose": {
       "css": "css/components/prose.css",
@@ -1568,11 +1541,7 @@
       "classes": [
         "ds-badge",
         "ds-badge--corner",
-        "ds-badge--dot",
-        "ds-badge--error",
-        "ds-badge--neutral",
-        "ds-badge--ok",
-        "ds-badge--warning"
+        "ds-badge--dot"
       ],
       "attributes": [
         "data-ds-badge",
@@ -1591,8 +1560,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 7242,
-      "gzip": 1760
+      "bytes": 6792,
+      "gzip": 1695
     },
     "sheet": {
       "css": "css/components/sheet.css",
@@ -1686,7 +1655,6 @@
         "ds-dialog--nested",
         "ds-dialog--scroll-outside",
         "ds-dialog--sm",
-        "ds-dialog--wide",
         "ds-dialog--xl",
         "ds-dialog__actions",
         "ds-dialog__backdrop",
@@ -1734,15 +1702,14 @@
         "--ds-dialog-width",
         "--ds-dialog-width-lg",
         "--ds-dialog-width-sm",
-        "--ds-dialog-width-wide",
         "--ds-dialog-width-xl"
       ],
       "ripple": false,
       "progressive": [
         "scrollbar-color"
       ],
-      "bytes": 19482,
-      "gzip": 3295
+      "bytes": 19421,
+      "gzip": 3280
     },
     "table": {
       "css": "css/components/table.css",
@@ -1771,7 +1738,6 @@
         "ds-selection-bar__count",
         "ds-table",
         "ds-table--bordered",
-        "ds-table--dense",
         "ds-table--interactive",
         "ds-table--pin-first",
         "ds-table--pin-last",
@@ -1816,7 +1782,6 @@
         "--ds-scroll-fade",
         "--ds-selection-bar-height",
         "--ds-table-cell-max-width",
-        "--ds-table-dense-row-height",
         "--ds-table-fill-max-height",
         "--ds-table-fill-min-height",
         "--ds-table-head-height",
@@ -1833,8 +1798,8 @@
         "scroll-driven",
         "scrollbar-color"
       ],
-      "bytes": 36362,
-      "gzip": 5582
+      "bytes": 35761,
+      "gzip": 5507
     },
     "pagination": {
       "css": "css/components/pagination.css",
@@ -1897,7 +1862,6 @@
         "ds-action-bar",
         "ds-add-row",
         "ds-check",
-        "ds-check--sm",
         "ds-check-card",
         "ds-check-cards",
         "ds-check-group",
@@ -1953,7 +1917,6 @@
         "ds-input--outlined",
         "ds-input-group",
         "ds-input-group--filled",
-        "ds-input-group__affix",
         "ds-input-group__leading",
         "ds-input-group__prefix",
         "ds-input-group__suffix",
@@ -1990,7 +1953,6 @@
         "--ds-check-height",
         "--ds-check-list-max-height",
         "--ds-check-size",
-        "--ds-check-sm-height",
         "--ds-check-target",
         "--ds-field-changed-color",
         "--ds-field-error-color",
@@ -2018,8 +1980,8 @@
         "scrollbar-color",
         "field-sizing"
       ],
-      "bytes": 52795,
-      "gzip": 7913
+      "bytes": 52676,
+      "gzip": 7888
     },
     "drag": {
       "css": "css/components/drag.css",
@@ -2249,8 +2211,8 @@
         "scroll-driven",
         "text-wrap"
       ],
-      "bytes": 11500,
-      "gzip": 2999
+      "bytes": 11478,
+      "gzip": 2985
     },
     "shell": {
       "css": "css/components/shell.css",
@@ -2386,7 +2348,6 @@
         "--ds-badge-color",
         "--ds-badge-dot-size",
         "--ds-btn-icon-size",
-        "--ds-btn-sm-icon-size",
         "--ds-drawer-font",
         "--ds-drawer-indent",
         "--ds-drawer-item-height",
@@ -2410,8 +2371,8 @@
         "scrollbar-color",
         "scrollbar-gutter"
       ],
-      "bytes": 42754,
-      "gzip": 7403
+      "bytes": 42727,
+      "gzip": 7393
     },
     "tabs": {
       "css": "css/components/tabs.css",
@@ -3974,8 +3935,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 5879,
-      "gzip": 1581
+      "bytes": 5845,
+      "gzip": 1578
     },
     "menubutton": {
       "css": "css/components/menubutton.css",
@@ -6546,9 +6507,7 @@
         "ds-avatar--hue-4",
         "ds-avatar--hue-5",
         "ds-avatar--hue-6",
-        "ds-avatar--lg",
         "ds-avatar--ring",
-        "ds-avatar--sm",
         "ds-avatar--square",
         "ds-avatar-group",
         "ds-avatar-group--spread",
@@ -6579,8 +6538,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 9359,
-      "gzip": 2325
+      "bytes": 9167,
+      "gzip": 2282
     },
     "persona": {
       "css": "css/components/persona.css",
@@ -7051,8 +7010,7 @@
       ],
       "exports": [
         "OVERSHOOT",
-        "create",
-        "createIndicator"
+        "create"
       ],
       "requires": [
         "indicator"

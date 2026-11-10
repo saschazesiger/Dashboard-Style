@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.bundle.css",
-      "bytes": 621902,
-      "gzip": 89767
+      "bytes": 618740,
+      "gzip": 89197
     },
     "js": {
       "file": "ds.bundle.js",
-      "bytes": 1495089,
-      "gzip": 358110
+      "bytes": 1494658,
+      "gzip": 358019
     },
     "properties": {
       "file": "properties.css",
@@ -42,14 +42,14 @@
     {
       "name": "spinner",
       "reason": "demo.js:596 ds-spinner",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "loader",
       "reason": "index.html:712 ds-loader",
-      "bytes": 923,
-      "gzip": 465
+      "bytes": 873,
+      "gzip": 452
     },
     {
       "name": "indicator",
@@ -60,8 +60,8 @@
     {
       "name": "button",
       "reason": "demo.js:448 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "loading",
@@ -90,14 +90,14 @@
     {
       "name": "status",
       "reason": "demo.js:521 ds-status",
-      "bytes": 3164,
-      "gzip": 921
+      "bytes": 2830,
+      "gzip": 865
     },
     {
       "name": "alert",
       "reason": "demo.js:805 ds-alert",
-      "bytes": 6191,
-      "gzip": 1561
+      "bytes": 6019,
+      "gzip": 1532
     },
     {
       "name": "switch",
@@ -120,8 +120,8 @@
     {
       "name": "chart",
       "reason": "demo.js:249 data-ds-chart",
-      "bytes": 23341,
-      "gzip": 4433
+      "bytes": 23123,
+      "gzip": 4396
     },
     {
       "name": "tile",
@@ -132,14 +132,14 @@
     {
       "name": "list",
       "reason": "demo.js:439 ds-list",
-      "bytes": 18637,
-      "gzip": 3412
+      "bytes": 18493,
+      "gzip": 3387
     },
     {
       "name": "card",
       "reason": "demo.js:248 ds-card",
-      "bytes": 16606,
-      "gzip": 2659
+      "bytes": 16531,
+      "gzip": 2644
     },
     {
       "name": "prose",
@@ -168,8 +168,8 @@
     {
       "name": "badge",
       "reason": "index.html:900 ds-badge",
-      "bytes": 3754,
-      "gzip": 964
+      "bytes": 3304,
+      "gzip": 896
     },
     {
       "name": "sheet",
@@ -180,14 +180,14 @@
     {
       "name": "dialog",
       "reason": "index.html:1220 ds-dialog",
-      "bytes": 15994,
-      "gzip": 2482
+      "bytes": 15933,
+      "gzip": 2468
     },
     {
       "name": "table",
       "reason": "demo.js:621 ds-col--text",
-      "bytes": 32874,
-      "gzip": 4760
+      "bytes": 32273,
+      "gzip": 4685
     },
     {
       "name": "pagination",
@@ -198,8 +198,8 @@
     {
       "name": "form",
       "reason": "demo.js:371 ds-field",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "drag",
@@ -222,14 +222,14 @@
     {
       "name": "page",
       "reason": "demo.js:248 ds-grid-2",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "shell",
       "reason": "demo.js:91 ds-topbar",
-      "bytes": 39266,
-      "gzip": 6590
+      "bytes": 39239,
+      "gzip": 6579
     },
     {
       "name": "tabs",
@@ -336,8 +336,8 @@
     {
       "name": "button-group",
       "reason": "index.html:163 ds-btn-group",
-      "bytes": 2391,
-      "gzip": 776
+      "bytes": 2357,
+      "gzip": 771
     },
     {
       "name": "menubutton",
@@ -540,8 +540,8 @@
     {
       "name": "avatar",
       "reason": "demo.js:1084 ds-avatar--hue-1",
-      "bytes": 5871,
-      "gzip": 1523
+      "bytes": 5679,
+      "gzip": 1480
     },
     {
       "name": "persona",

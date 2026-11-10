@@ -426,7 +426,7 @@ test('a first item that a plain DOM mutate removes keeps its place, padding and 
   await open(page, { speed: 0.1 });
   const result = await page.evaluate(() => {
     document.querySelector('.ds-theme').insertAdjacentHTML('afterbegin', '<ul class="ds-kv-list" id="kv" style="width: 480px">'
-      + ['LAPTOP-0201', 'LAPTOP-0202', 'LAPTOP-0203'].map((name) => `<li data-ds-key="${name}"><span>${name}</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Mark returned</button></li>`).join('')
+      + ['LAPTOP-0201', 'LAPTOP-0202', 'LAPTOP-0203'].map((name) => `<li data-ds-key="${name}"><span>${name}</span><button class="ds-btn ds-btn--text ds-sm" type="button">Mark returned</button></li>`).join('')
       + '</ul>');
     const list = document.getElementById('kv');
     const first = list.firstElementChild;
@@ -501,7 +501,7 @@ test('live: a plain DOM mutate waits whole while the mouse is over the stack, th
     const watched = document.getElementById('alert-3');
     const top = watched.getBoundingClientRect().top;
     const alert = document.createElement('div');
-    alert.className = 'ds-alert ds-alert--error';
+    alert.className = 'ds-alert ds-tone-error';
     alert.id = 'alert-new';
     alert.innerHTML = '<span class="ds-alert__text">The sync failed.</span>';
     window.fxAlert = alert;
@@ -593,7 +593,7 @@ test('a re-render of the list\'s ancestor mid-glide keeps the held height, the l
 /* ── 2.0: refocus and the z range ─────────────────────────────────── */
 
 /** Keyed rows with a Remove button each, as a page renders them. */
-const REMOVABLE = 'window.fxRemovable = (names) => names.map((name) => `<li class="fx-item" data-ds-key="${name}"><span>${name}</span><button class="ds-btn ds-btn--sm fx-remove" type="button">Remove</button></li>`).join("");';
+const REMOVABLE = 'window.fxRemovable = (names) => names.map((name) => `<li class="fx-item" data-ds-key="${name}"><span>${name}</span><button class="ds-btn ds-sm fx-remove" type="button">Remove</button></li>`).join("");';
 
 async function openRemovable(page) {
   await open(page);
@@ -623,10 +623,10 @@ function removeFocused(page, { names, name, options = {}, plain = false, moveFoc
 test('refocus: removing the focused row moves focus to the same control of the next row, else the previous (2.0)', async ({ page }) => {
   await openRemovable(page);
   const names = ['LAPTOP-0042', 'LAPTOP-0043', 'DESKTOP-0107'];
-  expect(await removeFocused(page, { names, name: 'LAPTOP-0043' })).toEqual({ key: 'DESKTOP-0107', className: 'ds-btn ds-btn--sm fx-remove' });
-  expect(await removeFocused(page, { names, name: 'DESKTOP-0107' })).toEqual({ key: 'LAPTOP-0043', className: 'ds-btn ds-btn--sm fx-remove' });
+  expect(await removeFocused(page, { names, name: 'LAPTOP-0043' })).toEqual({ key: 'DESKTOP-0107', className: 'ds-btn ds-sm fx-remove' });
+  expect(await removeFocused(page, { names, name: 'DESKTOP-0107' })).toEqual({ key: 'LAPTOP-0043', className: 'ds-btn ds-sm fx-remove' });
   // A plain DOM mutate (no hooks) the same way.
-  expect(await removeFocused(page, { names, name: 'LAPTOP-0042', plain: true })).toEqual({ key: 'LAPTOP-0043', className: 'ds-btn ds-btn--sm fx-remove' });
+  expect(await removeFocused(page, { names, name: 'LAPTOP-0042', plain: true })).toEqual({ key: 'LAPTOP-0043', className: 'ds-btn ds-sm fx-remove' });
 });
 
 test('refocus: the last row goes to the fallback; a page that moved focus itself and refocus: false are left alone (2.0)', async ({ page }) => {
@@ -663,7 +663,7 @@ const PRESSABLE = `window.fxPressable = () => {
   DS.ripple.attach(document);
   const list = document.getElementById('list');
   DS.dom.morphHtml(list, ['a', 'b', 'c'].map((name) => '<li class="fx-item" data-ds-key="' + name + '"><input class="ds-input" aria-label="Note ' + name + '">'
-    + '<button class="ds-btn ds-btn--text ds-btn--sm fx-remove" type="button">Remove ' + name + '</button></li>').join(''));
+    + '<button class="ds-btn ds-btn--text ds-sm fx-remove" type="button">Remove ' + name + '</button></li>').join(''));
   window.fxAtClick = [];
   list.addEventListener('click', (event) => {
     const button = event.target.closest('.fx-remove');
@@ -704,7 +704,7 @@ test('refocus: removing the last chip of a row focuses the chip before it, not t
     row.setAttribute('role', 'group');
     row.setAttribute('aria-label', 'Active filters');
     row.insertAdjacentHTML('beforeend', chips.map((label) => `<button class="ds-chip ds-chip--input" type="button"><span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">Remove filter </span>${label}</span></span></button>`).join('')
-      + '<button class="ds-btn ds-btn--text ds-btn--sm" type="button" id="fx-clear">Clear filters</button>');
+      + '<button class="ds-btn ds-btn--text ds-sm" type="button" id="fx-clear">Clear filters</button>');
     document.getElementById('list').before(row);
     row.addEventListener('click', (event) => {
       const chip = event.target.closest('.ds-chip');

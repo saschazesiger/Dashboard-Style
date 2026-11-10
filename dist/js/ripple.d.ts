@@ -12,8 +12,6 @@ export interface RippleHandle {
   destroy(): void;
   /** Ends the running press of `host`, or every press under the root. */
   release(host?: Element): void;
-  /** @deprecated Use destroy() (removed in 3.0 at the earliest). */
-  detach(): void;
 }
 /** The pointer ripple on every action inside `root`; also installs DS.motion.guard(). */
 export declare function attach(root?: Document | Element | ShadowRoot): RippleHandle;

@@ -44,7 +44,7 @@
     <h2 id="actions-title">Actions</h2>
     <div class="fx-row">
       <button class="ds-btn" type="button" id="plain">Export</button>
-      <button class="ds-btn ds-btn--primary" type="button" id="blocked" aria-disabled="true">Publish</button>
+      <button class="ds-btn ds-btn--filled" type="button" id="blocked" aria-disabled="true">Publish</button>
       <button class="ds-btn" type="button" id="open-first">Open the first dialog</button>
     </div>
   </section>
@@ -52,22 +52,22 @@
 </main>
 
 <div class="ds-dialog" id="first" hidden>
-  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__backdrop" data-ds-close></div>
   <div class="ds-dialog__box" role="dialog" aria-modal="true" aria-labelledby="first-title">
     <h2 class="ds-dialog__title" id="first-title">First copy</h2>
     <div class="ds-dialog__actions">
       <button class="ds-btn" type="button" id="open-second">Open the second dialog</button>
-      <button class="ds-btn ds-btn--text" type="button" data-close>Close</button>
+      <button class="ds-btn ds-btn--text" type="button" data-ds-close>Close</button>
     </div>
   </div>
 </div>
 
 <div class="ds-dialog" id="second" hidden>
-  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__backdrop" data-ds-close></div>
   <div class="ds-dialog__box" role="dialog" aria-modal="true" aria-labelledby="second-title">
     <h2 class="ds-dialog__title" id="second-title">Second copy</h2>
     <div class="ds-dialog__actions">
-      <button class="ds-btn ds-btn--text" type="button" id="second-close" data-close>Close</button>
+      <button class="ds-btn ds-btn--text" type="button" id="second-close" data-ds-close>Close</button>
     </div>
   </div>
 </div>

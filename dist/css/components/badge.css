@@ -15,7 +15,6 @@
  *                              8px at md), in --ds-primary or the tone's full
  *                              colour, which hold 3:1 on a surface; needs a
  *                              word, in .ds-sr or beside it
- *   --neutral --ok --warning --error   deprecated: .ds-tone-neutral, -success, -warning, -error
  *
  * Options (docs/options.md), computed here into --_h:
  *   size      .ds-xs ... .ds-xl on the badge or any ancestor (a small button
@@ -123,42 +122,26 @@
     --ds-badge-bg: var(--ds-tone);
   }
 
-  .ds-badge--neutral,
   .ds-badge.ds-tone-neutral:not(.ds-badge--dot) {
     --ds-badge-bg: var(--ds-surface-high);
     --ds-badge-color: var(--ds-text-2);
   }
 
-  .ds-badge--ok {
-    --ds-badge-bg: var(--ds-success-container);
-    --ds-badge-color: var(--ds-on-success-container);
-  }
-
-  .ds-badge--warning {
-    --ds-badge-bg: var(--ds-warning-container);
-    --ds-badge-color: var(--ds-on-warning-container);
-  }
-
-  .ds-badge--error {
-    --ds-badge-bg: var(--ds-error-container);
-    --ds-badge-color: var(--ds-on-error-container);
-  }
-
   /* On a tinted host the tint badge would vanish: the strong pair instead.
      The hosts of later components (a selected table row, a blocked tab or
      drawer item) repeat these rules in their own stylesheets. */
-  :is(.ds-btn[aria-pressed="true"], .ds-btn--tonal, .ds-btn--disclosure[aria-expanded="true"], .ds-btn[aria-haspopup="dialog"][aria-expanded="true"], .ds-chip__input:checked + .ds-chip__body, .ds-chip--input) .ds-badge:not(.ds-badge--neutral, .ds-badge--ok, .ds-badge--warning, .ds-badge--error, .ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
+  :is(.ds-btn[aria-pressed="true"], .ds-btn--tonal, .ds-btn--disclosure[aria-expanded="true"], .ds-btn[aria-haspopup="dialog"][aria-expanded="true"], .ds-chip__input:checked + .ds-chip__body, .ds-chip--input) .ds-badge:not(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
     --ds-badge-bg: var(--ds-primary);
     --ds-badge-color: var(--ds-on-primary);
   }
 
-  :is(.ds-btn[aria-pressed="true"], .ds-btn--tonal, .ds-btn--disclosure[aria-expanded="true"], .ds-btn[aria-haspopup="dialog"][aria-expanded="true"], .ds-chip__input:checked + .ds-chip__body, .ds-chip--input) :is(.ds-badge--neutral, .ds-badge.ds-tone-neutral:not(.ds-badge--dot)) {
+  :is(.ds-btn[aria-pressed="true"], .ds-btn--tonal, .ds-btn--disclosure[aria-expanded="true"], .ds-btn[aria-haspopup="dialog"][aria-expanded="true"], .ds-chip__input:checked + .ds-chip__body, .ds-chip--input) .ds-badge.ds-tone-neutral:not(.ds-badge--dot) {
     --ds-badge-bg: var(--ds-surface);
     --ds-badge-color: var(--ds-text-2);
   }
 
   /* On the primary fill a primary dot would vanish: the fill's ink instead. */
-  :is(.ds-btn--filled, .ds-btn--primary) .ds-badge--dot:not(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
+  .ds-btn--filled .ds-badge--dot:not(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
     --_fill: var(--ds-on-primary);
   }
 

@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.record.css",
-      "bytes": 347006,
-      "gzip": 52063
+      "bytes": 344550,
+      "gzip": 51596
     },
     "js": {
       "file": "ds.record.js",
-      "bytes": 702774,
-      "gzip": 167299
+      "bytes": 702347,
+      "gzip": 167201
     },
     "properties": {
       "file": "properties.css",
@@ -30,8 +30,8 @@
     {
       "name": "spinner",
       "reason": "record.html:132 ds-spinner",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "indicator",
@@ -42,8 +42,8 @@
     {
       "name": "button",
       "reason": "record.html:22 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "timeline",
@@ -54,26 +54,26 @@
     {
       "name": "status",
       "reason": "record.html:70 ds-status",
-      "bytes": 3164,
-      "gzip": 921
+      "bytes": 2830,
+      "gzip": 865
     },
     {
       "name": "chart",
       "reason": "record.html:149 ds-meter",
-      "bytes": 23341,
-      "gzip": 4433
+      "bytes": 23123,
+      "gzip": 4396
     },
     {
       "name": "list",
       "reason": "record.html:102 ds-facts",
-      "bytes": 18637,
-      "gzip": 3412
+      "bytes": 18493,
+      "gzip": 3387
     },
     {
       "name": "card",
       "reason": "record.html:96 ds-card",
-      "bytes": 16606,
-      "gzip": 2659
+      "bytes": 16531,
+      "gzip": 2644
     },
     {
       "name": "menu",
@@ -84,20 +84,20 @@
     {
       "name": "dialog",
       "reason": "record.html:236 ds-dialog",
-      "bytes": 15994,
-      "gzip": 2482
+      "bytes": 15933,
+      "gzip": 2468
     },
     {
       "name": "table",
       "reason": "needed by module chart",
-      "bytes": 32874,
-      "gzip": 4760
+      "bytes": 32273,
+      "gzip": 4685
     },
     {
       "name": "form",
       "reason": "record.html:109 ds-form",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "drag",
@@ -114,14 +114,14 @@
     {
       "name": "page",
       "reason": "record.html:61 ds-content",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "shell",
       "reason": "record.html:18 ds-app",
-      "bytes": 39266,
-      "gzip": 6590
+      "bytes": 39239,
+      "gzip": 6579
     },
     {
       "name": "toast",
@@ -168,8 +168,8 @@
     {
       "name": "avatar",
       "reason": "record.html:163 ds-avatar",
-      "bytes": 5871,
-      "gzip": 1523
+      "bytes": 5679,
+      "gzip": 1480
     },
     {
       "name": "persona",

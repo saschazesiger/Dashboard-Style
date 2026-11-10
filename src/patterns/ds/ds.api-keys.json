@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.api-keys.css",
-      "bytes": 287375,
-      "gzip": 43878
+      "bytes": 285301,
+      "gzip": 43503
     },
     "js": {
       "file": "ds.api-keys.js",
-      "bytes": 522389,
-      "gzip": 124434
+      "bytes": 521966,
+      "gzip": 124340
     },
     "properties": {
       "file": "properties.css",
@@ -30,8 +30,8 @@
     {
       "name": "spinner",
       "reason": "api-keys.html:140 ds-spinner",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "indicator",
@@ -42,26 +42,26 @@
     {
       "name": "button",
       "reason": "api-keys.html:22 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "status",
       "reason": "api-keys.html:216 ds-tag",
-      "bytes": 3164,
-      "gzip": 921
+      "bytes": 2830,
+      "gzip": 865
     },
     {
       "name": "alert",
       "reason": "api-keys.html:75 ds-alert",
-      "bytes": 6191,
-      "gzip": 1561
+      "bytes": 6019,
+      "gzip": 1532
     },
     {
       "name": "card",
       "reason": "api-keys.html:79 ds-card",
-      "bytes": 16606,
-      "gzip": 2659
+      "bytes": 16531,
+      "gzip": 2644
     },
     {
       "name": "empty",
@@ -78,20 +78,20 @@
     {
       "name": "dialog",
       "reason": "api-keys.html:110 ds-dialog",
-      "bytes": 15994,
-      "gzip": 2482
+      "bytes": 15933,
+      "gzip": 2468
     },
     {
       "name": "table",
       "reason": "api-keys.html:84 ds-table-wrap",
-      "bytes": 32874,
-      "gzip": 4760
+      "bytes": 32273,
+      "gzip": 4685
     },
     {
       "name": "form",
       "reason": "api-keys.html:115 ds-field",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "tooltip",
@@ -102,14 +102,14 @@
     {
       "name": "page",
       "reason": "api-keys.html:61 ds-content",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "shell",
       "reason": "api-keys.html:18 ds-app",
-      "bytes": 39266,
-      "gzip": 6590
+      "bytes": 39239,
+      "gzip": 6579
     },
     {
       "name": "toast",

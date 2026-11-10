@@ -252,7 +252,6 @@
   --ds-spinner-determinate-width: calc(var(--_s) / 10);
   --ds-loader-size: 48px;
   --ds-loader-color: var(--ds-primary);
-  --ds-loader-sm-size: 24px;
   --ds-btn-height: 40px;
   --ds-btn-height-exact: (unset);
   --ds-btn-padding-x: var(--ds-space-4);
@@ -273,8 +272,6 @@
   --ds-btn-hover-shadow: var(--ds-btn-shadow, none);
   --ds-btn-hover-decoration: none;
   --ds-btn-icon-size: 40px;
-  --ds-btn-sm-height: 32px;
-  --ds-btn-sm-icon-size: 32px;
   --ds-btn-quiet-color: var(--ds-text-2);
   --ds-btn-disabled-bg: var(--ds-btn-bg, transparent);
   --ds-btn-disabled-border: var(--ds-disabled-fill, var(--ds-btn-border, var(--ds-line-2)));
@@ -441,9 +438,8 @@
   --ds-sheet-docked-border: 1px solid var(--ds-line);
   --ds-dialog-width: 400px;
   --ds-dialog-width-sm: 320px;
-  --ds-dialog-width-lg: var(--ds-dialog-width-wide, 560px);
+  --ds-dialog-width-lg: 560px;
   --ds-dialog-width-xl: 720px;
-  --ds-dialog-width-wide: 560px;
   --ds-dialog-padding: var(--ds-space-6);
   --ds-dialog-radius: var(--ds-radius-dialog);
   --ds-dialog-head-height: 56px;
@@ -457,7 +453,6 @@
   --ds-table-row-selected: var(--ds-accent);
   --ds-table-head-height: 48px;
   --ds-table-row-height: 52px;
-  --ds-table-dense-row-height: 40px;
   --ds-table-padding: var(--ds-space-4);
   --ds-table-zebra: var(--ds-surface-low);
   --ds-table-sticky-bg: var(--ds-surface);
@@ -476,7 +471,6 @@
   --ds-input-height: 40px;
   --ds-input-padding-x: var(--ds-space-3);
   --ds-check-height: 40px;
-  --ds-check-sm-height: 32px;
   --ds-radio-padding: var(--ds-space-4);
   --ds-input-bg: var(--ds-surface);
   --ds-input-border: var(--ds-outline);

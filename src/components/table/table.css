@@ -27,10 +27,6 @@
  *   .ds-table--bordered a hairline between the columns too, and around the
  *                       table outside a card or a full-page wrapper
  *   .ds-table--plain    no hairlines between the rows (with --zebra)
- *   .ds-table--dense    the 2.x 40px rows, a deprecated alias of
- *                       .ds-density-tight until 3.0 ships: the fixed height
- *                       --ds-table-dense-row-height for head and rows, which
- *                       size and density do not change
  *   <th aria-sort="ascending"><button class="ds-table__sort">Name (arrowUp .ds-table__sort-arrow)</button></th>
  *                       a sortable column; the arrow at the sorted column
  *                       says it, not the colour; every sort button keeps
@@ -132,8 +128,8 @@
  * the box and snaps in from one width further out.
  *
  * Hooks: --ds-table-row-hover, --ds-table-row-selected, --ds-table-head-height
- * (48px), --ds-table-row-height (52px), --ds-table-dense-row-height
- * (40px; the cell padding follows the heights), --ds-table-padding
+ * (48px), --ds-table-row-height (52px; the cell padding follows the
+ * heights), --ds-table-padding
  * (--ds-space-4, the cells' side padding; on phones 3/4 of it, below 360px
  * half), --ds-table-zebra
  * (--ds-surface-low), --ds-table-sticky-bg (the opaque base of sticky and
@@ -351,13 +347,6 @@
 
   .ds-table--sticky-foot {
     --_sticky-foot: max(var(--ds-target-min, 0px), calc(var(--ds-table-row-height, 52px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
-  }
-
-  /* The alias' fixed height, which size and density do not change. */
-  .ds-table--dense:is(.ds-table--sticky-head, .ds-table--sticky-foot),
-  .ds-table-wrap--fill > .ds-table--dense {
-    --_sticky-head: max(var(--ds-target-min, 0px), var(--ds-table-dense-row-height, 40px));
-    --_sticky-foot: max(var(--ds-target-min, 0px), var(--ds-table-dense-row-height, 40px));
   }
 
   .ds-table--sticky-head > tbody :where(a[href], button, input, select, textarea, summary, [tabindex]),
@@ -759,15 +748,6 @@
     border-bottom: none;
   }
 
-  /* The 2.x dense rows, a deprecated alias until 3.0 ships (the model's
-     40px rows are .ds-density-tight): a fixed 40px for head and rows, which
-     size and density do not change; the text stays 14/20. The hairline
-     counts: 7 + 24 (a status chip) + 7 + 1 = 39, within the 40px. */
-  .ds-table--dense :is(th, td) {
-    --_h: var(--ds-table-dense-row-height, 40px);
-    --_room: calc(var(--ds-space-6) + 2px);
-  }
-
   /*
    * Row actions: the last cell holds the row's own buttons, as narrow as
    * they are, at the row's end. The buttons hang into the cell's padding
@@ -949,10 +929,6 @@
       animation-timeline: scroll(self inline);
       animation-range: 0 var(--ds-space-8), calc(100% - var(--ds-space-8)) 100%;
     }
-  }
-
-  .ds-table-wrap--fill:has(> .ds-table--dense) {
-    --_kept-head: max(var(--ds-target-min, 0px), var(--ds-table-dense-row-height, 40px));
   }
 
   .ds-table-wrap--fill > .ds-table {
@@ -1561,12 +1537,12 @@
   /* A badge (badge.css) in a selected row: the tint badge would vanish on
      the selection's tint, so the strong pair instead, as on a tinted
      button. */
-  :is(.ds-table__row--selected, tr:has(> td input[type="checkbox"]:checked)) .ds-badge:not(.ds-badge--neutral, .ds-badge--ok, .ds-badge--warning, .ds-badge--error, .ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
+  :is(.ds-table__row--selected, tr:has(> td input[type="checkbox"]:checked)) .ds-badge:not(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
     --ds-badge-bg: var(--ds-primary);
     --ds-badge-color: var(--ds-on-primary);
   }
 
-  :is(.ds-table__row--selected, tr:has(> td input[type="checkbox"]:checked)) :is(.ds-badge--neutral, .ds-badge.ds-tone-neutral:not(.ds-badge--dot)) {
+  :is(.ds-table__row--selected, tr:has(> td input[type="checkbox"]:checked)) .ds-badge.ds-tone-neutral:not(.ds-badge--dot) {
     --ds-badge-bg: var(--ds-surface);
     --ds-badge-color: var(--ds-text-2);
   }

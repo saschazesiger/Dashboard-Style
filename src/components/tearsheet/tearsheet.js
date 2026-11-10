@@ -65,7 +65,7 @@ import { confirm } from '../dialog/dialog.js';
 const { overlays, stack, activeIn, canFocus, part } = internals;
 
 /** What closes the overlay around it (DS.overlay's closers). */
-const CLOSERS = '[data-ds-close=""], [data-close]';
+const CLOSERS = '[data-ds-close=""]';
 
 /** The state of each tearsheet. @type {WeakMap<Element, any>} */
 const flows = new WeakMap();

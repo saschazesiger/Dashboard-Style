@@ -52,14 +52,14 @@ test('near and over: an icon and a word, the meter\'s tone repeats it, each wors
   await expect(status).toBeVisible();
   await expect(status).toHaveText('Near the budget');
   await expect(status.locator('svg.ds-usage__icon')).toHaveCount(1);
-  await expect(live.locator('.ds-meter')).toHaveClass(/ds-meter--warning/);
+  await expect(live.locator('.ds-meter')).toHaveClass(/ds-tone-warning/);
   await spend.click();
   await expect(live).toHaveAttribute('data-state', 'near');
   await spend.click();
   await expect(live).toHaveAttribute('data-state', 'over');
   await expect(status).toHaveText('Over budget');
-  await expect(live.locator('.ds-meter')).toHaveClass(/ds-meter--error/);
-  await expect(live.locator('.ds-meter')).not.toHaveClass(/ds-meter--warning/);
+  await expect(live.locator('.ds-meter')).toHaveClass(/ds-tone-error/);
+  await expect(live.locator('.ds-meter')).not.toHaveClass(/ds-tone-warning/);
   // A meter's value stays in range; the words say how far past.
   await expect(live.locator('.ds-meter')).toHaveAttribute('aria-valuenow', '100');
   await expect(live.locator('.ds-meter')).toHaveAttribute('aria-valuetext', /^1\d\d% used$/);

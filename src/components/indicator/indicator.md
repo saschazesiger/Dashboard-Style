@@ -27,8 +27,7 @@ pill.destroy();
   `DS.core.get(track, 'indicator')` returns the handle `DS.indicator.create()` returns for those options, and it stays
   valid when the pill is replaced, also by a call of `create()` with other options on that track.
 - `DS.indicator.create(track, options)` inserts `<span class="ds-indicator" aria-hidden="true" data-ds-keep>` and
-  `.ds-has-indicator` on the track; one pill per track. `createIndicator` is its 2.x name, **deprecated**: an alias
-  until 3.0 ships. `OVERSHOOT`, what it does when, and every option: [DS.indicator](motion.md#dsindicator-jsindicatorjs) in motion.md.
+  `.ds-has-indicator` on the track; one pill per track. `OVERSHOOT`, what it does when, and every option: [DS.indicator](motion.md#dsindicator-jsindicatorjs) in motion.md.
 - The page moves the active item by its attribute; the pill follows by itself. A track of `.ds-btn` toggles works as
   it is: under `.ds-has-indicator` a pressed button drops its own tint, so only the pill paints the selection.
 - The handle: `get()` is the active item, or null. `set(value)` takes an element of the track or a selector and moves

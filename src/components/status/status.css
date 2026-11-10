@@ -9,7 +9,6 @@
  *   .ds-tone-success  -warning  -error  -info  -primary  -neutral
  *   --running   a neutral chip with the primary spinner
  *   (none)      neutral, e.g. idle or off, told apart by the icon
- *   --ok  --warning  --error   deprecated: .ds-tone-success, -warning, -error
  *
  * Options (docs/options.md), computed here into --_h:
  *   size      .ds-xs ... .ds-xl on the chip or any ancestor: 4px per step
@@ -52,8 +51,7 @@
  * height) times --ds-shape. Size as on the chip, no density. Forced
  * colours: a CanvasText outline. Tag = words, badge (.ds-badge) = counts,
  * status chip = a state with an icon. Hooks: --ds-tag-bg, --ds-tag-color,
- * --ds-tag-height (24px, the md base). --neutral is deprecated:
- * .ds-tone-neutral.
+ * --ds-tag-height (24px, the md base).
  *
  * @starting-style (at the floor) brings the incoming icon's fade and scale;
  * it also plays on the first render of a chip, never on a keyed move: where
@@ -117,25 +115,8 @@
     color: var(--ds-text-2);
   }
 
-  /* The deprecated kinds: the same pairs until 3.0 ships. */
-  .ds-status--ok {
-    background: var(--ds-success-container);
-    color: var(--ds-on-success-container);
-  }
-
-  .ds-status--ok > svg,
   .ds-status.ds-tone-success > svg {
     color: var(--ds-success);
-  }
-
-  .ds-status--error {
-    background: var(--ds-error-container);
-    color: var(--ds-on-error-container);
-  }
-
-  .ds-status--warning {
-    background: var(--ds-warning-container);
-    color: var(--ds-on-warning-container);
   }
 
   /* Running: a neutral chip with the primary spinner. */
@@ -192,13 +173,11 @@
     color: inherit;
   }
 
-  .ds-tag--neutral,
   .ds-tag.ds-tone-neutral {
     --ds-tag-bg: var(--ds-surface-high);
     --ds-tag-color: var(--ds-text);
   }
 
-  .ds-tag--neutral > svg,
   .ds-tag.ds-tone-neutral > svg {
     color: var(--ds-text-2);
   }

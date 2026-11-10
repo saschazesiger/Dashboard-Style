@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.settings.css",
-      "bytes": 284166,
-      "gzip": 43385
+      "bytes": 282325,
+      "gzip": 43031
     },
     "js": {
       "file": "ds.settings.js",
-      "bytes": 519427,
-      "gzip": 124010
+      "bytes": 519028,
+      "gzip": 123921
     },
     "properties": {
       "file": "properties.css",
@@ -36,8 +36,8 @@
     {
       "name": "spinner",
       "reason": "notification-settings.html:210 ds-spinner",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "indicator",
@@ -48,14 +48,14 @@
     {
       "name": "button",
       "reason": "notification-settings.html:22 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "status",
       "reason": "settings.html:133 ds-tag",
-      "bytes": 3164,
-      "gzip": 921
+      "bytes": 2830,
+      "gzip": 865
     },
     {
       "name": "switch",
@@ -66,8 +66,8 @@
     {
       "name": "card",
       "reason": "notification-settings.html:74 ds-card",
-      "bytes": 16606,
-      "gzip": 2659
+      "bytes": 16531,
+      "gzip": 2644
     },
     {
       "name": "menu",
@@ -78,14 +78,14 @@
     {
       "name": "table",
       "reason": "notification-settings.html:112 ds-table-wrap",
-      "bytes": 32874,
-      "gzip": 4760
+      "bytes": 32273,
+      "gzip": 4685
     },
     {
       "name": "form",
       "reason": "notification-settings.html:74 ds-form",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "tooltip",
@@ -96,14 +96,14 @@
     {
       "name": "page",
       "reason": "notification-settings.html:67 ds-content",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "shell",
       "reason": "notification-settings.html:18 ds-app",
-      "bytes": 39266,
-      "gzip": 6590
+      "bytes": 39239,
+      "gzip": 6579
     },
     {
       "name": "toast",
