@@ -314,6 +314,12 @@ test('the stack fades the content behind the front, but its buttons keep their o
     region.classList.add('ds-toasts--stack');
     for (const name of ['LAPTOP-0042', 'TABLET-0007']) DS.toast.toast(region, `Saved ${name}.`, { persistent: true, restart: false, action: { label: 'Undo', run() {} } });
     await DS.motion.settled(region, { subtree: true });
+    // The content behind the front fades once the second message is in: wait for it (settled() can answer before
+    // that fade has started), at most two seconds.
+    const behind = region.querySelector('.ds-toast .ds-toast__action');
+    for (let frame = 0; frame < 120 && getComputedStyle(behind).opacity !== '0'; frame += 1) {
+      await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+    }
     const plain = document.createElement('button');
     plain.className = 'ds-btn ds-btn--text ds-sm';
     document.querySelector('#fx-component').append(plain);

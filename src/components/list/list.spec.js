@@ -477,11 +477,12 @@ test('reorder: each row gets a named grip; Space lifts, the arrows move, Space d
   const top = await list.locator('.ds-list__item').first().boundingBox();
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
   await page.mouse.down();
-  await page.mouse.move(from.x + from.width / 2, from.y - 10, { steps: 3 });
-  await page.mouse.move(from.x + from.width / 2, top.y - 8, { steps: 16 });
+  // In small steps, so a busy engine sees the drag pass every row.
+  await page.mouse.move(from.x + from.width / 2, from.y - 10, { steps: 6 });
+  await page.mouse.move(from.x + from.width / 2, top.y - 8, { steps: 32 });
   await page.mouse.up();
   await settle(page);
-  expect((await titles(list))[0]).toBe('Storage');
+  await expect.poll(async () => (await titles(list))[0]).toBe('Storage');
 });
 
 test('virtual: only rows near the viewport exist, keyed and counted; the arrows walk; Space checks; the selection survives scrolling', async ({ page }) => {
