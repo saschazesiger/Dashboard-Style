@@ -6,8 +6,26 @@ export is a major change; adding one is a minor change. Identifiers such as D7 r
 
 ## 3.0.0 (unreleased)
 
-A rewrite, built on the `next` branch ([plans/3.0.md](plans/3.0.md)); `main` stays 2.x. The pre-releases carry
-`3.0.0-alpha.<n>`.
+A rewrite ([plans/3.0.md](plans/3.0.md)), and a new name: **Dashboard-Style is Z-Dash**. About 170 components in a
+folder each, pages that load only what they use (project bundles), size, density, shape, tone and touch as option
+classes, a theme generator, behaviours through `DS.init()`, a React adapter, page patterns and a migration tool. It was
+built on the `next` branch through the pre-releases `3.0.0-alpha.0` to `3.0.0-alpha.6`, whose notes follow. A 2.x
+project moves with [docs/migration.md](docs/migration.md) and `tools/migrate.mjs`; until then it keeps its nightly
+update off.
+
+### The new name: Z-Dash
+
+- The project, the repository (`saschazesiger/Z-Dash`; GitHub forwards the old address, the Pages site moves to
+  `saschazesiger.github.io/Z-Dash/`), the package (`z-dash`), the documented copy folder (`vendor/z-dash`), the
+  nightly template (`templates/update-z-dash.yml`, workflow "Update Z-Dash") and the Vite plugin's virtual modules
+  (`virtual:z-dash.css`, `virtual:z-dash.js`).
+- The page-wide registry is `ZDash` (`ZDash.versions`, `ZDash.runtime`), its types `ZDashApi` and `ZDashRegistry`.
+  **Deprecated:** `DashboardStyle` and the old type names stay as aliases of the same object; `migrate.mjs` rewrites
+  them.
+- Unchanged: the `ds` prefix of every class, token, keyframe and data attribute, and `DS`. A page changes nothing.
+  `check-project` and `migrate.mjs` still find a copy in a `dashboard-style` folder or at a `Dashboard-Style` CDN
+  address.
+- From 2.2.0: the glyph `userOff` (276 glyphs).
 
 ### Performance on slow and mobile devices (3.0.0-alpha.6)
 
@@ -115,7 +133,7 @@ Additive: nothing of 2.x or of the earlier pre-releases changes meaning.
   doubled and its summary row lost), the command palette its options (their shortcut keys were lost), and Markdown's
   attribute path its source (the rendered headings were read again as text).
 
-### Phase 3: the reference app on 3.0 (unreleased)
+### Phase 3: the reference app on 3.0
 
 The reference app (`example/`) moves to 3.0 as a project would: a project bundle, saved views, the filter bar and the
 data grid, the device as an object page, facets on Tickets, the command palette and the notification centre. What it
