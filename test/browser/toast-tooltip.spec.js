@@ -207,6 +207,21 @@ test.describe('snackbars', () => {
     expect(await focused(page)).toBe('page');
   });
 
+  test('texts said within one frame are read together; a newer one with the same key replaces the one not read yet', async ({ page }) => {
+    await load(page);
+    const said = await page.evaluate(async () => {
+      const region = document.getElementById('toasts');
+      const frame = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      DS.overlay.announce('Results: 4', { region, key: 'count' });
+      DS.overlay.announce('Saved.', { region });
+      DS.overlay.announce('Results: 2', { region, key: 'count' });
+      DS.overlay.announce('Results: 1', { region, key: 'count' });
+      await frame();
+      return region.parentNode.querySelector('.ds-sr[aria-live="polite"]').textContent;
+    });
+    expect(said).toBe('Saved.\nResults: 1');
+  });
+
   test('the text reaches the polite and assertive announcers, again for the same text; an old role="status" region loses it and gets its own', async ({ page }) => {
     await load(page);
     const said = await page.evaluate(async () => {

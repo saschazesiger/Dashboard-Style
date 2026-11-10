@@ -734,7 +734,7 @@ function controller(el, initial) {
     current = -1;
     repaint();
     showCount();
-    if (!quiet && query) announce(matches.length ? t('jsonMatch', { current: 1, total: matches.length }) : t('noResults'));
+    if (!quiet && query) announce(matches.length ? t('jsonMatch', { current: 1, total: matches.length }) : t('noResults'), { key: 'jsonview-match' });
     if (matches.length) return reveal(0);
     emit(el, 'search', { query, total: 0, index: -1 });
     return Promise.resolve();
@@ -753,7 +753,7 @@ function controller(el, initial) {
       if (field.value.trim() !== query) find(field.value);
       else if (matches.length) {
         reveal(current + (event.shiftKey ? -1 : 1));
-        announce(t('jsonMatch', { current: current + 1, total: matches.length }));
+        announce(t('jsonMatch', { current: current + 1, total: matches.length }), { key: 'jsonview-match' });
       }
     } else if (event.key === 'Escape' && field.value) {
       // The field clears first; a dialog around it stays open.

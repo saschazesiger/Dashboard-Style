@@ -111,7 +111,7 @@ export declare function prompt(options?: PromptOptions): Promise<string | null>;
 /** The page's snackbar region (.ds-toasts), created when missing; null without a DOM. */
 export declare function toastRegion(doc?: Document): HTMLElement | null;
 /** Says `text` to assistive technology without a snackbar. */
-export declare function announce(text: string, options?: { assertive?: boolean; region?: Element | null }): void;
+export declare function announce(text: string, options?: { assertive?: boolean; region?: Element | null; key?: string }): void;
 
 export type ToastKind = 'success' | 'error' | 'info';
 export interface ToastHandle {

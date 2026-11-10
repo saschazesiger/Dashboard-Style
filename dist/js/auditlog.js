@@ -485,7 +485,7 @@ function controller(el, initial) {
     filters = next;
     room = limitOf();
     draw(false);
-    announce(shown === 0 ? t('noResults') : countText());
+    announce(shown === 0 ? t('noResults') : countText(), { key: 'auditlog-count' });
     emit(el, 'filter', { filters: { ...filters }, shown, total: entries.length });
   };
 

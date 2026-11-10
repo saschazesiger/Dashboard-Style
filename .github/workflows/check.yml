@@ -37,13 +37,19 @@ jobs:
   browser:
     needs: check
     runs-on: ubuntu-latest
-    # WebKit is the slowest engine: its run passed 20 minutes as the suite grew (869 tests); the limit only catches a hang.
+    # 3.0 runs about 2,700 tests per engine, past 35 minutes in one job: each engine runs in three shards (--shard),
+    # each well inside the limit, which only catches a hang.
     timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
-        # perf: the paint budget and the style recalc times (perf.spec.js), alone in its job so no other test shares the CPU.
-        browser: [chromium, firefox, webkit, fallback, perf]
+        browser: [chromium, firefox, webkit, fallback]
+        shard: [1, 2, 3]
+        include:
+          # perf: the paint budget and the style recalc times (perf.spec.js), alone in its job so no other test
+          # shares the CPU; one shard.
+          - browser: perf
+            shard: 0
     # The official image of the pinned @playwright/test version (test/repo.test.js keeps the tag in step), so the
     # committed screenshots come from the same fonts and rasteriser on every run.
     container:
@@ -52,18 +58,18 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm ci
-      - run: npx playwright test --config test/browser/playwright.config.js --project=${{ matrix.browser }} ${{ inputs.update-screenshots && '--update-snapshots' || '' }}
+      - run: npx playwright test --config test/browser/playwright.config.js --project=${{ matrix.browser }} ${{ matrix.shard > 0 && format('--shard={0}/3', matrix.shard) || '' }} ${{ inputs.update-screenshots && '--update-snapshots' || '' }}
       # The job never commits: the engineer downloads the screenshots and commits them.
       - if: ${{ always() && inputs.update-screenshots }}
         uses: actions/upload-artifact@v7
         with:
-          name: screenshots-${{ matrix.browser }}
+          name: screenshots-${{ matrix.browser }}-${{ matrix.shard }}
           path: test/browser/__screenshots__/
           if-no-files-found: error
       - if: ${{ failure() }}
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-${{ matrix.browser }}
+          name: playwright-${{ matrix.browser }}-${{ matrix.shard }}
           path: |
             playwright-report/
             test-results/

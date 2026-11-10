@@ -10070,13 +10070,15 @@
     const node = (entry.assertive ? state.assertive : state.polite);
     const texts = state.pending.get(node);
     if (texts) {
-    texts.push(entry.text);
+    const at = entry.key ? texts.findIndex((item) => item.key === entry.key) : -1;
+    if (at >= 0) texts.splice(at, 1);
+    texts.push({ text: entry.text, key: entry.key });
     return;
     }
-    state.pending.set(node, [entry.text]);
+    state.pending.set(node, [{ text: entry.text, key: entry.key }]);
     node.textContent = '';
     nextFrame(region.ownerDocument, () => {
-    node.textContent = (state.pending.get(node) ?? []).join('\n');
+    node.textContent = (state.pending.get(node) ?? []).map((item) => item.text).join('\n');
     state.pending.delete(node);
     });
     }
@@ -10112,7 +10114,7 @@
     if (!value) return;
     const region = options.region ?? toastRegion();
     if (!region?.ownerDocument) return;
-    speak(region, regionState(region), { text: value, assertive: options.assertive === true });
+    speak(region, regionState(region), { text: value, assertive: options.assertive === true, key: typeof options.key === 'string' && options.key ? options.key : '' });
     }
     function toast(region, content, options = {}) {
     const target = region ?? (content == null ? null : toastRegion());

@@ -165,8 +165,10 @@ export function parse(value, options = {}) {
  * @returns {{ start: Date, end: Date }|null}
  */
 export function resolve(range, options = {}) {
-  const start = parse(range?.from, options);
-  const end = parse(range?.to ?? 'now', { ...options, roundUp: true });
+  // One now for both ends: read twice, "last 6 hours" could span 6 hours and a millisecond.
+  const now = options.now ?? Date.now();
+  const start = parse(range?.from, { ...options, now });
+  const end = parse(range?.to ?? 'now', { ...options, now, roundUp: true });
   return start && end ? { start, end } : null;
 }
 

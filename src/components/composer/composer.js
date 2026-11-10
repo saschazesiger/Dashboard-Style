@@ -323,7 +323,8 @@ function controller(el, options, ctx) {
   function sayCount(count) {
     if (count === heard) return;
     heard = count;
-    announce(count ? t('resultCount', { count: number(count) }) : t('noResults'));
+    // Keyed: typing faster than a frame says the last count only.
+    announce(count ? t('resultCount', { count: number(count) }) : t('noResults'), { key: 'composer-count' });
   }
 
   /**

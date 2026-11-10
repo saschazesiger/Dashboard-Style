@@ -8818,6 +8818,7 @@
     const OVERSCAN = 4;
     const BLIND_ROWS = 8;
     const MAX_PASSES = 4;
+    const TAKE_OVER = ['wheel', 'touchstart', 'pointerdown'];
     const EPSILON = 0.01;
     const TEXT_ENTRY = 'input, textarea, select, [contenteditable]:not([contenteditable="false"])';
     const ROW_STOP = 'a[href], area[href], button, input:not([type="hidden"]), select, textarea, summary, iframe, audio[controls], video[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]';
@@ -8954,6 +8955,8 @@
     let active = clamp(options.active ?? 0, 0, Math.max(0, model.count - 1));
     let start = 0;
     let end = 0;
+    let kept = null;
+    let ownTop = null;
     let announced = '';
     let lastHtml = null;
     let frame = 0;
@@ -9072,6 +9075,7 @@
     const top = scroller.scrollTop;
     morphHtml(content, html);
     if (scroller.scrollTop !== top) scroller.scrollTop = top;
+    ownTop = scroller.scrollTop;
     watcher?.takeRecords();
     lastHtml = html;
     const next = new Map();
@@ -9114,7 +9118,10 @@
     model.set(index, height);
     changed = true;
     }
-    if (Math.abs(shift) >= EPSILON) scroller.scrollTop += shift;
+    if (Math.abs(shift) >= EPSILON) {
+    scroller.scrollTop += shift;
+    ownTop = scroller.scrollTop;
+    }
     return changed;
     };
     const restoreFocus = () => {
@@ -9131,6 +9138,8 @@
     scroller.focus({ preventScroll: true });
     if (lent) doc.addEventListener('focusin', () => scroller.removeAttribute('tabindex'), { once: true });
     };
+    let remeasured = false;
+    let revealing = false;
     const update = () => {
     if (destroyed) return;
     active = clamp(active, 0, Math.max(0, model.count - 1));
@@ -9146,8 +9155,19 @@
     const wrote = html !== lastHtml;
     if (wrote) write(html, indices);
     const moved = measure();
+    if (moved) remeasured = true;
     if (!wrote && !moved) break;
     }
+    if (remeasured && kept && !revealing && kept.index < model.count) {
+    remeasured = false;
+    revealing = true;
+    try {
+    reveal(kept.index, kept.align);
+    } finally {
+    revealing = false;
+    }
+    }
+    remeasured = false;
     restoreFocus();
     const key = `${start}:${end}:${model.count}`;
     if (key !== announced) {
@@ -9180,13 +9200,21 @@
     const scrollTo = (index, { align = 'auto' } = {}) => {
     if (!model.count) return null;
     const target = clamp(Math.trunc(index) || 0, 0, model.count - 1);
+    kept = null;
     update();
+    reveal(target, align);
+    kept = { index: target, align };
+    return rendered.get(target) ?? null;
+    };
+    const reveal = (target, align) => {
     for (let pass = 0; pass < MAX_PASSES; pass += 1) {
     const [insetStart, insetEnd] = insets();
     const top = scroller.scrollTop;
     const height = viewHeight();
-    const rowTop = origin() + model.offset(target);
-    const rowEnd = rowTop + model.size(target);
+    const row = rendered.get(target);
+    const box = row?.getBoundingClientRect();
+    const rowTop = box && box.height > 0 ? box.top - topOf() + scroller.scrollTop : origin() + model.offset(target);
+    const rowEnd = rowTop + (box && box.height > 0 ? box.height : model.size(target));
     let goal = top;
     if (align === 'start') goal = rowTop - insetStart;
     else if (align === 'end') goal = rowEnd - height + insetEnd;
@@ -9195,10 +9223,10 @@
     else if (rowEnd > top + height - insetEnd) goal = rowEnd - height + insetEnd;
     if (Math.abs(goal - top) < 1) break;
     scroller.scrollTop = goal;
+    ownTop = scroller.scrollTop;
     update();
     if (Math.abs(scroller.scrollTop - top) < 1) break;
     }
-    return rendered.get(target) ?? null;
     };
     const focusRow = (index) => {
     if (!model.count) return null;
@@ -9253,7 +9281,13 @@
     setAttribute(host, 'aria-rowcount', String(rowCount() < 0 ? -1 : rowCount() + rowOffset()));
     }
     const scrollTarget = onDocument ? view : scroller;
-    scrollTarget.addEventListener('scroll', schedule, { passive: true });
+    const onScroll = () => {
+    if (kept && ownTop !== null && Math.abs(scroller.scrollTop - ownTop) >= 1) kept = null;
+    schedule();
+    };
+    scrollTarget.addEventListener('scroll', onScroll, { passive: true });
+    const release = () => { kept = null; };
+    for (const type of TAKE_OVER) scrollTarget.addEventListener(type, release, { passive: true });
     if (onDocument) view.addEventListener('resize', schedule);
     content.addEventListener('keydown', onKey);
     content.addEventListener('focusin', onFocusIn);
@@ -9263,6 +9297,7 @@
     const controller = {
     get: () => ({ start, end, count: model.count, active }),
     set(value = {}) {
+    if ((value.count !== undefined && value.count !== model.count) || value.forget) kept = null;
     if (value.count !== undefined) model.resize(value.count);
     if (value.total !== undefined) total = value.total;
     if (value.forget) {
@@ -9300,7 +9335,8 @@
     lists.delete(scroller);
     if (frame) view.cancelAnimationFrame(frame);
     clearTimeout(holderTimer);
-    scrollTarget.removeEventListener('scroll', schedule);
+    scrollTarget.removeEventListener('scroll', onScroll);
+    for (const type of TAKE_OVER) scrollTarget.removeEventListener(type, release);
     if (onDocument) view.removeEventListener('resize', schedule);
     content.removeEventListener('keydown', onKey);
     content.removeEventListener('focusin', onFocusIn);
@@ -14421,7 +14457,7 @@
     function sayCount(count) {
     if (count === heard) return;
     heard = count;
-    announce(count ? t('resultCount', { count: number(count) }) : t('noResults'));
+    announce(count ? t('resultCount', { count: number(count) }) : t('noResults'), { key: 'composer-count' });
     }
     function watch(palette) {
     watching?.abort();
@@ -30116,8 +30152,9 @@
     return null;
     }
     function resolve(range, options = {}) {
-    const start = parse(range?.from, options);
-    const end = parse(range?.to ?? 'now', { ...options, roundUp: true });
+    const now = options.now ?? Date.now();
+    const start = parse(range?.from, { ...options, now });
+    const end = parse(range?.to ?? 'now', { ...options, now, roundUp: true });
     return start && end ? { start, end } : null;
     }
     function spanMs(span) {
@@ -30746,13 +30783,15 @@
     const node = (entry.assertive ? state.assertive : state.polite);
     const texts = state.pending.get(node);
     if (texts) {
-    texts.push(entry.text);
+    const at = entry.key ? texts.findIndex((item) => item.key === entry.key) : -1;
+    if (at >= 0) texts.splice(at, 1);
+    texts.push({ text: entry.text, key: entry.key });
     return;
     }
-    state.pending.set(node, [entry.text]);
+    state.pending.set(node, [{ text: entry.text, key: entry.key }]);
     node.textContent = '';
     nextFrame(region.ownerDocument, () => {
-    node.textContent = (state.pending.get(node) ?? []).join('\n');
+    node.textContent = (state.pending.get(node) ?? []).map((item) => item.text).join('\n');
     state.pending.delete(node);
     });
     }
@@ -30788,7 +30827,7 @@
     if (!value) return;
     const region = options.region ?? toastRegion();
     if (!region?.ownerDocument) return;
-    speak(region, regionState(region), { text: value, assertive: options.assertive === true });
+    speak(region, regionState(region), { text: value, assertive: options.assertive === true, key: typeof options.key === 'string' && options.key ? options.key : '' });
     }
     function toast(region, content, options = {}) {
     const target = region ?? (content == null ? null : toastRegion());
@@ -34042,7 +34081,7 @@
     current = -1;
     repaint();
     showCount();
-    if (!quiet && query) announce(matches.length ? t('jsonMatch', { current: 1, total: matches.length }) : t('noResults'));
+    if (!quiet && query) announce(matches.length ? t('jsonMatch', { current: 1, total: matches.length }) : t('noResults'), { key: 'jsonview-match' });
     if (matches.length) return reveal(0);
     emit(el, 'search', { query, total: 0, index: -1 });
     return Promise.resolve();
@@ -34059,7 +34098,7 @@
     if (field.value.trim() !== query) find(field.value);
     else if (matches.length) {
     reveal(current + (event.shiftKey ? -1 : 1));
-    announce(t('jsonMatch', { current: current + 1, total: matches.length }));
+    announce(t('jsonMatch', { current: current + 1, total: matches.length }), { key: 'jsonview-match' });
     }
     } else if (event.key === 'Escape' && field.value) {
     event.preventDefault();

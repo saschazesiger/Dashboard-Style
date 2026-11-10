@@ -500,13 +500,16 @@ function speak(region, state, entry) {
   const node = /** @type {HTMLElement} */ (entry.assertive ? state.assertive : state.polite);
   const texts = state.pending.get(node);
   if (texts) {
-    texts.push(entry.text);
+    // A newer message with the same key (a count while typing) replaces the one not read yet.
+    const at = entry.key ? texts.findIndex((item) => item.key === entry.key) : -1;
+    if (at >= 0) texts.splice(at, 1);
+    texts.push({ text: entry.text, key: entry.key });
     return;
   }
-  state.pending.set(node, [entry.text]);
+  state.pending.set(node, [{ text: entry.text, key: entry.key }]);
   node.textContent = '';
   nextFrame(region.ownerDocument, () => {
-    node.textContent = (state.pending.get(node) ?? []).join('\n');
+    node.textContent = (state.pending.get(node) ?? []).map((item) => item.text).join('\n');
     state.pending.delete(node);
   });
 }
@@ -570,18 +573,20 @@ function regionOfTheme(doc, theme, home) {
  * Says `text` to screen readers through the announcers of a snackbar
  * region (`region`, default toastRegion()), without showing a message:
  * polite, or assertive with `assertive: true`. The same text twice is
- * spoken twice; empty text does nothing. While a dialog or side sheet is
- * open the region (and its announcers) sit inside it, so the text is heard
- * there.
+ * spoken twice; empty text does nothing. Texts said within one frame are
+ * read together; a newer text with the same `key` (a count while the
+ * person types) replaces the one of that key not read yet. While a dialog
+ * or side sheet is open the region (and its announcers) sit inside it, so
+ * the text is heard there.
  * @param {string} text
- * @param {{ assertive?: boolean, region?: Element|null }} [options]
+ * @param {{ assertive?: boolean, region?: Element|null, key?: string }} [options]
  */
 export function announce(text, options = {}) {
   const value = String(text ?? '').replace(/\s+/g, ' ').trim();
   if (!value) return;
   const region = options.region ?? toastRegion();
   if (!region?.ownerDocument) return;
-  speak(region, regionState(region), { text: value, assertive: options.assertive === true });
+  speak(region, regionState(region), { text: value, assertive: options.assertive === true, key: typeof options.key === 'string' && options.key ? options.key : '' });
 }
 
 /**

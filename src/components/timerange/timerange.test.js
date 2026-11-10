@@ -109,3 +109,16 @@ describe('DS.timerange', () => {
     assert.doesNotMatch(source, /setInterval|setTimeout/);
   });
 });
+
+it('resolve() reads the clock once: a relative range spans exactly its length', () => {
+  const real = Date.now;
+  let tick = 1_800_000_000_000;
+  // Every read of the clock a millisecond later, as on a busy machine.
+  Date.now = () => (tick += 1);
+  try {
+    const { start, end } = resolve({ from: 'now-6h', to: 'now' });
+    assert.equal(end - start, 6 * 3600000);
+  } finally {
+    Date.now = real;
+  }
+});

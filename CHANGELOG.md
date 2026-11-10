@@ -50,6 +50,18 @@ latency), then fixed where the system or its pages did more than they need to.
 - **Tooltips** (Firefox): a tooltip shown during the warm-up (the next trigger along a toolbar) could grow from
   `--ds-scale-tooltip` instead of only fading in; its closed state is now styled without transitions on the warm path
   too, as on the cold one.
+- **Virtual lists** (`DS.virtual`, the combobox, data grid and logs on it): a jump to a far row (End, ArrowUp to the
+  last option of 5,000) could stop short of it: rows measured after the jump (wrapped text, the container's fonts) were
+  taller or shorter than their estimate and moved it out of view. A row `scrollTo()` brought into view stays there while
+  later measurements change the offsets (until the person scrolls the list), placed by where it really is once
+  rendered.
+- **Time range** (`DS.timerange.resolve()`): one clock reading for both ends, so "Last 6 hours" spans exactly six hours
+  (it read the clock twice and could add a millisecond).
+- **Announcements** (`DS.overlay.announce()`, `DS.a11y.announce()`): texts said within one frame are read together; a new
+  `key` option lets a newer text replace the one of the same key not read yet. The composer's palette, the audit log's
+  filter and the JSON viewer's search say their counts keyed, so typing quickly says the last count only.
+- **CI**: the screenshot set of 3.0 for every engine from the Playwright container (the committed one was 2.x's); each
+  engine runs in three shards, past 35 minutes in one job.
 - **Accessibility sweep** (`test/browser/a11y-sweep.spec.js`): every demo's interactive elements are named, ARIA
   references resolve, ids are unique, images have text and roles are valid. It found a blank line of `DS.logview`
   without a name (now "Blank line", the string `logBlank`) and broken references in the result and wizard demos.

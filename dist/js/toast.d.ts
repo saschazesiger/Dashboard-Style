@@ -16,7 +16,7 @@ export interface ToastOptions {
 /** The page's snackbar region (.ds-toasts), created when missing; null without a DOM. */
 export declare function toastRegion(doc?: Document): HTMLElement | null;
 /** Says `text` to assistive technology without a snackbar. */
-export declare function announce(text: string, options?: { assertive?: boolean; region?: Element | null }): void;
+export declare function announce(text: string, options?: { assertive?: boolean; region?: Element | null; key?: string }): void;
 /** Shows a snackbar in `region` (null: the page's region). */
 export declare function toast(region: Element | null, content: Element | string, options?: ToastOptions): ToastHandle;
 /** Closes the snackbars of `region` that match `filter`. */

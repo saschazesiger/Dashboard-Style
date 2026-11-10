@@ -335,9 +335,10 @@ export function typeahead(container, options = {}) {
 /**
  * DS.overlay.announce() under this module's name: says `text` to screen
  * readers without showing anything: polite, or assertive with `assertive:
- * true`. The same text twice is spoken twice; empty text does nothing.
+ * true`. The same text twice is spoken twice; empty text does nothing; a
+ * newer text with the same `key` replaces the one not read yet.
  * @param {string} text
- * @param {{ assertive?: boolean, region?: Element|null }} [options]
+ * @param {{ assertive?: boolean, region?: Element|null, key?: string }} [options]
  */
 export function announce(text, options = {}) {
   announceOf(text, options);

@@ -82,6 +82,8 @@ const BLIND_ROWS = 8;
 
 /** Render, measure, render again: enough to settle. Each pass costs a layout. */
 const MAX_PASSES = 4;
+/** The input with which a person scrolls a list themselves (and so takes over from a scrollTo()). */
+const TAKE_OVER = ['wheel', 'touchstart', 'pointerdown'];
 
 /** Height differences below this are rounding, not a change. */
 const EPSILON = 0.01;
@@ -282,6 +284,16 @@ export function create(scroller, options = {}) {
   let active = clamp(options.active ?? 0, 0, Math.max(0, model.count - 1));
   let start = 0;
   let end = 0;
+  /**
+   * The row a scrollTo() brought into view, kept there while rows measured
+   * later (an estimate that was short: wrapped text, a late font) change the
+   * offsets; a scroll the list did not make itself (the person's, the page's)
+   * ends it.
+   * @type {{ index: number, align: string }|null}
+   */
+  let kept = null;
+  /** Where the list itself last put the scroll: any other place is a scroll by the person or the page. */
+  let ownTop = null;
   let announced = '';
   let lastHtml = null;
   let frame = 0;
@@ -428,6 +440,7 @@ export function create(scroller, options = {}) {
     morphHtml(content, html);
     // Chromium's moveBefore() of a focused row scrolls it into view: the window decides where it is.
     if (scroller.scrollTop !== top) scroller.scrollTop = top;
+    ownTop = scroller.scrollTop;
     watcher?.takeRecords();
     lastHtml = html;
     const next = new Map();
@@ -476,7 +489,10 @@ export function create(scroller, options = {}) {
       model.set(index, height);
       changed = true;
     }
-    if (Math.abs(shift) >= EPSILON) scroller.scrollTop += shift;
+    if (Math.abs(shift) >= EPSILON) {
+      scroller.scrollTop += shift;
+      ownTop = scroller.scrollTop;
+    }
     return changed;
   };
 
@@ -499,6 +515,8 @@ export function create(scroller, options = {}) {
   };
 
   /** Brings the DOM in line with the scroll position and the data, in as many passes as it takes to settle. */
+  let remeasured = false;
+  let revealing = false;
   const update = () => {
     if (destroyed) return;
     active = clamp(active, 0, Math.max(0, model.count - 1));
@@ -515,8 +533,20 @@ export function create(scroller, options = {}) {
       const wrote = html !== lastHtml;
       if (wrote) write(html, indices);
       const moved = measure();
+      if (moved) remeasured = true;
       if (!wrote && !moved) break;
     }
+    // Rows measured since a scrollTo() moved its row: back into view (reveal() calls update(), which then finds nothing new).
+    if (remeasured && kept && !revealing && kept.index < model.count) {
+      remeasured = false;
+      revealing = true;
+      try {
+        reveal(kept.index, kept.align);
+      } finally {
+        revealing = false;
+      }
+    }
+    remeasured = false;
     restoreFocus();
     const key = `${start}:${end}:${model.count}`;
     if (key !== announced) {
@@ -551,17 +581,28 @@ export function create(scroller, options = {}) {
     return at && indexOfRow.has(at) ? at : null;
   };
 
+
   const scrollTo = (index, { align = 'auto' } = {}) => {
     if (!model.count) return null;
     const target = clamp(Math.trunc(index) || 0, 0, model.count - 1);
+    kept = null;
     update();
-    // Each pass measures what it reached, so the offset gets truer until it stops moving.
+    reveal(target, align);
+    kept = { index: target, align };
+    return rendered.get(target) ?? null;
+  };
+
+  /** Scrolls `target` into view by `align`; each pass measures what it reached, so the offset gets truer until it stops moving. */
+  const reveal = (target, align) => {
     for (let pass = 0; pass < MAX_PASSES; pass += 1) {
       const [insetStart, insetEnd] = insets();
       const top = scroller.scrollTop;
       const height = viewHeight();
-      const rowTop = origin() + model.offset(target);
-      const rowEnd = rowTop + model.size(target);
+      // A rendered row where it really is; the model's offset counts estimates for the rows not measured yet.
+      const row = rendered.get(target);
+      const box = row?.getBoundingClientRect();
+      const rowTop = box && box.height > 0 ? box.top - topOf() + scroller.scrollTop : origin() + model.offset(target);
+      const rowEnd = rowTop + (box && box.height > 0 ? box.height : model.size(target));
       let goal = top;
       if (align === 'start') goal = rowTop - insetStart;
       else if (align === 'end') goal = rowEnd - height + insetEnd;
@@ -570,11 +611,11 @@ export function create(scroller, options = {}) {
       else if (rowEnd > top + height - insetEnd) goal = rowEnd - height + insetEnd;
       if (Math.abs(goal - top) < 1) break;
       scroller.scrollTop = goal;
+      ownTop = scroller.scrollTop;
       update();
       // Past the end the engine clamps: no further to go.
       if (Math.abs(scroller.scrollTop - top) < 1) break;
     }
-    return rendered.get(target) ?? null;
   };
 
   const focusRow = (index) => {
@@ -640,7 +681,15 @@ export function create(scroller, options = {}) {
   }
 
   const scrollTarget = onDocument ? view : scroller;
-  scrollTarget.addEventListener('scroll', schedule, { passive: true });
+  // A scroll the list did not make (the page's own scrollTo, a key the browser handles) ends the hold too.
+  const onScroll = () => {
+    if (kept && ownTop !== null && Math.abs(scroller.scrollTop - ownTop) >= 1) kept = null;
+    schedule();
+  };
+  scrollTarget.addEventListener('scroll', onScroll, { passive: true });
+  // A person's own scroll (wheel, finger, the scrollbar) ends the hold of the last scrollTo().
+  const release = () => { kept = null; };
+  for (const type of TAKE_OVER) scrollTarget.addEventListener(type, release, { passive: true });
   // <html> is as tall as its content, so the observer below never sees the viewport change.
   if (onDocument) view.addEventListener('resize', schedule);
   content.addEventListener('keydown', onKey);
@@ -652,6 +701,8 @@ export function create(scroller, options = {}) {
   const controller = {
     get: () => ({ start, end, count: model.count, active }),
     set(value = {}) {
+      // New rows (a filter, other data): the row a scrollTo() held is not that row any more.
+      if ((value.count !== undefined && value.count !== model.count) || value.forget) kept = null;
       if (value.count !== undefined) model.resize(value.count);
       if (value.total !== undefined) total = value.total;
       if (value.forget) {
@@ -690,7 +741,8 @@ export function create(scroller, options = {}) {
       lists.delete(scroller);
       if (frame) view.cancelAnimationFrame(frame);
       clearTimeout(holderTimer);
-      scrollTarget.removeEventListener('scroll', schedule);
+      scrollTarget.removeEventListener('scroll', onScroll);
+      for (const type of TAKE_OVER) scrollTarget.removeEventListener(type, release);
       if (onDocument) view.removeEventListener('resize', schedule);
       content.removeEventListener('keydown', onKey);
       content.removeEventListener('focusin', onFocusIn);

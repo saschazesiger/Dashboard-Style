@@ -12770,9 +12770,10 @@
     /**
      * DS.overlay.announce() under this module's name: says `text` to screen
      * readers without showing anything: polite, or assertive with `assertive:
-     * true`. The same text twice is spoken twice; empty text does nothing.
+     * true`. The same text twice is spoken twice; empty text does nothing; a
+     * newer text with the same `key` replaces the one not read yet.
      * @param {string} text
-     * @param {{ assertive?: boolean, region?: Element|null }} [options]
+     * @param {{ assertive?: boolean, region?: Element|null, key?: string }} [options]
      */
     function announce(text, options = {}) {
       announceOf(text, options);
@@ -14297,6 +14298,8 @@
 
     /** Render, measure, render again: enough to settle. Each pass costs a layout. */
     const MAX_PASSES = 4;
+    /** The input with which a person scrolls a list themselves (and so takes over from a scrollTo()). */
+    const TAKE_OVER = ['wheel', 'touchstart', 'pointerdown'];
 
     /** Height differences below this are rounding, not a change. */
     const EPSILON = 0.01;
@@ -14497,6 +14500,16 @@
       let active = clamp(options.active ?? 0, 0, Math.max(0, model.count - 1));
       let start = 0;
       let end = 0;
+      /**
+       * The row a scrollTo() brought into view, kept there while rows measured
+       * later (an estimate that was short: wrapped text, a late font) change the
+       * offsets; a scroll the list did not make itself (the person's, the page's)
+       * ends it.
+       * @type {{ index: number, align: string }|null}
+       */
+      let kept = null;
+      /** Where the list itself last put the scroll: any other place is a scroll by the person or the page. */
+      let ownTop = null;
       let announced = '';
       let lastHtml = null;
       let frame = 0;
@@ -14643,6 +14656,7 @@
         morphHtml(content, html);
         // Chromium's moveBefore() of a focused row scrolls it into view: the window decides where it is.
         if (scroller.scrollTop !== top) scroller.scrollTop = top;
+        ownTop = scroller.scrollTop;
         watcher?.takeRecords();
         lastHtml = html;
         const next = new Map();
@@ -14691,7 +14705,10 @@
           model.set(index, height);
           changed = true;
         }
-        if (Math.abs(shift) >= EPSILON) scroller.scrollTop += shift;
+        if (Math.abs(shift) >= EPSILON) {
+          scroller.scrollTop += shift;
+          ownTop = scroller.scrollTop;
+        }
         return changed;
       };
 
@@ -14714,6 +14731,8 @@
       };
 
       /** Brings the DOM in line with the scroll position and the data, in as many passes as it takes to settle. */
+      let remeasured = false;
+      let revealing = false;
       const update = () => {
         if (destroyed) return;
         active = clamp(active, 0, Math.max(0, model.count - 1));
@@ -14730,8 +14749,20 @@
           const wrote = html !== lastHtml;
           if (wrote) write(html, indices);
           const moved = measure();
+          if (moved) remeasured = true;
           if (!wrote && !moved) break;
         }
+        // Rows measured since a scrollTo() moved its row: back into view (reveal() calls update(), which then finds nothing new).
+        if (remeasured && kept && !revealing && kept.index < model.count) {
+          remeasured = false;
+          revealing = true;
+          try {
+            reveal(kept.index, kept.align);
+          } finally {
+            revealing = false;
+          }
+        }
+        remeasured = false;
         restoreFocus();
         const key = `${start}:${end}:${model.count}`;
         if (key !== announced) {
@@ -14766,17 +14797,28 @@
         return at && indexOfRow.has(at) ? at : null;
       };
 
+
       const scrollTo = (index, { align = 'auto' } = {}) => {
         if (!model.count) return null;
         const target = clamp(Math.trunc(index) || 0, 0, model.count - 1);
+        kept = null;
         update();
-        // Each pass measures what it reached, so the offset gets truer until it stops moving.
+        reveal(target, align);
+        kept = { index: target, align };
+        return rendered.get(target) ?? null;
+      };
+
+      /** Scrolls `target` into view by `align`; each pass measures what it reached, so the offset gets truer until it stops moving. */
+      const reveal = (target, align) => {
         for (let pass = 0; pass < MAX_PASSES; pass += 1) {
           const [insetStart, insetEnd] = insets();
           const top = scroller.scrollTop;
           const height = viewHeight();
-          const rowTop = origin() + model.offset(target);
-          const rowEnd = rowTop + model.size(target);
+          // A rendered row where it really is; the model's offset counts estimates for the rows not measured yet.
+          const row = rendered.get(target);
+          const box = row?.getBoundingClientRect();
+          const rowTop = box && box.height > 0 ? box.top - topOf() + scroller.scrollTop : origin() + model.offset(target);
+          const rowEnd = rowTop + (box && box.height > 0 ? box.height : model.size(target));
           let goal = top;
           if (align === 'start') goal = rowTop - insetStart;
           else if (align === 'end') goal = rowEnd - height + insetEnd;
@@ -14785,11 +14827,11 @@
           else if (rowEnd > top + height - insetEnd) goal = rowEnd - height + insetEnd;
           if (Math.abs(goal - top) < 1) break;
           scroller.scrollTop = goal;
+          ownTop = scroller.scrollTop;
           update();
           // Past the end the engine clamps: no further to go.
           if (Math.abs(scroller.scrollTop - top) < 1) break;
         }
-        return rendered.get(target) ?? null;
       };
 
       const focusRow = (index) => {
@@ -14855,7 +14897,15 @@
       }
 
       const scrollTarget = onDocument ? view : scroller;
-      scrollTarget.addEventListener('scroll', schedule, { passive: true });
+      // A scroll the list did not make (the page's own scrollTo, a key the browser handles) ends the hold too.
+      const onScroll = () => {
+        if (kept && ownTop !== null && Math.abs(scroller.scrollTop - ownTop) >= 1) kept = null;
+        schedule();
+      };
+      scrollTarget.addEventListener('scroll', onScroll, { passive: true });
+      // A person's own scroll (wheel, finger, the scrollbar) ends the hold of the last scrollTo().
+      const release = () => { kept = null; };
+      for (const type of TAKE_OVER) scrollTarget.addEventListener(type, release, { passive: true });
       // <html> is as tall as its content, so the observer below never sees the viewport change.
       if (onDocument) view.addEventListener('resize', schedule);
       content.addEventListener('keydown', onKey);
@@ -14867,6 +14917,8 @@
       const controller = {
         get: () => ({ start, end, count: model.count, active }),
         set(value = {}) {
+          // New rows (a filter, other data): the row a scrollTo() held is not that row any more.
+          if ((value.count !== undefined && value.count !== model.count) || value.forget) kept = null;
           if (value.count !== undefined) model.resize(value.count);
           if (value.total !== undefined) total = value.total;
           if (value.forget) {
@@ -14905,7 +14957,8 @@
           lists.delete(scroller);
           if (frame) view.cancelAnimationFrame(frame);
           clearTimeout(holderTimer);
-          scrollTarget.removeEventListener('scroll', schedule);
+          scrollTarget.removeEventListener('scroll', onScroll);
+          for (const type of TAKE_OVER) scrollTarget.removeEventListener(type, release);
           if (onDocument) view.removeEventListener('resize', schedule);
           content.removeEventListener('keydown', onKey);
           content.removeEventListener('focusin', onFocusIn);
@@ -16539,7 +16592,7 @@
         filters = next;
         room = limitOf();
         draw(false);
-        announce(shown === 0 ? t('noResults') : countText());
+        announce(shown === 0 ? t('noResults') : countText(), { key: 'auditlog-count' });
         emit(el, 'filter', { filters: { ...filters }, shown, total: entries.length });
       };
 
@@ -22749,7 +22802,8 @@
       function sayCount(count) {
         if (count === heard) return;
         heard = count;
-        announce(count ? t('resultCount', { count: number(count) }) : t('noResults'));
+        // Keyed: typing faster than a frame says the last count only.
+        announce(count ? t('resultCount', { count: number(count) }) : t('noResults'), { key: 'composer-count' });
       }
 
       /**
@@ -54905,8 +54959,10 @@
      * @returns {{ start: Date, end: Date }|null}
      */
     function resolve(range, options = {}) {
-      const start = parse(range?.from, options);
-      const end = parse(range?.to ?? 'now', { ...options, roundUp: true });
+      // One now for both ends: read twice, "last 6 hours" could span 6 hours and a millisecond.
+      const now = options.now ?? Date.now();
+      const start = parse(range?.from, { ...options, now });
+      const end = parse(range?.to ?? 'now', { ...options, now, roundUp: true });
       return start && end ? { start, end } : null;
     }
 
@@ -55846,13 +55902,16 @@
       const node = /** @type {HTMLElement} */ (entry.assertive ? state.assertive : state.polite);
       const texts = state.pending.get(node);
       if (texts) {
-        texts.push(entry.text);
+        // A newer message with the same key (a count while typing) replaces the one not read yet.
+        const at = entry.key ? texts.findIndex((item) => item.key === entry.key) : -1;
+        if (at >= 0) texts.splice(at, 1);
+        texts.push({ text: entry.text, key: entry.key });
         return;
       }
-      state.pending.set(node, [entry.text]);
+      state.pending.set(node, [{ text: entry.text, key: entry.key }]);
       node.textContent = '';
       nextFrame(region.ownerDocument, () => {
-        node.textContent = (state.pending.get(node) ?? []).join('\n');
+        node.textContent = (state.pending.get(node) ?? []).map((item) => item.text).join('\n');
         state.pending.delete(node);
       });
     }
@@ -55916,18 +55975,20 @@
      * Says `text` to screen readers through the announcers of a snackbar
      * region (`region`, default toastRegion()), without showing a message:
      * polite, or assertive with `assertive: true`. The same text twice is
-     * spoken twice; empty text does nothing. While a dialog or side sheet is
-     * open the region (and its announcers) sit inside it, so the text is heard
-     * there.
+     * spoken twice; empty text does nothing. Texts said within one frame are
+     * read together; a newer text with the same `key` (a count while the
+     * person types) replaces the one of that key not read yet. While a dialog
+     * or side sheet is open the region (and its announcers) sit inside it, so
+     * the text is heard there.
      * @param {string} text
-     * @param {{ assertive?: boolean, region?: Element|null }} [options]
+     * @param {{ assertive?: boolean, region?: Element|null, key?: string }} [options]
      */
     function announce(text, options = {}) {
       const value = String(text ?? '').replace(/\s+/g, ' ').trim();
       if (!value) return;
       const region = options.region ?? toastRegion();
       if (!region?.ownerDocument) return;
-      speak(region, regionState(region), { text: value, assertive: options.assertive === true });
+      speak(region, regionState(region), { text: value, assertive: options.assertive === true, key: typeof options.key === 'string' && options.key ? options.key : '' });
     }
 
     /**
@@ -62102,7 +62163,7 @@
         current = -1;
         repaint();
         showCount();
-        if (!quiet && query) announce(matches.length ? t('jsonMatch', { current: 1, total: matches.length }) : t('noResults'));
+        if (!quiet && query) announce(matches.length ? t('jsonMatch', { current: 1, total: matches.length }) : t('noResults'), { key: 'jsonview-match' });
         if (matches.length) return reveal(0);
         emit(el, 'search', { query, total: 0, index: -1 });
         return Promise.resolve();
@@ -62121,7 +62182,7 @@
           if (field.value.trim() !== query) find(field.value);
           else if (matches.length) {
             reveal(current + (event.shiftKey ? -1 : 1));
-            announce(t('jsonMatch', { current: current + 1, total: matches.length }));
+            announce(t('jsonMatch', { current: current + 1, total: matches.length }), { key: 'jsonview-match' });
           }
         } else if (event.key === 'Escape' && field.value) {
           // The field clears first; a dialog around it stays open.
