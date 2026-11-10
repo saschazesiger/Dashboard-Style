@@ -1,0 +1,4 @@
+[
+  "animation ds-progress-wave ::after 4550 0 infinite --ds-ease-in-out",
+  "script (script) - 350 held 1 --ds-ease-in-out"
+]

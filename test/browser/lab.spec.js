@@ -465,6 +465,7 @@ const LONG_RUNS = {
  * entry with `engines` masks only in those engines.
  */
 const SHOT_MASKS = {
+  'toolcall-status': { selectors: ['.ds-toolcall__status'], reason: 'the status with the elapsed time of the call, which depends on how long this run took (its width moves the word beside it)' },
   interrupt: { selectors: ['.sg-trace'], reason: 'the trace draws the card\'s opacity as each frame of this run sampled it' },
   views: {
     selectors: ['iframe'],

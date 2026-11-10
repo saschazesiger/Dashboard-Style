@@ -549,6 +549,9 @@ export function expectContinuous(values, { factor = 2, floor } = {}) {
  * no neighbours, and a long frame may cover more ground; a jump (to the
  * end, back to the start) stands out against both sides.
  */
+/** No frame for this long (ms) is a stall, not a frame: expectSmooth() does not judge the step across it. */
+const STALL = 250;
+
 export function expectSmooth(points, label = 'series', { factor = 4, floor } = {}) {
   const values = points.map((point) => point.v);
   const range = Math.max(...values) - Math.min(...values);
@@ -558,6 +561,9 @@ export function expectSmooth(points, label = 'series', { factor = 4, floor } = {
   const moving = steps.map((step, i) => i).filter((i) => steps[i].dv > 1e-9);
   const rate = (i) => steps[i].dv / steps[i].dt;
   moving.forEach((i, k) => {
+    // A step across a stall (no frame for STALL ms: the engine restyling a huge page, a loaded machine) says
+    // nothing about the motion: whatever it covered played unseen. Its neighbours are still judged.
+    if (steps[i].dt >= STALL) return;
     const near = [...moving.slice(Math.max(0, k - 2), k), ...moving.slice(k + 1, k + 3)];
     if (!near.length) return;
     const limit = factor * Math.max(...near.map(rate)) * steps[i].dt + slack;
