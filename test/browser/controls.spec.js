@@ -893,7 +893,8 @@ test.describe('checkbox and radio', () => {
       expect(press.active).toBe(true);
       expect(press.duration).toBe(250);
       expect(spread(press.keyframes[0])).toBe(0);
-      expect(spread(press.keyframes.at(-1))).toBe(11);
+      // #check-off is .ds-sm: a 32px halo around a 16px box.
+      expect(spread(press.keyframes.at(-1))).toBe(8);
     });
   });
 });
