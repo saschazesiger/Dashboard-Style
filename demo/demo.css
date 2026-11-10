@@ -354,7 +354,7 @@
   list-style: none;
 }
 
-/* 275 icons, about 2000 elements: only the rows near the view are styled and laid out. */
+/* 276 icons, about 2000 elements: only the rows near the view are styled and laid out. */
 .demo-icons > li {
   content-visibility: auto;
   contain-intrinsic-block-size: auto 80px;

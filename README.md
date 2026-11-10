@@ -11,7 +11,7 @@ White panels on a tinted backdrop, hairlines instead of shadows, pill-shaped act
 ![Dependencies: 0](https://img.shields.io/badge/dependencies-0-146c2e)
 ![Build step: none](https://img.shields.io/badge/build%20step-none-146c2e)
 ![Components: 143](https://img.shields.io/badge/components-143-6750a4)
-![Icons: 275](https://img.shields.io/badge/icons-275-6750a4)
+![Icons: 276](https://img.shields.io/badge/icons-276-6750a4)
 
 [🚀 Live tour](https://saschazesiger.github.io/Dashboard-Style/) ·
 [🖥️ Reference app](https://saschazesiger.github.io/Dashboard-Style/example/) ·
@@ -64,7 +64,7 @@ to their new colour.
 </tr>
 <tr>
 <td><a href="https://saschazesiger.github.io/Dashboard-Style/#choose"><img src="docs/images/controls.png" alt="Switches, checkboxes with a parent in the indeterminate state, filter chips and radio cards"></a><br>✅ <b>Controls</b>: checks that draw themselves, switches on a spring, chips that make room.</td>
-<td><a href="https://saschazesiger.github.io/Dashboard-Style/#icons"><img src="docs/images/icons.png" alt="A grid of the outline icons with their names"></a><br>🖼️ <b>275 icons</b>: one outline set on a 24px grid, in <code>DS.icons</code>.</td>
+<td><a href="https://saschazesiger.github.io/Dashboard-Style/#icons"><img src="docs/images/icons.png" alt="A grid of the outline icons with their names"></a><br>🖼️ <b>276 icons</b>: one outline set on a 24px grid, in <code>DS.icons</code>.</td>
 </tr>
 </table>
 
@@ -202,7 +202,7 @@ a theme file from a few clicks and lets you copy it.
 | 📝 **Input** | buttons (busy and done faces, icon swaps), fields (input groups, counters, changed fields), selects, checkboxes, radio cards, switches (also locked), filter, action and input chips, combobox (also select-only), search, slider, a growing composer, file fields and drop zones, rows to reorder |
 | 🪟 **Overlays** | dialogs (also full screen and as an action sheet, with built-in `confirm()`, `alert()` and `prompt()`), side sheets, menus, a save bar, through `DS.overlay` (focus, Escape, scroll lock, stacking, busy overlays that stay open) |
 | 🌊 **Motion** | `DS.motion` (`flip`, `countUp`, `busy`, `transition`, `refresh`, `sortable`, `crossfade` ...), `DS.indicator`, `DS.dom` (`morphHtml`, `watchScrolled`, `scrollEdges`, `roving`, `progress` ...), `DS.ripple` with the action guard |
-| 🖼️ **Icons** | 275 outline glyphs in `DS.icons` |
+| 🖼️ **Icons** | 276 outline glyphs in `DS.icons` |
 | 🎨 **Themes and tools** | dark, compact and contrast themes; `dist/tools/` checks a copy, a theme and a project; `tokens.json`, `deprecations.json` and TypeScript types |
 
 Which component fits which need: the table at the top of [docs/components.md](docs/components.md).

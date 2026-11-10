@@ -1224,6 +1224,15 @@ reference app against 2.1.3 found no difference. `ds.min.css` renders the same a
 - **Tools:** `check-project.mjs` knows the new paths (`.ds-theme` needs `css/core/tokens.css`) and accepts the
   `.min.css` of a stylesheet as that stylesheet.
 
+## 2.2.0
+
+One new glyph. Nothing else changed; no migration is required.
+
+### Added
+
+- **`userOff`**, a person struck through: an account or a person that cannot be used now (signed out, locked, at
+  its usage limit). It is `user` cut by the slash of `micOff`, `eyeOff` and `wifiOff`. 110 glyphs.
+
 ## 2.1.3
 
 Performance. No class, token, hook or export changed, and nothing looks or moves differently; no migration is

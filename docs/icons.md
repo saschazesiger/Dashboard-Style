@@ -51,7 +51,7 @@ growing the line.
 | Actions | `plus` `close` `minimize` `menu` `moreVertical` `moreHorizontal` `grip` `search` `filter` `sort` `compose` `pencil` `save` `reset` `sync` `undo` `history` `copy` `download` `upload` `clipboard` `paperclip` `printer` `play` `pause` `stopCircle` `trash` `archive` `logout` |
 | Communication | `chat` `send` `bell` `mic` `micOff` `volume` `mail` `phone` `globe` `link` `flag` `thumbUp` `thumbDown` |
 | Status and feedback | `check` `checkCircle` `alert` `alertCircle` `info` `helpCircle` `eye` `eyeOff` `clock` `ban` `calendar` `activity` `wifi` `wifiOff` `shieldCheck` `shieldAlert` `unlock` `fingerprint` `verified` `bug` `bookmark` `pin` `star` `starHalf` `heart` `smilePlus` `bellOff` `volumeOff` `circleX` `octagonAlert` `circle` `circleDot` `square` `squareCheck` `squareMinus` `toggleOn` `toggleOff` |
-| Places and things | `home` `panelLeft` `keyboard` `terminal` `tag` `sun` `moon` `overview` `apps` `list` `columns` `rows` `barChart` `settings` `cpu` `lock` `key` `shield` `user` `users` `userPlus` `ticket` `file` `fileText` `fileCode` `folder` `box` `building` `mapPin` `laptop` `monitor` `hardDrive` `server` `graduationCap` `presentation` `camera` `video` `image` `leaf` `wrench` `sparkles` |
+| Places and things | `home` `panelLeft` `keyboard` `terminal` `tag` `sun` `moon` `overview` `apps` `list` `columns` `rows` `barChart` `settings` `cpu` `lock` `key` `shield` `user` `users` `userPlus` `userOff` `ticket` `file` `fileText` `fileCode` `folder` `box` `building` `mapPin` `laptop` `monitor` `hardDrive` `server` `graduationCap` `presentation` `camera` `video` `image` `leaf` `wrench` `sparkles` |
 | Files | `fileImage` `fileArchive` `fileSpreadsheet` `fileJson` `filePlus` `fileCheck` `fileDown` `fileUp` `files` `folderOpen` `folderPlus` `cloudUpload` `cloudDownload` |
 | Data and charts | `lineChart` `areaChart` `barChartHorizontal` `pieChart` `donutChart` `scatterChart` `gauge` `trendingUp` `trendingDown` `table` `tableProperties` `filterX` `sortAscending` `sortDescending` `group` `layoutGrid` `listTree` `kanban` |
 | Editing | `bold` `italic` `code` `quote` `heading` `listOrdered` `unlink` `redo` `cut` `paste` `duplicate` `gripHorizontal` `move` `resize` `expandAll` `collapseAll` `fullscreen` `fullscreenExit` `splitView` `panelRight` `wrapText` |
@@ -61,7 +61,7 @@ growing the line.
 | AI and chat | `sparkle` `wand` `bot` `chatText` `chatDots` `reply` `audioLines` `videoOff` `skipForward` `skipBack` `atSign` |
 | Commerce and admin | `creditCard` `receipt` `wallet` `coupon` `tags` `cart` `truck` `map` `route` `compass` `anchor` `languages` `palette` `brush` `contrast` `mailOpen` `inbox` `archiveRestore` `clipboardCheck` `share` `sliders` `layers` `stack` `puzzle` `rocket` `lightbulb` `beaker` `book` `newspaper` `megaphone` `gift` `trophy` `medal` `target` `zap` `scrollText` |
 
-275 glyphs. 3.0 added 166 for the component catalogue: the new names of the "Arrows and navigation" and "Status and
+276 glyphs. 2.2 added `userOff` (an account or person that cannot be used: signed out, at its limit). 3.0 added 166 for the component catalogue: the new names of the "Arrows and navigation" and "Status and
 feedback" rows and the rows from "Files" on. They come from Lucide like the rest, in the drawing the existing families
 use (the `file` outline, the `chat` bubble, the `calendar` frame); `donutChart` is drawn for this set on the same grid.
 Brand logos stay out. 2.0 added `chevronFirst`, `chevronLast`, `cornerDownLeft`, `moreHorizontal`, `upload`, `clipboard`,

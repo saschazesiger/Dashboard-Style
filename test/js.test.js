@@ -234,8 +234,8 @@ describe('icons (3.0)', () => {
     return points;
   }
 
-  it('has 275 glyphs, each with its own drawing, and says so in the docs, the README, AGENTS.md and the live tour', () => {
-    assert.equal(GLYPHS.length, 275);
+  it('has 276 glyphs, each with its own drawing, and says so in the docs, the README, AGENTS.md and the live tour', () => {
+    assert.equal(GLYPHS.length, 276);
     const drawings = new Map();
     for (const [name, body] of GLYPHS) {
       assert.ok(!drawings.has(body), `${name} draws the same as ${drawings.get(body)}`);

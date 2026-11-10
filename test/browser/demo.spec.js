@@ -446,7 +446,7 @@ test('the theme: a preset swaps the file, a colour of your own goes through the 
 test('the icon filter narrows the grid and an unknown name shows the empty state', async ({ page }) => {
   await open(page);
   await stop(page, 'icons');
-  await expect(page.locator('#icon-grid .demo-icon')).toHaveCount(275);
+  await expect(page.locator('#icon-grid .demo-icon')).toHaveCount(276);
   await page.locator('#icon-search').fill('arrow');
   await settle(page);
   // The four arrows, the four diagonals and arrowLeftRight.

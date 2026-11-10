@@ -12,8 +12,8 @@
     },
     "js": {
       "file": "ds.bundle.js",
-      "bytes": 1496077,
-      "gzip": 358056
+      "bytes": 1496254,
+      "gzip": 358108
     },
     "properties": {
       "file": "properties.css",
@@ -1200,6 +1200,10 @@
     {
       "name": "users",
       "reason": "index.html:60"
+    },
+    {
+      "name": "userOff",
+      "reason": "config \"icons\": \"all\""
     },
     {
       "name": "userPlus",
