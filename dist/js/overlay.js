@@ -189,12 +189,11 @@
  * (with the trigger as its opener; again, or a menu's ArrowDown and ArrowUp,
  * as a menu button does), [data-ds-close="<selector or id>"] closes it from
  * outside and leaves the overlay around it open, [data-ds-close] without a
- * value (or its 2.x name [data-close]) inside an overlay closes that one: one
- * delegated listener per root of DS.init().
+ * value inside an overlay closes that one: one delegated listener per root
+ * of DS.init().
  *
  * Events: ds:open ({ opener }) once the entrance started and ds:close
- * ({ reason }) with ds-close, its 2.x name, as soon as a close started. Both
- * bubble.
+ * ({ reason }) as soon as a close started. Both bubble.
  *
  * The constants are fallbacks only (outside a .ds-theme or without a
  * DOM): JS timing comes from the computed tokens through motionDuration(),
@@ -1038,8 +1037,8 @@ function clearSearch(layer, event) {
   return true;
 }
 
-/** What closes the overlay around it: the attribute without a value, and its 2.x name (one with a value closes only the overlay it names). */
-const CLOSERS = '[data-ds-close=""], [data-close]';
+/** What closes the overlay around it: the attribute without a value (one with a value closes only the overlay it names). */
+const CLOSERS = '[data-ds-close=""]';
 
 /** Close causes that the user started: refused while the overlay is busy (data-ds-busy). */
 const USER_CLOSE = new Set(['escape', 'backdrop', 'close']);
@@ -1931,9 +1930,6 @@ function opensOpenLayer(node) {
 
 /** Tells the page why an overlay closed (once per close, after its state turned closed). */
 function announceClose(element, reason) {
-  const view = viewOf(element);
-  if (typeof view.CustomEvent !== 'function') return;
-  element.dispatchEvent(new view.CustomEvent('ds-close', { bubbles: true, detail: { reason } }));
   emit(element, 'close', { reason });
 }
 

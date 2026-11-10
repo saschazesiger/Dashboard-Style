@@ -3186,7 +3186,7 @@
     });
   });
 
-  add('indicator', ['OVERSHOOT', 'create', 'createIndicator'], function () {
+  add('indicator', ['OVERSHOOT', 'create'], function () {
     /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit;
     const motionDuration = DS.motion.motionDuration, travelDuration = DS.motion.travelDuration;
@@ -3713,9 +3713,6 @@
     function create(track, options) {
     return openPill(track, options, null);
     }
-    function createIndicator(track, options) {
-    return create(track, options);
-    }
     const ANY_ACTIVE = '[aria-current]:not([aria-current="false"]), [aria-pressed="true"], [aria-selected="true"], [aria-checked="true"]';
     define('indicator', {
     attribute: 'data-ds-indicator',
@@ -3733,8 +3730,7 @@
 
     return Object.freeze({
       OVERSHOOT: OVERSHOOT,
-      create: create,
-      createIndicator: createIndicator
+      create: create
     });
   });
 
@@ -5460,9 +5456,6 @@
     const hosts = host ? [host] : [...pressing].filter((item) => element.contains(item));
     for (const item of hosts) end(item);
     },
-    detach() {
-    handle.destroy();
-    },
     };
     attached.set(root, handle);
     return handle;
@@ -6270,7 +6263,7 @@
     target.dispatchEvent(new view.Event('input', { bubbles: true, composed: true }));
     return true;
     }
-    const CLOSERS = '[data-ds-close=""], [data-close]';
+    const CLOSERS = '[data-ds-close=""]';
     const USER_CLOSE = new Set(['escape', 'backdrop', 'close']);
     function dismissable(element, state, part, event) {
     if (event.detail === 0) return true;
@@ -6812,9 +6805,6 @@
     return order.some((entry) => entry.open() && entry.opener?.() === node);
     }
     function announceClose(element, reason) {
-    const view = viewOf(element);
-    if (typeof view.CustomEvent !== 'function') return;
-    element.dispatchEvent(new view.CustomEvent('ds-close', { bubbles: true, detail: { reason } }));
     emit(element, 'close', { reason });
     }
     function closeFrom(element, cause, reason = cause) {
@@ -11272,7 +11262,7 @@
     /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit;
     const own = DS.dom.own, disown = DS.dom.disown;
-    const createIndicator = DS.indicator.create;
+    const makeIndicator = DS.indicator.create;
     const GLIDE_SCREENS = 3;
     function current(tops, options) {
     const { line, bottom, atEnd = false, pinned = -1 } = options;
@@ -11453,7 +11443,7 @@
     resize?.observe(scroller ?? doc.documentElement);
     update();
     const top = nav.querySelector('.ds-toc__list');
-    const indicator = top ? createIndicator(top, {
+    const indicator = top ? makeIndicator(top, {
     active: '.ds-toc__link[aria-current]:not([aria-current="false"])',
     className: 'ds-toc__indicator',
     reveal: nav.classList.contains('ds-toc--bar'),

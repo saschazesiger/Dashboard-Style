@@ -18,7 +18,7 @@
  * What it writes: the share (the larger of tokens and cost against their
  * budgets) as --ds-share on the .ds-usage__meter (a .ds-meter, role meter,
  * with aria-valuenow and aria-valuetext; hidden without a budget) and its
- * tone (.ds-meter--warning near, .ds-meter--error over); the text of .ds-usage__value ("182.4K of
+ * tone (.ds-tone-warning near, .ds-tone-error over); the text of .ds-usage__value ("182.4K of
  * 250K tokens") and .ds-usage__cost ("$3.12 of $5.00"); data-state="near"
  * or "over" on the root and, in .ds-usage__status, an icon and the word
  * (strings usageNear, usageOver), which it also announces once when the
@@ -145,7 +145,7 @@ function controller(el, start, signal) {
     if (meter && now.share === null) {
       for (const name of ['aria-valuenow', 'aria-valuetext', 'aria-valuemin', 'aria-valuemax']) meter.removeAttribute(name);
       meter.style.removeProperty('--ds-share');
-      meter.classList.remove('ds-meter--warning', 'ds-meter--error');
+      meter.classList.remove('ds-tone-warning', 'ds-tone-error');
     } else if (meter) {
       if (!meter.hasAttribute('role')) meter.setAttribute('role', 'meter');
       const shareShown = Math.min(1, now.share);
@@ -155,8 +155,8 @@ function controller(el, start, signal) {
       // A meter's value stays in its range; the text says how far past it.
       meter.setAttribute('aria-valuenow', String(Math.round(shareShown * 100)));
       meter.setAttribute('aria-valuetext', t('usageShare', { percent: percent(now.share, { maximumFractionDigits: 0 }) }));
-      meter.classList.toggle('ds-meter--warning', now.state === 'near');
-      meter.classList.toggle('ds-meter--error', now.state === 'over');
+      meter.classList.toggle('ds-tone-warning', now.state === 'near');
+      meter.classList.toggle('ds-tone-error', now.state === 'over');
     }
     write(part('value'), usageText(now.used, now.budget));
     write(part('cost'), costText(now.cost, now.costBudget, now.currency));

@@ -274,10 +274,9 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-spinner-width` | 2px (`--determinate`: `--ds-spinner-determinate-width`) | the spinner's ring width (instead of `border-width`) |
 | `--ds-spinner-determinate-width` | a tenth of its size (4px at md) | the ring width of `.ds-spinner--determinate` |
 | `--ds-loader-size`, `--ds-loader-color` | 48px, `--ds-primary` | the shape loader's container at md, before the size step, and its shape ([shape loader](components.md#shape-loader)) |
-| `--ds-loader-sm-size` | 24px | `.ds-loader--sm`, both **deprecated**: `.ds-sm` |
 | `--ds-btn-height` | 40px | button: the base height (size md, comfortable density) that size and density steps apply to ([options.md](options.md)); other components read it to line up with a button |
 | `--ds-btn-height-exact` | unset | button: a fixed height that ignores size and density (never the touch minimum) |
-| `--ds-btn-padding-x` | `--ds-space-4` (`--text`, `--ghost`, `--sm`: `--ds-space-3`) | button: the base side padding, 4px more or less per size step |
+| `--ds-btn-padding-x` | `--ds-space-4` (`--text`, `--ghost`: `--ds-space-3`) | button: the base side padding, 4px more or less per size step |
 | `--ds-btn-padding-start` | `= padding-x`; before a leading icon `--ds-space-3` (4px more per size above md, never more than the end padding) | button |
 | `--ds-btn-radius` | `--ds-radius-action` | button (at most half the height, times `--ds-shape`) |
 | `--ds-btn-radius-pressed` | `--ds-radius-action-pressed` | button while pressed (times `--ds-shape`; never rounder than the rest radius) |
@@ -290,8 +289,6 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-btn-hover-shadow` | the resting shadow (`--filled`: `--ds-elev-hover`, `--elevated`: `--ds-elev-2`) | hover elevation |
 | `--ds-btn-hover-decoration` | none | e.g. `underline` for text buttons |
 | `--ds-btn-icon-size` | 40px | `--icon` buttons: the base size, 8px more or less per size step |
-| `--ds-btn-sm-height` | 32px | the fixed height of the deprecated `.ds-btn--sm` (density does not change it) |
-| `--ds-btn-sm-icon-size` | 32px | the fixed size of the deprecated `.ds-btn--sm.ds-btn--icon`; a `.ds-drawer__row` item keeps that much room for its action |
 | `--ds-btn-quiet-color` | `--ds-text-2` | `--quiet` label |
 | `--ds-btn-disabled-bg`, `--ds-btn-disabled-border` | from `--ds-disabled-fill` | disabled container |
 | `--ds-skeleton-radius` | `--ds-radius-action` (the heading line and a field: `--ds-radius-sm`; a media bone: `--ds-radius-card`) | the bones of a skeleton, times `--ds-shape` ([loading](components.md#loading)) |
@@ -439,7 +436,6 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-dialog-width-sm` | 320px | `.ds-dialog--sm` |
 | `--ds-dialog-width-lg` | 560px | `.ds-dialog--lg` |
 | `--ds-dialog-width-xl` | 720px | `.ds-dialog--xl` |
-| `--ds-dialog-width-wide` | 560px | **deprecated** name of `--ds-dialog-width-lg`, read after it |
 | `--ds-dialog-padding` | `--ds-space-6` | the box's padding at the comfortable density |
 | `--ds-dialog-radius` | `--ds-radius-dialog` | the box's radius at the default shape |
 | `--ds-dialog-head-height` | 56px | `.ds-dialog__head` at the comfortable density |
@@ -453,7 +449,6 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-table-row-selected` | `--ds-accent` | a selected table row (`.ds-table__row--selected`, a checked checkbox in a cell) |
 | `--ds-table-head-height` | 48px | table header cells: the base (size md, comfortable density) that size and density steps apply to ([options.md](options.md)); the block padding follows |
 | `--ds-table-row-height` | 52px | table body cells: the base (size md, comfortable density) that size and density steps apply to ([options.md](options.md)); the block padding follows |
-| `--ds-table-dense-row-height` | 40px | the fixed height of the cells of `.ds-table--dense` (deprecated, with the class) |
 | `--ds-table-padding` | `--ds-space-4` | the side padding of table cells and of an open detail: the base that density steps apply to (2px per step); on phones (600px) three quarters of it, below 360px half |
 | `--ds-table-zebra` | `--ds-surface-low` | the even rows of `.ds-table--zebra` |
 | `--ds-table-sticky-bg` | `--ds-surface` | the opaque base of sticky rows and pinned columns, and the background of `.ds-table-wrap--fill` |
@@ -472,7 +467,6 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-input-height` | 40px | fields: the base height (size md, comfortable density) of `.ds-input`, the search pill, input groups and a growing textarea, which size and density steps apply to ([options.md](options.md)); the combobox toggle lines up with it |
 | `--ds-input-padding-x` | `--ds-space-3` | fields and input groups: the base side padding, 4px more or less per size step |
 | `--ds-check-height` | 40px | a `.ds-check` row: the base height that size and density steps apply to (one line of its label; a longer label wraps and the box stays beside its first line) |
-| `--ds-check-sm-height` | 32px | the deprecated `.ds-check--sm`: its fixed height |
 | `--ds-radio-padding` | `--ds-space-4` | radio and checkbox cards: the base padding, 2px less per density step |
 | `--ds-input-bg`, `--ds-input-border`, `--ds-input-radius` | `--ds-surface`, `--ds-outline`, `--ds-radius-field` | the outlined field and the input group at rest (fill, 1px border colour, corners; the filled field's top corners) |
 | `--ds-input-focus-color` | `--ds-primary` | the field's ring, the label tint while it has the focus, the filled field's bottom line and the input group ring (the composer reads it too) |

@@ -24,9 +24,6 @@ update the text node only, so the spinner does not restart (`DS.dom.morphHtml`).
 | Shape | `.ds-shape-*` | any container or the theme | the corners times 0, .5, 1, 1.5; at the default, round at one line at any size |
 | Density, touch | | | not read: a chip sits in a line, like a badge, and it is no target. So `themes/compact.css` keeps 2.x's 24px; a smaller chip is `.ds-sm` |
 
-- `.ds-status--ok`, `.ds-status--warning`, `.ds-status--error` are **deprecated** (3.0, removed when 3.0 ships):
-  `.ds-tone-success`, `.ds-tone-warning`, `.ds-tone-error` on the chip, the same look under the option every component
-  shares.
 - Hooks: `--ds-status-height` (24px, the md base), `--ds-status-radius` (`--ds-radius-md`, or half the height of a
   taller chip), `--ds-status-spinner-width` (2px) ([theming.md](theming.md#component-hooks)).
 
@@ -55,7 +52,6 @@ A tag is a label of words ("Preview", "Beta", "External"), not a state and not a
 The caption type on the tint (hooks `--ds-tag-bg`, `--ds-tag-color`, from `--ds-accent` and `--ds-on-accent`; a tone:
 its container pair, neutral `--ds-surface-high` and `--ds-text`), an optional leading 16px icon (`--ds-on-accent-icon`),
 the pill radius at half its height (`--ds-tag-height`, 24px at md, with the size as on the chip and no density; times
-the shape). Forced colours draw a `CanvasText` outline. `.ds-tag--neutral` is **deprecated** (3.0, removed when 3.0 ships):
-`.ds-tone-neutral`. Tag = words, badge = counts ([Badge](#badge)), status chip = a state with an icon.
+the shape). Forced colours draw a `CanvasText` outline. Tag = words, badge = counts ([Badge](#badge)), status chip = a state with an icon.
 
 **Motion:** the "Status chip" row of [Feedback](motion.md#feedback) in motion.md.

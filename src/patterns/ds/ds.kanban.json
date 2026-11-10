@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.kanban.css",
-      "bytes": 270230,
-      "gzip": 42266
+      "bytes": 268287,
+      "gzip": 41932
     },
     "js": {
       "file": "ds.kanban.js",
-      "bytes": 554919,
-      "gzip": 131092
+      "bytes": 554496,
+      "gzip": 130995
     },
     "properties": {
       "file": "properties.css",
@@ -42,8 +42,8 @@
     {
       "name": "spinner",
       "reason": "needed by DS.overlay.prompt (kanban.html:193)",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "indicator",
@@ -54,20 +54,20 @@
     {
       "name": "button",
       "reason": "kanban.html:22 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "status",
       "reason": "kanban.html:90 ds-tag",
-      "bytes": 3164,
-      "gzip": 921
+      "bytes": 2830,
+      "gzip": 865
     },
     {
       "name": "card",
       "reason": "kanban.html:130 ds-card",
-      "bytes": 16606,
-      "gzip": 2659
+      "bytes": 16531,
+      "gzip": 2644
     },
     {
       "name": "menu",
@@ -78,20 +78,20 @@
     {
       "name": "badge",
       "reason": "kanban.html:146 ds-badge",
-      "bytes": 3754,
-      "gzip": 964
+      "bytes": 3304,
+      "gzip": 896
     },
     {
       "name": "dialog",
       "reason": "needed by DS.overlay.prompt (kanban.html:193)",
-      "bytes": 15994,
-      "gzip": 2482
+      "bytes": 15933,
+      "gzip": 2468
     },
     {
       "name": "form",
       "reason": "needed by DS.overlay.prompt (kanban.html:193)",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "drag",
@@ -108,14 +108,14 @@
     {
       "name": "page",
       "reason": "kanban.html:67 ds-content",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "shell",
       "reason": "kanban.html:18 ds-app",
-      "bytes": 39266,
-      "gzip": 6590
+      "bytes": 39239,
+      "gzip": 6579
     },
     {
       "name": "toast",
@@ -144,8 +144,8 @@
     {
       "name": "avatar",
       "reason": "kanban.html:136 ds-avatar",
-      "bytes": 5871,
-      "gzip": 1523
+      "bytes": 5679,
+      "gzip": 1480
     },
     {
       "name": "persona",

@@ -10,8 +10,7 @@
     "ds-spinner",
     "ds-spinner--determinate",
     "ds-spinner--flat",
-    "ds-spinner--ink",
-    "ds-spinner--sm"
+    "ds-spinner--ink"
   ],
   "attributes": [],
   "requires": [],

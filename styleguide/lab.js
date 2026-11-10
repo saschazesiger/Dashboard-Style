@@ -2552,7 +2552,7 @@
     id: 'dialog-work',
     group: 'overlays',
     title: 'A dialog busy with its action',
-    note: 'While the page sets <code>data-ds-busy</code>, Escape, the backdrop and Cancel do nothing; <code>DS.overlay.close(dialog, { reason })</code> still closes, and every close sends <code>ds-close</code> with its reason. A backdrop click within <code>--ds-delay-dismiss</code> of the open closes nothing (the second click of a double click). The read-outs show the last reason and <code>DS.overlay.topmost()</code>. <code>DS.overlay.confirm()</code>, <code>alert()</code> and <code>prompt()</code> build such a dialog for you.',
+    note: 'While the page sets <code>data-ds-busy</code>, Escape, the backdrop and Cancel do nothing; <code>DS.overlay.close(dialog, { reason })</code> still closes, and every close sends <code>ds:close</code> with its reason. A backdrop click within <code>--ds-delay-dismiss</code> of the open closes nothing (the second click of a double click). The read-outs show the last reason and <code>DS.overlay.topmost()</code>. <code>DS.overlay.confirm()</code>, <code>alert()</code> and <code>prompt()</code> build such a dialog for you.',
     shows: ['DS.overlay.open', 'DS.overlay.close', 'DS.overlay.topmost', 'DS.overlay.confirm', 'DS.overlay.alert', 'DS.overlay.prompt', 'DS.motion.busy', '--ds-delay-dismiss', '--ds-dur-slow', '--ds-dur-base'],
     html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-overlay-open>Delete devices</button>' +
       '<button class="ds-btn" type="button" data-work-confirm>Ask with confirm()</button></div>',

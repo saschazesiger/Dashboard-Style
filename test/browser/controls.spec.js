@@ -971,9 +971,9 @@ test.describe('fields', () => {
 });
 
 test.describe('busy faces and icon swaps', () => {
-  const FACES = `<p><button class="ds-btn ds-btn--primary" type="button" id="x-save"><span class="ds-btn__faces">
+  const FACES = `<p><button class="ds-btn ds-btn--filled" type="button" id="x-save"><span class="ds-btn__faces">
     <span class="ds-btn__face">Save</span>
-    <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Saving</span>
+    <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Saving</span>
     <span class="ds-btn__face ds-btn__face--done" aria-hidden="true"><span data-x-icon="check"></span>Saved</span>
   </span></button></p>`;
 
@@ -1079,7 +1079,7 @@ test.describe('disabled', () => {
   test('disabling a fieldset brings every control to its disabled look within 150ms, without a step', async ({ page }) => {
     await open(page);
     await inject(page, `<fieldset id="x-set" style="border: 0; padding: 0; margin: 0">
-      <button class="ds-btn ds-btn--primary" type="button" id="x-btn">Save</button>
+      <button class="ds-btn ds-btn--filled" type="button" id="x-btn">Save</button>
       <label class="ds-chip"><input class="ds-chip__input" type="checkbox" id="x-chip-input"><span class="ds-chip__body"><span>Archived</span></span></label>
       <label class="ds-switch"><input type="checkbox" role="switch" id="x-sw"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Sync</span></label>
       <input class="ds-checkbox" type="checkbox" id="x-box" checked aria-label="Managed">

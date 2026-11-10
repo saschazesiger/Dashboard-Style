@@ -6,7 +6,7 @@
  * press morph scaled with it); option classes that nest (a dense region in
  * a comfortable one, a comfortable island in the dense one); the filled
  * error button of a destructive confirmation (D10) and nothing else turned
- * red by a tone; the 2.x aliases (--primary, --sm); the new variants and
+ * red by a tone; the 2.x aliases gone (--primary, --sm); the new variants and
  * the failed face; forced colours. Runs in the `fallback` project too.
  */
 import { test, expect } from '../../../test/browser/base-test.js';
@@ -125,8 +125,6 @@ test('the filled error button of a confirmation (D10); an inherited tone or anot
   const confirm = await box(page, '#confirm-delete');
   expect(confirm.background).toBe(colours.error);
   expect(confirm.color).toBe(colours.onError);
-  // The deprecated --primary alias takes it too.
-  expect((await box(page, '#tone-alias')).background).toBe(colours.error);
   // A filled button in an error region stays filled; a tonal button ignores the tone.
   expect((await box(page, '#tone-inherited')).background).toBe(colours.primary);
   expect((await box(page, '#tone-tonal')).background).toBe(colours.accent);
@@ -138,23 +136,23 @@ test('the filled error button of a confirmation (D10); an inherited tone or anot
   expect(await page.$eval('#confirm-delete', (el) => getComputedStyle(el).outlineStyle)).toBe('solid');
 });
 
-test('the 2.x aliases and the variants of 3.0', async ({ page }) => {
+test('the variants of 3.0; the 2.x aliases are gone', async ({ page }) => {
   await open(page);
-  const [filled, primary] = [await box(page, '#v-filled'), await box(page, '#v-primary')];
-  expect(primary.background).toBe(filled.background);
-  expect(primary.color).toBe(filled.color);
-  // --sm keeps the fixed 2.x small button (32px, 12px padding), also in a dense region; .ds-sm follows the density.
-  expect((await box(page, '#v-sm-alias')).height).toBe(32);
-  expect((await box(page, '#v-sm-text-alias')).padStart).toBe(12);
   expect((await box(page, '#v-sm-text')).padStart).toBe(8);
-  const dense = await page.evaluate(() => {
+  // .ds-sm follows the density. The 2.x names (built from fragments, so the removed-name guard of test/repo.test.js
+  // passes this file) were removed in 3.0: an outlined button at the md size.
+  const [primary, small] = ['primary', 'sm'].map((name) => `ds-btn--${name}`);
+  const dense = await page.evaluate(([primary, small]) => {
     const region = document.createElement('div');
     region.className = 'ds-density-dense';
-    region.innerHTML = '<button class="ds-btn ds-btn--sm" type="button">Alias</button><button class="ds-btn ds-sm" type="button">Small</button>';
+    region.innerHTML = `<button class="ds-btn ds-sm" type="button">Small</button><button class="ds-btn ${small}" type="button">Old small</button><button class="ds-btn ${primary}" type="button">Old primary</button><button class="ds-btn" type="button">Outlined</button>`;
     document.querySelector('#grid').append(region);
-    return [...region.children].map((el) => el.getBoundingClientRect().height);
-  });
-  expect(dense).toEqual([32, 24]);
+    const out = [...region.children].map((el) => ({ height: el.getBoundingClientRect().height, background: getComputedStyle(el).backgroundColor }));
+    region.remove();
+    return out;
+  }, [primary, small]);
+  expect(dense.map((item) => item.height)).toEqual([24, 32, 32, 32]);
+  expect(dense[2].background, 'no filled look for the 2.x name').toBe(dense[3].background);
   // Elevated rests on a shadow; ghost takes the ink of its surroundings; block fills its line.
   expect((await box(page, '#v-elevated')).shadow).not.toBe('none');
   await page.$eval('#ghost-host', (el) => { el.style.color = 'rgb(140, 29, 24)'; });

@@ -98,9 +98,7 @@
  *               the mark itself (an inherited tone would recolour a whole
  *               chart in a tinted region), always with words next to it:
  *               neutral, warning and error take their chart roles, the
- *               others the tone. --neutral, --warning and --error on the
- *               three marks are the 2.x names, deprecated aliases until
- *               3.0 ships
+ *               others the tone
  *   .ds-columns__col--s2, --s3, --s4           a column of series 2 to 4
  *   .ds-columns--mini                          a 32px sparkline of columns:
  *     no labels, the columns aria-hidden, the figure role="img" with a
@@ -201,15 +199,15 @@
     --_fill: var(--ds-tone);
   }
 
-  .ds-meter:is(.ds-tone-neutral, .ds-meter--neutral) {
+  .ds-meter.ds-tone-neutral {
     --_fill: var(--ds-chart-neutral);
   }
 
-  .ds-meter:is(.ds-tone-warning, .ds-meter--warning) {
+  .ds-meter.ds-tone-warning {
     --_fill: var(--ds-chart-warning);
   }
 
-  .ds-meter:is(.ds-tone-error, .ds-meter--error) {
+  .ds-meter.ds-tone-error {
     --_fill: var(--ds-chart-error);
   }
 
@@ -339,11 +337,11 @@
     --ds-chart-color: var(--ds-chart-neutral);
   }
 
-  .ds-columns__col:is(.ds-tone-warning, .ds-columns__col--warning) {
+  .ds-columns__col.ds-tone-warning {
     --ds-chart-color: var(--ds-chart-warning);
   }
 
-  .ds-columns__col:is(.ds-tone-error, .ds-columns__col--error) {
+  .ds-columns__col.ds-tone-error {
     --ds-chart-color: var(--ds-chart-error);
   }
 
@@ -490,15 +488,15 @@
     --ds-chart-color: var(--ds-tone);
   }
 
-  .ds-legend__key:is(.ds-tone-neutral, .ds-legend__key--neutral) {
+  .ds-legend__key.ds-tone-neutral {
     --ds-chart-color: var(--ds-chart-neutral);
   }
 
-  .ds-legend__key:is(.ds-tone-warning, .ds-legend__key--warning) {
+  .ds-legend__key.ds-tone-warning {
     --ds-chart-color: var(--ds-chart-warning);
   }
 
-  .ds-legend__key:is(.ds-tone-error, .ds-legend__key--error) {
+  .ds-legend__key.ds-tone-error {
     --ds-chart-color: var(--ds-chart-error);
   }
 

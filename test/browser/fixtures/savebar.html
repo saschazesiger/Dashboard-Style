@@ -56,7 +56,7 @@
             <p class="ds-savebar__text" id="bar-text">1 unsaved change</p>
             <div class="ds-savebar__actions">
               <button class="ds-btn ds-btn--text" type="button" id="discard">Discard</button>
-              <button class="ds-btn ds-btn--primary" type="button" id="save">Save</button>
+              <button class="ds-btn ds-btn--filled" type="button" id="save">Save</button>
             </div>
           </div>
         </div>
@@ -66,25 +66,25 @@
   <div class="ds-toasts" id="toasts"></div>
 
   <div class="ds-sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
-    <div class="ds-sheet__backdrop" data-close></div>
+    <div class="ds-sheet__backdrop" data-ds-close></div>
     <section class="ds-sheet__panel">
       <div class="ds-sheet__head">
         <h2 class="ds-sheet__title" id="sheet-title">LAPTOP-0042</h2>
-        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="sheet-close" aria-label="Close" data-close><span data-icon="close" data-size="20"></span></button>
+        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="sheet-close" aria-label="Close" data-ds-close><span data-icon="close" data-size="20"></span></button>
       </div>
       <div class="ds-sheet__body" id="sheet-body" tabindex="0"><p>Synced nightly.</p><div class="fx-tall"></div><button class="ds-btn" type="button" id="sheet-last">Last action</button></div>
-      <div class="ds-sheet__foot fx-foot" id="sheet-foot"><button class="ds-btn ds-btn--primary" type="button" id="sheet-save">Save</button></div>
+      <div class="ds-sheet__foot fx-foot" id="sheet-foot"><button class="ds-btn ds-btn--filled" type="button" id="sheet-save">Save</button></div>
     </section>
   </div>
 
   <dialog class="ds-dialog" id="dialog" aria-labelledby="dialog-title">
-    <div class="ds-dialog__backdrop" data-close></div>
+    <div class="ds-dialog__backdrop" data-ds-close></div>
     <div class="ds-dialog__box" id="dialog-box">
       <h2 class="ds-dialog__title" id="dialog-title">Delete 3 devices?</h2>
       <p class="ds-dialog__text">They disappear from every list.</p>
       <div class="ds-dialog__actions">
-        <button class="ds-btn ds-btn--text" type="button" id="dialog-cancel" data-close autofocus>Cancel</button>
-        <button class="ds-btn ds-btn--primary" type="button" id="dialog-ok">Delete</button>
+        <button class="ds-btn ds-btn--text" type="button" id="dialog-cancel" data-ds-close autofocus>Cancel</button>
+        <button class="ds-btn ds-btn--filled" type="button" id="dialog-ok">Delete</button>
       </div>
     </div>
   </dialog>

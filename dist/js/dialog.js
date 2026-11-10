@@ -391,13 +391,13 @@ const TYPED = 'textarea, input:not([type="checkbox"], [type="radio"], [type="ran
 function holdForm(dialog, box, submit) {
   const undo = [() => dialog.removeAttribute('data-ds-busy')];
   dialog.setAttribute('data-ds-busy', '');
-  for (const closer of box.querySelectorAll('[data-ds-close], [data-close]')) {
+  for (const closer of box.querySelectorAll('[data-ds-close]')) {
     if (closer.getAttribute('aria-disabled') === 'true') continue;
     closer.setAttribute('aria-disabled', 'true');
     undo.push(() => closer.removeAttribute('aria-disabled'));
   }
   for (const control of box.elements) {
-    if (control === submit || control.disabled || control.type === 'submit' || control.matches('fieldset, output, input[type="hidden"], [data-ds-close], [data-close]')) continue;
+    if (control === submit || control.disabled || control.type === 'submit' || control.matches('fieldset, output, input[type="hidden"], [data-ds-close]')) continue;
     if (control.matches(TYPED)) {
       if (control.readOnly) continue;
       control.readOnly = true;

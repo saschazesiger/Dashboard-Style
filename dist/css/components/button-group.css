@@ -95,14 +95,14 @@
 
   /* An outlined toggle that is on keeps the group's outline (the segmented
      look): the tint fills it, the pill stays one line all round. */
-  .ds-btn-group > .ds-btn[aria-pressed="true"]:not(.ds-btn--filled, .ds-btn--primary, .ds-btn--tonal, .ds-btn--quiet, .ds-btn--text, .ds-btn--ghost) {
+  .ds-btn-group > .ds-btn[aria-pressed="true"]:not(.ds-btn--filled, .ds-btn--tonal, .ds-btn--quiet, .ds-btn--text, .ds-btn--ghost) {
     border-color: var(--ds-btn-group-divider, var(--ds-line-2));
   }
 
   /* In a filled or tonal group the line is the label colour in the fill,
      so the two targets read apart: as strong as dimmed content
      (--ds-state-disabled), so it reads as a seam, not as a label. */
-  .ds-btn-group > :is(.ds-btn--filled, .ds-btn--primary, .ds-btn--tonal):not([aria-pressed="false"]) {
+  .ds-btn-group > :is(.ds-btn--filled, .ds-btn--tonal):not([aria-pressed="false"]) {
     --_g-divider: color-mix(in srgb, var(--ds-btn-color, var(--ds-on-primary)) calc(var(--ds-state-disabled) * 100%), var(--ds-btn-bg, var(--ds-primary)));
   }
 

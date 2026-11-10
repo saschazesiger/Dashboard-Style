@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.dashboard.css",
-      "bytes": 300711,
-      "gzip": 47186
+      "bytes": 298505,
+      "gzip": 46799
     },
     "js": {
       "file": "ds.dashboard.js",
-      "bytes": 573673,
-      "gzip": 137389
+      "bytes": 573278,
+      "gzip": 137297
     },
     "properties": {
       "file": "properties.css",
@@ -30,14 +30,14 @@
     {
       "name": "spinner",
       "reason": "required by button",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "loader",
       "reason": "required by loading",
-      "bytes": 923,
-      "gzip": 465
+      "bytes": 873,
+      "gzip": 452
     },
     {
       "name": "indicator",
@@ -48,8 +48,8 @@
     {
       "name": "button",
       "reason": "dashboard.html:22 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "loading",
@@ -66,20 +66,20 @@
     {
       "name": "status",
       "reason": "dashboard.html:197 ds-status",
-      "bytes": 3164,
-      "gzip": 921
+      "bytes": 2830,
+      "gzip": 865
     },
     {
       "name": "alert",
       "reason": "dashboard.html:79 ds-alert",
-      "bytes": 6191,
-      "gzip": 1561
+      "bytes": 6019,
+      "gzip": 1532
     },
     {
       "name": "chart",
       "reason": "dashboard.html:92 ds-columns",
-      "bytes": 23341,
-      "gzip": 4433
+      "bytes": 23123,
+      "gzip": 4396
     },
     {
       "name": "tile",
@@ -96,14 +96,14 @@
     {
       "name": "table",
       "reason": "dashboard.html:185 ds-table-wrap",
-      "bytes": 32874,
-      "gzip": 4760
+      "bytes": 32273,
+      "gzip": 4685
     },
     {
       "name": "form",
       "reason": "required by shell",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "tooltip",
@@ -114,14 +114,14 @@
     {
       "name": "page",
       "reason": "dashboard.html:61 ds-content",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "shell",
       "reason": "dashboard.html:18 ds-app",
-      "bytes": 39266,
-      "gzip": 6590
+      "bytes": 39239,
+      "gzip": 6579
     },
     {
       "name": "toast",

@@ -20,6 +20,12 @@ const TEXT = /\.(css|js|mjs|md|html|json|txt|sh|ps1)$|(^|\/)(LICENSE|SHA256SUMS|
 const SKIP_DIRS = /^(\.git|\.claude|node_modules|test-results|playwright-report|blob-report|__screenshots-local__)$/;
 const ALL_FILES = filesIn('.', () => true, SKIP_DIRS).map((path) => path.replace(/^\.\//, ''));
 
+/**
+ * The release this version is or leads to (3.0.0 for 3.0.0-alpha.6): the repository drops a name once work on the
+ * release that removes it has started, so its docs no longer mark it deprecated and no file of it uses it.
+ */
+const RELEASE = packageInfo().version.replace(/-.*$/, '');
+
 /** JS source without block comments and whole-line comments (headers may quote code). */
 const code = (source) => source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
@@ -328,9 +334,9 @@ describe('repository', () => {
 
   it('keeps every removed name of src/deprecations.json out of the repository (RM-14)', () => {
     const { names } = JSON.parse(read('src/deprecations.json'));
-    // Removed in this version or earlier; a removal planned for a later release (3.0.0 seen from 3.0.0-alpha) is
-    // still a deprecation: the name works until that release.
-    const removed = names.filter((entry) => isRemoved(entry, packageInfo().version) && entry.pattern !== null);
+    // Removed in the release this version is or leads to, or earlier: the pre-releases of 3.0.0 already lack the names
+    // that 3.0.0 removes (the tools of such a copy still only warn on them, isRemoved() with its own version).
+    const removed = names.filter((entry) => isRemoved(entry, RELEASE) && entry.pattern !== null);
     assert.ok(removed.some((entry) => entry.name === '--ds-ease'), 'the removed names of 2.0 are listed');
     // History (CHANGELOG.md, plans/) and the tests may name them; so may the data itself and the tools that read it,
     // and the migration from 2.x: its guide lists every removed name, and the fixture of tools/migrate.mjs is a 2.x
@@ -341,6 +347,10 @@ describe('repository', () => {
       ['test/browser/fixtures/toast-tooltip.html', {
         reason: 'its #old-markup region tests that toast() strips the old live-region attributes',
         applies: (entry) => entry.kind === 'markup' && /ds-toasts/.test(entry.pattern),
+      }],
+      ['src/components/number/number.spec.js', {
+        reason: 'it ends a Chrome DevTools Protocol session with that session\'s own detach(), not a ripple handle\'s',
+        applies: (entry) => entry.name === 'detach()',
       }],
     ]);
     const scope = ALL_FILES.filter((path) => TEXT.test(path) && !EXEMPT.test(path)
@@ -362,7 +372,7 @@ describe('repository', () => {
 
   it('marks every deprecated name of src/deprecations.json **deprecated** in docs/, and only those (RM-14)', () => {
     const { names } = JSON.parse(read('src/deprecations.json'));
-    const deprecated = names.filter((entry) => !isRemoved(entry, packageInfo().version));
+    const deprecated = names.filter((entry) => !isRemoved(entry, RELEASE));
     // A block is a table row, a list item or a paragraph; it covers an entry when it names it or its pattern matches.
     const blocks = filesIn('docs', (path) => path.endsWith('.md')).flatMap((file) => read(file).split(/\n\s*\n/)
       .flatMap((paragraph) => paragraph.split(/\n(?=\||\s*(?:[-*]|\d+\.)\s)/))

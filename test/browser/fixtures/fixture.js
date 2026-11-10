@@ -7,7 +7,7 @@
  *       replaced by DS.icons.icon(DS.icons.check, 16, 'ds-chip__check')
  *   <button data-replay="#box" data-classes="ds-enter ds-enter--fade">
  *       restarts those classes on #box (DS.motion.replay)
- *   <button data-toggle-class="ds-status--ok ds-status--error" data-target="#chip">
+ *   <button data-toggle-class="ds-tone-success ds-tone-error" data-target="#chip">
  *       swaps the classes on the live node (no re-render)
  *   [data-indicator="<active selector>"] [data-indicator-class="..."]
  *   [data-indicator-name="nav"]

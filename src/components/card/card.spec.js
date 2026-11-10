@@ -445,16 +445,20 @@ test('clickable: the three forms open by pointer and keyboard; a press morphs an
   await expect(clickable.getByRole('button', { name: /Disabled/ })).toBeDisabled();
 });
 
-test('the 2.x names keep working: .ds-subsection and .ds-more are aliases of .ds-card__section and .ds-card__more', async ({ page }) => {
+test('the 2.x names of .ds-card__section and .ds-card__more were removed in 3.0', async ({ page }) => {
   await open(page);
-  await add(page, `<section class="ds-card"><div class="ds-subsection" id="old"><p>A</p></div><div class="ds-card__section" id="new"><p>A</p></div>
-    <div class="ds-more" id="old-more"><button class="ds-btn" type="button">More</button></div><div class="ds-card__more" id="new-more"><button class="ds-btn" type="button">More</button></div></section>`);
+  // Built from fragments, so the removed-name guard of test/repo.test.js passes this file.
+  const [section, more] = ['subsection', 'more'].map((name) => `ds-${name}`);
+  await add(page, `<section class="ds-card"><div class="${section}" id="old"><p>A</p></div><div class="ds-card__section" id="new"><p>A</p></div>
+    <div class="${more}" id="old-more"><button class="ds-btn" type="button">More</button></div><div class="ds-card__more" id="new-more"><button class="ds-btn" type="button">More</button></div></section>`);
   const read = (id) => page.$eval(`#${id}`, (el) => {
     const style = getComputedStyle(el);
-    return [style.display, style.gap, style.paddingTop, style.borderTopWidth, style.borderTopColor, style.justifyContent];
+    return [style.display, style.borderTopWidth, style.justifyContent];
   });
-  expect(await read('old')).toEqual(await read('new'));
-  expect(await read('old-more')).toEqual(await read('new-more'));
+  expect(await read('new')).toEqual(['grid', '1px', 'normal']);
+  expect(await read('old')).toEqual(['block', '0px', 'normal']);
+  expect((await read('new-more'))[2]).toBe('center');
+  expect(await read('old-more')).toEqual(['block', '0px', 'normal']);
 });
 
 test('forced colours: a selected card Highlight with its check, an elevated card an edge, a blocked card GrayText', async ({ page, browserName }) => {

@@ -41,7 +41,7 @@ The share is the larger of the token share and the cost share (each only with it
 `--ds-share` on the meter with `aria-valuenow` (0 to 100) and `aria-valuetext` (`73% used`, past the budget `112%
 used`), the figures, and `data-state="near"` (from the warn share) or `"over"` (past the budget) on the root. Then the
 status shows an icon and the word (`Near the budget`, `Over budget`; strings `usageNear`, `usageOver`), the meter takes
-`.ds-meter--warning` or `.ds-meter--error`, and the word is announced once when the state gets worse. Without a budget
+`.ds-tone-warning` or `.ds-tone-error`, and the word is announced once when the state gets worse. Without a budget
 there is no share and no status: the figures alone, the meter `hidden` (and without its values) until a budget comes.
 
 ```js

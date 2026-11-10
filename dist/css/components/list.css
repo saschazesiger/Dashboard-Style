@@ -102,8 +102,7 @@
  *             --ds-touch-target high; touch wins over size and density
  *   tone      .ds-tone-* on a .ds-kv-list__icon, on the icon itself (an
  *             inherited tone would colour every value); always with a
- *             .ds-sr word. --ok, --warning and --error are its 2.x names,
- *             deprecated aliases until 3.0 ships
+ *             .ds-sr word
  *
  * Hooks: --ds-list-item-height (56px), --ds-list-padding (--ds-space-4),
  * --ds-list-padding-y (--ds-space-3), --ds-list-radius (--ds-radius-card),
@@ -749,19 +748,6 @@
   /* On the icon itself: an inherited tone would colour every value. */
   .ds-kv-list__icon:is(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
     color: var(--ds-tone);
-  }
-
-  /* The 2.x names of the tones, deprecated. */
-  .ds-kv-list__icon--ok {
-    color: var(--ds-success);
-  }
-
-  .ds-kv-list__icon--warning {
-    color: var(--ds-warning);
-  }
-
-  .ds-kv-list__icon--error {
-    color: var(--ds-error);
   }
 
   /* Rows with a meter on a line of their own: the label stays on one line

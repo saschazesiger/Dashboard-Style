@@ -313,7 +313,7 @@ test('a track styled before the script: its items take their look under the new 
     const track = document.createElement('div');
     track.className = 'sg-fx-track';
     track.style.cssText = 'position: relative; display: flex; gap: 8px;';
-    track.innerHTML = '<button class="ds-btn ds-btn--sm" type="button" aria-pressed="true">One</button><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Two</button>';
+    track.innerHTML = '<button class="ds-btn ds-sm" type="button" aria-pressed="true">One</button><button class="ds-btn ds-sm" type="button" aria-pressed="false">Two</button>';
     document.querySelector('.ds-theme').append(track);
     // Styled once, as a page shows its markup before its script runs.
     for (const button of track.children) void getComputedStyle(button).backgroundColor;
@@ -371,7 +371,7 @@ test('DS.dom.morphHtml() keeps the pill, the next change glides by itself, and r
   await install(page);
   await page.evaluate(() => {
     document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', '<div id="x-track" style="position: relative; display: flex; gap: 4px; width: 480px">'
-      + '<button class="ds-btn ds-btn--sm" type="button" aria-pressed="true">Day</button><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Week</button></div>');
+      + '<button class="ds-btn ds-sm" type="button" aria-pressed="true">Day</button><button class="ds-btn ds-sm" type="button" aria-pressed="false">Week</button></div>');
     window.xIndicator = DS.indicator.create(document.getElementById('x-track'), { active: '[aria-pressed="true"]', className: 'ds-segmented__indicator' });
   });
   await frames(page);
@@ -379,7 +379,7 @@ test('DS.dom.morphHtml() keeps the pill, the next change glides by itself, and r
     const track = document.getElementById('x-track');
     const indicator = track.querySelector(':scope > .ds-indicator');
     // New items (links instead of buttons), the second one active: no update().
-    DS.dom.morphHtml(track, ['Day', 'Week', 'Month'].map((label) => `<a class="ds-btn ds-btn--sm" href="#${label}" aria-pressed="${label === 'Week'}">${label}</a>`).join(''));
+    DS.dom.morphHtml(track, ['Day', 'Week', 'Month'].map((label) => `<a class="ds-btn ds-sm" href="#${label}" aria-pressed="${label === 'Week'}">${label}</a>`).join(''));
     await Promise.resolve();
     await new Promise((resolve) => requestAnimationFrame(resolve));
     const kept = track.firstElementChild === indicator && track.querySelectorAll('.ds-indicator').length === 1;
@@ -392,7 +392,7 @@ test('DS.dom.morphHtml() keeps the pill, the next change glides by itself, and r
   expect(await restState(page, '#x-track', '[aria-pressed="true"]')).toEqual(REST);
   // A badge in the new first item pushes the active one along: the resize observer follows the new items.
   await page.evaluate(() => {
-    document.querySelector('#x-track a').insertAdjacentHTML('beforeend', '<span class="ds-status ds-status--warning">12 new</span>');
+    document.querySelector('#x-track a').insertAdjacentHTML('beforeend', '<span class="ds-status ds-tone-warning">12 new</span>');
   });
   await frames(page);
   await settle(page);
@@ -485,7 +485,7 @@ test('a project class with only a border-radius keeps its corners', async ({ pag
     document.head.insertAdjacentHTML('beforeend', '<style>.x-pill { border-radius: 8px; background: var(--ds-accent); } .x-round { border-radius: 9999px; background: var(--ds-accent); }</style>');
     const make = (id, className) => {
       document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', `<div id="${id}" style="position: relative; display: flex; width: 300px">`
-        + '<button class="ds-btn ds-btn--sm" type="button" aria-pressed="true">Day</button><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Week</button></div>');
+        + '<button class="ds-btn ds-sm" type="button" aria-pressed="true">Day</button><button class="ds-btn ds-sm" type="button" aria-pressed="false">Week</button></div>');
       const track = document.getElementById(id);
       DS.indicator.create(track, { active: '[aria-pressed="true"]', className });
       const indicator = track.querySelector('.ds-indicator');

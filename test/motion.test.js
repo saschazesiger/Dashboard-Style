@@ -1307,7 +1307,7 @@ describe('js/motion', () => {
           for (const item of made.items.values()) {
             const doc = made.container.ownerDocument;
             const input = control(doc, 'ds-input', 'input');
-            const remove = control(doc, 'ds-btn ds-btn--text ds-btn--sm remove');
+            const remove = control(doc, 'ds-btn ds-btn--text ds-sm remove');
             item.append(input, remove);
             item.matches = () => false;
             item.querySelectorAll = () => [input, remove];
@@ -1327,7 +1327,7 @@ describe('js/motion', () => {
           const made = list(names);
           const doc = made.container.ownerDocument;
           for (const [name, item] of made.items) {
-            item.setAttribute('class', name === 'clear' ? 'ds-btn ds-btn--text ds-btn--sm' : 'ds-chip ds-chip--input');
+            item.setAttribute('class', name === 'clear' ? 'ds-btn ds-btn--text ds-sm' : 'ds-chip ds-chip--input');
             item.matches = (selector) => selector.includes('button');
             item.getClientRects = () => [{}];
           }
@@ -1362,7 +1362,7 @@ describe('js/motion', () => {
             const parts = [];
             if (!bare.includes(name)) parts.push(control(doc, 'ds-input', 'input'));
             if (!locked.includes(name)) {
-              const remove = control(doc, 'ds-btn ds-btn--text ds-btn--sm remove');
+              const remove = control(doc, 'ds-btn ds-btn--text ds-sm remove');
               removes.set(name, remove);
               parts.push(remove);
             }

@@ -77,5 +77,5 @@ test('ds.min.css gives the sample the same computed styles as ds.css', async ({ 
   const pairs = [...new Map(custom.map(([, property, a, b]) => [`${property}|${a}|${b}`, [a, b]])).values()];
   const same = await sameAsComputed(page, pairs);
   expect(pairs.filter((_, index) => !same[index]).slice(0, 20)).toEqual([]);
-  expect(await page.evaluate(() => getComputedStyle(document.querySelector('.ds-btn--primary')).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)');
+  expect(await page.evaluate(() => getComputedStyle(document.querySelector('.ds-btn--filled')).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)');
 });

@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.team.css",
-      "bytes": 349222,
-      "gzip": 52416
+      "bytes": 346766,
+      "gzip": 51948
     },
     "js": {
       "file": "ds.team.js",
-      "bytes": 591556,
-      "gzip": 139667
+      "bytes": 591133,
+      "gzip": 139573
     },
     "properties": {
       "file": "properties.css",
@@ -30,8 +30,8 @@
     {
       "name": "spinner",
       "reason": "team.html:154 ds-spinner",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "indicator",
@@ -42,32 +42,32 @@
     {
       "name": "button",
       "reason": "team.html:22 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "status",
       "reason": "required by list",
-      "bytes": 3164,
-      "gzip": 921
+      "bytes": 2830,
+      "gzip": 865
     },
     {
       "name": "chart",
       "reason": "required by list",
-      "bytes": 23341,
-      "gzip": 4433
+      "bytes": 23123,
+      "gzip": 4396
     },
     {
       "name": "list",
       "reason": "team.html:105 ds-facts",
-      "bytes": 18637,
-      "gzip": 3412
+      "bytes": 18493,
+      "gzip": 3387
     },
     {
       "name": "card",
       "reason": "team.html:75 ds-card",
-      "bytes": 16606,
-      "gzip": 2659
+      "bytes": 16531,
+      "gzip": 2644
     },
     {
       "name": "empty",
@@ -90,20 +90,20 @@
     {
       "name": "dialog",
       "reason": "team.html:121 ds-dialog",
-      "bytes": 15994,
-      "gzip": 2482
+      "bytes": 15933,
+      "gzip": 2468
     },
     {
       "name": "table",
       "reason": "team.html:83 ds-table-wrap",
-      "bytes": 32874,
-      "gzip": 4760
+      "bytes": 32273,
+      "gzip": 4685
     },
     {
       "name": "form",
       "reason": "team.html:79 ds-action-bar",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "drag",
@@ -120,14 +120,14 @@
     {
       "name": "page",
       "reason": "team.html:61 ds-content",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "shell",
       "reason": "team.html:18 ds-app",
-      "bytes": 39266,
-      "gzip": 6590
+      "bytes": 39239,
+      "gzip": 6579
     },
     {
       "name": "toast",
@@ -156,8 +156,8 @@
     {
       "name": "avatar",
       "reason": "team.html:174 ds-avatar--hue-1",
-      "bytes": 5871,
-      "gzip": 1523
+      "bytes": 5679,
+      "gzip": 1480
     },
     {
       "name": "persona",

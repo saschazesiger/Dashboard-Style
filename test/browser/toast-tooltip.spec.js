@@ -377,7 +377,7 @@ test.describe('snackbars over a modal', () => {
       dialog.className = 'ds-dialog';
       dialog.id = 'fx-dialog';
       dialog.hidden = true;
-      dialog.innerHTML = '<div class="ds-dialog__backdrop" data-close></div><div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-label="Save"><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button></div>';
+      dialog.innerHTML = '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-label="Save"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button></div>';
       document.getElementById('theme').append(dialog);
     });
     for (const id of ['native', 'fx-dialog', 'sheet']) {
@@ -421,7 +421,7 @@ test.describe('snackbars over a closing modal', () => {
       sheet.className = 'ds-sheet';
       sheet.id = 'fx-native-sheet';
       sheet.setAttribute('aria-label', 'Details');
-      sheet.innerHTML = '<div class="ds-sheet__backdrop" data-close></div><section class="ds-sheet__panel"><div class="ds-sheet__body" tabindex="0"><p>Synced nightly.</p></div></section>';
+      sheet.innerHTML = '<div class="ds-sheet__backdrop" data-ds-close></div><section class="ds-sheet__panel"><div class="ds-sheet__body" tabindex="0"><p>Synced nightly.</p></div></section>';
       document.getElementById('theme').append(sheet);
     });
     for (const id of ['native', 'fx-native-sheet', 'sheet']) {

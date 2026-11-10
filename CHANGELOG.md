@@ -9,6 +9,33 @@ export is a major change; adding one is a minor change. Identifiers such as D7 r
 A rewrite, built on the `next` branch ([plans/3.0.md](plans/3.0.md)); `main` stays 2.x. The pre-releases carry
 `3.0.0-alpha.<n>`.
 
+### Removed at the release
+
+The 2.x aliases that the pre-releases kept "until 3.0 ships" are gone from the code. Their entries in
+`deprecations.json` stay as they are, so `tools/migrate.mjs` still rewrites them and `check-project` and `check-theme`
+still name them; [docs/migration.md](docs/migration.md) lists each with its replacement.
+
+- **Classes:** `.ds-btn--primary` (`.ds-btn--filled`), `.ds-btn--sm`, `.ds-check--sm`, `.ds-loader--sm`,
+  `.ds-avatar--sm`, `.ds-avatar--lg` (`.ds-sm`, `.ds-lg`), `.ds-spinner--sm` (`.ds-spinner--ink` with `.ds-sm`),
+  `.ds-dialog--wide` (`.ds-dialog--lg`), `.ds-table--dense` (`.ds-density-tight`), `.ds-input-group__affix`
+  (`.ds-input-group__prefix`, `.ds-input-group__suffix`), `.ds-subsection` and `.ds-more` (`.ds-card__section`,
+  `.ds-card__more`).
+- **Tone modifiers** (now `.ds-tone-*` on the element): `.ds-alert--success`, `--warning`, `--error`;
+  `.ds-badge--neutral`, `--ok`, `--warning`, `--error`; `.ds-status--ok`, `--warning`, `--error`; `.ds-tag--neutral`;
+  `.ds-kv-list__icon--ok`, `--warning`, `--error`; `.ds-meter--neutral`, `--warning`, `--error`;
+  `.ds-columns__col--warning`, `--error`; `.ds-legend__key--neutral`, `--warning`, `--error`. `DS.usage` now writes
+  `.ds-tone-warning` and `.ds-tone-error` on its meter.
+- **Hooks:** `--ds-btn-sm-height`, `--ds-btn-sm-icon-size` (a drawer row keeps room for its small action from
+  `--ds-btn-icon-size` less one size step), `--ds-check-sm-height`, `--ds-loader-sm-size`, `--ds-table-dense-row-height`
+  (the base hooks of each), `--ds-dialog-width-wide` (`--ds-dialog-width-lg`).
+- **JS:** `DS.indicator.createIndicator()` (`DS.indicator.create()`), `detach()` of the `DS.ripple.attach()` handle
+  (`destroy()`), the `data-close` attribute (`data-ds-close`) and the `ds-close` event (`ds:close`, still with
+  `detail.reason`); their declarations in `.d.ts` went too.
+- **Tests:** the removed-name guard of `test/repo.test.js` now treats a name removed in the release this version leads
+  to (3.0.0 from a 3.0.0 pre-release) as gone, so no file of the repository uses one and no doc marks one deprecated;
+  the tests that kept the aliases working check that they are gone. The shipped tools keep their rule: a pre-release
+  copy warns on these names, 3.0.0 fails on them.
+
 ### Performance on slow and mobile devices (3.0.0-alpha.6)
 
 Measured in Chromium at 4x CPU throttling on a 390px phone viewport (style and layout work, long tasks, interaction

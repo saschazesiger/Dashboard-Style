@@ -165,7 +165,7 @@ test.describe('fixed in P1', () => {
     await open(page, 'controls.html');
     await inject(page, `
       <button class="ds-btn" type="button" id="x-under" style="position: fixed; top: 8px; left: 8px">Under the backdrop</button>
-      <div class="ds-dialog" id="x-dialog"><div class="ds-dialog__backdrop" data-close></div>
+      <div class="ds-dialog" id="x-dialog"><div class="ds-dialog__backdrop" data-ds-close></div>
         <div class="ds-dialog__box" role="alertdialog" aria-label="Delete"><p class="ds-dialog__text">Delete 3 devices?</p></div></div>`);
     await page.evaluate(() => {
       window.underClicks = 0;
@@ -471,9 +471,9 @@ test.describe('fixed in P4', () => {
 
     // A fixed-width row: a badge on the first item pushes the active one along.
     await inject(page, `<div id="x-track" style="position: relative; display: flex; gap: 4px; width: 480px">
-      <button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Day</button>
-      <button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Week</button>
-      <button class="ds-btn ds-btn--sm" type="button" aria-pressed="true">Month</button></div>`);
+      <button class="ds-btn ds-sm" type="button" aria-pressed="false">Day</button>
+      <button class="ds-btn ds-sm" type="button" aria-pressed="false">Week</button>
+      <button class="ds-btn ds-sm" type="button" aria-pressed="true">Month</button></div>`);
     await page.evaluate(() => {
       window.xIndicator = DS.indicator.create(document.querySelector('#x-track'), { active: '[aria-pressed="true"]', className: 'ds-segmented__indicator' });
     });
@@ -481,7 +481,7 @@ test.describe('fixed in P4', () => {
     await frames(page);
     expect(await offset(row)).toEqual(still);
     await page.evaluate(() => {
-      document.querySelector('#x-track button').insertAdjacentHTML('beforeend', '<span class="ds-status ds-status--warning">12 new</span>');
+      document.querySelector('#x-track button').insertAdjacentHTML('beforeend', '<span class="ds-status ds-tone-warning">12 new</span>');
     });
     await frames(page);
     await settle(page);
@@ -717,9 +717,9 @@ test.describe('fixed in 1.6.1', () => {
     await page.evaluate(() => {
       document.body.insertAdjacentHTML('afterbegin', `<section id="widget" style="position: relative; height: 320px">
         <button class="ds-btn" type="button" id="w-open">Delete</button><p id="w-text">Widget content</p>
-        <div class="ds-dialog ds-dialog--contained" id="w-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>
+        <div class="ds-dialog ds-dialog--contained" id="w-dialog" hidden><div class="ds-dialog__backdrop" data-ds-close></div>
           <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-labelledby="w-title"><h2 class="ds-dialog__title" id="w-title">Delete?</h2>
-          <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-close>Cancel</button></div></div></div></section>`);
+          <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-ds-close>Cancel</button></div></div></div></section>`);
       window.hostClicks = 0;
       document.getElementById('open-native').addEventListener('click', (event) => { window.hostClicks += 1; event.stopImmediatePropagation(); }, { capture: true });
     });
@@ -956,9 +956,9 @@ test.describe('fixed in 1.6.1 (final review)', () => {
         <dialog id="host-dialog"><input id="host-dialog-input" aria-label="Name"></dialog>
         <section id="widget" class="ds-theme" style="position: relative; height: 320px">
         <button class="ds-btn" type="button" id="w-open">Delete</button>
-        <div class="ds-dialog ds-dialog--contained" id="w-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>
+        <div class="ds-dialog ds-dialog--contained" id="w-dialog" hidden><div class="ds-dialog__backdrop" data-ds-close></div>
           <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-labelledby="w-title"><h2 class="ds-dialog__title" id="w-title">Delete?</h2>
-          <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-close>Cancel</button></div></div></div></section>`);
+          <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-ds-close>Cancel</button></div></div></div></section>`);
       window.escapes = [];
       window.addEventListener('keydown', (event) => { if (event.key === 'Escape') window.escapes.push(event.defaultPrevented); });
     });
@@ -1071,9 +1071,9 @@ test.describe('fixed in 1.6.1 (final review, second pass)', () => {
     await open(page, 'overlay.html');
     const result = await page.evaluate(async () => {
       const theme = document.querySelector('.ds-theme');
-      const view = (text) => `<div class="ds-dialog" id="r-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>
+      const view = (text) => `<div class="ds-dialog" id="r-dialog" hidden><div class="ds-dialog__backdrop" data-ds-close></div>
         <div class="ds-dialog__box" role="dialog" aria-modal="true" aria-labelledby="r-title"><h2 class="ds-dialog__title" id="r-title">${text}</h2>
-        <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="r-cancel" data-close>Cancel</button></div></div></div>`;
+        <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="r-cancel" data-ds-close>Cancel</button></div></div></div>`;
       theme.insertAdjacentHTML('beforeend', `<section id="r-view">${view('Edit the device')}</section><div class="ds-toasts" id="r-toasts" style="--ds-toast-left: 40px"></div><p id="r-after">After</p>`);
       const region = document.getElementById('r-toasts');
       const dialog = document.getElementById('r-dialog');
@@ -1157,9 +1157,9 @@ test.describe('fixed in 1.6.1 (final review, second pass)', () => {
       document.head.append(script);
       document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', `<section id="w-root"><button class="ds-btn" type="button" id="w-open">Widget</button>
         <button class="ds-btn" type="button" id="w-tip" data-tip="Widget tip">Tip</button>
-        <dialog class="ds-dialog" id="w-dialog" aria-labelledby="w-title"><div class="ds-dialog__backdrop" data-close></div>
+        <dialog class="ds-dialog" id="w-dialog" aria-labelledby="w-title"><div class="ds-dialog__backdrop" data-ds-close></div>
         <div class="ds-dialog__box"><h2 class="ds-dialog__title" id="w-title">Widget</h2><div class="ds-dialog__actions">
-        <button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-close>Cancel</button></div></div></dialog></section>`);
+        <button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-ds-close>Cancel</button></div></div></dialog></section>`);
     });
     const state = () => page.evaluate(() => ({
       host: document.getElementById('dialog').getAttribute('data-state'),
@@ -1312,9 +1312,9 @@ test.describe('fixed in 1.6.2', () => {
     await shadowWidget(page, '<div id="w-list"><input class="ds-input" id="q" aria-label="Search" value="ab"></div>'
       + '<div id="w-panel"><button class="ds-btn" type="button" id="w-in">Assign</button></div>'
       + '<button class="ds-btn" type="button" id="w-open">Delete</button>'
-      + '<div class="ds-dialog ds-dialog--contained" id="w-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>'
+      + '<div class="ds-dialog ds-dialog--contained" id="w-dialog" hidden><div class="ds-dialog__backdrop" data-ds-close></div>'
       + '<div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-label="Delete?"><div class="ds-dialog__actions">'
-      + '<button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-close>Cancel</button></div></div></div>');
+      + '<button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-ds-close>Cancel</button></div></div></div>');
     const morph = await page.evaluate(() => {
       const field = wroot.getElementById('q');
       field.focus();
@@ -1402,9 +1402,9 @@ test.describe('fixed in 1.6.2', () => {
     await open(page, 'overlay.html');
     await defineWebComponents(page);
     await shadowWidget(page, '<button class="ds-btn" type="button" id="w-open">Retire</button>'
-      + '<div class="ds-dialog ds-dialog--contained" id="w-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>'
+      + '<div class="ds-dialog ds-dialog--contained" id="w-dialog" hidden><div class="ds-dialog__backdrop" data-ds-close></div>'
       + '<div class="ds-dialog__box" role="dialog" aria-modal="true" aria-label="Retire"><x-field id="w-reason"></x-field><div class="ds-dialog__actions">'
-      + '<button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-close>Cancel</button></div></div></div>');
+      + '<button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-ds-close>Cancel</button></div></div></div>');
     await page.evaluate(() => DS.overlay.open(wroot.getElementById('w-dialog'), { opener: wroot.getElementById('w-open') }));
     await page.waitForFunction(() => wroot.getElementById('w-dialog').getAttribute('data-state') === 'open');
     await page.evaluate(() => wroot.getElementById('w-reason').shadowRoot.querySelector('input').focus());
@@ -1416,10 +1416,10 @@ test.describe('fixed in 1.6.2', () => {
   test('a div dialog in a shadow root makes the host page inert too, and Tab stays in it', async ({ page }) => {
     await open(page, 'overlay.html');
     await shadowWidget(page, '<button class="ds-btn" type="button" id="w-open">Delete</button>'
-      + '<div class="ds-dialog" id="w-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>'
+      + '<div class="ds-dialog" id="w-dialog" hidden><div class="ds-dialog__backdrop" data-ds-close></div>'
       + '<div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-label="Delete?"><div class="ds-dialog__actions">'
-      + '<button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-close>Cancel</button>'
-      + '<button class="ds-btn ds-btn--primary" type="button" id="w-ok" data-close>Delete</button></div></div></div>');
+      + '<button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-ds-close>Cancel</button>'
+      + '<button class="ds-btn ds-btn--filled" type="button" id="w-ok" data-ds-close>Delete</button></div></div></div>');
     // A host-page button after the widget, too.
     await page.evaluate(() => document.body.insertAdjacentHTML('beforeend', '<p id="after-host"><button type="button" id="after-host-btn">Help</button></p>'));
     await page.evaluate(() => DS.overlay.open(wroot.getElementById('w-dialog'), { opener: wroot.getElementById('w-open') }));
@@ -1561,12 +1561,12 @@ test.describe('fixed in 1.6.2', () => {
     const result = await page.evaluate(async () => {
       document.querySelector('.ds-theme').insertAdjacentHTML('afterbegin', `<section class="ds-card" id="m-card" style="position: relative">
         <h2 class="ds-card__title">Devices</h2><button class="ds-btn" type="button" id="m-open">Delete</button>
-        <div class="ds-dialog ds-dialog--contained" id="m-contained" hidden><div class="ds-dialog__backdrop" data-close></div>
-          <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-label="Delete?"><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button></div></div>
-        <div class="ds-dialog" id="m-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>
-          <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-label="Delete?"><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button></div></div>
-        <div class="ds-sheet" id="m-sheet" hidden aria-modal="true"><div class="ds-sheet__backdrop" data-close></div>
-          <section class="ds-sheet__panel" role="dialog" aria-label="Details"><div class="ds-sheet__body"><button class="ds-btn ds-btn--text" type="button" data-close>Close</button></div></section></div>
+        <div class="ds-dialog ds-dialog--contained" id="m-contained" hidden><div class="ds-dialog__backdrop" data-ds-close></div>
+          <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-label="Delete?"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button></div></div>
+        <div class="ds-dialog" id="m-dialog" hidden><div class="ds-dialog__backdrop" data-ds-close></div>
+          <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-label="Delete?"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button></div></div>
+        <div class="ds-sheet" id="m-sheet" hidden aria-modal="true"><div class="ds-sheet__backdrop" data-ds-close></div>
+          <section class="ds-sheet__panel" role="dialog" aria-label="Details"><div class="ds-sheet__body"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Close</button></div></section></div>
       </section>`);
       const card = document.getElementById('m-card');
       const out = {};
@@ -1590,10 +1590,10 @@ test.describe('fixed in 1.6.2', () => {
     await page.evaluate(() => {
       document.body.insertAdjacentHTML('afterbegin', `<section id="tall" style="position: relative; height: 2200px">
         <button class="ds-btn" type="button" id="t-open">Delete</button>
-        <div class="ds-dialog ds-dialog--contained" id="t-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>
+        <div class="ds-dialog ds-dialog--contained" id="t-dialog" hidden><div class="ds-dialog__backdrop" data-ds-close></div>
           <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-labelledby="t-title"><h2 class="ds-dialog__title" id="t-title">Delete?</h2>
           <p>LAPTOP-0042 goes from the list.</p>
-          <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="t-cancel" autofocus data-close>Cancel</button></div></div></div></section>`);
+          <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="t-cancel" autofocus data-ds-close>Cancel</button></div></div></div></section>`);
       scrollTo(0, 0);
     });
     await page.evaluate(() => DS.overlay.open(document.getElementById('t-dialog'), { opener: document.getElementById('t-open') }));
@@ -1744,11 +1744,11 @@ test.describe('fixed in 2.0.0 (review)', () => {
   test('a dialog body of bare text stays once DS.overlay.open() adds its sentinel; an empty one still takes no room', async ({ page }) => {
     await open(page, 'overlay.html');
     await inject(page, `<button class="ds-btn" type="button" id="r-open">Terms</button>
-      <div class="ds-dialog" id="r-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>
+      <div class="ds-dialog" id="r-dialog" hidden><div class="ds-dialog__backdrop" data-ds-close></div>
         <div class="ds-dialog__box" role="dialog" aria-modal="true" aria-labelledby="r-title"><h2 class="ds-dialog__title" id="r-title">Terms</h2>
         <div class="ds-dialog__body" tabindex="0" role="region" aria-label="Terms" id="r-text">The service is provided as is.</div>
         <div class="ds-dialog__body" id="r-empty"></div>
-        <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close>Close</button></div></div></div>`);
+        <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Close</button></div></div></div>`);
     await page.evaluate(() => DS.overlay.open(document.getElementById('r-dialog'), { opener: document.getElementById('r-open') }));
     await page.waitForFunction(() => document.getElementById('r-dialog').getAttribute('data-state') === 'open');
     const display = () => page.evaluate(() => ({

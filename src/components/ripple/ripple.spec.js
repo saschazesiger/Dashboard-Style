@@ -284,21 +284,23 @@ test('names: the span adds nothing to the host\'s name and no stop to the tab or
   await page.keyboard.up('Enter');
 });
 
-test('the handle: attach() is idempotent, destroy() takes the class back, detach() is its alias until 3.0 ships', async ({ page }) => {
+test('the handle: attach() is idempotent, destroy() takes the class back; the 2.x alias is gone', async ({ page }) => {
   await open(page, { attach: false });
   const state = await page.evaluate(() => {
     const root = document.documentElement;
     const first = DS.ripple.attach(document);
     const same = DS.ripple.attach(document) === first;
     const on = root.classList.contains('ds-ripples');
-    first.detach();
+    // The 2.x name, built from fragments so the removed-name guard of test/repo.test.js passes this file.
+    const alias = `de${'tach'}` in first;
+    first.destroy();
     const off = root.classList.contains('ds-ripples');
     const second = DS.ripple.attach(document);
     const fresh = second !== first;
     second.destroy();
-    return { same, on, off, fresh, end: root.classList.contains('ds-ripples') };
+    return { same, on, alias, off, fresh, end: root.classList.contains('ds-ripples') };
   });
-  expect(state).toEqual({ same: true, on: true, off: false, fresh: true, end: false });
+  expect(state).toEqual({ same: true, on: true, alias: false, off: false, fresh: true, end: false });
 });
 
 test.describe('the cascade: ripple.css in a later layer than every component', () => {

@@ -40,7 +40,7 @@
         <a class="ds-drawer__item" id="open" href="#open" aria-current="page" data-tip="Open"><span data-icon="ticket" data-size="20"></span><span class="ds-drawer__label">Open</span><span class="ds-drawer__count" id="item-count"><span class="ds-sr">, </span>3</span></a>
         <div class="ds-drawer__row" id="row">
           <a class="ds-drawer__item" id="waiting" href="#waiting" data-tip="Waiting"><span data-icon="clock" data-size="20"></span><span class="ds-drawer__label">Waiting</span><span class="ds-drawer__count"><span class="ds-sr">, </span>2</span></a>
-          <button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm ds-drawer__action ds-hover-actions" id="row-action" type="button" aria-label="Options for Waiting" data-tip="Options"><span data-icon="moreVertical" data-size="18"></span></button>
+          <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm ds-drawer__action ds-hover-actions" id="row-action" type="button" aria-label="Options for Waiting" data-tip="Options"><span data-icon="moreVertical" data-size="18"></span></button>
         </div>
       </details>
       <details class="ds-drawer__group ds-collapsible" id="group-b" open>
@@ -66,7 +66,7 @@
     <main class="ds-view" id="main" tabindex="-1">
       <div class="ds-content"><div class="ds-page" id="page">
         <header class="ds-page-head">
-          <a class="ds-btn ds-btn--text ds-btn--sm ds-page-head__back" id="head-back" href="#devices"><span data-icon="arrowLeft" data-size="18"></span><span class="ds-sr">Back to </span>Devices</a>
+          <a class="ds-btn ds-btn--text ds-sm ds-page-head__back" id="head-back" href="#devices"><span data-icon="arrowLeft" data-size="18"></span><span class="ds-sr">Back to </span>Devices</a>
           <h1 class="ds-page-head__title" tabindex="-1">LAPTOP-0042</h1>
         </header>
         <div class="fx-row" id="toolbar">
@@ -75,9 +75,9 @@
             <button class="ds-segmented__option" id="mode-map" type="button" role="radio" aria-checked="false" tabindex="-1" data-label="Map">Map</button>
             <button class="ds-segmented__option" id="mode-chart" type="button" role="radio" aria-checked="false" tabindex="-1" aria-disabled="true" data-label="Chart">Chart</button>
           </div>
-          <span class="ds-avatar ds-avatar--sm" id="avatar-sm" role="img" aria-label="Grace Hopper">G</span>
+          <span class="ds-avatar ds-sm" id="avatar-sm" role="img" aria-label="Grace Hopper">G</span>
           <span class="ds-avatar" id="avatar-md" role="img" aria-label="Alan Turing">A</span>
-          <span class="ds-avatar ds-avatar--lg" id="avatar-lg" role="img" aria-label="Katherine Johnson">K</span>
+          <span class="ds-avatar ds-lg" id="avatar-lg" role="img" aria-label="Katherine Johnson">K</span>
           <span id="probe-abs" style="position: absolute; top: 0">probe</span>
         </div>
         <div class="ds-stack" id="cards">
@@ -127,7 +127,7 @@
         var banner = document.getElementById('banner');
         if (!on) { if (banner) banner.remove(); return; }
         var holder = document.createElement('div');
-        holder.innerHTML = '<div class="ds-banner" id="banner"><div class="ds-alert ds-alert--warning" role="status"><span class="ds-alert__text">You are offline.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Retry</button></div></div>';
+        holder.innerHTML = '<div class="ds-banner" id="banner"><div class="ds-alert ds-tone-warning" role="status"><span class="ds-alert__text">You are offline.</span><button class="ds-btn ds-btn--text ds-sm" type="button">Retry</button></div></div>';
         panel.insertBefore(holder.firstChild, panel.firstChild);
       }, { items: ':scope > *' });
     };

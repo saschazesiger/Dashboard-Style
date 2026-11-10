@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.list.css",
-      "bytes": 322741,
-      "gzip": 49048
+      "bytes": 320305,
+      "gzip": 48616
     },
     "js": {
       "file": "ds.list.js",
-      "bytes": 558834,
-      "gzip": 132578
+      "bytes": 558411,
+      "gzip": 132482
     },
     "properties": {
       "file": "properties.css",
@@ -36,14 +36,14 @@
     {
       "name": "spinner",
       "reason": "required by button",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "loader",
       "reason": "required by loading",
-      "bytes": 923,
-      "gzip": 465
+      "bytes": 873,
+      "gzip": 452
     },
     {
       "name": "indicator",
@@ -54,8 +54,8 @@
     {
       "name": "button",
       "reason": "list.html:22 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "loading",
@@ -66,14 +66,14 @@
     {
       "name": "status",
       "reason": "list.html:244 ds-status",
-      "bytes": 3164,
-      "gzip": 921
+      "bytes": 2830,
+      "gzip": 865
     },
     {
       "name": "card",
       "reason": "list.html:134 ds-card",
-      "bytes": 16606,
-      "gzip": 2659
+      "bytes": 16531,
+      "gzip": 2644
     },
     {
       "name": "empty",
@@ -96,8 +96,8 @@
     {
       "name": "badge",
       "reason": "list.html:116 ds-badge",
-      "bytes": 3754,
-      "gzip": 964
+      "bytes": 3304,
+      "gzip": 896
     },
     {
       "name": "sheet",
@@ -108,14 +108,14 @@
     {
       "name": "dialog",
       "reason": "required by views",
-      "bytes": 15994,
-      "gzip": 2482
+      "bytes": 15933,
+      "gzip": 2468
     },
     {
       "name": "table",
       "reason": "list.html:135 ds-table-wrap",
-      "bytes": 32874,
-      "gzip": 4760
+      "bytes": 32273,
+      "gzip": 4685
     },
     {
       "name": "pagination",
@@ -126,8 +126,8 @@
     {
       "name": "form",
       "reason": "list.html:107 ds-search",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "tooltip",
@@ -138,14 +138,14 @@
     {
       "name": "page",
       "reason": "list.html:61 ds-content",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "shell",
       "reason": "list.html:18 ds-app",
-      "bytes": 39266,
-      "gzip": 6590
+      "bytes": 39239,
+      "gzip": 6579
     },
     {
       "name": "toast",
@@ -168,8 +168,8 @@
     {
       "name": "button-group",
       "reason": "required by splitbutton",
-      "bytes": 2391,
-      "gzip": 776
+      "bytes": 2357,
+      "gzip": 771
     },
     {
       "name": "menubutton",

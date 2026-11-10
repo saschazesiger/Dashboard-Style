@@ -53,7 +53,7 @@
 import { define, emit, t } from './core.js';
 import { enter } from './motion.js';
 import { morphHtml, roving, own, disown } from './dom.js';
-import { create as createIndicator } from './indicator.js';
+import { create as makeIndicator } from './indicator.js';
 import { announce } from './a11y.js';
 import { icon, iconElement, chevronDown, close as closeGlyph } from './icons.js';
 import { open as openMenu, close as closeMenu } from './menu.js';
@@ -492,7 +492,7 @@ function controller(list, options, signal) {
 
   sync();
   const rover = aria ? roving(list, { items: '.ds-tabs__tab', orientation: vertical ? 'vertical' : 'horizontal', activate: options.activate === 'manual' ? 'manual' : 'focus' }) : null;
-  const indicator = createIndicator(list, {
+  const indicator = makeIndicator(list, {
     active: aria ? '[aria-selected="true"]' : '[aria-current]:not([aria-current="false"])',
     className: 'ds-tabs__indicator',
     reveal: !more,

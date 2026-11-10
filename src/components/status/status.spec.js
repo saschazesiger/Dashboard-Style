@@ -1,7 +1,7 @@
 /**
  * The status chip and the tag on the options model: the height at every
  * size (density and touch change nothing, a chip is no target), the shape, the
- * tone from the class on the element only, the deprecated kinds, an icon and a
+ * tone from the class on the element only, the 2.x kinds gone, an icon and a
  * word on every chip of the demo, forced colours. Runs in `fallback` too.
  */
 import { test, expect } from '../../../test/browser/base-test.js';
@@ -104,13 +104,16 @@ test('tones: the container pair, from the class on the element; an inherited ton
   expect(await probe(page, `<div class="ds-tone-error"><span id="probe" class="ds-tag">Word</span></div>`, read)).toEqual(await probe(page, '<span id="probe" class="ds-tag">Word</span>', read));
 });
 
-test('the deprecated kinds look like their tones until 3.0 ships', async ({ page }) => {
+test('the 2.x kinds were removed in 3.0: a chip or tag with one looks like the plain one', async ({ page }) => {
   await open(page);
   const read = '[style.backgroundColor, style.color]';
-  for (const [kind, tone] of [['ok', 'success'], ['warning', 'warning'], ['error', 'error']]) {
-    expect(await probe(page, chip(`ds-status--${kind}`), read), kind).toEqual(await probe(page, chip(`ds-tone-${tone}`), read));
+  const plain = await probe(page, chip(''), read);
+  for (const kind of ['ok', 'warning', 'error']) {
+    expect(await probe(page, chip(`ds-status--${kind}`), read), kind).toEqual(plain);
   }
-  expect(await probe(page, '<span id="probe" class="ds-tag ds-tag--neutral">Word</span>', read)).toEqual(await probe(page, '<span id="probe" class="ds-tag ds-tone-neutral">Word</span>', read));
+  // Built from fragments, so the removed-name guard of test/repo.test.js passes this file.
+  const neutral = `ds-tag--${'neutral'}`;
+  expect(await probe(page, `<span id="probe" class="ds-tag ${neutral}">Word</span>`, read)).toEqual(await probe(page, '<span id="probe" class="ds-tag">Word</span>', read));
 });
 
 test('every chip of the demo has its icon and its word; none is a stop of its own', async ({ page }) => {

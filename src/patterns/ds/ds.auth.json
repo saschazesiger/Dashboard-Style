@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.auth.css",
-      "bytes": 203460,
-      "gzip": 33393
+      "bytes": 202409,
+      "gzip": 33236
     },
     "js": {
       "file": "ds.auth.js",
-      "bytes": 467300,
-      "gzip": 111727
+      "bytes": 467052,
+      "gzip": 111666
     },
     "properties": {
       "file": "properties.css",
@@ -36,26 +36,26 @@
     {
       "name": "spinner",
       "reason": "new-password.html:69 ds-spinner",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "button",
       "reason": "new-password.html:39 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "alert",
       "reason": "new-password.html:26 ds-alert",
-      "bytes": 6191,
-      "gzip": 1561
+      "bytes": 6019,
+      "gzip": 1532
     },
     {
       "name": "card",
       "reason": "new-password.html:19 ds-card",
-      "bytes": 16606,
-      "gzip": 2659
+      "bytes": 16531,
+      "gzip": 2644
     },
     {
       "name": "empty",
@@ -72,8 +72,8 @@
     {
       "name": "form",
       "reason": "new-password.html:25 ds-form",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "tooltip",
@@ -84,8 +84,8 @@
     {
       "name": "page",
       "reason": "new-password.html:17 ds-auth",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "toast",

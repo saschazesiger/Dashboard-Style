@@ -5005,7 +5005,7 @@
     });
   });
 
-  add('indicator', ['OVERSHOOT', 'create', 'createIndicator'], function () {
+  add('indicator', ['OVERSHOOT', 'create'], function () {
     /**
      * Sliding selection indicator for segmented controls and navigation lists:
      * one element behind the items that glides to the active one instead of
@@ -5877,15 +5877,6 @@
       return openPill(track, options, null);
     }
 
-    /**
-     * The 2.x name of create(), a deprecated alias until 3.0 ships.
-     * @param {HTMLElement} track
-     * @param {{ active: string, className?: string, observe?: boolean, name?: string, reveal?: boolean }} options
-     */
-    function createIndicator(track, options) {
-      return create(track, options);
-    }
-
     /** Any item that says it is the current one: the active item of data-ds-indicator without a selector. */
     const ANY_ACTIVE = '[aria-current]:not([aria-current="false"]), [aria-pressed="true"], [aria-selected="true"], [aria-checked="true"]';
 
@@ -5909,8 +5900,7 @@
 
     return Object.freeze({
       OVERSHOOT: OVERSHOOT,
-      create: create,
-      createIndicator: createIndicator
+      create: create
     });
   });
 
@@ -7752,7 +7742,7 @@
      *
      *   const ripples = DS.ripple.attach(document);   // once, for every action on the page
      *   ripples.release(host);                        // end a running press (no argument: every press)
-     *   ripples.destroy();                            // detach() is its deprecated alias until 3.0 ships
+     *   ripples.destroy();                            // takes it all back
      *
      * attach(root) adds .ds-ripples to the root element (<html> for document),
      * which positions and clips the hosts (ripple.css), and listens once on
@@ -7941,7 +7931,6 @@
      * @typedef {object} RippleHandle
      * @property {() => void} destroy  removes the listeners and .ds-ripples; ripples already shown finish
      * @property {(host?: Element) => void} release  ends the running press of `host`, or every press under the root
-     * @property {() => void} detach  deprecated alias of destroy() until 3.0 ships
      */
 
     /** The handle of each attached root, shared by every copy on the page (DS.core.runtime). @type {WeakMap<Node, RippleHandle>} */
@@ -8507,8 +8496,7 @@
      * Returns a handle: destroy() takes it all back (its hold on the guard
      * too; busy() keeps its own), release(host?) ends a running press (the
      * ripple fades as on release; without a host every press under the root;
-     * nothing when there is none). detach() is the deprecated alias of
-     * destroy().
+     * nothing when there is none).
      * @param {Document|Element|ShadowRoot} [root]
      * @returns {RippleHandle}
      */
@@ -8658,10 +8646,6 @@
         release(host) {
           const hosts = host ? [host] : [...pressing].filter((item) => element.contains(item));
           for (const item of hosts) end(item);
-        },
-        /** Deprecated (removed in 3.0 at the earliest): destroy(). */
-        detach() {
-          handle.destroy();
         },
       };
       attached.set(root, handle);
@@ -10093,12 +10077,11 @@
      * (with the trigger as its opener; again, or a menu's ArrowDown and ArrowUp,
      * as a menu button does), [data-ds-close="<selector or id>"] closes it from
      * outside and leaves the overlay around it open, [data-ds-close] without a
-     * value (or its 2.x name [data-close]) inside an overlay closes that one: one
-     * delegated listener per root of DS.init().
+     * value inside an overlay closes that one: one delegated listener per root
+     * of DS.init().
      *
      * Events: ds:open ({ opener }) once the entrance started and ds:close
-     * ({ reason }) with ds-close, its 2.x name, as soon as a close started. Both
-     * bubble.
+     * ({ reason }) as soon as a close started. Both bubble.
      *
      * The constants are fallbacks only (outside a .ds-theme or without a
      * DOM): JS timing comes from the computed tokens through motionDuration(),
@@ -10942,8 +10925,8 @@
       return true;
     }
 
-    /** What closes the overlay around it: the attribute without a value, and its 2.x name (one with a value closes only the overlay it names). */
-    const CLOSERS = '[data-ds-close=""], [data-close]';
+    /** What closes the overlay around it: the attribute without a value (one with a value closes only the overlay it names). */
+    const CLOSERS = '[data-ds-close=""]';
 
     /** Close causes that the user started: refused while the overlay is busy (data-ds-busy). */
     const USER_CLOSE = new Set(['escape', 'backdrop', 'close']);
@@ -11835,9 +11818,6 @@
 
     /** Tells the page why an overlay closed (once per close, after its state turned closed). */
     function announceClose(element, reason) {
-      const view = viewOf(element);
-      if (typeof view.CustomEvent !== 'function') return;
-      element.dispatchEvent(new view.CustomEvent('ds-close', { bubbles: true, detail: { reason } }));
       emit(element, 'close', { reason });
     }
 
@@ -24890,13 +24870,13 @@
     function holdForm(dialog, box, submit) {
       const undo = [() => dialog.removeAttribute('data-ds-busy')];
       dialog.setAttribute('data-ds-busy', '');
-      for (const closer of box.querySelectorAll('[data-ds-close], [data-close]')) {
+      for (const closer of box.querySelectorAll('[data-ds-close]')) {
         if (closer.getAttribute('aria-disabled') === 'true') continue;
         closer.setAttribute('aria-disabled', 'true');
         undo.push(() => closer.removeAttribute('aria-disabled'));
       }
       for (const control of box.elements) {
-        if (control === submit || control.disabled || control.type === 'submit' || control.matches('fieldset, output, input[type="hidden"], [data-ds-close], [data-close]')) continue;
+        if (control === submit || control.disabled || control.type === 'submit' || control.matches('fieldset, output, input[type="hidden"], [data-ds-close]')) continue;
         if (control.matches(TYPED)) {
           if (control.readOnly) continue;
           control.readOnly = true;
@@ -29629,7 +29609,7 @@
     const define = DS.core.define, emit = DS.core.emit, runtime = DS.core.runtime, t = DS.core.t;
     const disown = DS.dom.disown, morphHtml = DS.dom.morphHtml, own = DS.dom.own, roving = DS.dom.roving;
     const enter = DS.motion.enter, motionDuration = DS.motion.motionDuration;
-    const createIndicator = DS.indicator.create;
+    const makeIndicator = DS.indicator.create;
     const openStore = DS.store.open;
     const knownLanguage = DS.highlight.language, highlightLines = DS.highlight.lines;
 
@@ -29923,7 +29903,7 @@
       };
       for (const tab of tabs) claim(tab, 'attrs', 'aria-selected', 'tabindex');
       if (tablist && tabs.length) {
-        indicator = createIndicator(tablist, { active: '[aria-selected="true"]', className: 'ds-tabs__indicator', reveal: true });
+        indicator = makeIndicator(tablist, { active: '[aria-selected="true"]', className: 'ds-tabs__indicator', reveal: true });
         rover = roving(tablist, { onActivate: (tab) => select(panels.findIndex((panel) => tabOf(panel) === tab)) });
         listen(tablist, 'click', (event) => {
           const tab = event.target.closest?.('[role="tab"]');
@@ -52145,7 +52125,7 @@
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const enter = DS.motion.enter;
     const morphHtml = DS.dom.morphHtml, roving = DS.dom.roving, own = DS.dom.own, disown = DS.dom.disown;
-    const createIndicator = DS.indicator.create;
+    const makeIndicator = DS.indicator.create;
     const announce = DS.a11y.announce;
     const icon = DS.icons.icon, iconElement = DS.icons.iconElement, chevronDown = DS.icons.chevronDown, closeGlyph = DS.icons.close;
     const openMenu = DS.menu.open, closeMenu = DS.menu.close;
@@ -52584,7 +52564,7 @@
 
       sync();
       const rover = aria ? roving(list, { items: '.ds-tabs__tab', orientation: vertical ? 'vertical' : 'horizontal', activate: options.activate === 'manual' ? 'manual' : 'focus' }) : null;
-      const indicator = createIndicator(list, {
+      const indicator = makeIndicator(list, {
         active: aria ? '[aria-selected="true"]' : '[aria-current]:not([aria-current="false"])',
         className: 'ds-tabs__indicator',
         reveal: !more,
@@ -53174,7 +53154,7 @@
     const { overlays, stack, activeIn, canFocus, part } = internals;
 
     /** What closes the overlay around it (DS.overlay's closers). */
-    const CLOSERS = '[data-ds-close=""], [data-close]';
+    const CLOSERS = '[data-ds-close=""]';
 
     /** The state of each tearsheet. @type {WeakMap<Element, any>} */
     const flows = new WeakMap();
@@ -58075,7 +58055,7 @@
      */
     const define = DS.core.define, emit = DS.core.emit;
     const own = DS.dom.own, disown = DS.dom.disown;
-    const createIndicator = DS.indicator.create;
+    const makeIndicator = DS.indicator.create;
 
     /** How many heights of the scroller a link glides through before it jumps. */
     const GLIDE_SCREENS = 3;
@@ -58315,7 +58295,7 @@
       // After the first mark: the pill's first placement jumps, so the link
       // the page loads on is marked in place instead of growing on load.
       const top = nav.querySelector('.ds-toc__list');
-      const indicator = top ? createIndicator(top, {
+      const indicator = top ? makeIndicator(top, {
         active: '.ds-toc__link[aria-current]:not([aria-current="false"])',
         className: 'ds-toc__indicator',
         reveal: nav.classList.contains('ds-toc--bar'),
@@ -65826,7 +65806,7 @@
      * What it writes: the share (the larger of tokens and cost against their
      * budgets) as --ds-share on the .ds-usage__meter (a .ds-meter, role meter,
      * with aria-valuenow and aria-valuetext; hidden without a budget) and its
-     * tone (.ds-meter--warning near, .ds-meter--error over); the text of .ds-usage__value ("182.4K of
+     * tone (.ds-tone-warning near, .ds-tone-error over); the text of .ds-usage__value ("182.4K of
      * 250K tokens") and .ds-usage__cost ("$3.12 of $5.00"); data-state="near"
      * or "over" on the root and, in .ds-usage__status, an icon and the word
      * (strings usageNear, usageOver), which it also announces once when the
@@ -65953,7 +65933,7 @@
         if (meter && now.share === null) {
           for (const name of ['aria-valuenow', 'aria-valuetext', 'aria-valuemin', 'aria-valuemax']) meter.removeAttribute(name);
           meter.style.removeProperty('--ds-share');
-          meter.classList.remove('ds-meter--warning', 'ds-meter--error');
+          meter.classList.remove('ds-tone-warning', 'ds-tone-error');
         } else if (meter) {
           if (!meter.hasAttribute('role')) meter.setAttribute('role', 'meter');
           const shareShown = Math.min(1, now.share);
@@ -65963,8 +65943,8 @@
           // A meter's value stays in its range; the text says how far past it.
           meter.setAttribute('aria-valuenow', String(Math.round(shareShown * 100)));
           meter.setAttribute('aria-valuetext', t('usageShare', { percent: percent(now.share, { maximumFractionDigits: 0 }) }));
-          meter.classList.toggle('ds-meter--warning', now.state === 'near');
-          meter.classList.toggle('ds-meter--error', now.state === 'over');
+          meter.classList.toggle('ds-tone-warning', now.state === 'near');
+          meter.classList.toggle('ds-tone-error', now.state === 'over');
         }
         write(part('value'), usageText(now.used, now.budget));
         write(part('cost'), costText(now.cost, now.costBudget, now.currency));

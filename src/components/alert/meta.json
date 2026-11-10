@@ -8,12 +8,9 @@
   "status": "stable",
   "classes": [
     "ds-alert",
-    "ds-alert--error",
     "ds-alert--inline",
     "ds-alert--plain",
     "ds-alert--section",
-    "ds-alert--success",
-    "ds-alert--warning",
     "ds-alert__actions",
     "ds-alert__text",
     "ds-alert__title",

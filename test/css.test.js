@@ -977,15 +977,10 @@ describe('values come from tokens', () => {
       }
     }
     assert.deepEqual(offenders, []);
-    // The five size modifiers of 1.6 read their own hooks (the button's deprecated --sm into its private box, 3.0).
+    // The size modifiers of 1.6 that are left read their own hooks (the 2.x small sizes went with 3.0: .ds-sm).
     const reads = [
-      ['src/components/button/button.css', '.ds-btn--sm', '--_h', 'var(--ds-btn-height-exact, var(--ds-btn-sm-height, 32px))'],
-      ['src/components/button/button.css', '.ds-btn--icon.ds-btn--sm', '--_box', 'max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, 32px))'],
-      ['src/components/loader/loader.css', '.ds-loader--sm', '--_s', 'var(--ds-loader-sm-size, 24px)'],
       ['src/components/spinner/spinner.css', '.ds-spinner--determinate', '--ds-spinner-width', 'var(--ds-spinner-determinate-width, calc(var(--_s) / 10))'],
       ['src/components/status/status.css', '.ds-status__spinner', '--ds-spinner-width', 'var(--ds-status-spinner-width, 2px)'],
-      // and the small check row, so .ds-touch reaches it.
-      ['src/components/form/form.css', '.ds-check--sm', '--_h', 'var(--ds-check-sm-height, 32px)'],
     ];
     for (const [file, selector, property, value] of reads) {
       assert.equal(declarationsAt(read(file), selector).find((entry) => entry.property === property)?.value, value, `${selector} { ${property} }`);
@@ -1937,8 +1932,8 @@ describe('overlays (1.3.0)', () => {
     const short = atRuleBlocks(read('src/components/dialog/dialog.css'), /@media\s*\(max-height:\s*320px\)/).join('\n');
     assert.equal(declarationsOf(short, '.ds-dialog__body').find((entry) => entry.property === 'overflow')?.value, 'visible', 'a window 320px high: the box scrolls');
     assert.equal(own('.ds-dialog__box').height, 'var(--ds-dialog-height, auto)');
-    assert.equal(own('.ds-dialog--wide .ds-dialog__box').width, 'min(var(--ds-dialog-width-lg, var(--ds-dialog-width-wide, 560px)), 100%)');
-    assert.equal(own('.ds-dialog--lg .ds-dialog__box').width, own('.ds-dialog--wide .ds-dialog__box').width);
+    assert.equal(own('.ds-dialog--lg .ds-dialog__box').width, 'min(var(--ds-dialog-width-lg, 560px), 100%)');
+    assert.deepEqual(own('.ds-dialog--wide .ds-dialog__box'), {}, 'the 2.x name was removed in 3.0');
     assert.equal(own('.ds-dialog--sm .ds-dialog__box').width, 'min(var(--ds-dialog-width-sm, 320px), 100%)');
     assert.equal(own('.ds-dialog--xl .ds-dialog__box').width, 'min(var(--ds-dialog-width-xl, 720px), 100%)');
     assert.equal(own('.ds-dialog__body:empty').display, 'none');
@@ -1961,7 +1956,7 @@ describe('overlays (1.3.0)', () => {
     const body = own('.ds-sheet__body');
     assert.deepEqual([body.position, body['scrollbar-width'], body['scrollbar-color']], ['relative', 'thin', 'var(--ds-line-2) transparent']);
     assert.equal(own('.ds-sheet__body > .ds-btn')['align-self'], 'flex-start');
-    assert.match(read('src/components/sheet/sheet.css').match(/^\/\*[\s\S]*?\*\//)[0], /aria-label="Close" data-ds-close>/, 'the header markup closes with data-close');
+    assert.match(read('src/components/sheet/sheet.css').match(/^\/\*[\s\S]*?\*\//)[0], /aria-label="Close" data-ds-close>/, 'the header markup closes with data-ds-close');
   });
 
   it('sizes the combobox from the field hooks and draws blocked options and menu items in GrayText when forced (2.0)', () => {
@@ -2782,8 +2777,8 @@ describe('tables and scrollers (2.0)', () => {
       assert.equal(declared(selector)['padding-block'], 'min(var(--ds-space-3), max(0px, calc((var(--_box) - var(--_room)) / 2)))', selector);
       assert.equal(declared(selector)['--_pad'], 'calc(var(--ds-table-padding, var(--ds-space-4)) + var(--ds-density, 0) * 2px)', selector);
     }
-    // The deprecated alias keeps its fixed 2.x height (no size or density step).
-    assert.equal(declared('.ds-table--dense :is(th, td)')['--_h'], 'var(--ds-table-dense-row-height, 40px)');
+    // The 2.x fixed rows were removed in 3.0 (.ds-density-tight).
+    assert.ok(!table.includes('.ds-table--dense'));
     // Summary rows: label type, a hairline above, none below.
     const foot = Object.fromEntries(declarationsAt(table, '.ds-table tfoot :is(th, td)').map((entry) => [entry.property, entry.value]));
     assert.deepEqual([foot['border-top'], foot['border-bottom'], foot.font, foot['font-variant-numeric']], ['1px solid var(--ds-line-2)', '0', 'var(--ds-font-label)', 'tabular-nums']);
@@ -2909,9 +2904,10 @@ describe('the app frame (2.1)', () => {
   });
 
   it('keeps a drawer row item\'s room for its action at the action\'s size (.ds-touch raises it to 48px)', () => {
-    assert.equal(at(SHELL, '.ds-drawer__row > .ds-drawer__item')['padding-inline-end'], 'calc(max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, calc(var(--ds-btn-icon-size, 40px) - 8px))) + var(--ds-space-2))');
-    // The same hook and minimum size the small icon button, and .ds-touch sets the minimum (3.0: --ds-target-min).
-    assert.match(read('src/components/button/button.css'), /\.ds-btn--icon\.ds-btn--sm \{\s*--_box: max\(var\(--ds-target-min, 0px\), var\(--ds-btn-sm-icon-size, 32px\)\);/);
+    assert.equal(at(SHELL, '.ds-drawer__row > .ds-drawer__item')['padding-inline-end'], 'calc(max(var(--ds-target-min, 0px), calc(var(--ds-btn-icon-size, 40px) - 8px)) + var(--ds-space-2))');
+    // The same hook and minimum size the small icon button (.ds-sm: one 8px step less), and .ds-touch sets the minimum
+    // (3.0: --ds-target-min).
+    assert.match(read('src/components/button/button.css'), /\.ds-btn--icon \{\s*--_box: max\(var\(--ds-target-min, 0px\), calc\(var\(--ds-btn-icon-size, 40px\) \+ var\(--ds-size-step, 0\) \* 8px\)\);/);
     assert.equal(at(stripComments(read('src/core/options.css')), '.ds-touch')['--ds-target-min'], 'var(--ds-touch-target)');
     // The room's second part (--ds-space-2) covers the action's margin and as much air.
     assert.equal(at(SHELL, '.ds-drawer__action')['margin-inline-end'], 'var(--ds-space-1)');

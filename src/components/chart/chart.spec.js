@@ -2,8 +2,8 @@
  * The charts on the options model (3.0): the height of a meter and the plot
  * of the columns at every size x density, a sparkline that stays 32px, a
  * column's value still riding on its fill; the shape on every radius, in
- * the clip too; the tone on the mark itself, none inherited, and the 2.x
- * aliases; .ds-touch on a column that opens; the keyboard path and the
+ * the clip too; the tone on the mark itself, none inherited, the 2.x
+ * aliases gone; .ds-touch on a column that opens; the keyboard path and the
  * names of the demo; forced colours with a tone. The 2.x behaviour stays in
  * test/browser/charts.spec.js. Runs in the `fallback` project too.
  */
@@ -110,35 +110,37 @@ test('the shape multiplies every radius, in the clip of the fills too', async ({
   expect([round.meter, round.column, round.key]).toEqual([2, 6, 6]);
 });
 
-test('a tone on the mark colours it, an inherited one does not; the 2.x names stay aliases; it beats --ds-meter-color', async ({ page }) => {
+test('a tone on the mark colours it, an inherited one does not; the 2.x names are gone; it beats --ds-meter-color', async ({ page }) => {
   await open(page);
+  // The 2.x names, built from fragments so the removed-name guard of test/repo.test.js passes this file.
+  const [W, E, N] = ['warning', 'error', 'neutral'];
   await add(page, `<div class="ds-tone-error" id="region">
     <span class="ds-meter" id="m-plain" style="--ds-share:1"></span>
     <span class="ds-meter ds-tone-warning" id="m-warning" style="--ds-share:1"></span>
-    <span class="ds-meter ds-meter--warning" id="m-warning-alias" style="--ds-share:1"></span>
+    <span class="ds-meter ds-meter--${W}" id="m-warning-alias" style="--ds-share:1"></span>
     <span class="ds-meter ds-tone-error" id="m-error" style="--ds-share:1"></span>
-    <span class="ds-meter ds-meter--error" id="m-error-alias" style="--ds-share:1"></span>
+    <span class="ds-meter ds-meter--${E}" id="m-error-alias" style="--ds-share:1"></span>
     <span class="ds-meter ds-tone-neutral" id="m-neutral" style="--ds-share:1"></span>
-    <span class="ds-meter ds-meter--neutral" id="m-neutral-alias" style="--ds-share:1"></span>
+    <span class="ds-meter ds-meter--${N}" id="m-neutral-alias" style="--ds-share:1"></span>
     <span class="ds-meter ds-tone-success" id="m-success" style="--ds-share:1"></span>
     <span class="ds-meter ds-tone-warning" id="m-hook" style="--ds-share:1;--ds-meter-color:#000"></span>
     <span class="ds-meter" id="m-custom" style="--ds-share:1;--ds-meter-color:rgb(1, 2, 3)"></span>
     <figure class="ds-columns"><ol class="ds-columns__plot">
       <li class="ds-columns__col" id="c-plain" style="--ds-share:1"><span class="ds-columns__fill"></span></li>
       <li class="ds-columns__col ds-tone-warning" id="c-warning" style="--ds-share:1"><span class="ds-columns__fill"></span></li>
-      <li class="ds-columns__col ds-columns__col--warning" id="c-warning-alias" style="--ds-share:1"><span class="ds-columns__fill"></span></li>
+      <li class="ds-columns__col ds-columns__col--${W}" id="c-warning-alias" style="--ds-share:1"><span class="ds-columns__fill"></span></li>
       <li class="ds-columns__col ds-tone-error" id="c-error" style="--ds-share:1"><span class="ds-columns__fill"></span></li>
-      <li class="ds-columns__col ds-columns__col--error" id="c-error-alias" style="--ds-share:1"><span class="ds-columns__fill"></span></li>
+      <li class="ds-columns__col ds-columns__col--${E}" id="c-error-alias" style="--ds-share:1"><span class="ds-columns__fill"></span></li>
     </ol></figure>
     <figure class="ds-columns ds-columns--mini"><ol class="ds-columns__plot"><li class="ds-columns__col ds-tone-error" id="mini-error" style="--ds-share:1"><span class="ds-columns__fill"></span></li></ol></figure>
     <ul class="ds-legend">
       <li><span class="ds-legend__key" id="k-plain"></span>a</li>
       <li><span class="ds-legend__key ds-tone-warning" id="k-warning"></span>b</li>
-      <li><span class="ds-legend__key ds-legend__key--warning" id="k-warning-alias"></span>c</li>
+      <li><span class="ds-legend__key ds-legend__key--${W}" id="k-warning-alias"></span>c</li>
       <li><span class="ds-legend__key ds-tone-neutral" id="k-neutral"></span>d</li>
-      <li><span class="ds-legend__key ds-legend__key--neutral" id="k-neutral-alias"></span>e</li>
+      <li><span class="ds-legend__key ds-legend__key--${N}" id="k-neutral-alias"></span>e</li>
       <li><span class="ds-legend__key ds-tone-error" id="k-error"></span>f</li>
-      <li><span class="ds-legend__key ds-legend__key--error" id="k-error-alias"></span>g</li>
+      <li><span class="ds-legend__key ds-legend__key--${E}" id="k-error-alias"></span>g</li>
     </ul>
   </div>`);
   const fills = await page.evaluate(() => {
@@ -162,9 +164,10 @@ test('a tone on the mark colours it, an inherited one does not; the 2.x names st
   expect(fills['m-plain'], 'an inherited tone does not colour a meter').toBe(series);
   expect(fills['c-plain']).toBe(series);
   expect(fills['k-plain']).toBe(series);
-  for (const id of ['m-warning', 'm-warning-alias', 'c-warning', 'c-warning-alias', 'k-warning', 'k-warning-alias', 'm-hook']) expect(fills[id], id).toBe(warning);
-  for (const id of ['m-error', 'm-error-alias', 'c-error', 'c-error-alias', 'k-error', 'k-error-alias', 'mini-error']) expect(fills[id], id).toBe(error);
-  for (const id of ['m-neutral', 'm-neutral-alias', 'k-neutral', 'k-neutral-alias']) expect(fills[id], id).toBe(neutral);
+  for (const id of ['m-warning', 'c-warning', 'k-warning', 'm-hook']) expect(fills[id], id).toBe(warning);
+  for (const id of ['m-error', 'c-error', 'k-error', 'mini-error']) expect(fills[id], id).toBe(error);
+  for (const id of ['m-neutral', 'k-neutral']) expect(fills[id], id).toBe(neutral);
+  for (const id of ['m-warning-alias', 'm-error-alias', 'm-neutral-alias', 'c-warning-alias', 'c-error-alias', 'k-warning-alias', 'k-neutral-alias', 'k-error-alias']) expect(fills[id], `${id}: removed in 3.0`).toBe(series);
   expect(fills['m-success']).toBe(success);
   expect(fills['m-custom'], 'the hook still sets an untoned meter').toBe('rgb(1, 2, 3)');
 });

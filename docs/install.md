@@ -371,7 +371,7 @@ objects and the handles they return:
 
 ```js
 /// <reference path="vendor/dashboard-style/ds.d.ts" />
-const handle = DS.ripple.attach(document);   // RippleHandle: { destroy, release, detach }
+const handle = DS.ripple.attach(document);   // RippleHandle: { destroy, release }
 DS.overlay.toast(null, 'Saved', { kind: 'success' });
 ```
 
@@ -1163,7 +1163,7 @@ instead of keeping a list by hand:
 - `kind`: `token`, `role`, `hook`, `class`, `attribute`, `markup`, `keyframes`, `export` or `option` (an argument
   form or a variant string).
 - `pattern`: the source of a JavaScript regular expression (no flags) that finds a use in CSS, HTML or JS; `null` for
-  an entry that only a `note` can describe. Some patterns cast a wide net (`detach()`): treat a hit as a place to look.
+  an entry that only a `note` can describe. Some patterns cast a wide net (a handle's method finds every call of that name): treat a hit as a place to look.
 - `deprecated`: the version that deprecated it. `removed`: the version that removed it, or `null` while it still
   works (a later major version removes it).
 - `replacement` and `note` (optional): what to use instead and how; `replacement` may be `null` when nothing replaces

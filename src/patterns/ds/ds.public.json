@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.public.css",
-      "bytes": 302101,
-      "gzip": 46620
+      "bytes": 300293,
+      "gzip": 46274
     },
     "js": {
       "file": "ds.public.js",
-      "bytes": 534941,
-      "gzip": 127002
+      "bytes": 534514,
+      "gzip": 126900
     },
     "properties": {
       "file": "properties.css",
@@ -36,8 +36,8 @@
     {
       "name": "spinner",
       "reason": "status-page.html:123 ds-spinner",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "indicator",
@@ -48,8 +48,8 @@
     {
       "name": "button",
       "reason": "changelog.html:20 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "timeline",
@@ -60,32 +60,32 @@
     {
       "name": "status",
       "reason": "changelog.html:66 ds-tag",
-      "bytes": 3164,
-      "gzip": 921
+      "bytes": 2830,
+      "gzip": 865
     },
     {
       "name": "alert",
       "reason": "status-page.html:32 ds-alert",
-      "bytes": 6191,
-      "gzip": 1561
+      "bytes": 6019,
+      "gzip": 1532
     },
     {
       "name": "chart",
       "reason": "required by list",
-      "bytes": 23341,
-      "gzip": 4433
+      "bytes": 23123,
+      "gzip": 4396
     },
     {
       "name": "list",
       "reason": "changelog.html:65 ds-plain-list",
-      "bytes": 18637,
-      "gzip": 3412
+      "bytes": 18493,
+      "gzip": 3387
     },
     {
       "name": "card",
       "reason": "changelog.html:57 ds-card",
-      "bytes": 16606,
-      "gzip": 2659
+      "bytes": 16531,
+      "gzip": 2644
     },
     {
       "name": "prose",
@@ -108,14 +108,14 @@
     {
       "name": "dialog",
       "reason": "status-page.html:108 ds-dialog",
-      "bytes": 15994,
-      "gzip": 2482
+      "bytes": 15933,
+      "gzip": 2468
     },
     {
       "name": "form",
       "reason": "status-page.html:114 ds-field",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "drag",
@@ -132,8 +132,8 @@
     {
       "name": "page",
       "reason": "changelog.html:24 ds-content",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "toast",

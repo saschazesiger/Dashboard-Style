@@ -290,7 +290,7 @@ test('pinned rows: a click anywhere on the row opens its link, controls keep the
   }, cell);
   expect(await hash()).toBe('');
   // Without attach() nothing forwards (only the link's own cell opens the row).
-  await page.evaluate(() => { getSelection().removeAllRanges(); window.fxRipples.detach(); });
+  await page.evaluate(() => { getSelection().removeAllRanges(); window.fxRipples.destroy(); });
   await clickAt(cell);
   expect(await hash()).toBe('');
 });

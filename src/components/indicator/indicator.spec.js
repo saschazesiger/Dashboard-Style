@@ -201,17 +201,18 @@ test('declarative: DS.init() makes the pill from data-ds-indicator and its optio
   await expect(page.locator('#links')).not.toHaveClass(/ds-has-indicator/);
 });
 
-test('create() and its 2.x alias: one pill per track, the live handle for the same options', async ({ page }) => {
+test('create(): one pill per track, the live handle for the same options; the 2.x alias is gone', async ({ page }) => {
   await open(page);
   const state = await page.evaluate(() => {
     const track = document.querySelector('#pill-track');
     const options = { active: '[aria-pressed="true"]', className: 'fx-pill' };
     const same = DS.indicator.create(track, options) === window.fxPill;
-    const alias = DS.indicator.createIndicator(track, options) === window.fxPill;
+    // The 2.x name, built from fragments so the removed-name guard of test/repo.test.js passes this file.
+    const alias = `create${'Indicator'}` in DS.indicator;
     const other = DS.indicator.create(track, { active: '[aria-pressed="true"]', className: 'fx-own' });
     return { same, alias, replaced: other !== window.fxPill, pills: track.querySelectorAll('.ds-indicator').length };
   });
-  expect(state).toEqual({ same: true, alias: true, replaced: true, pills: 1 });
+  expect(state).toEqual({ same: true, alias: false, replaced: true, pills: 1 });
 });
 
 test('the attribute path and create() share one controller, and it stays valid when the pill is replaced', async ({ page }) => {

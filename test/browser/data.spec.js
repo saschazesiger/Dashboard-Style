@@ -300,7 +300,7 @@ test.describe('status chips in a sorted table', () => {
   test('a keyed reorder through insertBefore never replays the status icons\' entrance', async ({ page }) => {
     await open(page);
     // Rows with status chips; the old moveBefore-less path (WebKit, Firefox 128, Chrome before 133) in every engine.
-    const render = (keys) => keys.map((key) => `<tr data-ds-key="${key}"><td>${key}</td><td><span class="ds-status ds-status--ok">${DS.icons.icon(DS.icons.check, 16)}<span>Synced</span></span></td></tr>`).join('');
+    const render = (keys) => keys.map((key) => `<tr data-ds-key="${key}"><td>${key}</td><td><span class="ds-status ds-tone-success">${DS.icons.icon(DS.icons.check, 16)}<span>Synced</span></span></td></tr>`).join('');
     await page.evaluate((source) => {
       const table = document.createElement('table');
       table.className = 'ds-table';

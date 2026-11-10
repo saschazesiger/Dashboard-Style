@@ -240,7 +240,7 @@ test.describe('labels', () => {
       const track = document.createElement('div');
       track.id = 'x-toggles';
       track.style.display = 'inline-flex';
-      track.innerHTML = ['Day', 'Week', 'Month', 'Year'].map((text, index) => `<button class="ds-btn ds-btn--sm ds-btn--text" type="button" aria-pressed="${index ? 'false' : 'true'}">${text}</button>`).join('');
+      track.innerHTML = ['Day', 'Week', 'Month', 'Year'].map((text, index) => `<button class="ds-btn ds-sm ds-btn--text" type="button" aria-pressed="${index ? 'false' : 'true'}">${text}</button>`).join('');
       document.querySelector('.ds-theme').append(track);
       window.xToggles = DS.indicator.create(track, { active: '[aria-pressed="true"]', className: 'x-toggles__pill' });
     });

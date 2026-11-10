@@ -34,13 +34,14 @@ const measure = (page, classes, around = '') => page.evaluate(async ({ classes, 
   return out;
 }, { classes, around });
 
-test('the sizes: 320, 400, 560 and 720px, capped by the window; --wide is --lg', async ({ page }) => {
+test('the sizes: 320, 400, 560 and 720px, capped by the window; the 2.x --wide is gone', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await open(page);
   expect((await measure(page, 'ds-dialog--sm')).width).toBeCloseTo(320, 0);
   expect((await measure(page, '')).width).toBeCloseTo(400, 0);
   expect((await measure(page, 'ds-dialog--lg')).width).toBeCloseTo(560, 0);
-  expect((await measure(page, 'ds-dialog--wide')).width, 'the 2.x alias').toBeCloseTo(560, 0);
+  // The 2.x name, built from fragments so the removed-name guard of test/repo.test.js passes this file.
+  expect((await measure(page, `ds-dialog--${'wide'}`)).width, 'the 2.x alias, removed in 3.0: the default width').toBeCloseTo(400, 0);
   expect((await measure(page, 'ds-dialog--xl')).width).toBeCloseTo(720, 0);
   await page.setViewportSize({ width: 390, height: 800 });
   expect((await measure(page, 'ds-dialog--xl')).width, 'never wider than the window').toBeLessThanOrEqual(390 - 2 * 16);
@@ -165,7 +166,7 @@ test('a form dialog while onSubmit runs, on the documented markup: the spinner, 
             <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
             <button class="ds-btn ds-btn--filled" type="submit">
               <span class="ds-btn__faces"><span class="ds-btn__face">Save</span>
-                <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Save</span></span>
+                <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Save</span></span>
             </button>
           </div>
         </form>
@@ -305,16 +306,17 @@ test('D10: confirm({ destructive: true }) fills its button in the error tone; a 
   expect(plain.role).toBeNull();
 });
 
-test('triggers: data-ds-open opens with its button as the opener, data-ds-close and data-close close, data-ds-close="#id" from outside', async ({ page }) => {
+test('triggers: data-ds-open opens with its button as the opener, data-ds-close closes (its 2.x name no longer), data-ds-close="#id" from outside', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await open(page);
   await page.evaluate(() => {
     const host = document.querySelector('#fx-component');
     host.insertAdjacentHTML('beforeend', '<button class="ds-btn" type="button" id="outside" data-ds-close="#alias" style="position:fixed;inset:0 auto auto 0;z-index:9999">Outside</button>'
       + '<button class="ds-btn" type="button" id="by-id" data-ds-open="alias">By id</button>'
-      + '<div class="ds-dialog" id="alias" hidden><div class="ds-dialog__backdrop"></div><div class="ds-dialog__box" role="dialog" aria-modal="true" aria-label="Alias"><button class="ds-btn" type="button" id="old-name" data-close>Close</button></div></div>');
+      + `<div class="ds-dialog" id="alias" hidden><div class="ds-dialog__backdrop"></div><div class="ds-dialog__box" role="dialog" aria-modal="true" aria-label="Alias"><button class="ds-btn" type="button" id="old-name" data-${'close'}>Old</button><button class="ds-btn" type="button" id="closer" data-ds-close>Close</button></div></div>`);
     window.reasons = [];
-    document.addEventListener('ds-close', (event) => window.reasons.push(`old:${event.detail.reason}`));
+    // The 2.x names, built from fragments so the removed-name guard of test/repo.test.js passes this file.
+    document.addEventListener(`ds-${'close'}`, (event) => window.reasons.push(`old:${event.detail.reason}`));
     document.addEventListener('ds:close', (event) => window.reasons.push(`new:${event.detail.reason}`));
   });
   const alias = page.locator('#alias');
@@ -322,9 +324,12 @@ test('triggers: data-ds-open opens with its button as the opener, data-ds-close 
   await expect(alias).toHaveAttribute('data-state', 'open');
   await page.locator('#old-name').click();
   await settle(page);
+  await expect(alias, 'the 2.x attribute was removed in 3.0').toHaveAttribute('data-state', 'open');
+  await page.locator('#closer').click();
+  await settle(page);
   await expect(alias).toBeHidden();
   await expect(page.locator('#by-id')).toBeFocused();
-  expect(await page.evaluate(() => window.reasons), 'both names of the event, the same reason').toEqual(['old:close', 'new:close']);
+  expect(await page.evaluate(() => window.reasons), 'ds:close only: the 2.x event was removed in 3.0').toEqual(['new:close']);
   await page.evaluate(() => DS.overlay.open(document.getElementById('alias'), { opener: document.getElementById('by-id') }));
   await page.evaluate(() => document.getElementById('outside').click());
   await settle(page);

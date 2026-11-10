@@ -137,7 +137,7 @@ test.describe('dialog and sheet', () => {
     expect(await leftovers(page)).toEqual(clean);
   });
 
-  test('[data-close] closes, also on the native sheet; clicks on it during the exit are ignored', async ({ page }) => {
+  test('[data-ds-close] closes, also on the native sheet; clicks on it during the exit are ignored', async ({ page }) => {
     await load(page);
     await page.click('#open-native-sheet');
     expect(await focused(page)).toBe('native-sheet-close');
@@ -560,7 +560,7 @@ test.describe('modal drawer', () => {
         dialog.className = 'ds-dialog';
         dialog.id = 'fx-dialog';
         if (!isNative) dialog.hidden = true;
-        dialog.innerHTML = '<div class="ds-dialog__backdrop" data-close></div><div class="ds-dialog__box"><button type="button" class="ds-btn" id="fx-ok">OK</button></div>';
+        dialog.innerHTML = '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box"><button type="button" class="ds-btn" id="fx-ok">OK</button></div>';
         document.querySelector('.ds-theme').append(dialog);
         DS.overlay.open(drawer, { opener: document.getElementById('menu') });
         DS.overlay.open(dialog, { opener: drawer.querySelector('.ds-drawer__item') });
@@ -596,7 +596,7 @@ test.describe('modal drawer', () => {
         dialog.className = 'ds-dialog';
         dialog.id = 'fx-dialog';
         dialog.hidden = true;
-        dialog.innerHTML = '<div class="ds-dialog__backdrop" data-close></div><div class="ds-dialog__box"><button type="button" id="fx-ok">OK</button></div>';
+        dialog.innerHTML = '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box"><button type="button" id="fx-ok">OK</button></div>';
         document.querySelector('.ds-theme').append(dialog);
         DS.overlay.open(drawer, { opener: document.getElementById('menu') });
         DS.overlay.open(dialog, { opener: drawer.querySelector('.ds-drawer__item') });
@@ -1051,9 +1051,9 @@ test.describe('focus and pointer during the close', () => {
     await load(page);
     await page.evaluate(() => {
       document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', '<button class="ds-btn" type="button" id="x-open-field">Rename</button>'
-        + '<dialog class="ds-dialog" id="x-field-dialog" aria-labelledby="x-field-title"><div class="ds-dialog__backdrop" data-close></div><div class="ds-dialog__box">'
+        + '<dialog class="ds-dialog" id="x-field-dialog" aria-labelledby="x-field-title"><div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box">'
         + '<h2 class="ds-dialog__title" id="x-field-title">Rename</h2><input class="ds-input" id="x-field" required aria-label="Name">'
-        + '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="x-field-cancel" data-close>Cancel</button></div></div></dialog>');
+        + '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="x-field-cancel" data-ds-close>Cancel</button></div></div></dialog>');
       window.fxLog = [];
       const field = document.getElementById('x-field');
       for (const type of ['focus', 'blur']) field.addEventListener(type, () => window.fxLog.push(type));
@@ -1164,7 +1164,7 @@ test.describe('focus and pointer during the close', () => {
       dialog.className = 'ds-dialog';
       dialog.id = 'fx-dialog';
       dialog.hidden = true;
-      dialog.innerHTML = '<div class="ds-dialog__backdrop" data-close></div><div class="ds-dialog__box"><button type="button">OK</button></div>';
+      dialog.innerHTML = '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box"><button type="button">OK</button></div>';
       document.querySelector('.ds-theme').append(dialog);
       DS.overlay.open(dialog);
       return { locked: document.body.classList.contains('ds-no-scroll'), gutter: document.documentElement.style.scrollbarGutter, padding: document.body.style.paddingRight };
@@ -1248,13 +1248,13 @@ test.describe('forced colours', () => {
 /* ── 2.0: busy, reasons, topmost, the dismiss guard, focus return ─── */
 
 /**
- * Records every ds-close of the page as "id:reason" (window.__closes), in
+ * Records every ds:close of the page as "id:reason" (window.__closes), in
  * the order they are sent.
  */
 function recordCloses(page) {
   return page.evaluate(() => {
     window.__closes = [];
-    document.addEventListener('ds-close', (event) => window.__closes.push(`${event.target.id || event.target.className}:${event.detail.reason}`));
+    document.addEventListener('ds:close', (event) => window.__closes.push(`${event.target.id || event.target.className}:${event.detail.reason}`));
   });
 }
 
@@ -1277,7 +1277,7 @@ test.describe('busy overlays (2.0, data-ds-busy)', () => {
   ];
 
   for (const [id, opener, closer, backdrop] of OVERLAYS) {
-    test(`${id}: Escape, [data-close], the backdrop and the native cancel do nothing while busy; close() and a removal still close`, async ({ page }) => {
+    test(`${id}: Escape, [data-ds-close], the backdrop and the native cancel do nothing while busy; close() and a removal still close`, async ({ page }) => {
       await load(page);
       await recordCloses(page);
       await openSettled(page, id, opener);
@@ -1294,7 +1294,7 @@ test.describe('busy overlays (2.0, data-ds-busy)', () => {
       await page.mouse.click(4, 4);
       expect(await isOpen(page, id), 'still open').toBe(true);
       expect(await page.evaluate((name) => (document.getElementById(name).tagName === 'DIALOG' ? document.getElementById(name).open : true), id), 'the native dialog stays modal').toBe(true);
-      expect(await closes(page), 'a refused attempt sends no ds-close').toEqual([]);
+      expect(await closes(page), 'a refused attempt sends no ds:close').toEqual([]);
       // close() of the page closes a busy overlay.
       await page.evaluate((name) => DS.overlay.close(document.getElementById(name)), id);
       await closed(page, id);
@@ -1306,7 +1306,7 @@ test.describe('busy overlays (2.0, data-ds-busy)', () => {
         const el = document.getElementById(name);
         const place = [el.parentNode, el.nextSibling];
         // Sent on the detached element: the document no longer hears it.
-        el.addEventListener('ds-close', (event) => window.__closes.push(`${name}:${event.detail.reason}`), { once: true });
+        el.addEventListener('ds:close', (event) => window.__closes.push(`${name}:${event.detail.reason}`), { once: true });
         el.remove();
         await new Promise((resolve) => setTimeout(resolve));
         place[0].insertBefore(el, place[1]);
@@ -1358,11 +1358,11 @@ test.describe('busy overlays (2.0, data-ds-busy)', () => {
   });
 });
 
-test.describe('why it closed (2.0, ds-close)', () => {
+test.describe('why it closed (2.0, ds:close since 3.0)', () => {
   test('each way of closing sends its reason once; nothing during an exit; inner layers first with parent', async ({ page }) => {
     await load(page);
     await recordCloses(page);
-    // Escape, the backdrop, another [data-close], a reason of the page's own, the native close of the page.
+    // Escape, the backdrop, another [data-ds-close], a reason of the page's own, the native close of the page.
     await openSettled(page, 'dialog', 'open-dialog');
     await page.keyboard.press('Escape');
     await closed(page, 'dialog');
@@ -1415,7 +1415,7 @@ test.describe('why it closed (2.0, ds-close)', () => {
     await openSettled(page, 'dialog', 'open-dialog');
     const seen = await page.evaluate(() => new Promise((resolve) => {
       const dialog = document.getElementById('dialog');
-      dialog.addEventListener('ds-close', (event) => resolve({
+      dialog.addEventListener('ds:close', (event) => resolve({
         focus: document.activeElement.id,
         inert: dialog.querySelector('.ds-dialog__box').inert,
         state: dialog.getAttribute('data-state'),
@@ -1510,7 +1510,7 @@ test.describe('the dismiss guard (2.0, --ds-delay-dismiss)', () => {
     await page.mouse.move(4, 4, { steps: 4 });
     await page.mouse.up();
     expect(await isOpen(page, 'dialog')).toBe(true);
-    // A click with detail 2 on a [data-close] is ignored; detail 0 (click()) closes.
+    // A click with detail 2 on a [data-ds-close] is ignored; detail 0 (click()) closes.
     await page.evaluate(() => document.getElementById('dialog-cancel').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 2 })));
     expect(await isOpen(page, 'dialog')).toBe(true);
     await page.evaluate(() => document.getElementById('dialog-cancel').click());

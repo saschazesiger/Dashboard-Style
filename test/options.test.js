@@ -158,6 +158,6 @@ describe('options (3.0, src/core/options.css)', () => {
     assert.equal(button.font, 'var(--ds-btn-font, var(--ds-size-font, var(--ds-font-label)))');
     // Only a filled button reads a tone, from its own class (an inherited tone never turns a button red, D10).
     const toned = rules(read('src/components/button/button.css')).filter((rule) => /var\(--ds-(on-)?tone\b/.test(rule.body)).map((rule) => rule.selector);
-    assert.deepEqual(toned, [':is(.ds-btn--filled, .ds-btn--primary).ds-tone-error']);
+    assert.deepEqual(toned, ['.ds-btn--filled.ds-tone-error']);
   });
 });

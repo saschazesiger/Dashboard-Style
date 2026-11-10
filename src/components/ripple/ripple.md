@@ -44,8 +44,7 @@ ripples.release(host);                        // end a running press by hand (no
   too. `DS.ripple.attach(document)` or `DS.init(document)` wires it; a page that calls neither keeps the flat layer as
   the press feedback.
 - A press ends early when another element captures the pointer (an ancestor that drags to scroll): the ripple
-  fades as on release. `release(host?)` ends one by hand; `detach()` is the **deprecated** alias of `destroy()`
-  until 3.0 ships. `:active` (the flat layer and the morph) lasts until the pointer button goes up.
+  fades as on release. `release(host?)` ends one by hand. `:active` (the flat layer and the morph) lasts until the pointer button goes up.
 - Colour: `--ds-ripple-color` (default `currentColor`), on `.ds-theme` or a host. Forced colours show no ripple.
 - iOS Safari applies `:active` only on pages that listen to `touchstart`. `attach()` adds a passive listener; a
   page without `ds.js` adds one itself (`document.addEventListener('touchstart', () => {}, { passive: true })`, or

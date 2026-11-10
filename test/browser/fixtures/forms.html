@@ -46,15 +46,15 @@
       </div>
       <div class="ds-field">
         <label class="ds-field__label" for="quota">Quota (GB)</label>
-        <div class="ds-input-group" id="quota-group"><input class="ds-input" id="quota" inputmode="numeric" value="50"><span class="ds-input-group__affix" aria-hidden="true">GB</span></div>
+        <div class="ds-input-group" id="quota-group"><input class="ds-input" id="quota" inputmode="numeric" value="50"><span class="ds-input-group__suffix" aria-hidden="true">GB</span></div>
       </div>
       <div class="ds-field">
         <label class="ds-field__label" for="password">Password</label>
-        <div class="ds-input-group" id="password-group"><input class="ds-input" id="password" type="password" value="correct horse" autocomplete="off"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" id="reveal" aria-label="Show password" aria-pressed="false" aria-controls="password"><span data-icon="eye" data-size="18"></span></button></div>
+        <div class="ds-input-group" id="password-group"><input class="ds-input" id="password" type="password" value="correct horse" autocomplete="off"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" id="reveal" aria-label="Show password" aria-pressed="false" aria-controls="password"><span data-icon="eye" data-size="18"></span></button></div>
       </div>
       <div class="ds-field">
         <label class="ds-field__label" for="site">Website</label>
-        <div class="ds-input-group" id="site-group"><span class="ds-input-group__affix" aria-hidden="true">https://</span><input class="ds-input" id="site" value="example.org" aria-invalid="true"></div>
+        <div class="ds-input-group" id="site-group"><span class="ds-input-group__prefix" aria-hidden="true">https://</span><input class="ds-input" id="site" value="example.org" aria-invalid="true"></div>
       </div>
       <div class="ds-form-grid ds-form-grid--2" id="when">
         <div class="ds-field"><label class="ds-field__label" for="starts">Starts</label><input class="ds-input" id="starts" type="datetime-local" value="2025-03-12T09:30"></div>
@@ -105,7 +105,7 @@
     <form class="ds-form ds-form--rows" id="rows" onsubmit="return false">
       <div class="ds-field" id="changed-field"><label class="ds-field__label" for="place">Room <span class="ds-field__changed ds-sr">(changed)</span></label><input class="ds-input" id="place" value="B 2.14"></div>
       <div class="ds-field" role="group" aria-labelledby="serial-l"><span class="ds-field__label" id="serial-l">Serial number</span><span class="ds-field__value" id="serial">5CD1234XYZ</span></div>
-      <div class="ds-form-actions ds-form-actions--sticky" id="actions"><button class="ds-btn ds-btn--primary" type="submit">Save</button><button class="ds-btn ds-btn--text" type="reset">Discard</button></div>
+      <div class="ds-form-actions ds-form-actions--sticky" id="actions"><button class="ds-btn ds-btn--filled" type="submit">Save</button><button class="ds-btn ds-btn--text" type="reset">Discard</button></div>
     </form>
   </section>
 
@@ -127,7 +127,7 @@
 
   <section class="fx-section fx-narrow" aria-labelledby="composer-title">
     <h2 id="composer-title">Composer</h2>
-    <form class="ds-composer" id="composer" onsubmit="return false"><textarea class="ds-composer__input ds-input--grow" id="message" rows="1" aria-label="Message" placeholder="Write a message"></textarea><button class="ds-btn ds-btn--primary ds-btn--icon" type="submit" id="send" aria-label="Send"><span data-icon="send" data-size="20"></span></button></form>
+    <form class="ds-composer" id="composer" onsubmit="return false"><textarea class="ds-composer__input ds-input--grow" id="message" rows="1" aria-label="Message" placeholder="Write a message"></textarea><button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" id="send" aria-label="Send"><span data-icon="send" data-size="20"></span></button></form>
   </section>
 </div>
 <script src="/dist/ds.js"></script>

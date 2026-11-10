@@ -64,7 +64,7 @@ describe('src/components/<name>/', () => {
     const withKey = (meta, key, value) => Object.fromEntries(META_KEYS.filter((each) => each in meta || each === key).map((each) => [each, each === key ? value : meta[each]]));
     const tamper = (name, change) => list.map((component) => (component.name === name ? { ...component, meta: change(structuredClone(component.meta)) } : component));
     const cases = [
-      [tamper('badge', (meta) => ({ ...meta, classes: meta.classes.filter((cls) => cls !== 'ds-badge--ok') })), /badge\.css styles \.ds-badge--ok, which no meta\.json lists/],
+      [tamper('badge', (meta) => ({ ...meta, classes: meta.classes.filter((cls) => cls !== 'ds-badge--dot') })), /badge\.css styles \.ds-badge--dot, which no meta\.json lists/],
       [tamper('badge', (meta) => ({ ...meta, classes: [...meta.classes, 'ds-badge--new'].sort() })), /lists \.ds-badge--new, which src\/components\/badge\/badge\.css does not style/],
       [tamper('card', (meta) => ({ ...meta, hooks: Object.fromEntries(Object.entries(meta.hooks).filter(([hook]) => hook !== '--ds-btn-height')) })), /card\/meta\.json: "hooks" misses --ds-btn-height/],
       [tamper('card', (meta) => ({ ...meta, hooks: { ...meta.hooks, '--ds-btn-bg': { owner: 'button' } } })), /"hooks" lists --ds-btn-bg, which src\/components\/card\/card\.css does not use/],

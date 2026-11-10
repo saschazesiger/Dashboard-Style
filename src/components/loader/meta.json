@@ -8,8 +8,7 @@
   "status": "stable",
   "classes": [
     "ds-loader",
-    "ds-loader--contained",
-    "ds-loader--sm"
+    "ds-loader--contained"
   ],
   "attributes": [],
   "requires": [],
@@ -22,10 +21,6 @@
     "--ds-loader-color": {
       "default": "48px, `--ds-primary`",
       "description": "the shape loader's container at md, before the size step, and its shape ([shape loader](components.md#shape-loader))"
-    },
-    "--ds-loader-sm-size": {
-      "default": "24px",
-      "description": "`.ds-loader--sm`, both **deprecated**: `.ds-sm`"
     }
   },
   "keyframes": [

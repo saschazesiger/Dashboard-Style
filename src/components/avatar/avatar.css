@@ -43,8 +43,6 @@
  *                          rest of a group): a state layer over the picture,
  *                          the focus ring, a hit area of --ds-target-min
  *                          around the disc; no ripple and no morph (below)
- *   --sm, --lg             the 2.x sizes, deprecated aliases of .ds-sm and
- *                          .ds-lg until 3.0 ships: the fixed 24 and 40px disc
  *
  * Parts inside an avatar (its overflow stays visible; a picture inside
  * clips itself to the radius):
@@ -317,20 +315,6 @@
 
   :is(a, button).ds-avatar:is(:disabled, [aria-disabled="true"]):active::after {
     opacity: 0;
-  }
-
-  /* The 2.x sizes, deprecated aliases of .ds-sm and .ds-lg until 3.0 ships:
-     the fixed 24px and 40px disc, whatever size surrounds them. */
-  .ds-avatar--sm {
-    --ds-avatar-size: var(--ds-space-6);
-    --ds-size-step: 0;
-    font: var(--ds-font-caption);
-  }
-
-  .ds-avatar--lg {
-    --ds-avatar-size: var(--ds-space-10);
-    --ds-size-step: 0;
-    font: var(--ds-font-subtitle);
   }
 
   /*

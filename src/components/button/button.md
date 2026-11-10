@@ -93,12 +93,6 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
   `--ds-shape`, so a square theme or region has square buttons. One filled button per area. Red buttons only as above
   (D10): pages keep none; name the consequence ("Delete 3 devices"). A filled button inside an error alert or another
   tone region stays filled: the button reads the tone of its own class only.
-- `.ds-btn--primary` is **deprecated** (3.0, removed when 3.0 ships): `.ds-btn--filled`, the same look under the
-  variant name every component shares.
-- `.ds-btn--sm` is **deprecated** (3.0, removed when 3.0 ships): `.ds-sm`. Until then it keeps the fixed 2.x small
-  button: `--ds-btn-sm-height` (32px; with `--icon` `--ds-btn-sm-icon-size`, 32px; both **deprecated** with it) and
-  12px of side padding, which density does not change. `.ds-sm` is the same 32px at the default density and follows
-  the density like every size (24px in the compact theme); a small `--text` button pads 8px.
 - A leading icon pulls the start padding to 12px at md (4px more per size above, never more than the end padding),
   also the icon of the first face of `.ds-btn__faces`. Icons keep the size their markup gives them (16px beside a
   label, 20px alone).

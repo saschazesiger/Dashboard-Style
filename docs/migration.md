@@ -106,8 +106,9 @@ Every entry of `deprecations.json`, with what `migrate.mjs` does about it: "rewr
 
 ### Removed in 3.0.0
 
-The 2.x aliases of the new names. They work in the 3.0 pre-releases (the checks warn) and are gone from 3.0.0 on (the
-checks fail).
+The 2.x aliases of the new names. The first 3.0 pre-releases kept them; they are gone from the code before 3.0.0 ships.
+The checks of a pre-release copy warn on them (`check-project` also fails on a class the copy no longer has), the
+checks of 3.0.0 fail.
 
 | Kind | 2.x | 3.0 | migrate.mjs |
 |---|---|---|---|

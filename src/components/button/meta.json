@@ -19,9 +19,7 @@
     "ds-btn--ghost",
     "ds-btn--icon",
     "ds-btn--outlined",
-    "ds-btn--primary",
     "ds-btn--quiet",
-    "ds-btn--sm",
     "ds-btn--text",
     "ds-btn--tonal",
     "ds-btn__face",
@@ -54,7 +52,7 @@
       "description": "button: a fixed height that ignores size and density (never the touch minimum)"
     },
     "--ds-btn-padding-x": {
-      "default": "`--ds-space-4` (`--text`, `--ghost`, `--sm`: `--ds-space-3`)",
+      "default": "`--ds-space-4` (`--text`, `--ghost`: `--ds-space-3`)",
       "description": "button: the base side padding, 4px more or less per size step"
     },
     "--ds-btn-padding-start": {
@@ -124,14 +122,6 @@
     "--ds-btn-icon-size": {
       "default": "40px",
       "description": "`--icon` buttons: the base size, 8px more or less per size step"
-    },
-    "--ds-btn-sm-height": {
-      "default": "32px",
-      "description": "the fixed height of the deprecated `.ds-btn--sm` (density does not change it)"
-    },
-    "--ds-btn-sm-icon-size": {
-      "default": "32px",
-      "description": "the fixed size of the deprecated `.ds-btn--sm.ds-btn--icon`; a `.ds-drawer__row` item keeps that much room for its action"
     },
     "--ds-btn-quiet-color": {
       "default": "`--ds-text-2`",

@@ -1,7 +1,7 @@
 /**
  * The table on the options model (3.0, src/core/options.css): head and row
  * height at every size x density, with and without .ds-touch (touch wins, as
- * a minimum); density's side padding; nesting; the deprecated --dense alias
+ * a minimum); density's side padding; nesting; the 2.x --dense gone
  * and the hooks as the base; the shape of every radius; zebra (also under
  * selection, detail rows and a glide), borders, sticky rows and a pinned last
  * column with its hairline and fade; forced colours; the keyboard's way and
@@ -93,7 +93,7 @@ test('head and row height at every size x density, and .ds-touch as a minimum ov
   }
 });
 
-test('option classes nest, the hooks are the base, and the --dense alias keeps its fixed 40px', async ({ page }) => {
+test('option classes nest, the hooks are the base, and the 2.x --dense was removed in 3.0', async ({ page }) => {
   await open(page);
   const row = (id) => height(page, `#${id} td`);
   const head = (id) => height(page, `#${id} th`);
@@ -103,11 +103,12 @@ test('option classes nest, the hooks are the base, and the --dense alias keeps i
   expect(await row('nest-back')).toBe(52);
   expect(await row('nest-tight-lg')).toBe(48);
   expect(await row('on-table')).toBe(40);
-  // The deprecated alias: 40px head and rows, whatever the size and the density around it.
-  for (const id of ['alias', 'alias-lg', 'alias-in-tight']) {
-    expect(await row(id), id).toBe(40);
-    expect(await head(id), id).toBe(40);
-  }
+  // The 2.x name (built from fragments, so the removed-name guard of test/repo.test.js passes this file): the
+  // comfortable rows around it.
+  await page.$eval('#comfortable', (el, name) => el.insertAdjacentHTML('beforeend', `<table class="ds-table ${name}" id="alias"><thead><tr><th scope="col">Device</th></tr></thead><tbody><tr><td>Alias</td></tr></tbody></table>`), `ds-table--${'dense'}`);
+  expect(await row('alias')).toBe(52);
+  expect(await head('alias')).toBe(48);
+  await page.$eval('#alias', (el) => el.remove());
   // A hook is the base that the options apply to; here the tbody is compact.
   expect(await row('hook-base')).toBe(56);
   expect(await head('hook-base')).toBe(56);

@@ -18,7 +18,6 @@
  *                         and meta text on the surface, no box
  *   .ds-alert--section    a section message: a block with a title, room around
  *                         it and its actions always under the text
- *   --success --warning --error   deprecated: .ds-tone-success, -warning, -error
  *
  * Options (docs/options.md), read here:
  *   size      .ds-xs ... .ds-xl on the alert or any ancestor: 2px of padding
@@ -174,23 +173,19 @@
 
   /* The tones set the alert's hooks from their own, with today's colours as
      fallbacks, from the class on the alert itself. Zero weight on the tone,
-     so --plain, --inline and --section below still decide by order. The
-     deprecated kinds share the rules until 3.0 ships. */
-  .ds-alert--success,
+     so --plain, --inline and --section below still decide by order. */
   .ds-alert:where(.ds-tone-success) {
     --ds-alert-bg: var(--ds-alert-success-bg, var(--ds-success-container));
     --ds-alert-color: var(--ds-alert-success-color, var(--ds-on-success-container));
     --ds-alert-icon: var(--ds-alert-success-icon, var(--ds-success));
   }
 
-  .ds-alert--warning,
   .ds-alert:where(.ds-tone-warning) {
     --ds-alert-bg: var(--ds-alert-warning-bg, var(--ds-warning-surface));
     --ds-alert-color: var(--ds-alert-warning-color, var(--ds-text));
     --ds-alert-icon: var(--ds-alert-warning-icon, var(--ds-warning));
   }
 
-  .ds-alert--error,
   .ds-alert:where(.ds-tone-error) {
     --ds-alert-bg: var(--ds-alert-error-bg, var(--ds-error-container));
     --ds-alert-color: var(--ds-alert-error-color, var(--ds-on-error-container));
@@ -198,8 +193,7 @@
   }
 
   /* A filled or tonal button keeps the ink of its own fill. */
-  .ds-alert--error:not(.ds-alert--plain) .ds-btn:not(.ds-btn--filled, .ds-btn--primary, .ds-btn--tonal),
-  .ds-alert:where(.ds-tone-error):not(.ds-alert--plain, .ds-alert--inline) .ds-btn:not(.ds-btn--filled, .ds-btn--primary, .ds-btn--tonal) {
+  .ds-alert:where(.ds-tone-error):not(.ds-alert--plain, .ds-alert--inline) .ds-btn:not(.ds-btn--filled, .ds-btn--tonal) {
     --ds-btn-color: var(--ds-alert-error-color, var(--ds-on-error-container));
   }
 

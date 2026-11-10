@@ -24,9 +24,6 @@ A count or a dot on a button, chip, tab or drawer item:
   (`--ds-badge-bg`, `--ds-badge-color`: `--ds-accent`, `--ds-on-accent`; radius `--ds-badge-radius`, never above half
   the size). A toned badge needs its word in the row ("Failed", "2 errors"): colour is never the only signal. An empty
   badge takes no room; an empty dot does.
-- `.ds-badge--neutral`, `.ds-badge--ok`, `.ds-badge--warning`, `.ds-badge--error` are **deprecated** (3.0, removed when
-  3.0 ships): `.ds-tone-neutral`, `.ds-tone-success`, `.ds-tone-warning`, `.ds-tone-error` on the badge, the same look
-  under the option every component shares.
 - On a tinted host (a pressed toggle, `.ds-btn--tonal`, an open disclosure button, a checked chip, an input chip, a
   selected table row) the default badge turns to `--ds-primary` / `--ds-on-primary` and the neutral one to
   `--ds-surface` / `--ds-text-2`, so it never melts into the tint. In a disabled or `aria-disabled` button, chip, tab

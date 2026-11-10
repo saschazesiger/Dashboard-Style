@@ -17,8 +17,6 @@ turns. For a section, a sheet or the app start; a small spot keeps the [spinner]
 | Size | `.ds-xs` ... `.ds-xl` | the loader or a group | 24px per step, at least 16px (16, 24, 48, 72, 96px); the shape is 38/48 of it |
 | Density, shape, tone, touch | | | not read: it morphs through its own shapes, it is no target and it says nothing but "wait" |
 
-- `.ds-loader--sm` is **deprecated** (3.0, removed when 3.0 ships): `.ds-sm`, the same 24px. `--ds-loader-sm-size`, read
-  only by it, is **deprecated** with it: `--ds-loader-size` is the md base.
 - It is decoration: `aria-hidden`, and the surrounding `role="status"` carries the text ([Loading](#loading)). Keep it
   to a few per view: the morph repaints every frame.
 - It fades in after `--ds-delay-loader`; inside `.ds-boot`, `.ds-loading` or `.ds-skeleton` the container waits instead,

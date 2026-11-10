@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.chat.css",
-      "bytes": 300954,
-      "gzip": 46901
+      "bytes": 298916,
+      "gzip": 46562
     },
     "js": {
       "file": "ds.chat.js",
-      "bytes": 617629,
-      "gzip": 145617
+      "bytes": 617206,
+      "gzip": 145519
     },
     "properties": {
       "file": "properties.css",
@@ -36,8 +36,8 @@
     {
       "name": "spinner",
       "reason": "needed by DS.overlay.prompt (chat.html:237)",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "indicator",
@@ -48,26 +48,26 @@
     {
       "name": "button",
       "reason": "chat.html:22 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "status",
       "reason": "required by list",
-      "bytes": 3164,
-      "gzip": 921
+      "bytes": 2830,
+      "gzip": 865
     },
     {
       "name": "chart",
       "reason": "required by list",
-      "bytes": 23341,
-      "gzip": 4433
+      "bytes": 23123,
+      "gzip": 4396
     },
     {
       "name": "list",
       "reason": "chat.html:75 ds-list",
-      "bytes": 18637,
-      "gzip": 3412
+      "bytes": 18493,
+      "gzip": 3387
     },
     {
       "name": "menu",
@@ -78,20 +78,20 @@
     {
       "name": "badge",
       "reason": "chat.html:178 ds-badge",
-      "bytes": 3754,
-      "gzip": 964
+      "bytes": 3304,
+      "gzip": 896
     },
     {
       "name": "dialog",
       "reason": "needed by DS.overlay.prompt (chat.html:237)",
-      "bytes": 15994,
-      "gzip": 2482
+      "bytes": 15933,
+      "gzip": 2468
     },
     {
       "name": "form",
       "reason": "chat.html:88 ds-input--grow",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "drag",
@@ -108,14 +108,14 @@
     {
       "name": "page",
       "reason": "chat.html:67 ds-content",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "shell",
       "reason": "chat.html:18 ds-app",
-      "bytes": 39266,
-      "gzip": 6590
+      "bytes": 39239,
+      "gzip": 6579
     },
     {
       "name": "toast",

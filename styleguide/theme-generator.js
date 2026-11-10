@@ -1380,7 +1380,7 @@ const TEXT_PAIRS = [
   ['--ds-primary', '--ds-surface'],
   ['--ds-primary', '--ds-surface-low'],
   ['--ds-on-error-container', '--ds-surface-low'],
-  // A neutral tag (.ds-tag--neutral) and a badge on a tinted host (2.0).
+  // A neutral tag (.ds-tag.ds-tone-neutral) and a badge on a tinted host (2.0).
   ['--ds-text', '--ds-surface-high'],
   // The neutral alert's defaults (--ds-alert-bg, --ds-alert-color), and the plain preset on a card.
   ['--ds-text', '--ds-surface-low'],

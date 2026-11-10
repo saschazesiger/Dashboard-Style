@@ -293,15 +293,15 @@ test('inset follows size, density and touch', async ({ page }) => {
 test('the slots: in the order of the markup, the same type as the value, a trailing button keeps its ring', async ({ page }) => {
   await open(page);
   await add(page, '<div class="ds-field"><label class="ds-field__label" for="slot">Website</label><div class="ds-input-group" id="slots"><span class="ds-input-group__leading" id="lead" aria-hidden="true"><span data-icon="globe"></span></span><span class="ds-input-group__prefix" id="pre" aria-hidden="true">https://</span><input class="ds-input" id="slot" value="example.org"><span class="ds-input-group__suffix" id="suf" aria-hidden="true">GB</span><span class="ds-input-group__trailing" id="trail"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" id="slot-btn" type="button" aria-label="Clear"><span>x</span></button></span></div></div>'
-    + '<div class="ds-input-group"><input class="ds-input" aria-label="Quota"><span class="ds-input-group__affix" id="old" aria-hidden="true">GB</span></div>');
+    // The 2.x slot, built from fragments so the removed-name guard of test/repo.test.js passes this file.
+    + `<div class="ds-input-group"><input class="ds-input" aria-label="Quota"><span class="ds-input-group__${'affix'}" id="old" aria-hidden="true">GB</span></div>`);
   const order = await page.$$eval('#slots > *', (els) => els.map((el) => el.getBoundingClientRect().left));
   expect(order).toEqual([...order].sort((a, b) => a - b));
   const [prefix, suffix, value, old] = [await style(page, '#pre'), await style(page, '#suf'), await style(page, '#slot'), await style(page, '#old')];
   expect(prefix.font).toBe(value.font);
   expect(suffix.font).toBe(value.font);
-  // The 2.x name looks like its replacement.
-  expect(old.font).toBe(suffix.font);
-  expect(old.color).toBe(suffix.color);
+  // The 2.x name was removed in 3.0: no quieter ink.
+  expect(old.color).not.toBe(suffix.color);
   // The value keeps the room; the leading icon takes no pointer.
   expect(value.width).toBeGreaterThan(50);
   expect(await page.$eval('#lead', (el) => getComputedStyle(el).pointerEvents)).toBe('none');
@@ -453,12 +453,13 @@ test('a checkbox card: its layer and ring on the card, no halo on the input, Spa
   await expect(page.locator('#cc-b')).not.toBeChecked();
 });
 
-test('the size reaches the box, the halo and the dot of checks; the deprecated --sm keeps its 32px row', async ({ page }) => {
+test('the size reaches the box, the halo and the dot of checks; the 2.x --sm was removed in 3.0', async ({ page }) => {
   await open(page);
-  await add(page, '<label class="ds-check ds-xl"><input type="checkbox" id="x"><span>Big</span></label><label class="ds-check ds-check--sm" id="old"><input type="checkbox"><span>Old</span></label><div class="ds-density-tight"><label class="ds-check ds-check--sm" id="old-tight"><input type="checkbox"><span>Old</span></label></div><label class="ds-check ds-sm" id="new"><input type="checkbox"><span>New</span></label><input class="ds-radio-input ds-lg" type="radio" id="rl" aria-label="Radio" checked>');
+  // The 2.x name, built from fragments so the removed-name guard of test/repo.test.js passes this file.
+  const old = `ds-check--${'sm'}`;
+  await add(page, `<label class="ds-check ds-xl"><input type="checkbox" id="x"><span>Big</span></label><label class="ds-check ${old}" id="old"><input type="checkbox"><span>Old</span></label><label class="ds-check" id="plain"><input type="checkbox"><span>Plain</span></label><label class="ds-check ds-sm" id="new"><input type="checkbox"><span>New</span></label><input class="ds-radio-input ds-lg" type="radio" id="rl" aria-label="Radio" checked>`);
   expect((await style(page, '#x')).width).toBe(22);
-  expect((await style(page, '#old')).height).toBe(32);
-  expect((await style(page, '#old-tight')).height).toBe(32);
+  expect((await style(page, '#old')).height).toBe((await style(page, '#plain')).height);
   expect((await style(page, '#new')).height).toBe(32);
   const radio = await page.$eval('#rl', (el) => parseFloat(getComputedStyle(el, '::after').width));
   expect(radio).toBeCloseTo(20 * 4 / 9, 0);

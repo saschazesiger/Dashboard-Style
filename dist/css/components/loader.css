@@ -14,7 +14,6 @@
  *
  *   .ds-loader              48px container at md, the shape 38/48 of it
  *   .ds-loader--contained   the shape on a --ds-accent disc
- *   .ds-loader--sm          deprecated: .ds-sm (the same 24px)
  *
  * Options (docs/options.md), computed here into --_s:
  *   size      .ds-xs ... .ds-xl on the loader or any ancestor: 24px per step
@@ -22,8 +21,8 @@
  *   density, shape, target-min, tone: not read. It morphs through its own
  *             shapes, it is no target and it says nothing but "wait".
  *
- * Hooks: --ds-loader-size (48px, the md base), --ds-loader-sm-size (24px,
- * deprecated with --sm), --ds-loader-color (--ds-primary).
+ * Hooks: --ds-loader-size (48px, the md base), --ds-loader-color
+ * (--ds-primary).
  *
  * The loader is decoration: aria-hidden, and the surrounding role="status"
  * carries the text. Inside .ds-boot, .ds-loading and .ds-skeleton the
@@ -62,10 +61,6 @@
     animation:
       ds-loader-morph var(--ds-loop-loader) var(--ds-ease-spatial) infinite,
       ds-loader-turn var(--ds-loop-loader) linear infinite;
-  }
-
-  .ds-loader--sm {
-    --_s: var(--ds-loader-sm-size, 24px);
   }
 
   .ds-loader--contained {

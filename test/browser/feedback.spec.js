@@ -184,8 +184,8 @@ test.describe('loaders', () => {
     const rows = await page.evaluate(() => {
       const theme = document.querySelector('.ds-theme');
       theme.insertAdjacentHTML('afterbegin',
-        '<div class="ds-loading" id="x-inline" style="width: 600px"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Loading <strong>devices</strong> ...<button class="ds-btn ds-btn--sm" type="button">Cancel</button></div>' +
-        '<div class="ds-loading" id="x-detail" style="width: 600px"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span><span>Importing devices</span><p class="ds-loading__detail">812 of 2,030 rows</p></div>');
+        '<div class="ds-loading" id="x-inline" style="width: 600px"><span class="ds-loader ds-sm" aria-hidden="true"></span>Loading <strong>devices</strong> ...<button class="ds-btn ds-sm" type="button">Cancel</button></div>' +
+        '<div class="ds-loading" id="x-detail" style="width: 600px"><span class="ds-loader ds-sm" aria-hidden="true"></span><span>Importing devices</span><p class="ds-loading__detail">812 of 2,030 rows</p></div>');
       const middle = (el) => { const r = el.getBoundingClientRect(); return { top: r.top, middle: r.top + r.height / 2, left: r.left }; };
       const inline = document.querySelector('#x-inline');
       const detail = document.querySelector('#x-detail');

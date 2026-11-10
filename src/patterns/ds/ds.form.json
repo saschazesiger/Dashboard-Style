@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.form.css",
-      "bytes": 198876,
-      "gzip": 32504
+      "bytes": 197825,
+      "gzip": 32337
     },
     "js": {
       "file": "ds.form.js",
-      "bytes": 472425,
-      "gzip": 112373
+      "bytes": 472030,
+      "gzip": 112280
     },
     "properties": {
       "file": "properties.css",
@@ -36,8 +36,8 @@
     {
       "name": "spinner",
       "reason": "form.html:102 ds-spinner",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "indicator",
@@ -48,20 +48,20 @@
     {
       "name": "button",
       "reason": "form-sent.html:26 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "alert",
       "reason": "form.html:27 ds-alert",
-      "bytes": 6191,
-      "gzip": 1561
+      "bytes": 6019,
+      "gzip": 1532
     },
     {
       "name": "card",
       "reason": "form.html:19 ds-card",
-      "bytes": 16606,
-      "gzip": 2659
+      "bytes": 16531,
+      "gzip": 2644
     },
     {
       "name": "menu",
@@ -72,8 +72,8 @@
     {
       "name": "form",
       "reason": "form.html:26 ds-form",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "tooltip",
@@ -84,8 +84,8 @@
     {
       "name": "page",
       "reason": "form.html:17 ds-auth",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "toast",

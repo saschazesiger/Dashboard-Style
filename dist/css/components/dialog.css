@@ -179,8 +179,8 @@
  * backdrop colour.
  *
  * Hooks: --ds-dialog-width (400px), --ds-dialog-width-sm (320px),
- * --ds-dialog-width-lg (560px), --ds-dialog-width-xl (720px), and
- * --ds-dialog-width-wide, the deprecated name of -lg, --ds-dialog-padding
+ * --ds-dialog-width-lg (560px), --ds-dialog-width-xl (720px),
+ * --ds-dialog-padding
  * (--ds-space-6), --ds-dialog-radius (--ds-radius-dialog),
  * --ds-dialog-head-height (56px), --ds-dialog-height (auto; set it so a filtered list does not make the
  * box jump; capped by the window), --ds-dialog-full-radius (0),
@@ -471,12 +471,7 @@
   }
 
   .ds-dialog--lg .ds-dialog__box {
-    width: min(var(--ds-dialog-width-lg, var(--ds-dialog-width-wide, 560px)), 100%);
-  }
-
-  /* The 2.x name of --lg, until 3.0 ships. */
-  .ds-dialog--wide .ds-dialog__box {
-    width: min(var(--ds-dialog-width-lg, var(--ds-dialog-width-wide, 560px)), 100%);
+    width: min(var(--ds-dialog-width-lg, 560px), 100%);
   }
 
   .ds-dialog--xl .ds-dialog__box {

@@ -9,8 +9,7 @@
  *   .ds-btn                  outlined (secondary action)
  *   .ds-btn--outlined        the same, named explicitly
  *   .ds-btn--filled          the main action of a form or dialog; one per
- *                            area (.ds-btn--primary: its 2.x name, a
- *                            deprecated alias until 3.0 ships)
+ *                            area
  *   .ds-btn--tonal           the tint: a softer main action
  *   .ds-btn--elevated        a raised surface with the action ink (level 1,
  *                            level 2 on hover): an action on an image or
@@ -68,12 +67,6 @@
  *             button of a destructive confirmation (the confirm dialog
  *             and the type-to-confirm pattern, D10); pages keep no red
  *             buttons, and no other tone colours a button
- *   .ds-btn--sm              the 2.x small button, a deprecated alias of
- *                            .ds-sm until 3.0 ships: the small step and
- *                            its type role at the fixed 2.x height
- *                            (--ds-btn-sm-height, 32px; with --icon
- *                            --ds-btn-sm-icon-size, 32px), which density
- *                            does not change
  *
  * Link button: .ds-link-btn, a button that reads like a link (an action
  * inside text or a table cell, the subject that opens a detail): the link
@@ -142,8 +135,7 @@
  * -padding-start, -radius, -radius-pressed, -font, -bg, -color, -border,
  * -shadow, -state (layer colour), -state-opacity, -state-focus-opacity,
  * -state-pressed-opacity, -hover-color, -hover-border, -hover-shadow,
- * -hover-decoration, -icon-size, -sm-height, -sm-icon-size (read by --sm),
- * -quiet-color, -disabled-bg, -disabled-border. The computed values
+ * -hover-decoration, -icon-size, -quiet-color, -disabled-bg, -disabled-border. The computed values
  * (--_h, --_box, --_half, --_radius, --_pad) are private: never set them.
  *
  * Forced colours: a pressed toggle and an open disclosure button take the
@@ -448,10 +440,8 @@
     flex-shrink: 0;
   }
 
-  /* Filled (2.x: --primary, a deprecated alias). Level 1 on hover where
-     the theme has elevation. */
-  .ds-btn--filled,
-  .ds-btn--primary {
+  /* Filled. Level 1 on hover where the theme has elevation. */
+  .ds-btn--filled {
     --ds-btn-border: var(--ds-primary);
     --ds-btn-bg: var(--ds-primary);
     --ds-btn-color: var(--ds-on-primary);
@@ -465,7 +455,7 @@
      pattern, its label naming the consequence ("Delete 3 devices"). It
      reads the tone the class sets on the button itself, never an
      inherited one: a filled button inside an error alert stays filled. */
-  :is(.ds-btn--filled, .ds-btn--primary).ds-tone-error {
+  .ds-btn--filled.ds-tone-error {
     --ds-btn-border: var(--ds-tone, var(--ds-error));
     --ds-btn-bg: var(--ds-tone, var(--ds-error));
     --ds-btn-color: var(--ds-on-tone, var(--ds-on-error));
@@ -559,23 +549,6 @@
     }
   }
 
-  /* The 2.x small button, a deprecated alias of .ds-sm until 3.0 ships:
-     the small step and its type role, at the fixed 2.x height and padding
-     (density does not change them, as compact.css did not), never below
-     the touch minimum. Its own density is 0, so a component that lines up
-     with it (an alert, a table's row actions) computes the same 32px. */
-  .ds-btn--sm {
-    --ds-size-step: -1;
-    --ds-density: 0;
-    --ds-size-font: var(--ds-font-chip);
-    --_h: var(--ds-btn-height-exact, var(--ds-btn-sm-height, 32px));
-    --_pad: var(--ds-btn-padding-x, var(--ds-space-3));
-  }
-
-  .ds-btn--icon.ds-btn--sm {
-    --_box: max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, 32px));
-  }
-
   /* A toggle that is on (a filter shown, "only active"): the tint. So is a
      button whose panel is open (a disclosure, a dialog or side sheet
      opener); a menu trigger stays as it is. */
@@ -591,7 +564,7 @@
      action ink on a filled one, the quieter ink on a tonal one); on, the
      variant's own fill. So off and on differ by the fill, not by a hue, and
      a filled toggle that is on stays filled. */
-  :is(.ds-btn--filled, .ds-btn--primary, .ds-btn--tonal)[aria-pressed="false"] {
+  :is(.ds-btn--filled, .ds-btn--tonal)[aria-pressed="false"] {
     --ds-btn-border: var(--ds-surface-highest);
     --ds-btn-bg: var(--ds-surface-highest);
     --ds-btn-color: var(--ds-action-ink);
@@ -603,7 +576,7 @@
     --ds-btn-hover-color: var(--ds-text);
   }
 
-  :is(.ds-btn--filled, .ds-btn--primary)[aria-pressed="true"] {
+  .ds-btn--filled[aria-pressed="true"] {
     --ds-btn-border: var(--ds-primary);
     --ds-btn-bg: var(--ds-primary);
     --ds-btn-color: var(--ds-on-primary);
@@ -651,10 +624,6 @@
       padding: 0;
     }
 
-    .ds-btn--adaptive.ds-btn--sm {
-      --_box: max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, 32px));
-    }
-
     .ds-btn--adaptive > svg {
       width: 20px;
       height: 20px;
@@ -686,10 +655,6 @@
       height: var(--_box);
       min-height: 0;
       padding: 0;
-    }
-
-    .ds-btn--adaptive.ds-btn--sm:not(:where(.ds-content *):not(:is(.ds-sheet, .ds-dialog) *)) {
-      --_box: max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, 32px));
     }
 
     .ds-btn--adaptive:not(:where(.ds-content *):not(:is(.ds-sheet, .ds-dialog) *)) > svg {

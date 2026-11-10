@@ -21,8 +21,6 @@
  *   .ds-spinner                on surfaces (16px at md)
  *   .ds-spinner--ink           inside buttons and chips: the arc in the
  *                              text colour, on a faint ring of it
- *   .ds-spinner--sm            deprecated: .ds-spinner--ink with .ds-sm (a
- *                              fixed 12px until 3.0 ships)
  *   .ds-spinner--determinate   circular progress (40px at md, 4px): the share
  *                              (--ds-progress, 0 ... 1) as an arc, a gap,
  *                              then the remaining track in --ds-accent; the
@@ -84,15 +82,9 @@
   }
 
   /* The arc and a faint ring in the text colour. */
-  .ds-spinner--ink,
-  .ds-spinner--sm {
+  .ds-spinner--ink {
     --ds-spinner-color: currentColor;
     --ds-spinner-track: color-mix(in srgb, currentColor 22%, transparent);
-  }
-
-  /* The 2.x name keeps its fixed 12px until 3.0 ships. */
-  .ds-spinner--sm {
-    --_s: 12px;
   }
 
   /* A tone from the class on the spinner itself (zero weight, so the

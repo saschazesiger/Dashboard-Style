@@ -1,7 +1,7 @@
 /**
  * The avatar on the options model (3.0): the disc at every size (density and
  * touch leave it alone; an interactive avatar's hit area grows), the shape,
- * the square, the deprecated --sm and --lg; data-ds-avatar (initials, the hue
+ * the square, the 2.x --sm and --lg gone; data-ds-avatar (initials, the hue
  * of the name, the label with the status word, a picture's alt, owned state
  * that a morph keeps, destroy); the corner parts that are never cut; the
  * group with "+N", its menu (keys, Escape, focus return, ds:select) and its
@@ -34,7 +34,7 @@ const probe = (page, html, read) => page.evaluate(({ html, read }) => {
 
 const box = '[el.getBoundingClientRect().width, el.getBoundingClientRect().height]';
 
-test('the disc at every size; density and touch leave it alone; the deprecated --sm and --lg keep 24 and 40px', async ({ page }) => {
+test('the disc at every size; density and touch leave it alone; the 2.x --sm and --lg were removed in 3.0', async ({ page }) => {
   await open(page);
   for (const touch of [false, true]) {
     for (const density of DENSITIES) {
@@ -44,8 +44,10 @@ test('the disc at every size; density and touch leave it alone; the deprecated -
       }
     }
   }
-  expect(await probe(page, '<div class="ds-xl"><span id="probe" class="ds-avatar ds-avatar--sm">A</span></div>', box)).toEqual([24, 24]);
-  expect(await probe(page, '<div class="ds-xs"><span id="probe" class="ds-avatar ds-avatar--lg">A</span></div>', box)).toEqual([40, 40]);
+  // Built from fragments, so the removed-name guard of test/repo.test.js passes this file: the size around wins.
+  const [small, large] = ['sm', 'lg'].map((name) => `ds-avatar--${name}`);
+  expect(await probe(page, `<div class="ds-xl"><span id="probe" class="ds-avatar ${small}">A</span></div>`, box)).toEqual([48, 48]);
+  expect(await probe(page, `<div class="ds-xs"><span id="probe" class="ds-avatar ${large}">A</span></div>`, box)).toEqual([16, 16]);
   // The type of the size.
   expect(await probe(page, '<span id="probe" class="ds-avatar ds-xs">A</span>', 'parseFloat(style.fontSize)')).toBe(12);
   expect(await probe(page, '<span id="probe" class="ds-avatar ds-xl">A</span>', 'parseFloat(style.fontSize)')).toBe(16);

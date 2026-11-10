@@ -99,7 +99,7 @@ test('at every size the dot and the marker stay on the title\'s centre, with a s
   const measured = await page.evaluate((sizes) => sizes.map(([size]) => {
     const region = document.createElement('div');
     region.className = size;
-    region.innerHTML = '<ol class="ds-timeline" role="list"><li class="ds-timeline__item" id="chip"><div class="ds-timeline__head"><p class="ds-timeline__title">Issued</p><span class="ds-status ds-status--ok"><span>Active</span></span></div></li></ol>'
+    region.innerHTML = '<ol class="ds-timeline" role="list"><li class="ds-timeline__item" id="chip"><div class="ds-timeline__head"><p class="ds-timeline__title">Issued</p><span class="ds-status ds-tone-success"><span>Active</span></span></div></li></ol>'
       + '<ol class="ds-timeline ds-timeline--activity" role="list"><li class="ds-timeline__item ds-timeline__item--icon" id="feed"><span class="ds-timeline__marker" aria-hidden="true">GH</span><div class="ds-timeline__head"><p class="ds-timeline__title"><strong>Grace Hopper</strong> took it</p></div></li>'
       + '<li class="ds-timeline__item" id="feed-dot"><div class="ds-timeline__head"><p class="ds-timeline__title">A sync</p></div></li></ol>';
     document.querySelector('#fx-component').prepend(region);

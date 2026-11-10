@@ -75,7 +75,7 @@ test.describe('the ripple handle (CT-1)', () => {
     await expect.poll(() => chip.locator('.ds-press-ripple').count(), { timeout: 2000 }).toBe(0);
   });
 
-  test('release() ends a press by hand, with or without a host; destroy() and the deprecated detach() take it all back', async ({ page }) => {
+  test('release() ends a press by hand, with or without a host; destroy() takes it all back (the 2.x alias is gone)', async ({ page }) => {
     await open(page);
     for (const byHost of [true, false]) {
       const button = page.locator('#btn-badge');
@@ -94,14 +94,14 @@ test.describe('the ripple handle (CT-1)', () => {
     const state = await page.evaluate(() => {
       const handle = window.fxRipples;
       const keys = Object.keys(handle).sort();
-      handle.detach();
+      handle.destroy();
       const after = document.documentElement.classList.contains('ds-ripples');
       const again = DS.ripple.attach(document);
       const fresh = again !== handle;
       again.destroy();
       return { keys, after, fresh, now: document.documentElement.classList.contains('ds-ripples') };
     });
-    expect(state).toEqual({ keys: ['destroy', 'detach', 'release'], after: false, fresh: true, now: false });
+    expect(state).toEqual({ keys: ['destroy', 'release'], after: false, fresh: true, now: false });
   });
 
   test('a chip toggled by script with a change event in the same task glides like a click', async ({ page }) => {
@@ -191,7 +191,7 @@ test.describe('press model and utilities (CT-2, CT-4)', () => {
   test('.ds-hover-actions answers to its nearest host: a table in a card shows the pointed row\'s actions only', async ({ page }) => {
     await open(page);
     await page.evaluate(() => {
-      const button = (name) => `<span class="ds-hover-actions" id="host-actions-${name}"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" id="host-action-${name}" aria-label="Edit ${name}">E</button></span>`;
+      const button = (name) => `<span class="ds-hover-actions" id="host-actions-${name}"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" id="host-action-${name}" aria-label="Edit ${name}">E</button></span>`;
       document.querySelector('.ds-theme').insertAdjacentHTML('afterbegin',
         '<section class="ds-card" id="host-card" style="width: 480px">' +
         '<h3 class="ds-card__title" id="host-card-title">Fleet</h3>' +
@@ -472,7 +472,7 @@ test.describe('the switch (CT-13)', () => {
     await page.evaluate(() => {
       const list = document.getElementById('switch-list');
       list.insertAdjacentHTML('beforeend', '<label class="ds-switch" id="fx-row-long"><input type="checkbox" role="switch" aria-labelledby="fx-long-name" aria-describedby="fx-long-hint"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label" id="fx-long-name">Send a summary of every failed nightly backup to the owners of the affected devices</span><small class="ds-switch__hint" id="fx-long-hint">Once a day, after the last run</small><span class="ds-switch__state" aria-hidden="true">Off</span></label>'
-        + '<label class="ds-switch" id="fx-row-meta"><input type="checkbox" role="switch" aria-labelledby="fx-meta-name"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label" id="fx-meta-name">Weekly digest</span><span class="ds-switch__meta"><span class="ds-tag ds-tag--neutral">2 lists</span></span></label>');
+        + '<label class="ds-switch" id="fx-row-meta"><input type="checkbox" role="switch" aria-labelledby="fx-meta-name"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label" id="fx-meta-name">Weekly digest</span><span class="ds-switch__meta"><span class="ds-tag ds-tone-neutral">2 lists</span></span></label>');
       list.children[1].id = 'fx-row-plain';
     });
     /** Per switch: the gap from the name to its hint, and the text block's centre less the track's centre. */
@@ -620,7 +620,7 @@ test.describe('blocked hosts and selected cards (2.0 review)', () => {
     await page.evaluate(() => {
       document.querySelector('.ds-theme').insertAdjacentHTML('afterbegin',
         '<div class="fx-row"><button class="ds-btn" type="button" disabled>Inbox <span class="ds-badge" id="badge-disabled">3</span></button>' +
-        '<button class="ds-btn" type="button" aria-disabled="true">Alerts <span class="ds-badge ds-badge--error" id="badge-aria">2</span></button>' +
+        '<button class="ds-btn" type="button" aria-disabled="true">Alerts <span class="ds-badge ds-tone-error" id="badge-aria">2</span></button>' +
         '<label class="ds-chip"><input class="ds-chip__input" type="checkbox" disabled><span class="ds-chip__body"><span>Failed</span> <span class="ds-badge" id="badge-chip">5</span></span></label></div>');
     });
     await settle(page);

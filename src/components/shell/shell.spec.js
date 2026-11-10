@@ -227,18 +227,10 @@ test('compact theme: a drawer row 40px, a switch 32px, as in 2.x', async ({ page
   expect(await height('[data-demo="segmented"]')).toBe(32);
 });
 
-test('an avatar steps 8px per size; the 2.x aliases keep their fixed discs whatever surrounds them', async ({ page }) => {
+test('an avatar steps 8px per size', async ({ page }) => {
   await open(page);
   const sizes = await page.$$eval('.sg-demo-section .ds-avatar', (els) => els.map((el) => el.getBoundingClientRect().width));
   expect(sizes).toEqual([16, 24, 32, 40, 48]);
-  const aliases = await page.evaluate(() => {
-    const region = document.createElement('div');
-    region.className = 'ds-xl';
-    region.innerHTML = '<span class="ds-avatar ds-avatar--sm">A</span><span class="ds-avatar ds-avatar--lg">A</span>';
-    document.querySelector('#fx-component').append(region);
-    return [...region.children].map((el) => [el.getBoundingClientRect().width, parseFloat(getComputedStyle(el).fontSize)]);
-  });
-  expect(aliases).toEqual([[24, 12], [40, 16]]);
 });
 
 test('nested groups indent as padding: the layer and the pill keep the row\'s width, the pill follows across levels', async ({ page }) => {

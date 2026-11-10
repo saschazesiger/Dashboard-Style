@@ -8,13 +8,9 @@
   "status": "stable",
   "classes": [
     "ds-status",
-    "ds-status--error",
-    "ds-status--ok",
     "ds-status--running",
-    "ds-status--warning",
     "ds-status__spinner",
-    "ds-tag",
-    "ds-tag--neutral"
+    "ds-tag"
   ],
   "attributes": [],
   "requires": [

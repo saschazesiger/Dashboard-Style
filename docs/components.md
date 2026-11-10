@@ -494,7 +494,7 @@ group.addEventListener('click', (event) => {
   `.ds-collapsible` timing. The pill follows the current item across groups; an item inside a closed group has no pill
   (it contracts, and comes back when the group opens). Keep the open groups across loads in the page (`open`).
 - `.ds-drawer__row` holds an item and a `.ds-drawer__action`, a quiet small icon button at the item's end (the item
-  keeps room for it at the action's size, `--ds-btn-sm-icon-size`, so also under `.ds-touch`). With `.ds-hover-actions` the action shows on hover, focus, the current item and an open menu, and
+  keeps room for it at the action's size, `--ds-btn-icon-size` less one 8px step, so also under `.ds-touch`). With `.ds-hover-actions` the action shows on hover, focus, the current item and an open menu, and
   always on touch; it stays in the tab order.
 - `<a>` drawer items no longer flash on tap in iOS (`-webkit-tap-highlight-color` on every item).
 - Type: `--ds-drawer-font` (default the size's role, else `--ds-font-body`), always at the regular weight; the current
@@ -1752,12 +1752,6 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
   `--ds-shape`, so a square theme or region has square buttons. One filled button per area. Red buttons only as above
   (D10): pages keep none; name the consequence ("Delete 3 devices"). A filled button inside an error alert or another
   tone region stays filled: the button reads the tone of its own class only.
-- `.ds-btn--primary` is **deprecated** (3.0, removed when 3.0 ships): `.ds-btn--filled`, the same look under the
-  variant name every component shares.
-- `.ds-btn--sm` is **deprecated** (3.0, removed when 3.0 ships): `.ds-sm`. Until then it keeps the fixed 2.x small
-  button: `--ds-btn-sm-height` (32px; with `--icon` `--ds-btn-sm-icon-size`, 32px; both **deprecated** with it) and
-  12px of side padding, which density does not change. `.ds-sm` is the same 32px at the default density and follows
-  the density like every size (24px in the compact theme); a small `--text` button pads 8px.
 - A leading icon pulls the start padding to 12px at md (4px more per size above, never more than the end padding),
   also the icon of the first face of `.ds-btn__faces`. Icons keep the size their markup gives them (16px beside a
   label, 20px alone).
@@ -2497,8 +2491,6 @@ A block of related content on a surface, or a whole block that opens or picks so
 | Touch | `.ds-touch` | the card or an ancestor | an interactive card is at least `--ds-touch-target` high |
 | Size | not read | | a card has no height of its own; a size class on it reaches the controls inside |
 | Tone | not read | | a card shows no meaning of its own: put a status chip or an alert in it |
-
-`.ds-subsection` and `.ds-more` are **deprecated** aliases of `.ds-card__section` and `.ds-card__more` (their 2.x names), until 3.0 ships.
 
 Children of a card are 16px apart; a button, switch or `.ds-chip` in `.ds-card__row` overhangs the title line so all
 card titles start at the same height; a status chip, badge or tag fits the line and sits on it, so a row that wraps
@@ -3311,9 +3303,7 @@ The list controller: `get()` (multiple: the checked keys; single: the key or `nu
   and a ring that snaps in, the ripple, no morph; `disabled` and `aria-disabled="true"` rows take the disabled
   model (`GrayText` in forced colours). A `div.ds-kv-list__row` is a static row among them.
 - `.ds-kv-list__icon` before a value, with a tone on the icon itself (`.ds-tone-success`, `.ds-tone-warning`,
-  `.ds-tone-error` ...), always with a `.ds-sr` word. `.ds-kv-list__icon--ok`, `.ds-kv-list__icon--warning` and
-  `.ds-kv-list__icon--error` are **deprecated** (3.0, removed when 3.0 ships): `.ds-tone-success`, `.ds-tone-warning`,
-  `.ds-tone-error`, the same colours. `strong.ds-muted` is a quiet value ("Not set") in the regular weight.
+  `.ds-tone-error` ...), always with a `.ds-sr` word. `strong.ds-muted` is a quiet value ("Not set") in the regular weight.
 - `.ds-kv-list--bars` puts a [meter](#charts) under each row, `aria-hidden` (the figure is in the text); the label
   stays on one line and ends in an ellipsis (give it a `data-tip` with the full text). A tone on the meter also goes
   into the row as a word ("78%, high"): the meter is hidden and a figure is no status.
@@ -5083,9 +5073,6 @@ update the text node only, so the spinner does not restart (`DS.dom.morphHtml`).
 | Shape | `.ds-shape-*` | any container or the theme | the corners times 0, .5, 1, 1.5; at the default, round at one line at any size |
 | Density, touch | | | not read: a chip sits in a line, like a badge, and it is no target. So `themes/compact.css` keeps 2.x's 24px; a smaller chip is `.ds-sm` |
 
-- `.ds-status--ok`, `.ds-status--warning`, `.ds-status--error` are **deprecated** (3.0, removed when 3.0 ships):
-  `.ds-tone-success`, `.ds-tone-warning`, `.ds-tone-error` on the chip, the same look under the option every component
-  shares.
 - Hooks: `--ds-status-height` (24px, the md base), `--ds-status-radius` (`--ds-radius-md`, or half the height of a
   taller chip), `--ds-status-spinner-width` (2px) ([theming.md](theming.md#component-hooks)).
 
@@ -5114,8 +5101,7 @@ A tag is a label of words ("Preview", "Beta", "External"), not a state and not a
 The caption type on the tint (hooks `--ds-tag-bg`, `--ds-tag-color`, from `--ds-accent` and `--ds-on-accent`; a tone:
 its container pair, neutral `--ds-surface-high` and `--ds-text`), an optional leading 16px icon (`--ds-on-accent-icon`),
 the pill radius at half its height (`--ds-tag-height`, 24px at md, with the size as on the chip and no density; times
-the shape). Forced colours draw a `CanvasText` outline. `.ds-tag--neutral` is **deprecated** (3.0, removed when 3.0 ships):
-`.ds-tone-neutral`. Tag = words, badge = counts ([Badge](#badge)), status chip = a state with an icon.
+the shape). Forced colours draw a `CanvasText` outline. Tag = words, badge = counts ([Badge](#badge)), status chip = a state with an icon.
 
 **Motion:** the "Status chip" row of [Feedback](motion.md#feedback) in motion.md.
 ## State label
@@ -5288,9 +5274,6 @@ A count or a dot on a button, chip, tab or drawer item:
   (`--ds-badge-bg`, `--ds-badge-color`: `--ds-accent`, `--ds-on-accent`; radius `--ds-badge-radius`, never above half
   the size). A toned badge needs its word in the row ("Failed", "2 errors"): colour is never the only signal. An empty
   badge takes no room; an empty dot does.
-- `.ds-badge--neutral`, `.ds-badge--ok`, `.ds-badge--warning`, `.ds-badge--error` are **deprecated** (3.0, removed when
-  3.0 ships): `.ds-tone-neutral`, `.ds-tone-success`, `.ds-tone-warning`, `.ds-tone-error` on the badge, the same look
-  under the option every component shares.
 - On a tinted host (a pressed toggle, `.ds-btn--tonal`, an open disclosure button, a checked chip, an input chip, a
   selected table row) the default badge turns to `--ds-primary` / `--ds-on-primary` and the neutral one to
   `--ds-surface` / `--ds-text-2`, so it never melts into the tint. In a disabled or `aria-disabled` button, chip, tab
@@ -5506,9 +5489,7 @@ render the "+N" yourself.
 | Tone | `.ds-tone-*` | on a `.ds-avatar--ring` itself | the ring's colour; the label says what it means |
 | Density | | | not read: an avatar is the size of a face; a dense row takes a smaller size class |
 
-`.ds-avatar--sm` and `.ds-avatar--lg` are **deprecated** (3.0, removed when 3.0 ships): `.ds-sm` and `.ds-lg`, also on any
-ancestor. Until then they keep the fixed 2.x discs (24 and 40px). The account avatar of the app frame
-(`.ds-account__avatar`) is the same disc.
+The account avatar of the app frame (`.ds-account__avatar`) is the same disc.
 
 ### Behaviour: `data-ds-avatar`
 
@@ -5802,7 +5783,6 @@ An inline message under a field or in a row; a section message, a block with its
 | Shape | `.ds-shape-*` | any container or the theme | the corners times 0, .5, 1, 1.5; `--plain` and `--inline` have none |
 | Touch | `.ds-touch` | the theme or a container | its buttons and the `.ds-errors` summary, at least `--ds-touch-target` high; the alert itself is no target, but it grows to hold its button (below) |
 
-- `.ds-alert--success`, `.ds-alert--warning`, `.ds-alert--error` are **deprecated** (3.0, removed when 3.0 ships): `.ds-tone-success`, `.ds-tone-warning`, `.ds-tone-error` on the alert, the same look under the option every component shares.
 - `.ds-alert__title` (the label font, the alert's ink) opens `.ds-alert__text` in every alert; paragraphs in the text
   lose their margins and stand `--ds-space-2` apart.
 - `.ds-alert__actions` after the text holds one or more buttons side by side; the alert then wraps, the text takes at
@@ -6235,9 +6215,7 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
 | Stacked | `.ds-table--stack`, `.ds-table--stack-wide` | the table | a block per row where a row of fields has no room |
 
 Zebra, borders, sticky rows and pinned columns combine. There is no tone: a table shows no meaning of its own, a
-`.ds-status` in a cell does. `.ds-table--dense` is **deprecated** (removed when 3.0 ships), with its hook
-`--ds-table-dense-row-height`: the 2.x 40px head and rows at a fixed height, which size and density do not change. Use
-`.ds-density-tight` on the table or a container: 40px rows and a 36px head.
+`.ds-status` in a cell does. Rows of 40px are `.ds-density-tight` on the table or a container (with a 36px head).
 
 ### Sticky rows
 
@@ -6297,7 +6275,6 @@ and a selected row its checkbox), and the selection bar keeps an outline.
 |---|---|---|
 | `--ds-table-head-height` | 48px | the head's base height, which size and density step from |
 | `--ds-table-row-height` | 52px | the rows' base height, which size and density step from |
-| `--ds-table-dense-row-height` | 40px | `.ds-table--dense` (deprecated) |
 | `--ds-table-padding` | `--ds-space-4` | the cells' side padding, which density steps from; on phones (600px) three quarters of it, below 360px half |
 | `--ds-table-row-hover` | `currentColor` at `--ds-state-hover-lg` | the row's hover layer |
 | `--ds-table-row-selected` | `--ds-accent` | a selected row |
@@ -7596,8 +7573,6 @@ radios and their cards, fieldsets and form sections, filters and an action bar. 
   guard of its own.
 - A `.ds-check` row is `--ds-check-height` tall (40px, with the size and density steps) around one line of its
   label. A long label wraps (even a bare text node, `overflow-wrap: anywhere`) and the box stays beside its first line.
-- `.ds-check--sm` is **deprecated** (3.0, removed when 3.0 ships): `.ds-sm`. Until then it keeps the fixed 2.x row
-  (`--ds-check-sm-height`, 32px, **deprecated** with it) and the quieter ink; density does not change it.
 - Radio cards (`.ds-radio`) have a state layer and the ripple, and turn squarer while pressed
   (`--ds-radius-card-pressed` times `--ds-shape`), springing back on release; keyboard focus rings the whole card and lays the focus
   layer (`--ds-state-focus`) at once (its input has no halo); `.ds-radio--disabled` and a card whose input is
@@ -7757,8 +7732,6 @@ document.addEventListener('keydown', (event) => {
 - A button in the group, direct or in the trailing slot, adds nothing to the field's height as long as it is no taller
   than the field. It keeps its own size: `.ds-sm` fits md and the dense density; at `.ds-xs`, or `.ds-sm` with a dense
   density, put `.ds-xs` on it.
-- `.ds-input-group__affix` is **deprecated** (3.0, removed when 3.0 ships): `.ds-input-group__prefix` before the
-  input, `.ds-input-group__suffix` after it, the same look.
 - The reveal is the page's two lines: toggle the input's `type` between `password` and `text`, and the button's
   `aria-pressed` (the icon swap follows it).
 
@@ -10999,8 +10972,7 @@ aria-modal="true" aria-labelledby="del-title" aria-describedby="del-text">`.
 Declaratively, without a script of your own (3.0): `data-ds-open` on the button opens it, with the button as its opener,
 and `data-ds-close` inside it closes it. `data-ds-close="#id"` closes that one, from outside or from another overlay it
 leaves open, and `[data-ds-open]` works on a
-sheet and a menu too. `data-close` is the **deprecated** 2.x name of `data-ds-close` and works until 3.0 ships, and so does the event
-`'ds-close'`, next to `ds:close`.
+sheet and a menu too.
 
 ```html
 <button class="ds-btn" type="button" data-ds-open="#del-dialog">Delete</button>
@@ -11011,7 +10983,7 @@ sheet and a menu too. `data-close` is the **deprecated** 2.x name of `data-ds-cl
 
 | Option | Classes | Where it applies | Effect |
 |---|---|---|---|
-| Size | `.ds-dialog--sm`, the default, `.ds-dialog--lg`, `.ds-dialog--xl` | the dialog | the width of the box: 320px, 400px, 560px, 720px (never wider than the window). A size class (`.ds-sm`) on it would change every control inside, so the dialog has these instead. `.ds-dialog--wide` is the **deprecated** name of `.ds-dialog--lg`, and the hook `--ds-dialog-width-wide` of `--ds-dialog-width-lg`, until 3.0 ships |
+| Size | `.ds-dialog--sm`, the default, `.ds-dialog--lg`, `.ds-dialog--xl` | the dialog | the width of the box: 320px, 400px, 560px, 720px (never wider than the window). A size class (`.ds-sm`) on it would change every control inside, so the dialog has these instead |
 | Full screen | `.ds-dialog--full`; `.ds-dialog--full-narrow` | the dialog | the box fills the window; `--full-narrow` only at 600px and below |
 | Action sheet | `.ds-dialog--bottom` | the dialog | the box sits at the bottom edge |
 | Contained | `.ds-dialog--contained` | the dialog, div markup | it covers its positioned container |
@@ -11356,7 +11328,7 @@ Limits: a morph that drops the attribute frees the dialog (render it, or set it 
 Android Back can still force a native close (it follows with reason `escape`); never set `closedby` on a dialog that
 `DS.overlay` drives; a `<form method="dialog">` submit closes natively (give its buttons `type="button"`).
 
-- **Why it closed.** Every close sends `ds:close` (and `ds-close`, its **deprecated** 2.x name) with `detail.reason` (`escape`, `backdrop`, `close`, `api`, `submit`, your own
+- **Why it closed.** Every close sends `ds:close` with `detail.reason` (`escape`, `backdrop`, `close`, `api`, `submit`, your own
   string from `close(dialog, { reason })` ...; [motion.md](motion.md#dsoverlay-jsoverlayjs)), once, as soon as it starts.
   It bubbles: a listener on the dialog also hears the menus, lists and dialogs inside it, so check
   `event.target === dialog`.
@@ -13108,8 +13080,6 @@ and table cells. A known share is the same component as a ring.
 | Tone | `.ds-tone-*` | the spinner itself; an inherited tone is ignored | the arc in the tone, a ring's track in the tone's container; a share in a tone needs its word next to it |
 | Density, shape, touch | | | not read: a spinner is round, no target, and its size follows the size step alone |
 
-- `.ds-spinner--sm` is **deprecated** (3.0, removed when 3.0 ships): `.ds-spinner--ink` with `.ds-sm`, the same look.
-  Until then it keeps its fixed 12px at any size.
 - Show it only after `--ds-delay-loader`, so fast loads never flash it: delay it through `.ds-loading`, a busy button or
   `<span class="ds-enter ds-enter--delayed">`. Never put `.ds-enter` on it in static markup (wrap it); it would replace
   the arc and the turn while it runs. A block of the page that waits shows the [shape loader](#shape-loader) instead.
@@ -13149,8 +13119,6 @@ turns. For a section, a sheet or the app start; a small spot keeps the [spinner]
 | Size | `.ds-xs` ... `.ds-xl` | the loader or a group | 24px per step, at least 16px (16, 24, 48, 72, 96px); the shape is 38/48 of it |
 | Density, shape, tone, touch | | | not read: it morphs through its own shapes, it is no target and it says nothing but "wait" |
 
-- `.ds-loader--sm` is **deprecated** (3.0, removed when 3.0 ships): `.ds-sm`, the same 24px. `--ds-loader-sm-size`, read
-  only by it, is **deprecated** with it: `--ds-loader-size` is the md base.
 - It is decoration: `aria-hidden`, and the surrounding `role="status"` carries the text ([Loading](#loading)). Keep it
   to a few per view: the morph repaints every frame.
 - It fades in after `--ds-delay-loader`; inside `.ds-boot`, `.ds-loading` or `.ds-skeleton` the container waits instead,
@@ -13677,10 +13645,6 @@ hover.
   be wider than its card.
 - `.ds-legend`: keys of `--ds-legend-key-size` (12px) in the meta font; `.ds-legend__key--s2`, `.ds-legend__key--s3`,
   `.ds-legend__key--s4`, or a tone on the key itself.
-- `.ds-meter--neutral`, `.ds-meter--warning`, `.ds-meter--error`, `.ds-columns__col--warning`,
-  `.ds-columns__col--error`, `.ds-legend__key--neutral`, `.ds-legend__key--warning` and `.ds-legend__key--error` are
-  **deprecated** (3.0, removed when 3.0 ships): `.ds-tone-neutral`, `.ds-tone-warning`, `.ds-tone-error`, the same
-  colours.
 - **Colours**: the series in their fixed order, never cycled; at most four, more fold into "Other"; the tones only on
   single-series marks; text never takes a series colour. A theme that changes the roles keeps each at 3:1 on
   `--ds-surface`, `--ds-surface-low` and `--ds-chart-track`, and adjacent series apart for colour-blind readers. In
@@ -14624,8 +14588,7 @@ ripples.release(host);                        // end a running press by hand (no
   too. `DS.ripple.attach(document)` or `DS.init(document)` wires it; a page that calls neither keeps the flat layer as
   the press feedback.
 - A press ends early when another element captures the pointer (an ancestor that drags to scroll): the ripple
-  fades as on release. `release(host?)` ends one by hand; `detach()` is the **deprecated** alias of `destroy()`
-  until 3.0 ships. `:active` (the flat layer and the morph) lasts until the pointer button goes up.
+  fades as on release. `release(host?)` ends one by hand. `:active` (the flat layer and the morph) lasts until the pointer button goes up.
 - Colour: `--ds-ripple-color` (default `currentColor`), on `.ds-theme` or a host. Forced colours show no ripple.
 - iOS Safari applies `:active` only on pages that listen to `touchstart`. `attach()` adds a passive listener; a
   page without `ds.js` adds one itself (`document.addEventListener('touchstart', () => {}, { passive: true })`, or
@@ -14689,8 +14652,7 @@ pill.destroy();
   `DS.core.get(track, 'indicator')` returns the handle `DS.indicator.create()` returns for those options, and it stays
   valid when the pill is replaced, also by a call of `create()` with other options on that track.
 - `DS.indicator.create(track, options)` inserts `<span class="ds-indicator" aria-hidden="true" data-ds-keep>` and
-  `.ds-has-indicator` on the track; one pill per track. `createIndicator` is its 2.x name, **deprecated**: an alias
-  until 3.0 ships. `OVERSHOOT`, what it does when, and every option: [DS.indicator](motion.md#dsindicator-jsindicatorjs) in motion.md.
+  `.ds-has-indicator` on the track; one pill per track. `OVERSHOOT`, what it does when, and every option: [DS.indicator](motion.md#dsindicator-jsindicatorjs) in motion.md.
 - The page moves the active item by its attribute; the pill follows by itself. A track of `.ds-btn` toggles works as
   it is: under `.ds-has-indicator` a pressed button drops its own tint, so only the pill paints the selection.
 - The handle: `get()` is the active item, or null. `set(value)` takes an element of the track or a selector and moves
@@ -15805,7 +15767,7 @@ The share is the larger of the token share and the cost share (each only with it
 `--ds-share` on the meter with `aria-valuenow` (0 to 100) and `aria-valuetext` (`73% used`, past the budget `112%
 used`), the figures, and `data-state="near"` (from the warn share) or `"over"` (past the budget) on the root. Then the
 status shows an icon and the word (`Near the budget`, `Over budget`; strings `usageNear`, `usageOver`), the meter takes
-`.ds-meter--warning` or `.ds-meter--error`, and the word is announced once when the state gets worse. Without a budget
+`.ds-tone-warning` or `.ds-tone-error`, and the word is announced once when the state gets worse. Without a budget
 there is no share and no status: the figures alone, the meter `hidden` (and without its values) until a budget comes.
 
 ```js

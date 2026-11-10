@@ -3575,8 +3575,6 @@
  *   .ds-spinner                on surfaces (16px at md)
  *   .ds-spinner--ink           inside buttons and chips: the arc in the
  *                              text colour, on a faint ring of it
- *   .ds-spinner--sm            deprecated: .ds-spinner--ink with .ds-sm (a
- *                              fixed 12px until 3.0 ships)
  *   .ds-spinner--determinate   circular progress (40px at md, 4px): the share
  *                              (--ds-progress, 0 ... 1) as an arc, a gap,
  *                              then the remaining track in --ds-accent; the
@@ -3635,15 +3633,9 @@
   }
 
   /* The arc and a faint ring in the text colour. */
-  .ds-spinner--ink,
-  .ds-spinner--sm {
+  .ds-spinner--ink {
     --ds-spinner-color: currentColor;
     --ds-spinner-track: color-mix(in srgb, currentColor 22%, transparent);
-  }
-
-  /* The 2.x name keeps its fixed 12px until 3.0 ships. */
-  .ds-spinner--sm {
-    --_s: 12px;
   }
 
   /* A tone from the class on the spinner itself (zero weight, so the
@@ -3756,7 +3748,6 @@
  *
  *   .ds-loader              48px container at md, the shape 38/48 of it
  *   .ds-loader--contained   the shape on a --ds-accent disc
- *   .ds-loader--sm          deprecated: .ds-sm (the same 24px)
  *
  * Options (docs/options.md), computed here into --_s:
  *   size      .ds-xs ... .ds-xl on the loader or any ancestor: 24px per step
@@ -3764,8 +3755,8 @@
  *   density, shape, target-min, tone: not read. It morphs through its own
  *             shapes, it is no target and it says nothing but "wait".
  *
- * Hooks: --ds-loader-size (48px, the md base), --ds-loader-sm-size (24px,
- * deprecated with --sm), --ds-loader-color (--ds-primary).
+ * Hooks: --ds-loader-size (48px, the md base), --ds-loader-color
+ * (--ds-primary).
  *
  * The loader is decoration: aria-hidden, and the surrounding role="status"
  * carries the text. Inside .ds-boot, .ds-loading and .ds-skeleton the
@@ -3801,10 +3792,6 @@
     animation:
       ds-loader-morph var(--ds-loop-loader) var(--ds-ease-spatial) infinite,
       ds-loader-turn var(--ds-loop-loader) linear infinite;
-  }
-
-  .ds-loader--sm {
-    --_s: var(--ds-loader-sm-size, 24px);
   }
 
   .ds-loader--contained {
@@ -4039,8 +4026,7 @@
  *   .ds-btn                  outlined (secondary action)
  *   .ds-btn--outlined        the same, named explicitly
  *   .ds-btn--filled          the main action of a form or dialog; one per
- *                            area (.ds-btn--primary: its 2.x name, a
- *                            deprecated alias until 3.0 ships)
+ *                            area
  *   .ds-btn--tonal           the tint: a softer main action
  *   .ds-btn--elevated        a raised surface with the action ink (level 1,
  *                            level 2 on hover): an action on an image or
@@ -4098,12 +4084,6 @@
  *             button of a destructive confirmation (the confirm dialog
  *             and the type-to-confirm pattern, D10); pages keep no red
  *             buttons, and no other tone colours a button
- *   .ds-btn--sm              the 2.x small button, a deprecated alias of
- *                            .ds-sm until 3.0 ships: the small step and
- *                            its type role at the fixed 2.x height
- *                            (--ds-btn-sm-height, 32px; with --icon
- *                            --ds-btn-sm-icon-size, 32px), which density
- *                            does not change
  *
  * Link button: .ds-link-btn, a button that reads like a link (an action
  * inside text or a table cell, the subject that opens a detail): the link
@@ -4172,8 +4152,7 @@
  * -padding-start, -radius, -radius-pressed, -font, -bg, -color, -border,
  * -shadow, -state (layer colour), -state-opacity, -state-focus-opacity,
  * -state-pressed-opacity, -hover-color, -hover-border, -hover-shadow,
- * -hover-decoration, -icon-size, -sm-height, -sm-icon-size (read by --sm),
- * -quiet-color, -disabled-bg, -disabled-border. The computed values
+ * -hover-decoration, -icon-size, -quiet-color, -disabled-bg, -disabled-border. The computed values
  * (--_h, --_box, --_half, --_radius, --_pad) are private: never set them.
  *
  * Forced colours: a pressed toggle and an open disclosure button take the
@@ -4475,10 +4454,8 @@
     flex-shrink: 0;
   }
 
-  /* Filled (2.x: --primary, a deprecated alias). Level 1 on hover where
-     the theme has elevation. */
-  .ds-btn--filled,
-  .ds-btn--primary {
+  /* Filled. Level 1 on hover where the theme has elevation. */
+  .ds-btn--filled {
     --ds-btn-border: var(--ds-primary);
     --ds-btn-bg: var(--ds-primary);
     --ds-btn-color: var(--ds-on-primary);
@@ -4492,7 +4469,7 @@
      pattern, its label naming the consequence ("Delete 3 devices"). It
      reads the tone the class sets on the button itself, never an
      inherited one: a filled button inside an error alert stays filled. */
-  :is(.ds-btn--filled, .ds-btn--primary).ds-tone-error {
+  .ds-btn--filled.ds-tone-error {
     --ds-btn-border: var(--ds-tone, var(--ds-error));
     --ds-btn-bg: var(--ds-tone, var(--ds-error));
     --ds-btn-color: var(--ds-on-tone, var(--ds-on-error));
@@ -4586,23 +4563,6 @@
     }
   }
 
-  /* The 2.x small button, a deprecated alias of .ds-sm until 3.0 ships:
-     the small step and its type role, at the fixed 2.x height and padding
-     (density does not change them, as compact.css did not), never below
-     the touch minimum. Its own density is 0, so a component that lines up
-     with it (an alert, a table's row actions) computes the same 32px. */
-  .ds-btn--sm {
-    --ds-size-step: -1;
-    --ds-density: 0;
-    --ds-size-font: var(--ds-font-chip);
-    --_h: var(--ds-btn-height-exact, var(--ds-btn-sm-height, 32px));
-    --_pad: var(--ds-btn-padding-x, var(--ds-space-3));
-  }
-
-  .ds-btn--icon.ds-btn--sm {
-    --_box: max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, 32px));
-  }
-
   /* A toggle that is on (a filter shown, "only active"): the tint. So is a
      button whose panel is open (a disclosure, a dialog or side sheet
      opener); a menu trigger stays as it is. */
@@ -4618,7 +4578,7 @@
      action ink on a filled one, the quieter ink on a tonal one); on, the
      variant's own fill. So off and on differ by the fill, not by a hue, and
      a filled toggle that is on stays filled. */
-  :is(.ds-btn--filled, .ds-btn--primary, .ds-btn--tonal)[aria-pressed="false"] {
+  :is(.ds-btn--filled, .ds-btn--tonal)[aria-pressed="false"] {
     --ds-btn-border: var(--ds-surface-highest);
     --ds-btn-bg: var(--ds-surface-highest);
     --ds-btn-color: var(--ds-action-ink);
@@ -4630,7 +4590,7 @@
     --ds-btn-hover-color: var(--ds-text);
   }
 
-  :is(.ds-btn--filled, .ds-btn--primary)[aria-pressed="true"] {
+  .ds-btn--filled[aria-pressed="true"] {
     --ds-btn-border: var(--ds-primary);
     --ds-btn-bg: var(--ds-primary);
     --ds-btn-color: var(--ds-on-primary);
@@ -4678,10 +4638,6 @@
       padding: 0;
     }
 
-    .ds-btn--adaptive.ds-btn--sm {
-      --_box: max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, 32px));
-    }
-
     .ds-btn--adaptive > svg {
       width: 20px;
       height: 20px;
@@ -4713,10 +4669,6 @@
       height: var(--_box);
       min-height: 0;
       padding: 0;
-    }
-
-    .ds-btn--adaptive.ds-btn--sm:not(:where(.ds-content *):not(:is(.ds-sheet, .ds-dialog) *)) {
-      --_box: max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, 32px));
     }
 
     .ds-btn--adaptive:not(:where(.ds-content *):not(:is(.ds-sheet, .ds-dialog) *)) > svg {
@@ -6008,7 +5960,6 @@
  *   .ds-tone-success  -warning  -error  -info  -primary  -neutral
  *   --running   a neutral chip with the primary spinner
  *   (none)      neutral, e.g. idle or off, told apart by the icon
- *   --ok  --warning  --error   deprecated: .ds-tone-success, -warning, -error
  *
  * Options (docs/options.md), computed here into --_h:
  *   size      .ds-xs ... .ds-xl on the chip or any ancestor: 4px per step
@@ -6051,8 +6002,7 @@
  * height) times --ds-shape. Size as on the chip, no density. Forced
  * colours: a CanvasText outline. Tag = words, badge (.ds-badge) = counts,
  * status chip = a state with an icon. Hooks: --ds-tag-bg, --ds-tag-color,
- * --ds-tag-height (24px, the md base). --neutral is deprecated:
- * .ds-tone-neutral.
+ * --ds-tag-height (24px, the md base).
  *
  * @starting-style (at the floor) brings the incoming icon's fade and scale;
  * it also plays on the first render of a chip, never on a keyed move: where
@@ -6114,25 +6064,8 @@
     color: var(--ds-text-2);
   }
 
-  /* The deprecated kinds: the same pairs until 3.0 ships. */
-  .ds-status--ok {
-    background: var(--ds-success-container);
-    color: var(--ds-on-success-container);
-  }
-
-  .ds-status--ok > svg,
   .ds-status.ds-tone-success > svg {
     color: var(--ds-success);
-  }
-
-  .ds-status--error {
-    background: var(--ds-error-container);
-    color: var(--ds-on-error-container);
-  }
-
-  .ds-status--warning {
-    background: var(--ds-warning-container);
-    color: var(--ds-on-warning-container);
   }
 
   /* Running: a neutral chip with the primary spinner. */
@@ -6189,13 +6122,11 @@
     color: inherit;
   }
 
-  .ds-tag--neutral,
   .ds-tag.ds-tone-neutral {
     --ds-tag-bg: var(--ds-surface-high);
     --ds-tag-color: var(--ds-text);
   }
 
-  .ds-tag--neutral > svg,
   .ds-tag.ds-tone-neutral > svg {
     color: var(--ds-text-2);
   }
@@ -6228,7 +6159,6 @@
  *                         and meta text on the surface, no box
  *   .ds-alert--section    a section message: a block with a title, room around
  *                         it and its actions always under the text
- *   --success --warning --error   deprecated: .ds-tone-success, -warning, -error
  *
  * Options (docs/options.md), read here:
  *   size      .ds-xs ... .ds-xl on the alert or any ancestor: 2px of padding
@@ -6381,23 +6311,19 @@
 
   /* The tones set the alert's hooks from their own, with today's colours as
      fallbacks, from the class on the alert itself. Zero weight on the tone,
-     so --plain, --inline and --section below still decide by order. The
-     deprecated kinds share the rules until 3.0 ships. */
-  .ds-alert--success,
+     so --plain, --inline and --section below still decide by order. */
   .ds-alert:where(.ds-tone-success) {
     --ds-alert-bg: var(--ds-alert-success-bg, var(--ds-success-container));
     --ds-alert-color: var(--ds-alert-success-color, var(--ds-on-success-container));
     --ds-alert-icon: var(--ds-alert-success-icon, var(--ds-success));
   }
 
-  .ds-alert--warning,
   .ds-alert:where(.ds-tone-warning) {
     --ds-alert-bg: var(--ds-alert-warning-bg, var(--ds-warning-surface));
     --ds-alert-color: var(--ds-alert-warning-color, var(--ds-text));
     --ds-alert-icon: var(--ds-alert-warning-icon, var(--ds-warning));
   }
 
-  .ds-alert--error,
   .ds-alert:where(.ds-tone-error) {
     --ds-alert-bg: var(--ds-alert-error-bg, var(--ds-error-container));
     --ds-alert-color: var(--ds-alert-error-color, var(--ds-on-error-container));
@@ -6405,8 +6331,7 @@
   }
 
   /* A filled or tonal button keeps the ink of its own fill. */
-  .ds-alert--error:not(.ds-alert--plain) .ds-btn:not(.ds-btn--filled, .ds-btn--primary, .ds-btn--tonal),
-  .ds-alert:where(.ds-tone-error):not(.ds-alert--plain, .ds-alert--inline) .ds-btn:not(.ds-btn--filled, .ds-btn--primary, .ds-btn--tonal) {
+  .ds-alert:where(.ds-tone-error):not(.ds-alert--plain, .ds-alert--inline) .ds-btn:not(.ds-btn--filled, .ds-btn--tonal) {
     --ds-btn-color: var(--ds-alert-error-color, var(--ds-on-error-container));
   }
 
@@ -8038,9 +7963,7 @@
  *               the mark itself (an inherited tone would recolour a whole
  *               chart in a tinted region), always with words next to it:
  *               neutral, warning and error take their chart roles, the
- *               others the tone. --neutral, --warning and --error on the
- *               three marks are the 2.x names, deprecated aliases until
- *               3.0 ships
+ *               others the tone
  *   .ds-columns__col--s2, --s3, --s4           a column of series 2 to 4
  *   .ds-columns--mini                          a 32px sparkline of columns:
  *     no labels, the columns aria-hidden, the figure role="img" with a
@@ -8139,15 +8062,15 @@
     --_fill: var(--ds-tone);
   }
 
-  .ds-meter:is(.ds-tone-neutral, .ds-meter--neutral) {
+  .ds-meter.ds-tone-neutral {
     --_fill: var(--ds-chart-neutral);
   }
 
-  .ds-meter:is(.ds-tone-warning, .ds-meter--warning) {
+  .ds-meter.ds-tone-warning {
     --_fill: var(--ds-chart-warning);
   }
 
-  .ds-meter:is(.ds-tone-error, .ds-meter--error) {
+  .ds-meter.ds-tone-error {
     --_fill: var(--ds-chart-error);
   }
 
@@ -8277,11 +8200,11 @@
     --ds-chart-color: var(--ds-chart-neutral);
   }
 
-  .ds-columns__col:is(.ds-tone-warning, .ds-columns__col--warning) {
+  .ds-columns__col.ds-tone-warning {
     --ds-chart-color: var(--ds-chart-warning);
   }
 
-  .ds-columns__col:is(.ds-tone-error, .ds-columns__col--error) {
+  .ds-columns__col.ds-tone-error {
     --ds-chart-color: var(--ds-chart-error);
   }
 
@@ -8428,15 +8351,15 @@
     --ds-chart-color: var(--ds-tone);
   }
 
-  .ds-legend__key:is(.ds-tone-neutral, .ds-legend__key--neutral) {
+  .ds-legend__key.ds-tone-neutral {
     --ds-chart-color: var(--ds-chart-neutral);
   }
 
-  .ds-legend__key:is(.ds-tone-warning, .ds-legend__key--warning) {
+  .ds-legend__key.ds-tone-warning {
     --ds-chart-color: var(--ds-chart-warning);
   }
 
-  .ds-legend__key:is(.ds-tone-error, .ds-legend__key--error) {
+  .ds-legend__key.ds-tone-error {
     --ds-chart-color: var(--ds-chart-error);
   }
 
@@ -9895,8 +9818,7 @@
  *             --ds-touch-target high; touch wins over size and density
  *   tone      .ds-tone-* on a .ds-kv-list__icon, on the icon itself (an
  *             inherited tone would colour every value); always with a
- *             .ds-sr word. --ok, --warning and --error are its 2.x names,
- *             deprecated aliases until 3.0 ships
+ *             .ds-sr word
  *
  * Hooks: --ds-list-item-height (56px), --ds-list-padding (--ds-space-4),
  * --ds-list-padding-y (--ds-space-3), --ds-list-radius (--ds-radius-card),
@@ -10541,19 +10463,6 @@
     color: var(--ds-tone);
   }
 
-  /* The 2.x names of the tones, deprecated. */
-  .ds-kv-list__icon--ok {
-    color: var(--ds-success);
-  }
-
-  .ds-kv-list__icon--warning {
-    color: var(--ds-warning);
-  }
-
-  .ds-kv-list__icon--error {
-    color: var(--ds-error);
-  }
-
   /* Rows with a meter on a line of their own: the label stays on one line
      (the full text shows as a tooltip when it is cut), the figure at the
      end. */
@@ -10957,9 +10866,6 @@
  * --ds-card-media-size, --ds-card-body-min. --ds-card-pad is the resulting
  * padding of each card, which tables read to bleed to its edges: read it,
  * never set it. --_radius and --_card-gap are private.
- *
- * Deprecated aliases until 3.0 ships: .ds-subsection (.ds-card__section),
- * .ds-card__more (.ds-card__more).
  */
 
 @layer ds.components.card {
@@ -11535,9 +11441,8 @@
   }
 
   /* A part of a card with its own small title: a hairline and room above,
-     the content close under its title. (.ds-subsection: its 2.x name.) */
-  .ds-card__section,
-  .ds-subsection {
+     the content close under its title. */
+  .ds-card__section {
     display: grid;
     gap: calc(var(--ds-space-3) + var(--ds-density, 0) * 2px);
     margin-top: var(--ds-space-2);
@@ -11546,15 +11451,12 @@
   }
 
   .ds-card__section > .ds-card__subtitle,
-  .ds-card__section > p,
-  .ds-subsection > .ds-card__subtitle,
-  .ds-subsection > p {
+  .ds-card__section > p {
     margin: 0;
   }
 
-  /* A centred "load more" row. (.ds-more: its 2.x name.) */
-  .ds-card__more,
-  .ds-more {
+  /* A centred "load more" row. */
+  .ds-card__more {
     display: flex;
     justify-content: center;
   }
@@ -13566,7 +13468,6 @@
  *                              8px at md), in --ds-primary or the tone's full
  *                              colour, which hold 3:1 on a surface; needs a
  *                              word, in .ds-sr or beside it
- *   --neutral --ok --warning --error   deprecated: .ds-tone-neutral, -success, -warning, -error
  *
  * Options (docs/options.md), computed here into --_h:
  *   size      .ds-xs ... .ds-xl on the badge or any ancestor (a small button
@@ -13671,42 +13572,26 @@
     --ds-badge-bg: var(--ds-tone);
   }
 
-  .ds-badge--neutral,
   .ds-badge.ds-tone-neutral:not(.ds-badge--dot) {
     --ds-badge-bg: var(--ds-surface-high);
     --ds-badge-color: var(--ds-text-2);
   }
 
-  .ds-badge--ok {
-    --ds-badge-bg: var(--ds-success-container);
-    --ds-badge-color: var(--ds-on-success-container);
-  }
-
-  .ds-badge--warning {
-    --ds-badge-bg: var(--ds-warning-container);
-    --ds-badge-color: var(--ds-on-warning-container);
-  }
-
-  .ds-badge--error {
-    --ds-badge-bg: var(--ds-error-container);
-    --ds-badge-color: var(--ds-on-error-container);
-  }
-
   /* On a tinted host the tint badge would vanish: the strong pair instead.
      The hosts of later components (a selected table row, a blocked tab or
      drawer item) repeat these rules in their own stylesheets. */
-  :is(.ds-btn[aria-pressed="true"], .ds-btn--tonal, .ds-btn--disclosure[aria-expanded="true"], .ds-btn[aria-haspopup="dialog"][aria-expanded="true"], .ds-chip__input:checked + .ds-chip__body, .ds-chip--input) .ds-badge:not(.ds-badge--neutral, .ds-badge--ok, .ds-badge--warning, .ds-badge--error, .ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
+  :is(.ds-btn[aria-pressed="true"], .ds-btn--tonal, .ds-btn--disclosure[aria-expanded="true"], .ds-btn[aria-haspopup="dialog"][aria-expanded="true"], .ds-chip__input:checked + .ds-chip__body, .ds-chip--input) .ds-badge:not(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
     --ds-badge-bg: var(--ds-primary);
     --ds-badge-color: var(--ds-on-primary);
   }
 
-  :is(.ds-btn[aria-pressed="true"], .ds-btn--tonal, .ds-btn--disclosure[aria-expanded="true"], .ds-btn[aria-haspopup="dialog"][aria-expanded="true"], .ds-chip__input:checked + .ds-chip__body, .ds-chip--input) :is(.ds-badge--neutral, .ds-badge.ds-tone-neutral:not(.ds-badge--dot)) {
+  :is(.ds-btn[aria-pressed="true"], .ds-btn--tonal, .ds-btn--disclosure[aria-expanded="true"], .ds-btn[aria-haspopup="dialog"][aria-expanded="true"], .ds-chip__input:checked + .ds-chip__body, .ds-chip--input) .ds-badge.ds-tone-neutral:not(.ds-badge--dot) {
     --ds-badge-bg: var(--ds-surface);
     --ds-badge-color: var(--ds-text-2);
   }
 
   /* On the primary fill a primary dot would vanish: the fill's ink instead. */
-  :is(.ds-btn--filled, .ds-btn--primary) .ds-badge--dot:not(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
+  .ds-btn--filled .ds-badge--dot:not(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
     --_fill: var(--ds-on-primary);
   }
 
@@ -14787,8 +14672,8 @@
  * backdrop colour.
  *
  * Hooks: --ds-dialog-width (400px), --ds-dialog-width-sm (320px),
- * --ds-dialog-width-lg (560px), --ds-dialog-width-xl (720px), and
- * --ds-dialog-width-wide, the deprecated name of -lg, --ds-dialog-padding
+ * --ds-dialog-width-lg (560px), --ds-dialog-width-xl (720px),
+ * --ds-dialog-padding
  * (--ds-space-6), --ds-dialog-radius (--ds-radius-dialog),
  * --ds-dialog-head-height (56px), --ds-dialog-height (auto; set it so a filtered list does not make the
  * box jump; capped by the window), --ds-dialog-full-radius (0),
@@ -15076,12 +14961,7 @@
   }
 
   .ds-dialog--lg .ds-dialog__box {
-    width: min(var(--ds-dialog-width-lg, var(--ds-dialog-width-wide, 560px)), 100%);
-  }
-
-  /* The 2.x name of --lg, until 3.0 ships. */
-  .ds-dialog--wide .ds-dialog__box {
-    width: min(var(--ds-dialog-width-lg, var(--ds-dialog-width-wide, 560px)), 100%);
+    width: min(var(--ds-dialog-width-lg, 560px), 100%);
   }
 
   .ds-dialog--xl .ds-dialog__box {
@@ -15634,10 +15514,6 @@
  *   .ds-table--bordered a hairline between the columns too, and around the
  *                       table outside a card or a full-page wrapper
  *   .ds-table--plain    no hairlines between the rows (with --zebra)
- *   .ds-table--dense    the 2.x 40px rows, a deprecated alias of
- *                       .ds-density-tight until 3.0 ships: the fixed height
- *                       --ds-table-dense-row-height for head and rows, which
- *                       size and density do not change
  *   <th aria-sort="ascending"><button class="ds-table__sort">Name (arrowUp .ds-table__sort-arrow)</button></th>
  *                       a sortable column; the arrow at the sorted column
  *                       says it, not the colour; every sort button keeps
@@ -15739,8 +15615,8 @@
  * the box and snaps in from one width further out.
  *
  * Hooks: --ds-table-row-hover, --ds-table-row-selected, --ds-table-head-height
- * (48px), --ds-table-row-height (52px), --ds-table-dense-row-height
- * (40px; the cell padding follows the heights), --ds-table-padding
+ * (48px), --ds-table-row-height (52px; the cell padding follows the
+ * heights), --ds-table-padding
  * (--ds-space-4, the cells' side padding; on phones 3/4 of it, below 360px
  * half), --ds-table-zebra
  * (--ds-surface-low), --ds-table-sticky-bg (the opaque base of sticky and
@@ -15956,13 +15832,6 @@
 
   .ds-table--sticky-foot {
     --_sticky-foot: max(var(--ds-target-min, 0px), calc(var(--ds-table-row-height, 52px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
-  }
-
-  /* The alias' fixed height, which size and density do not change. */
-  .ds-table--dense:is(.ds-table--sticky-head, .ds-table--sticky-foot),
-  .ds-table-wrap--fill > .ds-table--dense {
-    --_sticky-head: max(var(--ds-target-min, 0px), var(--ds-table-dense-row-height, 40px));
-    --_sticky-foot: max(var(--ds-target-min, 0px), var(--ds-table-dense-row-height, 40px));
   }
 
   .ds-table--sticky-head > tbody :where(a[href], button, input, select, textarea, summary, [tabindex]),
@@ -16364,15 +16233,6 @@
     border-bottom: none;
   }
 
-  /* The 2.x dense rows, a deprecated alias until 3.0 ships (the model's
-     40px rows are .ds-density-tight): a fixed 40px for head and rows, which
-     size and density do not change; the text stays 14/20. The hairline
-     counts: 7 + 24 (a status chip) + 7 + 1 = 39, within the 40px. */
-  .ds-table--dense :is(th, td) {
-    --_h: var(--ds-table-dense-row-height, 40px);
-    --_room: calc(var(--ds-space-6) + 2px);
-  }
-
   /*
    * Row actions: the last cell holds the row's own buttons, as narrow as
    * they are, at the row's end. The buttons hang into the cell's padding
@@ -16554,10 +16414,6 @@
       animation-timeline: scroll(self inline);
       animation-range: 0 var(--ds-space-8), calc(100% - var(--ds-space-8)) 100%;
     }
-  }
-
-  .ds-table-wrap--fill:has(> .ds-table--dense) {
-    --_kept-head: max(var(--ds-target-min, 0px), var(--ds-table-dense-row-height, 40px));
   }
 
   .ds-table-wrap--fill > .ds-table {
@@ -17166,12 +17022,12 @@
   /* A badge (badge.css) in a selected row: the tint badge would vanish on
      the selection's tint, so the strong pair instead, as on a tinted
      button. */
-  :is(.ds-table__row--selected, tr:has(> td input[type="checkbox"]:checked)) .ds-badge:not(.ds-badge--neutral, .ds-badge--ok, .ds-badge--warning, .ds-badge--error, .ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
+  :is(.ds-table__row--selected, tr:has(> td input[type="checkbox"]:checked)) .ds-badge:not(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
     --ds-badge-bg: var(--ds-primary);
     --ds-badge-color: var(--ds-on-primary);
   }
 
-  :is(.ds-table__row--selected, tr:has(> td input[type="checkbox"]:checked)) :is(.ds-badge--neutral, .ds-badge.ds-tone-neutral:not(.ds-badge--dot)) {
+  :is(.ds-table__row--selected, tr:has(> td input[type="checkbox"]:checked)) .ds-badge.ds-tone-neutral:not(.ds-badge--dot) {
     --ds-badge-bg: var(--ds-surface);
     --ds-badge-color: var(--ds-text-2);
   }
@@ -17527,8 +17383,7 @@
  *     <div class="ds-check-group__children" role="group" aria-label="Sites"> <label class="ds-check">...</label> ...
  *
  * Hooks: --ds-check-size (18px box), --ds-check-target (40px halo),
- * --ds-check-height (40px row; the deprecated --sm: --ds-check-sm-height,
- * 32px), --ds-check-list-max-height (264px), --ds-radio-padding (16px),
+ * --ds-check-height (40px row), --ds-check-list-max-height (264px), --ds-radio-padding (16px),
  * --ds-form-actions-bleed (the inline padding of the container a sticky
  * action bar runs through; default --ds-content-pad-x, in a .ds-card
  * --ds-card-pad).
@@ -17551,7 +17406,6 @@
  *           <input class="ds-input" id="quota">
  *           <span class="ds-input-group__suffix" aria-hidden="true">GB</span>
  *           <span class="ds-input-group__trailing">(icon, tag or a button)</span>
- *           (.ds-input-group__affix: the 2.x name of prefix and suffix, deprecated)
  *         <div class="ds-field__foot"> <small class="ds-field__hint">...</small> <span class="ds-field__counter" aria-hidden="true">12 / 80</span>   (--over: past the limit)
  *       <div class="ds-field" role="group" aria-labelledby="serial-l">
  *         <span class="ds-field__label" id="serial-l">Serial</span> <span class="ds-field__value">SN-0042</span>
@@ -18635,7 +18489,7 @@
 
   /*
    * Input group: a unit or prefix inside the field (an aria-hidden
-   * .ds-input-group__affix; the unit is in the label too) or a trailing
+   * .ds-input-group__prefix or __suffix; the unit is in the label too) or a trailing
    * quiet icon button (a password reveal with aria-pressed). The group
    * draws the field (border, radius, background, height); the input inside
    * loses its box. The ring moves to the group while the input has the
@@ -18734,7 +18588,6 @@
     padding-inline-end: var(--ds-space-1);
   }
 
-  .ds-input-group__affix,
   .ds-input-group__prefix,
   .ds-input-group__suffix {
     flex: none;
@@ -18745,7 +18598,6 @@
   }
 
   @media (max-width: 600px) {
-    .ds-input-group__affix,
     .ds-input-group__prefix,
     .ds-input-group__suffix {
       font: var(--ds-input-font, var(--ds-font-input));
@@ -19218,13 +19070,6 @@
      (the box plus the gap). */
   .ds-check + .ds-field__hint {
     padding-inline-start: calc(var(--ds-check-size, 18px) + var(--ds-size-step, 0) * 2px + var(--ds-space-3));
-  }
-
-  /* The 2.x small row, a deprecated alias of .ds-sm until 3.0 ships: its fixed
-     height and the quieter ink; the touch minimum still wins. */
-  .ds-check--sm {
-    --_h: var(--ds-check-sm-height, 32px);
-    color: var(--ds-text-2);
   }
 
   /*
@@ -22005,7 +21850,7 @@
     display: none;
   }
 
-  .ds-auth .ds-form-actions > :is(.ds-btn--filled, .ds-btn--primary) {
+  .ds-auth .ds-form-actions > .ds-btn--filled {
     flex: 1;
   }
 
@@ -22209,7 +22054,7 @@
  * pressable .ds-drawer__toggle summary: state layer, ring snap, ripple),
  * .ds-drawer__row with a .ds-drawer__action (a quiet icon button at the
  * end of an item, shown on demand through .ds-hover-actions; the item
- * keeps room for it at its size, --ds-btn-sm-icon-size). The pill
+ * keeps room for it at its size, --ds-btn-icon-size less a step). The pill
  * follows the current item across groups; an item inside a closed group
  * has no pill. The rail (data-drawer-collapsed) switches its column at
  * once; the labels fade back in on --ds-dur-fast when it widens again
@@ -23251,8 +23096,8 @@
   /* An item with an action of its own at its end (a quiet icon button,
      .ds-hover-actions: shown on hover, focus, the current item and an open
      menu, always on touch). The item keeps room for it at the action's
-     own size (the hook the small icon button reads: 48px under
-     .ds-touch) plus --ds-space-2 (its margin and as much air). */
+     own size (the small icon button: --ds-btn-icon-size less one 8px step,
+     48px under .ds-touch) plus --ds-space-2 (its margin and as much air). */
   .ds-drawer__row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -23261,7 +23106,7 @@
 
   .ds-drawer__row > .ds-drawer__item {
     grid-area: 1 / 1 / 2 / 3;
-    padding-inline-end: calc(max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, calc(var(--ds-btn-icon-size, 40px) - 8px))) + var(--ds-space-2));
+    padding-inline-end: calc(max(var(--ds-target-min, 0px), calc(var(--ds-btn-icon-size, 40px) - 8px)) + var(--ds-space-2));
   }
 
   .ds-drawer__action {
@@ -32204,14 +32049,14 @@
 
   /* An outlined toggle that is on keeps the group's outline (the segmented
      look): the tint fills it, the pill stays one line all round. */
-  .ds-btn-group > .ds-btn[aria-pressed="true"]:not(.ds-btn--filled, .ds-btn--primary, .ds-btn--tonal, .ds-btn--quiet, .ds-btn--text, .ds-btn--ghost) {
+  .ds-btn-group > .ds-btn[aria-pressed="true"]:not(.ds-btn--filled, .ds-btn--tonal, .ds-btn--quiet, .ds-btn--text, .ds-btn--ghost) {
     border-color: var(--ds-btn-group-divider, var(--ds-line-2));
   }
 
   /* In a filled or tonal group the line is the label colour in the fill,
      so the two targets read apart: as strong as dimmed content
      (--ds-state-disabled), so it reads as a seam, not as a label. */
-  .ds-btn-group > :is(.ds-btn--filled, .ds-btn--primary, .ds-btn--tonal):not([aria-pressed="false"]) {
+  .ds-btn-group > :is(.ds-btn--filled, .ds-btn--tonal):not([aria-pressed="false"]) {
     --_g-divider: color-mix(in srgb, var(--ds-btn-color, var(--ds-on-primary)) calc(var(--ds-state-disabled) * 100%), var(--ds-btn-bg, var(--ds-primary)));
   }
 
@@ -44149,8 +43994,6 @@
  *                          rest of a group): a state layer over the picture,
  *                          the focus ring, a hit area of --ds-target-min
  *                          around the disc; no ripple and no morph (below)
- *   --sm, --lg             the 2.x sizes, deprecated aliases of .ds-sm and
- *                          .ds-lg until 3.0 ships: the fixed 24 and 40px disc
  *
  * Parts inside an avatar (its overflow stays visible; a picture inside
  * clips itself to the radius):
@@ -44421,20 +44264,6 @@
 
   :is(a, button).ds-avatar:is(:disabled, [aria-disabled="true"]):active::after {
     opacity: 0;
-  }
-
-  /* The 2.x sizes, deprecated aliases of .ds-sm and .ds-lg until 3.0 ships:
-     the fixed 24px and 40px disc, whatever size surrounds them. */
-  .ds-avatar--sm {
-    --ds-avatar-size: var(--ds-space-6);
-    --ds-size-step: 0;
-    font: var(--ds-font-caption);
-  }
-
-  .ds-avatar--lg {
-    --ds-avatar-size: var(--ds-space-10);
-    --ds-size-step: 0;
-    font: var(--ds-font-subtitle);
   }
 
   /*

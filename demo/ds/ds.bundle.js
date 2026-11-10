@@ -3186,7 +3186,7 @@
     });
   });
 
-  add('indicator', ['OVERSHOOT', 'create', 'createIndicator'], function () {
+  add('indicator', ['OVERSHOOT', 'create'], function () {
     /*! Dashboard-Style 3.0.0-alpha.6 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
     const define = DS.core.define, emit = DS.core.emit;
     const motionDuration = DS.motion.motionDuration, travelDuration = DS.motion.travelDuration;
@@ -3713,9 +3713,6 @@
     function create(track, options) {
     return openPill(track, options, null);
     }
-    function createIndicator(track, options) {
-    return create(track, options);
-    }
     const ANY_ACTIVE = '[aria-current]:not([aria-current="false"]), [aria-pressed="true"], [aria-selected="true"], [aria-checked="true"]';
     define('indicator', {
     attribute: 'data-ds-indicator',
@@ -3733,8 +3730,7 @@
 
     return Object.freeze({
       OVERSHOOT: OVERSHOOT,
-      create: create,
-      createIndicator: createIndicator
+      create: create
     });
   });
 
@@ -5460,9 +5456,6 @@
     const hosts = host ? [host] : [...pressing].filter((item) => element.contains(item));
     for (const item of hosts) end(item);
     },
-    detach() {
-    handle.destroy();
-    },
     };
     attached.set(root, handle);
     return handle;
@@ -6762,7 +6755,7 @@
     target.dispatchEvent(new view.Event('input', { bubbles: true, composed: true }));
     return true;
     }
-    const CLOSERS = '[data-ds-close=""], [data-close]';
+    const CLOSERS = '[data-ds-close=""]';
     const USER_CLOSE = new Set(['escape', 'backdrop', 'close']);
     function dismissable(element, state, part, event) {
     if (event.detail === 0) return true;
@@ -7304,9 +7297,6 @@
     return order.some((entry) => entry.open() && entry.opener?.() === node);
     }
     function announceClose(element, reason) {
-    const view = viewOf(element);
-    if (typeof view.CustomEvent !== 'function') return;
-    element.dispatchEvent(new view.CustomEvent('ds-close', { bubbles: true, detail: { reason } }));
     emit(element, 'close', { reason });
     }
     function closeFrom(element, cause, reason = cause) {
@@ -16013,13 +16003,13 @@
     function holdForm(dialog, box, submit) {
     const undo = [() => dialog.removeAttribute('data-ds-busy')];
     dialog.setAttribute('data-ds-busy', '');
-    for (const closer of box.querySelectorAll('[data-ds-close], [data-close]')) {
+    for (const closer of box.querySelectorAll('[data-ds-close]')) {
     if (closer.getAttribute('aria-disabled') === 'true') continue;
     closer.setAttribute('aria-disabled', 'true');
     undo.push(() => closer.removeAttribute('aria-disabled'));
     }
     for (const control of box.elements) {
-    if (control === submit || control.disabled || control.type === 'submit' || control.matches('fieldset, output, input[type="hidden"], [data-ds-close], [data-close]')) continue;
+    if (control === submit || control.disabled || control.type === 'submit' || control.matches('fieldset, output, input[type="hidden"], [data-ds-close]')) continue;
     if (control.matches(TYPED)) {
     if (control.readOnly) continue;
     control.readOnly = true;
@@ -17814,7 +17804,7 @@
     const define = DS.core.define, emit = DS.core.emit, runtime = DS.core.runtime, t = DS.core.t;
     const disown = DS.dom.disown, morphHtml = DS.dom.morphHtml, own = DS.dom.own, roving = DS.dom.roving;
     const enter = DS.motion.enter, motionDuration = DS.motion.motionDuration;
-    const createIndicator = DS.indicator.create;
+    const makeIndicator = DS.indicator.create;
     const openStore = DS.store.open;
     const knownLanguage = DS.highlight.language, highlightLines = DS.highlight.lines;
     const shared = runtime.state('code', () => ({ ids: 0 }));
@@ -18060,7 +18050,7 @@
     };
     for (const tab of tabs) claim(tab, 'attrs', 'aria-selected', 'tabindex');
     if (tablist && tabs.length) {
-    indicator = createIndicator(tablist, { active: '[aria-selected="true"]', className: 'ds-tabs__indicator', reveal: true });
+    indicator = makeIndicator(tablist, { active: '[aria-selected="true"]', className: 'ds-tabs__indicator', reveal: true });
     rover = roving(tablist, { onActivate: (tab) => select(panels.findIndex((panel) => tabOf(panel) === tab)) });
     listen(tablist, 'click', (event) => {
     const tab = event.target.closest?.('[role="tab"]');
@@ -28817,7 +28807,7 @@
     const define = DS.core.define, emit = DS.core.emit, t = DS.core.t;
     const enter = DS.motion.enter;
     const morphHtml = DS.dom.morphHtml, roving = DS.dom.roving, own = DS.dom.own, disown = DS.dom.disown;
-    const createIndicator = DS.indicator.create;
+    const makeIndicator = DS.indicator.create;
     const announce = DS.a11y.announce;
     const icon = DS.icons.icon, iconElement = DS.icons.iconElement, chevronDown = DS.icons.chevronDown, closeGlyph = DS.icons.close;
     const openMenu = DS.menu.open, closeMenu = DS.menu.close;
@@ -29172,7 +29162,7 @@
     }, listen);
     sync();
     const rover = aria ? roving(list, { items: '.ds-tabs__tab', orientation: vertical ? 'vertical' : 'horizontal', activate: options.activate === 'manual' ? 'manual' : 'focus' }) : null;
-    const indicator = createIndicator(list, {
+    const indicator = makeIndicator(list, {
     active: aria ? '[aria-selected="true"]' : '[aria-current]:not([aria-current="false"])',
     className: 'ds-tabs__indicator',
     reveal: !more,

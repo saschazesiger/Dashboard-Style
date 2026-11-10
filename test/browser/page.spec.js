@@ -103,7 +103,7 @@ test.describe('page head', () => {
     const gap = async (a, b) => (await box(page, b)).left - (await box(page, a)).right;
 
     await actions('<button class="ds-btn ds-btn--text" type="button" id="cancel">Cancel</button>'
-      + '<button class="ds-btn ds-btn--primary" type="button" id="save">Save</button>');
+      + '<button class="ds-btn ds-btn--filled" type="button" id="save">Save</button>');
     await settle(page);
     expect(Math.abs((await text(page, '#cancel')).left - title.left)).toBeLessThan(1.5);
     expect(Math.abs(await gap('#cancel', '#save') - 8)).toBeLessThan(1);
@@ -112,7 +112,7 @@ test.describe('page head', () => {
     expect(Math.abs((await box(page, '#save')).left - (await text(page, '#cancel')).right - (pad + 8))).toBeLessThan(1.5);
 
     await actions('<button class="ds-btn" type="button" id="retire">Retire</button>'
-      + '<button class="ds-btn ds-btn--primary" type="button" id="edit2">Edit</button>'
+      + '<button class="ds-btn ds-btn--filled" type="button" id="edit2">Edit</button>'
       + '<button class="ds-btn ds-btn--text" type="button" id="undo">Undo</button>');
     await settle(page);
     expect(Math.abs((await box(page, '#retire')).left - title.left)).toBeLessThan(1);
@@ -124,7 +124,7 @@ test.describe('page head', () => {
     // A folded adaptive text button is a 40px round icon button: its circle starts on the title's edge.
     await actions('<button class="ds-btn ds-btn--text ds-btn--adaptive" type="button" id="share" data-tip="Share">'
       + '<svg viewBox="0 0 24 24" aria-hidden="true"></svg><span class="ds-btn__label">Share</span></button>'
-      + '<button class="ds-btn ds-btn--primary" type="button" id="save2">Save</button>');
+      + '<button class="ds-btn ds-btn--filled" type="button" id="save2">Save</button>');
     await settle(page);
     const share = await box(page, '#share');
     expect(share.width).toBeLessThan(48);

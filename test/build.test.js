@@ -246,8 +246,9 @@ describe('dist/tokens.json', () => {
     assert.equal(byName.get('--ds-btn-height').component, 'button');
     // Documented as unset: no default, though its stylesheet computes a fallback.
     assert.equal(byName.get('--ds-btn-height-exact').default, null);
-    // Removed in 3.0.0, seen from a 3.0.0 pre-release: still listed, as deprecated.
-    assert.equal(byName.get('--ds-btn-sm-height').deprecated, '3.0.0');
+    // A deprecated name that still works is listed, marked; the aliases of 3.0.0 left the stylesheets.
+    assert.equal(byName.get('--ds-table-fade-start').deprecated, '2.0.0');
+    assert.ok(!byName.has('--ds-btn-sm-height'), 'removed with its alias');
     assert.ok(!new Map(JSON.parse(tokensJson({ ...packageInfo(), version: '3.0.0' })).tokens.map((token) => [token.name, token])).has('--ds-btn-sm-height'), 'gone at the release');
     assert.equal(byName.get('--ds-ripple-scale')?.layer, 'motion-hook', 'read only by a keyframe of motion.css');
     assert.ok(!byName.has('--ds-view-scroll'), 'a timeline name is not a custom property');

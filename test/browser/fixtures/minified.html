@@ -18,18 +18,18 @@
   <section class="fx-section">
     <div class="fx-row">
       <button class="ds-btn" type="button">Outlined</button>
-      <button class="ds-btn ds-btn--primary" type="button">Primary</button>
+      <button class="ds-btn ds-btn--filled" type="button">Primary</button>
       <button class="ds-btn ds-btn--tonal" type="button">Tonal</button>
-      <button class="ds-btn ds-btn--text ds-btn--sm" type="button">Text</button>
+      <button class="ds-btn ds-btn--text ds-sm" type="button">Text</button>
       <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="More"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 12h16"/></svg></button>
       <button class="ds-btn" type="button" aria-pressed="true">On <span class="ds-badge">3</span></button>
-      <button class="ds-btn ds-btn--primary" type="button" disabled>Disabled</button>
+      <button class="ds-btn ds-btn--filled" type="button" disabled>Disabled</button>
       <button class="ds-link-btn" type="button">A link button</button>
     </div>
   </section>
 
   <section class="fx-section ds-card">
-    <div class="ds-card__row"><h2 class="ds-card__title">Card</h2><span class="ds-status ds-status--ok">Synced</span></div>
+    <div class="ds-card__row"><h2 class="ds-card__title">Card</h2><span class="ds-status ds-tone-success">Synced</span></div>
     <p class="ds-muted">A quiet line under the title.</p>
     <ul class="ds-kv-list"><li><span>Name</span><strong>LAPTOP-0042</strong></li><li><span>Owner</span><strong>Ada Lovelace</strong></li></ul>
     <dl class="ds-facts"><div><dt>Model</dt><dd>Laptop 14</dd></div><div><dt>Disk</dt><dd>78%</dd></div></dl>
@@ -64,7 +64,7 @@
         <label class="ds-chip"><input class="ds-chip__input" type="checkbox" checked><span class="ds-chip__body"><span>Open</span></span></label>
         <label class="ds-chip"><input class="ds-chip__input" type="checkbox"><span class="ds-chip__body"><span>Closed</span></span></label>
       </fieldset>
-      <div class="ds-form-actions"><button class="ds-btn ds-btn--primary" type="submit">Save</button></div>
+      <div class="ds-form-actions"><button class="ds-btn ds-btn--filled" type="submit">Save</button></div>
     </form>
   </section>
 
@@ -82,12 +82,12 @@
   </section>
 
   <section class="fx-section">
-    <div class="ds-alert ds-alert--warning" role="status"><span class="ds-alert__text">The certificate expires in 5 days.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button></div>
-    <div class="ds-alert ds-alert--error"><div class="ds-alert__text"><p class="ds-alert__title">Sync failed</p><p>Try again later.</p></div></div>
-    <span class="ds-badge ds-badge--error">2</span>
+    <div class="ds-alert ds-tone-warning" role="status"><span class="ds-alert__text">The certificate expires in 5 days.</span><button class="ds-btn ds-btn--text ds-sm" type="button">Renew</button></div>
+    <div class="ds-alert ds-tone-error"><div class="ds-alert__text"><p class="ds-alert__title">Sync failed</p><p>Try again later.</p></div></div>
+    <span class="ds-badge ds-tone-error">2</span>
     <div class="ds-progress" role="progressbar" aria-label="Upload" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40" style="--ds-progress: .4"><div class="ds-progress__track"></div></div>
     <span class="ds-spinner" aria-hidden="true"></span>
-    <span class="ds-loader ds-loader--sm" aria-hidden="true"></span>
+    <span class="ds-loader ds-sm" aria-hidden="true"></span>
     <div class="ds-empty"><span class="ds-empty__disc" aria-hidden="true"></span><p class="ds-empty__title">No devices yet</p><p class="ds-empty__text">Add the first one.</p></div>
   </section>
 
@@ -104,7 +104,7 @@
     <details class="ds-collapsible ds-disclosure" open><summary>Advanced</summary><div class="ds-disclosure__body">Hidden settings.</div></details>
     <ol class="ds-timeline"><li class="ds-timeline__item"><p class="ds-timeline__title">Synced</p><p class="ds-timeline__meta">Today</p></li></ol>
     <div class="ds-prose"><h2>Prose</h2><p>Rendered <code>text</code> with a <a href="#x">link</a>.</p><ul><li>One</li><li>Two</li></ul></div>
-    <div class="ds-dialog ds-dialog--contained" role="dialog" aria-label="Delete"><div class="ds-dialog__box"><h2 class="ds-dialog__title">Delete 3 devices?</h2><p class="ds-dialog__text">They are removed for everyone.</p><div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button">Cancel</button><button class="ds-btn ds-btn--primary" type="button">Delete</button></div></div></div>
+    <div class="ds-dialog ds-dialog--contained" role="dialog" aria-label="Delete"><div class="ds-dialog__box"><h2 class="ds-dialog__title">Delete 3 devices?</h2><p class="ds-dialog__text">They are removed for everyone.</p><div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button">Cancel</button><button class="ds-btn ds-btn--filled" type="button">Delete</button></div></div></div>
   </section>
 </div>
 </body>

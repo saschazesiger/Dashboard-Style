@@ -271,10 +271,6 @@ hover.
   be wider than its card.
 - `.ds-legend`: keys of `--ds-legend-key-size` (12px) in the meta font; `.ds-legend__key--s2`, `.ds-legend__key--s3`,
   `.ds-legend__key--s4`, or a tone on the key itself.
-- `.ds-meter--neutral`, `.ds-meter--warning`, `.ds-meter--error`, `.ds-columns__col--warning`,
-  `.ds-columns__col--error`, `.ds-legend__key--neutral`, `.ds-legend__key--warning` and `.ds-legend__key--error` are
-  **deprecated** (3.0, removed when 3.0 ships): `.ds-tone-neutral`, `.ds-tone-warning`, `.ds-tone-error`, the same
-  colours.
 - **Colours**: the series in their fixed order, never cycled; at most four, more fold into "Other"; the tones only on
   single-series marks; text never takes a series colour. A theme that changes the roles keeps each at 3:1 on
   `--ds-surface`, `--ds-surface-low` and `--ds-chart-track`, and adjacent series apart for colour-blind readers. In

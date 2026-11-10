@@ -102,8 +102,6 @@ radios and their cards, fieldsets and form sections, filters and an action bar. 
   guard of its own.
 - A `.ds-check` row is `--ds-check-height` tall (40px, with the size and density steps) around one line of its
   label. A long label wraps (even a bare text node, `overflow-wrap: anywhere`) and the box stays beside its first line.
-- `.ds-check--sm` is **deprecated** (3.0, removed when 3.0 ships): `.ds-sm`. Until then it keeps the fixed 2.x row
-  (`--ds-check-sm-height`, 32px, **deprecated** with it) and the quieter ink; density does not change it.
 - Radio cards (`.ds-radio`) have a state layer and the ripple, and turn squarer while pressed
   (`--ds-radius-card-pressed` times `--ds-shape`), springing back on release; keyboard focus rings the whole card and lays the focus
   layer (`--ds-state-focus`) at once (its input has no halo); `.ds-radio--disabled` and a card whose input is
@@ -263,8 +261,6 @@ document.addEventListener('keydown', (event) => {
 - A button in the group, direct or in the trailing slot, adds nothing to the field's height as long as it is no taller
   than the field. It keeps its own size: `.ds-sm` fits md and the dense density; at `.ds-xs`, or `.ds-sm` with a dense
   density, put `.ds-xs` on it.
-- `.ds-input-group__affix` is **deprecated** (3.0, removed when 3.0 ships): `.ds-input-group__prefix` before the
-  input, `.ds-input-group__suffix` after it, the same look.
 - The reveal is the page's two lines: toggle the input's `type` between `password` and `text`, and the button's
   `aria-pressed` (the icon swap follows it).
 

@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.billing.css",
-      "bytes": 373733,
-      "gzip": 55988
+      "bytes": 371297,
+      "gzip": 55560
     },
     "js": {
       "file": "ds.billing.js",
-      "bytes": 660148,
-      "gzip": 157400
+      "bytes": 659725,
+      "gzip": 157303
     },
     "properties": {
       "file": "properties.css",
@@ -36,8 +36,8 @@
     {
       "name": "spinner",
       "reason": "billing.html:249 ds-spinner",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "indicator",
@@ -48,8 +48,8 @@
     {
       "name": "button",
       "reason": "billing.html:22 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "disclosure",
@@ -60,20 +60,20 @@
     {
       "name": "status",
       "reason": "billing.html:90 ds-status",
-      "bytes": 3164,
-      "gzip": 921
+      "bytes": 2830,
+      "gzip": 865
     },
     {
       "name": "alert",
       "reason": "billing.html:81 ds-alert",
-      "bytes": 6191,
-      "gzip": 1561
+      "bytes": 6019,
+      "gzip": 1532
     },
     {
       "name": "chart",
       "reason": "billing.html:130 ds-meter",
-      "bytes": 23341,
-      "gzip": 4433
+      "bytes": 23123,
+      "gzip": 4396
     },
     {
       "name": "tile",
@@ -84,14 +84,14 @@
     {
       "name": "list",
       "reason": "billing.html:94 ds-kv-list",
-      "bytes": 18637,
-      "gzip": 3412
+      "bytes": 18493,
+      "gzip": 3387
     },
     {
       "name": "card",
       "reason": "billing.html:87 ds-card",
-      "bytes": 16606,
-      "gzip": 2659
+      "bytes": 16531,
+      "gzip": 2644
     },
     {
       "name": "prose",
@@ -108,20 +108,20 @@
     {
       "name": "dialog",
       "reason": "billing.html:226 ds-dialog",
-      "bytes": 15994,
-      "gzip": 2482
+      "bytes": 15933,
+      "gzip": 2468
     },
     {
       "name": "table",
       "reason": "billing.html:170 ds-table-wrap",
-      "bytes": 32874,
-      "gzip": 4760
+      "bytes": 32273,
+      "gzip": 4685
     },
     {
       "name": "form",
       "reason": "billing.html:231 ds-field",
-      "bytes": 49307,
-      "gzip": 7088
+      "bytes": 49188,
+      "gzip": 7063
     },
     {
       "name": "drag",
@@ -138,14 +138,14 @@
     {
       "name": "page",
       "reason": "billing.html:67 ds-content",
-      "bytes": 8012,
-      "gzip": 2191
+      "bytes": 7990,
+      "gzip": 2178
     },
     {
       "name": "shell",
       "reason": "billing.html:18 ds-app",
-      "bytes": 39266,
-      "gzip": 6590
+      "bytes": 39239,
+      "gzip": 6579
     },
     {
       "name": "toast",

@@ -1,7 +1,7 @@
 /**
  * The alert on the options model: its padding at every size x density, touch
  * on its buttons and the errors summary, the shape, tones from the class on
- * the alert only, the deprecated kinds, the inline and the section variant,
+ * the alert only, the 2.x kinds gone, the inline and the section variant,
  * buttons centred on the first line, the demo's keyboard and flip, forced
  * colours. Runs in `fallback` too.
  */
@@ -117,7 +117,7 @@ test('shape: the corners times --ds-shape; --plain and --inline have none', asyn
   }
 });
 
-test('tones: from the class on the alert; an inherited one changes nothing; the deprecated kinds match', async ({ page }) => {
+test('tones: from the class on the alert; an inherited one changes nothing; the 2.x kinds are gone', async ({ page }) => {
   await open(page);
   const c = await page.evaluate(() => {
     const read = (value) => {
@@ -135,14 +135,14 @@ test('tones: from the class on the alert; an inherited one changes nothing; the 
   expect(await probe(page, alert('ds-tone-warning'), look)).toEqual([c.warningBg, c.text]);
   expect(await probe(page, `<div class="ds-tone-error">${alert('')}</div>`, look)).toEqual(await probe(page, alert(''), look));
   for (const kind of ['success', 'warning', 'error']) {
-    expect(await probe(page, alert(`ds-alert--${kind}`), look), kind).toEqual(await probe(page, alert(`ds-tone-${kind}`), look));
+    expect(await probe(page, alert(`ds-alert--${kind}`), look), kind).toEqual(await probe(page, alert(''), look));
   }
 });
 
 test('the error tone sets its buttons\' ink; a hook on the element still wins over a tone', async ({ page }) => {
   await open(page);
   const ink = await probe(page, `<div class="ds-alert ds-tone-error"><span class="ds-alert__text">Words</span><button id="probe" class="ds-btn ds-btn--text" type="button">Act</button></div>`, 'style.color');
-  expect(ink).toBe(await probe(page, `<div class="ds-alert ds-alert--error"><span class="ds-alert__text">Words</span><button id="probe" class="ds-btn ds-btn--text" type="button">Act</button></div>`, 'style.color'));
+  expect(ink).toBe(await probe(page, '<span id="probe" style="color: var(--ds-on-error-container)"></span>', 'style.color'));
   expect(await probe(page, alert('ds-tone-error" style="--ds-alert-bg: rgb(1, 2, 3)'), 'style.backgroundColor')).toBe('rgb(1, 2, 3)');
   // A filled button keeps the ink of its own fill, or its label would vanish.
   const filled = (cls) => `<div class="ds-alert ${cls}"><span class="ds-alert__text">Words</span><button id="probe" class="ds-btn ds-btn--filled" type="button">Act</button></div>`;

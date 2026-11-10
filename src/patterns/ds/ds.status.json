@@ -7,13 +7,13 @@
   "files": {
     "css": {
       "file": "ds.status.css",
-      "bytes": 105694,
-      "gzip": 20008
+      "bytes": 105031,
+      "gzip": 19890
     },
     "js": {
       "file": "ds.status.js",
-      "bytes": 398971,
-      "gzip": 95627
+      "bytes": 398723,
+      "gzip": 95566
     },
     "properties": {
       "file": "properties.css",
@@ -36,14 +36,14 @@
     {
       "name": "spinner",
       "reason": "error-403.html:30 ds-spinner",
-      "bytes": 3235,
-      "gzip": 901
+      "bytes": 3193,
+      "gzip": 888
     },
     {
       "name": "button",
       "reason": "error-403.html:27 ds-btn",
-      "bytes": 15255,
-      "gzip": 2524
+      "bytes": 14634,
+      "gzip": 2439
     },
     {
       "name": "tooltip",

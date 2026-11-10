@@ -42,8 +42,6 @@ A block of related content on a surface, or a whole block that opens or picks so
 | Size | not read | | a card has no height of its own; a size class on it reaches the controls inside |
 | Tone | not read | | a card shows no meaning of its own: put a status chip or an alert in it |
 
-`.ds-subsection` and `.ds-more` are **deprecated** aliases of `.ds-card__section` and `.ds-card__more` (their 2.x names), until 3.0 ships.
-
 Children of a card are 16px apart; a button, switch or `.ds-chip` in `.ds-card__row` overhangs the title line so all
 card titles start at the same height; a status chip, badge or tag fits the line and sits on it, so a row that wraps
 keeps the card's 16px below it. Cards in `.ds-grid-2` share their height and line up their `.ds-card__links`, the tallest
