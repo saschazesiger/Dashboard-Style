@@ -564,6 +564,10 @@ function replayTimeline(page, id) {
         // The focus ring's snap (outline-offset) plays only when the engine judges the focus keyboard-made, which
         // depends on the input before the replay: it has its own tests (controls.spec.js, regressions.spec.js).
         if (type === 'transition' && label === 'outline-offset') continue;
+        // Loops (spinners, waves) run before and after a replay: whether one shows at the replay's instant (a spinner
+        // paused at rest in a hidden face, playing once busy) depends on the engine's timing. Their keyframes have
+        // their own coverage; the timeline holds what the replay starts and ends.
+        if (!Number.isFinite(computed.iterations)) continue;
         const delay = Math.round(timing.delay || 0);
         lines.add([type, label, effect.pseudoElement || '-', Math.round(Number(computed.duration)), delay % 5 || (delay && HOLDS.includes(demoId)) ? 'held' : delay,
           Number.isFinite(computed.iterations) ? computed.iterations : 'infinite', names.get(easing) || easing].join(' '));
