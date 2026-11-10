@@ -6,7 +6,7 @@
  * project too.
  */
 import { test, expect } from '../../../test/browser/base-test.js';
-import { ready } from '../../../test/browser/helpers/motion.js';
+import { ready, settle } from '../../../test/browser/helpers/motion.js';
 
 async function open(page) {
   await page.goto('/test/browser/fixtures/component.html?c=feedback');
@@ -27,6 +27,8 @@ test('the thumbs are exclusive toggles; a value that turns on is feedback, thank
   await up.click();
   await expect(up).toHaveAttribute('aria-pressed', 'true');
   await expect(down).toHaveAttribute('aria-pressed', 'false');
+  // The thumb fills over --ds-dur-fast: read it once it has.
+  await settle(page);
   const fill = await up.locator('svg > :last-child').evaluate((el) => getComputedStyle(el).fill);
   expect(fill).not.toBe('rgba(0, 0, 0, 0)');
   await expect(plain(page).locator('.ds-feedback__status')).toHaveText('Thanks for the feedback');

@@ -29,7 +29,9 @@ latency), then fixed where the system or its pages did more than they need to.
 - **Styleguide and Motion Lab.** They load `ds.min.css` and `ds.min.js`. The Motion Lab sets a demo up as its card
   comes near the viewport, in idle time, and lets cards far away skip rendering (`content-visibility`): on a phone at
   4x CPU it was ready after 16s with a 10s freeze and 180ms scroll frames; it now renders at once and stays
-  responsive while it finishes. `test/browser/work.spec.js` counts the style work of the lab's load, a page change and
+  responsive while it finishes. The loops of cards well out of view (spinners, loaders, shimmer) pause until their card
+  comes near: with about forty of them running, WebKit drew the lab at about twelve frames a second, and a popover
+  waited for those frames; now sixty. `test/browser/work.spec.js` counts the style work of the lab's load, a page change and
   opening a modal, so it holds in the shared run.
 - **Bundles carry only the behaviours a page uses.** `tools/bundle.mjs` brings a component's module only when the page
   uses that component; one that another component's CSS requires (a list styles a `.ds-meter` it may hold) brings its

@@ -88,8 +88,9 @@ test('a jump past other sections keeps its own mark the whole way: the sections 
   });
   // The mark on every frame of the glide, from the click until the scroll has rested.
   await page.evaluate(() => {
-    window.__marks = [];
     const nav = document.querySelector('.ds-toc');
+    // The mark before the click, read now: a slow first frame could come after the click.
+    window.__marks = [nav.querySelector('.ds-toc__link[aria-current="location"]')?.textContent.trim() ?? ''];
     const sample = () => {
       const now = nav.querySelector('.ds-toc__link[aria-current="location"]')?.textContent.trim() ?? '';
       if (window.__marks[window.__marks.length - 1] !== now) window.__marks.push(now);

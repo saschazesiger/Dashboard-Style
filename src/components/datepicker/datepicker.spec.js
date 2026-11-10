@@ -9,7 +9,7 @@
  * project too.
  */
 import { test, expect } from '../../../test/browser/base-test.js';
-import { ready } from '../../../test/browser/helpers/motion.js';
+import { ready, settle } from '../../../test/browser/helpers/motion.js';
 
 test.use({ locale: 'en-US', timezoneId: 'UTC' });
 
@@ -106,6 +106,8 @@ test('min, max and blocked days reach the calendar; Today is blocked when today 
   await expect(day(panel, '2026-11-07')).toHaveAttribute('aria-disabled', 'true');
   await expect(panel.locator('.ds-calendar__week').first()).toBeVisible();
   await expect(panel.getByRole('button', { name: 'Today' })).toHaveAttribute('aria-disabled', 'true');
+  // At rest before the forced click: mid-entrance the panel is still growing, and the point would hit another day.
+  await settle(page);
   await day(panel, '2026-11-07').click({ force: true });
   await expect(panel).toHaveAttribute('data-state', 'open');
 });

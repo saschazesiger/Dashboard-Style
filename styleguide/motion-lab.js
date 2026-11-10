@@ -413,6 +413,7 @@
       // first render (a flush per demo on a page this size costs seconds).
       var page = $('#sg-page');
       document.documentElement.setAttribute('data-lab-rendered', '');
+      if (window.SG_LAB_RESUME_LOOPS) window.SG_LAB_RESUME_LOOPS();
       page.setAttribute('data-ds-moving', '');
       pending.forEach(function (demo) { setupDemo(demo, true); });
       void getComputedStyle(page).opacity;
@@ -428,6 +429,46 @@
       });
     }, { rootMargin: '100% 0px' }) : null;
     if (near) pending.forEach(function (demo) { near.observe(demo.card); });
+    // Loops (spinners, loaders, shimmer) of cards well out of view pause, and play on as their card comes near:
+    // dozens of them repaint every frame, and an engine that keeps ticking them off screen (WebKit) drops to about
+    // ten frames a second on this page. Through the animations themselves, pseudo-elements included; off once
+    // every demo is rendered (SG_LAB_SETUP_ALL, the tests).
+    var held = new Map();
+    var far = new Set();
+    /* Pauses the running loops of a card out of view (also once a demo set up there has started its own). */
+    var hold = function (card) {
+      if (!far.has(card) || document.documentElement.hasAttribute('data-lab-rendered')) return;
+      var loops = loopsOf(card);
+      loops.forEach(function (animation) { animation.pause(); });
+      if (loops.length) held.set(card, (held.get(card) || []).concat(loops));
+    };
+    var loopsOf = function (card) {
+      return card.getAnimations({ subtree: true }).filter(function (animation) {
+        var timing = animation.effect && animation.effect.getComputedTiming();
+        return timing && !isFinite(timing.iterations) && animation.playState === 'running';
+      });
+    };
+    var sight = typeof IntersectionObserver === 'function' && typeof Element.prototype.getAnimations === 'function' ? new IntersectionObserver(function (entries) {
+      if (document.documentElement.hasAttribute('data-lab-rendered')) return;
+      entries.forEach(function (item) {
+        var card = item.target;
+        if (item.isIntersecting) {
+          far.delete(card);
+          (held.get(card) || []).forEach(function (animation) { if (animation.playState === 'paused') animation.play(); });
+          held.delete(card);
+        } else {
+          far.add(card);
+          hold(card);
+        }
+      });
+    }, { rootMargin: '50% 0px' }) : null;
+    if (sight) pending.forEach(function (demo) { sight.observe(demo.card); });
+    window.SG_LAB_RESUME_LOOPS = function () {
+      held.forEach(function (loops) { loops.forEach(function (animation) { if (animation.playState === 'paused') animation.play(); }); });
+      held.clear();
+      far.clear();
+      if (sight) sight.disconnect();
+    };
     // The rest in idle slices of a few milliseconds, so a phone stays responsive while the lab finishes.
     var idle = window.requestIdleCallback || function (fn) { return setTimeout(function () { fn({ timeRemaining: function () { return 8; } }); }, 16); };
     var slice = function (deadline) {
@@ -437,7 +478,9 @@
         if (performance.now() - started > 12) break;
         var next = soon.shift();
         while (next && next.ready) next = soon.shift();
-        setupDemo(next || pending.find(function (demo) { return !demo.ready; }));
+        var made = next || pending.find(function (demo) { return !demo.ready; });
+        setupDemo(made);
+        if (made && sight) hold(made.card);
       }
       if (pending.some(function (demo) { return !demo.ready; })) idle(slice, { timeout: 500 });
       finish();

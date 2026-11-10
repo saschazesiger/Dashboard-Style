@@ -7,7 +7,7 @@
  * in `fallback` too.
  */
 import { test, expect } from '../../../test/browser/base-test.js';
-import { ready } from '../../../test/browser/helpers/motion.js';
+import { ready, settle } from '../../../test/browser/helpers/motion.js';
 
 const ESC = '\u001b';
 const TEXT = [
@@ -379,6 +379,8 @@ test('the ANSI colours, the level words and the matches read at 4.5:1, light and
   await page.locator('#probe').getByRole('searchbox').press('Enter');
   for (const scheme of ['light', 'dark']) {
     await useScheme(page, scheme);
+    // The colours glide to the scheme's on a slow machine: read them at rest.
+    await settle(page, { timeout: 10000 });
     const selectors = ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'black'].map((colour) => `#probe .ds-logview__ansi[data-fg="${colour}"]`)
       .concat(['fatal', 'error', 'warn', 'info', 'debug'].map((level) => `#probe .ds-logview__line[data-level="${level}"] .ds-logview__word`))
       .concat(['#probe .ds-logview__line[data-level="error"] .ds-logview__text', '#probe .ds-logview__match', '#probe .ds-logview__match--current', '#probe .ds-logview__num']);
