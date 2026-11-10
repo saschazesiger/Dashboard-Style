@@ -129,9 +129,14 @@ for (const [path, selector] of Object.entries(STYLE_TARGETS)) {
     await ready(page);
     await page.mouse.move(1, 1);
     if (STYLE_SETUP[path]) await STYLE_SETUP[path](page);
+    // The Motion Lab sets its demos up in idle time after it shows: measure once it has finished, or a setup in the
+    // middle counts as the change.
+    if (path.includes('motion.html')) await page.waitForFunction(() => document.documentElement.hasAttribute('data-lab-complete'), null, { timeout: 120000 });
     await settle(page, { timeout: 20000 });
-    // Every loop paused: the metrics then hold the recalc of the change alone.
+    // Every loop paused: the metrics then hold the recalc of the change alone (the lab's own pause of the loops out of
+    // view stops first: its observer would play them again mid-measure).
     await page.evaluate(() => {
+      window.SG_LAB_RESUME_LOOPS?.();
       for (const animation of document.getAnimations()) animation.pause();
     });
     const change = (n) => page.evaluate(([target, text]) => {
