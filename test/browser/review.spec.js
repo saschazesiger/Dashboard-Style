@@ -387,9 +387,14 @@ test.describe('style scope', () => {
     test(`${path}: a text change inside a card restyles its neighbourhood, not the page (Chromium)`, async ({ page, browserName }) => {
       test.skip(browserName !== 'chromium', 'the element count of a style recalc comes from the tracing of Chromium');
       await open(page, path);
+      // The Motion Lab sets its demos up in idle time after it shows: measure once it has finished, or a setup
+      // landing in the trace counts as the change.
+      if (path.includes('motion.html')) await page.waitForFunction(() => document.documentElement.hasAttribute('data-lab-complete'), null, { timeout: 120000 });
       const selector = STYLE_TARGETS[path];
       // Every loop paused: the trace then holds the recalc of the change alone.
       const nodes = await page.evaluate(() => {
+        // The lab's own pause of the loops out of view stops (its observer would play them again mid-trace).
+        window.SG_LAB_RESUME_LOOPS?.();
         for (const animation of document.getAnimations()) animation.pause();
         return document.querySelectorAll('*').length;
       });

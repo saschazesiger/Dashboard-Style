@@ -261,6 +261,9 @@ test('a row opens the side sheet, whose arrows step through the devices', async 
   await page.locator('#sheet [data-step="1"]').click();
   await settle(page);
   await expect(page.locator('#sheet-title')).not.toHaveText(name);
+  // The pointer off the arrow: its tooltip would be the top layer, which Escape dismisses first.
+  await page.mouse.move(1, 1);
+  await settle(page);
   await page.keyboard.press('Escape');
   await settle(page);
   await expect(page.locator('#sheet')).not.toHaveAttribute('open', '');

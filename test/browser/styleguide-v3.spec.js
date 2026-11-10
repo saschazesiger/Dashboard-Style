@@ -23,9 +23,10 @@ function collectErrors(page) {
 }
 
 /** Goes to a route of the shell and waits until it is rendered. */
-async function go(page, route, { timeout } = {}) {
+async function go(page, route, { timeout = 15000 } = {}) {
   await page.evaluate((hash) => { location.hash = hash; }, `#/${route}`);
-  await expect(page.locator('html')).toHaveAttribute('data-sg-route', route, timeout ? { timeout } : undefined);
+  // A route change waits for its View Transition, which a loaded machine stretches past the default 5s.
+  await expect(page.locator('html')).toHaveAttribute('data-sg-route', route, { timeout });
 }
 
 async function open(page, route = '') {
