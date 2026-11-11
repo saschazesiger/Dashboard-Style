@@ -13892,12 +13892,16 @@
 
     function notificationItems() {
       var now = Date.now();
+      // Today's items stay today in the first hour after midnight, so the groups are always Today, Yesterday, Earlier.
+      var midnight = new Date(now);
+      midnight.setHours(0, 0, 0, 0);
+      var ago = function (minutes) { return Math.max(now - minutes * NOTIFICATION_MINUTE, midnight.getTime()); };
       var yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       yesterday.setHours(16, 20, 0, 0);
       return [
-        { id: 'offline-42', title: 'LAPTOP-0042 is offline', text: 'Last seen 12 minutes ago in Building A.', time: now - 12 * NOTIFICATION_MINUTE, tone: 'warning', icon: DS.icons.wifiOff, href: '#devices/laptop-0042', actions: [{ id: 'ticket', label: 'Open a ticket' }] },
-        { id: 'ticket-1047', title: 'Ada Lovelace assigned T-1047 to you', text: 'Cannot reach the printer.', time: now - 47 * NOTIFICATION_MINUTE, icon: DS.icons.ticket, href: '#tickets/1047' },
+        { id: 'offline-42', title: 'LAPTOP-0042 is offline', text: 'Last seen 12 minutes ago in Building A.', time: ago(12), tone: 'warning', icon: DS.icons.wifiOff, href: '#devices/laptop-0042', actions: [{ id: 'ticket', label: 'Open a ticket' }] },
+        { id: 'ticket-1047', title: 'Ada Lovelace assigned T-1047 to you', text: 'Cannot reach the printer.', time: ago(47), icon: DS.icons.ticket, href: '#tickets/1047' },
         { id: 'backup', title: 'The nightly backup finished', text: '240 devices, 1.2 GB.', time: yesterday.getTime(), tone: 'success', icon: DS.icons.checkCircle, read: true },
         { id: 'cert', title: 'The certificate of SERVER-0003 expires in 5 days', time: yesterday.getTime() - 3 * 60 * NOTIFICATION_MINUTE, tone: 'error', icon: DS.icons.shieldAlert, actions: [{ id: 'renew', label: 'Renew' }, { id: 'remind', label: 'Remind me' }] },
         { id: 'update', title: 'Product 4.2 is ready to install', text: 'Release notes are in the help centre.', time: now - 6 * 24 * 60 * NOTIFICATION_MINUTE, icon: DS.icons.download, read: true },

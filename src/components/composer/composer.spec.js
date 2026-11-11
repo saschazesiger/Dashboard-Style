@@ -256,14 +256,14 @@ test('the palette stays against the caret as filtering shortens it and the page 
   await expect(palette.locator('[role="option"]').filter({ visible: true })).toHaveCount(1);
   await expect(page.locator('.ds-sr[aria-live="polite"]')).toHaveText('Results: 1');
   await settled();
-  await expect.poll(gap).toBeGreaterThanOrEqual(start - 1);
-  expect(await gap()).toBeLessThanOrEqual(start + 1);
+  // The palette follows on the next frame: wait until it is back against the caret, not only above its old place.
+  await expect.poll(async () => Math.abs((await gap()) - start)).toBeLessThanOrEqual(1);
   const fieldTop = await field(page).evaluate((el) => el.getBoundingClientRect().top);
   await page.evaluate(() => window.scrollBy(0, -120));
   await expect.poll(() => field(page).evaluate((el) => el.getBoundingClientRect().top)).toBeGreaterThan(fieldTop + 100);
   await expect(palette).toHaveAttribute('data-state', 'open');
-  await expect.poll(gap).toBeGreaterThanOrEqual(start - 1);
-  expect(await gap()).toBeLessThanOrEqual(start + 1);
+  // The palette follows on the next frame: wait until it is back against the caret, not only above its old place.
+  await expect.poll(async () => Math.abs((await gap()) - start)).toBeLessThanOrEqual(1);
 });
 
 test('destroy() lets go of the field: no autosize height, no palette listeners', async ({ page }) => {

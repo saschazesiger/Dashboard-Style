@@ -14,6 +14,9 @@ A fix; no class, token, hook or export changed, no migration is required.
   a toggle leaves, not by the order of the `toggle` events, which come in a task of their own and coalesce. A reader's
   event that arrived after `set({ done: false })` kept the new run open at its end, and a reader's click while the
   automatic open was still on its way was not counted.
+- **Styleguide and tests:** the notification centre's demo keeps its items of today in today in the first hour after
+  midnight (its spec failed then: "Today" was empty); the composer's palette test waits until the palette is back
+  against the caret after a scroll instead of only above its old place.
 
 ## 3.0.0
 
