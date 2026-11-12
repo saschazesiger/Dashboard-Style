@@ -24,6 +24,17 @@ describe('DS.lightbox', () => {
     assert.equal(lightbox.nextZoom(1.5, 1), 3);
   });
 
+  it('zooms a click to the image\'s own pixels, at least 2 and at most MAX_ZOOM', () => {
+    assert.equal(lightbox.detailZoom(1600, 500), 3.2);
+    assert.equal(lightbox.detailZoom(3840, 400), lightbox.MAX_ZOOM);
+    // Shown at its own size (or larger): still twice as close.
+    assert.equal(lightbox.detailZoom(400, 400), 2);
+    assert.equal(lightbox.detailZoom(200, 400), 2);
+    // Not loaded yet, or not laid out: the plain step.
+    assert.equal(lightbox.detailZoom(0, 400), 2);
+    assert.equal(lightbox.detailZoom(1600, 0), 2);
+  });
+
   it('keeps a zoomed image covering its frame, and an unzoomed one still', () => {
     const frame = { width: 800, height: 600 };
     const size = { width: 800, height: 450 };
@@ -39,5 +50,6 @@ describe('DS.lightbox', () => {
   it('says where the viewer is in the system\'s words', () => {
     assert.equal(t('imageOf', { index: 3, total: 6 }), 'Image 3 of 6');
     assert.equal(t('zoomIn'), 'Zoom in');
+    assert.equal(t('openImage'), 'Open the image');
   });
 });

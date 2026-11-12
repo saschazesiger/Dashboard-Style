@@ -1,6 +1,6 @@
 {
   "name": "z-dash",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "entry": "api-keys",
   "minify": true,
   "js": "classic",
@@ -12,8 +12,8 @@
     },
     "js": {
       "file": "ds.api-keys.js",
-      "bytes": 521774,
-      "gzip": 124287
+      "bytes": 521807,
+      "gzip": 124297
     },
     "properties": {
       "file": "properties.css",

@@ -25,6 +25,8 @@ The viewer `DS.lightbox` builds (DOM APIs, inside the gallery's `.ds-theme`):
   <div class="ds-dialog__box ds-lightbox__box">
     <div class="ds-lightbox__bar">
       <p class="ds-lightbox__count">Image 2 of 6</p>
+      <!-- With original: true, the link that opens the image on its own: -->
+      <a class="ds-btn ds-btn--ghost ds-btn--icon" href="photos/ports.jpg" target="_blank" rel="noopener" aria-label="Open the image">[icon external 20]</a>
       <button class="ds-btn ds-btn--ghost ds-btn--icon" type="button" aria-label="Zoom out">[icon minimize 20]</button>
       <button class="ds-btn ds-btn--ghost ds-btn--icon" type="button" aria-label="Zoom in">[icon plus 20]</button>
       <button class="ds-btn ds-btn--ghost ds-btn--icon" type="button" aria-label="Close" data-ds-close>[icon close 20]</button>
@@ -75,32 +77,37 @@ at that image (a click with Ctrl, Cmd or Shift keeps the link's own behaviour), 
   thumbnails the arrow keys move between them (one tab stop, `DS.a11y.roving()`) and show the image at once; the
   current one has `aria-current="true"`, its ring and the full opacity. A change says "Image 3 of 6" and the caption
   (else the alt), and the image enters with the swap of `DS.motion.enter()`. `ds:change` (`{ index, total }`) follows.
-- **Zoom.** The buttons, `+` (or `=`) and `-` step 1, 2 and 4; `0` goes back to the fit; a double click (a double tap)
-  zooms to 2 at that point and back; Ctrl with the wheel (a trackpad pinch) and two fingers zoom freely up to 4. A
-  zoomed image pans with a drag and the arrow keys, never further than the image covers the frame. Escape first goes
-  back to the fit, then closes. `ds:zoom` (`{ zoom }`) follows.
+- **Zoom.** A click of the mouse (the frame shows the zoom-in cursor) and a double tap zoom in at that point, to the
+  image's own pixels (`detailZoom()`: at least 2, at most 4), and the next one back to the fit; a click that ends a drag
+  does not, and a double click zooms once. The buttons, `+` (or `=`) and `-` step 1, 2 and 4; `0` goes back to the fit;
+  Ctrl with the wheel (a trackpad pinch) and two fingers zoom freely up to 4. A zoomed image pans with a drag, the wheel
+  (two fingers on a trackpad; Shift with the wheel sideways) and the arrow keys, never further than the image covers
+  the frame. Escape first goes back to the fit, then closes. `ds:zoom` (`{ zoom }`) follows.
+- **The original.** `original: true` (`create()`, `show()`) adds a link to the bar, named by the string `openImage`, that
+  opens the current image on its own in a new tab: an image's `href` (a gallery item's own), else its `src`.
 - **Swipe.** Unzoomed, a finger swiped sideways leads the image; past a fifth of the frame it goes to the next or the
   previous image, else it glides back.
 - **Loading and errors.** A spinner shows after `--ds-delay-loader` while an image loads; one that fails shows an icon
   and "The image could not be loaded." in its place (`data-failed`).
-- **A list without a gallery.** `DS.lightbox.show([{ src, alt, caption, thumb }], { index, opener, label })` opens a
-  viewer for images the page has as data; it goes once it closed.
+- **A list without a gallery.** `DS.lightbox.show([{ src, alt, caption, thumb, href }], { index, opener, label,
+  original })` opens a viewer for images the page has as data; it goes once it closed.
 
 **JS API.** `js/lightbox.js` (`DS.lightbox`):
 
-- `create(gallery, { images, label, home })` returns the controller that `data-ds-lightbox` makes: `get()` (`{ open,
+- `create(gallery, { images, label, home, original })` returns the controller that `data-ds-lightbox` makes: `get()` (`{ open,
   index, total, zoom }`), `set(index)` or `set({ index, zoom })`, `open(index, opener)`, `close()`, `next()`, `prev()`,
   `on(type, fn)` (`open`, `close`, `change`, `zoom`, on the gallery) and `destroy()` (removes the viewer). `images` (a
   function returning the list) replaces the gallery's items.
-- `open(gallery, { index, opener })` and `close(gallery)`; `show(images, { index, opener, label })`.
-- `nextZoom(zoom, direction)`, `clampPan(x, y, size, frame, zoom)` and `MAX_ZOOM` (4) are its arithmetic.
+- `open(gallery, { index, opener })` and `close(gallery)`; `show(images, { index, opener, label, original })`.
+- `nextZoom(zoom, direction)`, `detailZoom(natural, fitted)`, `clampPan(x, y, size, frame, zoom)` and `MAX_ZOOM` (4)
+  are its arithmetic.
 
 ### Keyboard, names and forced colours
 
 - Keyboard: Tab stays in the viewer (the bar, the arrows, the row of thumbnails); ArrowLeft and ArrowRight move (pan
   when zoomed), ArrowUp and ArrowDown pan, Home and End, `+`, `-`, `0`; Escape takes the zoom back, then closes.
 - Names and roles: the viewer is a dialog named by the gallery's `aria-label` (else the string `images`); each button
-  has a name (the strings `zoomIn`, `zoomOut`, `close`, `previous`, `next`); the image has the item's alt; the row of
+  has a name (the strings `zoomIn`, `zoomOut`, `close`, `previous`, `next`; the link of `original`: `openImage`); the image has the item's alt; the row of
   thumbnails is a group named "Images", each thumbnail named "Image 2 of 6: ..." with `aria-current` on the current
   one; the count is visible text.
 - Forced colours: the gallery's items and the thumbnails keep a `CanvasText` edge, the current thumbnail a

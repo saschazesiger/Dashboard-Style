@@ -1,6 +1,6 @@
 {
   "name": "z-dash",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "entry": "files",
   "minify": true,
   "js": "classic",
@@ -12,8 +12,8 @@
     },
     "js": {
       "file": "ds.files.js",
-      "bytes": 613915,
-      "gzip": 144888
+      "bytes": 613948,
+      "gzip": 144897
     },
     "properties": {
       "file": "properties.css",

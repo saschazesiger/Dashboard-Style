@@ -10,6 +10,8 @@ export interface LightboxImage {
   caption?: string;
   /** A smaller image for the row of thumbnails (default: src). */
   thumb?: string;
+  /** Where the link of `original` leads (default: src). */
+  href?: string;
 }
 
 /** Where a lightbox is. */
@@ -41,13 +43,15 @@ export interface LightboxController {
 export declare const MAX_ZOOM: number;
 /** The zoom after a step: 1 doubles, -1 halves, 0 is the fit. */
 export declare function nextZoom(zoom: number, direction: number): number;
+/** The zoom of a click or a double tap: the image's own pixels (natural over fitted width), at least 2, at most MAX_ZOOM. */
+export declare function detailZoom(natural: number, fitted: number): number;
 /** The pan within reach, so the zoomed image still covers the frame. */
 export declare function clampPan(x: number, y: number, size: { width: number; height: number }, frame: { width: number; height: number }, zoom: number): { x: number; y: number };
 /** The controller of a gallery, the one [data-ds-lightbox] makes. */
-export declare function create(gallery: Element, options?: { images?: () => LightboxImage[]; label?: string; home?: Element }): LightboxController;
+export declare function create(gallery: Element, options?: { images?: () => LightboxImage[]; label?: string; home?: Element; original?: boolean }): LightboxController;
 /** Opens the viewer of a gallery at `index`. */
 export declare function open(gallery: Element, options?: { index?: number; opener?: Element | null }): Promise<void>;
 /** Closes the viewer of a gallery. */
 export declare function close(gallery: Element): Promise<void>;
 /** Shows a list of images without a gallery in the page; the viewer goes once it closed. */
-export declare function show(images: LightboxImage[], options?: { index?: number; opener?: Element | null; label?: string }): LightboxController;
+export declare function show(images: LightboxImage[], options?: { index?: number; opener?: Element | null; label?: string; original?: boolean }): LightboxController;

@@ -71,6 +71,7 @@
     "DS.lightbox.create": "events only: the viewer opens as a dialog, shown in the entry lightbox-open",
     "DS.lightbox.show": "the same viewer as DS.lightbox.open, shown in the entry lightbox-open",
     "DS.lightbox.nextZoom": "a pure function: no motion",
+    "DS.lightbox.detailZoom": "a pure function: no motion",
     "DS.lightbox.clampPan": "a pure function: no motion"
   },
   "exceptions": {

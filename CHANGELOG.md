@@ -4,6 +4,22 @@ All notable changes. Versions follow [semver](https://semver.org): renaming or r
 export is a major change; adding one is a minor change. Identifiers such as D7 refer to the design decisions in
 [plans/motion-2.md](plans/motion-2.md).
 
+## 3.1.0
+
+Additions to the lightbox; nothing was renamed or removed, no migration is required.
+
+### Added
+
+- **Lightbox** (`DS.lightbox`): a click of the mouse zooms in at that point and the next one back to the fit, as the
+  zoom-in cursor of the frame promised (until now only a double click did); a click that ends a drag does not, and a
+  double click still zooms once. A click and a double tap zoom to the image's own pixels (`detailZoom(natural,
+  fitted)`, new: at least 2, at most `MAX_ZOOM`) instead of always to 2, so a large screenshot shows its detail at
+  once. A double tap on a zoomed image takes it back to the fit (the tap of a pan was not heard). A zoomed image pans
+  with the wheel (two fingers on a trackpad; Shift with the wheel sideways); Ctrl with the wheel still zooms.
+- **Lightbox:** `original: true` (`create()`, `show()`) adds a link to the bar that opens the current image on its own
+  in a new tab (an image's new `href`, a gallery item's own, else its `src`), named by the new string `openImage`
+  ("Open the image").
+
 ## 3.0.1
 
 A fix; no class, token, hook or export changed, no migration is required.

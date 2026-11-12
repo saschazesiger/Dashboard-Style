@@ -118,6 +118,89 @@ test('a zoomed image pans with a drag that follows the pointer', async ({ page }
   expect(x).toBeCloseTo(60, -1);
 });
 
+test('a click of the mouse zooms in to the image\'s own pixels and back; a click that ends a drag does not', async ({ page }) => {
+  await open(page);
+  await page.locator('[data-demo="gallery"] .ds-lightbox__item').first().click();
+  const box = viewer(page);
+  await settle(page);
+  const frame = box.locator('.ds-lightbox__frame');
+  const zoom = () => frame.evaluate((el) => Number(el.style.getPropertyValue('--ds-lightbox-zoom') || 1));
+  const own = await box.locator('.ds-lightbox__image').evaluate((img) => Math.min(4, Math.max(2, Math.round((img.naturalWidth / img.offsetWidth) * 100) / 100)));
+  const rect = await frame.boundingBox();
+  const cx = rect.x + rect.width / 2;
+  const cy = rect.y + rect.height / 2;
+  await page.mouse.click(cx, cy);
+  expect(await zoom(), 'the image\'s own pixels').toBe(own);
+  await expect(frame).toHaveAttribute('data-zoomed', '');
+  // A drag pans; the click that ends it keeps the zoom.
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  await page.mouse.move(cx + 50, cy + 10, { steps: 5 });
+  await page.mouse.up();
+  expect(await zoom(), 'a drag is not a click').toBe(own);
+  // The wheel pans a zoomed image as it would scroll.
+  const before = await frame.evaluate((el) => parseFloat(el.style.getPropertyValue('--ds-lightbox-y')));
+  await page.mouse.move(cx, cy);
+  await page.mouse.wheel(0, 40);
+  await expect.poll(() => frame.evaluate((el) => parseFloat(el.style.getPropertyValue('--ds-lightbox-y')))).toBeLessThan(before);
+  expect(await zoom(), 'the wheel without Ctrl does not zoom').toBe(own);
+  await page.mouse.click(cx, cy);
+  expect(await zoom(), 'the next click: back to the fit').toBe(1);
+  await expect(frame).not.toHaveAttribute('data-zoomed', '');
+  // A double click zooms in once, not in and out again.
+  await page.mouse.dblclick(cx, cy);
+  expect(await zoom()).toBe(own);
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Escape');
+  await settle(page);
+});
+
+test('a double tap zooms in, and a double tap on the zoomed image back to the fit', async ({ page, browserName }) => {
+  test.skip(browserName === 'firefox', 'touch pointers are not emulated in Firefox');
+  await open(page);
+  await page.locator('[data-demo="gallery"] .ds-lightbox__item').first().click();
+  const box = viewer(page);
+  await settle(page);
+  const frame = box.locator('.ds-lightbox__frame');
+  const doubleTap = () => page.evaluate(() => {
+    const frame = document.querySelector('.ds-lightbox__frame');
+    const r = frame.getBoundingClientRect();
+    const at = (type, id) => frame.dispatchEvent(new PointerEvent(type, { pointerId: id, pointerType: 'touch', isPrimary: true, bubbles: true, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, button: 0 }));
+    at('pointerdown', 21);
+    at('pointerup', 21);
+    at('pointerdown', 22);
+    at('pointerup', 22);
+  });
+  await doubleTap();
+  await expect(frame).toHaveAttribute('data-zoomed', '');
+  await doubleTap();
+  await expect(frame).not.toHaveAttribute('data-zoomed', '');
+  await page.keyboard.press('Escape');
+  await settle(page);
+});
+
+test('original: the link in the bar opens the current image on its own', async ({ page }) => {
+  await open(page);
+  await page.getByRole('button', { name: 'Show the photos of TABLET-0007' }).click();
+  const list = page.getByRole('dialog', { name: 'Photos of TABLET-0007' });
+  await settle(page);
+  const link = list.getByRole('link', { name: 'Open the image' });
+  await expect(link).toHaveAttribute('target', '_blank');
+  const first = await link.getAttribute('href');
+  expect(first).toBe(await list.locator('.ds-lightbox__image').getAttribute('src'));
+  await page.keyboard.press('ArrowRight');
+  await expect(link).not.toHaveAttribute('href', first);
+  expect(await link.getAttribute('href')).toBe(await list.locator('.ds-lightbox__image').getAttribute('src'));
+  // Without it, the bar has no link.
+  await page.keyboard.press('Escape');
+  await settle(page);
+  await page.locator('[data-demo="gallery"] .ds-lightbox__item').first().click();
+  await settle(page);
+  await expect(viewer(page).getByRole('link')).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await settle(page);
+});
+
 test('swipe on touch: past a fifth of the frame it goes on, a short one glides back', async ({ page, browserName }) => {
   test.skip(browserName === 'firefox', 'touch pointers are not emulated in Firefox');
   await open(page);

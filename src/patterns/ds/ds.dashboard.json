@@ -1,6 +1,6 @@
 {
   "name": "z-dash",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "entry": "dashboard",
   "minify": true,
   "js": "classic",
@@ -12,8 +12,8 @@
     },
     "js": {
       "file": "ds.dashboard.js",
-      "bytes": 572907,
-      "gzip": 137274
+      "bytes": 572940,
+      "gzip": 137283
     },
     "properties": {
       "file": "properties.css",

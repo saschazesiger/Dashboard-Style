@@ -11235,7 +11235,7 @@
       render: function (h) {
         return h.section('A gallery', '<ul class="ds-lightbox__gallery" aria-label="Photos of LAPTOP-0042" data-ds-lightbox data-demo="gallery">' +
           LB_PHOTOS.map(function (photo) { return lbItem(h, photo); }).join('') + '</ul>',
-          'Each item links to the full image, so it works without the script. Click one: the arrows, Home and End move, + and - zoom, a drag pans a zoomed image, Escape closes.') +
+          'Each item links to the full image, so it works without the script. Click one: the arrows, Home and End move; a click on the image (a double tap) zooms in to its own pixels and back, + and - zoom, a drag or the wheel pans a zoomed image, Escape closes.') +
 
           h.section('An image that fails', '<ul class="ds-lightbox__gallery" aria-label="Attachments of ticket #1042" data-ds-lightbox data-demo="failing">' +
             lbItem(h, LB_PHOTOS[1]) +
@@ -11243,7 +11243,7 @@
             'An image that does not load shows an icon and words in its place.') +
 
           h.section('A list without a gallery', '<div class="sg-row"><button class="ds-btn" type="button" data-demo="show">' + h.icon('image', 18) + 'Show the photos of TABLET-0007</button></div>',
-            'DS.lightbox.show() takes images the page has as data; the viewer goes once it closed.') +
+            'DS.lightbox.show() takes images the page has as data; the viewer goes once it closed. With original: true its bar links to the image on its own.') +
 
           h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">←</kbd> <kbd class="ds-kbd">→</kbd> the previous and the next image (they pan when zoomed), <kbd class="ds-kbd">↑</kbd> <kbd class="ds-kbd">↓</kbd> pan, <kbd class="ds-kbd">Home</kbd> and <kbd class="ds-kbd">End</kbd> the first and the last, <kbd class="ds-kbd">+</kbd> <kbd class="ds-kbd">-</kbd> zoom, <kbd class="ds-kbd">0</kbd> fits; <kbd class="ds-kbd">Escape</kbd> takes the zoom back, then closes. <kbd class="ds-kbd">Tab</kbd> stays inside.</p>');
       },
@@ -11252,7 +11252,7 @@
         h.$('[data-demo="show"]', root).addEventListener('click', function (event) {
           DS.lightbox.show(LB_PHOTOS.slice(2, 5).map(function (photo) {
             return { src: lbPicture(photo[2], photo[3], 1600, 1000), thumb: lbPicture(photo[2], photo[3], 240, 240), alt: photo[0].replace('LAPTOP-0042', 'TABLET-0007'), caption: photo[1] };
-          }), { opener: event.currentTarget, label: 'Photos of TABLET-0007' });
+          }), { opener: event.currentTarget, label: 'Photos of TABLET-0007', original: true });
         });
         return function () {
           h.$$('[data-ds-lightbox]', root).forEach(function (gallery) {

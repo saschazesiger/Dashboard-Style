@@ -843,6 +843,7 @@ strings a script adds have an option, so a page in another language passes its o
 | `Images` | the name of a lightbox's row of thumbnails (the system's string `images`) | `DS.core.config({ strings: { images } })` |
 | `Zoom in` | a lightbox's zoom-in button (the system's string `zoomIn`) | `DS.core.config({ strings: { zoomIn } })` |
 | `Zoom out` | its zoom-out button (the system's string `zoomOut`) | `DS.core.config({ strings: { zoomOut } })` |
+| `Open the image` | the link of a lightbox with `original: true` that opens the image on its own (the system's string `openImage`) | `DS.core.config({ strings: { openImage } })` |
 | `The image could not be loaded.` | a lightbox image that failed (the system's string `imageFailed`) | `DS.core.config({ strings: { imageFailed } })` |
 | `Resize the sheet` | the name of a bottom sheet's drag handle without one of its own (`DS.bottomsheet`; the system's string `resizeSheet`) | `DS.core.config({ strings: { resizeSheet } })` |
 | `Sheet at {percent} percent of the screen` | what a bottom sheet says when it stops at another height (the system's string `sheetDetent`) | `DS.core.config({ strings: { sheetDetent } })` |

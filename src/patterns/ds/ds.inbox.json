@@ -1,6 +1,6 @@
 {
   "name": "z-dash",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "entry": "inbox",
   "minify": true,
   "js": "classic",
@@ -12,8 +12,8 @@
     },
     "js": {
       "file": "ds.inbox.js",
-      "bytes": 573924,
-      "gzip": 135533
+      "bytes": 573957,
+      "gzip": 135541
     },
     "properties": {
       "file": "properties.css",

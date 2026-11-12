@@ -501,6 +501,7 @@ const DEFAULT_STRINGS = Object.freeze({
   images: 'Images',
   zoomIn: 'Zoom in',
   zoomOut: 'Zoom out',
+  openImage: 'Open the image',
   imageFailed: 'The image could not be loaded.',
   resizeSheet: 'Resize the sheet',
   sheetDetent: 'Sheet at {percent} percent of the screen',
